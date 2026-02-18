@@ -14,20 +14,21 @@ Build a zero-investment online business that generates passive income, built ent
 
 ## Project Stages
 
-### Stage 1: Exploration (Current)
-Research and evaluate passive income ideas that meet our constraints:
-- Zero monetary investment
-- Can be built and maintained by AI
-- Generates revenue through ads, affiliates, or freemium
-- Benefits from SEO / organic traffic
-- Low ongoing maintenance
+### Stage 1: Exploration (Complete)
+Evaluated 6 business models. Decision: **Free Online Tools Site**.
+See `docs/stage-1-exploration.md` and `docs/viability-assessment.md`.
 
-### Stage 2: Detailed Plan
-- Pick the winning idea
-- Define MVP features, data model, pages
-- Map out monetization strategy
-- Identify free-tier services needed
-- Set success metrics and timeline
+### Stage 2: Detailed Plan (Complete)
+Market research, competitor analysis, financial model, and strategy defined.
+See `docs/market-research.md`, `docs/financial-model.md`, `docs/strategy.md`.
+
+**Chosen direction:** Modern, well-designed free tools site targeting:
+1. Financial calculators (highest RPM: $8-$40)
+2. Privacy & compliance tools (underserved, growing demand)
+3. General utility tools (high volume, traffic builders)
+
+**Monetization:** Ezoic ads → Mediavine at 50K sessions → affiliates → direct ads
+**Revenue target:** $300/mo (month 12) to $8,000/mo (month 24) moderate case
 
 ### Stage 3: Plan Optimization
 - Review plan for feasibility and risks
