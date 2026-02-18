@@ -20,8 +20,10 @@
 | Geography target | US/UK/CA/AU (Tier 1) | Maximize RPM |
 | Tool build rate | 3-5 tools/week initially | AI-built |
 | Hosting cost | $0 | Vercel free tier |
-| Database cost | $0 | Supabase free tier (minimal use) |
+| Database cost | $0 | None needed — pure static site |
 | Domain cost | $0-$12/year | Optional; can use .vercel.app |
+| Ezoic revenue share | ~10% | Deducted from gross ad revenue |
+| Mediavine revenue share | ~25% | Deducted from gross ad revenue |
 
 ---
 
@@ -50,9 +52,13 @@ Optional paid tier for power users:
 
 ---
 
+**Note on ad revenue figures below:** All ad revenue projections are **net of ad network revenue share** (Ezoic ~10%, Mediavine ~25%). The RPM figures used ($5-$10 Ezoic, $15-$25 Mediavine) reflect what publishers actually receive after the network's cut.
+
+---
+
 ## Conservative Projection (50 tools in 6 months)
 
-Assumes: slower SEO traction, Tier 1 traffic only, Ezoic RPM of $6.
+Assumes: slower SEO traction, Tier 1 traffic only, Ezoic RPM of $6 (net).
 
 | Month | Tools Live | Monthly PV | Ad Revenue | Affiliate | Total |
 |-------|-----------|-----------|------------|-----------|-------|
@@ -120,7 +126,7 @@ At scale, successful tool sites earn **$30-$900/tool/month**. Early-stage sites 
 
 ## Break-Even Analysis
 
-With $0 operating costs (Vercel + Supabase free tiers), there is no break-even point — every dollar is profit. The real question is **time to meaningful income**:
+With $0 operating costs (Vercel free tier, no database needed), there is no break-even point — every dollar is profit. The real question is **time to meaningful income**:
 
 | Target | Conservative | Moderate | Optimistic |
 |--------|-------------|----------|-----------|
@@ -141,7 +147,7 @@ Define failure conditions to avoid sunk cost:
 | <2,000 monthly PV | Month 9 | Review tool selection, consider different categories |
 | <$50/month revenue | Month 12 | Reassess monetization strategy or pivot entirely |
 | <10,000 monthly PV | Month 15 | Consider abandoning project |
-| Vercel/Supabase free tier exhausted | Any | Migrate to Cloudflare Pages / alternative |
+| Vercel free tier exhausted | Any | Migrate to Cloudflare Pages (unlimited bandwidth on free tier) |
 
 ---
 

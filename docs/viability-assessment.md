@@ -42,7 +42,7 @@ For a project titled "Passive Income," there is no revenue projection. Required:
 | Metric | Benchmark | Notes |
 |--------|-----------|-------|
 | AdSense RPM (directory) | $5-15 | Varies by niche; directories trend lower |
-| AdSense RPM (tools) | $15-25 | Developer tools trend higher |
+| AdSense RPM (tools) | $5-15 | *Updated: real 2025 publisher RPMs are far below historical $15-25 benchmarks. AdSense RPMs have crashed industry-wide. See `market-research.md` section 5.* |
 | Affiliate conversion rate | 1-3% | Click-through to purchase |
 | Premium listing conversion | 1-3% | Free to paid tier |
 | Time to 10K monthly pageviews | 6-12 months | New domain, no backlinks |
@@ -113,7 +113,7 @@ Given the constraints ($0 budget, AI-built, passive), the Free Tools Site (Optio
 
 1. **No cold start:** A single tool provides value with zero existing users
 2. **Incremental bets:** Build one tool, ship it, see if it ranks, build the next. Each tool is independent.
-3. **Higher RPMs:** Task-oriented users (developers, professionals) generate $15-25 RPM vs $5-15 for browsing users
+3. **Higher RPMs:** Task-oriented users generate higher RPMs than browsing users. Financial calculator users in particular drive $8-$40 niche RPM ceiling. *Note: real-world blended RPMs via Ezoic/Mediavine are $5-$15 after 2024-2025 AdSense declines.*
 4. **No content quality risk:** Tools are functional, not content. Google doesn't penalize a working calculator.
 5. **Lower maintenance:** A JSON formatter from 2024 still works in 2026. A business listing from 2024 may have a dead phone number.
 

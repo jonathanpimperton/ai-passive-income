@@ -11,11 +11,11 @@
 After evaluating 6 business models, conducting market research on competitors, analyzing RPM data across tool categories, and building financial projections, the recommendation is:
 
 **Build a modern, beautifully designed free online tools site** that combines:
-1. **Financial calculators** (high RPM: $8-$40, general audience, low ad blocker risk)
+1. **Financial calculators** (niche RPM ceiling: $8-$40; our blended RPM likely $5-$15 via Ezoic/Mediavine)
 2. **Privacy & compliance tools** (underserved niche, growing demand, high CPC: $5-$15)
 3. **General utility tools** (high volume, easy to build, traffic builders)
 
-Avoid: Pure developer tools (52-76% ad blocker rate kills revenue).
+Avoid: Pure developer-only tools (52-76% ad blocker rate kills revenue). Note: some MVP utility tools (JSON formatter, Base64 encoder, etc.) serve both developers and general users. Expect higher ad blocker rates (~50%) on these pages specifically, partially offset by their high search volume.
 
 ---
 
@@ -37,7 +37,7 @@ Avoid: Pure developer tools (52-76% ad blocker rate kills revenue).
 - No billing infrastructure needed
 - No customer support expectations
 - No free tier cost scaling
-- $0 to operate indefinitely on Vercel/Supabase free tiers
+- $0 to operate indefinitely on Vercel free tier (no database needed)
 
 ---
 
@@ -63,63 +63,54 @@ Our advantage: a **Next.js 15 + Tailwind CSS site**, statically generated, edge-
 
 ### Priority 1: Financial Calculators (Build First)
 
-**Why first:** Highest RPM ($8-$40), massive search volume, general audience (low ad blocker usage ~33%), strong affiliate potential (banking/fintech programs pay $50-$500/sale).
+**Why first:** Highest RPM potential in the niche (ceiling $8-$40 for pure finance sites with US traffic; our blended site RPM will be lower at $5-$15 via Ezoic/Mediavine). General audience with low ad blocker usage (~33%). Strong affiliate potential (banking/fintech programs pay $50-$500/sale).
 
-**Initial tools (10-15):**
-- Mortgage calculator
-- Loan payment calculator
+**MVP tools (7):**
 - Compound interest calculator
+- Loan payment calculator
 - Savings goal calculator
-- Retirement calculator
 - Salary/hourly wage calculator
 - Tip calculator
-- Auto loan calculator
-- Credit card payoff calculator
-- Debt-to-income ratio calculator
-- Net worth calculator
-- Break-even calculator
 - ROI calculator
 - Inflation calculator
 
-**SEO approach:** Each calculator page includes 500-1,000 words of educational content explaining the concept, formula, and practical tips — capturing both transactional ("mortgage calculator") and informational ("how to calculate mortgage payments") queries.
+**Post-MVP expansion:**
+- Retirement calculator, auto loan calculator, credit card payoff calculator, debt-to-income ratio calculator, net worth calculator, break-even calculator
+
+**Why no mortgage calculator in MVP?** It's dominated by Bankrate/NerdWallet (DA 80+). The tools above target lower-competition queries with plentiful long-tail variations ("compound interest calculator monthly", "salary to hourly converter with overtime").
+
+**SEO approach:** Each calculator page includes educational content (100-300 words for MVP, expanding to 500-1,000 words post-launch) — capturing both transactional ("compound interest calculator") and informational ("how does compound interest work") queries.
 
 ### Priority 2: Privacy & Compliance Tools (Build Second)
 
 **Why second:** Underserved niche with regulatory tailwind (GDPR fines EUR 2B+ in 2025, EAA enforcement active), audience is business owners/marketers (low ad blocker usage), high CPC from compliance SaaS advertisers ($5-$15).
 
-**Initial tools (8-10):**
-- Privacy policy generator
-- Cookie consent checker
-- GDPR compliance checklist
+**MVP tools (4 — client-side only):**
+- Password generator (customizable length, characters, strength meter)
 - Password strength checker
-- Password generator (customizable)
-- Email breach checker (via HaveIBeenPwned API)
-- SSL certificate checker
-- Website security headers checker
+- Hash generator (MD5, SHA-1, SHA-256)
 - WCAG color contrast checker
-- Readability score analyzer
+
+**Post-MVP expansion (requires API access or server-side):**
+- Privacy policy generator, cookie consent checker, GDPR compliance checklist, email breach checker (HIBP API), SSL certificate checker, website security headers checker, readability score analyzer
 
 ### Priority 3: General Utility Tools (Build Alongside)
 
 **Why:** Easy to build, high search volume, traffic builders that grow domain authority. Mix in throughout to maintain steady tool output.
 
-**Initial tools (15-20):**
+**MVP tools (9):**
 - Word counter / character counter
-- Case converter (uppercase, lowercase, title case)
+- Case converter (upper, lower, title, sentence, alternating)
 - Lorem ipsum generator
 - QR code generator
-- Color picker / palette generator
-- Unit converters (length, weight, temperature, speed)
 - Base64 encoder/decoder
 - URL encoder/decoder
 - JSON formatter/validator
-- Text diff tool
-- Hash generator (MD5, SHA-1, SHA-256)
-- Timestamp converter
-- Markdown preview
-- Image compressor (client-side)
-- CSV to JSON converter
 - UUID generator
+- Timestamp converter (Unix ↔ human-readable)
+
+**Post-MVP expansion:**
+- Color picker / palette generator, unit converters, text diff tool, markdown preview, image compressor (client-side), CSV to JSON converter
 
 ### Priority 4: Emerging / Seasonal (Month 4+)
 
@@ -136,7 +127,7 @@ Our advantage: a **Next.js 15 + Tailwind CSS site**, statically generated, edge-
 
 ### Phase 1: Build & Index (Months 1-3)
 - **Revenue:** $0
-- **Focus:** Build 40-50 tools, submit to Google Search Console, build internal linking
+- **Focus:** Ship 20-tool MVP (3 weeks), then continue adding tools to reach 40+. Submit to Google Search Console, build internal linking.
 - **No ads yet** — focus on user experience and indexing
 
 ### Phase 2: First Ads + Affiliates (Months 3-6)
@@ -168,12 +159,12 @@ Next.js 15 (App Router)
 ├── /app
 │   ├── /tools
 │   │   ├── /financial
-│   │   │   ├── /mortgage-calculator
 │   │   │   ├── /compound-interest-calculator
+│   │   │   ├── /loan-payment-calculator
 │   │   │   └── ...
 │   │   ├── /privacy
 │   │   │   ├── /password-generator
-│   │   │   ├── /privacy-policy-generator
+│   │   │   ├── /password-strength-checker
 │   │   │   └── ...
 │   │   ├── /text
 │   │   │   ├── /word-counter
@@ -183,10 +174,13 @@ Next.js 15 (App Router)
 │   │       ├── /json-formatter
 │   │       ├── /base64-encoder
 │   │       └── ...
-│   ├── /blog (month 6+, educational content)
 │   ├── /about
-│   ├── /privacy-policy
-│   └── /sitemap.xml
+│   ├── /privacy (privacy policy page)
+│   ├── sitemap.ts
+│   └── robots.ts
+├── /components
+│   ├── /tools — 'use client' interactive tool components
+│   └── /ui — shared UI components (server-safe)
 ├── Static generation (SSG) for all tool pages
 ├── Client-side processing (zero server round trips)
 ├── Tailwind CSS v4 for styling
@@ -199,9 +193,10 @@ Next.js 15 (App Router)
 |----------|--------|-----------|
 | Rendering | SSG (Static Site Generation) | Fastest possible load times, $0 server costs |
 | Processing | Client-side JavaScript | No server round trips, privacy-friendly, $0 compute |
+| Component pattern | Server page + client tool component | `page.tsx` = server component (metadata, SEO, educational content); `ToolComponent.tsx` = `'use client'` (interactive tool). This preserves SSG metadata while enabling interactivity. |
 | Styling | Tailwind CSS v4 | Rapid development, small CSS bundles, modern look |
 | Hosting | Vercel free tier | Edge delivery, automatic HTTPS, zero config |
-| Database | Supabase free tier (minimal) | Only if needed for user preferences or analytics |
+| Database | None for MVP | Pure static site; Supabase deferred until user accounts or data storage needed |
 | Images | Client-side via Canvas API | No server processing needed |
 | SEO | Next.js metadata API + structured data | Built-in SSG SEO support |
 
@@ -214,7 +209,7 @@ Next.js 15 (App Router)
 1. **Unique title tag:** "Free [Tool Name] Online — [Site Name]"
 2. **Meta description:** Action-oriented, includes primary keyword
 3. **H1:** Tool name with primary keyword
-4. **Educational content:** 500-1,000 words below the tool explaining the concept
+4. **Educational content:** 100-300 words for MVP (how-to + what-is sections); expand to 500-1,000 words post-launch
 5. **Schema.org markup:** `WebApplication` type for rich snippets
 6. **FAQ section:** 3-5 common questions with FAQ schema
 7. **Internal links:** "Related Tools" section linking to 4-6 similar tools
@@ -231,7 +226,7 @@ Next.js 15 (App Router)
 ### Off-Page SEO
 
 1. **Submit to Google Search Console** on day one
-2. **Product Hunt launch** (month 2-3, once 30+ tools are live)
+2. **Product Hunt launch** (week 3-4, immediately after MVP deploy with 20 tools)
 3. **Share individual tools** on Reddit (r/webdev, r/personalfinance, r/smallbusiness)
 4. **Dev.to / Hashnode articles** linking back to tools
 5. **Natural backlinks** from people finding and sharing useful tools
@@ -249,14 +244,14 @@ Each blog post links to the relevant tool → more pages indexed → more traffi
 
 ## Success Metrics
 
-| Metric | Month 3 | Month 6 | Month 12 | Month 24 |
-|--------|---------|---------|----------|----------|
-| Tools live | 40 | 75 | 110 | 160 |
-| Monthly pageviews | 500 | 10,000 | 75,000 | 300,000 |
-| Google indexed pages | 30 | 60 | 100 | 150 |
-| Monthly revenue | $0 | $100 | $1,500 | $8,000 |
-| Domain authority | 0 | 5-10 | 15-25 | 30-40 |
-| Avg pages/visit | 1.5 | 2.5 | 3.5 | 4.0 |
+| Metric | Month 1 (MVP) | Month 3 | Month 6 | Month 12 | Month 24 |
+|--------|-------------|---------|---------|----------|----------|
+| Tools live | 20 | 40 | 75 | 110 | 160 |
+| Monthly pageviews | 0 | 500 | 10,000 | 75,000 | 300,000 |
+| Google indexed pages | 10 | 30 | 60 | 100 | 150 |
+| Monthly revenue | $0 | $0 | $100 | $1,500 | $8,000 |
+| Domain authority | 0 | 0-5 | 5-10 | 15-25 | 30-40 |
+| Avg pages/visit | 1.0 | 1.5 | 2.5 | 3.5 | 4.0 |
 
 ---
 
@@ -279,12 +274,12 @@ This qualifies as genuinely passive income — the tools run themselves, SEO com
 
 ---
 
-## Next Steps (Stage 2)
+## Next Steps (Stage 4: Build, Test & Launch)
 
-1. **Pick a domain name** (or use `[name].vercel.app` initially)
-2. **Scaffold Next.js 15 project** with Tailwind CSS v4
-3. **Build the first 10 financial calculators** with educational content
-4. **Set up Google Search Console** and submit sitemap
-5. **Build the first 10 utility tools** for variety
-6. **Design the homepage** and category pages
-7. **Deploy to Vercel** and begin indexing
+See `plan-optimization.md` for the detailed sprint plan. Summary:
+
+1. **Scaffold Next.js 15 + TypeScript + Tailwind CSS v4** project
+2. **Build 20-tool MVP** across 4 sprints (~16 days)
+3. **Test, audit SEO, deploy to Vercel** (sprint 5)
+4. **Submit to Google Search Console** and begin backlink strategy
+5. **Continue adding tools** post-MVP (target 40+ by month 3)

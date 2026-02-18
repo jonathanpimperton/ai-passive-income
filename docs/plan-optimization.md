@@ -9,7 +9,7 @@
 
 ### What's Solid
 
-1. **$0 cost structure** — Vercel free tier (100GB bandwidth/mo, 6,000 build mins/mo), Supabase free tier (barely needed). Client-side tools generate no server load. This is genuinely free to operate.
+1. **$0 cost structure** — Vercel free tier (100GB bandwidth/mo, 6,000 build mins/mo). No database needed. Client-side tools generate no server load. This is genuinely free to operate.
 
 2. **AI buildability** — Self-contained calculator/utility tools are ideal for AI development. Each tool is an independent unit with clear inputs/outputs, no external dependencies, and testable in isolation.
 
@@ -25,7 +25,7 @@
 
 3. **Financial calculators are high RPM but high competition.** "Mortgage calculator" has massive volume but competes against NerdWallet, Bankrate, and Calculator.net — sites with DA 80+. We need to target **long-tail financial queries** that established sites don't cover well.
 
-4. **Privacy/compliance tools need API access.** Email breach checker (HaveIBeenPwned API), SSL checker, and security headers checker all require external API calls — either server-side or CORS-friendly endpoints. Some may need Supabase edge functions to proxy. Not all are purely client-side.
+4. **Privacy/compliance tools need API access.** Email breach checker (HaveIBeenPwned API), SSL checker, and security headers checker all require external API calls — either server-side or CORS-friendly endpoints. Some may need Vercel serverless functions to proxy. Not all are purely client-side. These are deferred from MVP.
 
 5. **Blog is deferred too long.** The strategy says "Month 6+" but educational content is what drives informational search queries. The tool pages themselves should have educational content from day one — no separate blog needed initially.
 
@@ -112,7 +112,7 @@ These are high-value, 100% client-side, and fast to build:
 7. URL encoder/decoder
 8. JSON formatter/validator
 9. Timestamp converter
-10. QR code generator (using `qrcode` npm package)
+10. QR code generator — use `qrcode` npm package with dynamic import (`next/dynamic`) to avoid adding ~50KB to the main bundle. Speed is the moat; lazy-load non-critical dependencies.
 
 ### Sprint 3: Financial Calculators (Days 8-12)
 
@@ -128,7 +128,7 @@ These are high-value, 100% client-side, and fast to build:
 
 ### Sprint 4: Remaining + Polish (Days 13-16)
 
-18. Hash generator
+18. Hash generator — SHA-256 via native Web Crypto API (`crypto.subtle.digest`); MD5 requires a lightweight library (`js-md5`, ~5KB) since it's not in Web Crypto. Dynamic import the MD5 lib.
 19. Password strength checker
 20. WCAG color contrast checker
 - Add educational content (200-300 words minimum per tool)
@@ -178,32 +178,44 @@ These are high-value, 100% client-side, and fast to build:
 | Internal linking | Important | "Related Tools" on every tool page |
 | 404 page | Important | Custom, links to tool categories |
 
+### Critical: Server/Client Component Pattern
+
+In Next.js 15 App Router, every interactive tool needs the `'use client'` directive. But if the entire `page.tsx` is a client component, we lose SSG metadata benefits (title, description, structured data won't be rendered server-side).
+
+**The correct pattern:**
+- `page.tsx` = **server component** — handles `generateMetadata()`, educational content, FAQ, structured data, related tools. Renders the tool's client component.
+- `ToolComponent.tsx` = **client component** (`'use client'`) — the interactive tool UI with state, event handlers, user input/output.
+
+This is non-negotiable for SEO. Every tool page must follow this split.
+
 ### Simplified File Structure
 
 ```
 /app
-├── layout.tsx              # Root layout with nav, footer
-├── page.tsx                # Homepage: tool grid, categories
-├── sitemap.ts              # Auto-generated sitemap
-├── robots.ts               # Robots.txt
-├── about/page.tsx          # About page
-├── privacy/page.tsx        # Privacy policy
+├── layout.tsx                    # Root layout with nav, footer
+├── page.tsx                      # Homepage: tool grid, categories
+├── sitemap.ts                    # Auto-generated sitemap
+├── robots.ts                     # Robots.txt
+├── about/page.tsx                # About page
+├── privacy/page.tsx              # Privacy policy
 ├── tools/
-│   ├── page.tsx            # All tools listing
+│   ├── page.tsx                  # All tools listing
 │   ├── [category]/
-│   │   ├── page.tsx        # Category listing
+│   │   ├── page.tsx              # Category listing
 │   │   └── [tool]/
-│   │       └── page.tsx    # Individual tool page
+│   │       └── page.tsx          # Server component: metadata + educational content + renders <ToolComponent />
 /components
 ├── tools/
-│   ├── ToolPageLayout.tsx  # Reusable tool page wrapper
-│   ├── CalculatorLayout.tsx # Financial calculator wrapper
-│   ├── RelatedTools.tsx    # Related tools sidebar/footer
-│   └── FaqSection.tsx      # FAQ with schema markup
-├── ui/                     # Shared UI components
+│   ├── ToolPageLayout.tsx        # Reusable tool page wrapper (server component)
+│   ├── CalculatorLayout.tsx      # Financial calculator wrapper (client component)
+│   ├── RelatedTools.tsx          # Related tools sidebar/footer (server component)
+│   ├── FaqSection.tsx            # FAQ with schema markup (server component)
+│   └── [tool-name]/
+│       └── [ToolName].tsx        # 'use client' — interactive tool UI
+├── ui/                           # Shared UI components
 /lib
-├── tools/                  # Tool definitions, metadata, categories
-├── seo/                    # SEO helpers, structured data generators
+├── tools/                        # Tool definitions, metadata, categories
+├── seo/                          # SEO helpers, structured data generators
 ```
 
 ---
@@ -225,7 +237,10 @@ Description: "[Action verb] [what the tool does]. Free, fast, no signup required
 H1:          "[Tool Name]"
 URL:         /tools/[category]/[tool-slug]
 Schema:      WebApplication type
+OG Image:    Auto-generated via Next.js `opengraph-image.tsx` (tool name + category + branding)
 ```
+
+**Open Graph images are critical.** Reddit, Twitter/X, and link previews on messaging apps all show OG images. Tools shared without preview images get significantly less engagement. Use Next.js's built-in `opengraph-image.tsx` to generate dynamic OG images per tool page at build time — zero external dependencies.
 
 ### Content Priorities (Minimal for MVP)
 
@@ -300,12 +315,56 @@ New domains face 3-6 months of reduced visibility.
 **Mitigation:**
 - Target long-tail, low-competition keywords first
 - Submit sitemap day one
-- Build backlinks via Reddit, Product Hunt, dev communities
+- Build backlinks via the strategy below
 - Each new tool is another lottery ticket for ranking
 
 ---
 
-## What "Done" Looks Like for Stage 4 (Initial Build)
+## Backlink Strategy (DA 0 → First Links)
+
+A new domain has zero authority. Backlinks are how Google decides to trust us. The strategy must be concrete and actionable from week 1.
+
+### Tier 1: Launch Day (Week 3-4)
+
+| Action | Expected Links | Effort |
+|--------|---------------|--------|
+| Submit to Google Search Console | Indexing signal (not a backlink, but essential) | 5 min |
+| Submit to Product Hunt | 1 do-follow link (DA 90+) + exposure | 30 min |
+| Post on Hacker News (Show HN) | 1 link if it gets traction (DA 90+) | 15 min |
+| Post on relevant Reddit subs (r/webdev, r/personalfinance, r/InternetIsBeautiful) | No-follow but drives traffic + indirect SEO signals | 30 min |
+| Submit to free tool directories (AlternativeTo, SaaSHub, ToolPilot) | 1-3 do-follow links (DA 30-60) | 1 hour |
+
+### Tier 2: Month 1-3 (Ongoing)
+
+| Action | Expected Links | Effort |
+|--------|---------------|--------|
+| Write 2-3 dev.to / Hashnode articles featuring specific tools | 2-3 do-follow links (DA 70+) | 2-3 hours |
+| Answer relevant Stack Overflow / Reddit questions with tool links | No-follow but traffic-driving | Ongoing, 15 min/week |
+| Submit to web tool roundup lists ("best free online tools 2026") | 1-3 links if accepted | Email outreach, 1 hour |
+| Create a GitHub repo (e.g., "awesome-free-tools") that includes our site | 1 link (DA 90+) | 30 min |
+
+### Tier 3: Month 3-6 (If SEO traction is slow)
+
+| Action | Expected Links | Effort |
+|--------|---------------|--------|
+| Guest post on personal finance / small business blogs | 1-2 do-follow links per post | 2-3 hours per post |
+| Reach out to bloggers who link to competitor tools (broken link building) | 1-5 links if successful | 2-3 hours research + outreach |
+| Create embeddable widget versions of calculators (with attribution link) | Passive backlinks over time | 4-6 hours dev work |
+
+### Expected Timeline
+
+| Milestone | Target |
+|-----------|--------|
+| First 5 backlinks | Week 4 (launch push) |
+| 10-20 referring domains | Month 3 |
+| 30-50 referring domains | Month 6 |
+| DA 10-15 | Month 6-9 |
+
+The embeddable calculator widget strategy deserves emphasis: if bloggers embed our compound interest calculator on their personal finance blog, we get a do-follow backlink on every page that embeds it. This scales passively.
+
+---
+
+## What "Done" Looks Like for Stage 4 (Build, Test & Launch)
 
 MVP is shipped when:
 - [ ] 20 tools are live and functional

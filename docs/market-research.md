@@ -55,10 +55,12 @@ Most tool sites fall into two categories:
 
 ## 3. Tool Category Analysis
 
-### RPM by Category
+### RPM by Category (Niche Ceiling — Best Case)
 
-| Category | AdSense RPM | CPC Range | Ad Blocker Risk | Volume |
-|----------|------------|-----------|-----------------|--------|
+These figures represent the **niche ceiling** for US Tier 1 traffic with optimized ad placement. Real-world blended RPMs are lower — see section 5 for actual publisher data. Using Ezoic/Mediavine instead of AdSense significantly improves these numbers.
+
+| Category | Niche RPM Ceiling | CPC Range | Ad Blocker Risk | Volume |
+|----------|------------------|-----------|-----------------|--------|
 | Financial calculators | $8-$40+ | $5-$25 | Low (33%) | Very High |
 | Privacy/compliance tools | $5-$15 | $5-$15 | Low | Growing |
 | SEO/marketing tools | $5-$25 | $3-$20 | Medium | High |
