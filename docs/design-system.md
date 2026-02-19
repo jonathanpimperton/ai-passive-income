@@ -512,7 +512,7 @@ Utility tools (not in Calculators dropdown — different category):
 │  (filterable grid of all 15 tools)                       │
 │                                                          │
 ├──────────────────────────────────────────────────────────┤
-│  Footer: About | Privacy | Affiliate Disclosure          │
+│  Footer: About | Privacy | Terms | Affiliate Disclosure   │
 │          © 2026 CalcPath                                 │
 └──────────────────────────────────────────────────────────┘
 ```

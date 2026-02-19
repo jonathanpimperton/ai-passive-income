@@ -13,7 +13,7 @@ A focused financial calculator site called **CalcPath** (`calcpath.pages.dev` at
 - **15 MVP tools** (12 financial calculators + 3 utility tools)
 - **Affiliate-first monetization** (not ad-dependent)
 - **Deep educational content** per tool for E-E-A-T and topical authority
-- **Email capture** ("email me my results") → automated drip → affiliate conversions
+- **Email capture** ("email me my results") on financial calculators → automated drip → affiliate conversions
 
 ### Why Financial Niche
 
@@ -23,6 +23,20 @@ A focused financial calculator site called **CalcPath** (`calcpath.pages.dev` at
 | AI Overview defensibility | Charts, tables, projections can't be text snippets | Simple tools already answered in SERP |
 | Topical authority | Deep in one domain = Google trusts it | Thin across many = Google ignores it |
 | Audience intent | High commercial intent | Mixed |
+
+### Market Context
+
+The financial calculator space is large and proven:
+
+| Competitor | Monthly Traffic (Est.) | Domain Age | Revenue Model |
+|------------|----------------------|------------|---------------|
+| Calculator.net | 80-100M visits | 20+ years | Display ads |
+| Omni Calculator | 23-30M visits | 8+ years | Display ads, API licensing |
+| NerdWallet | 20-30M visits | 15+ years | Affiliate, lead gen |
+| Bankrate | 15-20M visits | 25+ years | Affiliate, display ads |
+| SmartAsset | 10-15M visits | 12+ years | Lead gen (sells to advisors) |
+
+**Our realistic slice:** A new site capturing 0.001%-0.01% of this traffic = 3,000-30,000 monthly visits in year 2. This aligns with our revenue projections. We don't need to "beat" any competitor — we need to rank for a handful of long-tail keywords that collectively bring enough traffic to sustain affiliate conversions.
 
 ---
 
@@ -136,7 +150,7 @@ At launch, we have **no moat**. This is a new domain with zero authority. The mo
 | Year 1+ | Domain authority | Accumulated SEO equity, indexed pages, backlink profile |
 | Year 2+ | Brand recognition | Direct traffic from bookmarks and word-of-mouth |
 
-**The email list is the real moat.** Google can change algorithms, AI Overviews can eat traffic, but an email list is an owned channel. This is why email capture is on every calculator from day 1.
+**The email list is the real moat.** Google can change algorithms, AI Overviews can eat traffic, but an email list is an owned channel. This is why email capture is on every financial calculator from day 1. (Not on utility tools — a QR code or formatted JSON isn't something you email yourself.)
 
 ---
 
@@ -217,6 +231,8 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 | 13 | **QR Code Generator** | Multiple format options, downloadable PNG/SVG | utility | None |
 | 14 | **Password Generator** | Customizable, strength meter | utility | "Use a password manager" → 1Password, NordPass |
 | 15 | **JSON Formatter/Validator** | Syntax highlighting | utility | None |
+
+**Why include utility tools despite the financial niche focus?** These 3 tools are a calculated trade-off against topical authority. QR code and password generator have very high search volumes with low competition — they bring traffic that may discover financial tools via the homepage and navigation. Password generator also has affiliate potential (1Password, NordPass). They're fast to build (1-2 days total) so the cost is low. If after 6 months they show no crossover traffic to financial tools, consider removing them to tighten topical authority. JSON formatter is the weakest fit (developer audience, high ad-blocker rate) — build it last, cut it first if needed.
 
 **No affiliate context (by design):** Salary, inflation, ROI, emergency fund, net worth, QR code, JSON formatter. Don't force it — forced recommendations hurt trust.
 
@@ -388,11 +404,11 @@ const tools = defineCollection({
       question: z.string(),
       answer: z.string(),
     })),
-    workedExamples: z.array(z.object({
-      title: z.string(),
+    workedExamples: z.array(z.object({      // Optional — financial calculators have 2-3,
+      title: z.string(),                    // utility tools can omit
       inputs: z.record(z.string(), z.union([z.string(), z.number()])),
       description: z.string(),
-    })),
+    })).optional(),
   }),
 });
 
@@ -400,6 +416,17 @@ export const collections = { tools };
 ```
 
 Markdown body of each tool file = educational content (500-1,000 words financial, 200+ utility).
+
+### Educational Content Quality Guidelines
+
+| Guideline | Standard |
+|-----------|----------|
+| **Reading level** | Grade 8-10 (Flesch-Kincaid). Most users are financially literate enough to search for calculators but not experts. Avoid jargon; when unavoidable (APR, amortization, CAGR), define it inline on first use. |
+| **Structure** | Every financial tool's content follows: (1) What is [concept]? (2) How does it work? (3) When/why should you use this calculator? (4) Key terms explained. (5) Common mistakes to avoid. |
+| **E-E-A-T signals** | Cite formulas used ("We calculate compound interest using A = P(1 + r/n)^(nt)"). Link to authoritative sources (Federal Reserve, SEC, IRS) where relevant. Show calculation methodology is transparent. Include "last updated" date. |
+| **Originality** | All content must be original — no scraped or paraphrased content from competitors. The educational angle should add value beyond what the calculator itself shows (e.g., "Here's what most people miss about compound interest: the first 10 years feel slow, but years 20-30 are where the real growth happens"). |
+| **Actionable framing** | End each section with "what to do next" — not financial advice, but practical next steps: "Now that you've seen your numbers, here are three things to consider." This bridges the educational content to the affiliate recommendations without being pushy. |
+| **Tone** | Second person ("your savings," "your monthly payment"). Trustworthy but approachable — explain like a knowledgeable friend, not a textbook. See design-system.md Brand Voice for full guidelines. |
 
 ### Component Pattern: Dynamic Route + React Island
 
@@ -516,7 +543,7 @@ Don't add Ezoic until 50+ daily visitors consistently. Ads hurt Core Web Vitals 
 ### Revenue Multipliers
 
 **HIGH priority:**
-1. **Email capture** — "Email me a PDF of my results" on every calculator. Kit free tier (10K subs, 1 automation). 3-email drip: results PDF → educational content → affiliate recommendation. Email list is the insurance policy against Google algorithm changes.
+1. **Email capture** — "Email me a PDF of my results" on all 12 financial calculators (not utility tools — emailing a password is a security anti-pattern, QR codes are downloadable images, JSON is copy/paste). Kit free tier (10K subs, 1 automation). 3-email drip: results PDF → educational content → affiliate recommendation. Email list is the insurance policy against Google algorithm changes.
 2. **Embeddable widgets** — iframe versions with "Powered by CalcPath" backlink. Omni Calculator got 564K+ backlinks this way.
 3. **"Best X" comparison tables** — on every financial calculator page. Highest affiliate CTR placement.
 
@@ -755,7 +782,7 @@ Must cover (FTC requires this — $53,088 per violation):
 | **List of affiliate relationships** | Name each program (Betterment, LendingTree, SoFi, etc.) with a brief description. Update as programs are added. |
 | **Not financial advice** | "CalcPath provides educational tools and information, not personalized financial advice. Consult a qualified financial advisor for decisions specific to your situation." |
 
-### Terms of Use (footer link, not full page — keep simple)
+### Terms of Use (`/terms`) — keep simple
 
 | Section | Content |
 |---------|---------|
@@ -827,11 +854,10 @@ Kit free tier allows 1 visual automation. The drip is a single 3-email sequence 
 | `savings-goal` | The 50/30/20 rule and where savings fits | High-yield savings: Marcus, Ally |
 | `rent-vs-buy` | Hidden costs of buying most calculators miss | Get pre-approved: LendingTree |
 | `salary`, `inflation`, `roi`, `net-worth`, `emergency-fund` | General financial planning tip | No affiliate — educational only |
-| `qr-code`, `password-generator`, `json-formatter` | No email 2/3 — single results-only email | None |
+
+**Utility tools (QR code, password generator, JSON formatter) have no email capture.** Emailing a password is a security risk, QR codes are downloadable images, and JSON output is copy/paste. These tools serve traffic diversification, not the email funnel.
 
 ### Key Rules
-
-- **Utility tool signups get 1 email only** (the results). Don't send financial content to someone who used the QR code generator.
 - **Never send more than 3 emails** unless user actively engages (opens, clicks). Respect the "no spam" promise.
 - **Every email has an unsubscribe link** (Kit handles this automatically).
 - **Affiliate disclosure in Email 3:** "This email contains affiliate links. See our [disclosure](link)."
@@ -852,7 +878,7 @@ MVP is shipped when:
 **Monetization & Email:**
 - [ ] Affiliate links with FTC disclosure on applicable calculators
 - [ ] "Best X" comparison tables on financial calculator pages
-- [ ] Email capture ("Email me my results as PDF") on all calculators
+- [ ] Email capture ("Email me my results as PDF") on all 12 financial calculators (not utility tools)
 - [ ] Kit integrated with 1 universal 3-email drip (tags per calculator)
 - [ ] Embeddable widget versions + embed code generator
 
