@@ -217,7 +217,7 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 
 | # | Tool | Key Features | Category | Affiliate Context |
 |---|------|-------------|----------|-------------------|
-| 7 | **Salary ↔ Hourly Converter** | Overtime, tax withholding, take-home pay | income-and-planning | None |
+| 7 | **Salary & Take-Home Calculator** | Overtime, tax withholding, take-home pay | income-and-planning | None |
 | 8 | **Inflation Calculator** | Historical CPI data, purchasing power chart | economic | None |
 | 9 | **ROI Calculator** | Annualized return, total return, comparison mode | saving-and-growth | None |
 | 10 | **Net Worth Calculator** | Categorized assets/liabilities, visual breakdown | income-and-planning | None |
@@ -548,7 +548,7 @@ Don't add Ezoic until 50+ daily visitors consistently. Ads hurt Core Web Vitals 
 3. **"Best X" comparison tables** — on every financial calculator page. Highest affiliate CTR placement.
 
 **MEDIUM priority:**
-4. **Programmatic scenario pages** — pre-filled calculators for long-tail queries ("monthly payment on $300K mortgage at 7%"). Start with 50-100, 500+ unique words each. 60% of programmatic SEO fails — do carefully.
+4. **Programmatic scenario pages** — pre-filled calculators for long-tail queries ("monthly payment on $300K mortgage at 7%"). Launch with 10-20 (Sprint 5), scale to 50-100 during Phase 2 growth. 500+ unique words each. 60% of programmatic SEO fails — do carefully.
 5. **Comparison/analysis pages** — "Snowball vs avalanche," "Renting vs buying 2026." Create 5-10 at launch.
 
 **LOW priority:**
@@ -585,7 +585,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 | Retirement Savings | retirement calculator, retirement savings calculator | how much to save for retirement, 401k calculator, retirement planning calculator |
 | Debt Payoff | debt payoff calculator, debt repayment calculator | snowball vs avalanche calculator, how long to pay off debt, debt free date |
 | Savings Goal | savings calculator, savings goal calculator | how much to save per month, savings goal planner, savings timeline |
-| Salary Converter | salary to hourly calculator, hourly to salary | annual salary calculator, take-home pay calculator, overtime calculator |
+| Salary & Take-Home | salary to hourly calculator, hourly to salary | annual salary calculator, take-home pay calculator, overtime calculator |
 | Inflation | inflation calculator, CPI calculator | purchasing power calculator, what was X worth in Y year, inflation rate |
 | ROI | ROI calculator, return on investment calculator | how to calculate ROI, investment ROI, annualized return calculator |
 | Net Worth | net worth calculator | how to calculate net worth, personal net worth tracker, am I on track |

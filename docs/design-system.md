@@ -445,7 +445,7 @@ Calculators dropdown:
 │   ├── Savings Goal Calculator
 │   └── ROI Calculator
 ├── Debt & Loans
-│   ├── Loan Payment Calculator
+│   ├── Loan Amortization Calculator
 │   ├── Debt Payoff Calculator
 │   └── Rent vs. Buy Calculator
 ├── Income & Planning
@@ -492,7 +492,7 @@ Utility tools (not in Calculators dropdown — different category):
 │                                                          │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐               │
 │  │ Compound │  │  Loan    │  │Retirement│               │
-│  │ Interest │  │ Payment  │  │ Savings  │               │
+│  │ Interest │  │  Amort.  │  │ Savings  │               │
 │  │    →     │  │    →     │  │    →     │               │
 │  └──────────┘  └──────────┘  └──────────┘               │
 │                                                          │
@@ -520,7 +520,7 @@ Utility tools (not in Calculators dropdown — different category):
 ### Homepage Design Notes
 
 - **No hero image** — uses a dark gradient background instead (see Section 11: Visual Polish)
-- **Popular tools first** — 6 highest-value calculators as cards in a 3×2 grid (2×3 on mobile). Selected to cover all 5 customer segments: compound interest (young savers), loan payment (home decision-makers), retirement (pre-retirees), investment return (young savers/pre-retirees), debt payoff (debt resolvers), salary (career optimizers)
+- **Popular tools first** — 6 highest-value calculators as cards in a 3×2 grid (2×3 on mobile). Selected to cover all 5 customer segments: compound interest (young savers), loan amortization (home decision-makers), retirement (pre-retirees), investment return (young savers/pre-retirees), debt payoff (debt resolvers), salary (career optimizers)
 - **Category filter bar** — horizontal pills to filter the full tool grid
 - **Tool cards:** Title, one-line description, arrow icon. Clean, scannable.
 - **No testimonials or social proof at launch** — we have none yet. Add later when real.
