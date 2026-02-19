@@ -364,8 +364,8 @@ This is substantially more content per page than competitors. Omni Calculator pr
 
 | Metric | Month 3 | Month 6 | Month 12 | Month 24 |
 |--------|---------|---------|----------|----------|
-| Tools live | 15 | 15-20 | 25-35 | 40-60 |
-| Monthly pageviews | 0-200 | 200-1,500 | 3,000-8,000 | 20,000-50,000 |
+| Tools live | 15 | 15-20 | 25-30 | 40-50 |
+| Monthly pageviews | 0-200 | 200-1,000 | 3,000-8,000 | 20,000-50,000 |
 | Monthly revenue | $0 | $0-$50 | $65-$250 | $300-$1,400 |
 | Domain authority | 0 | 0-5 | 5-15 | 15-30 |
 
