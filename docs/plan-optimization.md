@@ -71,7 +71,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 - Homepage with tool grid
 - About page, privacy policy page, **affiliate disclosure page** (required for FTC compliance and ad network approval)
 - SEO foundation: sitemap, robots.txt, structured data helpers
-- Content collection schema for tool metadata (see schema definition above)
+- Content collection schema for tool metadata (see Content Collection Schema in Technical Architecture section below)
 - **Vitest setup** + unit tests for financial math functions (compound interest, amortization — financial math MUST be correct)
 - **Affiliate disclosure component** (visible on every page with affiliate links)
 - **Email capture component** ("Email me a PDF of my results" — soft opt-in, NOT gating results)
@@ -173,8 +173,9 @@ These are the most complex, most defensible against AI Overviews, and have the b
 │       ├── ComparisonTable.astro          # "Best X" affiliate comparison table
 │       ├── EmailCapture.tsx               # "Email me my results" opt-in (React island)
 │       └── EmbedCode.astro               # Embed code snippet for widgets
-├── /content
-│   └── /tools                             # Content collections
+├── content.config.ts                      # Content collection definitions (Astro 5+)
+├── /data
+│   └── /tools                             # Tool data files (loaded by content layer)
 │       ├── compound-interest.md           # Tool metadata + educational content
 │       └── ...
 ├── /layouts
@@ -187,13 +188,14 @@ These are the most complex, most defensible against AI Overviews, and have the b
 
 ### Content Collection Schema
 
-Define in `src/content/config.ts`:
+Define in `src/content.config.ts` (Astro 5+ Content Layer API):
 
 ```ts
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const tools = defineCollection({
-  type: 'content', // Markdown files with frontmatter
+  loader: glob({ pattern: '**/*.md', base: './src/data/tools' }),
   schema: z.object({
     name: z.string(),                           // "Compound Interest Calculator"
     slug: z.string(),                           // "compound-interest"
@@ -218,11 +220,13 @@ const tools = defineCollection({
 export const collections = { tools };
 ```
 
-The Markdown body of each tool file contains the educational content (500-1,000 words for financial, 200+ for utility).
+> **Note:** Astro 5+ uses the Content Layer API (glob loader) instead of the legacy `type: 'content'`. Tool data files live in `src/data/tools/` and are loaded at build time.
+
+The Markdown body of each tool file (in `src/data/tools/`) contains the educational content (500-1,000 words for financial, 200+ for utility).
 
 ### Component Pattern: Dynamic Route + React Island
 
-The file structure uses dynamic routes (`[category]/[tool].astro`), not one file per tool:
+The file structure uses dynamic routes (`[category]/[tool].astro`), not one file per tool. This means adding a new tool = adding a content file + a React component, with NO new page files.
 
 ```astro
 <!-- /pages/tools/[category]/[tool].astro -->
@@ -299,7 +303,7 @@ Position as **the** free financial calculator resource. Every page reinforces fi
 Title:       "Free [Tool Name] Online | [Site Name]"
 Description: "[Action verb] [what the tool does]. Free, fast, no signup required."
 H1:          "[Tool Name]"
-URL:         /tools/financial/[tool-slug]
+URL:         /tools/[category]/[tool-slug]
 Schema:      WebApplication type
 OG Image:    Auto-generated (tool name + branding)
 ```
@@ -347,6 +351,7 @@ Only after 50+ daily visitors consistently. Don't add ads that hurt Core Web Vit
 
 MVP is shipped when:
 - [ ] 15 tools are live and functional
+- [ ] All financial math functions have unit tests (Vitest) that pass
 - [ ] All tool pages have educational content (500+ words for financial, 200+ for utility)
 - [ ] FAQ sections with schema markup on all tools
 - [ ] Affiliate links on all financial calculators with FTC disclosure

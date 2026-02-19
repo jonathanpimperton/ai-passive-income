@@ -58,9 +58,9 @@ Financial calculators have the best affiliate fit of any tool category. Users ar
 
 Soft email capture ("Email me a PDF of my results") on every calculator. NOT gating results — the calculator is always free.
 
-- Kit (ConvertKit) free tier: 10K subscribers, 1 automation sequence
+- Kit (ConvertKit) free tier: 10K subscribers, **1 visual automation** (tag subscribers by calculator used; use conditional content blocks in a single 3-email drip)
 - Expected opt-in rate: 3-8%
-- Automated drip: 3-email sequence with relevant product recommendations
+- Automated drip: 1 universal 3-email sequence with conditional content per calculator tag
 - Email → affiliate conversion: 2-5% (higher than cold site traffic because they've already engaged with the tool)
 
 This is the highest-leverage addition to the plan. NerdWallet's entire business model is built on this: free tool → capture user intent → monetize through recommendations.

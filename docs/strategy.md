@@ -175,10 +175,10 @@ These are specific tactics that increase income from the same traffic with minim
 - Soft opt-in on every calculator: "Email me a PDF of my results" — NOT gating results behind email
 - Kit (ConvertKit) free tier: 10K subscribers, **1 visual automation** (start with 1 universal drip; segment by category only on paid tier), unlimited sends
 - Expected opt-in rate: 3-8% of calculator users
-- Automated 3-email drip per calculator:
+- 1 universal 3-email automation (Kit free tier = 1 visual automation). Tag subscribers by calculator used, then use conditional content blocks:
   - Email 1: Your results PDF + "here's what you can do next"
-  - Email 2: Educational content related to the calculation
-  - Email 3: Relevant product recommendation (affiliate link)
+  - Email 2: Educational content related to the calculation (conditional on tag)
+  - Email 3: Relevant product recommendation with affiliate link (conditional on tag)
 - Email drip → affiliate conversion: 2-5% (much higher than cold site traffic)
 
 **Why this matters:** At 5,000 monthly visitors with 5% email opt-in, you capture 250 emails/month. Over 12 months, that's 3,000 contacts you OWN — not dependent on Google's algorithm. Even if Google wipes your organic traffic tomorrow, you still have an email list to monetize.
@@ -284,8 +284,9 @@ These tables have the highest affiliate click-through rates of any placement typ
 │       ├── ComparisonTable.astro          # "Best X" affiliate comparison table
 │       ├── EmailCapture.tsx               # "Email me my results" opt-in (React island)
 │       └── EmbedCode.astro               # Embed code snippet for widgets
-├── /content
-│   └── /tools                             # Content collections
+├── content.config.ts                      # Content collection definitions (Astro 5+)
+├── /data
+│   └── /tools                             # Tool data files (loaded by content layer)
 │       ├── compound-interest.md           # Tool metadata + educational content
 │       └── ...
 ├── /layouts
