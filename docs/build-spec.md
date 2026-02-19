@@ -220,7 +220,7 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 
 **No affiliate context (by design):** Salary, inflation, ROI, emergency fund, net worth, QR code, JSON formatter. Don't force it — forced recommendations hurt trust.
 
-**Post-MVP expansion:** Credit card payoff, auto loan, college savings (529), tax bracket, budget (50/30/20), down payment, break-even, profit margin calculators.
+**Post-MVP expansion:** Credit card payoff, auto loan, college savings (529), tax bracket, budget (50/30/20), down payment, break-even, profit margin calculators. Note: 529 and budget tools serve new segments (parents, young savers) that strengthen existing audience. Break-even and profit margin serve small business — a potential new segment, but one with strong affiliate potential (invoicing, accounting SaaS). Evaluate based on search demand data at the time.
 
 ---
 
@@ -232,7 +232,8 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 - Scaffold Astro + TypeScript + Tailwind CSS v4 + React
 - Design system: `ToolPageLayout.astro`, `CalculatorLayout.tsx`, `Logo.astro`
 - Homepage with tool grid
-- Static pages: about, privacy, affiliate disclosure
+- Static pages: about, privacy, affiliate disclosure, terms of use
+- Cookie consent banner component (conditionally load Google Analytics)
 - SEO: sitemap, robots.txt, structured data helpers
 - Content collection schema (see Technical Architecture below)
 - Vitest + unit tests for financial math functions
@@ -297,6 +298,7 @@ Salary converter, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, JSON f
 │   ├── index.astro                        # Homepage
 │   ├── about.astro                        # About
 │   ├── privacy.astro                      # Privacy policy
+│   ├── terms.astro                        # Terms of use (not financial advice, disclaimers)
 │   ├── 404.astro                          # Custom 404 page
 │   ├── disclosure.astro                   # Affiliate disclosure (FTC required)
 │   ├── embed.astro                        # Embed code generator page
@@ -320,6 +322,7 @@ Salary converter, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, JSON f
 │       ├── AffiliateDisclosure.astro      # FTC disclosure component
 │       ├── ComparisonTable.astro          # "Best X" affiliate comparison table
 │       ├── EmailCapture.tsx               # "Email me my results" (React island)
+│       ├── CookieConsent.tsx             # Cookie consent banner (React island)
 │       └── EmbedCode.astro               # Embed code snippet
 ├── content.config.ts                      # Content collection definitions (Astro 5+)
 ├── /data
@@ -448,7 +451,7 @@ const ToolComponent = (await componentMap[tool.data.slug]()).default;
 
 ```
 Title:       "Free [Tool Name] Online | CalcPath"
-Description: "[Action verb] [what the tool does]. Free, fast, no signup required."
+Description: "[Action verb] [what the tool does]. Free, instant, no signup — no ads or data harvesting."
 H1:          "[Tool Name]"
 URL:         /tools/[category]/[tool-slug]
 Schema:      WebApplication type + FAQ schema
@@ -768,6 +771,70 @@ Must cover (FTC requires this — $53,088 per violation):
 - If declined, don't load Google Analytics script
 - Use a lightweight cookie consent solution (cookie-consent-banner or build a simple one — no heavy third-party scripts)
 - Store consent preference in localStorage (not a cookie, ironically)
+
+---
+
+## About Page (`/about`)
+
+The About page is a trust signal. For an AI-built project, honesty is critical — don't fabricate a team.
+
+### What to Say
+
+| Section | Content Direction |
+|---------|------------------|
+| **Mission** | "CalcPath exists to make financial math simple. Every calculator is free, instant, and private — we never ask for your data or bury results behind signup forms." |
+| **What we do** | "We build free financial calculators with clear explanations, interactive charts, and downloadable results. Our tools help you see your numbers so you can make informed decisions." |
+| **How we're different** | Reference USP: no signup walls, no data harvesting, no ad clutter. "Other financial sites gate results behind forms or sell your info to financial advisors. We don't." |
+| **How we make money** | Be transparent: "We earn commissions when you click affiliate links to financial products. This costs you nothing extra and helps keep our tools free. We never recommend a product to earn a commission — see our [disclosure](/disclosure)." |
+| **What we don't do** | "We don't provide personalized financial advice. We build tools that help you understand the math. For advice tailored to your situation, consult a qualified financial advisor." |
+
+### What NOT to Say
+
+- Don't say "our team of financial experts" — there is no team
+- Don't say "AI-powered" or "built by AI" — NNGroup research shows this hurts credibility for straightforward tools
+- Don't invent team member bios or stock photos of people
+- Use "we" (the brand, CalcPath) not "I" — brands can speak in plural
+
+### Tone
+
+Mission-focused, not personality-focused. The About page is about what CalcPath does for users, not about who's behind it. This is standard for tool sites (Calculator.net, Omni Calculator, and most tool sites don't have "team" pages).
+
+---
+
+## Email Drip Sequence Detail
+
+### Structure: 1 Universal Drip, Segment-Aware via Tags
+
+Kit free tier allows 1 visual automation. The drip is a single 3-email sequence with **conditional content blocks** that change based on which calculator tag the subscriber came from.
+
+### Sequence
+
+| Email | Timing | Subject Line Direction | Content |
+|-------|--------|----------------------|---------|
+| **Email 1** | Immediate | "Your [Calculator Name] results" | PDF attachment or link with their full calculation breakdown. Brief tip related to their calculator. Minimal — deliver the value they asked for. |
+| **Email 2** | Day 3 | "What most people get wrong about [topic]" | Educational content related to their calculator. E.g., compound interest → "The real impact of starting 5 years earlier." Debt payoff → "Why minimum payments cost you $X extra." No affiliate links in this email — pure value. |
+| **Email 3** | Day 7 | "One thing that could help" | Soft affiliate recommendation. E.g., compound interest → "If you're looking for a place to start, here are high-yield savings accounts we've researched." Includes comparison table or single recommendation. Clear affiliate disclosure. |
+
+### Conditional Content by Calculator Tag
+
+| Tag | Email 2 Topic | Email 3 Recommendation |
+|-----|--------------|----------------------|
+| `compound-interest` | The power of starting early + compounding frequency impact | High-yield savings: Betterment, Marcus |
+| `loan-amortization` | How extra payments save thousands in interest | Compare loan rates: LendingTree, SoFi |
+| `investment-return` | DRIP vs. non-DRIP returns over 20 years | Start investing: Betterment, Wealthfront |
+| `retirement-savings` | The retirement gap: how most people undersave | Open retirement account: Betterment, Vanguard |
+| `debt-payoff` | Snowball vs. avalanche: which actually works better | Consolidate debt: SoFi, LendingClub |
+| `savings-goal` | The 50/30/20 rule and where savings fits | High-yield savings: Marcus, Ally |
+| `rent-vs-buy` | Hidden costs of buying most calculators miss | Get pre-approved: LendingTree |
+| `salary`, `inflation`, `roi`, `net-worth`, `emergency-fund` | General financial planning tip | No affiliate — educational only |
+| `qr-code`, `password-generator`, `json-formatter` | No email 2/3 — single results-only email | None |
+
+### Key Rules
+
+- **Utility tool signups get 1 email only** (the results). Don't send financial content to someone who used the QR code generator.
+- **Never send more than 3 emails** unless user actively engages (opens, clicks). Respect the "no spam" promise.
+- **Every email has an unsubscribe link** (Kit handles this automatically).
+- **Affiliate disclosure in Email 3:** "This email contains affiliate links. See our [disclosure](link)."
 
 ---
 

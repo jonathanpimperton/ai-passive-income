@@ -115,10 +115,12 @@ Auto-generated per tool page using **Satori + Sharp** in an Astro static endpoin
 ### Brand Voice
 
 - **Trustworthy but approachable** — not stuffy, not casual
+- **USP messaging:** "See your numbers instantly — no signup, no ads, no data harvesting." Use this direction in hero, meta descriptions, social sharing. (See build-spec.md Value Proposition section for full positioning.)
 - Plain language over jargon (explain APR, CAGR, amortization inline)
 - Second person: "your savings," "your monthly payment"
 - Helpful framing: "Here's what this means for you" after every result
 - No "AI-powered" marketing — NNGroup research shows this undermines credibility for straightforward calculators
+- No fake team bios or stock photos — About page focuses on mission and transparency (see build-spec.md About Page section)
 
 ---
 
@@ -381,7 +383,13 @@ Example for compound interest calculator:
 **Result rules:**
 - **Real-time calculation** — no submit button. Results update instantly as inputs change.
 - **Big number first** — the primary result (total, monthly payment, etc.) is prominent: 30px+ font, bold, primary-900 color
-- **Context line** — always explain what the number means: "That's $X more than if you kept it in a savings account" or "This is 28% of your monthly income"
+- **Context line** — always explain what the number means in terms the user cares about. These should be calculator-specific, not generic:
+  - Compound interest: "That's $X in interest earned — $Y more than a regular savings account"
+  - Loan amortization: "You'll pay $X in total interest over the life of the loan"
+  - Debt payoff: "Avalanche saves you $X compared to minimum payments"
+  - Retirement: "At this rate, you'll have X% of your target by age 65"
+  - Savings goal: "Saving $X/month, you'll reach your goal in Y months"
+  - Salary: "That's $X/hour before taxes, $Y/hour after estimated withholding"
 - **Breakdown** — secondary numbers (principal vs interest, contributions vs growth) in a clear list or table
 - **Chart** — line chart for growth over time, pie chart for composition breakdowns, bar chart for comparisons (snowball vs avalanche)
 - **Action buttons** — email results, download PDF, reset calculator
@@ -474,7 +482,7 @@ Utility tools (not in Calculators dropdown — different category):
 ├──────────────────────────────────────────────────────────┤
 │                                                          │
 │  Free Financial Calculators                              │
-│  Plan smarter with tools that show you the numbers.      │
+│  See your numbers instantly — no signup, no ads.         │
 │                                                          │
 │  [Browse Calculators →]                                  │
 │                                                          │
@@ -512,7 +520,7 @@ Utility tools (not in Calculators dropdown — different category):
 ### Homepage Design Notes
 
 - **No hero image** — uses a dark gradient background instead (see Section 11: Visual Polish)
-- **Popular tools first** — 6 most-used calculators as cards in a 3×2 grid (2×3 on mobile)
+- **Popular tools first** — 6 highest-value calculators as cards in a 3×2 grid (2×3 on mobile). Selected to cover all 5 customer segments: compound interest (young savers), loan payment (home decision-makers), retirement (pre-retirees), investment return (young savers/pre-retirees), debt payoff (debt resolvers), salary (career optimizers)
 - **Category filter bar** — horizontal pills to filter the full tool grid
 - **Tool cards:** Title, one-line description, arrow icon. Clean, scannable.
 - **No testimonials or social proof at launch** — we have none yet. Add later when real.

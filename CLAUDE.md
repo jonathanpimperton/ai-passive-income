@@ -33,7 +33,7 @@ Build a zero-investment online business that generates passive income, built ent
 - **Name:** CalcPath
 - **Domain:** `calcpath.pages.dev` (free at launch) → `calcpath.com` (~$10/yr via Cloudflare Registrar)
 - **Logo:** SVG wordmark — navy "Calc" + blue "Path" (built in code, no external tools)
-- **Tagline:** "Navigate your financial future"
+- **Tagline:** "See your numbers instantly — no signup, no ads." (USP; see build-spec.md Value Proposition section)
 
 ## Project Stages
 
