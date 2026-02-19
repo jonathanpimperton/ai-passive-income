@@ -192,7 +192,7 @@ Most competitors (SmallSEOTools, TinyWow, 10015.io) skip educational content ent
 
 ### Core Web Vitals as a Moat
 - Only ~12% of mobile sites meet Google's Core Web Vitals standards
-- Next.js SSG + Vercel edge = automatic advantage over 88% of competitors
+- Next.js SSG + Cloudflare Pages edge = automatic advantage over 88% of competitors
 - Client-side processing = instant results, zero server round trips
 - SmallSEOTools is a cautionary tale: high revenue but degraded UX from ad bloat
 

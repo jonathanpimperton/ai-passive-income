@@ -9,7 +9,7 @@
 
 ### What's Solid
 
-1. **$0 cost structure** — Vercel free tier (100GB bandwidth/mo, 6,000 build mins/mo). No database needed. Client-side tools generate no server load. This is genuinely free to operate.
+1. **$0 cost structure** — Cloudflare Pages free tier (unlimited bandwidth, 500 builds/mo, commercial use allowed). No database needed. Client-side tools generate no server load. This is genuinely free to operate.
 
 2. **AI buildability** — Self-contained calculator/utility tools are ideal for AI development. Each tool is an independent unit with clear inputs/outputs, no external dependencies, and testable in isolation.
 
@@ -25,7 +25,7 @@
 
 3. **Financial calculators are high RPM but high competition.** "Mortgage calculator" has massive volume but competes against NerdWallet, Bankrate, and Calculator.net — sites with DA 80+. We need to target **long-tail financial queries** that established sites don't cover well.
 
-4. **Privacy/compliance tools need API access.** Email breach checker (HaveIBeenPwned API), SSL checker, and security headers checker all require external API calls — either server-side or CORS-friendly endpoints. Some may need Vercel serverless functions to proxy. Not all are purely client-side. These are deferred from MVP.
+4. **Privacy/compliance tools need API access.** Email breach checker (HaveIBeenPwned API), SSL checker, and security headers checker all require external API calls — either server-side or CORS-friendly endpoints. Some may need serverless functions to proxy. Not all are purely client-side. These are deferred from MVP.
 
 5. **Blog is deferred too long.** The strategy says "Month 6+" but educational content is what drives informational search queries. The tool pages themselves should have educational content from day one — no separate blog needed initially.
 
@@ -135,7 +135,7 @@ These are high-value, 100% client-side, and fast to build:
 - Add "Related Tools" sections
 - Add FAQ sections with schema markup
 - Performance audit (Core Web Vitals)
-- Deploy to Vercel
+- Deploy to Cloudflare Pages
 
 ### Sprint 5: SEO & Launch (Days 17-20)
 
@@ -284,13 +284,11 @@ At low traffic (1,000-10,000 PV/month), ad revenue is negligible ($5-$60/month).
 
 ## Risk Mitigations
 
-### Risk: Vercel Free Tier Limits
+### Risk: Cloudflare Pages Free Tier Limits
 
-Vercel free tier: 100GB bandwidth/month, 100K serverless function invocations.
+Cloudflare Pages free tier: unlimited bandwidth, 500 builds/month, 1 build at a time.
 
-**Mitigation:** All tools are client-side (SSG pages), so serverless functions aren't used. 100GB bandwidth supports ~500K-1M pageviews/month for a lightweight static site. We won't hit this for 12+ months.
-
-If we do: migrate to Cloudflare Pages (unlimited bandwidth on free tier).
+**Mitigation:** All tools are client-side (SSG pages). 500 builds/month is more than enough. Unlimited bandwidth means traffic growth won't hit hosting limits.
 
 ### Risk: Tool Pages Seen as "Thin Content" by Google
 
@@ -376,7 +374,7 @@ MVP is shipped when:
 - [ ] About page and privacy policy exist
 - [ ] Core Web Vitals pass (LCP < 2.5s, CLS < 0.1)
 - [ ] Mobile responsive
-- [ ] Deployed to Vercel
+- [ ] Deployed to Cloudflare Pages
 - [ ] Submitted to Google Search Console
 
 ---

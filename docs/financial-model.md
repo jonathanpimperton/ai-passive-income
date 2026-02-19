@@ -19,9 +19,9 @@
 | Ad blocker rate | ~33% | General consumer audience |
 | Geography target | US/UK/CA/AU (Tier 1) | Maximize RPM |
 | Tool build rate | 3-5 tools/week initially | AI-built |
-| Hosting cost | $0 | Vercel free tier |
+| Hosting cost | $0 | Cloudflare Pages free tier |
 | Database cost | $0 | None needed — pure static site |
-| Domain cost | $0-$12/year | Optional; can use .vercel.app |
+| Domain cost | $0-$12/year | Optional; can use .pages.dev |
 | Ezoic revenue share | ~10% | Deducted from gross ad revenue |
 | Mediavine revenue share | ~25% | Deducted from gross ad revenue |
 
@@ -126,7 +126,7 @@ At scale, successful tool sites earn **$30-$900/tool/month**. Early-stage sites 
 
 ## Break-Even Analysis
 
-With $0 operating costs (Vercel free tier, no database needed), there is no break-even point — every dollar is profit. The real question is **time to meaningful income**:
+With $0 operating costs (Cloudflare Pages free tier, no database needed), there is no break-even point — every dollar is profit. The real question is **time to meaningful income**:
 
 | Target | Conservative | Moderate | Optimistic |
 |--------|-------------|----------|-----------|
@@ -147,7 +147,7 @@ Define failure conditions to avoid sunk cost:
 | <2,000 monthly PV | Month 9 | Review tool selection, consider different categories |
 | <$50/month revenue | Month 12 | Reassess monetization strategy or pivot entirely |
 | <10,000 monthly PV | Month 15 | Consider abandoning project |
-| Vercel free tier exhausted | Any | Migrate to Cloudflare Pages (unlimited bandwidth on free tier) |
+| Cloudflare Pages build limit hit | Any | Reduce deploy frequency or upgrade to Pro ($20/mo) |
 
 ---
 
@@ -158,7 +158,7 @@ Define failure conditions to avoid sunk cost:
 | Google algorithm change | Medium | High | Diversify traffic sources, build email list |
 | AdSense/Ezoic approval denied | Low-Medium | High | Ensure quality content, privacy/about pages |
 | AI overviews steal tool traffic | Medium | Medium | Build tools that can't be replaced by a text answer |
-| Vercel free tier limits hit | Low | Medium | Client-side processing minimizes server usage |
+| Cloudflare Pages build limits hit | Very Low | Low | Unlimited bandwidth; 500 builds/mo is ample |
 | Competition copies tools | Medium | Low | Design quality + speed + SEO authority as moat |
 | Ad blocker adoption increases | Medium | Medium | Affiliate revenue as hedge; target non-technical audience |
 

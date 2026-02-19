@@ -6,12 +6,14 @@ Build a zero-investment online business that generates passive income, built ent
 
 ## Tech Stack
 
-- **Next.js 15** (App Router) + **TypeScript** — SSG for SEO, free Vercel hosting
+- **Next.js 15** (App Router, static export) + **TypeScript** — SSG for SEO
 - **Tailwind CSS v4** — rapid UI development
-- **Vercel** (free tier) — hosting, edge delivery, analytics
+- **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
 - **Google Search Console / Analytics** — SEO tracking (free)
 
 *Deferred:* Supabase (free tier) — not needed for MVP (pure static site, all tools client-side). Add later if user accounts or data storage are needed.
+
+> **Note:** Vercel Hobby plan prohibits commercial use. Cloudflare Pages allows commercial use on the free tier with unlimited bandwidth.
 
 ## Project Stages
 
@@ -41,11 +43,11 @@ Sprint 1 (Days 1-3): Scaffold + first 5 tools (word counter, case converter, lor
 Sprint 2 (Days 4-7): Core tools (base64, URL encoder, JSON formatter, timestamp, QR code)
 Sprint 3 (Days 8-12): Financial calculators (compound interest, loan, savings, salary, tip, ROI, inflation)
 Sprint 4 (Days 13-16): Security tools + polish (hash generator, password strength, color contrast, content, FAQ)
-Sprint 5 (Days 17-20): Testing, SEO audit, deploy to Vercel, submit to Google Search Console, share on communities
+Sprint 5 (Days 17-20): Testing, SEO audit, deploy to Cloudflare Pages, submit to Google Search Console, share on communities
 
 ## Constraints
 
-- **$0 budget** — free tiers only (Vercel, Cloudflare, etc.)
+- **$0 budget** — free tiers only (Cloudflare Pages, etc.)
 - **AI-built** — Claude Code does all development
 - **Low maintenance** — should run mostly unattended once live
 - **Legal/ethical** — no scraped content, no spam, proper attribution

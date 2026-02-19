@@ -37,7 +37,7 @@ Avoid: Pure developer-only tools (52-76% ad blocker rate kills revenue). Note: s
 - No billing infrastructure needed
 - No customer support expectations
 - No free tier cost scaling
-- $0 to operate indefinitely on Vercel free tier (no database needed)
+- $0 to operate indefinitely on Cloudflare Pages free tier (no database needed)
 
 ---
 
@@ -50,12 +50,12 @@ The single biggest gap in the free tools market is **design quality**. Every maj
 | High traffic, terrible UX | SmallSEOTools, PineTools | Cluttered ads, dated design, slow |
 | Beautiful UX, no revenue | IT-Tools, CyberChef | Open-source, no monetization |
 
-Our advantage: a **Next.js 15 + Tailwind CSS site**, statically generated, edge-delivered via Vercel, with clean modern design. This gives us:
+Our advantage: a **Next.js 15 + Tailwind CSS site**, statically generated, edge-delivered via Cloudflare Pages, with clean modern design. This gives us:
 
 - **Core Web Vitals scores in the top 12%** of all sites (ranking advantage)
 - **Instant tool loading** via client-side processing (no server round trips)
 - **Visual differentiation** from every competitor
-- **$0 hosting** on Vercel free tier (static/edge, no server costs)
+- **$0 hosting** on Cloudflare Pages free tier (static/edge, no server costs, commercial use allowed)
 
 ---
 
@@ -184,7 +184,7 @@ Next.js 15 (App Router)
 ├── Static generation (SSG) for all tool pages
 ├── Client-side processing (zero server round trips)
 ├── Tailwind CSS v4 for styling
-└── Vercel Edge Network for delivery
+└── Cloudflare Pages for delivery
 ```
 
 ### Key Technical Decisions
@@ -195,7 +195,7 @@ Next.js 15 (App Router)
 | Processing | Client-side JavaScript | No server round trips, privacy-friendly, $0 compute |
 | Component pattern | Server page + client tool component | `page.tsx` = server component (metadata, SEO, educational content); `ToolComponent.tsx` = `'use client'` (interactive tool). This preserves SSG metadata while enabling interactivity. |
 | Styling | Tailwind CSS v4 | Rapid development, small CSS bundles, modern look |
-| Hosting | Vercel free tier | Edge delivery, automatic HTTPS, zero config |
+| Hosting | Cloudflare Pages free tier | Edge delivery, automatic HTTPS, unlimited bandwidth, commercial use allowed |
 | Database | None for MVP | Pure static site; Supabase deferred until user accounts or data storage needed |
 | Images | Client-side via Canvas API | No server processing needed |
 | SEO | Next.js metadata API + structured data | Built-in SSG SEO support |
@@ -280,6 +280,6 @@ See `plan-optimization.md` for the detailed sprint plan. Summary:
 
 1. **Scaffold Next.js 15 + TypeScript + Tailwind CSS v4** project
 2. **Build 20-tool MVP** across 4 sprints (~16 days)
-3. **Test, audit SEO, deploy to Vercel** (sprint 5)
+3. **Test, audit SEO, deploy to Cloudflare Pages** (sprint 5)
 4. **Submit to Google Search Console** and begin backlink strategy
 5. **Continue adding tools** post-MVP (target 40+ by month 3)
