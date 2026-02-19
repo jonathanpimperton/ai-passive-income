@@ -114,10 +114,6 @@ Auto-generated per tool page using **Satori + Sharp** in an Astro static endpoin
 
 ### Brand Voice
 
-Same as before — unchanged.
-
-### Brand Voice
-
 - **Trustworthy but approachable** — not stuffy, not casual
 - Plain language over jargon (explain APR, CAGR, amortization inline)
 - Second person: "your savings," "your monthly payment"
@@ -142,6 +138,8 @@ Primary:
   --color-primary-900:  #0A2540   (deep navy — headers, hero backgrounds)
   --color-primary-700:  #1A3A5C   (dark blue — secondary text, active states)
   --color-primary-500:  #2563EB   (blue — links, interactive elements)
+  --color-primary-300:  #93C5FD   (medium blue — hover states, disabled interactive elements)
+  --color-primary-200:  #BFDBFE   (light-medium blue — subtle borders, selected backgrounds)
   --color-primary-100:  #DBEAFE   (light blue — hover backgrounds, highlights)
   --color-primary-50:   #EFF6FF   (pale blue — section backgrounds)
 
@@ -513,7 +511,7 @@ Utility tools (not in Calculators dropdown — different category):
 
 ### Homepage Design Notes
 
-- **No hero image** — the value prop is the tools, not a stock photo
+- **No hero image** — uses a dark gradient background instead (see Section 11: Visual Polish)
 - **Popular tools first** — 6 most-used calculators as cards in a 3×2 grid (2×3 on mobile)
 - **Category filter bar** — horizontal pills to filter the full tool grid
 - **Tool cards:** Title, one-line description, arrow icon. Clean, scannable.
@@ -661,7 +659,7 @@ For "Best X" tables (high-converting affiliate placement):
 ```
 
 - Clean table with alternating row backgrounds (white / neutral-50)
-- CTA buttons in accent-500 (green) — "Visit Site" is the action
+- CTA buttons in accent-600 (#059669) green — "Visit Site" is the action (accent-500 fails WCAG AA on white)
 - "Last updated" date visible (trust signal)
 - Mobile: reflow to card layout (one provider per card, stacked)
 
@@ -895,21 +893,34 @@ All design decisions above map to Tailwind CSS v4 `@theme` configuration in the 
 @import "tailwindcss";
 
 @theme {
-  /* Colors */
+  /* Primary (blue — trust) */
   --color-primary-900: #0A2540;
   --color-primary-700: #1A3A5C;
   --color-primary-500: #2563EB;
+  --color-primary-300: #93C5FD;
+  --color-primary-200: #BFDBFE;
   --color-primary-100: #DBEAFE;
   --color-primary-50: #EFF6FF;
 
+  /* Accent (green — growth/positive) */
   --color-accent-600: #059669;
   --color-accent-500: #10B981;
   --color-accent-100: #D1FAE5;
 
+  /* Negative (red — errors/losses) */
   --color-negative-500: #EF4444;
   --color-negative-100: #FEE2E2;
 
+  /* Warning (amber) */
   --color-warning-500: #F59E0B;
+
+  /* Neutrals */
+  --color-neutral-900: #111827;
+  --color-neutral-700: #374151;
+  --color-neutral-500: #6B7280;
+  --color-neutral-200: #E5E7EB;
+  --color-neutral-100: #F3F4F6;
+  --color-neutral-50: #F9FAFB;
 
   /* Typography */
   --font-family-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;

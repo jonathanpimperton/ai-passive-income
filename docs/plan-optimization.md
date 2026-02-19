@@ -129,7 +129,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 - Write Dev.to article about the build
 - **Apply to Betterment affiliate program** (no traffic minimums)
 
-**Total MVP timeline: ~3 weeks to deployed with 15 tools + growth infrastructure.**
+**Total MVP timeline: ~4 weeks to deployed with 15 tools + growth infrastructure.** (5 sprints × 4 days = 20 working days)
 
 ---
 
@@ -157,6 +157,8 @@ These are the most complex, most defensible against AI Overviews, and have the b
 │   ├── 404.astro                          # Custom 404 page
 │   ├── disclosure.astro                   # Affiliate disclosure (FTC required)
 │   ├── embed.astro                        # Embed code generator page
+│   ├── /og
+│   │   └── /[slug].png.ts                 # Auto-generated OG images (Satori + Sharp)
 │   └── /tools
 │       ├── index.astro                    # All tools listing
 │       └── /[category]
@@ -169,6 +171,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 │   │   └── ...
 │   └── /ui                                # Astro/HTML components
 │       ├── ToolPageLayout.astro           # Reusable tool page wrapper
+│       ├── Logo.astro                     # SVG wordmark logo component
 │       ├── FaqSection.astro               # FAQ with schema markup
 │       ├── RelatedTools.astro             # Related tools links
 │       ├── AffiliateDisclosure.astro      # FTC disclosure component
@@ -186,6 +189,19 @@ These are the most complex, most defensible against AI Overviews, and have the b
     ├── calculator-utils.ts                # Shared financial math functions
     ├── pdf-export.ts                      # Client-side PDF generation (jsPDF)
     └── seo.ts                             # Structured data helpers
+
+/public
+├── /fonts
+│   ├── Inter-VariableFont_opsz,wght.woff2  # Self-hosted Inter (variable weights)
+│   ├── Inter-Bold.ttf                      # For Satori OG image generation
+│   ├── Inter-Regular.ttf                   # For Satori OG image generation
+│   └── JetBrainsMono-Regular.woff2         # JSON formatter tool
+├── favicon.svg                             # SVG favicon with dark mode
+├── favicon.ico                             # 32x32 ICO fallback
+├── apple-touch-icon.png                    # 180x180 iOS bookmark
+├── icon-192.png                            # Android/PWA manifest
+├── icon-512.png                            # Android/PWA splash
+└── manifest.webmanifest                    # PWA manifest
 ```
 
 ### Content Collection Schema
@@ -201,7 +217,7 @@ const tools = defineCollection({
   schema: z.object({
     name: z.string(),                           // "Compound Interest Calculator"
     slug: z.string(),                           // "compound-interest"
-    category: z.enum(['financial', 'utility']),
+    category: z.enum(['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic', 'utility']),
     description: z.string(),                    // SEO meta description
     keywords: z.array(z.string()),              // Target keywords
     relatedTools: z.array(z.string()),          // Slugs of 4-6 related tools
@@ -317,7 +333,7 @@ Position as **the** free financial calculator resource. Every page reinforces fi
 ### Per-Tool Page SEO
 
 ```
-Title:       "Free [Tool Name] Online | [Site Name]"
+Title:       "Free [Tool Name] Online | CalcPath"
 Description: "[Action verb] [what the tool does]. Free, fast, no signup required."
 H1:          "[Tool Name]"
 URL:         /tools/[category]/[tool-slug]

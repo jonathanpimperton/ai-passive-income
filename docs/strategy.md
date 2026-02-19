@@ -191,7 +191,7 @@ NerdWallet, Bankrate, and every serious financial site does this. We should too.
 
 ### 2. Embeddable Calculator Widgets (Priority: HIGH)
 
-Offer iframe-embeddable versions of every calculator with a "Powered by [SiteName]" backlink.
+Offer iframe-embeddable versions of every calculator with a "Powered by CalcPath" backlink.
 
 - Omni Calculator has 564K+ backlinks from 38.6K referring domains — largely from their embed program
 - Finance bloggers embed calculators in their posts → we get a do-follow backlink on every page that embeds it
@@ -270,6 +270,8 @@ These tables have the highest affiliate click-through rates of any placement typ
 │   ├── 404.astro                          # Custom 404 page
 │   ├── disclosure.astro                   # Affiliate disclosure (FTC required)
 │   ├── embed.astro                        # Embed code generator page
+│   ├── /og
+│   │   └── /[slug].png.ts                 # Auto-generated OG images (Satori + Sharp)
 │   └── /tools
 │       ├── index.astro                    # All tools listing
 │       └── /[category]
@@ -282,6 +284,7 @@ These tables have the highest affiliate click-through rates of any placement typ
 │   │   └── ...
 │   └── /ui                                # Astro/HTML components
 │       ├── ToolPageLayout.astro           # Reusable tool page wrapper
+│       ├── Logo.astro                     # SVG wordmark logo component
 │       ├── FaqSection.astro               # FAQ with schema markup
 │       ├── RelatedTools.astro             # Related tools links
 │       ├── AffiliateDisclosure.astro      # FTC disclosure component
@@ -299,6 +302,19 @@ These tables have the highest affiliate click-through rates of any placement typ
     ├── calculator-utils.ts                # Shared financial math functions
     ├── pdf-export.ts                      # Client-side PDF generation (jsPDF)
     └── seo.ts                             # Structured data helpers
+
+/public
+├── /fonts
+│   ├── Inter-VariableFont_opsz,wght.woff2  # Self-hosted Inter (variable weights)
+│   ├── Inter-Bold.ttf                      # For Satori OG image generation
+│   ├── Inter-Regular.ttf                   # For Satori OG image generation
+│   └── JetBrainsMono-Regular.woff2         # JSON formatter tool
+├── favicon.svg                             # SVG favicon with dark mode
+├── favicon.ico                             # 32x32 ICO fallback
+├── apple-touch-icon.png                    # 180x180 iOS bookmark
+├── icon-192.png                            # Android/PWA manifest
+├── icon-512.png                            # Android/PWA splash
+└── manifest.webmanifest                    # PWA manifest
 ```
 
 ### Key Technical Decisions
