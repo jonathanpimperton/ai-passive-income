@@ -406,6 +406,8 @@ MVP is shipped when:
 
 See `financial-model.md` for detailed revenue breakdowns by source.
 
+---
+
 ## Adaptation Triggers
 
 See `strategy.md` and `financial-model.md` for the full adaptation trigger tables. The site costs $0 to operate — we never abandon, we adapt.
