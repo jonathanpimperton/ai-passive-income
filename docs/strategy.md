@@ -308,7 +308,7 @@ These tables have the highest affiliate click-through rates of any placement typ
 | Framework | Astro | Zero JS by default, React islands for interactive tools, first-class Cloudflare Pages support |
 | Interactive tools | React components via `client:load` | Best ecosystem for interactive UI, charts, form handling |
 | Rendering | Static (SSG) | Fastest load times, $0 server costs, best Core Web Vitals |
-| Charts | Lightweight library (e.g., Chart.js or recharts) | Financial tools need visual output — charts are what make them un-replaceable by AI Overviews |
+| Charts | **recharts** (React-native) | Financial tools need visual output — charts are what make them un-replaceable by AI Overviews |
 | Styling | Tailwind CSS v4 | Rapid development, small CSS, modern design |
 | Hosting | Cloudflare Pages free tier | Unlimited bandwidth, commercial use allowed, edge delivery |
 | Content | Astro content collections | Structured metadata for each tool (name, category, description, keywords, related tools) |

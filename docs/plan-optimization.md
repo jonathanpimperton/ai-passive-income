@@ -276,13 +276,23 @@ The surrounding page (layout, educational content, FAQ, related tools, structure
 |----------|--------|-----------|
 | Framework | Astro | Zero JS default, React islands, first-class CF Pages |
 | Interactive tools | React via `client:load` | Best ecosystem for forms, charts, state |
-| Charts | Chart.js (lightweight) or recharts | Financial tools need visual output |
+| Charts | **recharts** (recommended) | React-native, tree-shakeable, no wrapper needed. Chart.js is lighter but needs react-chartjs-2 wrapper. |
 | Rendering | Static (SSG) | Fastest, $0 server costs |
 | Styling | Tailwind CSS v4 | Rapid development, small bundles |
 | Hosting | Cloudflare Pages | Unlimited bandwidth, commercial use, edge delivery |
 | Content | Astro content collections | Structured tool metadata + educational content |
 | Testing | Vitest for calculator logic | Ensure financial math is correct |
 | Accessibility | ARIA labels, keyboard nav, WCAG AA contrast | Financial tools used by broad audience incl. users with disabilities |
+
+### Build Setup Notes
+
+These are implementation details that prevent hesitation during Sprint 1:
+
+- **Tailwind CSS v4 setup:** v4 uses CSS-based configuration, NOT a `tailwind.config.ts` file. Install `tailwindcss` + `@tailwindcss/vite`, add the Vite plugin to `astro.config.mjs`, and use `@import "tailwindcss"` in a global CSS file. Tailwind v4 auto-detects your content files.
+- **Kit (ConvertKit) integration:** Static site uses Kit's embeddable form endpoint — no server/API key needed. Create a form in Kit's dashboard, get the form ID, submit via client-side POST to Kit's endpoint. Works on purely static sites.
+- **OG images:** Use Satori (JSX → SVG) + `@resvg/resvg-js` (SVG → PNG) at build time. Generate one OG image per tool from a shared template (tool name + site branding). Or use `astro-og-canvas` for a simpler API.
+- **Path aliases:** Configure in `tsconfig.json`: `"@components/*": ["src/components/*"]`, `"@layouts/*": ["src/layouts/*"]`, `"@lib/*": ["src/lib/*"]`
+- **Programmatic scenario pages (Sprint 5):** Create at `/pages/scenarios/[scenario].astro` with a separate content collection for scenario data. Each scenario pre-fills a calculator and adds 500+ words of unique analysis.
 
 ---
 
