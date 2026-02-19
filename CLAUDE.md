@@ -46,6 +46,12 @@ MVP cut from 20 generic tools to 15 focused tools (12 financial + 3 utility).
 Switched from Next.js to Astro. Dropped simple tools that AI Overviews replace.
 See `docs/plan-optimization.md` and `docs/strategy.md`.
 
+### Stage 3B: Design & Branding (Complete)
+Color system (blue/green trust palette), typography (Inter), calculator UI patterns
+(slider + field hybrid, real-time results, two-column layout), navigation structure,
+mobile strategy, accessibility requirements, and site naming candidates defined.
+See `docs/design-and-branding.md`.
+
 ### Stage 4: Build, Test & Launch (Next)
 1. Scaffold Astro + TypeScript + Tailwind CSS v4 + React
 2. Build tool page layout and component architecture
