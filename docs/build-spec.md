@@ -26,6 +26,166 @@ A focused financial calculator site called **CalcPath** (`calcpath.pages.dev` at
 
 ---
 
+## Target Audience & Personas
+
+### Who Uses Financial Calculators
+
+Financial calculator users are **people on the edge of a money decision**. They're not browsing — they're about to act (open an account, take out a loan, change their savings plan). This high intent is why financial affiliates pay $50-$500 per conversion.
+
+### Customer Segments
+
+| Segment | Age | Life Trigger | Top Tools | Affiliate Fit |
+|---------|-----|-------------|-----------|---------------|
+| **Young savers** | 22-30 | First real job, student debt, starting to save | Compound interest, Savings goal, Debt payoff, Emergency fund | High-yield savings (Marcus, Betterment) |
+| **Home decision-makers** | 28-45 | Buying vs renting, mortgage shopping | Rent vs buy, Loan amortization, Savings goal | Mortgage leads (LendingTree) |
+| **Career optimizers** | 25-40 | Job offer evaluation, raise negotiation | Salary converter, Net worth, ROI | Low (no natural affiliate) |
+| **Pre-retirees** | 45-65 | Retirement planning, portfolio check | Retirement savings, Investment return, Inflation | Retirement accounts (Betterment, Vanguard) |
+| **Debt resolvers** | Any | Drowning in payments, consolidation research | Debt payoff, Loan amortization | Debt consolidation (SoFi, LendingClub) |
+
+### Ideal Customer Profile
+
+- **Geography:** US, UK, Canada, Australia (Tier 1 English-speaking — maximizes affiliate eligibility and RPM)
+- **Income:** $40K-$150K household (enough to invest/save but not enough to have a financial advisor)
+- **Digital behavior:** Googles financial questions, uses free tools, compares options before committing
+- **Financial literacy:** Moderate — understands basics (interest, loans) but wants help with the math
+- **Ad blocker usage:** ~33% (general consumer, not tech-heavy — much lower than developer audiences at 52-76%)
+
+### What They Don't Want
+
+- Account creation or login walls (SmartAsset, NerdWallet require forms before showing results)
+- Their data harvested and sold to financial advisors (SmartAsset's entire business model)
+- Pages cluttered with ads that push content below the fold (Bankrate, Calculator.net)
+- Jargon without explanation (APR, CAGR, amortization — explain inline)
+- To be told what to do — they want the numbers so they can decide themselves
+
+---
+
+## Customer Needs & Pain Points
+
+### Why People Search for Financial Calculators
+
+| Need | Example Search | Emotional State | What They Want |
+|------|---------------|----------------|----------------|
+| **Clarity before a big decision** | "mortgage calculator" | Anxious, cautious | See the real monthly payment before committing |
+| **Scenario comparison** | "should I pay off debt or invest" | Conflicted, uncertain | Compare options with their actual numbers |
+| **Validation of a gut feeling** | "am I saving enough for retirement" | Worried, hopeful | Numbers that confirm or correct their plan |
+| **Quick answer, no friction** | "100k salary to hourly" | Impatient, task-focused | Instant answer, no signup, no ads |
+| **Understanding a concept** | "how does compound interest work" | Curious, learning | Education + a tool to play with |
+| **Negotiation ammunition** | "50k salary is how much per hour" | Strategic, motivated | A number to reference in a conversation |
+
+### Pain Points with Existing Solutions
+
+| Competitor | What's Wrong | Our Advantage |
+|------------|-------------|---------------|
+| **Calculator.net** | Dated design (looks like 2008), no educational content, basic output | Modern UI, charts, educational content, PDF export |
+| **Bankrate** | Buried in display ads, slow load, content pushed below fold | Zero ads at launch, fast Astro SSG, clean layout |
+| **NerdWallet** | Account wall on some features, lead-gen focused, data harvested | No accounts, no data harvesting, results always free |
+| **SmartAsset** | "Talk to a financial advisor" form gates results, sells your data to advisors | Results always visible, email capture is optional and clearly labeled |
+| **Omni Calculator** | Good content but clinical/academic tone, no affiliate recommendations | Approachable tone, actionable next steps, "here's what to do with these numbers" |
+| **Spreadsheets** | Requires setup, no visuals, not shareable, easy to make formula errors | Zero setup, interactive charts, PDF export, pre-built with correct math |
+
+---
+
+## Value Proposition & Competitive Positioning
+
+### Value Proposition
+
+**For people making financial decisions** who need clarity on the numbers,
+**CalcPath** provides **free, instant, no-signup financial calculators** with interactive charts and plain-English explanations —
+**unlike NerdWallet and SmartAsset**, which gate results behind account forms and sell your data to financial advisors.
+
+### One-Line USP
+
+> **"See your numbers instantly — no signup, no ads, no data harvesting."**
+
+This is the copy direction for the homepage hero, meta descriptions, and social sharing. It directly attacks the three biggest pain points with competitors.
+
+### Competitive Positioning Map
+
+```
+                    Deep Content / Education
+                            ▲
+                            │
+              NerdWallet ●  │  ● CalcPath (us)
+                            │
+                            │  ● Omni Calculator
+              SmartAsset ●  │
+                            │
+   Cluttered ───────────────┼──────────────── Clean Design
+              Bankrate ●    │
+                            │
+        Calculator.net ●    │
+                            │
+                            │
+                            ▼
+                     Thin / Tool Only
+```
+
+**Our quadrant: Clean design + deep content.** No existing competitor fully owns this space. NerdWallet is close on design but gates features and harvests data. Omni Calculator has great content but clinical design. We combine the best of both without the downsides.
+
+### Competitive Moat (Honest Assessment)
+
+At launch, we have **no moat**. This is a new domain with zero authority. The moat builds over time:
+
+| Timeline | Moat Layer | How |
+|----------|-----------|-----|
+| Month 1 | Design quality | Clean, fast, modern — better UX than 90% of calculator sites |
+| Month 3-6 | Content depth | 500-1,000 words of educational content per tool (most competitors skip this) |
+| Month 6-12 | Email list | Owned audience that no algorithm change can take away |
+| Month 6-12 | Backlinks from embeds | Embeddable widgets with "Powered by CalcPath" generate passive backlinks |
+| Year 1+ | Domain authority | Accumulated SEO equity, indexed pages, backlink profile |
+| Year 2+ | Brand recognition | Direct traffic from bookmarks and word-of-mouth |
+
+**The email list is the real moat.** Google can change algorithms, AI Overviews can eat traffic, but an email list is an owned channel. This is why email capture is on every calculator from day 1.
+
+---
+
+## Customer Journey & Conversion Funnel
+
+### The Path from Search to Revenue
+
+```
+DISCOVER          USE             LEARN           CAPTURE         NURTURE          CONVERT
+   │                │                │                │               │                │
+Google search → Calculator page → Educational    → "Email me     → 3-email       → Affiliate
+"compound       Instant results    content below    my results"     drip sequence    signup
+ interest        with charts       + FAQ + worked   (soft capture,  (educational +   ($25-$500
+ calculator"                        examples         no gate)        recommendation)   commission)
+   │                │                │                │               │                │
+   ▼                ▼                ▼                ▼               ▼                ▼
+Impressions     Page views       Scroll depth     Email opt-in   Open/click rate  Affiliate
+& CTR           & tool usage     & time on page   rate (3-8%)    (30-40% / 3-5%)  conversion
+```
+
+### Funnel Math (Month 12 Moderate Scenario)
+
+| Stage | Volume | Rate | Result |
+|-------|--------|------|--------|
+| Google impressions | 100,000/mo | 3% CTR | 3,000 clicks |
+| Landing on tool page | 3,000/mo | 85% use tool | 2,550 calculator uses |
+| Read educational content | 2,550 | 40% scroll to content | 1,020 readers |
+| Email opt-in | 2,550 tool users | 5% opt-in | 128 new subscribers |
+| On-site affiliate click | 3,000 page views | 2% click affiliate | 60 affiliate clicks |
+| On-site conversion | 60 clicks | 2% convert | 1.2 conversions |
+| Email affiliate click | ~1,200 list size | 1.5% click per email | ~18 clicks/email send |
+| Email conversion | 18 clicks | 2% convert | 0.36 conversions |
+| **Total monthly conversions** | | | **~1.5** |
+| **At $75 avg commission** | | | **~$115/mo** |
+
+This aligns with the $65-$250/mo range in our revenue projections. The email list contribution is small at month 12 but compounds — by month 24 with a 3,000+ subscriber list, email-driven conversions can equal on-site conversions.
+
+### Secondary Conversion Paths
+
+| Path | Mechanism | Timeline |
+|------|----------|----------|
+| **Return visits** | User bookmarks CalcPath, returns for other calculators | Month 3+ |
+| **Related tool clicks** | "Related Calculators" section drives 2-3 pages/session | Launch |
+| **Comparison table clicks** | "Best High-Yield Savings Accounts" table on calculator pages | Launch |
+| **Shared results** | User emails PDF to spouse/friend, friend visits site | Month 1+ |
+| **Embedded widgets** | Finance blogger embeds our calculator, readers click through | Month 6+ |
+
+---
+
 ## MVP: 15 Tools
 
 ### Core Financial Calculators (6 — build first, Sprint 1-2)
@@ -381,6 +541,83 @@ Don't add Ezoic until 50+ daily visitors consistently. Ads hurt Core Web Vitals 
 
 ---
 
+## Keyword Targets
+
+Primary keyword = the main term we want to rank for. Secondary = supporting long-tail queries to capture in educational content and FAQ sections.
+
+### Financial Calculators
+
+| Tool | Primary Keyword | Secondary Keywords |
+|------|----------------|-------------------|
+| Compound Interest | compound interest calculator | how to calculate compound interest, investment growth calculator, compound interest formula |
+| Loan Amortization | loan amortization calculator, amortization schedule calculator | loan payment calculator, mortgage amortization schedule, amortization table |
+| Investment Return | investment calculator, investment return calculator | stock return calculator, portfolio growth calculator, DRIP calculator |
+| Retirement Savings | retirement calculator, retirement savings calculator | how much to save for retirement, 401k calculator, retirement planning calculator |
+| Debt Payoff | debt payoff calculator, debt repayment calculator | snowball vs avalanche calculator, how long to pay off debt, debt free date |
+| Savings Goal | savings calculator, savings goal calculator | how much to save per month, savings goal planner, savings timeline |
+| Salary Converter | salary to hourly calculator, hourly to salary | annual salary calculator, take-home pay calculator, overtime calculator |
+| Inflation | inflation calculator, CPI calculator | purchasing power calculator, what was X worth in Y year, inflation rate |
+| ROI | ROI calculator, return on investment calculator | how to calculate ROI, investment ROI, annualized return calculator |
+| Net Worth | net worth calculator | how to calculate net worth, personal net worth tracker, am I on track |
+| Rent vs Buy | rent vs buy calculator | should I rent or buy, renting vs buying comparison, break-even point |
+| Emergency Fund | emergency fund calculator | how much emergency fund, 3 month emergency fund, emergency savings |
+
+### Utility Tools
+
+| Tool | Primary Keyword | Secondary Keywords |
+|------|----------------|-------------------|
+| QR Code Generator | QR code generator, free QR code generator | create QR code, QR code maker, QR code for URL |
+| Password Generator | password generator, random password generator | strong password generator, secure password, password creator |
+| JSON Formatter | JSON formatter, JSON beautifier | JSON validator, format JSON online, JSON pretty print |
+
+### Keyword Strategy Notes
+
+- **Title tag formula:** "Free [Primary Keyword] Online | CalcPath"
+- **H1:** "[Primary Keyword]" (natural, not keyword-stuffed)
+- **Educational content:** Target 2-3 secondary keywords naturally within the 500-1,000 word section
+- **FAQ section:** Each question should be a real long-tail query people search for
+- **Programmatic pages (Sprint 5+):** Target ultra-specific queries like "monthly payment on $300,000 mortgage at 7%" or "compound interest on $10,000 at 5% for 20 years"
+
+---
+
+## Success Metrics & KPIs
+
+### Weekly Check (15 minutes)
+
+| Metric | Source | What to Look For |
+|--------|--------|-----------------|
+| Search impressions + clicks | Google Search Console | Trending up week-over-week |
+| Top queries + positions | Google Search Console | New queries appearing, positions improving |
+| Email signups this week | Kit dashboard | Consistent flow; zero = problem |
+| Affiliate clicks | Affiliate dashboards | Any clicks at all in early months = good signal |
+
+### Monthly Review (1 hour)
+
+| Metric | Target (Month 6) | Target (Month 12) | Target (Month 24) |
+|--------|------------------|--------------------|--------------------|
+| Monthly pageviews | 500-1,000 | 3,000-8,000 | 20,000-50,000 |
+| Organic traffic share | >50% | >60% | >65% |
+| Email list size | 50-200 | 500-1,000 | 2,500-5,000 |
+| Email opt-in rate | 3-5% | 5-8% | 5-8% |
+| Affiliate revenue | $0-$50 | $50-$200 | $200-$1,000 |
+| Pages per session | >1.5 | >2.0 | >2.0 |
+| Core Web Vitals | All green | All green | All green |
+| Tools indexed in Google | 15/15 | 15/15+ | 30+ |
+
+### Quarterly Review (2 hours)
+
+- Revenue vs projection (are we on track with the financial model?)
+- Content gap analysis: what are people searching for that we don't have a tool for?
+- Competitor check: has anyone launched something similar? Have existing competitors improved?
+- Email list health: open rates (target >30%), unsubscribe rate (target <1%)
+- Adaptation trigger review (see next section)
+
+### North Star Metric
+
+**Email list size.** It's the one metric that compounds independently of Google, represents genuine user value (they gave us their email), and directly drives affiliate revenue through the drip sequence. If the email list is growing, the business is growing.
+
+---
+
 ## Adaptation Triggers
 
 $0 operating cost = never quit, always adapt.
@@ -396,24 +633,179 @@ $0 operating cost = never quit, always adapt.
 
 ---
 
+## Post-Launch Operations
+
+### Weekly (30 minutes)
+
+| Task | Tool | Purpose |
+|------|------|---------|
+| Check Search Console for crawl errors | Google Search Console | Catch indexing issues early |
+| Review new email signups + bounce rate | Kit dashboard | Ensure email capture is working |
+| Check affiliate dashboards for clicks/conversions | Betterment, etc. | Track revenue, spot issues |
+| Scan for broken links or 404s | Search Console or build logs | Maintain site health |
+
+### Monthly (2-3 hours)
+
+| Task | Purpose |
+|------|---------|
+| Publish 1-2 new tools or content pages | Expand keyword footprint |
+| Update "last updated" dates on comparison tables | Trust signal for users and Google |
+| Review analytics for unexpected traffic or drops | Catch opportunities or problems |
+| Check competitor sites for new features or tools | Stay informed, find gaps |
+| Review email automation performance | Optimize open rates, click rates |
+
+### Quarterly (half day)
+
+| Task | Purpose |
+|------|---------|
+| Update financial data in comparison tables (savings rates, loan rates) | Accuracy = trust |
+| Revenue vs projection review | Course-correct if needed |
+| Apply to new affiliate programs as traffic grows | Unlock higher commissions |
+| Core Web Vitals audit | Maintain SEO advantage |
+| Refresh educational content with current year data | Freshness signal for Google |
+| Evaluate adaptation triggers (see above) | Decide if strategy shifts needed |
+
+### Maintenance Philosophy
+
+The site is built to be **low-maintenance by design**: static site (no server), no database, no user accounts, no CMS. The main ongoing work is content creation (new tools, scenario pages) and data freshness (comparison table rates). Budget 2-4 hours per week once live.
+
+---
+
+## Content Marketing Roadmap
+
+### Phase 1: Launch (Month 1-3)
+
+**Goal:** Get indexed, get first organic impressions.
+
+| Action | Volume | Purpose |
+|--------|--------|---------|
+| 15 MVP tools live with educational content | 15 pages | Core product |
+| 10-20 programmatic scenario pages | 10-20 pages | Long-tail keyword capture |
+| Submit to Google Search Console | 1 | Start indexing |
+| Product Hunt launch | 1 | Initial traffic spike + backlinks |
+| Reddit posts (r/personalfinance, r/financialindependence) | 3-5 | Referral traffic, genuinely helpful not spammy |
+| Dev.to article ("How I Built a Financial Calculator Site with Astro") | 1 | Developer audience, backlink |
+
+### Phase 2: Growth (Month 4-6)
+
+**Goal:** Expand keyword footprint, build backlinks.
+
+| Action | Volume | Purpose |
+|--------|--------|---------|
+| Add 5-10 new calculators from post-MVP list | 5-10 tools | More keyword targets |
+| Comparison articles ("Snowball vs Avalanche", "Renting vs Buying in 2026") | 5-10 articles | Informational queries + internal linking |
+| Expand programmatic pages to 50-100 | 30-80 new pages | Long-tail traffic at scale |
+| Pinterest infographic pins | 2-3 per calculator | Diversified traffic, 3.88-month pin lifespan |
+| Outreach to personal finance bloggers for embed partnerships | 5-10 emails | Passive backlinks from embeddable widgets |
+
+### Phase 3: Authority (Month 7-12)
+
+**Goal:** Build domain authority, optimize conversions.
+
+| Action | Volume | Purpose |
+|--------|--------|---------|
+| "Ultimate guide" long-form content for top 3 tools | 3 articles (2,000+ words) | Pillar content for link building |
+| Seasonal content (tax season, New Year financial planning) | 2-3 pages | Time-sensitive traffic spikes |
+| A/B test email capture copy and placement | Ongoing | Optimize opt-in rate toward 8% |
+| A/B test affiliate CTA copy and placement | Ongoing | Optimize click-through rate |
+| Evaluate podcast/YouTube as traffic sources | Research | Diversification beyond Google |
+
+### Content Types (Prioritized)
+
+| Type | SEO Value | Effort | Priority |
+|------|----------|--------|----------|
+| Calculator tool pages | Very high (transactional intent) | High (code + content) | Must-have |
+| Educational content per tool | Very high (informational intent) | Medium (500-1,000 words) | Must-have |
+| Programmatic scenario pages | High (long-tail volume) | Low per page (templated) | High |
+| Comparison articles | High (commercial intent) | Medium (research + writing) | High |
+| "Ultimate guide" pillar content | High (link-worthy) | High (2,000+ words) | Medium |
+| Pinterest pins | Low-medium (traffic diversification) | Low (infographic templates) | Low |
+
+---
+
+## Legal Pages
+
+### Privacy Policy (`/privacy`)
+
+Must cover:
+
+| Section | Content |
+|---------|---------|
+| **Data collected** | Email address only (via Kit email capture). No accounts, no passwords, no personal financial data. |
+| **Calculator data** | All calculations run client-side in the browser. We never see, store, or transmit the numbers users enter into calculators. |
+| **Analytics** | Google Analytics (anonymized IP). What we track: page views, traffic sources, device types. What we don't track: individual users, financial data, personal information. |
+| **Cookies** | Analytics cookies only. No advertising cookies, no tracking pixels, no third-party data sharing. |
+| **Email usage** | Emails used solely for sending requested calculator results and occasional educational content. Never sold, shared, or given to third parties. Unsubscribe link in every email. |
+| **Affiliate links** | We link to third-party financial products. When you click an affiliate link, that company's privacy policy applies. We don't share your data with affiliate partners. |
+| **GDPR/CCPA** | Right to deletion (email us), right to access, right to opt out. Contact email provided. |
+| **Children** | Not directed at children under 13. |
+
+### Affiliate Disclosure (`/disclosure`)
+
+Must cover (FTC requires this — $53,088 per violation):
+
+| Section | Content |
+|---------|---------|
+| **Clear statement** | "CalcPath earns commissions from some links on this site. This helps us keep the tools free." |
+| **What it means for users** | "You pay nothing extra. The products cost the same whether you use our link or go directly." |
+| **How we choose recommendations** | "We only recommend products we've researched. Affiliate relationships don't influence our calculator results — the math is the math." |
+| **List of affiliate relationships** | Name each program (Betterment, LendingTree, SoFi, etc.) with a brief description. Update as programs are added. |
+| **Not financial advice** | "CalcPath provides educational tools and information, not personalized financial advice. Consult a qualified financial advisor for decisions specific to your situation." |
+
+### Terms of Use (footer link, not full page — keep simple)
+
+| Section | Content |
+|---------|---------|
+| **Calculator accuracy** | "Results are estimates based on the inputs you provide. Actual results may vary. We test our math rigorously but cannot guarantee accuracy for your specific situation." |
+| **Not financial advice** | "CalcPath is an educational tool, not a financial advisor. We don't know your full financial picture." |
+| **Use at your own risk** | Standard disclaimer — no liability for decisions made based on calculator results. |
+| **Intellectual property** | Calculator code and content are copyrighted. Embeddable widgets are provided under fair use with required attribution ("Powered by CalcPath"). |
+
+### Cookie Consent
+
+- **Required for EU visitors** if using Google Analytics
+- Simple banner: "We use cookies for analytics to improve the site. [Accept] [Decline]"
+- If declined, don't load Google Analytics script
+- Use a lightweight cookie consent solution (cookie-consent-banner or build a simple one — no heavy third-party scripts)
+- Store consent preference in localStorage (not a cookie, ironically)
+
+---
+
 ## "Done" Checklist
 
 MVP is shipped when:
+
+**Tools & Content:**
 - [ ] 15 tools live and functional
 - [ ] Financial math has unit tests (Vitest) that pass
 - [ ] All tool pages have educational content (500+ words financial, 200+ utility)
-- [ ] FAQ sections with schema markup on all tools
+- [ ] FAQ sections with schema markup on all tools (3-5 questions each, targeting long-tail keywords)
+- [ ] Worked examples on all financial calculators (2-3 each)
+
+**Monetization & Email:**
 - [ ] Affiliate links with FTC disclosure on applicable calculators
 - [ ] "Best X" comparison tables on financial calculator pages
 - [ ] Email capture ("Email me my results as PDF") on all calculators
 - [ ] Kit integrated with 1 universal 3-email drip (tags per calculator)
 - [ ] Embeddable widget versions + embed code generator
+
+**Site Structure & Legal:**
 - [ ] Homepage with tool grid and category filtering
-- [ ] Sitemap, robots.txt, structured data, OG images
-- [ ] About, privacy, disclosure pages
+- [ ] About page (who we are, what we do, no fake team bios)
+- [ ] Privacy policy (client-side data, analytics, email usage, GDPR/CCPA)
+- [ ] Affiliate disclosure page (FTC-compliant, lists all programs)
+- [ ] Terms of use (not financial advice, estimates only, use at own risk)
+- [ ] Cookie consent banner for analytics (EU compliance)
+
+**Technical & SEO:**
+- [ ] Sitemap, robots.txt, structured data (WebApplication + FAQ + Breadcrumb), OG images
 - [ ] `npm run build` succeeds with zero errors
 - [ ] Core Web Vitals pass (LCP < 2.5s, INP < 200ms, CLS < 0.1)
 - [ ] Mobile responsive + WCAG AA accessible
 - [ ] Deployed to Cloudflare Pages
 - [ ] Submitted to Google Search Console
+
+**Launch & Growth:**
 - [ ] Applied to Betterment affiliate program
+- [ ] First 10-20 programmatic scenario pages live
+- [ ] Google Analytics configured with cookie consent
