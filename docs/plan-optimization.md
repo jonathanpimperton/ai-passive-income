@@ -324,11 +324,13 @@ MVP is shipped when:
 
 **Year 1 total: $0-$500.** This project is a long-term bet on compounding SEO value, not a quick win.
 
-## Kill Criteria
+## Adaptation Triggers
 
-| Condition | Timeline | Action |
-|-----------|---------|--------|
-| <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO, try different keyword targets |
-| <1,000 monthly PV | Month 12 | Reassess niche, consider pivot |
-| <$25/month revenue | Month 15 | Pivot or abandon |
-| Zero affiliate conversions | Month 12 | Rethink affiliate placement |
+$0 operating cost means we never quit — we adapt. These are signals to change approach.
+
+| Signal | Timeline | Adaptation |
+|--------|---------|-----------|
+| <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO, rework keyword targets, push backlink strategy harder |
+| <1,000 monthly PV | Month 12 | Add programmatic scenario pages, try adjacent niches, increase embed/guest post outreach |
+| Zero affiliate conversions | Month 12 | Redesign CTAs, test different placements and programs |
+| Traffic plateaus | Any | Expand tool count, add comparison content, push embeddable widgets |

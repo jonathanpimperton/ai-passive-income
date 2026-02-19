@@ -141,15 +141,18 @@ With $0 operating costs, every dollar is profit. The question is time to meaning
 
 ---
 
-## Kill Criteria
+## Adaptation Triggers
 
-| Condition | Timeline | Action |
-|-----------|---------|--------|
-| <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO, try different keyword targets |
-| <1,000 monthly PV | Month 12 | Reassess niche, consider pivot |
-| <$25/month revenue | Month 15 | Pivot or abandon |
-| Zero affiliate conversions despite 1K+ monthly visitors | Month 12 | Rethink affiliate placement and CTA design |
-| Zero email signups | Month 6 | Redesign capture UX |
+$0 operating cost means we never quit — we adapt. These are signals to change approach.
+
+| Signal | Timeline | Adaptation |
+|--------|---------|-----------|
+| <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO, rework keyword targets, push backlink strategy |
+| <1,000 monthly PV | Month 12 | Add programmatic scenario pages, try adjacent niches, increase outreach |
+| Zero affiliate conversions despite 1K+ visitors | Month 12 | Redesign CTAs, test placements, try different programs |
+| Zero email signups | Month 6 | Redesign capture UX, test different value propositions |
+| Traffic plateaus | Any | Expand tool count, add comparison content, push embeddable widgets |
+| Google algorithm tanks rankings | Any | Lean on email list, Pinterest, Reddit. Rebuild SEO with adjusted content. |
 
 ---
 

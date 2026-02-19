@@ -361,14 +361,18 @@ This is substantially more content per page than competitors. Omni Calculator pr
 
 These are honest numbers based on new-domain SEO timelines and current ad RPMs.
 
-## Kill Criteria
+## Adaptation Triggers
 
-| Condition | Timeline | Action |
-|-----------|---------|--------|
-| <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO, try different keyword targets |
-| <1,000 monthly PV | Month 12 | Reassess niche, consider pivot |
-| <$25/month revenue | Month 15 | Pivot or abandon |
-| Zero affiliate conversions | Month 12 | Rethink affiliate placement and tool selection |
+The site costs $0 to operate — we never abandon, we adapt. These are signals to change approach, not quit.
+
+| Signal | Timeline | Adaptation |
+|--------|---------|-----------|
+| <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO: check indexing status, rework titles/descriptions, target different long-tail keywords |
+| <1,000 monthly PV | Month 12 | Double down on backlink strategy (more embeds, guest posts, Reddit). Add 20+ programmatic scenario pages. Try a different financial sub-niche. |
+| Zero affiliate conversions | Month 12 | Redesign CTAs, test different placements, try different affiliate programs. A/B test comparison tables. |
+| <$25/month revenue | Month 15 | Shift from passive affiliate links to active comparison content ("Best X" articles). Explore direct partnerships with smaller fintech companies. |
+| Traffic plateaus | Any | Add tools in adjacent niches (tax, business finance, crypto). More educational content. Embeddable widgets push for backlinks. |
+| Google algorithm wipes rankings | Any | Email list is the insurance policy. Lean into Pinterest, Reddit, and direct traffic. Rebuild SEO with adjusted content. |
 
 ---
 
