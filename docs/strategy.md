@@ -273,6 +273,7 @@ These tables have the highest affiliate click-through rates of any placement typ
 │           └── /[tool].astro              # Tool page (static, renders React island)
 ├── /components
 │   ├── /tools                             # React islands ('client:load')
+│   │   ├── CalculatorLayout.tsx           # Shared input/result/chart layout for all calculators
 │   │   ├── CompoundInterestCalc.tsx
 │   │   ├── LoanAmortizationCalc.tsx
 │   │   └── ...

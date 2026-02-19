@@ -162,6 +162,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 │           └── /[tool].astro              # Tool page (static, renders React island)
 ├── /components
 │   ├── /tools                             # React islands ('client:load')
+│   │   ├── CalculatorLayout.tsx           # Shared input/result/chart layout for all calculators
 │   │   ├── CompoundInterestCalc.tsx
 │   │   ├── LoanAmortizationCalc.tsx
 │   │   └── ...
@@ -264,6 +265,10 @@ const ToolComponent = (await componentMap[tool.data.slug]()).default;
 
 The surrounding page (layout, educational content, FAQ, related tools, structured data) is pure HTML — zero JavaScript. Only the interactive calculator hydrates.
 
+> **Build notes:**
+> - **Path aliases** (`@layouts/`, `@components/`) require `paths` config in `tsconfig.json`. Configure during scaffold.
+> - **Dynamic imports + `client:load`**: Astro's `client:*` directives may require statically analyzable imports. If the `componentMap` pattern doesn't work at build time, fall back to conditional rendering: `{slug === 'compound-interest' && <CompoundInterestCalc client:load />}`. Test this early in Sprint 1.
+
 ### Key Technical Decisions
 
 | Decision | Choice | Rationale |
@@ -357,13 +362,15 @@ MVP is shipped when:
 - [ ] Affiliate links on all financial calculators with FTC disclosure
 - [ ] "Best X" comparison tables on financial calculator pages
 - [ ] Email capture ("Email me my results as PDF") on all calculators
-- [ ] Kit (ConvertKit) integrated with automated drip sequence
+- [ ] Kit (ConvertKit) integrated with 1 universal 3-email drip sequence (tags per calculator)
 - [ ] Embeddable widget versions available with embed code generator
 - [ ] Affiliate disclosure page + per-page disclosure component
 - [ ] Homepage with tool grid and category filtering
 - [ ] Sitemap.xml generated and valid
 - [ ] robots.txt allows crawling
 - [ ] About page, privacy policy, and disclosure page exist
+- [ ] Schema.org WebApplication markup + FAQ schema on all tool pages
+- [ ] `npm run build` succeeds with zero errors
 - [ ] Core Web Vitals pass (LCP < 2.5s, INP < 200ms, CLS < 0.1)
 - [ ] Mobile responsive
 - [ ] Deployed to Cloudflare Pages
