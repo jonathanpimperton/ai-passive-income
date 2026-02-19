@@ -1,4 +1,13 @@
-# AI Passive Income
+# CalcPath — AI Passive Income Project
+
+## Read Order
+
+Before building anything, read these two files in order:
+
+1. **`docs/build-spec.md`** — What to build: tools list, build order, file structure, content schema, SEO, monetization, revenue targets, "done" checklist
+2. **`docs/design-system.md`** — How it looks: branding (name, logo, favicon, OG images), colors, typography, calculator UI patterns, navigation, mobile, accessibility, visual polish
+
+Historical docs (exploration, market research, financial model, original strategy/plan-optimization) are archived in `docs/archive/` for reference only. They are **not needed for building** — everything was consolidated into the two files above.
 
 ## Mission
 
@@ -7,25 +16,32 @@ Build a zero-investment online business that generates passive income, built ent
 ## Tech Stack
 
 - **Astro** + **TypeScript** — static site generation, zero JS by default, React islands for interactive tools
-- **Tailwind CSS v4** — rapid UI development
-- **React** — interactive calculator components (via Astro islands)
+- **Tailwind CSS v4** — rapid UI development (CSS-based `@theme` config, NOT `tailwind.config.ts`)
+- **React** — interactive calculator components (via Astro islands with `client:load`)
+- **recharts** — interactive chart visualization in calculator results
+- **Lucide React** — consistent icon language across the site
 - **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
 - **Kit (ConvertKit)** (free tier) — email capture, 10K subscribers, 1 automated drip sequence
 - **Google Search Console / Analytics** — SEO tracking (free)
+- **Satori + Sharp** — build-time OG image generation
+- **jsPDF** — client-side PDF export of calculator results
 
 > **Why Astro over Next.js?** This is a static tools site — we use ~10% of Next.js's features. Astro ships zero JS by default (better Core Web Vitals = better SEO), Cloudflare acquired Astro's company (first-class support), and React components work natively as islands.
+
+## Site Identity
+
+- **Name:** CalcPath
+- **Domain:** `calcpath.pages.dev` (free at launch) → `calcpath.com` (~$10/yr via Cloudflare Registrar)
+- **Logo:** SVG wordmark — navy "Calc" + blue "Path" (built in code, no external tools)
+- **Tagline:** "Navigate your financial future"
 
 ## Project Stages
 
 ### Stage 1: Exploration (Complete)
 Evaluated 6 business models. Decision: **Free Online Tools Site**.
-See `docs/stage-1-exploration.md` and `docs/viability-assessment.md`.
 
-### Stage 2: Detailed Plan (Complete → Revised)
+### Stage 2: Detailed Plan (Complete)
 Market research, competitor analysis, financial model, and strategy defined.
-See `docs/market-research.md`, `docs/financial-model.md`, `docs/strategy.md`.
-
-**Revised direction (Feb 19):** Focused financial calculator site. Original plan spread across 4 categories (financial, privacy, utility, developer) — revised to focus on financial niche for topical authority. Simple tools (word counter, tip calculator, etc.) cut because Google AI Overviews answer them directly.
 
 **Chosen approach:**
 - 12 complex financial calculators + 3 high-value utility tools (15 MVP total)
@@ -35,24 +51,10 @@ See `docs/market-research.md`, `docs/financial-model.md`, `docs/strategy.md`.
 - Deep educational content per tool for E-E-A-T
 - FTC-compliant affiliate disclosures on every page
 
-**Revenue expectations (realistic):**
-- Year 1: $0-$500 total (building SEO equity on a new domain)
-- Year 2: $2,000-$10,000 total, ramping from ~$100/mo to ~$1,400/mo (affiliates + Ezoic/Mediavine)
-- Year 3+: $750-$4,500/month if things go well
-- See `docs/financial-model.md` for detailed breakdowns
-
-### Stage 3: Plan Optimization (Complete → Revised)
+### Stage 3: Plan Optimization + Design (Complete)
 MVP cut from 20 generic tools to 15 focused tools (12 financial + 3 utility).
 Switched from Next.js to Astro. Dropped simple tools that AI Overviews replace.
-See `docs/plan-optimization.md` and `docs/strategy.md`.
-
-### Stage 3B: Design & Branding (Complete)
-**Site name: CalcPath** (`calcpath.pages.dev` at launch, `calcpath.com` when ready).
-Color system (blue/green trust palette), typography (Inter), calculator UI patterns
-(slider + field hybrid, real-time results, two-column layout), navigation structure,
-mobile strategy, accessibility, visual polish (card hovers, gradient accents, Lucide icons),
-SVG wordmark logo, OG image generation (Satori), and favicon strategy defined.
-See `docs/design-and-branding.md`.
+Full design system defined: branding, colors, typography, calculator UI, navigation, accessibility.
 
 ### Stage 4: Build, Test & Launch (Next)
 1. Scaffold Astro + TypeScript + Tailwind CSS v4 + React
