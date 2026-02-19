@@ -108,16 +108,40 @@ These are complex enough to avoid AI Overview replacement and bring traffic dive
 
 At low traffic (1,000-10,000 PV/month), ad revenue is negligible ($5-$60/month). A single affiliate conversion pays $50-$500. Financial tools have the best affiliate fit of any category.
 
-### Affiliate opportunities per tool
+### Phased affiliate program enrollment
 
-| Tool | Affiliate context | Programs | Commission |
-|------|------------------|----------|-----------|
-| Compound interest / investment | "Open a high-yield savings account" | Wealthfront, Marcus, Ally | $50-$200/signup |
-| Loan amortization | "Compare loan rates" | LendingTree, SoFi, Credible | $50-$150/lead |
-| Retirement calculator | "Start investing for retirement" | Betterment, Vanguard | $50-$100/signup |
-| Debt payoff | "Consolidate your debt" | SoFi, LendingClub | $100-$300/funded loan |
-| Password generator | "Use a password manager" | 1Password, NordPass | $2-$5/signup |
-| All tools (sidebar) | "Build your own calculator site" | Cloudflare, hosting affiliates | $50-$200/signup |
+Not all programs accept new sites. Phased approach:
+
+| Phase | Programs | Commission | Requirement |
+|-------|---------|-----------|-------------|
+| Day 1 | Betterment | $25-$1,250/referral | None — accepts anyone 18+ |
+| Month 2+ | LendingTree, SoFi | $50-$150/lead, $80-$150/sale | Some content + active site |
+| Month 3+ | Wealthfront | $35-$55/conversion | Quality review — needs polished site |
+| Month 6+ | NerdWallet | Up to $100/referral | **10K monthly unique visitors required** |
+
+### Per-calculator affiliate mapping
+
+| Calculator | Affiliate context | Target program |
+|-----------|------------------|---------------|
+| Compound interest | "Open a high-yield savings account" | Betterment, Marcus, Wealthfront |
+| Loan amortization | "Compare loan rates" | LendingTree, SoFi |
+| Investment return | "Start investing" | Betterment, Wealthfront |
+| Retirement | "Open a retirement account" | Betterment, Vanguard |
+| Debt payoff | "Consolidate your debt" | SoFi, LendingClub |
+| Savings goal | "High-yield savings" | Marcus, Ally |
+| Rent vs buy | "Get pre-approved" | LendingTree |
+| Password generator | "Use a password manager" | 1Password, NordPass ($2-$5/signup) |
+
+### FTC Compliance (Non-Negotiable)
+
+Financial affiliate content has strict FTC and SEC requirements. **Penalties: $53,088 per violation.**
+
+**From day 1, every page with affiliate links must have:**
+- A visible disclosure at the top of the page (not buried in footer)
+- Plain language: "We may earn a commission if you sign up through our links. This does not affect our recommendations."
+- Disclosure must be **proximate** to affiliate links (near them, not just at the top)
+- A dedicated `/disclosure` page with full affiliate relationship details
+- **Never make specific financial promises** ("you WILL earn X%") — always frame as educational
 
 ### Revenue timeline (realistic)
 
@@ -135,6 +159,99 @@ At low traffic (1,000-10,000 PV/month), ad revenue is negligible ($5-$60/month).
 ### When to add display ads
 
 Don't add Ezoic until you have 50+ daily visitors consistently. Ezoic's heavy ad loading hurts Core Web Vitals, which hurts SEO — exactly the opposite of what a new site needs. Prioritize fast, clean pages that rank well. Add ads only when traffic justifies the UX trade-off.
+
+---
+
+## Revenue Multipliers (Low Effort, High Impact)
+
+These are specific tactics that increase income from the same traffic with minimal ongoing work.
+
+### 1. Email Capture: "Email Me My Results" (Priority: HIGH)
+
+**The single highest-leverage addition to this plan.**
+
+- Soft opt-in on every calculator: "Email me a PDF of my results" — NOT gating results behind email
+- Kit (ConvertKit) free tier: 10K subscribers, 1 automation sequence, unlimited sends
+- Expected opt-in rate: 3-8% of calculator users
+- Automated 3-email drip per calculator:
+  - Email 1: Your results PDF + "here's what you can do next"
+  - Email 2: Educational content related to the calculation
+  - Email 3: Relevant product recommendation (affiliate link)
+- Email drip → affiliate conversion: 2-5% (much higher than cold site traffic)
+
+**Why this matters:** At 5,000 monthly visitors with 5% email opt-in, you capture 250 emails/month. Over 12 months, that's 3,000 contacts you OWN — not dependent on Google's algorithm. Even if Google wipes your organic traffic tomorrow, you still have an email list to monetize.
+
+NerdWallet, Bankrate, and every serious financial site does this. We should too.
+
+**Build effort:** One-time setup. ~2-4 hours for email capture component + Kit integration + 3-email drip template. Then it runs automatically forever.
+
+### 2. Embeddable Calculator Widgets (Priority: HIGH)
+
+Offer iframe-embeddable versions of every calculator with a "Powered by [SiteName]" backlink.
+
+- Omni Calculator has 564K+ backlinks from 38.6K referring domains — largely from their embed program
+- Finance bloggers embed calculators in their posts → we get a do-follow backlink on every page that embeds it
+- This compounds passively over months/years
+- Architecture: make every calculator component renderable in a minimal iframe-friendly layout
+
+**Build effort:** ~4-6 hours to create embed-friendly versions + embed code generator page. Then it scales passively.
+
+**Google caveat:** Widget links at small scale (10-50 embeds) are fine. Don't use manipulative exact-match anchor text. Keep the "Powered by" attribution natural.
+
+### 3. Programmatic Scenario Pages (Priority: MEDIUM)
+
+Generate pre-filled calculator pages targeting specific long-tail queries:
+- "How much interest on a $200,000 mortgage at 7%"
+- "Monthly payment on a $30,000 car loan at 6.5%"
+- "$500 per month compound interest for 20 years"
+
+**Critical requirements (Google penalizes thin programmatic content):**
+- Start with 50-100 high-demand scenarios, NOT 10,000
+- Each page needs 500+ unique words (not just swapping numbers in a template)
+- Genuine analysis per page: "At 7%, your monthly payment is $1,331. Here's how that compares to the national average..."
+- Monitor indexing rate — if Google isn't indexing pages, consolidate
+- Noindex low-performers after 6 months
+
+**Build effort:** ~8-12 hours for the template system + content generation for first 50 pages. Then expand based on what ranks.
+
+**Risk:** 60% of programmatic SEO implementations fail. 93% of penalized sites lacked differentiation. Do this carefully and small at first.
+
+### 4. Comparison/Analysis Pages (Priority: MEDIUM)
+
+Dedicated pages targeting comparison queries:
+- "Snowball vs avalanche debt payoff comparison"
+- "Renting vs buying: which is cheaper in 2026?"
+- "Compound interest vs simple interest explained"
+- "Best high-yield savings accounts (2026)" — comparison table with affiliate links
+
+These serve different search intent than the calculator pages and capture additional keywords. Comparison tables with affiliate links have the highest conversion rates in financial content.
+
+**Build effort:** ~2-3 hours per page. Create 5-10 at launch, add more based on what ranks.
+
+### 5. Pinterest (Priority: LOW)
+
+Financial content performs well on Pinterest. Each pin has a 3.88-month average lifetime (vs. hours on Twitter/X).
+
+- Create 2-3 infographic-style pins per calculator
+- "How Much Does a $300K Mortgage Really Cost?" with visual breakdown → links to calculator
+- Pin 5-10 per week consistently
+- Pinterest has 600M monthly users, 96% of top searches are unbranded
+- Expect 500-2,000 monthly clicks after 6 months of consistent pinning
+
+**Build effort:** ~30 min/week once pin templates are created. Low effort, compounding returns.
+
+**Not a primary traffic driver** — but it's a diversification play that doesn't depend on Google. If Google tanks your organic rankings, Pinterest still works.
+
+### 6. "Best X" Comparison Tables on Calculator Pages (Priority: HIGH)
+
+Every financial calculator should include a comparison table below the calculator:
+- Compound interest page → "Best High-Yield Savings Accounts (2026)" table
+- Loan page → "Compare Today's Best Loan Rates" table
+- Retirement page → "Best Retirement Investment Accounts" table
+
+These tables have the highest affiliate click-through rates of any placement type. Users have just calculated their numbers and want to act on them.
+
+**Build effort:** One reusable comparison table component, populated per calculator. ~4-6 hours total.
 
 ---
 

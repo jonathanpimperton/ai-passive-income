@@ -69,9 +69,12 @@ These are the most complex, most defensible against AI Overviews, and have the b
 - Design system: `ToolPageLayout.astro` (reusable wrapper for all tool pages)
 - `CalculatorLayout` React component (shared input/result/chart pattern)
 - Homepage with tool grid
-- About page, privacy policy page (required for future ad network approval)
+- About page, privacy policy page, **affiliate disclosure page** (required for FTC compliance and ad network approval)
 - SEO foundation: sitemap, robots.txt, structured data helpers
 - Content collection schema for tool metadata
+- **Affiliate disclosure component** (visible on every page with affiliate links)
+- **Email capture component** ("Email me a PDF of my results" — soft opt-in, NOT gating results)
+- **Kit (ConvertKit) integration** for email list (free tier: 10K subscribers)
 
 **First 3 tools:**
 1. Compound interest calculator
@@ -98,27 +101,34 @@ These are the most complex, most defensible against AI Overviews, and have the b
 14. Emergency fund calculator
 15. JSON formatter/validator
 
-### Sprint 4: Polish + Launch (Days 13-16)
+### Sprint 4: Polish + Monetization + Launch (Days 13-16)
 
 - Educational content for all tools (500-1,000 words per financial calculator)
 - FAQ sections with schema markup
 - "Related calculators" internal linking
 - Worked examples (2-3 per calculator)
-- Contextual affiliate recommendations per tool
+- Contextual affiliate recommendations per tool (start with Betterment — no minimum requirements)
+- **"Best X" comparison tables** on each financial calculator page (highest affiliate CTR placement)
+- **PDF export** for calculator results (client-side, jsPDF — increases perceived value + email capture incentive)
+- **Embeddable widget versions** of calculators (iframe-friendly layout + embed code generator page)
 - Performance audit (Core Web Vitals)
 - OG image generation
 - Deploy to Cloudflare Pages
 
-### Sprint 5: SEO & Share (Days 17-20)
+### Sprint 5: SEO, Share & Growth Setup (Days 17-20)
 
 - Submit to Google Search Console
 - Verify sitemap indexing
 - Test all tools across browsers (Chrome, Firefox, Safari, mobile)
+- **Set up Kit (ConvertKit) automation:** 3-email drip sequence per calculator category
+- **Create first 10-20 programmatic scenario pages** (e.g., "Monthly payment on $300K mortgage at 7%") — with 500+ unique words each
+- **Create 5-10 Pinterest infographic pins** for top calculators
 - Share on Product Hunt
 - Post on Reddit (r/personalfinance, r/financialindependence)
 - Write Dev.to article about the build
+- **Apply to Betterment affiliate program** (no traffic minimums)
 
-**Total MVP timeline: ~3 weeks to deployed with 15 tools.**
+**Total MVP timeline: ~3 weeks to deployed with 15 tools + growth infrastructure.**
 
 ---
 
@@ -143,6 +153,8 @@ These are the most complex, most defensible against AI Overviews, and have the b
 │   ├── index.astro                        # Homepage
 │   ├── about.astro                        # About
 │   ├── privacy.astro                      # Privacy policy
+│   ├── disclosure.astro                   # Affiliate disclosure (FTC required)
+│   ├── embed.astro                        # Embed code generator page
 │   └── /tools
 │       ├── index.astro                    # All tools listing
 │       └── /[category]
@@ -155,7 +167,11 @@ These are the most complex, most defensible against AI Overviews, and have the b
 │   └── /ui                                # Astro/HTML components
 │       ├── ToolPageLayout.astro           # Reusable tool page wrapper
 │       ├── FaqSection.astro               # FAQ with schema markup
-│       └── RelatedTools.astro             # Related tools links
+│       ├── RelatedTools.astro             # Related tools links
+│       ├── AffiliateDisclosure.astro      # FTC disclosure component
+│       ├── ComparisonTable.astro          # "Best X" affiliate comparison table
+│       ├── EmailCapture.tsx               # "Email me my results" opt-in (React island)
+│       └── EmbedCode.astro               # Embed code snippet for widgets
 ├── /content
 │   └── /tools                             # Content collections
 │       ├── compound-interest.md           # Tool metadata + educational content
@@ -164,6 +180,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 │   └── BaseLayout.astro                   # Root layout with nav, footer
 └── /lib
     ├── calculator-utils.ts                # Shared financial math functions
+    ├── pdf-export.ts                      # Client-side PDF generation (jsPDF)
     └── seo.ts                             # Structured data helpers
 ```
 
@@ -277,15 +294,21 @@ MVP is shipped when:
 - [ ] 15 tools are live and functional
 - [ ] All tool pages have educational content (500+ words for financial, 200+ for utility)
 - [ ] FAQ sections with schema markup on all tools
-- [ ] Affiliate links on all financial calculators
+- [ ] Affiliate links on all financial calculators with FTC disclosure
+- [ ] "Best X" comparison tables on financial calculator pages
+- [ ] Email capture ("Email me my results as PDF") on all calculators
+- [ ] Kit (ConvertKit) integrated with automated drip sequence
+- [ ] Embeddable widget versions available with embed code generator
+- [ ] Affiliate disclosure page + per-page disclosure component
 - [ ] Homepage with tool grid and category filtering
 - [ ] Sitemap.xml generated and valid
 - [ ] robots.txt allows crawling
-- [ ] About page and privacy policy exist
+- [ ] About page, privacy policy, and disclosure page exist
 - [ ] Core Web Vitals pass (LCP < 2.5s, CLS < 0.1)
 - [ ] Mobile responsive
 - [ ] Deployed to Cloudflare Pages
 - [ ] Submitted to Google Search Console
+- [ ] Applied to Betterment affiliate program
 
 ---
 

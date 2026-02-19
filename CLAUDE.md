@@ -10,6 +10,7 @@ Build a zero-investment online business that generates passive income, built ent
 - **Tailwind CSS v4** — rapid UI development
 - **React** — interactive calculator components (via Astro islands)
 - **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
+- **Kit (ConvertKit)** (free tier) — email capture, 10K subscribers, automated drip sequences
 - **Google Search Console / Analytics** — SEO tracking (free)
 
 > **Why Astro over Next.js?** This is a static tools site — we use ~10% of Next.js's features. Astro ships zero JS by default (better Core Web Vitals = better SEO), Cloudflare acquired Astro's company (first-class support), and React components work natively as islands.
@@ -29,7 +30,10 @@ See `docs/market-research.md`, `docs/financial-model.md`, `docs/strategy.md`.
 **Chosen approach:**
 - 12 complex financial calculators + 3 high-value utility tools (15 MVP total)
 - Affiliate-first monetization (not ad-dependent)
+- Email capture ("email me my results") → automated drip → affiliate conversions
+- Embeddable calculator widgets for passive backlinks
 - Deep educational content per tool for E-E-A-T
+- FTC-compliant affiliate disclosures on every page
 
 **Revenue expectations (realistic):**
 - Year 1: $0-$500 total (building SEO equity on a new domain)
@@ -47,8 +51,9 @@ See `docs/plan-optimization.md` and `docs/strategy.md`.
 3. Build 6 core financial calculators (compound interest, loan, investment, retirement, debt payoff, savings goal)
 4. Build 6 secondary calculators (salary, inflation, ROI, net worth, rent-vs-buy, emergency fund)
 5. Build 3 utility tools (QR code, password generator, JSON formatter)
-6. Add educational content, FAQ sections, structured data, affiliate links
-7. Deploy to Cloudflare Pages, submit to Google Search Console
+6. Add educational content, FAQ sections, structured data
+7. Add affiliate links with FTC disclosure, comparison tables, email capture, embeddable widgets
+8. Deploy to Cloudflare Pages, submit to Google Search Console
 
 ## Constraints
 

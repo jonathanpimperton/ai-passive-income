@@ -80,7 +80,7 @@ The maintenance score of 4/5 is generous. Realistic: 2-3/5.
 
 ### 6. No Competitive Moat
 
-A directory on standard tech (Next.js + Supabase) on free hosting has zero defensibility. Moats in directories require:
+A directory on standard tech on free hosting has zero defensibility. Moats in directories require:
 - Brand recognition (takes years)
 - Network effects (requires critical mass)
 - Proprietary data (requires original research or partnerships)
