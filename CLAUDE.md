@@ -6,14 +6,13 @@ Build a zero-investment online business that generates passive income, built ent
 
 ## Tech Stack
 
-- **Next.js 15** (App Router, static export) + **TypeScript** — SSG for SEO
+- **Astro** + **TypeScript** — static site generation, zero JS by default, React islands for interactive tools
 - **Tailwind CSS v4** — rapid UI development
+- **React** — interactive calculator components (via Astro islands)
 - **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
 - **Google Search Console / Analytics** — SEO tracking (free)
 
-*Deferred:* Supabase (free tier) — not needed for MVP (pure static site, all tools client-side). Add later if user accounts or data storage are needed.
-
-> **Note:** Vercel Hobby plan prohibits commercial use. Cloudflare Pages allows commercial use on the free tier with unlimited bandwidth.
+> **Why Astro over Next.js?** This is a static tools site — we use ~10% of Next.js's features. Astro ships zero JS by default (better Core Web Vitals = better SEO), Cloudflare acquired Astro's company (first-class support), and React components work natively as islands.
 
 ## Project Stages
 
@@ -21,36 +20,42 @@ Build a zero-investment online business that generates passive income, built ent
 Evaluated 6 business models. Decision: **Free Online Tools Site**.
 See `docs/stage-1-exploration.md` and `docs/viability-assessment.md`.
 
-### Stage 2: Detailed Plan (Complete)
+### Stage 2: Detailed Plan (Complete → Revised)
 Market research, competitor analysis, financial model, and strategy defined.
 See `docs/market-research.md`, `docs/financial-model.md`, `docs/strategy.md`.
 
-**Chosen direction:** Modern, well-designed free tools site targeting:
-1. Financial calculators (niche RPM ceiling: $8-$40; blended $5-$15 via Ezoic/Mediavine)
-2. Privacy & compliance tools (underserved, growing demand)
-3. General utility tools (high volume, traffic builders)
+**Revised direction (Feb 19):** Focused financial calculator site. Original plan spread across 4 categories (financial, privacy, utility, developer) — revised to focus on financial niche for topical authority. Simple tools (word counter, tip calculator, etc.) cut because Google AI Overviews answer them directly.
 
-**Monetization:** Ezoic ads → Mediavine at 50K sessions → affiliates → direct ads
-**Revenue target:** $300/mo (month 12) to $8,000/mo (month 24) moderate case
+**Chosen approach:**
+- 12 complex financial calculators + 3 high-value utility tools (15 MVP total)
+- Affiliate-first monetization (not ad-dependent)
+- Deep educational content per tool for E-E-A-T
 
-### Stage 3: Plan Optimization (Complete)
-MVP cut from 40-50 tools to 20. Deploy target: ~3 weeks (not 3 months).
-Dropped Supabase, blog, image tools, API-dependent tools from MVP.
-See `docs/plan-optimization.md`.
+**Revenue expectations (realistic):**
+- Year 1: $0-$500 total (building SEO equity on a new domain)
+- Year 2: $100-$500/month (affiliates + possibly Ezoic)
+- Year 3+: $500-$2,000/month if things go well
+
+### Stage 3: Plan Optimization (Complete → Revised)
+MVP cut from 20 generic tools to 15 focused tools (12 financial + 3 utility).
+Switched from Next.js to Astro. Dropped simple tools that AI Overviews replace.
+See `docs/plan-optimization.md` and `docs/strategy.md`.
 
 ### Stage 4: Build, Test & Launch (Next)
-Sprint 1 (Days 1-3): Scaffold + first 5 tools (word counter, case converter, lorem ipsum, UUID, password generator)
-Sprint 2 (Days 4-7): Core tools (base64, URL encoder, JSON formatter, timestamp, QR code)
-Sprint 3 (Days 8-12): Financial calculators (compound interest, loan, savings, salary, tip, ROI, inflation)
-Sprint 4 (Days 13-16): Security tools + polish (hash generator, password strength, color contrast, content, FAQ)
-Sprint 5 (Days 17-20): Testing, SEO audit, deploy to Cloudflare Pages, submit to Google Search Console, share on communities
+1. Scaffold Astro + TypeScript + Tailwind CSS v4 + React
+2. Build tool page layout and component architecture
+3. Build 6 core financial calculators (compound interest, loan, investment, retirement, debt payoff, savings goal)
+4. Build 6 secondary calculators (salary, inflation, ROI, net worth, rent-vs-buy, emergency fund)
+5. Build 3 utility tools (QR code, password generator, JSON formatter)
+6. Add educational content, FAQ sections, structured data, affiliate links
+7. Deploy to Cloudflare Pages, submit to Google Search Console
 
 ## Constraints
 
 - **$0 budget** — free tiers only (Cloudflare Pages, etc.)
 - **AI-built** — Claude Code does all development
 - **Low maintenance** — should run mostly unattended once live
-- **Legal/ethical** — no scraped content, no spam, proper attribution
+- **Legal/ethical** — no scraped content, no spam, proper attribution, FTC-compliant affiliate disclosures
 
 ## Running
 

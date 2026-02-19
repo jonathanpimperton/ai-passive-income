@@ -1,375 +1,285 @@
-# Stage 3: Plan Optimization
+# Stage 3: Plan Optimization (Revised Feb 19)
 
-**Date:** 2026-02-18
-**Goal:** Cut scope to fastest viable MVP, identify risks, sequence work for earliest revenue
-
----
-
-## Feasibility Review
-
-### What's Solid
-
-1. **$0 cost structure** — Cloudflare Pages free tier (unlimited bandwidth, 500 builds/mo, commercial use allowed). No database needed. Client-side tools generate no server load. This is genuinely free to operate.
-
-2. **AI buildability** — Self-contained calculator/utility tools are ideal for AI development. Each tool is an independent unit with clear inputs/outputs, no external dependencies, and testable in isolation.
-
-3. **SEO fundamentals** — One page per tool, static generation, clean URLs, structured data. This is the proven playbook (Omni Calculator, RapidTables).
-
-4. **No cold start** — Unlike a directory or marketplace, a single working tool provides value from day one.
-
-### What Needs Adjustment
-
-1. **Too many tools planned upfront.** The strategy calls for 40-50 tools in 3 months. For MVP, we need the minimum to prove SEO traction — not a complete catalog.
-
-2. **Educational content scope is too ambitious.** 500-1,000 words per tool page is the right long-term target, but writing that for 40+ tools before launch delays deployment. Ship tools first, add content iteratively.
-
-3. **Financial calculators are high RPM but high competition.** "Mortgage calculator" has massive volume but competes against NerdWallet, Bankrate, and Calculator.net — sites with DA 80+. We need to target **long-tail financial queries** that established sites don't cover well.
-
-4. **Privacy/compliance tools need API access.** Email breach checker (HaveIBeenPwned API), SSL checker, and security headers checker all require external API calls — either server-side or CORS-friendly endpoints. Some may need serverless functions to proxy. Not all are purely client-side. These are deferred from MVP.
-
-5. **Blog is deferred too long.** The strategy says "Month 6+" but educational content is what drives informational search queries. The tool pages themselves should have educational content from day one — no separate blog needed initially.
+**Date:** 2026-02-19 (revised from Feb 18)
+**Goal:** Cut scope to focused MVP, fix framework choice, set realistic expectations
 
 ---
 
-## Scope Cuts for MVP
+## What Changed in This Revision
 
-### Cut from MVP (Build Later)
+The original plan (Feb 18) was revised after critical research into 2026 market conditions:
 
-| Tool/Feature | Reason to Defer |
-|-------------|----------------|
-| Email breach checker | Requires HIBP API integration, rate limits |
-| SSL certificate checker | Requires server-side network requests |
-| Website security headers checker | Requires server-side network requests |
-| Cookie consent checker | Requires crawling external sites |
-| Image compressor | Complex client-side Canvas/WebAssembly work |
-| Text diff tool | Moderate complexity, lower search volume |
-| CSV to JSON converter | Lower priority, medium complexity |
-| Invoice generator | Complex UI (PDF generation, templates) |
-| Social media image resizer | Requires image manipulation |
-| AI content detector | Requires ML model or API |
-| Premium tier | Month 12+ at earliest |
-| Blog section | Educational content goes on tool pages instead |
-| Supabase integration | Not needed for MVP — pure static site |
-
-### Keep for MVP (20 tools)
-
-These are high-value, 100% client-side, and fast to build:
-
-**Financial Calculators (7 tools) — Priority 1:**
-1. Compound interest calculator
-2. Loan payment calculator
-3. Savings goal calculator
-4. Salary ↔ hourly wage calculator
-5. Tip calculator
-6. ROI calculator
-7. Inflation calculator
-
-**Why these 7, not mortgage?** Mortgage calculator is dominated by Bankrate/NerdWallet (DA 80+). The tools above target queries where competition is lower and long-tail variations are plentiful ("compound interest calculator monthly", "salary to hourly converter with overtime", "inflation calculator by year").
-
-**Privacy & Security Tools (4 tools) — Priority 2:**
-8. Password generator (customizable length, characters, strength meter)
-9. Password strength checker
-10. Hash generator (MD5, SHA-1, SHA-256)
-11. WCAG color contrast checker
-
-**General Utility Tools (9 tools) — Priority 3:**
-12. Word counter / character counter
-13. Case converter (upper, lower, title, sentence, alternating)
-14. Lorem ipsum generator
-15. QR code generator
-16. Base64 encoder/decoder
-17. URL encoder/decoder
-18. JSON formatter/validator
-19. UUID generator
-20. Timestamp converter (Unix ↔ human-readable)
+1. **Framework:** Next.js → **Astro** (Cloudflare deprecated their Next.js adapter; Astro is first-class on CF Pages)
+2. **Scope:** 20 generic tools → **15 focused tools** (12 financial + 3 utility)
+3. **Cut simple tools:** Word counter, tip calculator, case converter, lorem ipsum, UUID, Base64, URL encoder, timestamp converter — all cut because Google AI Overviews answer these directly in the SERP
+4. **Niche focus:** Generic multi-category → **financial calculators only** for topical authority
+5. **Monetization:** Ads-first → **affiliates-first** (at low traffic, one affiliate conversion = months of ad revenue)
+6. **Revenue expectations:** $1,500/mo at month 12 → **$25-$100/mo** at month 12 (honest)
 
 ---
 
-## Build Order (Optimized for Speed)
+## What's Solid (Unchanged)
 
-### Sprint 1: Foundation + First 5 Tools (Days 1-3)
+1. **$0 cost structure** — Cloudflare Pages free tier (unlimited bandwidth, 500 builds/mo, commercial use allowed). No database needed. Client-side tools generate no server load.
+
+2. **AI buildability** — Self-contained calculator tools are ideal for AI development. Each tool is an independent unit with clear inputs/outputs, no external dependencies, and testable in isolation.
+
+3. **No cold start** — Unlike a directory or marketplace, a single working tool provides value from day one.
+
+4. **Affiliate-first is correct** — At low traffic, a single fintech affiliate conversion ($50-$500) dwarfs months of ad revenue ($5-$60/month).
+
+---
+
+## MVP: 15 Tools
+
+### Core Financial Calculators (6 — build first)
+
+These are the most complex, most defensible against AI Overviews, and have the best affiliate fit:
+
+1. **Compound interest calculator** — interactive chart, compounding frequency toggle, exportable results
+2. **Loan amortization calculator** — full amortization table, principal vs interest breakdown chart, downloadable schedule
+3. **Investment return calculator** — DRIP option, dividend reinvestment, comparison chart
+4. **Retirement savings calculator** — age-based projections, inflation-adjusted, milestone markers
+5. **Debt payoff calculator** — snowball vs avalanche comparison, total interest saved visualization
+6. **Savings goal calculator** — timeline visualization, reverse calculator ("how much per month?")
+
+### Secondary Financial Calculators (6 — build second)
+
+7. **Salary ↔ hourly converter** — overtime, tax withholding estimation, take-home pay
+8. **Inflation calculator** — historical CPI data, purchasing power chart
+9. **ROI calculator** — annualized return, total return, comparison mode
+10. **Net worth calculator** — categorized assets/liabilities, visual breakdown
+11. **Rent vs buy calculator** — total cost comparison over N years, break-even point
+12. **Emergency fund calculator** — expense-based, 3/6/12 month targets
+
+### Utility Tools (3 — build alongside)
+
+13. **QR code generator** — high search volume, multiple format options, downloadable PNG/SVG
+14. **Password generator** — customizable, strength meter, general audience
+15. **JSON formatter/validator** — high search volume, syntax highlighting
+
+---
+
+## Build Order
+
+### Sprint 1: Foundation + First 3 Calculators (Days 1-4)
 
 **Infrastructure:**
-- Scaffold Next.js 15 + TypeScript + Tailwind CSS v4
-- Design system: reusable tool page layout component
+- Scaffold Astro + TypeScript + Tailwind CSS v4 + React integration
+- Design system: `ToolPageLayout.astro` (reusable wrapper for all tool pages)
+- `CalculatorLayout` React component (shared input/result/chart pattern)
 - Homepage with tool grid
-- Category pages (financial, privacy, text, converters)
-- SEO foundation: metadata API, sitemap.xml, robots.txt
-- About page, privacy policy page (required for ad network approval)
+- About page, privacy policy page (required for future ad network approval)
+- SEO foundation: sitemap, robots.txt, structured data helpers
+- Content collection schema for tool metadata
 
-**First 5 tools (easiest, fastest to build):**
-1. Word counter / character counter
-2. Case converter
-3. Lorem ipsum generator
-4. UUID generator
-5. Password generator
+**First 3 tools:**
+1. Compound interest calculator
+2. Loan amortization calculator
+3. Savings goal calculator
 
-**Why these first?** They're the simplest to implement (string manipulation), let us validate the tool page template, and ship something deployable in days.
+**Why calculators first (not simple tools)?** The previous plan started with easy string tools to "validate the template." But those tools were cut. Starting with the core product (financial calculators) validates the actual value proposition — the chart/table/interactive output that makes these tools defensible.
 
-### Sprint 2: Core Tools (Days 4-7)
+### Sprint 2: More Calculators + Utility Tools (Days 5-8)
 
-6. Base64 encoder/decoder
-7. URL encoder/decoder
-8. JSON formatter/validator
-9. Timestamp converter
-10. QR code generator — use `qrcode` npm package with dynamic import (`next/dynamic`) to avoid adding ~50KB to the main bundle. Speed is the moat; lazy-load non-critical dependencies.
+4. Investment return calculator
+5. Retirement savings calculator
+6. Debt payoff calculator
+7. QR code generator
+8. Password generator
 
-### Sprint 3: Financial Calculators (Days 8-12)
+### Sprint 3: Remaining Tools + Content (Days 9-12)
 
-11. Compound interest calculator
-12. Loan payment calculator
-13. Savings goal calculator
-14. Salary ↔ hourly wage calculator
-15. Tip calculator
-16. ROI calculator
-17. Inflation calculator
+9. Salary ↔ hourly converter
+10. Inflation calculator
+11. ROI calculator
+12. Net worth calculator
+13. Rent vs buy calculator
+14. Emergency fund calculator
+15. JSON formatter/validator
 
-**Financial calculators require more UI work** (input fields, sliders, results tables, charts). Build the calculator layout component first, then tools are fast.
+### Sprint 4: Polish + Launch (Days 13-16)
 
-### Sprint 4: Remaining + Polish (Days 13-16)
-
-18. Hash generator — SHA-256 via native Web Crypto API (`crypto.subtle.digest`); MD5 requires a lightweight library (`js-md5`, ~5KB) since it's not in Web Crypto. Dynamic import the MD5 lib.
-19. Password strength checker
-20. WCAG color contrast checker
-- Add educational content (200-300 words minimum per tool)
-- Add "Related Tools" sections
-- Add FAQ sections with schema markup
+- Educational content for all tools (500-1,000 words per financial calculator)
+- FAQ sections with schema markup
+- "Related calculators" internal linking
+- Worked examples (2-3 per calculator)
+- Contextual affiliate recommendations per tool
 - Performance audit (Core Web Vitals)
+- OG image generation
 - Deploy to Cloudflare Pages
 
-### Sprint 5: SEO & Launch (Days 17-20)
+### Sprint 5: SEO & Share (Days 17-20)
 
 - Submit to Google Search Console
 - Verify sitemap indexing
-- Add structured data (WebApplication schema) to all tools
-- Write About page content
-- Test all tools across browsers
-- Share on Product Hunt / Reddit / dev communities
+- Test all tools across browsers (Chrome, Firefox, Safari, mobile)
+- Share on Product Hunt
+- Post on Reddit (r/personalfinance, r/financialindependence)
+- Write Dev.to article about the build
 
-**Total MVP timeline: ~3 weeks to deployed with 20 tools.**
-
----
-
-## Revised Technical Architecture
-
-### What to Skip for MVP
-
-| Component | MVP Status | Rationale |
-|-----------|-----------|-----------|
-| Supabase | Skip entirely | No database needed — pure static site |
-| Server components | Minimal | Tools are client-side; pages are SSG |
-| Authentication | Skip | No user accounts in MVP |
-| API routes | Skip | All processing client-side |
-| Blog/CMS | Skip | Educational content lives on tool pages |
-| Analytics | Google Analytics 4 only | Free, sufficient for MVP |
-| Testing | Lightweight | Jest for calculator logic, manual for UI |
-
-### What Matters for MVP
-
-| Component | Priority | Notes |
-|-----------|---------|-------|
-| Tool page layout component | Critical | Reusable template: tool + description + FAQ + related |
-| SSG for all pages | Critical | `generateStaticParams` for all tool routes |
-| Metadata/SEO | Critical | Title, description, OG tags, structured data |
-| Responsive design | Critical | Mobile-first, clean Tailwind layout |
-| Sitemap generation | Critical | Auto-generated XML sitemap |
-| Core Web Vitals | Critical | LCP < 2.5s, CLS < 0.1 |
-| Category pages | Important | Browse tools by category |
-| Internal linking | Important | "Related Tools" on every tool page |
-| 404 page | Important | Custom, links to tool categories |
-
-### Critical: Server/Client Component Pattern
-
-In Next.js 15 App Router, every interactive tool needs the `'use client'` directive. But if the entire `page.tsx` is a client component, we lose SSG metadata benefits (title, description, structured data won't be rendered server-side).
-
-**The correct pattern:**
-- `page.tsx` = **server component** — handles `generateMetadata()`, educational content, FAQ, structured data, related tools. Renders the tool's client component.
-- `ToolComponent.tsx` = **client component** (`'use client'`) — the interactive tool UI with state, event handlers, user input/output.
-
-This is non-negotiable for SEO. Every tool page must follow this split.
-
-### Simplified File Structure
-
-```
-/app
-├── layout.tsx                    # Root layout with nav, footer
-├── page.tsx                      # Homepage: tool grid, categories
-├── sitemap.ts                    # Auto-generated sitemap
-├── robots.ts                     # Robots.txt
-├── about/page.tsx                # About page
-├── privacy/page.tsx              # Privacy policy
-├── tools/
-│   ├── page.tsx                  # All tools listing
-│   ├── [category]/
-│   │   ├── page.tsx              # Category listing
-│   │   └── [tool]/
-│   │       └── page.tsx          # Server component: metadata + educational content + renders <ToolComponent />
-/components
-├── tools/
-│   ├── ToolPageLayout.tsx        # Reusable tool page wrapper (server component)
-│   ├── CalculatorLayout.tsx      # Financial calculator wrapper (client component)
-│   ├── RelatedTools.tsx          # Related tools sidebar/footer (server component)
-│   ├── FaqSection.tsx            # FAQ with schema markup (server component)
-│   └── [tool-name]/
-│       └── [ToolName].tsx        # 'use client' — interactive tool UI
-├── ui/                           # Shared UI components
-/lib
-├── tools/                        # Tool definitions, metadata, categories
-├── seo/                          # SEO helpers, structured data generators
-```
+**Total MVP timeline: ~3 weeks to deployed with 15 tools.**
 
 ---
 
-## SEO Optimization: What to Do First
+## Technical Architecture (Astro)
 
-### Day 1 Priorities
+### Why Astro, Not Next.js
 
-1. **Google Search Console** — Verify ownership immediately after first deploy
-2. **Sitemap** — Auto-generated, submitted to GSC
-3. **Robots.txt** — Allow all crawling
-4. **Canonical URLs** — Prevent duplicate content
+| Factor | Next.js 15 (static export) | Astro |
+|--------|---------------------------|-------|
+| JS shipped for non-tool pages | Full React runtime (~80-150KB) | Zero |
+| JS shipped for tool pages | React runtime + tool code | Only tool island code |
+| Cloudflare Pages support | Legacy path (adapter deprecated Sep 2025) | First-class (Cloudflare owns Astro) |
+| Features we'd use | ~10-20% | ~80%+ |
+| Content management | Manual | Built-in content collections |
+| Static site generation | Requires `output: export` config + workarounds | Default behavior |
 
-### Per-Tool Page SEO (Non-Negotiable)
+### File Structure
+
+```
+/src
+├── /pages
+│   ├── index.astro                        # Homepage
+│   ├── about.astro                        # About
+│   ├── privacy.astro                      # Privacy policy
+│   └── /tools
+│       ├── index.astro                    # All tools listing
+│       └── /[category]
+│           └── /[tool].astro              # Tool page (static, renders React island)
+├── /components
+│   ├── /tools                             # React islands ('client:load')
+│   │   ├── CompoundInterestCalc.tsx
+│   │   ├── LoanAmortizationCalc.tsx
+│   │   └── ...
+│   └── /ui                                # Astro/HTML components
+│       ├── ToolPageLayout.astro           # Reusable tool page wrapper
+│       ├── FaqSection.astro               # FAQ with schema markup
+│       └── RelatedTools.astro             # Related tools links
+├── /content
+│   └── /tools                             # Content collections
+│       ├── compound-interest.md           # Tool metadata + educational content
+│       └── ...
+├── /layouts
+│   └── BaseLayout.astro                   # Root layout with nav, footer
+└── /lib
+    ├── calculator-utils.ts                # Shared financial math functions
+    └── seo.ts                             # Structured data helpers
+```
+
+### Component Pattern: Astro Page + React Island
+
+```astro
+<!-- /pages/tools/financial/compound-interest.astro -->
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ToolPageLayout from '../../../components/ui/ToolPageLayout.astro';
+import CompoundInterestCalc from '../../../components/tools/CompoundInterestCalc.tsx';
+import { getEntry } from 'astro:content';
+
+const tool = await getEntry('tools', 'compound-interest');
+---
+<BaseLayout title="Free Compound Interest Calculator" description="...">
+  <ToolPageLayout tool={tool}>
+    <!-- React island: only this component ships JS -->
+    <CompoundInterestCalc client:load />
+  </ToolPageLayout>
+</BaseLayout>
+```
+
+The surrounding page (layout, educational content, FAQ, related tools, structured data) is pure HTML — zero JavaScript. Only the interactive calculator hydrates.
+
+### Key Technical Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Framework | Astro | Zero JS default, React islands, first-class CF Pages |
+| Interactive tools | React via `client:load` | Best ecosystem for forms, charts, state |
+| Charts | Chart.js (lightweight) or recharts | Financial tools need visual output |
+| Rendering | Static (SSG) | Fastest, $0 server costs |
+| Styling | Tailwind CSS v4 | Rapid development, small bundles |
+| Hosting | Cloudflare Pages | Unlimited bandwidth, commercial use, edge delivery |
+| Content | Astro content collections | Structured tool metadata + educational content |
+| Testing | Vitest for calculator logic | Ensure financial math is correct |
+
+---
+
+## SEO Strategy (Focused)
+
+### Niche Authority
+
+Position as **the** free financial calculator resource. Every page reinforces financial expertise. Internal linking creates a tight topical cluster. This is what Google rewards in 2026 (depth over breadth).
+
+### Per-Tool Page Structure
+
+1. H1: Tool name with primary keyword
+2. Interactive calculator (React island)
+3. Results with charts, tables, downloadable output
+4. "How to use this calculator" (200-300 words)
+5. Educational content (500-1,000 words on the financial concept)
+6. Worked examples (2-3 real scenarios)
+7. FAQ (3-5 questions, FAQ schema)
+8. Related calculators (4-6 internal links)
+9. Contextual affiliate recommendation
+
+### Per-Tool Page SEO
 
 ```
 Title:       "Free [Tool Name] Online | [Site Name]"
 Description: "[Action verb] [what the tool does]. Free, fast, no signup required."
 H1:          "[Tool Name]"
-URL:         /tools/[category]/[tool-slug]
+URL:         /tools/financial/[tool-slug]
 Schema:      WebApplication type
-OG Image:    Auto-generated via Next.js `opengraph-image.tsx` (tool name + category + branding)
+OG Image:    Auto-generated (tool name + branding)
 ```
-
-**Open Graph images are critical.** Reddit, Twitter/X, and link previews on messaging apps all show OG images. Tools shared without preview images get significantly less engagement. Use Next.js's built-in `opengraph-image.tsx` to generate dynamic OG images per tool page at build time — zero external dependencies.
-
-### Content Priorities (Minimal for MVP)
-
-Each tool page needs at minimum:
-- **Tool name + one-line description** (above the tool)
-- **How to use** section (3-5 sentences)
-- **What is [concept]?** section (100-200 words explaining the underlying concept)
-- **FAQ** (2-3 questions with FAQ schema)
-- **Related Tools** links (3-5 links)
-
-This is lighter than the original 500-1,000 words target. We can expand content post-launch as an ongoing SEO improvement.
 
 ---
 
-## Monetization: Fastest Path
+## Monetization: Affiliates First
 
-### Month 1-2: Deploy and Index (Revenue: $0)
-- Ship 20 tools
-- Submit to Google Search Console
-- Focus on getting pages indexed
+### From Day 1: Affiliate Links
 
-### Month 2-3: Apply for Ezoic
-Ezoic requirements:
-- Original content (tool pages with descriptions qualify)
-- Privacy policy page
-- About page
-- Some organic traffic (even 10-20 daily visitors)
-- No minimum traffic threshold
+Every financial calculator gets a contextual affiliate recommendation:
+- Compound interest → high-yield savings accounts (Wealthfront, Marcus)
+- Loan amortization → loan comparison (LendingTree, SoFi)
+- Retirement → investment platforms (Betterment, Vanguard)
+- Debt payoff → debt consolidation (SoFi, LendingClub)
 
-### Month 3+: Add Affiliate Links
-Start with the highest-commission, most contextually relevant programs:
-- **On financial calculator pages:** Link to relevant fintech products
-- **On password tools:** Link to password manager affiliates (1Password, Bitwarden)
-- **On all pages:** Sidebar/footer link to hosting (WP Engine: $500/sale)
+### Month 6+: Consider Ezoic
 
-### Key Insight: Affiliate Revenue Matters More Than Ads Early On
-
-At low traffic (1,000-10,000 PV/month), ad revenue is negligible ($5-$60/month). But a single affiliate conversion ($50-$500) can equal months of ad income. **Prioritize well-placed affiliate links over ad optimization in the first 6 months.**
+Only after 50+ daily visitors consistently. Don't add ads that hurt Core Web Vitals while SEO equity is still building.
 
 ---
 
 ## Risk Mitigations
 
-### Risk: Cloudflare Pages Free Tier Limits
+### Risk: Google AI Overviews Replace Calculator Queries
 
-Cloudflare Pages free tier: unlimited bandwidth, 500 builds/month, 1 build at a time.
-
-**Mitigation:** All tools are client-side (SSG pages). 500 builds/month is more than enough. Unlimited bandwidth means traffic growth won't hit hosting limits.
-
-### Risk: Tool Pages Seen as "Thin Content" by Google
-
-Google may view a tool-only page without substantial text content as thin.
-
-**Mitigation:**
-- Every tool page has educational content (how-to, what-is, FAQ)
-- Schema markup identifies pages as WebApplication (not articles)
-- RapidTables ranks with minimal text per page — the tool itself is the content
-- Omni Calculator proves detailed educational content + tool is the ideal formula
-
-### Risk: AI Overviews Replace Simple Tool Queries
-
-Google's AI overviews can answer "what is compound interest?" but can't run an interactive calculator.
-
-**Mitigation:** Build tools that are **interactive and personalized** — users input their own data and get custom results. AI overviews can't replace this. The more interactive the tool, the more defensible it is.
+**Mitigation:** Our tools produce interactive charts, amortization tables, personalized projections, and downloadable output. AI Overviews can answer "what is compound interest?" but can't generate a personalized 30-year growth chart with your specific inputs.
 
 ### Risk: Slow SEO Traction (Google Sandbox)
 
-New domains face 3-6 months of reduced visibility.
-
 **Mitigation:**
-- Target long-tail, low-competition keywords first
+- Target long-tail queries ("compound interest calculator with monthly contributions" not just "compound interest calculator")
 - Submit sitemap day one
-- Build backlinks via the strategy below
-- Each new tool is another lottery ticket for ranking
+- Embeddable calculator widgets = passive backlinks from finance bloggers
+- Product Hunt + Reddit launch for initial traffic signal
+
+### Risk: Cloudflare Pages Free Tier Limits
+
+**Mitigation:** Unlimited bandwidth. 500 builds/month is more than enough. No risk here.
 
 ---
 
-## Backlink Strategy (DA 0 → First Links)
-
-A new domain has zero authority. Backlinks are how Google decides to trust us. The strategy must be concrete and actionable from week 1.
-
-### Tier 1: Launch Day (Week 3-4)
-
-| Action | Expected Links | Effort |
-|--------|---------------|--------|
-| Submit to Google Search Console | Indexing signal (not a backlink, but essential) | 5 min |
-| Submit to Product Hunt | 1 do-follow link (DA 90+) + exposure | 30 min |
-| Post on Hacker News (Show HN) | 1 link if it gets traction (DA 90+) | 15 min |
-| Post on relevant Reddit subs (r/webdev, r/personalfinance, r/InternetIsBeautiful) | No-follow but drives traffic + indirect SEO signals | 30 min |
-| Submit to free tool directories (AlternativeTo, SaaSHub, ToolPilot) | 1-3 do-follow links (DA 30-60) | 1 hour |
-
-### Tier 2: Month 1-3 (Ongoing)
-
-| Action | Expected Links | Effort |
-|--------|---------------|--------|
-| Write 2-3 dev.to / Hashnode articles featuring specific tools | 2-3 do-follow links (DA 70+) | 2-3 hours |
-| Answer relevant Stack Overflow / Reddit questions with tool links | No-follow but traffic-driving | Ongoing, 15 min/week |
-| Submit to web tool roundup lists ("best free online tools 2026") | 1-3 links if accepted | Email outreach, 1 hour |
-| Create a GitHub repo (e.g., "awesome-free-tools") that includes our site | 1 link (DA 90+) | 30 min |
-
-### Tier 3: Month 3-6 (If SEO traction is slow)
-
-| Action | Expected Links | Effort |
-|--------|---------------|--------|
-| Guest post on personal finance / small business blogs | 1-2 do-follow links per post | 2-3 hours per post |
-| Reach out to bloggers who link to competitor tools (broken link building) | 1-5 links if successful | 2-3 hours research + outreach |
-| Create embeddable widget versions of calculators (with attribution link) | Passive backlinks over time | 4-6 hours dev work |
-
-### Expected Timeline
-
-| Milestone | Target |
-|-----------|--------|
-| First 5 backlinks | Week 4 (launch push) |
-| 10-20 referring domains | Month 3 |
-| 30-50 referring domains | Month 6 |
-| DA 10-15 | Month 6-9 |
-
-The embeddable calculator widget strategy deserves emphasis: if bloggers embed our compound interest calculator on their personal finance blog, we get a do-follow backlink on every page that embeds it. This scales passively.
-
----
-
-## What "Done" Looks Like for Stage 4 (Build, Test & Launch)
+## What "Done" Looks Like
 
 MVP is shipped when:
-- [ ] 20 tools are live and functional
-- [ ] All tool pages have title, description, educational content, FAQ, related tools
-- [ ] Homepage shows all tools with category filtering
-- [ ] Category pages work
-- [ ] Sitemap.xml is generated and valid
+- [ ] 15 tools are live and functional
+- [ ] All tool pages have educational content (500+ words for financial, 200+ for utility)
+- [ ] FAQ sections with schema markup on all tools
+- [ ] Affiliate links on all financial calculators
+- [ ] Homepage with tool grid and category filtering
+- [ ] Sitemap.xml generated and valid
 - [ ] robots.txt allows crawling
 - [ ] About page and privacy policy exist
 - [ ] Core Web Vitals pass (LCP < 2.5s, CLS < 0.1)
@@ -379,17 +289,23 @@ MVP is shipped when:
 
 ---
 
-## Summary of Changes from Original Strategy
+## Revenue Expectations (Honest)
 
-| Aspect | Original Plan | Optimized Plan |
-|--------|--------------|---------------|
-| MVP tools | 40-50 | **20** |
-| Time to deploy | ~3 months | **~3 weeks** |
-| Educational content | 500-1,000 words/tool | **100-300 words/tool** (expand later) |
-| Financial calculators | Include mortgage (high competition) | **Skip mortgage**, target lower-competition queries |
-| Privacy tools needing APIs | Included (HIBP, SSL checker) | **Deferred** to post-MVP |
-| Blog section | Month 6+ | **Skip** — content goes on tool pages |
-| Supabase | Included in stack | **Skip entirely** for MVP |
-| Image tools | Included | **Deferred** (complex client-side work) |
-| Premium tier | Month 12+ | Unchanged |
-| Target: first deploy | Month 3 | **Week 3** |
+| Timeline | Expected Revenue | Notes |
+|---------|-----------------|-------|
+| Months 1-6 | $0 | Building SEO equity, in Google sandbox |
+| Months 6-12 | $0-$100/mo | First affiliate conversions, maybe Ezoic |
+| Months 12-18 | $50-$300/mo | Growing organic traffic |
+| Months 18-24 | $100-$500/mo | Established authority |
+| Year 3+ | $300-$2,000/mo | If things go well |
+
+**Year 1 total: $0-$500.** This project is a long-term bet on compounding SEO value, not a quick win.
+
+## Kill Criteria
+
+| Condition | Timeline | Action |
+|-----------|---------|--------|
+| <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO, try different keyword targets |
+| <1,000 monthly PV | Month 12 | Reassess niche, consider pivot |
+| <$25/month revenue | Month 15 | Pivot or abandon |
+| Zero affiliate conversions | Month 12 | Rethink affiliate placement |
