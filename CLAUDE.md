@@ -10,7 +10,7 @@ Build a zero-investment online business that generates passive income, built ent
 - **Tailwind CSS v4** — rapid UI development
 - **React** — interactive calculator components (via Astro islands)
 - **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
-- **Kit (ConvertKit)** (free tier) — email capture, 10K subscribers, automated drip sequences
+- **Kit (ConvertKit)** (free tier) — email capture, 10K subscribers, 1 automated drip sequence
 - **Google Search Console / Analytics** — SEO tracking (free)
 
 > **Why Astro over Next.js?** This is a static tools site — we use ~10% of Next.js's features. Astro ships zero JS by default (better Core Web Vitals = better SEO), Cloudflare acquired Astro's company (first-class support), and React components work natively as islands.

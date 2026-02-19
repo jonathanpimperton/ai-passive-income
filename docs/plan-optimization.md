@@ -14,7 +14,7 @@ The original plan (Feb 18) was revised after critical research into 2026 market 
 3. **Cut simple tools:** Word counter, tip calculator, case converter, lorem ipsum, UUID, Base64, URL encoder, timestamp converter — all cut because Google AI Overviews answer these directly in the SERP
 4. **Niche focus:** Generic multi-category → **financial calculators only** for topical authority
 5. **Monetization:** Ads-first → **affiliates-first** (at low traffic, one affiliate conversion = months of ad revenue)
-6. **Revenue expectations:** $1,500/mo at month 12 → **$25-$100/mo** at month 12 (honest)
+6. **Revenue expectations:** $1,500/mo at month 12 → **$65-$250/mo** at month 12 (honest)
 
 ---
 
@@ -71,10 +71,11 @@ These are the most complex, most defensible against AI Overviews, and have the b
 - Homepage with tool grid
 - About page, privacy policy page, **affiliate disclosure page** (required for FTC compliance and ad network approval)
 - SEO foundation: sitemap, robots.txt, structured data helpers
-- Content collection schema for tool metadata
+- Content collection schema for tool metadata (see schema definition above)
+- **Vitest setup** + unit tests for financial math functions (compound interest, amortization — financial math MUST be correct)
 - **Affiliate disclosure component** (visible on every page with affiliate links)
 - **Email capture component** ("Email me a PDF of my results" — soft opt-in, NOT gating results)
-- **Kit (ConvertKit) integration** for email list (free tier: 10K subscribers)
+- **Kit (ConvertKit) integration** for email list (free tier: 10K subscribers, **1 visual automation** — start with 1 universal 3-email drip, segment by category only after upgrading to paid tier if revenue justifies it)
 
 **First 3 tools:**
 1. Compound interest calculator
@@ -120,7 +121,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 - Submit to Google Search Console
 - Verify sitemap indexing
 - Test all tools across browsers (Chrome, Firefox, Safari, mobile)
-- **Set up Kit (ConvertKit) automation:** 3-email drip sequence per calculator category
+- **Set up Kit (ConvertKit) automation:** 1 universal 3-email drip sequence (free tier limits to 1 visual automation; segment by category later if paid tier justified by revenue)
 - **Create first 10-20 programmatic scenario pages** (e.g., "Monthly payment on $300K mortgage at 7%") — with 500+ unique words each
 - **Create 5-10 Pinterest infographic pins** for top calculators
 - Share on Product Hunt
@@ -184,22 +185,75 @@ These are the most complex, most defensible against AI Overviews, and have the b
     └── seo.ts                             # Structured data helpers
 ```
 
-### Component Pattern: Astro Page + React Island
+### Content Collection Schema
+
+Define in `src/content/config.ts`:
+
+```ts
+import { defineCollection, z } from 'astro:content';
+
+const tools = defineCollection({
+  type: 'content', // Markdown files with frontmatter
+  schema: z.object({
+    name: z.string(),                           // "Compound Interest Calculator"
+    slug: z.string(),                           // "compound-interest"
+    category: z.enum(['financial', 'utility']),
+    description: z.string(),                    // SEO meta description
+    keywords: z.array(z.string()),              // Target keywords
+    relatedTools: z.array(z.string()),          // Slugs of 4-6 related tools
+    affiliateContext: z.string().optional(),     // "Open a high-yield savings account"
+    affiliatePrograms: z.array(z.string()).optional(), // ["Betterment", "Marcus"]
+    faq: z.array(z.object({
+      question: z.string(),
+      answer: z.string(),
+    })),
+    workedExamples: z.array(z.object({
+      title: z.string(),
+      inputs: z.record(z.string(), z.union([z.string(), z.number()])),
+      description: z.string(),
+    })),
+  }),
+});
+
+export const collections = { tools };
+```
+
+The Markdown body of each tool file contains the educational content (500-1,000 words for financial, 200+ for utility).
+
+### Component Pattern: Dynamic Route + React Island
+
+The file structure uses dynamic routes (`[category]/[tool].astro`), not one file per tool:
 
 ```astro
-<!-- /pages/tools/financial/compound-interest.astro -->
+<!-- /pages/tools/[category]/[tool].astro -->
 ---
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-import ToolPageLayout from '../../../components/ui/ToolPageLayout.astro';
-import CompoundInterestCalc from '../../../components/tools/CompoundInterestCalc.tsx';
-import { getEntry } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import ToolPageLayout from '@components/ui/ToolPageLayout.astro';
+import { getCollection } from 'astro:content';
 
-const tool = await getEntry('tools', 'compound-interest');
+// Generate a page for every tool in the content collection
+export async function getStaticPaths() {
+  const tools = await getCollection('tools');
+  return tools.map(tool => ({
+    params: { category: tool.data.category, tool: tool.data.slug },
+    props: { tool },
+  }));
+}
+
+const { tool } = Astro.props;
+
+// Dynamically import the correct React calculator component
+const componentMap: Record<string, any> = {
+  'compound-interest': () => import('@components/tools/CompoundInterestCalc.tsx'),
+  'loan-amortization': () => import('@components/tools/LoanAmortizationCalc.tsx'),
+  // ... one entry per tool
+};
+const ToolComponent = (await componentMap[tool.data.slug]()).default;
 ---
-<BaseLayout title="Free Compound Interest Calculator" description="...">
+<BaseLayout title={`Free ${tool.data.name} Online`} description={tool.data.description}>
   <ToolPageLayout tool={tool}>
     <!-- React island: only this component ships JS -->
-    <CompoundInterestCalc client:load />
+    <ToolComponent client:load />
   </ToolPageLayout>
 </BaseLayout>
 ```
@@ -256,11 +310,12 @@ OG Image:    Auto-generated (tool name + branding)
 
 ### From Day 1: Affiliate Links
 
-Every financial calculator gets a contextual affiliate recommendation:
-- Compound interest → high-yield savings accounts (Wealthfront, Marcus)
+Every financial calculator gets a contextual affiliate recommendation. See `strategy.md` (Per-calculator affiliate mapping) for the full 8-tool mapping. Key examples:
+- Compound interest → high-yield savings accounts (Betterment, Marcus, Wealthfront)
 - Loan amortization → loan comparison (LendingTree, SoFi)
 - Retirement → investment platforms (Betterment, Vanguard)
 - Debt payoff → debt consolidation (SoFi, LendingClub)
+- Plus: investment return, savings goal, rent vs buy, password generator
 
 ### Month 6+: Consider Ezoic
 

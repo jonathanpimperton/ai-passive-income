@@ -11,7 +11,7 @@
 The original strategy (Feb 18) was revised after researching current 2026 market conditions. Key findings that forced changes:
 
 1. **Google AI Overviews** now appear in 44-60% of searches, dropping organic CTR by 47%. Simple tools (tip calculator, word counter, unit converters) are answered directly in the SERP — building these is wasted effort.
-2. **New domain sandbox** takes 6-12 months for meaningful organic traffic. Revenue projections of $1,500/mo at month 12 were fantasy — realistic: $25-80/mo.
+2. **New domain sandbox** takes 6-12 months for meaningful organic traffic. Revenue projections of $1,500/mo at month 12 were fantasy — realistic: $65-$250/mo.
 3. **Ad RPMs have crashed** industry-wide. AdSense publishers report $0.50-$3 RPM in 2025-2026. Even Ezoic delivers $5-8 EPMV for small new sites, not the $10-15 previously assumed.
 4. **Next.js is wrong for this project.** Cloudflare deprecated their Next.js adapter. Astro is first-class on Cloudflare Pages (Cloudflare acquired Astro's company), ships zero JS by default, and is purpose-built for content+tools sites.
 5. **Spreading across 4 categories** (financial, privacy, utility, developer) gives thin authority in each. Google rewards topical depth.
@@ -173,7 +173,7 @@ These are specific tactics that increase income from the same traffic with minim
 **The single highest-leverage addition to this plan.**
 
 - Soft opt-in on every calculator: "Email me a PDF of my results" — NOT gating results behind email
-- Kit (ConvertKit) free tier: 10K subscribers, 1 automation sequence, unlimited sends
+- Kit (ConvertKit) free tier: 10K subscribers, **1 visual automation** (start with 1 universal drip; segment by category only on paid tier), unlimited sends
 - Expected opt-in rate: 3-8% of calculator users
 - Automated 3-email drip per calculator:
   - Email 1: Your results PDF + "here's what you can do next"
