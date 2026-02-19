@@ -47,9 +47,11 @@ Switched from Next.js to Astro. Dropped simple tools that AI Overviews replace.
 See `docs/plan-optimization.md` and `docs/strategy.md`.
 
 ### Stage 3B: Design & Branding (Complete)
+**Site name: CalcPath** (`calcpath.pages.dev` at launch, `calcpath.com` when ready).
 Color system (blue/green trust palette), typography (Inter), calculator UI patterns
 (slider + field hybrid, real-time results, two-column layout), navigation structure,
-mobile strategy, accessibility requirements, and site naming candidates defined.
+mobile strategy, accessibility, visual polish (card hovers, gradient accents, Lucide icons),
+SVG wordmark logo, OG image generation (Satori), and favicon strategy defined.
 See `docs/design-and-branding.md`.
 
 ### Stage 4: Build, Test & Launch (Next)
