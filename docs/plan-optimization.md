@@ -304,7 +304,7 @@ MVP is shipped when:
 - [ ] Sitemap.xml generated and valid
 - [ ] robots.txt allows crawling
 - [ ] About page, privacy policy, and disclosure page exist
-- [ ] Core Web Vitals pass (LCP < 2.5s, CLS < 0.1)
+- [ ] Core Web Vitals pass (LCP < 2.5s, INP < 200ms, CLS < 0.1)
 - [ ] Mobile responsive
 - [ ] Deployed to Cloudflare Pages
 - [ ] Submitted to Google Search Console
@@ -316,21 +316,16 @@ MVP is shipped when:
 
 | Timeline | Expected Revenue | Notes |
 |---------|-----------------|-------|
-| Months 1-6 | $0 | Building SEO equity, in Google sandbox |
-| Months 6-12 | $0-$100/mo | First affiliate conversions, maybe Ezoic |
-| Months 12-18 | $50-$300/mo | Growing organic traffic |
-| Months 18-24 | $100-$500/mo | Established authority |
-| Year 3+ | $300-$2,000/mo | If things go well |
+| Months 1-6 | $0-$50/mo | Building SEO equity, in Google sandbox |
+| Months 7-12 | $25-$250/mo | First affiliate conversions, maybe Ezoic |
+| Months 12-18 | $100-$660/mo | Growing organic traffic |
+| Months 18-24 | $300-$1,400/mo | Established authority |
+| Year 3+ | $750-$4,500/mo | If things go well |
 
 **Year 1 total: $0-$500.** This project is a long-term bet on compounding SEO value, not a quick win.
 
+See `financial-model.md` for detailed revenue breakdowns by source.
+
 ## Adaptation Triggers
 
-$0 operating cost means we never quit — we adapt. These are signals to change approach.
-
-| Signal | Timeline | Adaptation |
-|--------|---------|-----------|
-| <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO, rework keyword targets, push backlink strategy harder |
-| <1,000 monthly PV | Month 12 | Add programmatic scenario pages, try adjacent niches, increase embed/guest post outreach |
-| Zero affiliate conversions | Month 12 | Redesign CTAs, test different placements and programs |
-| Traffic plateaus | Any | Expand tool count, add comparison content, push embeddable widgets |
+See `strategy.md` and `financial-model.md` for the full adaptation trigger tables. The site costs $0 to operate — we never abandon, we adapt.

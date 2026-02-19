@@ -37,8 +37,9 @@ See `docs/market-research.md`, `docs/financial-model.md`, `docs/strategy.md`.
 
 **Revenue expectations (realistic):**
 - Year 1: $0-$500 total (building SEO equity on a new domain)
-- Year 2: $100-$500/month (affiliates + possibly Ezoic)
-- Year 3+: $500-$2,000/month if things go well
+- Year 2: $100-$1,400/month (affiliates + Ezoic/Mediavine)
+- Year 3+: $750-$4,500/month if things go well
+- See `docs/financial-model.md` for detailed breakdowns
 
 ### Stage 3: Plan Optimization (Complete → Revised)
 MVP cut from 20 generic tools to 15 focused tools (12 financial + 3 utility).

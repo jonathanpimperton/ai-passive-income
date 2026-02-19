@@ -25,7 +25,7 @@ The original strategy (Feb 18) was revised after researching current 2026 market
 - **Complex, interactive financial tools** that AI Overviews can't replace
 - **Affiliate-first monetization** (not ad-dependent)
 - **Deep educational content** per tool for topical authority
-- **Realistic expectations:** $0-500 year 1, $100-500/mo year 2
+- **Realistic expectations:** $0-500 year 1, $100-$1,400/mo year 2
 
 ### Why Financial Niche Specifically
 
@@ -148,13 +148,15 @@ Financial affiliate content has strict FTC and SEC requirements. **Penalties: $5
 | Phase | Timeline | Revenue source | Expected |
 |-------|---------|---------------|----------|
 | Build & index | Months 1-3 | None | $0 |
-| First affiliate clicks | Months 4-8 | Affiliate links on tools | $0-$50/mo |
-| SEO traction starts | Months 8-12 | Affiliates + maybe Ezoic | $25-$100/mo |
-| Growing authority | Months 12-18 | Affiliates + Ezoic | $100-$300/mo |
-| Established | Months 18-24 | Affiliates + Ezoic/Mediavine | $300-$1,000/mo |
-| Mature (year 3+) | 24+ months | All channels | $500-$2,000/mo |
+| First affiliate clicks | Months 4-6 | Affiliate links on tools | $0-$50/mo |
+| SEO traction starts | Months 7-12 | Affiliates + maybe Ezoic | $25-$250/mo |
+| Growing authority | Months 12-18 | Affiliates + Ezoic | $100-$660/mo |
+| Established | Months 18-24 | Affiliates + Ezoic/Mediavine | $300-$1,400/mo |
+| Mature (year 3+) | 24+ months | All channels | $750-$4,500/mo |
 
 **Year 1 total: $0-$500.** This is honest. Plan for $0 and be pleasantly surprised.
+
+See `financial-model.md` for detailed revenue breakdowns by source (affiliates, ads, email).
 
 ### When to add display ads
 
@@ -258,37 +260,40 @@ These tables have the highest affiliate click-through rates of any placement typ
 ## Technical Architecture
 
 ```
-Astro + Tailwind CSS v4
-├── /src
-│   ├── /pages
-│   │   ├── index.astro                    # Homepage
-│   │   ├── about.astro                    # About
-│   │   ├── privacy.astro                  # Privacy policy
-│   │   └── /tools
-│   │       ├── index.astro                # All tools listing
-│   │       └── /[category]
-│   │           └── /[tool].astro          # Tool page (SSG)
-│   ├── /components
-│   │   ├── /tools                         # React island components ('client:load')
-│   │   │   ├── CompoundInterestCalc.tsx
-│   │   │   ├── LoanAmortizationCalc.tsx
-│   │   │   └── ...
-│   │   └── /ui                            # Shared Astro/HTML components
-│   │       ├── ToolPageLayout.astro
-│   │       ├── FaqSection.astro
-│   │       └── RelatedTools.astro
-│   ├── /content                           # Content collections (tool metadata, educational text)
-│   │   └── /tools
-│   │       ├── compound-interest.md
-│   │       └── ...
-│   ├── /layouts
-│   │   └── BaseLayout.astro
-│   └── /lib
-│       ├── calculator-utils.ts            # Shared financial math
-│       └── seo.ts                         # Structured data helpers
-├── astro.config.mjs
-├── tailwind.config.ts
-└── tsconfig.json
+/src
+├── /pages
+│   ├── index.astro                        # Homepage
+│   ├── about.astro                        # About
+│   ├── privacy.astro                      # Privacy policy
+│   ├── disclosure.astro                   # Affiliate disclosure (FTC required)
+│   ├── embed.astro                        # Embed code generator page
+│   └── /tools
+│       ├── index.astro                    # All tools listing
+│       └── /[category]
+│           └── /[tool].astro              # Tool page (static, renders React island)
+├── /components
+│   ├── /tools                             # React islands ('client:load')
+│   │   ├── CompoundInterestCalc.tsx
+│   │   ├── LoanAmortizationCalc.tsx
+│   │   └── ...
+│   └── /ui                                # Astro/HTML components
+│       ├── ToolPageLayout.astro           # Reusable tool page wrapper
+│       ├── FaqSection.astro               # FAQ with schema markup
+│       ├── RelatedTools.astro             # Related tools links
+│       ├── AffiliateDisclosure.astro      # FTC disclosure component
+│       ├── ComparisonTable.astro          # "Best X" affiliate comparison table
+│       ├── EmailCapture.tsx               # "Email me my results" opt-in (React island)
+│       └── EmbedCode.astro               # Embed code snippet for widgets
+├── /content
+│   └── /tools                             # Content collections
+│       ├── compound-interest.md           # Tool metadata + educational content
+│       └── ...
+├── /layouts
+│   └── BaseLayout.astro                   # Root layout with nav, footer
+└── /lib
+    ├── calculator-utils.ts                # Shared financial math functions
+    ├── pdf-export.ts                      # Client-side PDF generation (jsPDF)
+    └── seo.ts                             # Structured data helpers
 ```
 
 ### Key Technical Decisions
@@ -334,7 +339,7 @@ This is substantially more content per page than competitors. Omni Calculator pr
 
 1. XML sitemap auto-generated
 2. robots.txt allowing full crawling
-3. Core Web Vitals targets: LCP < 1.5s, INP < 100ms, CLS < 0.05
+3. Core Web Vitals targets: LCP < 2.5s, INP < 200ms, CLS < 0.1 (Google "good" thresholds)
 4. Schema.org `WebApplication` markup on every tool
 5. FAQ schema for featured snippet capture
 6. Mobile-first responsive design
@@ -354,9 +359,9 @@ This is substantially more content per page than competitors. Omni Calculator pr
 
 | Metric | Month 3 | Month 6 | Month 12 | Month 24 |
 |--------|---------|---------|----------|----------|
-| Tools live | 15 | 25 | 40 | 60 |
-| Monthly pageviews | 100 | 1,000-3,000 | 5,000-15,000 | 30,000-100,000 |
-| Monthly revenue | $0 | $0-$25 | $25-$100 | $300-$1,000 |
+| Tools live | 15 | 15-20 | 25-35 | 40-60 |
+| Monthly pageviews | 0-200 | 200-1,500 | 3,000-8,000 | 20,000-50,000 |
+| Monthly revenue | $0 | $0-$50 | $65-$250 | $300-$1,400 |
 | Domain authority | 0 | 0-5 | 5-15 | 15-30 |
 
 These are honest numbers based on new-domain SEO timelines and current ad RPMs.
@@ -368,6 +373,7 @@ The site costs $0 to operate — we never abandon, we adapt. These are signals t
 | Signal | Timeline | Adaptation |
 |--------|---------|-----------|
 | <200 monthly PV with 15+ tools indexed | Month 8 | Audit SEO: check indexing status, rework titles/descriptions, target different long-tail keywords |
+| Zero email signups | Month 6 | Redesign capture UX, test different value propositions for the "email me my results" opt-in |
 | <1,000 monthly PV | Month 12 | Double down on backlink strategy (more embeds, guest posts, Reddit). Add 20+ programmatic scenario pages. Try a different financial sub-niche. |
 | Zero affiliate conversions | Month 12 | Redesign CTAs, test different placements, try different affiliate programs. A/B test comparison tables. |
 | <$25/month revenue | Month 15 | Shift from passive affiliate links to active comparison content ("Best X" articles). Explore direct partnerships with smaller fintech companies. |
@@ -376,14 +382,6 @@ The site costs $0 to operate — we never abandon, we adapt. These are signals t
 
 ---
 
-## Next Steps: Build
+## Build Plan
 
-1. Scaffold Astro + TypeScript + Tailwind CSS v4 project
-2. Build tool page layout and component architecture
-3. Build first 6 financial calculators (compound interest, loan, investment, retirement, debt payoff, savings goal)
-4. Add educational content, FAQ, structured data
-5. Build remaining tools (salary, inflation, ROI, net worth, rent-vs-buy, emergency fund, QR, password, JSON)
-6. Deploy to Cloudflare Pages
-7. Submit to Google Search Console
-8. Add affiliate links
-9. Share on communities
+See `plan-optimization.md` for the full sprint schedule, build order, and implementation details. That document is the single source of truth for **how** and **when** to build. This document covers **what** and **why**.

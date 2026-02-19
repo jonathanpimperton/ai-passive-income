@@ -30,7 +30,7 @@ See `docs/strategy.md` for the full plan.
 | `CLAUDE.md` | Project instructions, tech stack, constraints |
 | `docs/strategy.md` | Current strategy (revised Feb 19) |
 | `docs/plan-optimization.md` | Build plan, sprint schedule, architecture |
-| `docs/financial-model.md` | Revenue projections, kill criteria |
+| `docs/financial-model.md` | Revenue projections, adaptation triggers |
 | `docs/market-research.md` | Competitor analysis, RPM data, traffic benchmarks |
 | `docs/viability-assessment.md` | Critical review of original Stage 1 plan |
 | `docs/stage-1-exploration.md` | Original exploration of 6 business models |
