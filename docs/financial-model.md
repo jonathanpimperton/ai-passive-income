@@ -23,7 +23,7 @@
 | Hosting cost | $0 | Cloudflare Pages free tier |
 | Email service cost | $0 | Kit (ConvertKit) free tier — 10K subscribers |
 | Database cost | $0 | None needed — pure static site |
-| Domain cost | $0-$12/year | Optional; can use .pages.dev subdomain |
+| Domain cost | $0-$12/year | **Recommended:** $12/yr custom domain. The .pages.dev subdomain hurts affiliate program acceptance, user trust, and perceived authority. This is the one non-free investment worth making. |
 
 ---
 
@@ -101,7 +101,7 @@ Not direct revenue, but embeddable calculators generate passive backlinks from f
 
 In the moderate case (~$150/month):
 - 1-2 affiliate conversions/month at $50-$100 each = ~$100
-- Display ads on ~5,000 PV at $5-8 EPMV = ~$30-$40
+- Display ads on ~5,000 PV at $5-8 EPMV = ~$25-$40
 - Email drip affiliate conversions = ~$10-$20
 
 At this stage, **a single good affiliate conversion is worth more than an entire month of ad revenue.** This is why affiliates-first is the right strategy.
@@ -124,6 +124,8 @@ This is the most underappreciated revenue lever. Here's the math:
 | **At $75 avg commission** | **$75** | **$105** |
 
 40% more revenue from the same traffic, for near-zero additional effort. Over 12 months with a growing list, this compounds significantly.
+
+> **Note:** The "~19 email affiliate clicks" assumes an accumulated list of ~2,500 subscribers (roughly 10 months at 250 captures/month). In month 1, the impact is minimal. By month 12+, it's substantial.
 
 ---
 

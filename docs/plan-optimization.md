@@ -92,7 +92,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 7. QR code generator
 8. Password generator
 
-### Sprint 3: Remaining Tools + Content (Days 9-12)
+### Sprint 3: Remaining Tools (Days 9-12)
 
 9. Salary ↔ hourly converter
 10. Inflation calculator
@@ -154,6 +154,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 │   ├── index.astro                        # Homepage
 │   ├── about.astro                        # About
 │   ├── privacy.astro                      # Privacy policy
+│   ├── 404.astro                          # Custom 404 page
 │   ├── disclosure.astro                   # Affiliate disclosure (FTC required)
 │   ├── embed.astro                        # Embed code generator page
 │   └── /tools
@@ -281,6 +282,7 @@ The surrounding page (layout, educational content, FAQ, related tools, structure
 | Hosting | Cloudflare Pages | Unlimited bandwidth, commercial use, edge delivery |
 | Content | Astro content collections | Structured tool metadata + educational content |
 | Testing | Vitest for calculator logic | Ensure financial math is correct |
+| Accessibility | ARIA labels, keyboard nav, WCAG AA contrast | Financial tools used by broad audience incl. users with disabilities |
 
 ---
 
@@ -373,6 +375,7 @@ MVP is shipped when:
 - [ ] `npm run build` succeeds with zero errors
 - [ ] Core Web Vitals pass (LCP < 2.5s, INP < 200ms, CLS < 0.1)
 - [ ] Mobile responsive
+- [ ] Basic accessibility: ARIA labels on form inputs, keyboard navigation, WCAG AA color contrast
 - [ ] Deployed to Cloudflare Pages
 - [ ] Submitted to Google Search Console
 - [ ] Applied to Betterment affiliate program

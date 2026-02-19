@@ -132,6 +132,8 @@ Not all programs accept new sites. Phased approach:
 | Rent vs buy | "Get pre-approved" | LendingTree |
 | Password generator | "Use a password manager" | 1Password, NordPass ($2-$5/signup) |
 
+**No affiliate context (by design):** Salary converter, inflation calculator, ROI calculator, emergency fund calculator, net worth calculator, QR code generator, JSON formatter. These drive traffic and internal links but don't have a natural affiliate fit. Don't force it — forced recommendations hurt trust and conversions on other pages.
+
 ### FTC Compliance (Non-Negotiable)
 
 Financial affiliate content has strict FTC and SEC requirements. **Penalties: $53,088 per violation.**
@@ -265,6 +267,7 @@ These tables have the highest affiliate click-through rates of any placement typ
 │   ├── index.astro                        # Homepage
 │   ├── about.astro                        # About
 │   ├── privacy.astro                      # Privacy policy
+│   ├── 404.astro                          # Custom 404 page
 │   ├── disclosure.astro                   # Affiliate disclosure (FTC required)
 │   ├── embed.astro                        # Embed code generator page
 │   └── /tools
