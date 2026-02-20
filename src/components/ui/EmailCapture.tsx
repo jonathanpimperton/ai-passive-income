@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import type { FormEvent } from 'react';
+import React, { useState } from 'react';
 
 /**
  * Email capture component for financial calculator pages.
@@ -15,11 +14,11 @@ interface EmailCaptureProps {
   toolName: string;
 }
 
-export default function EmailCapture({ toolSlug, toolName }: EmailCaptureProps) {
+export default function EmailCapture({ toolSlug: _toolSlug, toolName }: EmailCaptureProps) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!email) return;
 

@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
   test: {
@@ -6,8 +7,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@lib': '/home/user/ai-passive-income/src/lib',
-      '@components': '/home/user/ai-passive-income/src/components',
+      '@lib': resolve(__dirname, 'src/lib'),
+      '@components': resolve(__dirname, 'src/components'),
     },
   },
 });

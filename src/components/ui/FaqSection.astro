@@ -1,12 +1,14 @@
 ---
-import { buildFaqSchema, type FaqItem } from '@lib/seo';
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
 
 interface Props {
   faqs: FaqItem[];
 }
 
 const { faqs } = Astro.props;
-const schemaJson = buildFaqSchema(faqs);
 ---
 
 <section class="mt-12">
@@ -34,5 +36,3 @@ const schemaJson = buildFaqSchema(faqs);
     ))}
   </div>
 </section>
-
-<script type="application/ld+json" set:html={schemaJson} />

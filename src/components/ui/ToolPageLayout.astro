@@ -2,7 +2,10 @@
 /**
  * Reusable wrapper for every tool page.
  * Handles: breadcrumb, H1 + subtitle, affiliate disclosure, worked examples,
- * educational content, FAQ section, related tools, and structured data.
+ * educational content, FAQ section, and related tools.
+ *
+ * Structured data (WebApplication, FAQ) is handled by the page template
+ * ([tool].astro → BaseLayout <head>) to avoid duplication.
  *
  * Slots:
  *   - default: The interactive calculator component
@@ -13,7 +16,6 @@ import AffiliateDisclosure from './AffiliateDisclosure.astro';
 import FaqSection from './FaqSection.astro';
 import RelatedTools from './RelatedTools.astro';
 import { CATEGORIES, type CategorySlug } from '@lib/tools-data';
-import { buildWebApplicationSchema } from '@lib/seo';
 
 interface WorkedExample {
   title: string;
@@ -49,7 +51,6 @@ const breadcrumbs = [
   { name, url: `/tools/${category}/${slug}` },
 ];
 
-const webAppSchema = buildWebApplicationSchema({ name, description, slug, category });
 ---
 
 <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -103,5 +104,3 @@ const webAppSchema = buildWebApplicationSchema({ name, description, slug, catego
   {/* Related tools */}
   {relatedTools.length > 0 && <RelatedTools slugs={relatedTools} />}
 </div>
-
-<script type="application/ld+json" set:html={webAppSchema} />

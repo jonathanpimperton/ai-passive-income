@@ -66,7 +66,7 @@ const canonical = canonicalUrl || Astro.url.href;
 
     <!-- Structured data -->
     {structuredData.map((data) => (
-      <script type="application/ld+json" set:html={data} />
+      <script is:inline type="application/ld+json" set:html={data} />
     ))}
   </head>
   <body class="min-h-screen flex flex-col bg-neutral-50 text-neutral-900">
