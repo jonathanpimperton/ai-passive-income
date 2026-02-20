@@ -3,48 +3,25 @@
 **Reviewed:** 2026-02-20
 **Documents reviewed:** `build-spec.md`, `design-system.md`, `CLAUDE.md`, `README.md`, plus all archived docs (`strategy.md`, `financial-model.md`, `market-research.md`, `viability-assessment.md`, `stage-1-exploration.md`)
 
-**Verdict: NEARLY READY. 1 blocking issue, 4 significant risks to address.**
+**Verdict: READY TO BUILD. 0 blockers, 4 risks to manage during build.**
 
 The project has gone through extensive planning — market research, competitor analysis, financial modeling, a complete pivot from directory to financial calculators, framework switch from Next.js to Astro, hosting switch from Vercel to Cloudflare Pages, and honest revenue projections. The planning quality is genuinely strong. This review focuses on what could still derail the build.
 
 ---
 
-## BLOCKING ISSUE: Kit (ConvertKit) Free Tier Does NOT Support Automations
+## RESOLVED: Email Provider Switched from Kit to MailerLite
 
-**Severity: BLOCKING — the email strategy as designed is impossible on the free tier.**
+**Previously blocking — now resolved.**
 
-The build spec describes the email strategy as the project's "real moat" and "highest-leverage addition to the plan." The financial model includes an "email list multiplier" section showing 40% more revenue from the same traffic. The customer journey funnel depends on a 3-email drip sequence with conditional content per calculator tag.
+Kit (ConvertKit) free tier does NOT include automations, conditional content, or email sequences — all paid features at $15-29/month. This would have broken the $0 budget and the entire email drip strategy.
 
-**The problem:** Kit's free tier (Newsletter plan) does NOT include:
-- Visual automations
-- Automated email sequences
-- Conditional content blocks
-- Third-party integrations or API access
+**Resolution:** Switched to **MailerLite** free tier, which includes:
+- Automation workflows with branching logic
+- 500 subscribers (vs Kit's 10K — trade-off accepted)
+- 12,000 emails/month
+- Sign-up forms and landing pages
 
-These are all Creator plan features at **$15-$29/month** — which breaks the $0 budget constraint.
-
-On the free tier, you can only:
-- Collect subscribers via forms
-- Send manual broadcast emails
-- Tag subscribers (but can't automate based on tags)
-- Sell digital products
-
-**This means:** No automated drip. No "email me my PDF and get follow-up recommendations." No conditional content based on which calculator they used. The entire email-to-affiliate conversion path described in the build spec and financial model doesn't work at $0.
-
-**Impact on financial model:** The financial model projects email-driven affiliate conversions adding ~$30/month by month 12 and compounding significantly by month 24. With no automation, this either requires manual work (not passive) or doesn't happen at all.
-
-**Options to resolve:**
-
-| Option | Cost | Trade-off |
-|--------|------|-----------|
-| **A. Switch to MailerLite** | $0 (free tier: 1K subs, automations included) | Smaller subscriber cap but automations work. Upgrade at $9/mo when you hit 1K subs. |
-| **B. Use Kit free for collection only** | $0 | Collect emails, send manual broadcasts. No automation. Add automation when revenue supports it ($15-29/mo). |
-| **C. Build the email capture, defer the drip** | $0 | Ship the "email me my results" form, store subscribers, add automation later. Reduces the email-to-affiliate conversion path but preserves the list-building value. |
-| **D. Accept the $15/mo cost** | $15/mo | Breaks $0 constraint but enables the full strategy from day 1. |
-
-**Recommendation:** Option C (build capture, defer drip) for launch. Switch to MailerLite or Kit Creator when month-6 revenue covers the cost. Update the financial model to remove email-driven affiliate revenue from months 1-6 and adjust the "email list multiplier" math accordingly.
-
-Sources: [Kit Pricing](https://moosend.com/blog/convertkit-pricing/), [Kit Review](https://kindlepreneur.com/convertkit-review/), [Kit Free Plan Limitations](https://www.omnisend.com/blog/convertkit-review/)
+The 500 subscriber cap is the trade-off. Based on the financial model, we'll hit 500 subs around month 3-6, at which point the Growing Business plan ($10/mo) is needed. By then, early affiliate revenue should cover this cost. All docs updated.
 
 ---
 
@@ -202,14 +179,16 @@ To be clear, the vast majority of this plan is well-thought-out:
 
 ---
 
-## SUMMARY: Actions Before Build
+## SUMMARY: Risks to Manage During Build
 
-| # | Action | Severity | Effort |
-|---|--------|----------|--------|
-| 1 | **Resolve email automation strategy** — Kit free tier doesn't support drips. Switch provider or defer automation. | Blocking | 1 hour (decision) |
-| 2 | **Update component pattern** — use conditional imports, not componentMap | High | 15 min (doc update), test in Sprint 1 |
-| 3 | **Test recharts bundle size** early — run Lighthouse on first deployed calculator | Medium | Built into Sprint 1 |
-| 4 | **Accept flexible timeline** — 20 days is aspirational; ship in waves | Medium | Mindset shift |
-| 5 | **Invest in content quality** — don't rush educational content for SEO-critical pages | Medium-High | Ongoing during build |
+All blockers resolved. These risks are baked into the build spec:
 
-Once the Kit issue is resolved (pick an option from the table above), this project is ready to build.
+| # | Risk | Severity | Mitigation |
+|---|------|----------|-----------|
+| 1 | **Astro component pattern** — componentMap won't work with `client:load` | High | Fixed in build-spec: use static imports + conditional rendering. Test Sprint 1 Day 1. |
+| 2 | **recharts bundle size** (~40KB gzip per page) | Medium | Build compound interest calc first, run Lighthouse before building remaining 14. |
+| 3 | **20-day timeline is aggressive** | Medium | Ship in waves if needed: core calculators first, polish second. |
+| 4 | **Educational content quality** is the SEO make-or-break | Medium-High | Don't rush core 6 calculator content. Reference formulas, cite authoritative sources, add genuine insights. |
+| 5 | **MailerLite 500 sub cap** | Low | Upgrade to $10/mo when subs approach 500 (month 3-6). Early revenue should cover it. |
+
+**This project is ready to build.**

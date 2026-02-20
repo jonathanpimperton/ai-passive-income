@@ -75,7 +75,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 - **Vitest setup** + unit tests for financial math functions (compound interest, amortization — financial math MUST be correct)
 - **Affiliate disclosure component** (visible on every page with affiliate links)
 - **Email capture component** ("Email me a PDF of my results" — soft opt-in, NOT gating results)
-- **Kit (ConvertKit) integration** for email list (free tier: 10K subscribers, **1 visual automation** — start with 1 universal 3-email drip, segment by category only after upgrading to paid tier if revenue justifies it)
+- **MailerLite integration** for email list (free tier: 500 subscribers, automations included — start with 1 universal 3-email drip. Upgrade to $10/mo Growing Business plan at 500+ subs)
 
 **First 3 tools:**
 1. Compound interest calculator
@@ -121,7 +121,7 @@ These are the most complex, most defensible against AI Overviews, and have the b
 - Submit to Google Search Console
 - Verify sitemap indexing
 - Test all tools across browsers (Chrome, Firefox, Safari, mobile)
-- **Set up Kit (ConvertKit) automation:** 1 universal 3-email drip sequence (free tier limits to 1 visual automation; segment by category later if paid tier justified by revenue)
+- **Set up MailerLite automation:** 1 universal 3-email drip sequence (free tier includes automations with branching logic)
 - **Create first 10-20 programmatic scenario pages** (e.g., "Monthly payment on $300K mortgage at 7%") — with 500+ unique words each
 - **Create 5-10 Pinterest infographic pins** for top calculators
 - Share on Product Hunt
@@ -305,7 +305,7 @@ The surrounding page (layout, educational content, FAQ, related tools, structure
 These are implementation details that prevent hesitation during Sprint 1:
 
 - **Tailwind CSS v4 setup:** v4 uses CSS-based configuration, NOT a `tailwind.config.ts` file. Install `tailwindcss` + `@tailwindcss/vite`, add the Vite plugin to `astro.config.mjs`, and use `@import "tailwindcss"` in a global CSS file. Tailwind v4 auto-detects your content files.
-- **Kit (ConvertKit) integration:** Static site uses Kit's embeddable form endpoint — no server/API key needed. Create a form in Kit's dashboard, get the form ID, submit via client-side POST to Kit's endpoint. Works on purely static sites.
+- **MailerLite integration:** Static site uses MailerLite's embeddable form endpoint — no server/API key needed. Create a form in MailerLite's dashboard, get the form ID, submit via client-side POST to MailerLite's endpoint. Works on purely static sites.
 - **OG images:** Use Satori (JSX → SVG) + `@resvg/resvg-js` (SVG → PNG) at build time. Generate one OG image per tool from a shared template (tool name + site branding). Or use `astro-og-canvas` for a simpler API.
 - **Path aliases:** Configure in `tsconfig.json`: `"@components/*": ["src/components/*"]`, `"@layouts/*": ["src/layouts/*"]`, `"@lib/*": ["src/lib/*"]`
 - **Programmatic scenario pages (Sprint 5):** Create at `/pages/scenarios/[scenario].astro` with a separate content collection for scenario data. Each scenario pre-fills a calculator and adds 500+ words of unique analysis.
@@ -390,7 +390,7 @@ MVP is shipped when:
 - [ ] Affiliate links on all financial calculators with FTC disclosure
 - [ ] "Best X" comparison tables on financial calculator pages
 - [ ] Email capture ("Email me my results as PDF") on all calculators
-- [ ] Kit (ConvertKit) integrated with 1 universal 3-email drip sequence (tags per calculator)
+- [ ] MailerLite integrated with 1 universal 3-email drip sequence (tags per calculator)
 - [ ] Embeddable widget versions available with embed code generator
 - [ ] Affiliate disclosure page + per-page disclosure component
 - [ ] Homepage with tool grid and category filtering

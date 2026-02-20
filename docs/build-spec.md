@@ -254,7 +254,7 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 - Content collection schema (see Technical Architecture below)
 - Vitest + unit tests for financial math functions
 - Affiliate disclosure component
-- Email capture component + Kit (ConvertKit) integration
+- Email capture component + MailerLite integration
 - Download and self-host Inter font + set up Tailwind `@theme` tokens
 
 **First 3 tools:** Compound interest, Loan amortization, Savings goal
@@ -285,13 +285,15 @@ Salary converter, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, JSON f
 
 - Submit to Google Search Console, verify sitemap indexing
 - Browser testing (Chrome, Firefox, Safari, mobile)
-- Set up Kit automation: 1 universal 3-email drip (tag by calculator, conditional content)
+- Set up MailerLite automation: 1 universal 3-email drip (tag by calculator, conditional content)
 - Create first 10-20 programmatic scenario pages (500+ unique words each)
 - Create 5-10 Pinterest infographic pins
 - Share: Product Hunt, Reddit (r/personalfinance, r/financialindependence), Dev.to article
 - Apply to Betterment affiliate program
 
 **Total: ~4 weeks** (5 sprints × 4 days = 20 working days)
+
+> **Timeline is aspirational.** Sprint 4 (polish + monetization + launch) packs educational content, FAQ sections, worked examples, comparison tables, PDF export, embeddable widgets, OG images, AND performance audit into 4 days. If timeline slips, ship in two waves: **Wave 1** (Sprints 1-3) — 15 tools live with basic educational content. **Wave 2** (Sprints 4-5) — deep content, embeds, programmatic pages, polish. Prioritize getting the 6 core financial calculators to production quality over getting all 15 tools to draft quality.
 
 ---
 
@@ -372,7 +374,7 @@ Salary converter, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, JSON f
 |----------|--------|-----------|
 | Framework | Astro | Zero JS default, React islands, first-class CF Pages |
 | Interactive tools | React via `client:load` | Best ecosystem for forms, charts, state |
-| Charts | recharts | React-native, tree-shakeable, no wrapper needed |
+| Charts | recharts | React-native, no wrapper needed. ~40KB gzip — test CWV impact on first calculator before committing to all 15. If too heavy, consider Lightweight Charts by TradingView (~40KB but Canvas-based, faster rendering) or hand-rolled SVG for simpler charts. |
 | Icons | Lucide React | Free, MIT, consistent 24px line style |
 | Styling | Tailwind CSS v4 | CSS-based config, rapid development, small bundles |
 | Hosting | Cloudflare Pages (free) | Unlimited bandwidth, commercial use, edge delivery |
@@ -380,7 +382,7 @@ Salary converter, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, JSON f
 | Testing | Vitest | Ensure financial math is correct |
 | PDF export | jsPDF (client-side) | No server needed |
 | OG images | Satori + Sharp/resvg-js | Build-time generation, zero runtime cost |
-| Email | Kit (ConvertKit) free tier | 10K subs, 1 visual automation, client-side form POST |
+| Email | MailerLite free tier | 500 subs, automations included, client-side form POST |
 
 ### Content Collection Schema
 
@@ -437,6 +439,24 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolPageLayout from '@components/ui/ToolPageLayout.astro';
 import { getCollection } from 'astro:content';
 
+// All tool components must be statically imported — Astro requires
+// direct imports for client:* hydration directives to work.
+import CompoundInterestCalc from '@components/tools/CompoundInterestCalc.tsx';
+import LoanAmortizationCalc from '@components/tools/LoanAmortizationCalc.tsx';
+import InvestmentReturnCalc from '@components/tools/InvestmentReturnCalc.tsx';
+import RetirementSavingsCalc from '@components/tools/RetirementSavingsCalc.tsx';
+import DebtPayoffCalc from '@components/tools/DebtPayoffCalc.tsx';
+import SavingsGoalCalc from '@components/tools/SavingsGoalCalc.tsx';
+import SalaryCalc from '@components/tools/SalaryCalc.tsx';
+import InflationCalc from '@components/tools/InflationCalc.tsx';
+import RoiCalc from '@components/tools/RoiCalc.tsx';
+import NetWorthCalc from '@components/tools/NetWorthCalc.tsx';
+import RentVsBuyCalc from '@components/tools/RentVsBuyCalc.tsx';
+import EmergencyFundCalc from '@components/tools/EmergencyFundCalc.tsx';
+import QrCodeGenerator from '@components/tools/QrCodeGenerator.tsx';
+import PasswordGenerator from '@components/tools/PasswordGenerator.tsx';
+import JsonFormatter from '@components/tools/JsonFormatter.tsx';
+
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
   return tools.map(tool => ({
@@ -446,29 +466,45 @@ export async function getStaticPaths() {
 }
 
 const { tool } = Astro.props;
-
-const componentMap: Record<string, any> = {
-  'compound-interest': () => import('@components/tools/CompoundInterestCalc.tsx'),
-  'loan-amortization': () => import('@components/tools/LoanAmortizationCalc.tsx'),
-  // ... one entry per tool
-};
-const ToolComponent = (await componentMap[tool.data.slug]()).default;
+const slug = tool.data.slug;
 ---
 <BaseLayout title={`Free ${tool.data.name} Online`} description={tool.data.description}>
   <ToolPageLayout tool={tool}>
-    <ToolComponent client:load />
+    {slug === 'compound-interest' && <CompoundInterestCalc client:load />}
+    {slug === 'loan-amortization' && <LoanAmortizationCalc client:load />}
+    {slug === 'investment-return' && <InvestmentReturnCalc client:load />}
+    {slug === 'retirement-savings' && <RetirementSavingsCalc client:load />}
+    {slug === 'debt-payoff' && <DebtPayoffCalc client:load />}
+    {slug === 'savings-goal' && <SavingsGoalCalc client:load />}
+    {slug === 'salary' && <SalaryCalc client:load />}
+    {slug === 'inflation' && <InflationCalc client:load />}
+    {slug === 'roi' && <RoiCalc client:load />}
+    {slug === 'net-worth' && <NetWorthCalc client:load />}
+    {slug === 'rent-vs-buy' && <RentVsBuyCalc client:load />}
+    {slug === 'emergency-fund' && <EmergencyFundCalc client:load />}
+    {slug === 'qr-code' && <QrCodeGenerator client:load />}
+    {slug === 'password-generator' && <PasswordGenerator client:load />}
+    {slug === 'json-formatter' && <JsonFormatter client:load />}
   </ToolPageLayout>
 </BaseLayout>
 ```
 
-> **Build note:** Astro's `client:*` directives may require statically analyzable imports. If the `componentMap` pattern doesn't work, fall back to conditional rendering: `{slug === 'compound-interest' && <CompoundInterestCalc client:load />}`. Test early in Sprint 1.
+> **Why explicit imports instead of a dynamic `componentMap`?** Astro's `client:*` hydration directives only work on statically imported components. Dynamic imports resolved at runtime cannot receive `client:load` — the Astro compiler needs to know at build time which components are islands. This is verbose but it's the only pattern that works. See [Astro Islands docs](https://docs.astro.build/en/concepts/islands/) and [Issue #11701](https://github.com/withastro/astro/issues/11701).
 
 ### Build Setup Notes (Sprint 1)
 
 - **Tailwind CSS v4:** Uses CSS-based config, NOT `tailwind.config.ts`. Install `tailwindcss` + `@tailwindcss/vite`, add Vite plugin to `astro.config.mjs`, use `@import "tailwindcss"` in global CSS. Auto-detects content files.
-- **Kit integration:** Static site uses Kit's embeddable form endpoint — no server/API key needed. Create form in Kit dashboard, get form ID, submit via client-side POST.
+- **MailerLite integration:** Static site uses MailerLite's embeddable form endpoint — no server/API key needed. Create form in MailerLite dashboard, get form ID, submit via client-side POST.
 - **Path aliases:** Configure in `tsconfig.json`: `"@components/*": ["src/components/*"]`, `"@layouts/*": ["src/layouts/*"]`, `"@lib/*": ["src/lib/*"]`
 - **Programmatic pages (Sprint 5):** `/pages/scenarios/[scenario].astro` with separate content collection. Each pre-fills a calculator + 500+ words unique analysis.
+
+### Build Risks to Manage
+
+| Risk | Impact | Mitigation |
+|------|--------|-----------|
+| **recharts bundle size (~40KB gzip per page)** | Each calculator island ships ~90-100KB JS total (React + recharts + component). Could push INP > 200ms on slow devices. | Build compound interest calc first, deploy preview, run Lighthouse on mid-range phone. If CWV fails, switch charting library before building remaining tools. Limit chart data points (yearly, not monthly, for long horizons). |
+| **Educational content quality** | Google's 2024-2026 core updates: 87% negative impact on mass-produced AI content without expert oversight. Educational content is the SEO differentiator — if rushed, it reads generic and Google ignores it. | Write core 6 calculator content with care. Each piece must answer: "What does this tell the user that the calculator alone doesn't?" Reference verifiable formulas, authoritative sources (Fed, SEC, IRS), and genuinely unique insights. Start secondary calculators with shorter content (200-300 words), expand post-launch. |
+| **MailerLite 500 subscriber cap** | Free tier locks sending at 500 subs. Expected to hit around month 3-6. | Upgrade to Growing Business plan ($10/mo) when approaching 500. By month 3-6, early affiliate revenue should cover this. Budget $10/mo as the first unavoidable cost (alongside ~$10/yr for domain). |
 
 ---
 
@@ -543,7 +579,7 @@ Don't add Ezoic until 50+ daily visitors consistently. Ads hurt Core Web Vitals 
 ### Revenue Multipliers
 
 **HIGH priority:**
-1. **Email capture** — "Email me a PDF of my results" on all 12 financial calculators (not utility tools — emailing a password is a security anti-pattern, QR codes are downloadable images, JSON is copy/paste). Kit free tier (10K subs, 1 automation). 3-email drip: results PDF → educational content → affiliate recommendation. Email list is the insurance policy against Google algorithm changes.
+1. **Email capture** — "Email me a PDF of my results" on all 12 financial calculators (not utility tools — emailing a password is a security anti-pattern, QR codes are downloadable images, JSON is copy/paste). MailerLite free tier (500 subs, automations included; upgrade to $10/mo Growing Business plan at 500+ subs). 3-email drip: results PDF → educational content → affiliate recommendation. Email list is the insurance policy against Google algorithm changes.
 2. **Embeddable widgets** — iframe versions with "Powered by CalcPath" backlink. Omni Calculator got 564K+ backlinks this way.
 3. **"Best X" comparison tables** — on every financial calculator page. Highest affiliate CTR placement.
 
@@ -618,7 +654,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 |--------|--------|-----------------|
 | Search impressions + clicks | Google Search Console | Trending up week-over-week |
 | Top queries + positions | Google Search Console | New queries appearing, positions improving |
-| Email signups this week | Kit dashboard | Consistent flow; zero = problem |
+| Email signups this week | MailerLite dashboard | Consistent flow; zero = problem |
 | Affiliate clicks | Affiliate dashboards | Any clicks at all in early months = good signal |
 
 ### Monthly Review (1 hour)
@@ -670,7 +706,7 @@ $0 operating cost = never quit, always adapt.
 | Task | Tool | Purpose |
 |------|------|---------|
 | Check Search Console for crawl errors | Google Search Console | Catch indexing issues early |
-| Review new email signups + bounce rate | Kit dashboard | Ensure email capture is working |
+| Review new email signups + bounce rate | MailerLite dashboard | Ensure email capture is working |
 | Check affiliate dashboards for clicks/conversions | Betterment, etc. | Track revenue, spot issues |
 | Scan for broken links or 404s | Search Console or build logs | Maintain site health |
 
@@ -832,7 +868,7 @@ Mission-focused, not personality-focused. The About page is about what CalcPath 
 
 ### Structure: 1 Universal Drip, Segment-Aware via Tags
 
-Kit free tier allows 1 visual automation. The drip is a single 3-email sequence with **conditional content blocks** that change based on which calculator tag the subscriber came from.
+MailerLite free tier includes automation workflows with branching logic. The drip is a single 3-email sequence with **conditional content blocks** that change based on which calculator tag the subscriber came from. The free tier supports up to 500 subscribers with 12,000 emails/month — upgrade to Growing Business ($10/mo) when subscriber count exceeds 500 (expected around month 3-6).
 
 ### Sequence
 
@@ -859,8 +895,9 @@ Kit free tier allows 1 visual automation. The drip is a single 3-email sequence 
 
 ### Key Rules
 - **Never send more than 3 emails** unless user actively engages (opens, clicks). Respect the "no spam" promise.
-- **Every email has an unsubscribe link** (Kit handles this automatically).
+- **Every email has an unsubscribe link** (MailerLite handles this automatically).
 - **Affiliate disclosure in Email 3:** "This email contains affiliate links. See our [disclosure](link)."
+- **MailerLite branding:** Free tier includes MailerLite branding at bottom of emails. Acceptable for launch; remove when upgrading to paid tier.
 
 ---
 
@@ -879,7 +916,7 @@ MVP is shipped when:
 - [ ] Affiliate links with FTC disclosure on applicable calculators
 - [ ] "Best X" comparison tables on financial calculator pages
 - [ ] Email capture ("Email me my results as PDF") on all 12 financial calculators (not utility tools)
-- [ ] Kit integrated with 1 universal 3-email drip (tags per calculator)
+- [ ] MailerLite integrated with 1 universal 3-email drip (tags per calculator)
 - [ ] Embeddable widget versions + embed code generator
 
 **Site Structure & Legal:**

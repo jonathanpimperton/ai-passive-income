@@ -175,9 +175,9 @@ These are specific tactics that increase income from the same traffic with minim
 **The single highest-leverage addition to this plan.**
 
 - Soft opt-in on every calculator: "Email me a PDF of my results" — NOT gating results behind email
-- Kit (ConvertKit) free tier: 10K subscribers, **1 visual automation** (start with 1 universal drip; segment by category only on paid tier), unlimited sends
+- MailerLite free tier: 500 subscribers, automations included, 12K emails/mo. Upgrade to Growing Business ($10/mo) at 500+ subs.
 - Expected opt-in rate: 3-8% of calculator users
-- 1 universal 3-email automation (Kit free tier = 1 visual automation). Tag subscribers by calculator used, then use conditional content blocks:
+- 1 universal 3-email automation via MailerLite (free tier includes automations with branching). Tag subscribers by calculator used, then use conditional content blocks:
   - Email 1: Your results PDF + "here's what you can do next"
   - Email 2: Educational content related to the calculation (conditional on tag)
   - Email 3: Relevant product recommendation with affiliate link (conditional on tag)
@@ -187,7 +187,7 @@ These are specific tactics that increase income from the same traffic with minim
 
 NerdWallet, Bankrate, and every serious financial site does this. We should too.
 
-**Build effort:** One-time setup. ~2-4 hours for email capture component + Kit integration + 3-email drip template. Then it runs automatically forever.
+**Build effort:** One-time setup. ~2-4 hours for email capture component + MailerLite integration + 3-email drip template. Then it runs automatically forever.
 
 ### 2. Embeddable Calculator Widgets (Priority: HIGH)
 

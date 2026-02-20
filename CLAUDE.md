@@ -21,7 +21,7 @@ Build a zero-investment online business that generates passive income, built ent
 - **recharts** — interactive chart visualization in calculator results
 - **Lucide React** — consistent icon language across the site
 - **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
-- **Kit (ConvertKit)** (free tier) — email capture, 10K subscribers, 1 automated drip sequence
+- **MailerLite** (free tier) — email capture, 500 subscribers, automations included, 12K emails/mo. Upgrade to Growing Business ($10/mo) at 500+ subs.
 - **Google Search Console / Analytics** — SEO tracking (free)
 - **Satori + Sharp** — build-time OG image generation
 - **jsPDF** — client-side PDF export of calculator results
