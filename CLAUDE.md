@@ -1,4 +1,13 @@
-# AI Passive Income
+# CalcPath — AI Passive Income Project
+
+## Read Order
+
+Before building anything, read these two files in order:
+
+1. **`docs/build-spec.md`** — What to build and why: target audience, personas, value proposition, competitive positioning, customer journey, tools list, build order, file structure, content schema, SEO, keyword targets, monetization, revenue targets, KPIs, post-launch operations, content marketing roadmap, legal pages, "done" checklist
+2. **`docs/design-system.md`** — How it looks: branding (name, logo, favicon, OG images), colors, typography, calculator UI patterns, navigation, mobile, accessibility, visual polish
+
+Historical docs (exploration, market research, financial model, original strategy/plan-optimization) are archived in `docs/archive/` for reference only. They are **not needed for building** — everything was consolidated into the two files above.
 
 ## Mission
 
@@ -6,60 +15,72 @@ Build a zero-investment online business that generates passive income, built ent
 
 ## Tech Stack
 
-- **Next.js 15** (App Router) + **TypeScript** — SSR/SSG for SEO, free Vercel hosting
-- **Tailwind CSS v4** — rapid UI development
-- **Supabase** (free tier) — Postgres database, auth, storage
-- **Vercel** (free tier) — hosting, edge functions, analytics
+- **Astro** + **TypeScript** — static site generation, zero JS by default, React islands for interactive tools
+- **Tailwind CSS v4** — rapid UI development (CSS-based `@theme` config, NOT `tailwind.config.ts`)
+- **React** — interactive calculator components (via Astro islands with `client:load`)
+- **recharts** — interactive chart visualization in calculator results
+- **Lucide React** — consistent icon language across the site
+- **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
+- **Kit (ConvertKit)** (free tier) — email capture, 10K subscribers, 1 automated drip sequence
 - **Google Search Console / Analytics** — SEO tracking (free)
+- **Satori + Sharp** — build-time OG image generation
+- **jsPDF** — client-side PDF export of calculator results
+
+> **Why Astro over Next.js?** This is a static tools site — we use ~10% of Next.js's features. Astro ships zero JS by default (better Core Web Vitals = better SEO), Cloudflare acquired Astro's company (first-class support), and React components work natively as islands.
+
+## Site Identity
+
+- **Name:** CalcPath
+- **Domain:** `calcpath.pages.dev` (free at launch) → `calcpath.com` (~$10/yr via Cloudflare Registrar)
+- **Logo:** SVG wordmark — navy "Calc" + blue "Path" (built in code, no external tools)
+- **Tagline:** "See your numbers instantly — no signup, no ads." (USP; see build-spec.md Value Proposition section)
 
 ## Project Stages
 
-### Stage 1: Exploration (Current)
-Research and evaluate passive income ideas that meet our constraints:
-- Zero monetary investment
-- Can be built and maintained by AI
-- Generates revenue through ads, affiliates, or freemium
-- Benefits from SEO / organic traffic
-- Low ongoing maintenance
+### Stage 1: Exploration (Complete)
+Evaluated 6 business models. Decision: **Free Online Tools Site**.
 
-### Stage 2: Detailed Plan
-- Pick the winning idea
-- Define MVP features, data model, pages
-- Map out monetization strategy
-- Identify free-tier services needed
-- Set success metrics and timeline
+### Stage 2: Detailed Plan (Complete)
+Market research, competitor analysis, financial model, and strategy defined.
 
-### Stage 3: Plan Optimization
-- Review plan for feasibility and risks
-- Optimize for fastest time-to-revenue
-- Identify what to cut from MVP
-- Plan content/SEO strategy
+**Chosen approach:**
+- 12 complex financial calculators + 3 high-value utility tools (15 MVP total)
+- Affiliate-first monetization (not ad-dependent)
+- Email capture ("email me my results") → automated drip → affiliate conversions
+- Embeddable calculator widgets for passive backlinks
+- Deep educational content per tool for E-E-A-T
+- FTC-compliant affiliate disclosures on every page
 
-### Stage 4: Initial Build
-- Scaffold Next.js project
-- Build core pages and data model
-- Implement MVP features
-- Set up deployment pipeline
+### Stage 3: Plan Optimization + Design (Complete)
+MVP cut from 20 generic tools to 15 focused tools (12 financial + 3 utility).
+Switched from Next.js to Astro. Dropped simple tools that AI Overviews replace.
+Full design system defined: branding, colors, typography, calculator UI, navigation, accessibility.
 
-### Stage 5: Testing & Review
-- Cross-browser testing
-- Performance optimization (Core Web Vitals)
-- SEO audit (meta tags, structured data, sitemap)
-- Content review
-- Analytics setup
-
-### Stage 6: Go Live
-- Deploy to production
-- Submit to Google Search Console
-- Seed initial content
-- Monitor and iterate
+### Stage 4: Build, Test & Launch (Next)
+1. Scaffold Astro + TypeScript + Tailwind CSS v4 + React
+2. Build tool page layout and component architecture
+3. Build 6 core financial calculators (compound interest, loan, investment, retirement, debt payoff, savings goal)
+4. Build 6 secondary calculators (salary, inflation, ROI, net worth, rent-vs-buy, emergency fund)
+5. Build 3 utility tools (QR code, password generator, JSON formatter)
+6. Add educational content, FAQ sections, structured data
+7. Add affiliate links with FTC disclosure, comparison tables, email capture, embeddable widgets
+8. Deploy to Cloudflare Pages, submit to Google Search Console
 
 ## Constraints
 
-- **$0 budget** — free tiers only (Vercel, Supabase, Cloudflare, etc.)
+- **$0 budget** — free tiers only (Cloudflare Pages, etc.)
 - **AI-built** — Claude Code does all development
 - **Low maintenance** — should run mostly unattended once live
-- **Legal/ethical** — no scraped content, no spam, proper attribution
+- **Legal/ethical** — no scraped content, no spam, proper attribution, FTC-compliant affiliate disclosures
+
+## For New Claude Code Sessions
+
+When starting a new session on this project:
+
+1. **Check you're on `master`** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
+2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
+3. **Current status:** Stages 1–3 complete. Stage 4 (Build) is next. The build-spec has the sprint plan.
+4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into `master` so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running
 
