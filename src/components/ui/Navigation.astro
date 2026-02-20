@@ -171,12 +171,16 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
     mobileMenu?.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     menuBtn?.setAttribute('aria-expanded', 'true');
+    // Focus close button when menu opens
+    closeBtn?.focus();
   }
 
   function closeMenu() {
     mobileMenu?.classList.add('hidden');
     document.body.style.overflow = '';
     menuBtn?.setAttribute('aria-expanded', 'false');
+    // Return focus to hamburger button
+    menuBtn?.focus();
   }
 
   menuBtn?.addEventListener('click', openMenu);
@@ -187,8 +191,29 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
     if (e.target === mobileMenu) closeMenu();
   });
 
-  // Close on Escape
+  // Close on Escape + focus trap
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeMenu();
+    if (e.key === 'Escape' && !mobileMenu?.classList.contains('hidden')) {
+      closeMenu();
+      return;
+    }
+
+    // Focus trap: keep Tab within the mobile menu when open
+    if (e.key === 'Tab' && mobileMenu && !mobileMenu.classList.contains('hidden')) {
+      const focusable = mobileMenu.querySelectorAll<HTMLElement>(
+        'a[href], button, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
   });
 </script>
