@@ -1,5 +1,6 @@
 ---
 import Logo from './Logo.astro';
+import ToolIcon from './ToolIcon.astro';
 import { CATEGORIES, TOOLS, getToolPath } from '@lib/tools-data';
 
 const currentPath = Astro.url.pathname;
@@ -12,7 +13,7 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
   }));
 ---
 
-<header class="sticky top-0 z-50 bg-white border-b border-neutral-200">
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm">
   <nav class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
     <div class="flex items-center justify-between h-16">
       <Logo />
@@ -22,37 +23,45 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
         {/* Calculators dropdown */}
         <div class="relative group">
           <button
-            class="flex items-center gap-1 text-sm font-medium text-neutral-700 hover:text-primary-500 transition-colors duration-150"
+            class="flex items-center gap-1.5 text-sm font-medium text-neutral-700 hover:text-primary-500 transition-colors duration-150 py-2"
             aria-expanded="false"
             aria-haspopup="true"
           >
             Calculators
-            <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           {/* Dropdown panel */}
-          <div class="absolute left-1/2 -translate-x-1/2 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150">
-            <div class="bg-white rounded-lg shadow-card-hover border border-neutral-200 p-6 min-w-[480px] grid grid-cols-2 gap-6">
+          <div class="nav-dropdown absolute left-1/2 -translate-x-1/2 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 group-hover:translate-y-0 translate-y-1">
+            <div class="bg-white rounded-xl shadow-lg border border-neutral-200/80 p-5 min-w-[520px] grid grid-cols-2 gap-5">
               {financialCategories.map((cat) => (
                 <div>
-                  <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">
+                  <h3 class="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2.5 px-2">
                     {cat.label}
                   </h3>
-                  <ul class="space-y-1">
+                  <ul class="space-y-0.5">
                     {cat.tools.map((tool) => (
                       <li>
                         <a
                           href={getToolPath(tool)}
                           class:list={[
-                            "block px-2 py-1.5 text-sm rounded-md transition-colors duration-150",
+                            "flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition-all duration-150",
                             currentPath === getToolPath(tool)
                               ? "text-primary-500 bg-primary-50 font-medium"
                               : "text-neutral-700 hover:text-primary-500 hover:bg-neutral-50",
                           ]}
                         >
-                          {tool.name}
+                          <div class:list={[
+                            "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0 transition-colors duration-150",
+                            currentPath === getToolPath(tool)
+                              ? "bg-primary-100 text-primary-500"
+                              : "bg-neutral-100 text-neutral-500",
+                          ]}>
+                            <ToolIcon name={tool.icon} size={15} />
+                          </div>
+                          {tool.name.replace(' Calculator', '')}
                         </a>
                       </li>
                     ))}
@@ -91,7 +100,7 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
       {/* Mobile hamburger */}
       <button
         id="mobile-menu-btn"
-        class="lg:hidden p-2 -mr-2 text-neutral-700 hover:text-primary-500"
+        class="lg:hidden p-2 -mr-2 text-neutral-700 hover:text-primary-500 transition-colors duration-150"
         aria-label="Open menu"
         aria-expanded="false"
       >
@@ -102,104 +111,169 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
     </div>
   </nav>
 
-  {/* Mobile menu overlay */}
+  {/* Mobile menu overlay with slide animation */}
   <div
     id="mobile-menu"
-    class="fixed inset-0 z-50 bg-white hidden lg:hidden overflow-y-auto"
+    class="mobile-menu fixed inset-0 z-50 hidden lg:hidden"
     role="dialog"
     aria-label="Mobile navigation"
   >
-    <div class="px-4 py-4">
-      <div class="flex items-center justify-between mb-8">
-        <Logo />
-        <button
-          id="mobile-menu-close"
-          class="p-2 -mr-2 text-neutral-700 hover:text-primary-500"
-          aria-label="Close menu"
-        >
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+    {/* Backdrop */}
+    <div class="mobile-backdrop absolute inset-0 bg-black/20 backdrop-blur-sm" aria-hidden="true"></div>
 
-      <nav class="space-y-6">
-        {financialCategories.map((cat) => (
-          <div>
-            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2 px-2">
-              {cat.label}
-            </h3>
-            <ul class="space-y-1">
-              {cat.tools.map((tool) => (
-                <li>
-                  <a
-                    href={getToolPath(tool)}
-                    class:list={[
-                      "block px-2 py-2.5 text-base rounded-md",
-                      currentPath === getToolPath(tool)
-                        ? "text-primary-500 bg-primary-50 font-medium"
-                        : "text-neutral-700",
-                    ]}
-                  >
-                    {tool.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-
-        <div class="border-t border-neutral-200 pt-6 space-y-1">
-          <a href="/tools" class="block px-2 py-2.5 text-base font-medium text-neutral-700">
-            All Tools
-          </a>
-          <a href="/about" class="block px-2 py-2.5 text-base font-medium text-neutral-700">
-            About
-          </a>
+    {/* Menu panel */}
+    <div class="mobile-panel absolute top-0 right-0 bottom-0 w-full max-w-[340px] bg-white shadow-2xl overflow-y-auto">
+      <div class="px-5 py-4">
+        <div class="flex items-center justify-between mb-8">
+          <Logo />
+          <button
+            id="mobile-menu-close"
+            class="p-2 -mr-2 text-neutral-700 hover:text-primary-500 rounded-lg hover:bg-neutral-50 transition-colors duration-150"
+            aria-label="Close menu"
+          >
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      </nav>
+
+        <nav class="space-y-7">
+          {financialCategories.map((cat) => (
+            <div>
+              <h3 class="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2 px-2">
+                {cat.label}
+              </h3>
+              <ul class="space-y-0.5">
+                {cat.tools.map((tool) => (
+                  <li>
+                    <a
+                      href={getToolPath(tool)}
+                      class:list={[
+                        "flex items-center gap-3 px-2 py-2.5 text-[15px] rounded-lg transition-colors duration-150",
+                        currentPath === getToolPath(tool)
+                          ? "text-primary-500 bg-primary-50 font-medium"
+                          : "text-neutral-700 hover:bg-neutral-50",
+                      ]}
+                    >
+                      <div class:list={[
+                        "inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
+                        currentPath === getToolPath(tool)
+                          ? "bg-primary-100 text-primary-500"
+                          : "bg-neutral-100 text-neutral-500",
+                      ]}>
+                        <ToolIcon name={tool.icon} size={16} />
+                      </div>
+                      {tool.name.replace(' Calculator', '')}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div class="border-t border-neutral-200 pt-6 space-y-0.5">
+            <a href="/tools" class="flex items-center gap-3 px-2 py-2.5 text-[15px] font-medium text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors duration-150">
+              <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-100 text-neutral-500 shrink-0">
+                <ToolIcon name="search" size={16} />
+              </div>
+              All Tools
+            </a>
+            <a href="/about" class="flex items-center gap-3 px-2 py-2.5 text-[15px] font-medium text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors duration-150">
+              <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-100 text-neutral-500 shrink-0">
+                <ToolIcon name="info" size={16} />
+              </div>
+              About
+            </a>
+          </div>
+        </nav>
+      </div>
     </div>
   </div>
 </header>
+
+<style>
+  /* Mobile menu slide-in animation */
+  .mobile-menu.open .mobile-backdrop {
+    animation: fadeIn 200ms ease-out forwards;
+  }
+  .mobile-menu.open .mobile-panel {
+    animation: slideIn 250ms ease-out forwards;
+  }
+  .mobile-menu.closing .mobile-backdrop {
+    animation: fadeOut 200ms ease-in forwards;
+  }
+  .mobile-menu.closing .mobile-panel {
+    animation: slideOut 200ms ease-in forwards;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes slideOut { from { transform: translateX(0); } to { transform: translateX(100%); } }
+
+  /* Desktop dropdown subtle slide */
+  .nav-dropdown {
+    transform: translateY(4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu.open .mobile-backdrop,
+    .mobile-menu.open .mobile-panel,
+    .mobile-menu.closing .mobile-backdrop,
+    .mobile-menu.closing .mobile-panel {
+      animation-duration: 0.01ms;
+    }
+    .nav-dropdown { transform: none; }
+  }
+</style>
 
 <script>
   const menuBtn = document.getElementById('mobile-menu-btn');
   const closeBtn = document.getElementById('mobile-menu-close');
   const mobileMenu = document.getElementById('mobile-menu');
+  const backdrop = mobileMenu?.querySelector('.mobile-backdrop');
 
   function openMenu() {
-    mobileMenu?.classList.remove('hidden');
+    if (!mobileMenu) return;
+    mobileMenu.classList.remove('hidden', 'closing');
+    mobileMenu.classList.add('open');
     document.body.style.overflow = 'hidden';
     menuBtn?.setAttribute('aria-expanded', 'true');
-    // Focus close button when menu opens
     closeBtn?.focus();
   }
 
   function closeMenu() {
-    mobileMenu?.classList.add('hidden');
-    document.body.style.overflow = '';
-    menuBtn?.setAttribute('aria-expanded', 'false');
-    // Return focus to hamburger button
-    menuBtn?.focus();
+    if (!mobileMenu) return;
+    mobileMenu.classList.remove('open');
+    mobileMenu.classList.add('closing');
+
+    // Wait for animation to complete
+    setTimeout(() => {
+      mobileMenu.classList.add('hidden');
+      mobileMenu.classList.remove('closing');
+      document.body.style.overflow = '';
+      menuBtn?.setAttribute('aria-expanded', 'false');
+      menuBtn?.focus();
+    }, 200);
   }
 
   menuBtn?.addEventListener('click', openMenu);
   closeBtn?.addEventListener('click', closeMenu);
 
-  // Close on outside click
-  mobileMenu?.addEventListener('click', (e) => {
-    if (e.target === mobileMenu) closeMenu();
-  });
+  // Close on backdrop click
+  backdrop?.addEventListener('click', closeMenu);
 
   // Close on Escape + focus trap
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !mobileMenu?.classList.contains('hidden')) {
+    if (!mobileMenu || mobileMenu.classList.contains('hidden')) return;
+
+    if (e.key === 'Escape') {
       closeMenu();
       return;
     }
 
     // Focus trap: keep Tab within the mobile menu when open
-    if (e.key === 'Tab' && mobileMenu && !mobileMenu.classList.contains('hidden')) {
+    if (e.key === 'Tab') {
       const focusable = mobileMenu.querySelectorAll<HTMLElement>(
         'a[href], button, [tabindex]:not([tabindex="-1"])'
       );

@@ -1,25 +1,41 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
 ---
 
 <BaseLayout title="Page Not Found | CalcPath" description="The page you're looking for doesn't exist.">
-  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-    <p class="text-6xl font-bold text-primary-500 mb-4">404</p>
-    <h1 class="text-2xl font-bold text-neutral-900 mb-3">Page Not Found</h1>
-    <p class="text-neutral-500 mb-8">
-      The page you're looking for doesn't exist or has been moved.
+  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
+    {/* Decorative illustration */}
+    <div class="relative inline-block mb-8">
+      <div class="w-28 h-28 rounded-full bg-primary-50 flex items-center justify-center mx-auto">
+        <div class="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center">
+          <ToolIcon name="search" class="text-primary-500" size={36} />
+        </div>
+      </div>
+      {/* Floating accent dots */}
+      <div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent-500/20" aria-hidden="true"></div>
+      <div class="absolute -bottom-2 -left-3 w-6 h-6 rounded-full bg-primary-200/40" aria-hidden="true"></div>
+    </div>
+
+    <p class="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-2">Error 404</p>
+    <h1 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Page Not Found</h1>
+    <p class="text-neutral-500 mb-10 max-w-[400px] mx-auto leading-relaxed">
+      The page you're looking for doesn't exist or has been moved. Let's get you back on track.
     </p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
       <a
         href="/"
-        class="inline-flex items-center justify-center gap-2 bg-primary-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-150"
+        class="inline-flex items-center justify-center gap-2 bg-primary-500 text-white font-semibold px-6 py-3 rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-500/20 hover:shadow-primary-700/25 transition-all duration-200 hover:-translate-y-0.5"
       >
+        <ToolIcon name="home" size={18} />
         Go to Homepage
       </a>
       <a
         href="/tools"
-        class="inline-flex items-center justify-center gap-2 bg-white text-neutral-700 font-semibold px-6 py-3 rounded-lg border border-neutral-200 hover:bg-neutral-50 transition-colors duration-150"
+        class="inline-flex items-center justify-center gap-2 bg-white text-neutral-700 font-semibold px-6 py-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200"
       >
+        <ToolIcon name="calculator" size={18} />
         Browse Tools
       </a>
     </div>

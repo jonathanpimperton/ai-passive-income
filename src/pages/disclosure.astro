@@ -1,94 +1,128 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
 ---
 
 <BaseLayout
   title="Affiliate Disclosure | CalcPath"
   description="CalcPath affiliate disclosure. We earn commissions from some links on this site. This helps us keep the tools free."
 >
-  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 mb-2">Affiliate Disclosure</h1>
-    <p class="text-sm text-neutral-500 mb-8">Last updated: February 2026</p>
+  {/* Page header */}
+  <section class="bg-[linear-gradient(135deg,#0A2540_0%,#1A3A5C_50%,#0A2540_100%)] py-10 sm:py-14">
+    <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-1">Affiliate Disclosure</h1>
+      <p class="text-sm text-primary-300">Last updated: February 2026</p>
+    </div>
+  </section>
 
-    <div class="space-y-8 text-neutral-700 leading-relaxed">
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">How CalcPath Makes Money</h2>
-        <p>
-          CalcPath earns commissions from some links on this site. When you click an affiliate link
-          and sign up for a financial product, we may receive a referral fee. This helps us keep all
-          our calculators and tools free.
-        </p>
+  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div class="space-y-6">
+      <section class="bg-white border border-neutral-200/80 rounded-xl p-5 sm:p-6 shadow-card">
+        <div class="flex items-start gap-3.5">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 text-primary-500 shrink-0 mt-0.5">
+            <ToolIcon name="heart-handshake" size={18} />
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-neutral-900 mb-2">How CalcPath Makes Money</h2>
+            <p class="text-sm text-neutral-700 leading-relaxed">
+              CalcPath earns commissions from some links on this site. When you click an affiliate link
+              and sign up for a financial product, we may receive a referral fee. This helps us keep all
+              our calculators and tools free.
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">What This Means for You</h2>
-        <p>
-          You pay nothing extra. The products cost the same whether you use our link or go directly
-          to the provider. Affiliate relationships never add fees or change the terms of any product.
-        </p>
+      <section class="bg-white border border-neutral-200/80 rounded-xl p-5 sm:p-6 shadow-card">
+        <div class="flex items-start gap-3.5">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-accent-100 text-accent-600 shrink-0 mt-0.5">
+            <ToolIcon name="check-circle" size={18} />
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-neutral-900 mb-2">What This Means for You</h2>
+            <p class="text-sm text-neutral-700 leading-relaxed">
+              You pay nothing extra. The products cost the same whether you use our link or go directly
+              to the provider. Affiliate relationships never add fees or change the terms of any product.
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">How We Choose Recommendations</h2>
-        <p>
-          We only recommend products we've researched. Affiliate relationships do not influence our
-          calculator results — the math is the math. When we feature a financial product, it's
-          because we believe it could genuinely help users of that particular calculator.
-        </p>
-        <p class="mt-2">
-          Not every calculator page has affiliate recommendations. Where there's no natural product
-          fit, we don't force one.
-        </p>
+      <section class="bg-white border border-neutral-200/80 rounded-xl p-5 sm:p-6 shadow-card">
+        <div class="flex items-start gap-3.5">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 text-primary-500 shrink-0 mt-0.5">
+            <ToolIcon name="scale" size={18} />
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-neutral-900 mb-2">How We Choose Recommendations</h2>
+            <p class="text-sm text-neutral-700 leading-relaxed">
+              We only recommend products we've researched. Affiliate relationships do not influence our
+              calculator results — the math is the math. When we feature a financial product, it's
+              because we believe it could genuinely help users of that particular calculator.
+            </p>
+            <p class="text-sm text-neutral-700 leading-relaxed mt-2">
+              Not every calculator page has affiliate recommendations. Where there's no natural product
+              fit, we don't force one.
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">Our Affiliate Partners</h2>
-        <p>CalcPath currently has or intends to establish affiliate relationships with:</p>
-        <ul class="list-disc pl-5 mt-3 space-y-2">
-          <li>
-            <strong>Betterment</strong> — Investment and retirement accounts, high-yield savings
-          </li>
-          <li>
-            <strong>Marcus by Goldman Sachs</strong> — High-yield savings accounts
-          </li>
-          <li>
-            <strong>Wealthfront</strong> — Automated investing and financial planning
-          </li>
-          <li>
-            <strong>SoFi</strong> — Student loan refinancing, personal loans, investing
-          </li>
-          <li>
-            <strong>LendingTree</strong> — Mortgage comparison and loan marketplace
-          </li>
-          <li>
-            <strong>LendingClub</strong> — Personal loans and debt consolidation
-          </li>
-          <li>
-            <strong>Ally</strong> — High-yield savings accounts and banking
-          </li>
-          <li>
-            <strong>Vanguard</strong> — Retirement accounts and index funds
-          </li>
-          <li>
-            <strong>1Password</strong> — Password management
-          </li>
-          <li>
-            <strong>NordPass</strong> — Password management
-          </li>
-        </ul>
-        <p class="mt-3 text-sm text-neutral-500">
-          This list is updated as new partnerships are established. Not all listed programs
-          may be active at any given time.
-        </p>
+      {/* Partners list */}
+      <section class="bg-white border border-neutral-200/80 rounded-xl p-5 sm:p-6 shadow-card">
+        <div class="flex items-start gap-3.5">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 text-primary-500 shrink-0 mt-0.5">
+            <ToolIcon name="globe" size={18} />
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-neutral-900 mb-3">Our Affiliate Partners</h2>
+            <p class="text-sm text-neutral-700 leading-relaxed mb-3">
+              CalcPath currently has or intends to establish affiliate relationships with:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                { name: 'Betterment', desc: 'Investing & high-yield savings' },
+                { name: 'Marcus by Goldman Sachs', desc: 'High-yield savings' },
+                { name: 'Wealthfront', desc: 'Automated investing' },
+                { name: 'SoFi', desc: 'Loans & investing' },
+                { name: 'LendingTree', desc: 'Mortgage comparison' },
+                { name: 'LendingClub', desc: 'Personal loans & debt' },
+                { name: 'Ally', desc: 'Savings & banking' },
+                { name: 'Vanguard', desc: 'Retirement & index funds' },
+                { name: '1Password', desc: 'Password management' },
+                { name: 'NordPass', desc: 'Password management' },
+              ].map((partner) => (
+                <div class="flex items-center gap-2 bg-neutral-50 rounded-lg px-3 py-2.5">
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></div>
+                  <div>
+                    <span class="text-sm font-medium text-neutral-900">{partner.name}</span>
+                    <span class="text-xs text-neutral-500 ml-1.5">{partner.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p class="text-xs text-neutral-500 mt-3">
+              This list is updated as new partnerships are established. Not all listed programs
+              may be active at any given time.
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">Not Financial Advice</h2>
-        <p>
-          CalcPath provides educational tools and information, not personalized financial advice. The
-          presence of affiliate links does not constitute a recommendation for your specific
-          situation. Consult a qualified financial advisor for decisions specific to your circumstances.
-        </p>
+      <section class="bg-neutral-50 border border-neutral-200/80 rounded-xl p-5 sm:p-6">
+        <div class="flex items-start gap-3.5">
+          <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-neutral-200 text-neutral-600 shrink-0 mt-0.5">
+            <ToolIcon name="info" size={18} />
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-neutral-900 mb-2">Not Financial Advice</h2>
+            <p class="text-sm text-neutral-700 leading-relaxed">
+              CalcPath provides educational tools and information, not personalized financial advice. The
+              presence of affiliate links does not constitute a recommendation for your specific
+              situation. Consult a qualified financial advisor for decisions specific to your circumstances.
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   </div>
