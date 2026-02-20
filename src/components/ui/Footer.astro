@@ -1,13 +1,14 @@
 ---
+import ToolIcon from './ToolIcon.astro';
 const currentYear = new Date().getFullYear();
 ---
 
-<footer class="bg-white border-t border-neutral-200 mt-auto">
-  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+<footer class="bg-white border-t border-neutral-200/80 mt-auto">
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-10">
       {/* Brand */}
       <div>
-        <a href="/" class="inline-block mb-3">
+        <a href="/" class="inline-block mb-4">
           <svg
             role="img"
             aria-label="CalcPath"
@@ -26,27 +27,43 @@ const currentYear = new Date().getFullYear();
             </text>
           </svg>
         </a>
-        <p class="text-sm text-neutral-500 max-w-[240px]">
+        <p class="text-sm text-neutral-500 max-w-[240px] leading-relaxed">
           Free financial calculators with interactive charts. No signup, no ads, no data harvesting.
         </p>
+        {/* Trust badges */}
+        <div class="flex items-center gap-4 mt-4">
+          <div class="flex items-center gap-1.5 text-xs text-neutral-400">
+            <ToolIcon name="lock" size={13} />
+            <span>Private</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-neutral-400">
+            <ToolIcon name="zap" size={13} />
+            <span>Instant</span>
+          </div>
+        </div>
       </div>
 
       {/* Calculators */}
       <div>
-        <h3 class="text-sm font-semibold text-neutral-900 mb-3">Calculators</h3>
-        <ul class="space-y-2 text-sm">
+        <h3 class="text-sm font-semibold text-neutral-900 mb-4">Calculators</h3>
+        <ul class="space-y-2.5 text-sm">
           <li><a href="/tools/saving-and-growth/compound-interest" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Compound Interest</a></li>
           <li><a href="/tools/debt-and-loans/loan-amortization" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Loan Amortization</a></li>
           <li><a href="/tools/income-and-planning/retirement-savings" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Retirement Savings</a></li>
           <li><a href="/tools/saving-and-growth/investment-return" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Investment Return</a></li>
-          <li><a href="/tools" class="text-primary-500 hover:text-primary-700 font-medium transition-colors duration-150">View all tools &rarr;</a></li>
+          <li>
+            <a href="/tools" class="inline-flex items-center gap-1 text-primary-500 hover:text-primary-700 font-medium transition-colors duration-150">
+              View all tools
+              <ToolIcon name="arrow-right" size={14} />
+            </a>
+          </li>
         </ul>
       </div>
 
       {/* Utility Tools */}
       <div>
-        <h3 class="text-sm font-semibold text-neutral-900 mb-3">Utility Tools</h3>
-        <ul class="space-y-2 text-sm">
+        <h3 class="text-sm font-semibold text-neutral-900 mb-4">Utility Tools</h3>
+        <ul class="space-y-2.5 text-sm">
           <li><a href="/tools/utility/qr-code" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">QR Code Generator</a></li>
           <li><a href="/tools/utility/password-generator" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Password Generator</a></li>
           <li><a href="/tools/utility/json-formatter" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">JSON Formatter</a></li>
@@ -55,8 +72,8 @@ const currentYear = new Date().getFullYear();
 
       {/* Company */}
       <div>
-        <h3 class="text-sm font-semibold text-neutral-900 mb-3">Company</h3>
-        <ul class="space-y-2 text-sm">
+        <h3 class="text-sm font-semibold text-neutral-900 mb-4">Company</h3>
+        <ul class="space-y-2.5 text-sm">
           <li><a href="/about" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">About</a></li>
           <li><a href="/privacy" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Privacy Policy</a></li>
           <li><a href="/terms" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Terms of Use</a></li>
@@ -65,11 +82,14 @@ const currentYear = new Date().getFullYear();
       </div>
     </div>
 
-    <div class="border-t border-neutral-200 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p class="text-xs text-neutral-500">
+    {/* Gradient divider */}
+    <div class="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-6"></div>
+
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
+      <p class="text-xs text-neutral-400">
         &copy; {currentYear} CalcPath. All rights reserved.
       </p>
-      <p class="text-xs text-neutral-500">
+      <p class="text-xs text-neutral-400">
         CalcPath provides educational tools, not financial advice.
       </p>
     </div>

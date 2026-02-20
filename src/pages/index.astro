@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
 import { TOOLS, POPULAR_TOOL_SLUGS, CATEGORIES, getToolPath, type CategorySlug, type ToolMeta } from '@lib/tools-data';
 import { buildWebsiteSchema } from '@lib/seo';
 
@@ -16,62 +17,121 @@ const websiteSchema = buildWebsiteSchema();
   description="See your numbers instantly — no signup, no ads, no data harvesting. Free financial calculators with interactive charts and plain-English explanations."
   structuredData={[websiteSchema]}
 >
-  {/* Hero section — dark gradient per design-system.md */}
-  <section class="bg-[linear-gradient(135deg,#0A2540_0%,#1A3A5C_50%,#0A2540_100%)] py-16 sm:py-24">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h1 class="text-3xl sm:text-4xl lg:text-[36px] font-bold text-white leading-tight tracking-[-0.02em]">
-        Free Financial Calculators
-      </h1>
-      <p class="mt-4 text-lg sm:text-xl text-primary-200 max-w-[600px] mx-auto">
-        See your numbers instantly — no signup, no ads, no data harvesting.
-      </p>
-      <a
-        href="/tools"
-        class="mt-8 inline-flex items-center gap-2 bg-accent-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-accent-700 transition-colors duration-150"
-      >
-        Browse Calculators
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-      </a>
-    </div>
-  </section>
+  {/* Hero section — animated dark gradient per design-system.md */}
+  <section class="hero-gradient relative overflow-hidden py-20 sm:py-28 lg:py-32">
+    {/* Subtle animated glow orbs for depth */}
+    <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
 
-  {/* Popular Calculators — 6 cards, covers all 5 customer segments */}
-  <section class="py-16 sm:py-20">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl font-bold text-neutral-900 mb-8">Popular Calculators</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {popularTools.map((tool) => (
-          <a
-            href={getToolPath(tool)}
-            class="bg-white border border-neutral-200 rounded-xl p-6 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-150 group"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <h3 class="text-lg font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150">
-                {tool.name}
-              </h3>
-              <svg class="w-5 h-5 text-neutral-400 group-hover:text-primary-500 shrink-0 mt-0.5 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-            <p class="text-sm text-neutral-500">{tool.description}</p>
-          </a>
-        ))}
+    <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-4 py-1.5 mb-6">
+        <ToolIcon name="sparkles" class="text-primary-300" size={16} />
+        <span class="text-sm font-medium text-primary-200">100% free, no signup required</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em] max-w-[700px] mx-auto">
+        Financial Calculators That
+        <span class="text-transparent bg-clip-text bg-[linear-gradient(135deg,#93C5FD,#10B981)]">
+          Respect Your Time
+        </span>
+      </h1>
+      <p class="mt-5 text-lg sm:text-xl text-primary-200/90 max-w-[560px] mx-auto leading-relaxed">
+        See your numbers instantly — no signup, no ads, no data harvesting. Just clear math and honest results.
+      </p>
+
+      <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+        <a
+          href="/tools"
+          class="inline-flex items-center justify-center gap-2 bg-accent-600 text-white font-semibold px-7 py-3.5 rounded-xl hover:bg-accent-500 shadow-lg shadow-accent-600/25 hover:shadow-accent-500/30 transition-all duration-200 hover:-translate-y-0.5"
+        >
+          Browse Calculators
+          <ToolIcon name="arrow-right" size={18} />
+        </a>
+        <a
+          href="#popular"
+          class="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white font-semibold px-7 py-3.5 rounded-xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-200"
+        >
+          See Popular Tools
+          <ToolIcon name="chevron-down" size={18} />
+        </a>
+      </div>
+
+      {/* Trust indicators */}
+      <div class="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-sm text-primary-300/80">
+        <div class="flex items-center gap-2">
+          <ToolIcon name="lock" size={16} />
+          <span>Runs in your browser</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <ToolIcon name="eye" size={16} />
+          <span>No data harvesting</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <ToolIcon name="zap" size={16} />
+          <span>Instant results</span>
+        </div>
       </div>
     </div>
   </section>
 
-  {/* All Tools with category filters */}
-  <section class="py-16 sm:py-20 bg-white">
+  {/* Popular Calculators — 6 cards, covers all 5 customer segments */}
+  <section id="popular" class="py-16 sm:py-20 lg:py-24">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl font-bold text-neutral-900 mb-8">All Tools</h2>
+      <div class="flex items-end justify-between mb-10">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900">Popular Calculators</h2>
+          <p class="text-neutral-500 mt-2">The tools people use most to plan their finances.</p>
+        </div>
+        <a href="/tools" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-primary-500 hover:text-primary-700 transition-colors duration-150">
+          View all
+          <ToolIcon name="arrow-right" size={16} />
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {popularTools.map((tool) => (
+          <a
+            href={getToolPath(tool)}
+            class="tool-card-popular group relative bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-1"
+          >
+            {/* Icon circle */}
+            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-50 text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 mb-4">
+              <ToolIcon name={tool.icon} size={22} />
+            </div>
+
+            <h3 class="text-lg font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150 mb-1.5">
+              {tool.name}
+            </h3>
+            <p class="text-sm text-neutral-500 leading-relaxed">{tool.description}</p>
+
+            {/* Subtle bottom accent on hover */}
+            <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+          </a>
+        ))}
+      </div>
+
+      <a href="/tools" class="sm:hidden mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-500">
+        View all tools <ToolIcon name="arrow-right" size={16} />
+      </a>
+    </div>
+  </section>
+
+  {/* Gradient divider */}
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/40 to-transparent"></div>
+  </div>
+
+  {/* All Tools with category filters */}
+  <section class="py-16 sm:py-20 lg:py-24">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">All Tools</h2>
+      <p class="text-neutral-500 mb-8">Filter by category to find the right calculator for you.</p>
 
       {/* Category filter pills */}
-      <div class="flex flex-wrap gap-2 mb-8" role="tablist" aria-label="Filter tools by category">
+      <div class="flex flex-wrap gap-2 mb-10" role="tablist" aria-label="Filter tools by category">
         <button
           data-category="all"
-          class="category-pill px-4 py-2 rounded-full text-sm font-medium bg-primary-500 text-white transition-colors duration-150"
+          class="category-pill active px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
           role="tab"
           aria-selected="true"
         >
@@ -80,7 +140,7 @@ const websiteSchema = buildWebsiteSchema();
         {categoryEntries.map(([slug, cat]) => (
           <button
             data-category={slug}
-            class="category-pill px-4 py-2 rounded-full text-sm font-medium bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors duration-150"
+            class="category-pill px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
             role="tab"
             aria-selected="false"
           >
@@ -90,31 +150,111 @@ const websiteSchema = buildWebsiteSchema();
       </div>
 
       {/* Tool grid */}
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="tools-grid">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="tools-grid">
         {TOOLS.map((tool) => (
           <a
             href={getToolPath(tool)}
             data-tool-category={tool.category}
-            class="tool-card bg-neutral-50 border border-neutral-200 rounded-xl p-5 hover:shadow-card hover:-translate-y-0.5 transition-all duration-150 group"
+            class="tool-card group bg-white border border-neutral-200/80 rounded-2xl p-5 hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
           >
-            <div class="flex items-start justify-between mb-2">
-              <h3 class="text-base font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150">
-                {tool.name}
-              </h3>
-              <svg class="w-4 h-4 text-neutral-400 group-hover:text-primary-500 shrink-0 mt-0.5 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+            <div class="flex items-start gap-3.5">
+              <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 shrink-0">
+                <ToolIcon name={tool.icon} size={20} />
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-base font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150">
+                  {tool.name}
+                </h3>
+                <p class="text-sm text-neutral-500 mt-1 leading-relaxed">{tool.description}</p>
+                <span class="inline-block mt-2.5 text-xs font-medium text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full">
+                  {CATEGORIES[tool.category].label}
+                </span>
+              </div>
             </div>
-            <p class="text-sm text-neutral-500">{tool.description}</p>
-            <span class="inline-block mt-3 text-xs font-medium text-primary-500 bg-primary-50 px-2 py-0.5 rounded-full">
-              {CATEGORIES[tool.category].label}
-            </span>
           </a>
         ))}
       </div>
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  /* Animated gradient hero */
+  .hero-gradient {
+    background: linear-gradient(135deg, #0A2540 0%, #112D4E 30%, #1A3A5C 50%, #0F2847 70%, #0A2540 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 12s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Floating glow orbs */
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.12;
+  }
+  .hero-orb-1 {
+    width: 400px;
+    height: 400px;
+    background: #2563EB;
+    top: -100px;
+    right: -50px;
+    animation: orbFloat1 8s ease-in-out infinite;
+  }
+  .hero-orb-2 {
+    width: 300px;
+    height: 300px;
+    background: #10B981;
+    bottom: -80px;
+    left: -30px;
+    animation: orbFloat2 10s ease-in-out infinite;
+  }
+
+  @keyframes orbFloat1 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-30px, 20px); }
+  }
+  @keyframes orbFloat2 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(20px, -25px); }
+  }
+
+  /* Category filter pills */
+  .category-pill {
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-700);
+  }
+  .category-pill:hover {
+    background-color: var(--color-neutral-200);
+  }
+  .category-pill.active {
+    background-color: var(--color-primary-500);
+    color: white;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  }
+
+  /* Smooth filter transitions */
+  .tool-card {
+    transition: all 0.2s ease, opacity 0.25s ease, transform 0.25s ease;
+  }
+  .tool-card.hiding {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+    pointer-events: none;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-gradient { animation: none; }
+    .hero-orb { animation: none; opacity: 0; }
+    .tool-card { transition-duration: 0.01ms; }
+  }
+</style>
 
 <script>
   const pills = document.querySelectorAll('.category-pill');
@@ -126,21 +266,26 @@ const websiteSchema = buildWebsiteSchema();
 
       // Update active pill
       pills.forEach((p) => {
-        p.classList.remove('bg-primary-500', 'text-white');
-        p.classList.add('bg-neutral-100', 'text-neutral-700');
+        p.classList.remove('active');
         p.setAttribute('aria-selected', 'false');
       });
-      pill.classList.remove('bg-neutral-100', 'text-neutral-700');
-      pill.classList.add('bg-primary-500', 'text-white');
+      pill.classList.add('active');
       pill.setAttribute('aria-selected', 'true');
 
-      // Filter cards
+      // Animate filter with fade
       cards.forEach((card) => {
         const cardCategory = (card as HTMLElement).dataset.toolCategory;
-        if (category === 'all' || cardCategory === category) {
-          (card as HTMLElement).style.display = '';
+        const shouldShow = category === 'all' || cardCategory === category;
+        const el = card as HTMLElement;
+
+        if (!shouldShow) {
+          el.classList.add('hiding');
+          setTimeout(() => { el.style.display = 'none'; }, 200);
         } else {
-          (card as HTMLElement).style.display = 'none';
+          el.style.display = '';
+          // Force reflow for animation
+          void el.offsetHeight;
+          el.classList.remove('hiding');
         }
       });
     });

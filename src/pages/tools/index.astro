@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
 import { TOOLS, CATEGORIES, getToolPath, type CategorySlug } from '@lib/tools-data';
 
 const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][];
@@ -9,35 +10,54 @@ const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATE
   title="Free Online Calculators & Tools | CalcPath"
   description="Browse all 15 free calculators and tools. Financial calculators, utility tools — no signup, no ads, no data harvesting."
 >
-  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 mb-2">All Tools</h1>
-    <p class="text-lg text-neutral-500 mb-12">
-      Free calculators and tools — instant results, no signup required.
-    </p>
+  {/* Page header with subtle gradient background */}
+  <section class="bg-[linear-gradient(135deg,#0A2540_0%,#1A3A5C_50%,#0A2540_100%)] py-12 sm:py-16">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">All Tools</h1>
+      <p class="text-lg text-primary-200/90">
+        Free calculators and tools — instant results, no signup required.
+      </p>
+    </div>
+  </section>
 
-    {categoryEntries.map(([slug, cat]) => {
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    {categoryEntries.map(([slug, cat], catIndex) => {
       const categoryTools = TOOLS.filter((t) => t.category === slug);
       return categoryTools.length > 0 && (
-        <section id={slug} class="mb-12">
-          <h2 class="text-xl font-bold text-neutral-900 mb-4 flex items-center gap-2">
-            {cat.label}
-            <span class="text-sm font-normal text-neutral-500">({categoryTools.length})</span>
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <section id={slug} class="mb-14">
+          {/* Gradient divider between sections (not before first) */}
+          {catIndex > 0 && (
+            <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-14"></div>
+          )}
+
+          <div class="flex items-center gap-3 mb-6">
+            <h2 class="text-xl font-bold text-neutral-900">
+              {cat.label}
+            </h2>
+            <span class="text-sm font-medium text-neutral-500 bg-neutral-100 px-2.5 py-0.5 rounded-full">
+              {categoryTools.length}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {categoryTools.map((tool) => (
               <a
                 href={getToolPath(tool)}
-                class="bg-white border border-neutral-200 rounded-xl p-5 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-150 group"
+                class="group relative bg-white border border-neutral-200/80 rounded-2xl p-5 shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-200"
               >
-                <div class="flex items-start justify-between mb-2">
-                  <h3 class="text-base font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150">
-                    {tool.name}
-                  </h3>
-                  <svg class="w-4 h-4 text-neutral-400 group-hover:text-primary-500 shrink-0 mt-0.5 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                <div class="flex items-start gap-3.5">
+                  <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 shrink-0">
+                    <ToolIcon name={tool.icon} size={20} />
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="text-base font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150">
+                      {tool.name}
+                    </h3>
+                    <p class="text-sm text-neutral-500 mt-1 leading-relaxed">{tool.description}</p>
+                  </div>
                 </div>
-                <p class="text-sm text-neutral-500">{tool.description}</p>
+                {/* Subtle bottom accent on hover */}
+                <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </a>
             ))}
           </div>

@@ -1,63 +1,121 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
 ---
 
 <BaseLayout
   title="About CalcPath"
   description="CalcPath builds free financial calculators with clear explanations, interactive charts, and downloadable results. No signup, no ads, no data harvesting."
 >
-  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 mb-8">About CalcPath</h1>
-
-    <div class="space-y-8 text-neutral-700 leading-relaxed">
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">Our Mission</h2>
-        <p>
-          CalcPath exists to make financial math simple. Every calculator is free, instant, and
-          private — we never ask for your data or bury results behind signup forms.
-        </p>
-      </section>
-
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">What We Do</h2>
-        <p>
-          We build free financial calculators with clear explanations, interactive charts, and
-          downloadable results. Our tools help you see your numbers so you can make informed decisions
-          — whether you're planning for retirement, comparing loan options, or figuring out how to pay
-          off debt faster.
-        </p>
-      </section>
-
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">How We're Different</h2>
-        <p>
-          Other financial sites gate results behind account forms or sell your information to financial
-          advisors. We don't. Your calculator inputs never leave your browser — all calculations run
-          locally on your device. No accounts, no data harvesting, no ad clutter.
-        </p>
-      </section>
-
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">How We Make Money</h2>
-        <p>
-          We earn commissions when you click affiliate links to financial products. This costs you
-          nothing extra and helps keep our tools free. We never recommend a product just to earn a
-          commission — the math is the math. See our
-          <a href="/disclosure" class="text-primary-500 hover:text-primary-700 underline">
-            full affiliate disclosure
-          </a>
-          for details.
-        </p>
-      </section>
-
-      <section>
-        <h2 class="text-xl font-bold text-neutral-900 mb-3">What We Don't Do</h2>
-        <p>
-          We don't provide personalized financial advice. We build tools that help you understand
-          the math behind financial decisions. For advice tailored to your specific situation,
-          consult a qualified financial advisor.
-        </p>
-      </section>
+  {/* Page header */}
+  <section class="bg-[linear-gradient(135deg,#0A2540_0%,#1A3A5C_50%,#0A2540_100%)] py-12 sm:py-16">
+    <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3">About CalcPath</h1>
+      <p class="text-lg text-primary-200/90">
+        Free tools that help you see your numbers clearly.
+      </p>
     </div>
+  </section>
+
+  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    {/* Mission card — hero treatment */}
+    <div class="bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-2xl p-6 sm:p-8 mb-12">
+      <div class="flex items-start gap-4">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-500 text-white shrink-0">
+          <ToolIcon name="target" size={24} />
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-neutral-900 mb-2">Our Mission</h2>
+          <p class="text-neutral-700 leading-relaxed">
+            CalcPath exists to make financial math simple. Every calculator is free, instant, and
+            private — we never ask for your data or bury results behind signup forms.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* Feature cards grid */}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-12">
+      <div class="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-accent-600 mb-4">
+          <ToolIcon name="zap" size={20} />
+        </div>
+        <h3 class="text-base font-bold text-neutral-900 mb-2">Instant Results</h3>
+        <p class="text-sm text-neutral-600 leading-relaxed">
+          All calculations run client-side in your browser. Results update in real-time as you type — no waiting, no loading screens.
+        </p>
+      </div>
+
+      <div class="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-accent-600 mb-4">
+          <ToolIcon name="lock" size={20} />
+        </div>
+        <h3 class="text-base font-bold text-neutral-900 mb-2">Fully Private</h3>
+        <p class="text-sm text-neutral-600 leading-relaxed">
+          Your financial data never leaves your device. We never see, store, or transmit the numbers you enter into our calculators.
+        </p>
+      </div>
+
+      <div class="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-accent-600 mb-4">
+          <ToolIcon name="ban" size={20} />
+        </div>
+        <h3 class="text-base font-bold text-neutral-900 mb-2">No Ads or Clutter</h3>
+        <p class="text-sm text-neutral-600 leading-relaxed">
+          Other financial sites gate results behind account forms or sell your information. We don't. Clean tools, clear results.
+        </p>
+      </div>
+
+      <div class="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-accent-600 mb-4">
+          <ToolIcon name="heart-handshake" size={20} />
+        </div>
+        <h3 class="text-base font-bold text-neutral-900 mb-2">Honest Recommendations</h3>
+        <p class="text-sm text-neutral-600 leading-relaxed">
+          We earn commissions from affiliate links — this costs you nothing and keeps our tools free. The math is the math.
+        </p>
+      </div>
+    </div>
+
+    {/* Gradient divider */}
+    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-12"></div>
+
+    {/* How We Make Money — transparency builds trust */}
+    <section class="mb-12">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-100 text-neutral-600 shrink-0">
+          <ToolIcon name="scale" size={20} />
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-neutral-900 mb-2">How We Make Money</h2>
+          <p class="text-neutral-700 leading-relaxed">
+            We earn commissions when you click affiliate links to financial products. This costs you
+            nothing extra and helps keep our tools free. We never recommend a product just to earn a
+            commission. See our
+            <a href="/disclosure" class="text-primary-500 hover:text-primary-700 underline transition-colors duration-150">
+              full affiliate disclosure
+            </a>
+            for details.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {/* What We Don't Do */}
+    <section class="bg-neutral-50 border border-neutral-200/80 rounded-2xl p-6 sm:p-8">
+      <div class="flex items-start gap-4">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-200 text-neutral-600 shrink-0">
+          <ToolIcon name="info" size={20} />
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-neutral-900 mb-2">What We Don't Do</h2>
+          <p class="text-neutral-700 leading-relaxed">
+            We don't provide personalized financial advice. We build tools that help you understand
+            the math behind financial decisions. For advice tailored to your specific situation,
+            consult a qualified financial advisor.
+          </p>
+        </div>
+      </div>
+    </section>
   </div>
 </BaseLayout>
