@@ -120,7 +120,7 @@ export const TOOLS: ToolMeta[] = [
     slug: 'emergency-fund',
     category: 'income-and-planning',
     description: 'Calculate how much you need for a 3, 6, or 12-month emergency fund.',
-    icon: 'shield-check',
+    icon: 'umbrella',
   },
   // Economic
   {

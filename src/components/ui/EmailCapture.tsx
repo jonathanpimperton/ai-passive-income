@@ -96,7 +96,7 @@ export default function EmailCapture({ toolSlug, toolName }: EmailCaptureProps) 
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="px-5 py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-lg hover:bg-accent-500 disabled:opacity-60 transition-colors duration-150 whitespace-nowrap"
+          className="px-5 py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-lg hover:bg-accent-700 disabled:opacity-60 transition-colors duration-150 whitespace-nowrap"
         >
           {status === 'loading' ? 'Sending...' : 'Send my results'}
         </button>
