@@ -48,7 +48,7 @@ jobs:
           fi
 
           if [ -n "$PR_URL" ]; then
-            gh pr merge "$PR_URL" --merge --auto
+            gh pr merge "$PR_URL" --merge
             echo "Merged: $PR_URL"
           else
             echo "No PR to merge."
