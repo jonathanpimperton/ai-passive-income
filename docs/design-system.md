@@ -954,10 +954,10 @@ Before writing component code, confirm these decisions are locked:
 
 - [x] **Site name chosen** — CalcPath. Launch on `calcpath.pages.dev`, buy `calcpath.com` within 1–3 months (~$10/year via Cloudflare Registrar).
 - [x] **Color palette finalized** — blue/green trust palette with contrast-verified pairs (see Section 2).
-- [ ] **Font loaded** — download Inter variable font `.woff2` from Google Fonts, self-host in `public/fonts/` for performance. Add `@font-face` in global CSS. Also download Inter `.ttf` for Satori OG image generation.
-- [ ] **Lucide icons installed** — `npm install lucide-react` for consistent icon language across all tools.
-- [ ] **Tailwind theme configured** — paste design tokens from Section 15 into global CSS `@theme` block.
-- [ ] **Logo SVG created** — implement `Logo.astro` component + generate favicon variants via RealFaviconGenerator.
+- [x] **Font loaded** — Inter variable font `.woff2` self-hosted in `public/fonts/`. `@font-face` in global CSS. Inter `.ttf` for Satori OG image generation. JetBrains Mono for JSON formatter.
+- [x] **Lucide icons installed** — `lucide-react` in package.json. Icon names assigned per tool in `tools-data.ts`.
+- [x] **Tailwind theme configured** — all design tokens from Section 15 in global CSS `@theme` block, plus `accent-700` for WCAG AA hover states.
+- [x] **Logo SVG created** — `Logo.astro` component implemented. Favicon variants generated (SVG, 32px PNG, 180px apple-touch, 192/512px PWA icons).
 - [ ] **Calculator layout validated** — build compound interest calculator first, test the input/result pattern at 375px (iPhone SE) and 1024px+ before building the rest.
 - [ ] **Visual polish verified** — card hovers, gradient accents, whitespace, skeleton loading all implemented and looking good before scaling to all 15 tools.
 

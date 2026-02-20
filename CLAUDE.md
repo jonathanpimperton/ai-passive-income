@@ -56,15 +56,31 @@ MVP cut from 20 generic tools to 15 focused tools (12 financial + 3 utility).
 Switched from Next.js to Astro. Dropped simple tools that AI Overviews replace.
 Full design system defined: branding, colors, typography, calculator UI, navigation, accessibility.
 
-### Stage 4: Build, Test & Launch (Next)
-1. Scaffold Astro + TypeScript + Tailwind CSS v4 + React
-2. Build tool page layout and component architecture
-3. Build 6 core financial calculators (compound interest, loan, investment, retirement, debt payoff, savings goal)
-4. Build 6 secondary calculators (salary, inflation, ROI, net worth, rent-vs-buy, emergency fund)
-5. Build 3 utility tools (QR code, password generator, JSON formatter)
-6. Add educational content, FAQ sections, structured data
-7. Add affiliate links with FTC disclosure, comparison tables, email capture, embeddable widgets
-8. Deploy to Cloudflare Pages, submit to Google Search Console
+### Stage 4: Build, Test & Launch (In Progress)
+
+**Sprint 1 — Foundation (Complete):**
+- Astro 5 + TypeScript + Tailwind CSS v4 + React scaffold
+- Design system: all color/typography/spacing tokens, self-hosted Inter + JetBrains Mono fonts
+- Content architecture: Zod-validated content collection (glob loader), 15 tool markdown files with full frontmatter
+- Page templates: BaseLayout, ToolPageLayout (breadcrumbs, H1, affiliate disclosure, worked examples, FAQ, related tools)
+- 22 pages: homepage, tools index, 15 tool pages, about, privacy, terms, disclosure, 404
+- Navigation: sticky header with category dropdown, mobile hamburger with focus trap
+- Footer: 4-column grid with all links
+- Components: Logo, Breadcrumb, FaqSection, RelatedTools, AffiliateDisclosure, EmailCapture, CookieConsent, PlaceholderCalc
+- Financial math library: compound interest, loan amortization, savings goal (27 unit tests passing)
+- SEO: WebApplication, FAQPage, BreadcrumbList, WebSite structured data schemas
+- Static assets: SVG favicon, PNG icons, manifest, robots.txt, sitemap
+
+**Sprint 2 — Next:**
+- Build 6 core financial calculators (compound interest, loan, investment, retirement, debt payoff, savings goal)
+- Build QR code generator + password generator
+
+**Sprint 3 — After:**
+- Build 6 secondary calculators + JSON formatter
+
+**Sprint 4-5 — Polish & Launch:**
+- Educational content, comparison tables, PDF export, embeddable widgets, OG images
+- Deploy to Cloudflare Pages, submit to Google Search Console
 
 ## Constraints
 
@@ -79,7 +95,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stages 1–3 complete. Stage 4 (Build) is next. The build-spec has the sprint plan.
+3. **Current status:** Stage 4, Sprint 1 (Foundation) is complete. Sprint 2 (core calculators) is next. All 15 tool pages exist with placeholder calculators — next step is building real calculator components starting with compound interest.
 4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running

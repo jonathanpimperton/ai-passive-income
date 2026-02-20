@@ -1,0 +1,106 @@
+---
+/**
+ * Reusable wrapper for every tool page.
+ * Handles: breadcrumb, H1 + subtitle, affiliate disclosure, worked examples,
+ * educational content, FAQ section, and related tools.
+ *
+ * Structured data (WebApplication, FAQ) is handled by the page template
+ * ([tool].astro → BaseLayout <head>) to avoid duplication.
+ *
+ * Slots:
+ *   - default: The interactive calculator component
+ *   - content: The rendered markdown educational content
+ */
+import Breadcrumb from './Breadcrumb.astro';
+import AffiliateDisclosure from './AffiliateDisclosure.astro';
+import FaqSection from './FaqSection.astro';
+import RelatedTools from './RelatedTools.astro';
+import { CATEGORIES, type CategorySlug } from '@lib/tools-data';
+
+interface WorkedExample {
+  title: string;
+  inputs: Record<string, string | number>;
+  description: string;
+}
+
+interface ToolData {
+  name: string;
+  slug: string;
+  category: CategorySlug;
+  description: string;
+  affiliateContext?: string;
+  faq: Array<{ question: string; answer: string }>;
+  relatedTools: string[];
+  workedExamples?: WorkedExample[];
+}
+
+interface Props {
+  tool: {
+    data: ToolData;
+  };
+}
+
+const { tool } = Astro.props;
+const { name, slug, category, description, affiliateContext, faq, relatedTools, workedExamples } = tool.data;
+const categoryLabel = CATEGORIES[category]?.label ?? category;
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Calculators', url: '/tools' },
+  { name: categoryLabel, url: `/tools#${category}` },
+  { name, url: `/tools/${category}/${slug}` },
+];
+
+---
+
+<div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <Breadcrumb items={breadcrumbs} />
+
+  {/* Page header */}
+  <div class="mb-6">
+    <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900">{name}</h1>
+    <p class="text-lg text-neutral-500 mt-2">{description}</p>
+  </div>
+
+  {/* Affiliate disclosure — only on pages with affiliate links */}
+  {affiliateContext && <AffiliateDisclosure />}
+
+  {/* Calculator component injected via default slot */}
+  <div class="mb-12">
+    <slot />
+  </div>
+
+  {/* Worked examples — real-world scenarios with plain-English explanations */}
+  {workedExamples && workedExamples.length > 0 && (
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-neutral-900 mb-6">Real-World Examples</h2>
+      <div class="space-y-4">
+        {workedExamples.map((example) => (
+          <div class="bg-white border border-neutral-200 rounded-lg p-5 sm:p-6">
+            <h3 class="text-base font-semibold text-neutral-900 mb-2">{example.title}</h3>
+            <div class="flex flex-wrap gap-2 mb-3">
+              {Object.entries(example.inputs).map(([key, value]) => (
+                <span class="inline-flex items-center gap-1 text-xs font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full">
+                  <span class="text-primary-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (s: string) => s.toUpperCase())}:</span>
+                  <span class="tabular-nums">{typeof value === 'number' ? value.toLocaleString() : value}</span>
+                </span>
+              ))}
+            </div>
+            <p class="text-sm text-neutral-700 leading-relaxed">{example.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {/* Educational content from markdown body via named slot */}
+  <section class="max-w-[768px] mb-12">
+    <slot name="content" />
+  </section>
+
+  {/* FAQ section with schema markup */}
+  {faq.length > 0 && <FaqSection faqs={faq} />}
+
+  {/* Related tools */}
+  {relatedTools.length > 0 && <RelatedTools slugs={relatedTools} />}
+</div>

@@ -1,0 +1,48 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { TOOLS, CATEGORIES, getToolPath, type CategorySlug } from '@lib/tools-data';
+
+const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][];
+---
+
+<BaseLayout
+  title="Free Online Calculators & Tools | CalcPath"
+  description="Browse all 15 free calculators and tools. Financial calculators, utility tools — no signup, no ads, no data harvesting."
+>
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 mb-2">All Tools</h1>
+    <p class="text-lg text-neutral-500 mb-12">
+      Free calculators and tools — instant results, no signup required.
+    </p>
+
+    {categoryEntries.map(([slug, cat]) => {
+      const categoryTools = TOOLS.filter((t) => t.category === slug);
+      return categoryTools.length > 0 && (
+        <section id={slug} class="mb-12">
+          <h2 class="text-xl font-bold text-neutral-900 mb-4 flex items-center gap-2">
+            {cat.label}
+            <span class="text-sm font-normal text-neutral-500">({categoryTools.length})</span>
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categoryTools.map((tool) => (
+              <a
+                href={getToolPath(tool)}
+                class="bg-white border border-neutral-200 rounded-xl p-5 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-150 group"
+              >
+                <div class="flex items-start justify-between mb-2">
+                  <h3 class="text-base font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150">
+                    {tool.name}
+                  </h3>
+                  <svg class="w-4 h-4 text-neutral-400 group-hover:text-primary-500 shrink-0 mt-0.5 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+                <p class="text-sm text-neutral-500">{tool.description}</p>
+              </a>
+            ))}
+          </div>
+        </section>
+      );
+    })}
+  </div>
+</BaseLayout>

@@ -1,0 +1,80 @@
+---
+import Navigation from '@components/ui/Navigation.astro';
+import Footer from '@components/ui/Footer.astro';
+import CookieConsent from '@components/ui/CookieConsent.tsx';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+  structuredData?: string[];
+}
+
+const {
+  title,
+  description = 'Free financial calculators with interactive charts and plain-English explanations. No signup, no ads, no data harvesting.',
+  canonicalUrl,
+  ogImage = '/favicon.svg',
+  structuredData = [],
+} = Astro.props;
+
+const fullTitle = title.includes('CalcPath') ? title : `${title} | CalcPath`;
+const canonical = canonicalUrl || Astro.url.href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#2563EB" />
+
+    <!-- Font preload for LCP -->
+    <link
+      rel="preload"
+      href="/fonts/Inter-VariableFont.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content="CalcPath" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Structured data -->
+    {structuredData.map((data) => (
+      <script is:inline type="application/ld+json" set:html={data} />
+    ))}
+  </head>
+  <body class="min-h-screen flex flex-col bg-neutral-50 text-neutral-900">
+    <Navigation />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+    <CookieConsent client:idle />
+  </body>
+</html>

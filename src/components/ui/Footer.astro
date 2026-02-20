@@ -1,0 +1,77 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-white border-t border-neutral-200 mt-auto">
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+      {/* Brand */}
+      <div>
+        <a href="/" class="inline-block mb-3">
+          <svg
+            role="img"
+            aria-label="CalcPath"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 180 40"
+            fill="none"
+            class="h-7 w-auto"
+          >
+            <text
+              font-family="Inter, ui-sans-serif, system-ui, sans-serif"
+              font-weight="700"
+              font-size="28"
+              y="30"
+            >
+              <tspan fill="#0A2540">Calc</tspan><tspan fill="#2563EB">Path</tspan>
+            </text>
+          </svg>
+        </a>
+        <p class="text-sm text-neutral-500 max-w-[240px]">
+          Free financial calculators with interactive charts. No signup, no ads, no data harvesting.
+        </p>
+      </div>
+
+      {/* Calculators */}
+      <div>
+        <h3 class="text-sm font-semibold text-neutral-900 mb-3">Calculators</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/tools/saving-and-growth/compound-interest" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Compound Interest</a></li>
+          <li><a href="/tools/debt-and-loans/loan-amortization" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Loan Amortization</a></li>
+          <li><a href="/tools/income-and-planning/retirement-savings" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Retirement Savings</a></li>
+          <li><a href="/tools/saving-and-growth/investment-return" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Investment Return</a></li>
+          <li><a href="/tools" class="text-primary-500 hover:text-primary-700 font-medium transition-colors duration-150">View all tools &rarr;</a></li>
+        </ul>
+      </div>
+
+      {/* Utility Tools */}
+      <div>
+        <h3 class="text-sm font-semibold text-neutral-900 mb-3">Utility Tools</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/tools/utility/qr-code" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">QR Code Generator</a></li>
+          <li><a href="/tools/utility/password-generator" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Password Generator</a></li>
+          <li><a href="/tools/utility/json-formatter" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">JSON Formatter</a></li>
+        </ul>
+      </div>
+
+      {/* Company */}
+      <div>
+        <h3 class="text-sm font-semibold text-neutral-900 mb-3">Company</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/about" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">About</a></li>
+          <li><a href="/privacy" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Privacy Policy</a></li>
+          <li><a href="/terms" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Terms of Use</a></li>
+          <li><a href="/disclosure" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Affiliate Disclosure</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-neutral-200 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <p class="text-xs text-neutral-500">
+        &copy; {currentYear} CalcPath. All rights reserved.
+      </p>
+      <p class="text-xs text-neutral-500">
+        CalcPath provides educational tools, not financial advice.
+      </p>
+    </div>
+  </div>
+</footer>
