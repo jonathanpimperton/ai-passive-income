@@ -77,10 +77,10 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 
 When starting a new session on this project:
 
-1. **Check you're on `master`** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
+1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
 3. **Current status:** Stages 1–3 complete. Stage 4 (Build) is next. The build-spec has the sprint plan.
-4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into `master` so the next session inherits all work. Never leave work stranded on a feature branch.
+4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running
 
