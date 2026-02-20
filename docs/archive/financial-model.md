@@ -21,7 +21,7 @@
 | Ad blocker rate | ~33% | General consumer audience |
 | Geography target | US/UK/CA/AU (Tier 1) | Maximize RPM and affiliate eligibility |
 | Hosting cost | $0 | Cloudflare Pages free tier |
-| Email service cost | $0 | Kit (ConvertKit) free tier — 10K subscribers |
+| Email service cost | $0 | MailerLite free tier — 500 subscribers, automations included. $10/mo after 500 subs. |
 | Database cost | $0 | None needed — pure static site |
 | Domain cost | $0 at launch, ~$10/year later | Launch on `calcpath.pages.dev` ($0). Buy `calcpath.com` via Cloudflare Registrar (~$10/yr) within months 1–3 before backlinks accumulate. The .pages.dev subdomain hurts affiliate program acceptance and user trust. See `design-and-branding.md` Section 1 for migration plan. |
 
@@ -58,7 +58,7 @@ Financial calculators have the best affiliate fit of any tool category. Users ar
 
 Soft email capture ("Email me a PDF of my results") on every calculator. NOT gating results — the calculator is always free.
 
-- Kit (ConvertKit) free tier: 10K subscribers, **1 visual automation** (tag subscribers by calculator used; use conditional content blocks in a single 3-email drip)
+- MailerLite free tier: 500 subscribers, automations with branching included (tag subscribers by calculator used; use conditional content blocks in a single 3-email drip). Upgrade to $10/mo at 500+ subs.
 - Expected opt-in rate: 3-8%
 - Automated drip: 1 universal 3-email sequence with conditional content per calculator tag
 - Email → affiliate conversion: 2-5% (higher than cold site traffic because they've already engaged with the tool)
