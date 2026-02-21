@@ -2,7 +2,7 @@
 name: "Loan Amortization Calculator"
 slug: "loan-amortization"
 category: "debt-and-loans"
-description: "Calculate your loan payments and see a full amortization schedule. View principal vs interest breakdown, total cost, and downloadable payment table — free, instant, no signup."
+description: "Calculate loan payments and see a full amortization schedule. View principal vs interest breakdown, total cost, and payment table — free, no signup."
 keywords:
   - "loan amortization calculator"
   - "amortization schedule calculator"

@@ -2,7 +2,7 @@
 name: "Compound Interest Calculator"
 slug: "compound-interest"
 category: "saving-and-growth"
-description: "Calculate how your savings and investments grow over time with compound interest. See interactive charts, compare scenarios, and understand the power of compounding."
+description: "Calculate how your money grows with compound interest. See interactive charts, compare scenarios, and understand the power of compounding — free."
 keywords:
   - "compound interest calculator"
   - "how to calculate compound interest"

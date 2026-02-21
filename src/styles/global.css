@@ -23,6 +23,7 @@
   /* Primary (blue — trust) */
   --color-primary-900: #0A2540;
   --color-primary-700: #1A3A5C;
+  --color-primary-600: #1D4ED8;
   --color-primary-500: #2563EB;
   --color-primary-300: #93C5FD;
   --color-primary-200: #BFDBFE;
@@ -45,7 +46,9 @@
   /* Neutrals */
   --color-neutral-900: #111827;
   --color-neutral-700: #374151;
+  --color-neutral-600: #4B5563;
   --color-neutral-500: #6B7280;
+  --color-neutral-400: #9CA3AF;
   --color-neutral-200: #E5E7EB;
   --color-neutral-100: #F3F4F6;
   --color-neutral-50: #F9FAFB;

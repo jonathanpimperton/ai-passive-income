@@ -2,7 +2,7 @@
 name: "ROI Calculator"
 slug: "roi"
 category: "saving-and-growth"
-description: "Calculate return on investment for any asset or project. See total return, annualized return, and compare multiple investments side by side — free, instant, no signup."
+description: "Calculate return on investment for any asset or project. See total return, annualized ROI, and compare investments side by side — free, no signup."
 keywords:
   - "ROI calculator"
   - "return on investment calculator"
