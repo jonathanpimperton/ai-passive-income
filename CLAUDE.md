@@ -45,6 +45,7 @@ Market research, competitor analysis, financial model, and strategy defined.
 
 **Chosen approach:**
 - 12 complex financial calculators + 3 high-value utility tools (15 MVP total)
+- Phase 2: 8 client-side file converters as traffic acquisition (not a rebrand — financial calculators remain the core identity)
 - Affiliate-first monetization (not ad-dependent)
 - Email capture ("email me my results") → automated drip → affiliate conversions
 - Embeddable calculator widgets for passive backlinks
@@ -89,6 +90,8 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 
 **Sprint 2 — Next:**
 - Build 6 core financial calculators (compound interest, loan, investment, retirement, debt payoff, savings goal)
+- Compound interest + loan: collapsible year-group schedule tables (not raw 120-row dumps)
+- Investment + retirement: "Solve for X" multi-tab pattern (solve for end amount, contribution, return rate, starting amount, or time)
 - Build QR code generator + password generator
 
 **Sprint 3 — After:**
@@ -97,6 +100,12 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 **Sprint 4-5 — Polish & Launch:**
 - Educational content, comparison tables, PDF export, embeddable widgets, OG images
 - Deploy to Cloudflare Pages, submit to Google Search Console
+
+**Phase 2 — File Converters (Post-Launch, Month 4-6+):**
+- 8 client-side file converters as traffic acquisition strategy (image compress, resize, format convert, SVG→PNG, HEIC→JPG, CSV↔JSON, Markdown↔HTML, images→PDF)
+- All processing client-side — "Your files never leave your device" privacy positioning
+- Cross-promotion links from converter pages to financial calculators
+- NOT a rebrand — financial calculators remain the core identity, homepage hero, and primary revenue driver
 
 ## Design Quality Standards (MANDATORY for All Sprints)
 
@@ -112,10 +121,13 @@ Every new component, page, or feature MUST meet these standards. This is not opt
 ### Calculator UI (Sprint 2+)
 - Two-column layout: inputs (40%) left, results (60%) right. Stacked on mobile.
 - Every numeric input gets **both** a slider and text field, synced together.
-- Results update in **real-time** — no submit button. `aria-live="polite"` on results.
+- Results update in **real-time** — no submit button (key differentiator vs Calculator.net). `aria-live="polite"` on results.
 - Big number result: 30px+ font, bold, prominent. Context line below explaining what it means.
 - Charts use recharts with the color sequence from design-system.md Section 2.
 - Progressive disclosure: 3–5 essential inputs visible, advanced collapsed behind toggle.
+- **"Solve for X" tabs** on investment + retirement calculators (user picks which variable to solve for).
+- **Collapsible schedule tables**: year-by-year default, click to expand monthly detail. Sticky headers, zebra striping. Never dump 120+ raw rows.
+- **Contribution timing toggle**: beginning/end of period (on compound interest, investment return).
 - Skeleton shimmer (`.shimmer-line` class) while React islands hydrate.
 
 ### Typography & Spacing
@@ -156,7 +168,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4, Sprint 1 (Foundation) is complete. Sprint 2 (core calculators) is next. All 15 tool pages exist with placeholder calculators — next step is building real calculator components starting with compound interest.
+3. **Current status:** Stage 4, Sprint 1 (Foundation) is complete. Sprint 2 (core calculators) is next. All 15 tool pages exist with placeholder calculators — next step is building real calculator components starting with compound interest. Phase 2 (8 file converters) is planned for post-launch (Month 4-6+) — see build-spec.md for details.
 4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running

@@ -354,7 +354,49 @@ Calculators with 6+ inputs should split into:
 
 Example for compound interest calculator:
 - **Essential:** Initial investment, monthly contribution, time period, interest rate
-- **Advanced:** Compounding frequency, tax rate, inflation adjustment
+- **Advanced:** Compounding frequency, contribution timing (beginning/end of period), tax rate, inflation adjustment
+
+### "Solve for X" Multi-Tab Pattern
+
+For investment and retirement calculators, offer tabs that let users pick which variable to solve for. This turns one calculator into 3-5 use cases and multiplies keyword surface area. Learned from Calculator.net's most effective UX pattern.
+
+```
+┌─────────────┬──────────────┬─────────────┬──────────────┬──────────┐
+│ End Amount  │ Contribution │ Return Rate │ Start Amount │  Time    │
+│  (active)   │              │             │              │          │
+└─────────────┴──────────────┴─────────────┴──────────────┴──────────┘
+```
+
+**Design rules:**
+- Active tab: `bg-white`, `border-b-2 border-primary-500`, `font-medium text-primary-900`
+- Inactive tabs: `bg-neutral-50`, `text-neutral-600`, `hover:text-primary-500`
+- Tabs are horizontally scrollable on mobile (no wrapping)
+- The active tab field becomes the **output** (big number result); all other fields become inputs
+- Smooth transition when switching tabs (fade content, don't jump)
+
+### Schedule Tables (Growth, Amortization)
+
+Schedule tables (year-by-year or month-by-month) are high-value content users expect. But dumping 120+ raw rows (Calculator.net's approach) is a UX anti-pattern. Our design:
+
+```
+┌──────┬────────────┬─────────────┬──────────────┬──────────────┐
+│ Year │ Deposit    │ Interest    │ Balance      │   ▼          │
+├──────┼────────────┼─────────────┼──────────────┼──────────────┤
+│ 2026 │ $12,000    │ $650        │ $22,650      │   ▼ Expand   │
+│ 2027 │ $12,000    │ $1,782      │ $36,432      │   ▼ Expand   │
+│ 2028 │ $12,000    │ $3,117      │ $51,549      │   ▼ Expand   │
+└──────┴────────────┴─────────────┴──────────────┴──────────────┘
+              [ Show monthly detail ]
+```
+
+**Design rules:**
+- **Default view:** Year-by-year summary (compact, ~5-30 rows)
+- **Expand:** Click year row to show monthly breakdown for that year (accordion style, `200ms` transition)
+- **Toggle:** "Show annual" / "Show monthly" switch above table
+- **Sticky header:** Column headers stick during scroll (`position: sticky; top: 0`)
+- **Zebra striping:** Alternating `white` / `neutral-50` rows
+- **Number alignment:** Right-aligned with `tabular-nums`, currency formatted
+- **Mobile:** Horizontal scroll with sticky first column, or reflow to card layout per row
 
 ### Result Display
 
@@ -463,6 +505,16 @@ Utility tools (not in Calculators dropdown — different category):
 ├── QR Code Generator
 ├── Password Generator
 └── JSON Formatter
+
+File Tools (Phase 2 — secondary category, not in Calculators dropdown):
+├── Image Compressor
+├── Image Resizer
+├── Image Format Converter
+├── SVG to PNG Converter
+├── HEIC to JPG Converter
+├── CSV ↔ JSON Converter
+├── Markdown ↔ HTML Converter
+└── Images to PDF
 ```
 
 ### Nav Design
@@ -879,7 +931,75 @@ See **Section 1 > OG Image Generation** for the full Satori + Sharp implementati
 
 ---
 
-## 14. Dark Mode
+## 14. File Converter UI Design (Phase 2)
+
+File converters use the same design system and quality standards as calculators, but with a drag-and-drop file upload pattern instead of numeric inputs. The core identity remains financial calculators — converters are a secondary category that shares the design language.
+
+### File Upload Area
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                                                          │
+│       ┌─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐         │
+│       │                                        │         │
+│       │    📁  Drop your files here             │         │
+│       │    or click to browse                  │         │
+│       │                                        │         │
+│       │    Supports: PNG, JPG, WebP, SVG       │         │
+│       └─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘         │
+│                                                          │
+│    🔒 Your files never leave your device                 │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Design rules:**
+- Dashed border (`border-2 border-dashed border-neutral-300`), `rounded-2xl`, `bg-neutral-50`
+- Drag active state: `border-primary-500 bg-primary-50` with scale pulse
+- Upload icon: Lucide `upload-cloud` at 48px, `text-neutral-400`
+- Accepted formats listed below the drop zone in `text-sm text-neutral-500`
+- Privacy badge: Lock icon + "Your files never leave your device" in `text-accent-600` below drop zone. This is mandatory on every converter page.
+
+### Converter Two-Column Layout
+
+Same pattern as calculators — settings left, output right:
+
+```
+┌────────────────────────┬─────────────────────────────────┐
+│                        │                                 │
+│   SETTINGS             │   OUTPUT / PREVIEW              │
+│                        │                                 │
+│   [Drop zone]          │   Preview of converted file     │
+│   [Format dropdown]    │   File size comparison          │
+│   [Quality slider]     │   [Download] [Download All]     │
+│                        │                                 │
+└────────────────────────┴─────────────────────────────────┘
+```
+
+- Settings column: file upload drop zone, format/quality options
+- Output column: preview of converted file, before/after file size, download buttons
+- Mobile: stacked vertically (upload → settings → output)
+- Batch support: file list with individual progress bars, "Download All" as ZIP
+
+### Privacy Badge Component
+
+Required on every file converter page:
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  🔒  100% Private — Your files never leave your device.  │
+│  All processing happens in your browser.                 │
+└──────────────────────────────────────────────────────────┘
+```
+
+- Background: `accent-100` (light green)
+- Border-left: `4px solid accent-600`
+- Icon: Lucide `shield-check` in `accent-600`
+- Text: `neutral-900` with `text-sm`
+
+---
+
+## 15. Dark Mode
 
 **Decision: Not for MVP.**
 
@@ -959,7 +1079,10 @@ Before writing component code, confirm these decisions are locked:
 - [x] **Tailwind theme configured** — all design tokens from Section 15 in global CSS `@theme` block, plus `accent-700` for WCAG AA hover states.
 - [x] **Logo SVG created** — `Logo.astro` component implemented. Favicon variants generated (SVG, 32px PNG, 180px apple-touch, 192/512px PWA icons).
 - [ ] **Calculator layout validated** — build compound interest calculator first, test the input/result pattern at 375px (iPhone SE) and 1024px+ before building the rest.
+- [ ] **"Solve for X" tabs validated** — test multi-tab pattern on investment calculator before applying to retirement.
+- [ ] **Schedule table pattern validated** — test collapsible year-group table on compound interest before applying to loan amortization.
 - [ ] **Visual polish verified** — card hovers, gradient accents, whitespace, skeleton loading all implemented and looking good before scaling to all 15 tools.
+- [ ] **File converter UI validated** (Phase 2) — test drag-and-drop upload + privacy badge on image compressor before building remaining converters.
 
 ---
 

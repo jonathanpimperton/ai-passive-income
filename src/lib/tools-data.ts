@@ -25,6 +25,10 @@ export const CATEGORIES = {
     label: 'Utility Tools',
     slug: 'utility',
   },
+  'file-tools': {
+    label: 'File Tools',
+    slug: 'file-tools',
+  },
 } as const;
 
 export type CategorySlug = keyof typeof CATEGORIES;

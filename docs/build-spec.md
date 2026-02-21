@@ -36,6 +36,8 @@ The financial calculator space is large and proven:
 | Bankrate | 15-20M visits | 25+ years | Affiliate, display ads |
 | SmartAsset | 10-15M visits | 12+ years | Lead gen (sells to advisors) |
 
+**Adjacent market — file converters:** The file converter space is even larger. iLovePDF (~220M visits/mo), Smallpdf (~37-56M visits/mo), Convertio (~25M visits/mo), and FreeConvert (~21M visits/mo) dominate. Almost all require server uploads — a privacy gap we can exploit with client-side converters. See Phase 2 Expansion below.
+
 **Our realistic slice:** A new site capturing 0.001%-0.01% of this traffic = 3,000-30,000 monthly visits in year 2. This aligns with our revenue projections. We don't need to "beat" any competitor — we need to rank for a handful of long-tail keywords that collectively bring enough traffic to sustain affiliate conversions.
 
 ---
@@ -91,12 +93,32 @@ Financial calculator users are **people on the edge of a money decision**. They'
 
 | Competitor | What's Wrong | Our Advantage |
 |------------|-------------|---------------|
-| **Calculator.net** | Dated design (looks like 2008), no educational content, basic output | Modern UI, charts, educational content, PDF export |
+| **Calculator.net** | Dated 2010-era design, no real-time results (requires submit button + page reload), no educational content, basic output, 120-row unfiltered tables, no mobile-first design, ad-heavy | Modern UI, real-time results (no submit button), interactive charts, educational content, PDF export, mobile-first, zero ads |
 | **Bankrate** | Buried in display ads, slow load, content pushed below fold | Zero ads at launch, fast Astro SSG, clean layout |
 | **NerdWallet** | Account wall on some features, lead-gen focused, data harvested | No accounts, no data harvesting, results always free |
 | **SmartAsset** | "Talk to a financial advisor" form gates results, sells your data to advisors | Results always visible, email capture is optional and clearly labeled |
 | **Omni Calculator** | Good content but clinical/academic tone, no affiliate recommendations | Approachable tone, actionable next steps, "here's what to do with these numbers" |
 | **Spreadsheets** | Requires setup, no visuals, not shareable, easy to make formula errors | Zero setup, interactive charts, PDF export, pre-built with correct math |
+
+### Lessons from Calculator.net (Market Leader Analysis)
+
+Calculator.net is the category king (~100M visits/mo, 20+ years). Studying their approach reveals both patterns to adopt and gaps to exploit:
+
+**What they do well (adopt):**
+- **"Solve for X" multi-tab pattern:** Their investment calculator lets users pick which variable to solve for (end amount, contribution, return rate, starting amount, time). This turns one calculator into 5 use cases. Adopt for investment + retirement calculators.
+- **Comprehensive amortization tables:** Month-by-month breakdowns with deposits, interest, and running balances. Users love this granularity.
+- **9 compounding frequency options:** Annually through continuously, plus beginning/end-of-period contribution timing.
+- **Deep educational content:** 1,000+ words per calculator with formulas, worked examples, historical context. This is the E-E-A-T play that validates our content strategy.
+- **Internal linking network:** Every calculator links to 5-6 related calculators, creating an internal link web. With only 15 tools, our related tools section is even more critical.
+
+**Where they're weak (exploit):**
+- **No real-time results** — submit button + page reload. CalcPath updates instantly as you drag a slider. This is our single biggest UX differentiator.
+- **Ad-heavy, cluttered layout** — multiple 300x250 display ads throughout. Our "no ads" positioning directly attacks this.
+- **Dated design** — looks like 2010. No hover effects, no animations, no visual hierarchy, no sliders. CalcPath's modern design is a generational leap.
+- **No mobile-first thinking** — tables and layouts don't adapt to mobile.
+- **No scenario comparison** — can't save and compare two sets of inputs.
+- **No email/export** — no "email me this" or PDF download. This is our email capture mechanism.
+- **No affiliate context** — pure ad monetization. They never say "here are the best accounts for this rate." Our comparison tables fill this gap.
 
 ---
 
@@ -206,10 +228,10 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 
 | # | Tool | Key Features | Category | Affiliate Context |
 |---|------|-------------|----------|-------------------|
-| 1 | **Compound Interest Calculator** | Interactive chart, compounding frequency toggle, exportable results | saving-and-growth | "Open a high-yield savings account" → Betterment, Marcus, Wealthfront |
-| 2 | **Loan Amortization Calculator** | Full amortization table, principal vs interest chart, downloadable schedule | debt-and-loans | "Compare loan rates" → LendingTree, SoFi |
-| 3 | **Investment Return Calculator** | DRIP option, dividend reinvestment, comparison chart | saving-and-growth | "Start investing" → Betterment, Wealthfront |
-| 4 | **Retirement Savings Calculator** | Age-based projections, inflation-adjusted, milestone markers | income-and-planning | "Open a retirement account" → Betterment, Vanguard |
+| 1 | **Compound Interest Calculator** | Interactive chart, compounding frequency toggle (9 options: annually–continuously), **contribution timing** (beginning/end of period), exportable results, **collapsible year-group schedule table** | saving-and-growth | "Open a high-yield savings account" → Betterment, Marcus, Wealthfront |
+| 2 | **Loan Amortization Calculator** | Full amortization table (**collapsible year groups**, not 120+ raw rows), principal vs interest chart, downloadable schedule | debt-and-loans | "Compare loan rates" → LendingTree, SoFi |
+| 3 | **Investment Return Calculator** | DRIP option, dividend reinvestment, comparison chart, **"Solve for X" tabs** (end amount / contribution / return rate / starting amount / time) | saving-and-growth | "Start investing" → Betterment, Wealthfront |
+| 4 | **Retirement Savings Calculator** | Age-based projections, inflation-adjusted, milestone markers, **"Solve for X" tabs** (retirement age / monthly savings / target amount) | income-and-planning | "Open a retirement account" → Betterment, Vanguard |
 | 5 | **Debt Payoff Calculator** | Snowball vs avalanche comparison, total interest saved | debt-and-loans | "Consolidate your debt" → SoFi, LendingClub |
 | 6 | **Savings Goal Calculator** | Timeline visualization, reverse calculator ("how much per month?") | saving-and-growth | "High-yield savings" → Marcus, Ally |
 
@@ -236,7 +258,82 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 
 **No affiliate context (by design):** Salary, inflation, ROI, emergency fund, net worth, QR code, JSON formatter. Don't force it — forced recommendations hurt trust.
 
-**Post-MVP expansion:** Credit card payoff, auto loan, college savings (529), tax bracket, budget (50/30/20), down payment, break-even, profit margin calculators. Note: 529 and budget tools serve new segments (parents, young savers) that strengthen existing audience. Break-even and profit margin serve small business — a potential new segment, but one with strong affiliate potential (invoicing, accounting SaaS). Evaluate based on search demand data at the time.
+**Post-MVP expansion (financial calculators):** Credit card payoff, auto loan, college savings (529), tax bracket, budget (50/30/20), down payment, break-even, profit margin calculators. Note: 529 and budget tools serve new segments (parents, young savers) that strengthen existing audience. Break-even and profit margin serve small business — a potential new segment, but one with strong affiliate potential (invoicing, accounting SaaS). Evaluate based on search demand data at the time.
+
+---
+
+## Phase 2 Expansion: Client-Side File Converters (Post-Launch)
+
+### Strategic Rationale
+
+File converters are a **traffic acquisition strategy**, not a rebranding. CalcPath's identity, messaging, and revenue model remain anchored in financial calculators. Converters serve three purposes:
+
+1. **Traffic volume** — File conversion queries (image compress, HEIC to JPG, PNG to JPG) get 10-100x more searches than financial calculator queries. This traffic builds domain authority that lifts financial calculator rankings.
+2. **Cross-promotion funnel** — Every converter page prominently links to financial calculators. A percentage of converter visitors discover and use the higher-value tools.
+3. **Privacy differentiation** — Every major competitor (iLovePDF ~220M visits/mo, Smallpdf ~56M, Convertio ~25M) uploads files to servers. CalcPath processes everything client-side. "Your files never leave your device" is a genuine competitive advantage.
+
+**What this is NOT:** A pivot, a rebrand, or an equal product line. The homepage hero stays financial. The tagline stays financial. Financial calculators remain the primary navigation category. Converters live in a secondary "File Tools" category. If converters show no cross-traffic to financial tools after 6 months, evaluate cutting them.
+
+### Phase 2 Tools: Client-Side File Converters (8 tools)
+
+Build after the 15 MVP tools are live and generating organic traffic (Month 4-6+).
+
+**Tier A — Build first (zero/tiny bundle, high traffic, easy wins):**
+
+| # | Tool | Library | Bundle Size | Category |
+|---|------|---------|------------|----------|
+| 16 | **Image Compressor** | Canvas API + compressorjs | 3.5 KB | file-tools |
+| 17 | **Image Resizer** | Canvas API (native) | 0 KB | file-tools |
+| 18 | **Image Format Converter** (PNG↔JPG, WebP↔JPG, etc.) | Canvas API (native) | 0 KB | file-tools |
+| 19 | **SVG to PNG Converter** | Canvas API (native) | 0 KB | file-tools |
+
+**Tier B — Build second (small-medium bundle, high value):**
+
+| # | Tool | Library | Bundle Size | Category |
+|---|------|---------|------------|----------|
+| 20 | **HEIC to JPG Converter** | heic-to (libheif WASM) | ~1.15 MB (lazy) | file-tools |
+| 21 | **CSV ↔ JSON Converter** | PapaParse | ~20 KB | file-tools |
+
+**Tier C — Build third (moderate traffic, developer audience):**
+
+| # | Tool | Library | Bundle Size | Category |
+|---|------|---------|------------|----------|
+| 22 | **Markdown ↔ HTML Converter** | marked | ~12 KB | file-tools |
+| 23 | **Images to PDF** | jsPDF (already in project) | 0 KB (reuse) | file-tools |
+
+### What NOT to Build (Server Required)
+
+| Converter | Why Not |
+|-----------|---------|
+| PDF to Word | Requires OCR + layout reconstruction — server-only |
+| PDF to Excel | Requires table extraction AI — server-only |
+| MP4 to MP3 / video converters | ffmpeg.wasm is 22 MB WASM, 2x slower than native, needs COOP/COEP headers, kills Core Web Vitals |
+| Word to PDF | Mammoth.js converts .docx to HTML only, not faithful PDF rendering |
+| Excel parsing | SheetJS is 7.5 MB unpacked — too heavy |
+
+### File Converter Technical Requirements
+
+- **All processing client-side** — files never leave the browser. Zero server infrastructure.
+- **Lazy loading mandatory** — all WASM/library code loaded via dynamic import on user interaction (file drop or button click), not on page load. Protects Core Web Vitals.
+- **Privacy badge** on every converter page: "100% Private — Your files never leave your device."
+- **Batch support** where feasible (image compress, image format convert).
+- **Drag-and-drop upload** with progress indicator.
+- **Consistent UI** — same two-column layout as calculators (settings left, output/preview right).
+- **Cross-promotion** — "Related Tools" section on converters links prominently to financial calculators.
+- **SEO targeting** — target privacy-modified long-tails first: "compress image without uploading," "convert HEIC to JPG privately," "PNG to JPG no upload." Lower KD than head terms, aligned with our positioning.
+
+### File Converter Monetization (Honest Assessment)
+
+File converters have weaker affiliate opportunities than financial calculators:
+
+| Affiliate Angle | Commission | Natural Fit |
+|----------------|-----------|-------------|
+| NordVPN / NordPass | Up to 100% (1-mo), 40% (longer), 30% recurring | Strong — privacy branding aligns perfectly |
+| Cloud storage (iDrive, Dropbox) | $5-50/signup | Moderate — "store your converted files securely" |
+| PDF software (PDFelement, PDF Expert) | $10-50/sale | Moderate — for PDF converter users |
+| Adobe Creative Cloud | Subscription commission | Weak — users chose free tools to avoid Adobe |
+
+**Revenue expectation:** Converters are high-traffic, low-RPM. Each visitor is worth 5-10x less than a financial calculator visitor. The value is in domain authority boost and cross-promotion, not direct converter revenue.
 
 ---
 
@@ -396,7 +493,7 @@ const tools = defineCollection({
   schema: z.object({
     name: z.string(),                           // "Compound Interest Calculator"
     slug: z.string(),                           // "compound-interest"
-    category: z.enum(['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic', 'utility']),
+    category: z.enum(['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic', 'utility', 'file-tools']),
     description: z.string(),                    // SEO meta description
     keywords: z.array(z.string()),              // Target keywords
     relatedTools: z.array(z.string()),          // Slugs of 4-6 related tools
@@ -636,6 +733,26 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 | Password Generator | password generator, random password generator | strong password generator, secure password, password creator |
 | JSON Formatter | JSON formatter, JSON beautifier | JSON validator, format JSON online, JSON pretty print |
 
+### File Converter Tools (Phase 2)
+
+| Tool | Primary Keyword | Secondary Keywords |
+|------|----------------|-------------------|
+| Image Compressor | compress image online, image compressor | reduce image size, compress JPG, compress PNG without losing quality |
+| Image Resizer | resize image online, image resizer | resize image for Instagram, resize photo, bulk image resize |
+| Image Format Converter | PNG to JPG, JPG to PNG, WebP to JPG | convert image format online, WebP to PNG, image converter |
+| SVG to PNG | SVG to PNG converter, convert SVG to PNG | SVG to JPG, SVG to image online |
+| HEIC to JPG | HEIC to JPG converter, convert HEIC to JPG | HEIC to PNG, iPhone photo converter, HEIC converter no upload |
+| CSV to JSON | CSV to JSON converter, JSON to CSV | convert CSV to JSON online, CSV to JSON online free |
+| Markdown to HTML | Markdown to HTML converter | Markdown preview online, convert Markdown to HTML |
+| Images to PDF | JPG to PDF, PNG to PDF | combine images to PDF, image to PDF converter |
+
+**Privacy-first long-tail targets** (lower KD, aligned with CalcPath's positioning):
+- "compress image without uploading"
+- "convert HEIC to JPG privately"
+- "PNG to JPG no upload"
+- "image converter no server"
+- "offline image compressor online"
+
 ### Keyword Strategy Notes
 
 - **Title tag formula:** "Free [Primary Keyword] Online | CalcPath"
@@ -668,7 +785,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 | Affiliate revenue | $0-$50 | $50-$200 | $200-$1,000 |
 | Pages per session | >1.5 | >2.0 | >2.0 |
 | Core Web Vitals | All green | All green | All green |
-| Tools indexed in Google | 15/15 | 15/15+ | 30+ |
+| Tools indexed in Google | 15/15 | 23/23+ (15 MVP + 8 converters) | 30+ |
 
 ### Quarterly Review (2 hours)
 
@@ -695,6 +812,7 @@ $0 operating cost = never quit, always adapt.
 | <1,000 monthly PV | Month 12 | Add programmatic pages, try adjacent niches, increase outreach |
 | Zero affiliate conversions | Month 12 | Redesign CTAs, test placements, try different programs |
 | Traffic plateaus | Any | Expand tools, add comparison content, push embeddable widgets |
+| File converters show zero cross-traffic to financial tools | Month 10 (6 months post-converter launch) | Cut converters to tighten topical authority, or keep only if they build domain authority measurably |
 | Google algorithm wipes rankings | Any | Email list is insurance. Lean into Pinterest, Reddit, direct traffic. |
 
 ---
@@ -754,11 +872,13 @@ The site is built to be **low-maintenance by design**: static site (no server), 
 
 ### Phase 2: Growth (Month 4-6)
 
-**Goal:** Expand keyword footprint, build backlinks.
+**Goal:** Expand keyword footprint, build backlinks, add file converter traffic funnel.
 
 | Action | Volume | Purpose |
 |--------|--------|---------|
 | Add 5-10 new calculators from post-MVP list | 5-10 tools | More keyword targets |
+| **Build Tier A file converters** (image compress, resize, format convert, SVG to PNG) | 4 tools | High-traffic keywords, zero bundle cost, builds domain authority |
+| **Build Tier B file converters** (HEIC to JPG, CSV↔JSON) | 2 tools | Growing search queries, privacy differentiation |
 | Comparison articles ("Snowball vs Avalanche", "Renting vs Buying in 2026") | 5-10 articles | Informational queries + internal linking |
 | Expand programmatic pages to 50-100 | 30-80 new pages | Long-tail traffic at scale |
 | Pinterest infographic pins | 2-3 per calculator | Diversified traffic, 3.88-month pin lifespan |
@@ -939,3 +1059,11 @@ MVP is shipped when:
 - [ ] Applied to Betterment affiliate program
 - [ ] First 10-20 programmatic scenario pages live
 - [ ] Google Analytics configured with cookie consent
+
+**Phase 2 — File Converters (Post-Launch, Month 4-6+):**
+- [ ] Tier A file converters live: image compressor, image resizer, image format converter, SVG to PNG
+- [ ] Tier B file converters live: HEIC to JPG, CSV↔JSON
+- [ ] Tier C file converters live: Markdown↔HTML, images to PDF
+- [ ] Privacy badge ("Files never leave your device") on all converter pages
+- [ ] Cross-promotion links from converters to financial calculators
+- [ ] Evaluate converter→calculator cross-traffic at 6 months post-launch
