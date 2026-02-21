@@ -14,6 +14,11 @@ relatedTools:
   - "net-worth"
   - "debt-payoff"
   - "compound-interest"
+affiliateContext: "Open a high-yield savings account for your emergency fund"
+affiliatePrograms:
+  - "Marcus"
+  - "Ally"
+  - "Wealthfront"
 faq:
   - question: "How much should I have in my emergency fund?"
     answer: "Most financial experts recommend 3-6 months of essential expenses. If you have a stable job with predictable income, 3 months may be enough. If you're self-employed, have variable income, or are the sole earner, aim for 6-12 months. Essential expenses include housing, food, insurance, transportation, and minimum debt payments — not discretionary spending."
