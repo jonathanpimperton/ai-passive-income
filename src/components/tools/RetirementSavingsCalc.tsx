@@ -1,0 +1,668 @@
+import { useState, useMemo, useCallback } from 'react';
+import {
+  compoundInterest,
+  compoundInterestSchedule,
+  solveForContribution,
+  formatCurrency,
+  formatNumber,
+} from '../../lib/calculator-utils';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  ReferenceLine,
+} from 'recharts';
+import { RotateCcw } from 'lucide-react';
+
+/* ── Types ─────────────────────────────────────────────────── */
+type SolveMode = 'balance' | 'contribution' | 'retirement-age';
+
+interface ChartDataPoint {
+  age: number;
+  year: number;
+  'Nominal Balance': number;
+  'Inflation-Adjusted': number;
+  Contributions: number;
+}
+
+/* ── SliderInput ───────────────────────────────────────────── */
+interface SliderInputProps {
+  label: string;
+  id: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+  prefix?: string;
+  suffix?: string;
+  formatDisplay?: (v: number) => string;
+}
+
+function SliderInput({
+  label,
+  id,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  prefix,
+  suffix,
+  formatDisplay,
+}: SliderInputProps) {
+  const displayValue = formatDisplay ? formatDisplay(value) : String(value);
+
+  const handleText = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/[^0-9.]/g, '');
+    const parsed = parseFloat(raw);
+    if (!isNaN(parsed)) onChange(Math.min(max, Math.max(min, parsed)));
+  };
+
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-neutral-700 mb-1.5">
+        {label}
+      </label>
+      <div className="relative">
+        {prefix && (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm pointer-events-none">
+            {prefix}
+          </span>
+        )}
+        <input
+          id={id}
+          type="text"
+          inputMode="decimal"
+          value={displayValue}
+          onChange={handleText}
+          className={`w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm
+            focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
+            ${prefix ? 'pl-7' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
+        />
+        {suffix && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm pointer-events-none">
+            {suffix}
+          </span>
+        )}
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full h-2 mt-2.5 rounded-full appearance-none cursor-pointer
+          bg-neutral-200 accent-primary-500
+          [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
+          [&::-webkit-slider-thumb]:bg-primary-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
+          [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full
+          [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
+        aria-label={`${label} slider`}
+      />
+    </div>
+  );
+}
+
+/* ── Chart Tooltip ─────────────────────────────────────────── */
+function ChartTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white border border-neutral-200 rounded-lg shadow-md p-3 text-sm">
+      <p className="font-medium text-neutral-900 mb-1">Age {label}</p>
+      {payload.map((entry: any) => (
+        <p key={entry.dataKey} style={{ color: entry.color }}>
+          {entry.name}: {formatCurrency(entry.value)}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/* ── Milestone Markers ─────────────────────────────────────── */
+const MILESTONES = [
+  { age: 50, label: 'Catch-up eligible' },
+  { age: 59.5, label: '401(k) penalty-free' },
+  { age: 62, label: 'Early Social Security' },
+  { age: 67, label: 'Full Social Security' },
+] as const;
+
+/* ── Tab Configuration ─────────────────────────────────────── */
+const TABS: { mode: SolveMode; label: string; description: string }[] = [
+  { mode: 'balance', label: 'Retirement Balance', description: 'How much will I have at retirement?' },
+  { mode: 'contribution', label: 'Monthly Savings', description: 'How much should I save each month?' },
+  { mode: 'retirement-age', label: 'Retirement Age', description: 'When can I afford to retire?' },
+];
+
+/* ── Defaults ──────────────────────────────────────────────── */
+const DEFAULTS = {
+  currentAge: 30,
+  retirementAge: 65,
+  currentSavings: 50000,
+  monthlyContribution: 500,
+  annualReturn: 7,
+  inflationRate: 3,
+  targetBalance: 1000000,
+};
+
+/* ── Solve for retirement age (binary search) ──────────────── */
+function solveForRetirementAge(
+  currentAge: number,
+  currentSavings: number,
+  monthlyContribution: number,
+  annualRate: number,
+  targetBalance: number,
+  maxAge: number = 90
+): number {
+  // If they can already meet the target with 0 years, return current age
+  if (currentSavings >= targetBalance) return currentAge;
+
+  let low = 0;
+  let high = maxAge - currentAge;
+
+  for (let i = 0; i < 100; i++) {
+    const mid = (low + high) / 2;
+    const result = compoundInterest(currentSavings, monthlyContribution, annualRate, mid, 12);
+    if (Math.abs(result - targetBalance) < 100) break;
+    if (result < targetBalance) low = mid;
+    else high = mid;
+  }
+
+  const years = (low + high) / 2;
+  return Math.min(maxAge, Math.round((currentAge + years) * 10) / 10);
+}
+
+/* ── Main Calculator ───────────────────────────────────────── */
+export default function RetirementSavingsCalc() {
+  const [mode, setMode] = useState<SolveMode>('balance');
+  const [currentAge, setCurrentAge] = useState(DEFAULTS.currentAge);
+  const [retirementAge, setRetirementAge] = useState(DEFAULTS.retirementAge);
+  const [currentSavings, setCurrentSavings] = useState(DEFAULTS.currentSavings);
+  const [monthlyContribution, setMonthlyContribution] = useState(DEFAULTS.monthlyContribution);
+  const [annualReturn, setAnnualReturn] = useState(DEFAULTS.annualReturn);
+  const [inflationRate, setInflationRate] = useState(DEFAULTS.inflationRate);
+  const [targetBalance, setTargetBalance] = useState(DEFAULTS.targetBalance);
+
+  /* ── Derived values ──────────────────────────────────────── */
+  const rateDecimal = annualReturn / 100;
+  const inflationDecimal = inflationRate / 100;
+  const yearsToRetirement = Math.max(0, retirementAge - currentAge);
+
+  /* ── Core calculations ───────────────────────────────────── */
+  const results = useMemo(() => {
+    switch (mode) {
+      case 'balance': {
+        const nominal = compoundInterest(currentSavings, monthlyContribution, rateDecimal, yearsToRetirement, 12);
+        const real = nominal / Math.pow(1 + inflationDecimal, yearsToRetirement);
+        const totalContributions = currentSavings + monthlyContribution * 12 * yearsToRetirement;
+        const totalInterest = nominal - totalContributions;
+        return {
+          primaryLabel: 'Estimated Retirement Balance',
+          primaryValue: nominal,
+          realValue: real,
+          totalContributions,
+          totalInterest,
+          contextLine: `By age ${retirementAge}, saving ${formatCurrency(monthlyContribution)}/mo at ${annualReturn}% return`,
+          solvedMonthly: monthlyContribution,
+          solvedAge: retirementAge,
+          solvedYears: yearsToRetirement,
+        };
+      }
+      case 'contribution': {
+        const required = solveForContribution(currentSavings, targetBalance, rateDecimal, yearsToRetirement, 12);
+        const monthly = Math.max(0, required);
+        const nominal = targetBalance;
+        const real = nominal / Math.pow(1 + inflationDecimal, yearsToRetirement);
+        const totalContributions = currentSavings + monthly * 12 * yearsToRetirement;
+        const totalInterest = nominal - totalContributions;
+        return {
+          primaryLabel: 'Required Monthly Savings',
+          primaryValue: monthly,
+          realValue: real,
+          totalContributions,
+          totalInterest,
+          contextLine: `To reach ${formatCurrency(targetBalance)} by age ${retirementAge} at ${annualReturn}% return`,
+          solvedMonthly: monthly,
+          solvedAge: retirementAge,
+          solvedYears: yearsToRetirement,
+        };
+      }
+      case 'retirement-age': {
+        const age = solveForRetirementAge(currentAge, currentSavings, monthlyContribution, rateDecimal, targetBalance);
+        const years = Math.max(0, age - currentAge);
+        const nominal = compoundInterest(currentSavings, monthlyContribution, rateDecimal, years, 12);
+        const real = nominal / Math.pow(1 + inflationDecimal, years);
+        const totalContributions = currentSavings + monthlyContribution * 12 * years;
+        const totalInterest = nominal - totalContributions;
+        return {
+          primaryLabel: 'Estimated Retirement Age',
+          primaryValue: age,
+          realValue: real,
+          totalContributions,
+          totalInterest,
+          contextLine: `Saving ${formatCurrency(monthlyContribution)}/mo to reach ${formatCurrency(targetBalance)} at ${annualReturn}% return`,
+          solvedMonthly: monthlyContribution,
+          solvedAge: Math.round(age),
+          solvedYears: years,
+        };
+      }
+    }
+  }, [mode, currentAge, retirementAge, currentSavings, monthlyContribution, rateDecimal, inflationDecimal, yearsToRetirement, targetBalance, annualReturn]);
+
+  /* ── Chart data ──────────────────────────────────────────── */
+  const chartData = useMemo(() => {
+    const years = Math.ceil(results.solvedYears);
+    if (years <= 0) return [];
+
+    const schedule = compoundInterestSchedule(
+      currentSavings,
+      results.solvedMonthly,
+      rateDecimal,
+      years,
+      12
+    );
+
+    return schedule.map((row): ChartDataPoint => {
+      const age = currentAge + row.year;
+      const inflationFactor = Math.pow(1 + inflationDecimal, row.year);
+      return {
+        age,
+        year: row.year,
+        'Nominal Balance': Math.round(row.balance),
+        'Inflation-Adjusted': Math.round(row.balance / inflationFactor),
+        Contributions: Math.round(row.totalContributions),
+      };
+    });
+  }, [currentAge, currentSavings, results.solvedMonthly, results.solvedYears, rateDecimal, inflationDecimal]);
+
+  /* ── Milestone filtering ─────────────────────────────────── */
+  const visibleMilestones = useMemo(() => {
+    const maxAge = currentAge + Math.ceil(results.solvedYears);
+    return MILESTONES.filter((m) => m.age > currentAge && m.age <= maxAge);
+  }, [currentAge, results.solvedYears]);
+
+  /* ── Reset ───────────────────────────────────────────────── */
+  const handleReset = useCallback(() => {
+    setCurrentAge(DEFAULTS.currentAge);
+    setRetirementAge(DEFAULTS.retirementAge);
+    setCurrentSavings(DEFAULTS.currentSavings);
+    setMonthlyContribution(DEFAULTS.monthlyContribution);
+    setAnnualReturn(DEFAULTS.annualReturn);
+    setInflationRate(DEFAULTS.inflationRate);
+    setTargetBalance(DEFAULTS.targetBalance);
+  }, []);
+
+  /* ── Format helper for primary result ────────────────────── */
+  const formattedPrimary = mode === 'retirement-age'
+    ? `Age ${Math.round(results.primaryValue)}`
+    : formatCurrency(results.primaryValue);
+
+  const formattedPrimarySubtext = mode === 'retirement-age'
+    ? `(${Math.round(results.solvedYears)} years from now)`
+    : mode === 'contribution'
+      ? '/month'
+      : '';
+
+  return (
+    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+      {/* ── Tab Bar ──────────────────────────────────────────── */}
+      <div className="flex overflow-x-auto border-b border-neutral-200/80 scrollbar-hide">
+        {TABS.map((tab) => (
+          <button
+            key={tab.mode}
+            onClick={() => setMode(tab.mode)}
+            className={`flex-1 min-w-[140px] px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-all duration-150
+              ${
+                mode === tab.mode
+                  ? 'bg-white border-b-2 border-primary-500 text-primary-900'
+                  : 'bg-neutral-50 text-neutral-600 hover:text-primary-500 border-b-2 border-transparent'
+              }`}
+            role="tab"
+            aria-selected={mode === tab.mode}
+            aria-controls="retirement-results"
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
+        {/* ── Input Panel ──────────────────────────────────── */}
+        <div className="p-6 lg:p-8 lg:border-r border-neutral-100">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              aria-label="Reset calculator to defaults"
+            >
+              <RotateCcw size={12} aria-hidden="true" />
+              Reset
+            </button>
+          </div>
+          <p className="text-xs text-neutral-400 mb-6 leading-relaxed">
+            {TABS.find((t) => t.mode === mode)?.description}
+          </p>
+
+          <div className="space-y-5">
+            {/* Current Age — always an input */}
+            <SliderInput
+              label="Current Age"
+              id="ret-current-age"
+              value={currentAge}
+              min={18}
+              max={80}
+              step={1}
+              onChange={(v) => {
+                setCurrentAge(v);
+                if (retirementAge <= v) setRetirementAge(Math.min(90, v + 1));
+              }}
+              suffix="yrs"
+            />
+
+            {/* Retirement Age — input except in 'retirement-age' mode */}
+            {mode !== 'retirement-age' && (
+              <SliderInput
+                label="Retirement Age"
+                id="ret-retirement-age"
+                value={retirementAge}
+                min={currentAge + 1}
+                max={90}
+                step={1}
+                onChange={setRetirementAge}
+                suffix="yrs"
+              />
+            )}
+
+            {/* Current Savings — always an input */}
+            <SliderInput
+              label="Current Savings"
+              id="ret-current-savings"
+              value={currentSavings}
+              min={0}
+              max={5000000}
+              step={5000}
+              onChange={setCurrentSavings}
+              prefix="$"
+              formatDisplay={(v) => formatNumber(v)}
+            />
+
+            {/* Monthly Contribution — input except in 'contribution' mode */}
+            {mode !== 'contribution' && (
+              <SliderInput
+                label="Monthly Contribution"
+                id="ret-monthly"
+                value={monthlyContribution}
+                min={0}
+                max={10000}
+                step={50}
+                onChange={setMonthlyContribution}
+                prefix="$"
+                formatDisplay={(v) => formatNumber(v)}
+              />
+            )}
+
+            {/* Target Balance — input for 'contribution' and 'retirement-age' modes */}
+            {(mode === 'contribution' || mode === 'retirement-age') && (
+              <SliderInput
+                label="Target Retirement Balance"
+                id="ret-target"
+                value={targetBalance}
+                min={50000}
+                max={10000000}
+                step={50000}
+                onChange={setTargetBalance}
+                prefix="$"
+                formatDisplay={(v) => formatNumber(v)}
+              />
+            )}
+
+            {/* Annual Return Rate — always an input */}
+            <SliderInput
+              label="Annual Return Rate"
+              id="ret-return"
+              value={annualReturn}
+              min={0}
+              max={25}
+              step={0.1}
+              onChange={setAnnualReturn}
+              suffix="%"
+              formatDisplay={(v) => v.toFixed(1)}
+            />
+
+            {/* Inflation Rate — always an input */}
+            <SliderInput
+              label="Expected Inflation Rate"
+              id="ret-inflation"
+              value={inflationRate}
+              min={0}
+              max={10}
+              step={0.1}
+              onChange={setInflationRate}
+              suffix="%"
+              formatDisplay={(v) => v.toFixed(1)}
+            />
+          </div>
+        </div>
+
+        {/* ── Results Panel ─────────────────────────────────── */}
+        <div
+          className="p-6 lg:p-8 bg-neutral-50/50"
+          aria-live="polite"
+          id="retirement-results"
+          role="tabpanel"
+        >
+          {/* Big Number */}
+          <div className="mb-6">
+            <p className="text-sm text-neutral-500 mb-1">{results.primaryLabel}</p>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
+                {formattedPrimary}
+              </p>
+              {formattedPrimarySubtext && (
+                <span className="text-lg text-neutral-500 font-medium">{formattedPrimarySubtext}</span>
+              )}
+            </div>
+            <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
+              {results.contextLine}
+            </p>
+          </div>
+
+          {/* Breakdown Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+            {mode === 'balance' && (
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+                <p className="text-xs text-neutral-500 mb-0.5">Nominal Balance</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                  {formatCurrency(results.primaryValue)}
+                </p>
+              </div>
+            )}
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+              <p className="text-xs text-neutral-500 mb-0.5">
+                {mode === 'balance' ? "Today's Dollars" : 'Inflation-Adjusted'}
+              </p>
+              <p className="text-lg font-semibold text-amber-600 tabular-nums">
+                {formatCurrency(results.realValue)}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+              <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
+              <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                {formatCurrency(results.totalContributions)}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+              <p className="text-xs text-neutral-500 mb-0.5">Total Interest Earned</p>
+              <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                {formatCurrency(results.totalInterest)}
+              </p>
+            </div>
+          </div>
+
+          {/* Inflation Impact Note */}
+          {inflationRate > 0 && mode === 'balance' && (
+            <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-4 mb-6">
+              <p className="text-sm text-amber-800 leading-relaxed">
+                <span className="font-semibold">Inflation impact:</span>{' '}
+                Your {formatCurrency(results.primaryValue)} will have the purchasing power of{' '}
+                <span className="font-semibold tabular-nums">{formatCurrency(results.realValue)}</span>{' '}
+                in today&apos;s dollars, assuming {inflationRate}% annual inflation over {Math.round(results.solvedYears)} years.
+              </p>
+            </div>
+          )}
+
+          {/* Chart */}
+          {chartData.length > 1 && (
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
+              <h3 className="text-sm font-medium text-neutral-700 mb-3">
+                Retirement Savings Projection
+              </h3>
+              <div className="h-56 sm:h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 5, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="colorNominal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorReal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorContrib" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis
+                      dataKey="age"
+                      tick={{ fontSize: 12, fill: '#6B7280' }}
+                      tickLine={false}
+                      axisLine={{ stroke: '#E5E7EB' }}
+                      label={{ value: 'Age', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: '#9CA3AF' }}
+                    />
+                    <YAxis
+                      tickFormatter={(v: number) =>
+                        `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`
+                      }
+                      tick={{ fontSize: 12, fill: '#6B7280' }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={60}
+                    />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
+
+                    {/* Milestone reference lines */}
+                    {visibleMilestones.map((m) => (
+                      <ReferenceLine
+                        key={m.age}
+                        x={m.age}
+                        stroke="#94A3B8"
+                        strokeDasharray="4 4"
+                        strokeWidth={1}
+                        label={{
+                          value: m.label,
+                          position: 'top',
+                          fontSize: 10,
+                          fill: '#64748B',
+                        }}
+                      />
+                    ))}
+
+                    <Area
+                      type="monotone"
+                      dataKey="Nominal Balance"
+                      stroke="#2563EB"
+                      strokeWidth={2}
+                      fill="url(#colorNominal)"
+                      animationDuration={600}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="Inflation-Adjusted"
+                      stroke="#F59E0B"
+                      strokeWidth={2}
+                      fill="url(#colorReal)"
+                      animationDuration={600}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="Contributions"
+                      stroke="#10B981"
+                      strokeWidth={2}
+                      fill="url(#colorContrib)"
+                      animationDuration={600}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Year-by-Year Snapshot */}
+          {chartData.length > 1 && (
+            <div className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
+              <h3 className="text-sm font-medium text-neutral-700 p-4 pb-0 mb-3">
+                Projection Summary
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-neutral-50 border-b border-neutral-200/80 sticky top-0 z-10">
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Age</th>
+                      <th className="text-right py-3 px-4 font-medium text-neutral-600">Nominal</th>
+                      <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">
+                        Today&apos;s Dollars
+                      </th>
+                      <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">
+                        Contributions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {chartData
+                      .filter((_, i) => {
+                        // Show every 5 years plus the last row
+                        if (i === chartData.length - 1) return true;
+                        if (i === 0) return false; // skip year 0
+                        return i % 5 === 0;
+                      })
+                      .map((row, i) => (
+                        <tr
+                          key={row.age}
+                          className={`border-b border-neutral-100 transition-colors duration-150
+                            ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}
+                        >
+                          <td className="py-2.5 px-4 font-medium text-neutral-900 tabular-nums">
+                            {row.age}
+                          </td>
+                          <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">
+                            {formatCurrency(row['Nominal Balance'])}
+                          </td>
+                          <td className="py-2.5 px-4 text-right text-amber-600 tabular-nums hidden sm:table-cell">
+                            {formatCurrency(row['Inflation-Adjusted'])}
+                          </td>
+                          <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
+                            {formatCurrency(row.Contributions)}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
