@@ -318,7 +318,8 @@ export default function DebtPayoffCalc() {
           )}
 
           {/* ── Extra Monthly Payment ─────────────────── */}
-          <div className="mt-6 pt-5 border-t border-neutral-100">
+          <div className="mt-6 pt-5">
+            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
             <SliderInput
               label="Extra Monthly Payment"
               id="dp-extra"
@@ -337,7 +338,8 @@ export default function DebtPayoffCalc() {
 
           {/* ── Summary stats ─────────────────────────── */}
           {hasValidDebts && (
-            <div className="mt-5 pt-5 border-t border-neutral-100">
+            <div className="mt-5 pt-5">
+              <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white rounded-lg border border-neutral-200/80 p-3">
                   <p className="text-xs text-neutral-500 mb-0.5">Total Debt</p>

@@ -13,6 +13,7 @@
  * @param annualRate - Annual interest rate as decimal (e.g., 0.07 for 7%)
  * @param years - Number of years (t)
  * @param compoundingFrequency - Times interest compounds per year (n): 1=annually, 4=quarterly, 12=monthly, 365=daily
+ * @param timing - 'end' (default) or 'beginning' — when contributions are made within each period
  * @returns Final balance
  */
 export function compoundInterest(
@@ -20,7 +21,8 @@ export function compoundInterest(
   monthlyContribution: number,
   annualRate: number,
   years: number,
-  compoundingFrequency: number = 12
+  compoundingFrequency: number = 12,
+  timing: 'end' | 'beginning' = 'end'
 ): number {
   const n = compoundingFrequency;
   const r = annualRate;
@@ -41,6 +43,11 @@ export function compoundInterest(
     contributionGrowth = periodicContribution * n * t;
   }
 
+  // Beginning-of-period contributions earn one extra period of interest
+  if (timing === 'beginning' && r > 0) {
+    contributionGrowth *= (1 + r / n);
+  }
+
   return principalGrowth + contributionGrowth;
 }
 
@@ -53,7 +60,8 @@ export function compoundInterestSchedule(
   monthlyContribution: number,
   annualRate: number,
   years: number,
-  compoundingFrequency: number = 12
+  compoundingFrequency: number = 12,
+  timing: 'end' | 'beginning' = 'end'
 ): Array<{
   year: number;
   balance: number;
@@ -68,7 +76,8 @@ export function compoundInterestSchedule(
       monthlyContribution,
       annualRate,
       y,
-      compoundingFrequency
+      compoundingFrequency,
+      timing
     );
     const totalContributions = principal + monthlyContribution * 12 * y;
     const totalInterest = balance - totalContributions;

@@ -14,6 +14,9 @@ interface SliderInputProps {
   prefix?: string;
   suffix?: string;
   formatDisplay?: (v: number) => string;
+  /** Labels for slider min/max endpoints, e.g. "$0" / "$500K" */
+  minLabel?: string;
+  maxLabel?: string;
 }
 
 export default function SliderInput({
@@ -27,6 +30,8 @@ export default function SliderInput({
   prefix,
   suffix,
   formatDisplay,
+  minLabel,
+  maxLabel,
 }: SliderInputProps) {
   const displayValue = formatDisplay ? formatDisplay(value) : String(value);
 
@@ -72,12 +77,18 @@ export default function SliderInput({
         onChange={(e) => onChange(parseFloat(e.target.value))}
         className="w-full h-2 mt-2.5 rounded-full appearance-none cursor-pointer
           bg-neutral-200 accent-primary-500
-          [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
+          [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full
           [&::-webkit-slider-thumb]:bg-primary-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
-          [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full
+          [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full
           [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
         aria-label={`${label} slider`}
       />
+      {(minLabel || maxLabel) && (
+        <div className="flex justify-between mt-1">
+          <span className="text-xs text-neutral-400 tabular-nums">{minLabel}</span>
+          <span className="text-xs text-neutral-400 tabular-nums">{maxLabel}</span>
+        </div>
+      )}
     </div>
   );
 }

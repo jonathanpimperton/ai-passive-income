@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, Fragment } from 'react';
 import {
   compoundInterest,
   compoundInterestSchedule,
@@ -43,6 +43,11 @@ const COMPOUND_OPTIONS = [
   { label: 'Daily', value: 365 },
 ] as const;
 
+const TIMING_OPTIONS = [
+  { label: 'End of period', value: 'end' },
+  { label: 'Beginning of period', value: 'beginning' },
+] as const;
+
 /* ── Defaults ─────────────────────────────────────────────── */
 const DEFAULTS = {
   principal: 10000,
@@ -51,6 +56,7 @@ const DEFAULTS = {
   years: 20,
   target: 100000,
   frequency: 12,
+  timing: 'end' as 'end' | 'beginning',
 };
 
 /* ── Main Calculator ──────────────────────────────────────── */
@@ -62,6 +68,7 @@ export default function InvestmentReturnCalc() {
   const [years, setYears] = useState(DEFAULTS.years);
   const [target, setTarget] = useState(DEFAULTS.target);
   const [frequency, setFrequency] = useState(DEFAULTS.frequency);
+  const [timing, setTiming] = useState(DEFAULTS.timing);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   /* ── Solve based on active tab ──────────────────────────── */
@@ -69,7 +76,7 @@ export default function InvestmentReturnCalc() {
     try {
       switch (mode) {
         case 'endAmount': {
-          const endAmount = compoundInterest(principal, monthly, rate / 100, years, frequency);
+          const endAmount = compoundInterest(principal, monthly, rate / 100, years, frequency, timing);
           return {
             label: 'End Amount',
             value: endAmount,
@@ -137,7 +144,7 @@ export default function InvestmentReturnCalc() {
         chartYears: years,
       };
     }
-  }, [mode, principal, monthly, rate, years, target, frequency]);
+  }, [mode, principal, monthly, rate, years, target, frequency, timing]);
 
   /* ── Derive effective values for charting ───────────────── */
   const effectiveValues = useMemo(() => {
@@ -162,14 +169,15 @@ export default function InvestmentReturnCalc() {
       effectiveValues.monthly,
       effectiveValues.rate,
       effectiveValues.years,
-      frequency
+      frequency,
+      timing
     );
     return schedule.map((row) => ({
       year: row.year,
       'Total Balance': row.balance,
       Contributions: row.totalContributions,
     }));
-  }, [effectiveValues, frequency]);
+  }, [effectiveValues, frequency, timing]);
 
   /* ── Summary stats ──────────────────────────────────────── */
   const summary = useMemo(() => {
@@ -187,6 +195,7 @@ export default function InvestmentReturnCalc() {
     setYears(DEFAULTS.years);
     setTarget(DEFAULTS.target);
     setFrequency(DEFAULTS.frequency);
+    setTiming(DEFAULTS.timing);
   }, []);
 
   /* ── Render input fields based on active mode ───────────── */
@@ -327,7 +336,8 @@ export default function InvestmentReturnCalc() {
           <div className="space-y-5">{renderInputs()}</div>
 
           {/* ── Advanced Settings ─────────────────────── */}
-          <div className="mt-6 pt-5 border-t border-neutral-100">
+          <div className="mt-6 pt-5">
+            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-500 transition-colors duration-150"
@@ -343,29 +353,53 @@ export default function InvestmentReturnCalc() {
 
             <div
               className={`overflow-hidden transition-all duration-200 ${
-                showAdvanced ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'
+                showAdvanced ? 'max-h-60 opacity-100 mt-4' : 'max-h-0 opacity-0'
               }`}
             >
-              <div>
-                <label
-                  htmlFor="ir-frequency"
-                  className="block text-sm font-medium text-neutral-700 mb-1.5"
-                >
-                  Compounding Frequency
-                </label>
-                <select
-                  id="ir-frequency"
-                  value={frequency}
-                  onChange={(e) => setFrequency(Number(e.target.value))}
-                  className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3
-                    focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
-                >
-                  {COMPOUND_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="ir-frequency"
+                    className="block text-sm font-medium text-neutral-700 mb-1.5"
+                  >
+                    Compounding Frequency
+                  </label>
+                  <select
+                    id="ir-frequency"
+                    value={frequency}
+                    onChange={(e) => setFrequency(Number(e.target.value))}
+                    className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3
+                      focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
+                  >
+                    {COMPOUND_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="ir-timing"
+                    className="block text-sm font-medium text-neutral-700 mb-1.5"
+                  >
+                    Contribution Timing
+                  </label>
+                  <select
+                    id="ir-timing"
+                    value={timing}
+                    onChange={(e) => setTiming(e.target.value as 'end' | 'beginning')}
+                    className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3
+                      focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
+                  >
+                    {TIMING_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -508,43 +542,81 @@ function ScheduleTable({
           {rows.map((row, i) => {
             const earnings = row['Total Balance'] - row.Contributions;
             const prev = chartData[row.year - 1];
+            const yearContributions = prev
+              ? row.Contributions - prev.Contributions
+              : row.Contributions;
             const yearEarnings = prev
               ? row['Total Balance'] -
                 row.Contributions -
                 (prev['Total Balance'] - prev.Contributions)
               : earnings;
+            const startBalance = prev ? prev['Total Balance'] : 0;
+            const isExpanded = expandedYear === row.year;
 
             return (
-              <tr
-                key={row.year}
-                className={`border-b border-neutral-100 cursor-pointer transition-colors duration-150
-                  ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}
-                  ${expandedYear === row.year ? 'bg-primary-50/50' : 'hover:bg-primary-50/30'}`}
-                onClick={() => setExpandedYear(expandedYear === row.year ? null : row.year)}
-                aria-expanded={expandedYear === row.year}
-              >
-                <td className="py-2.5 px-4 text-neutral-900 font-medium tabular-nums">
-                  <span className="flex items-center gap-1.5">
-                    <ChevronDown
-                      size={14}
-                      className={`text-neutral-400 transition-transform duration-200 ${
-                        expandedYear === row.year ? 'rotate-180' : ''
-                      }`}
-                      aria-hidden="true"
-                    />
-                    {row.year}
-                  </span>
-                </td>
-                <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">
-                  {formatCurrency(row['Total Balance'])}
-                </td>
-                <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
-                  {formatCurrency(row.Contributions)}
-                </td>
-                <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums hidden sm:table-cell">
-                  {formatCurrency(earnings)}
-                </td>
-              </tr>
+              <Fragment key={row.year}>
+                <tr
+                  className={`border-b border-neutral-100 cursor-pointer transition-colors duration-150
+                    ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}
+                    ${isExpanded ? 'bg-primary-50/50' : 'hover:bg-primary-50/30'}`}
+                  onClick={() => setExpandedYear(isExpanded ? null : row.year)}
+                  aria-expanded={isExpanded}
+                >
+                  <td className="py-2.5 px-4 text-neutral-900 font-medium tabular-nums">
+                    <span className="flex items-center gap-1.5">
+                      <ChevronDown
+                        size={14}
+                        className={`text-neutral-400 transition-transform duration-200 ${
+                          isExpanded ? 'rotate-180' : ''
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {row.year}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">
+                    {formatCurrency(row['Total Balance'])}
+                  </td>
+                  <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
+                    {formatCurrency(row.Contributions)}
+                  </td>
+                  <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums hidden sm:table-cell">
+                    {formatCurrency(earnings)}
+                  </td>
+                </tr>
+                {isExpanded && (
+                  <tr className="bg-primary-50/30 border-b border-primary-100/50">
+                    <td colSpan={4} className="py-3 px-4 pl-10">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div>
+                          <p className="text-neutral-500 mb-0.5">Starting Balance</p>
+                          <p className="font-semibold text-neutral-900 tabular-nums">
+                            {formatCurrency(startBalance)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-neutral-500 mb-0.5">Year Contributions</p>
+                          <p className="font-semibold text-neutral-900 tabular-nums">
+                            +{formatCurrency(yearContributions)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-neutral-500 mb-0.5">Year Earnings</p>
+                          <p className="font-semibold text-accent-600 tabular-nums">
+                            +{formatCurrency(yearEarnings)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-neutral-500 mb-0.5">Ending Balance</p>
+                          <p className="font-semibold text-primary-700 tabular-nums">
+                            {formatCurrency(row['Total Balance'])}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             );
           })}
         </tbody>

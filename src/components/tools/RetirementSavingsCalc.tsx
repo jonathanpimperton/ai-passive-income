@@ -219,7 +219,7 @@ export default function RetirementSavingsCalc() {
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
       {/* ── Tab Bar ──────────────────────────────────────────── */}
-      <div className="flex overflow-x-auto border-b border-neutral-200/80 scrollbar-hide">
+      <div className="flex overflow-x-auto border-b border-neutral-200/80 scrollbar-hide" role="tablist" aria-label="Retirement calculation mode">
         {TABS.map((tab) => (
           <button
             key={tab.mode}

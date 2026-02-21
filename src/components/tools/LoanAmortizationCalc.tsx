@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, Fragment } from 'react';
 import {
   loanMonthlyPayment,
   amortizationSchedule,
@@ -49,9 +49,8 @@ function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
         </thead>
         <tbody>
           {yearGroups.map((group, i) => (
-            <>
+            <Fragment key={`year-${group.year}`}>
               <tr
-                key={`year-${group.year}`}
                 className={`border-b border-neutral-100 cursor-pointer transition-colors duration-150
                   ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}
                   ${expandedYear === group.year ? 'bg-primary-50/50' : 'hover:bg-primary-50/30'}`}
@@ -78,7 +77,7 @@ function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
                   <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums hidden sm:table-cell">{formatCurrency(m.balance)}</td>
                 </tr>
               ))}
-            </>
+            </Fragment>
           ))}
         </tbody>
       </table>
@@ -106,10 +105,31 @@ export default function LoanAmortizationCalc() {
     [loanAmount, rate, termMonths]
   );
 
-  const schedule = useMemo(
-    () => amortizationSchedule(loanAmount, rate / 100, termMonths),
-    [loanAmount, rate, termMonths]
-  );
+  // Generate schedule with extra payments applied
+  const schedule = useMemo(() => {
+    if (extraPayment === 0) {
+      return amortizationSchedule(loanAmount, rate / 100, termMonths);
+    }
+    // Custom schedule with extra payments
+    const r = rate / 100 / 12;
+    let balance = loanAmount;
+    const result: Array<{ month: number; payment: number; principal: number; interest: number; balance: number }> = [];
+    for (let month = 1; month <= termMonths && balance > 0.01; month++) {
+      const interestPayment = balance * r;
+      const basePrincipal = monthlyPayment - interestPayment;
+      const totalPrincipal = Math.min(balance, basePrincipal + extraPayment);
+      const totalPayment = interestPayment + totalPrincipal;
+      balance = Math.max(0, balance - totalPrincipal);
+      result.push({
+        month,
+        payment: Math.round(totalPayment * 100) / 100,
+        principal: Math.round(totalPrincipal * 100) / 100,
+        interest: Math.round(interestPayment * 100) / 100,
+        balance: Math.round(balance * 100) / 100,
+      });
+    }
+    return result;
+  }, [loanAmount, rate, termMonths, extraPayment, monthlyPayment]);
 
   const totalInterest = useMemo(
     () => schedule.reduce((sum, row) => sum + row.interest, 0),
@@ -117,6 +137,16 @@ export default function LoanAmortizationCalc() {
   );
 
   const totalCost = loanAmount + totalInterest;
+  const actualMonths = schedule.length;
+  const monthsSaved = termMonths - actualMonths;
+
+  // Interest saved compared to base schedule (no extra payments)
+  const interestSaved = useMemo(() => {
+    if (extraPayment === 0) return 0;
+    const baseSchedule = amortizationSchedule(loanAmount, rate / 100, termMonths);
+    const baseInterest = baseSchedule.reduce((s, r) => s + r.interest, 0);
+    return baseInterest - totalInterest;
+  }, [loanAmount, rate, termMonths, extraPayment, totalInterest]);
 
   const pieData = [
     { name: 'Principal', value: loanAmount },
@@ -126,7 +156,8 @@ export default function LoanAmortizationCalc() {
   // Group schedule into years
   const yearGroups: YearGroup[] = useMemo(() => {
     const groups: YearGroup[] = [];
-    for (let y = 0; y < termYears; y++) {
+    const totalYears = Math.ceil(schedule.length / 12);
+    for (let y = 0; y < totalYears; y++) {
       const startIdx = y * 12;
       const months = schedule.slice(startIdx, startIdx + 12);
       if (months.length === 0) break;
@@ -188,7 +219,8 @@ export default function LoanAmortizationCalc() {
               min={1} max={40} step={1} onChange={setTermYears} />
           </div>
 
-          <div className="mt-6 pt-5 border-t border-neutral-100">
+          <div className="mt-6 pt-5">
+            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
             <button onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-500 transition-colors duration-150"
               aria-expanded={showAdvanced}>
@@ -211,7 +243,11 @@ export default function LoanAmortizationCalc() {
               {formatCurrency(monthlyPayment)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              You&apos;ll pay {formatCurrency(totalInterest)} in total interest over {termYears} years
+              {extraPayment > 0 ? (
+                <>Paying {formatCurrency(extraPayment)} extra/mo saves {formatCurrency(interestSaved)} in interest and {monthsSaved} month{monthsSaved !== 1 ? 's' : ''}</>
+              ) : (
+                <>You&apos;ll pay {formatCurrency(totalInterest)} in total interest over {termYears} years</>
+              )}
             </p>
           </div>
 

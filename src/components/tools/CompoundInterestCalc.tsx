@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, Fragment } from 'react';
 import {
   compoundInterestSchedule,
   formatCurrency,
@@ -59,38 +59,74 @@ function ScheduleTable({ data }: { data: YearRowData[] }) {
           </tr>
         </thead>
         <tbody>
-          {data.map((row, i) => (
-            <tr
-              key={row.year}
-              className={`border-b border-neutral-100 cursor-pointer transition-colors duration-150
-                ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}
-                ${expandedYear === row.year ? 'bg-primary-50/50' : 'hover:bg-primary-50/30'}`}
-              onClick={() => setExpandedYear(expandedYear === row.year ? null : row.year)}
-              aria-expanded={expandedYear === row.year}
-            >
-              <td className="py-2.5 px-4 text-neutral-900 font-medium tabular-nums">
-                <span className="flex items-center gap-1.5">
-                  <ChevronDown
-                    size={14}
-                    className={`text-neutral-400 transition-transform duration-200 ${
-                      expandedYear === row.year ? 'rotate-180' : ''
-                    }`}
-                    aria-hidden="true"
-                  />
-                  {row.year}
-                </span>
-              </td>
-              <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">
-                {formatCurrency(row.balance)}
-              </td>
-              <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
-                {formatCurrency(row.totalContributions)}
-              </td>
-              <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums hidden sm:table-cell">
-                {formatCurrency(row.totalInterest)}
-              </td>
-            </tr>
-          ))}
+          {data.map((row, i) => {
+            const isExpanded = expandedYear === row.year;
+            return (
+              <Fragment key={row.year}>
+                <tr
+                  className={`border-b border-neutral-100 cursor-pointer transition-colors duration-150
+                    ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}
+                    ${isExpanded ? 'bg-primary-50/50' : 'hover:bg-primary-50/30'}`}
+                  onClick={() => setExpandedYear(isExpanded ? null : row.year)}
+                  aria-expanded={isExpanded}
+                >
+                  <td className="py-2.5 px-4 text-neutral-900 font-medium tabular-nums">
+                    <span className="flex items-center gap-1.5">
+                      <ChevronDown
+                        size={14}
+                        className={`text-neutral-400 transition-transform duration-200 ${
+                          isExpanded ? 'rotate-180' : ''
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {row.year}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">
+                    {formatCurrency(row.balance)}
+                  </td>
+                  <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
+                    {formatCurrency(row.totalContributions)}
+                  </td>
+                  <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums hidden sm:table-cell">
+                    {formatCurrency(row.totalInterest)}
+                  </td>
+                </tr>
+                {isExpanded && (
+                  <tr className="bg-primary-50/30 border-b border-primary-100/50">
+                    <td colSpan={4} className="py-3 px-4 pl-10">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div>
+                          <p className="text-neutral-500 mb-0.5">Starting Balance</p>
+                          <p className="font-semibold text-neutral-900 tabular-nums">
+                            {formatCurrency(row.balance - row.yearContributions - row.yearInterest)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-neutral-500 mb-0.5">Year Contributions</p>
+                          <p className="font-semibold text-neutral-900 tabular-nums">
+                            +{formatCurrency(row.yearContributions)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-neutral-500 mb-0.5">Year Interest</p>
+                          <p className="font-semibold text-accent-600 tabular-nums">
+                            +{formatCurrency(row.yearInterest)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-neutral-500 mb-0.5">Ending Balance</p>
+                          <p className="font-semibold text-primary-700 tabular-nums">
+                            {formatCurrency(row.balance)}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -117,8 +153,8 @@ export default function CompoundInterestCalc() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const schedule = useMemo(
-    () => compoundInterestSchedule(principal, monthly, rate / 100, years, frequency),
-    [principal, monthly, rate, years, frequency]
+    () => compoundInterestSchedule(principal, monthly, rate / 100, years, frequency, timing as 'end' | 'beginning'),
+    [principal, monthly, rate, years, frequency, timing]
   );
 
   const finalBalance = schedule[schedule.length - 1]?.balance ?? 0;
@@ -222,7 +258,8 @@ export default function CompoundInterestCalc() {
           </div>
 
           {/* ── Advanced Settings ─────────────────────── */}
-          <div className="mt-6 pt-5 border-t border-neutral-100">
+          <div className="mt-6 pt-5">
+            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-500 transition-colors duration-150"

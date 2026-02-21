@@ -145,23 +145,21 @@ export default function SavingsGoalCalc() {
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
       {/* ── Tab Bar ──────────────────────────────────────── */}
-      <div className="flex border-b border-neutral-200/80">
+      <div className="flex overflow-x-auto border-b border-neutral-200/80" role="tablist" aria-label="Savings goal mode">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setMode(tab.key)}
-            className={`flex-1 py-3.5 px-4 text-sm font-medium transition-all duration-200 relative
+            className={`flex-1 min-w-[140px] py-3.5 px-4 text-sm font-medium whitespace-nowrap transition-all duration-150
               ${mode === tab.key
-                ? 'text-primary-700 bg-primary-50/50'
-                : 'text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50/50'
+                ? 'bg-white border-b-2 border-primary-500 text-primary-900'
+                : 'bg-neutral-50 text-neutral-600 hover:text-primary-500 border-b-2 border-transparent'
               }`}
             aria-selected={mode === tab.key}
+            aria-controls="sg-results"
             role="tab"
           >
             {tab.label}
-            {mode === tab.key && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500" />
-            )}
           </button>
         ))}
       </div>
@@ -243,7 +241,8 @@ export default function SavingsGoalCalc() {
           </div>
 
           {/* ── Progress Indicator ──────────────────────── */}
-          <div className="mt-6 pt-5 border-t border-neutral-100">
+          <div className="mt-6 pt-5">
+            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-neutral-700">Current Progress</span>
               <span className="text-sm font-semibold text-primary-700 tabular-nums">
@@ -273,7 +272,7 @@ export default function SavingsGoalCalc() {
         </div>
 
         {/* ── Results Panel ──────────────────────────────── */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="sg-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           {/* Big Number Result */}
           <div className="mb-6">
             {mode === 'monthly' ? (
