@@ -81,8 +81,9 @@ export default function EmailCapture({ toolSlug: _toolSlug, toolName }: EmailCap
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
+          disabled={status === 'loading'}
           aria-label="Email address"
-          className="flex-1 px-4 py-2.5 text-sm border border-neutral-200/80 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+          className="flex-1 px-4 py-2.5 text-sm border border-neutral-200/80 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-60 transition-all duration-200"
         />
         <button
           type="submit"
@@ -94,7 +95,7 @@ export default function EmailCapture({ toolSlug: _toolSlug, toolName }: EmailCap
       </form>
 
       {status === 'error' && (
-        <p className="text-sm text-negative-500 mt-2">
+        <p className="text-sm text-red-600 mt-2">
           Something went wrong. Please try again.
         </p>
       )}
