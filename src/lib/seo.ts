@@ -57,7 +57,7 @@ export function buildWebApplicationSchema(tool: {
     name: tool.name,
     description: tool.description,
     url: `${SITE_URL}/tools/${tool.category}/${tool.slug}`,
-    applicationCategory: 'FinanceApplication',
+    applicationCategory: tool.category === 'utility' ? 'UtilitiesApplication' : 'FinanceApplication',
     operatingSystem: 'Any',
     offers: {
       '@type': 'Offer',

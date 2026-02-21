@@ -1,6 +1,14 @@
 ---
 import ToolIcon from './ToolIcon.astro';
+import { TOOLS, getToolPath } from '@lib/tools-data';
+
 const currentYear = new Date().getFullYear();
+
+const footerCalcs = ['compound-interest', 'loan-amortization', 'retirement-savings', 'investment-return']
+  .map((slug) => TOOLS.find((t) => t.slug === slug))
+  .filter((t) => t !== undefined);
+
+const utilityTools = TOOLS.filter((t) => t.category === 'utility');
 ---
 
 <footer class="bg-white border-t border-neutral-200/80 mt-auto">
@@ -47,10 +55,9 @@ const currentYear = new Date().getFullYear();
       <div>
         <h3 class="text-sm font-semibold text-neutral-900 mb-4">Calculators</h3>
         <ul class="space-y-2.5 text-sm">
-          <li><a href="/tools/saving-and-growth/compound-interest" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Compound Interest</a></li>
-          <li><a href="/tools/debt-and-loans/loan-amortization" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Loan Amortization</a></li>
-          <li><a href="/tools/income-and-planning/retirement-savings" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Retirement Savings</a></li>
-          <li><a href="/tools/saving-and-growth/investment-return" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Investment Return</a></li>
+          {footerCalcs.map((tool) => (
+            <li><a href={getToolPath(tool)} class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">{tool.name.replace(' Calculator', '')}</a></li>
+          ))}
           <li>
             <a href="/tools" class="inline-flex items-center gap-1 text-primary-500 hover:text-primary-700 font-medium transition-colors duration-150">
               View all tools
@@ -64,9 +71,9 @@ const currentYear = new Date().getFullYear();
       <div>
         <h3 class="text-sm font-semibold text-neutral-900 mb-4">Utility Tools</h3>
         <ul class="space-y-2.5 text-sm">
-          <li><a href="/tools/utility/qr-code" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">QR Code Generator</a></li>
-          <li><a href="/tools/utility/password-generator" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">Password Generator</a></li>
-          <li><a href="/tools/utility/json-formatter" class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">JSON Formatter</a></li>
+          {utilityTools.map((tool) => (
+            <li><a href={getToolPath(tool)} class="text-neutral-500 hover:text-primary-500 transition-colors duration-150">{tool.name}</a></li>
+          ))}
         </ul>
       </div>
 

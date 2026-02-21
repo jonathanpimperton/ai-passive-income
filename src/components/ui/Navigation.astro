@@ -21,20 +21,22 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
       {/* Desktop navigation */}
       <div class="hidden lg:flex items-center gap-8">
         {/* Calculators dropdown */}
-        <div class="relative group">
+        <div class="relative group" id="desktop-dropdown">
           <button
+            id="desktop-dropdown-btn"
             class="flex items-center gap-1.5 text-sm font-medium text-neutral-700 hover:text-primary-500 transition-colors duration-150 py-2"
             aria-expanded="false"
             aria-haspopup="true"
+            aria-controls="desktop-dropdown-panel"
           >
             Calculators
-            <svg class="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           {/* Dropdown panel */}
-          <div class="nav-dropdown absolute left-1/2 -translate-x-1/2 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 group-hover:translate-y-0 translate-y-1">
+          <div id="desktop-dropdown-panel" class="nav-dropdown absolute left-1/2 -translate-x-1/2 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 group-hover:translate-y-0 translate-y-1">
             <div class="bg-white rounded-xl shadow-lg border border-neutral-200/80 p-5 min-w-[520px] grid grid-cols-2 gap-5">
               {financialCategories.map((cat) => (
                 <div>
@@ -216,6 +218,13 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
     transform: translateY(4px);
   }
 
+  /* Keyboard-opened dropdown state */
+  .nav-dropdown.dropdown-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .mobile-menu.open .mobile-backdrop,
     .mobile-menu.open .mobile-panel,
@@ -290,4 +299,68 @@ const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and
       }
     }
   });
+
+  // Desktop dropdown keyboard accessibility
+  const dropdownBtn = document.getElementById('desktop-dropdown-btn');
+  const dropdownPanel = document.getElementById('desktop-dropdown-panel');
+  const dropdownContainer = document.getElementById('desktop-dropdown');
+
+  if (dropdownBtn && dropdownPanel && dropdownContainer) {
+    let dropdownOpen = false;
+
+    function openDropdown() {
+      dropdownOpen = true;
+      dropdownBtn!.setAttribute('aria-expanded', 'true');
+      dropdownPanel!.classList.add('dropdown-open');
+    }
+
+    function closeDropdown() {
+      dropdownOpen = false;
+      dropdownBtn!.setAttribute('aria-expanded', 'false');
+      dropdownPanel!.classList.remove('dropdown-open');
+    }
+
+    // Toggle on Enter/Space
+    dropdownBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (dropdownOpen) {
+          closeDropdown();
+        } else {
+          openDropdown();
+          // Focus the first link in the dropdown
+          const firstLink = dropdownPanel!.querySelector<HTMLElement>('a[href]');
+          firstLink?.focus();
+        }
+      }
+    });
+
+    // Close on Escape from within dropdown
+    dropdownPanel.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDropdown();
+        dropdownBtn!.focus();
+      }
+    });
+
+    // Close when focus leaves the dropdown container
+    dropdownContainer.addEventListener('focusout', () => {
+      // Use setTimeout to let the new focus target settle
+      setTimeout(() => {
+        if (!dropdownContainer!.contains(document.activeElement)) {
+          closeDropdown();
+        }
+      }, 0);
+    });
+
+    // Sync aria-expanded on hover for screen readers
+    dropdownContainer.addEventListener('mouseenter', () => {
+      dropdownBtn!.setAttribute('aria-expanded', 'true');
+    });
+    dropdownContainer.addEventListener('mouseleave', () => {
+      if (!dropdownOpen) {
+        dropdownBtn!.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
 </script>
