@@ -2,7 +2,7 @@
 name: "Inflation Calculator"
 slug: "inflation"
 category: "economic"
-description: "See how inflation affects your purchasing power over time. Calculate what past dollars are worth today and project future costs using historical CPI data — free, instant, no signup."
+description: "See how inflation affects your purchasing power. Calculate what past dollars are worth today and project future costs with CPI data — free, no signup."
 keywords:
   - "inflation calculator"
   - "CPI calculator"

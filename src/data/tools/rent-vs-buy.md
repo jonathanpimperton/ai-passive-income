@@ -2,7 +2,7 @@
 name: "Rent vs Buy Calculator"
 slug: "rent-vs-buy"
 category: "debt-and-loans"
-description: "Compare the total cost of renting vs buying a home over time. See your break-even point, build equity projections, and make an informed housing decision — free, instant, no signup."
+description: "Compare the total cost of renting vs buying a home. See your break-even point, equity projections, and make a smarter housing decision — free, no signup."
 keywords:
   - "rent vs buy calculator"
   - "should I rent or buy"

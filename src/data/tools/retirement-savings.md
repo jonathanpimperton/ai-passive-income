@@ -2,7 +2,7 @@
 name: "Retirement Savings Calculator"
 slug: "retirement-savings"
 category: "income-and-planning"
-description: "See if you're on track for retirement. Calculate how much you need to save, project your retirement balance, and visualize age-based milestones — free, instant, no signup."
+description: "See if you're on track for retirement. Calculate how much to save, project your balance, and visualize age-based milestones — free, no signup."
 keywords:
   - "retirement calculator"
   - "retirement savings calculator"

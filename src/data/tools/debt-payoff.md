@@ -2,7 +2,7 @@
 name: "Debt Payoff Calculator"
 slug: "debt-payoff"
 category: "debt-and-loans"
-description: "Find out when you'll be debt-free. Compare snowball vs avalanche methods, see total interest saved, and get a personalized payoff plan — free, instant, no signup."
+description: "Find out when you'll be debt-free. Compare snowball vs avalanche methods, see total interest saved, and get a personalized payoff plan — free, no signup."
 keywords:
   - "debt payoff calculator"
   - "debt repayment calculator"

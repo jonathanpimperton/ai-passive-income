@@ -2,7 +2,7 @@
 name: "Emergency Fund Calculator"
 slug: "emergency-fund"
 category: "income-and-planning"
-description: "Calculate how much you need in your emergency fund based on your expenses. See 3, 6, and 12-month targets and a savings plan to get there — free, instant, no signup."
+description: "Calculate how much you need in your emergency fund. See 3, 6, and 12-month targets and a savings plan to get there — free, instant, no signup."
 keywords:
   - "emergency fund calculator"
   - "how much emergency fund"

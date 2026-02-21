@@ -2,7 +2,7 @@
 name: "Investment Return Calculator"
 slug: "investment-return"
 category: "saving-and-growth"
-description: "Calculate your investment returns with dividend reinvestment, compare scenarios, and see portfolio growth over time. Free interactive charts — no signup, no ads."
+description: "Calculate investment returns with dividend reinvestment, compare scenarios, and see portfolio growth over time. Free interactive charts — no signup."
 keywords:
   - "investment calculator"
   - "investment return calculator"

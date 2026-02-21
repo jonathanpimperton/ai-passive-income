@@ -2,7 +2,7 @@
 name: "Savings Goal Calculator"
 slug: "savings-goal"
 category: "saving-and-growth"
-description: "Calculate how much to save per month to reach your goal. Set a target amount and date, see your savings timeline with interest, and track progress — free, instant, no signup."
+description: "Calculate how much to save per month to reach your goal. Set a target amount and date, see your savings timeline with interest — free, no signup."
 keywords:
   - "savings calculator"
   - "savings goal calculator"
