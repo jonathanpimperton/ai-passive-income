@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import QRCode from 'qrcode';
+import * as QRCode from 'qrcode';
 import { Download, Image, FileCode, RotateCcw, Link, Type, AlertCircle } from 'lucide-react';
 
 /* ── Error Correction Levels ──────────────────────────────── */

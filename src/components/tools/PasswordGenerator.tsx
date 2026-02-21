@@ -2,12 +2,12 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Copy, RefreshCw, Check, Shield, ShieldAlert, ShieldCheck, Eye, EyeOff, RotateCcw } from 'lucide-react';
 
 /* ── Character Sets ───────────────────────────────────────── */
-const CHAR_SETS = {
+const CHAR_SETS: Record<string, string> = {
   uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   lowercase: 'abcdefghijklmnopqrstuvwxyz',
   numbers: '0123456789',
   special: '!@#$%^&*()_+-=[]{}|;:,.<>?',
-} as const;
+};
 
 const AMBIGUOUS_CHARS = /[0OoIl1|]/g;
 
