@@ -12,6 +12,7 @@ const tools = defineCollection({
       'income-and-planning',
       'economic',
       'utility',
+      'file-tools',
     ]),
     description: z.string(),
     keywords: z.array(z.string()),
