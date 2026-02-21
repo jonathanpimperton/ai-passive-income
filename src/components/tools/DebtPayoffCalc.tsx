@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   debtPayoff,
   formatCurrency,
@@ -17,101 +17,8 @@ import {
   Legend,
 } from 'recharts';
 import { Plus, X, RotateCcw } from 'lucide-react';
-
-/* ── SliderInput (local, matches project pattern) ────────── */
-interface SliderInputProps {
-  label: string;
-  id: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (v: number) => void;
-  prefix?: string;
-  suffix?: string;
-  formatDisplay?: (v: number) => string;
-}
-
-function SliderInput({
-  label,
-  id,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-  prefix,
-  suffix,
-  formatDisplay,
-}: SliderInputProps) {
-  const displayValue = formatDisplay ? formatDisplay(value) : String(value);
-
-  const handleText = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9.]/g, '');
-    const parsed = parseFloat(raw);
-    if (!isNaN(parsed)) onChange(Math.min(max, Math.max(min, parsed)));
-  };
-
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-neutral-700 mb-1.5">
-        {label}
-      </label>
-      <div className="relative">
-        {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm pointer-events-none">
-            {prefix}
-          </span>
-        )}
-        <input
-          id={id}
-          type="text"
-          inputMode="decimal"
-          value={displayValue}
-          onChange={handleText}
-          className={`w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
-            ${prefix ? 'pl-7' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
-        />
-        {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm pointer-events-none">
-            {suffix}
-          </span>
-        )}
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-2 mt-2.5 rounded-full appearance-none cursor-pointer
-          bg-neutral-200 accent-primary-500
-          [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
-          [&::-webkit-slider-thumb]:bg-primary-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
-          [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full
-          [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
-        aria-label={`${label} slider`}
-      />
-    </div>
-  );
-}
-
-/* ── Chart tooltip ────────────────────────────────────────── */
-function ChartTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-white border border-neutral-200 rounded-lg shadow-md p-3 text-sm">
-      <p className="font-medium text-neutral-900 mb-1">Month {label}</p>
-      {payload.map((entry: any) => (
-        <p key={entry.dataKey} style={{ color: entry.color }}>
-          {entry.name}: {formatCurrency(entry.value)}
-        </p>
-      ))}
-    </div>
-  );
-}
+import SliderInput from '../ui/SliderInput';
+import ChartTooltip from '../ui/ChartTooltip';
 
 /* ── Compact text input for debt card fields ─────────────── */
 interface DebtFieldProps {
@@ -174,16 +81,13 @@ interface DebtInput {
   minPayment: string;
 }
 
-let debtIdCounter = 0;
-function newDebtId(): string {
-  return `debt-${++debtIdCounter}`;
+function makeDefaultDebts(getNextId: () => string): DebtInput[] {
+  return [
+    { id: getNextId(), name: 'Credit Card', balance: '5000', rate: '18.99', minPayment: '150' },
+    { id: getNextId(), name: 'Car Loan', balance: '12000', rate: '5.5', minPayment: '350' },
+    { id: getNextId(), name: 'Student Loan', balance: '25000', rate: '4.5', minPayment: '280' },
+  ];
 }
-
-const DEFAULT_DEBTS: DebtInput[] = [
-  { id: newDebtId(), name: 'Credit Card', balance: '5000', rate: '18.99', minPayment: '150' },
-  { id: newDebtId(), name: 'Car Loan', balance: '12000', rate: '5.5', minPayment: '350' },
-  { id: newDebtId(), name: 'Student Loan', balance: '25000', rate: '4.5', minPayment: '280' },
-];
 
 const DEFAULT_EXTRA = 200;
 const MAX_DEBTS = 10;
@@ -217,8 +121,11 @@ function formatMonths(months: number): string {
 
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function DebtPayoffCalc() {
-  const [debtInputs, setDebtInputs] = useState<DebtInput[]>(
-    DEFAULT_DEBTS.map((d) => ({ ...d }))
+  const debtIdCounter = useRef(0);
+  const getNextId = useCallback(() => `debt-${++debtIdCounter.current}`, []);
+
+  const [debtInputs, setDebtInputs] = useState<DebtInput[]>(() =>
+    makeDefaultDebts(() => `debt-${++debtIdCounter.current}`)
   );
   const [extraPayment, setExtraPayment] = useState(DEFAULT_EXTRA);
   const [activeStrategy, setActiveStrategy] = useState<Strategy>('avalanche');
@@ -299,10 +206,10 @@ export default function DebtPayoffCalc() {
       if (prev.length >= MAX_DEBTS) return prev;
       return [
         ...prev,
-        { id: newDebtId(), name: '', balance: '', rate: '', minPayment: '' },
+        { id: getNextId(), name: '', balance: '', rate: '', minPayment: '' },
       ];
     });
-  }, []);
+  }, [getNextId]);
 
   const removeDebt = useCallback((id: string) => {
     setDebtInputs((prev) => {
@@ -312,11 +219,11 @@ export default function DebtPayoffCalc() {
   }, []);
 
   const handleReset = useCallback(() => {
-    debtIdCounter = 0;
-    setDebtInputs(DEFAULT_DEBTS.map((d) => ({ ...d, id: newDebtId() })));
+    debtIdCounter.current = 0;
+    setDebtInputs(makeDefaultDebts(getNextId));
     setExtraPayment(DEFAULT_EXTRA);
     setActiveStrategy('avalanche');
-  }, []);
+  }, [getNextId]);
 
   const hasValidDebts = debts.length > 0;
 
@@ -643,7 +550,7 @@ export default function DebtPayoffCalc() {
                           axisLine={false}
                           width={60}
                         />
-                        <Tooltip content={<ChartTooltip />} />
+                        <Tooltip content={<ChartTooltip labelPrefix="Month" />} />
                         <Legend
                           wrapperStyle={{ fontSize: 12 }}
                           iconType="circle"
