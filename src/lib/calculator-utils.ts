@@ -166,6 +166,205 @@ export function monthlySavingsRequired(
   return (remainingGoal * r) / (Math.pow(1 + r, months) - 1);
 }
 
+/* ── Investment Return: Solve-for-X helpers ────────────────── */
+
+/**
+ * Solve for required monthly contribution to reach a target balance.
+ */
+export function solveForContribution(
+  principal: number,
+  targetAmount: number,
+  annualRate: number,
+  years: number,
+  compoundingFrequency: number = 12
+): number {
+  const n = compoundingFrequency;
+  const r = annualRate;
+  const t = years;
+  const principalGrowth = principal * Math.pow(1 + r / n, n * t);
+  const remaining = targetAmount - principalGrowth;
+  if (r === 0) return remaining / (12 * t);
+  const periodicFV = (Math.pow(1 + r / n, n * t) - 1) / (r / n);
+  const periodicContribution = remaining / periodicFV;
+  return periodicContribution * (n / 12);
+}
+
+/**
+ * Solve for required annual return rate to reach a target balance.
+ * Uses Newton-Raphson iteration.
+ */
+export function solveForRate(
+  principal: number,
+  monthlyContribution: number,
+  targetAmount: number,
+  years: number,
+  compoundingFrequency: number = 12
+): number {
+  let rate = 0.07; // initial guess 7%
+  for (let i = 0; i < 100; i++) {
+    const result = compoundInterest(principal, monthlyContribution, rate, years, compoundingFrequency);
+    const delta = result - targetAmount;
+    if (Math.abs(delta) < 0.01) break;
+    const h = 0.0001;
+    const resultH = compoundInterest(principal, monthlyContribution, rate + h, years, compoundingFrequency);
+    const derivative = (resultH - result) / h;
+    if (derivative === 0) break;
+    rate = rate - delta / derivative;
+    if (rate < 0) rate = 0;
+    if (rate > 1) rate = 1;
+  }
+  return rate;
+}
+
+/**
+ * Solve for required time (years) to reach a target balance.
+ * Uses binary search.
+ */
+export function solveForTime(
+  principal: number,
+  monthlyContribution: number,
+  annualRate: number,
+  targetAmount: number,
+  compoundingFrequency: number = 12
+): number {
+  let low = 0;
+  let high = 100;
+  for (let i = 0; i < 100; i++) {
+    const mid = (low + high) / 2;
+    const result = compoundInterest(principal, monthlyContribution, annualRate, mid, compoundingFrequency);
+    if (Math.abs(result - targetAmount) < 1) break;
+    if (result < targetAmount) low = mid;
+    else high = mid;
+  }
+  return (low + high) / 2;
+}
+
+/**
+ * Solve for required starting amount to reach a target balance.
+ */
+export function solveForPrincipal(
+  monthlyContribution: number,
+  targetAmount: number,
+  annualRate: number,
+  years: number,
+  compoundingFrequency: number = 12
+): number {
+  const n = compoundingFrequency;
+  const r = annualRate;
+  const t = years;
+  const periodicContribution = monthlyContribution * (12 / n);
+  let contributionGrowth = 0;
+  if (r > 0) {
+    contributionGrowth = periodicContribution * ((Math.pow(1 + r / n, n * t) - 1) / (r / n));
+  } else {
+    contributionGrowth = periodicContribution * n * t;
+  }
+  const remaining = targetAmount - contributionGrowth;
+  const growthFactor = Math.pow(1 + r / n, n * t);
+  return remaining / growthFactor;
+}
+
+/* ── Debt Payoff: Snowball & Avalanche ─────────────────────── */
+
+export interface Debt {
+  name: string;
+  balance: number;
+  rate: number;       // annual rate as decimal
+  minPayment: number;
+}
+
+export interface DebtPayoffResult {
+  months: number;
+  totalInterest: number;
+  totalPaid: number;
+  payoffOrder: string[];
+  timeline: Array<{
+    month: number;
+    totalBalance: number;
+    totalInterest: number;
+  }>;
+}
+
+/**
+ * Calculate debt payoff using either snowball (smallest balance first)
+ * or avalanche (highest rate first) strategy.
+ */
+export function debtPayoff(
+  debts: Debt[],
+  extraMonthlyPayment: number,
+  strategy: 'snowball' | 'avalanche'
+): DebtPayoffResult {
+  if (debts.length === 0) return { months: 0, totalInterest: 0, totalPaid: 0, payoffOrder: [], timeline: [] };
+
+  const balances = debts.map((d) => d.balance);
+  const rates = debts.map((d) => d.rate);
+  const mins = debts.map((d) => d.minPayment);
+  const payoffOrder: string[] = [];
+  const timeline: DebtPayoffResult['timeline'] = [];
+  let totalInterest = 0;
+  let totalPaid = 0;
+  let month = 0;
+  const maxMonths = 600;
+
+  while (balances.some((b) => b > 0.01) && month < maxMonths) {
+    month++;
+    let monthInterest = 0;
+
+    for (let i = 0; i < balances.length; i++) {
+      if (balances[i] <= 0) continue;
+      const interest = balances[i] * (rates[i] / 12);
+      balances[i] += interest;
+      monthInterest += interest;
+    }
+    totalInterest += monthInterest;
+
+    let available = extraMonthlyPayment;
+    for (let i = 0; i < balances.length; i++) {
+      if (balances[i] <= 0) continue;
+      const payment = Math.min(mins[i], balances[i]);
+      balances[i] -= payment;
+      totalPaid += payment;
+      if (balances[i] <= 0.01) available += mins[i] - payment;
+    }
+
+    const sorted = balances
+      .map((b, i) => ({ idx: i, balance: b, rate: rates[i] }))
+      .filter((d) => d.balance > 0);
+
+    if (strategy === 'snowball') sorted.sort((a, b) => a.balance - b.balance);
+    else sorted.sort((a, b) => b.rate - a.rate);
+
+    for (const d of sorted) {
+      if (available <= 0) break;
+      const payment = Math.min(available, balances[d.idx]);
+      balances[d.idx] -= payment;
+      totalPaid += payment;
+      available -= payment;
+      if (balances[d.idx] <= 0.01 && !payoffOrder.includes(debts[d.idx].name)) {
+        payoffOrder.push(debts[d.idx].name);
+      }
+    }
+
+    timeline.push({
+      month,
+      totalBalance: balances.reduce((s, b) => s + Math.max(0, b), 0),
+      totalInterest,
+    });
+  }
+
+  for (const d of debts) {
+    if (!payoffOrder.includes(d.name)) payoffOrder.push(d.name);
+  }
+
+  return {
+    months: month,
+    totalInterest: Math.round(totalInterest * 100) / 100,
+    totalPaid: Math.round(totalPaid * 100) / 100,
+    payoffOrder,
+    timeline,
+  };
+}
+
 /**
  * Format a number as USD currency string.
  */
