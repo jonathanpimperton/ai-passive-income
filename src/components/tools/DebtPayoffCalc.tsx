@@ -359,7 +359,7 @@ export default function DebtPayoffCalc() {
         </div>
 
         {/* ── Results Panel ─────────────────────────────── */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="dp-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           {!hasValidDebts ? (
             <div className="flex items-center justify-center h-full min-h-[300px]">
               <div className="text-center">
@@ -376,6 +376,7 @@ export default function DebtPayoffCalc() {
                   <button
                     role="tab"
                     aria-selected={activeStrategy === 'avalanche'}
+                    aria-controls="dp-results"
                     onClick={() => setActiveStrategy('avalanche')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       activeStrategy === 'avalanche'
@@ -395,6 +396,7 @@ export default function DebtPayoffCalc() {
                   <button
                     role="tab"
                     aria-selected={activeStrategy === 'snowball'}
+                    aria-controls="dp-results"
                     onClick={() => setActiveStrategy('snowball')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       activeStrategy === 'snowball'

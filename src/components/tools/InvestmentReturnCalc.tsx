@@ -86,7 +86,7 @@ export default function InvestmentReturnCalc() {
           };
         }
         case 'contribution': {
-          const contrib = solveForContribution(principal, target, rate / 100, years, frequency);
+          const contrib = solveForContribution(principal, target, rate / 100, years, frequency, timing);
           const clamped = Math.max(0, contrib);
           return {
             label: 'Monthly Contribution',
@@ -97,7 +97,7 @@ export default function InvestmentReturnCalc() {
           };
         }
         case 'returnRate': {
-          const r = solveForRate(principal, monthly, target, years, frequency);
+          const r = solveForRate(principal, monthly, target, years, frequency, timing);
           const pct = r * 100;
           return {
             label: 'Required Return Rate',
@@ -108,7 +108,7 @@ export default function InvestmentReturnCalc() {
           };
         }
         case 'startingAmount': {
-          const start = solveForPrincipal(monthly, target, rate / 100, years, frequency);
+          const start = solveForPrincipal(monthly, target, rate / 100, years, frequency, timing);
           const clamped = Math.max(0, start);
           return {
             label: 'Starting Amount',
@@ -119,7 +119,7 @@ export default function InvestmentReturnCalc() {
           };
         }
         case 'time': {
-          const t = solveForTime(principal, monthly, rate / 100, target, frequency);
+          const t = solveForTime(principal, monthly, rate / 100, target, frequency, timing);
           const clamped = Math.max(0, t);
           const wholeYears = Math.floor(clamped);
           const remainderMonths = Math.round((clamped - wholeYears) * 12);

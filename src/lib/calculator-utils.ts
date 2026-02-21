@@ -185,7 +185,8 @@ export function solveForContribution(
   targetAmount: number,
   annualRate: number,
   years: number,
-  compoundingFrequency: number = 12
+  compoundingFrequency: number = 12,
+  timing: 'end' | 'beginning' = 'end'
 ): number {
   const n = compoundingFrequency;
   const r = annualRate;
@@ -193,7 +194,8 @@ export function solveForContribution(
   const principalGrowth = principal * Math.pow(1 + r / n, n * t);
   const remaining = targetAmount - principalGrowth;
   if (r === 0) return remaining / (12 * t);
-  const periodicFV = (Math.pow(1 + r / n, n * t) - 1) / (r / n);
+  let periodicFV = (Math.pow(1 + r / n, n * t) - 1) / (r / n);
+  if (timing === 'beginning' && r > 0) periodicFV *= (1 + r / n);
   const periodicContribution = remaining / periodicFV;
   return periodicContribution * (n / 12);
 }
@@ -207,15 +209,16 @@ export function solveForRate(
   monthlyContribution: number,
   targetAmount: number,
   years: number,
-  compoundingFrequency: number = 12
+  compoundingFrequency: number = 12,
+  timing: 'end' | 'beginning' = 'end'
 ): number {
   let rate = 0.07; // initial guess 7%
   for (let i = 0; i < 100; i++) {
-    const result = compoundInterest(principal, monthlyContribution, rate, years, compoundingFrequency);
+    const result = compoundInterest(principal, monthlyContribution, rate, years, compoundingFrequency, timing);
     const delta = result - targetAmount;
     if (Math.abs(delta) < 0.01) break;
     const h = 0.0001;
-    const resultH = compoundInterest(principal, monthlyContribution, rate + h, years, compoundingFrequency);
+    const resultH = compoundInterest(principal, monthlyContribution, rate + h, years, compoundingFrequency, timing);
     const derivative = (resultH - result) / h;
     if (derivative === 0) break;
     rate = rate - delta / derivative;
@@ -234,13 +237,14 @@ export function solveForTime(
   monthlyContribution: number,
   annualRate: number,
   targetAmount: number,
-  compoundingFrequency: number = 12
+  compoundingFrequency: number = 12,
+  timing: 'end' | 'beginning' = 'end'
 ): number {
   let low = 0;
   let high = 100;
   for (let i = 0; i < 100; i++) {
     const mid = (low + high) / 2;
-    const result = compoundInterest(principal, monthlyContribution, annualRate, mid, compoundingFrequency);
+    const result = compoundInterest(principal, monthlyContribution, annualRate, mid, compoundingFrequency, timing);
     if (Math.abs(result - targetAmount) < 1) break;
     if (result < targetAmount) low = mid;
     else high = mid;
@@ -256,7 +260,8 @@ export function solveForPrincipal(
   targetAmount: number,
   annualRate: number,
   years: number,
-  compoundingFrequency: number = 12
+  compoundingFrequency: number = 12,
+  timing: 'end' | 'beginning' = 'end'
 ): number {
   const n = compoundingFrequency;
   const r = annualRate;
@@ -265,6 +270,7 @@ export function solveForPrincipal(
   let contributionGrowth = 0;
   if (r > 0) {
     contributionGrowth = periodicContribution * ((Math.pow(1 + r / n, n * t) - 1) / (r / n));
+    if (timing === 'beginning') contributionGrowth *= (1 + r / n);
   } else {
     contributionGrowth = periodicContribution * n * t;
   }
@@ -333,7 +339,10 @@ export function debtPayoff(
       const payment = Math.min(mins[i], balances[i]);
       balances[i] -= payment;
       totalPaid += payment;
-      if (balances[i] <= 0.01) available += mins[i] - payment;
+      if (balances[i] <= 0.01) {
+        available += mins[i] - payment;
+        if (!payoffOrder.includes(debts[i].name)) payoffOrder.push(debts[i].name);
+      }
     }
 
     const sorted = balances

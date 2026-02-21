@@ -118,11 +118,13 @@ export default function SavingsGoalCalc() {
       const interestEarned = goalAmount - totalContributions;
       return { totalContributions, interestEarned };
     } else {
-      const totalContributions = currentSavings + monthlyContribution * timeToGoalMonths;
+      // Use precise time value (not ceiling) to avoid overshoot
+      const preciseMonths = timeToGoalYears * 12;
+      const totalContributions = currentSavings + monthlyContribution * preciseMonths;
       const interestEarned = goalAmount - totalContributions;
       return { totalContributions, interestEarned };
     }
-  }, [mode, currentSavings, monthlySavings, monthlyContribution, months, timeToGoalMonths, goalAmount]);
+  }, [mode, currentSavings, monthlySavings, monthlyContribution, months, timeToGoalYears, goalAmount]);
 
   const handleReset = useCallback(() => {
     setGoalAmount(DEFAULTS.goalAmount);
