@@ -172,7 +172,7 @@ export default function LoanAmortizationCalc() {
       });
     }
     return groups;
-  }, [schedule, termYears, loanAmount]);
+  }, [schedule, loanAmount]);
 
   // Chart data: yearly principal vs interest paid
   const chartData = useMemo(
