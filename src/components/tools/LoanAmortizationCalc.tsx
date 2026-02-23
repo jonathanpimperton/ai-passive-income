@@ -69,14 +69,14 @@ function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
                   </span>
                 </td>
                 <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums">{formatCurrency(group.totalPrincipal)}</td>
-                <td className="py-2.5 px-4 text-right text-negative-500 tabular-nums">{formatCurrency(group.totalInterest)}</td>
+                <td className="py-2.5 px-4 text-right text-negative-600 tabular-nums">{formatCurrency(group.totalInterest)}</td>
                 <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums hidden sm:table-cell">{formatCurrency(group.endBalance)}</td>
               </tr>
               {expandedYear === group.year && group.months.map((m) => (
                 <tr key={`month-${m.month}`} className="bg-primary-50/30 border-b border-primary-100/50">
                   <td className="py-1.5 px-4 pl-10 text-xs text-neutral-500 tabular-nums">Month {m.month}</td>
                   <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums">{formatCurrency(m.principal)}</td>
-                  <td className="py-1.5 px-4 text-right text-xs text-negative-500/80 tabular-nums">{formatCurrency(m.interest)}</td>
+                  <td className="py-1.5 px-4 text-right text-xs text-negative-600 tabular-nums">{formatCurrency(m.interest)}</td>
                   <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums hidden sm:table-cell">{formatCurrency(m.balance)}</td>
                 </tr>
               ))}
@@ -261,7 +261,7 @@ export default function LoanAmortizationCalc() {
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4">
               <p className="text-xs text-neutral-500 mb-0.5">Total Interest</p>
-              <p className="text-base sm:text-lg font-semibold text-negative-500 tabular-nums">{formatCurrency(totalInterest)}</p>
+              <p className="text-base sm:text-lg font-semibold text-negative-600 tabular-nums">{formatCurrency(totalInterest)}</p>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4">
               <p className="text-xs text-neutral-500 mb-0.5">Total Cost</p>

@@ -459,7 +459,7 @@ export default function DebtPayoffCalc() {
                     </div>
                     <div>
                       <p className="text-xs text-neutral-400">Total Interest</p>
-                      <p className="text-sm font-semibold text-negative-500 tabular-nums">
+                      <p className="text-sm font-semibold text-negative-600 tabular-nums">
                         {formatCurrency(avalancheResult.totalInterest)}
                       </p>
                     </div>
@@ -499,7 +499,7 @@ export default function DebtPayoffCalc() {
                     </div>
                     <div>
                       <p className="text-xs text-neutral-400">Total Interest</p>
-                      <p className="text-sm font-semibold text-negative-500 tabular-nums">
+                      <p className="text-sm font-semibold text-negative-600 tabular-nums">
                         {formatCurrency(snowballResult.totalInterest)}
                       </p>
                     </div>
