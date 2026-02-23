@@ -16,7 +16,7 @@ relatedTools:
   - "roi"
 faq:
   - question: "What is JSON?"
-    answer: "JSON (JavaScript Object Notation) is a lightweight data format used to store and exchange data between systems. It uses human-readable text with key-value pairs and arrays. Nearly every web API, configuration file, and data exchange on the internet uses JSON. It looks like this: {\"name\": \"CalcPath\", \"type\": \"tool\"}."
+    answer: "JSON (JavaScript Object Notation) is a lightweight data format used to store and exchange data between systems. It uses human-readable text with key-value pairs and arrays. Nearly every web API, configuration file, and data exchange on the internet uses JSON. It looks like this: {\"name\": \"CalcRun\", \"type\": \"tool\"}."
   - question: "What is the difference between JSON formatting and validation?"
     answer: "Formatting (also called beautifying or pretty-printing) takes valid but messy JSON and adds proper indentation and line breaks so it's easy to read. Validation checks whether a JSON string is syntactically correct — matching brackets, proper quoting, valid data types. Our tool does both simultaneously."
   - question: "Why does my JSON show a validation error?"

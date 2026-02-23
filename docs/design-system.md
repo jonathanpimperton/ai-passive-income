@@ -8,16 +8,16 @@
 
 ## 1. Site Name & Branding
 
-### Chosen Name: **CalcPath**
+### Chosen Name: **CalcRun**
 
-**CalcPath** — calculator + path. "Calc" immediately signals what the site does; "Path" implies guidance, journey, and planning — exactly right for financial tools that help people chart a course.
+**CalcRun** — calculator + path. "Calc" immediately signals what the site does; "Path" implies guidance, journey, and planning — exactly right for financial tools that help people chart a course.
 
 | Criterion | Status |
 |-----------|--------|
 | Short (8 chars) | Yes |
 | Easy to spell and say | Yes |
 | No competing brands in finance | Yes — only unrelated "calpath.com" (pathology lab) |
-| .pages.dev available | Yes — `calcpath.pages.dev` is unclaimed |
+| .pages.dev available | Yes — `calcrun.pages.dev` is unclaimed |
 | .com likely available | Yes — no active site found |
 | SEO-friendly | Yes — "calc" is a high-value keyword root |
 
@@ -35,8 +35,8 @@
 
 | Phase | Domain | Cost |
 |-------|--------|------|
-| **Launch (now)** | `calcpath.pages.dev` | $0 |
-| **Month 1–3** | Buy `calcpath.com` via Cloudflare Registrar, 301 redirect .pages.dev | ~$10/year |
+| **Launch (now)** | `calcrun.pages.dev` | $0 |
+| **Month 1–3** | Buy `calcrun.com` via Cloudflare Registrar, 301 redirect .pages.dev | ~$10/year |
 
 **Why this works:**
 - Cloudflare Pages free tier allows commercial use (unlike Vercel)
@@ -59,7 +59,7 @@ The logo is a **two-tone wordmark** — "Calc" in deep navy, "Path" in blue. Cre
 ```svg
 <svg role="img" aria-labelledby="logo-title" xmlns="http://www.w3.org/2000/svg"
      viewBox="0 0 180 40" fill="none">
-  <title id="logo-title">CalcPath</title>
+  <title id="logo-title">CalcRun</title>
   <text font-family="Inter, ui-sans-serif, system-ui, sans-serif"
         font-weight="700" font-size="28" y="30">
     <tspan fill="#0A2540">Calc</tspan><tspan fill="#2563EB">Path</tspan>
@@ -106,7 +106,7 @@ The logo is a **two-tone wordmark** — "Calc" in deep navy, "Path" in blue. Cre
 
 Auto-generated per tool page using **Satori + Sharp** in an Astro static endpoint:
 
-- Template: deep navy background (#0A2540), white text, "CalcPath" top-left, tool name large, one-line description, URL bottom-left
+- Template: deep navy background (#0A2540), white text, "CalcRun" top-left, tool name large, one-line description, URL bottom-left
 - 1200x630px (standard OG image size)
 - Generated at build time via `src/pages/og/[slug].png.ts` — zero runtime cost
 - Requires Inter `.ttf` files in `public/fonts/` (downloaded from Google Fonts)
@@ -565,7 +565,7 @@ File Tools (Phase 2 — secondary category, not in Calculators dropdown):
 │                                                          │
 ├──────────────────────────────────────────────────────────┤
 │  Footer: About | Privacy | Terms | Affiliate Disclosure   │
-│          © 2026 CalcPath                                 │
+│          © 2026 CalcRun                                 │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -908,14 +908,14 @@ Stripped-down calculator for embedding on third-party sites:
 
 - Calculator inputs + results only (no educational content, no nav, no footer)
 - White background, self-contained card with subtle border
-- "Powered by CalcPath" link at bottom — links back to full tool page
+- "Powered by CalcRun" link at bottom — links back to full tool page
 - Responsive within iframe (fills container width)
 - Max height: 600px with internal scroll if needed
 
 ### Embed Attribution
 
 ```
-Powered by CalcPath — Free Financial Calculators
+Powered by CalcRun — Free Financial Calculators
 ```
 
 - 12px text, neutral-500 color, links to homepage
@@ -927,7 +927,7 @@ Powered by CalcPath — Free Financial Calculators
 
 See **Section 1 > OG Image Generation** for the full Satori + Sharp implementation plan.
 
-**Summary:** 1200x630px, navy background, white text, CalcPath branding, tool name + description. Generated at build time via Astro static endpoint — zero runtime cost.
+**Summary:** 1200x630px, navy background, white text, CalcRun branding, tool name + description. Generated at build time via Astro static endpoint — zero runtime cost.
 
 ---
 
@@ -1072,7 +1072,7 @@ All design decisions above map to Tailwind CSS v4 `@theme` configuration in the 
 
 Before writing component code, confirm these decisions are locked:
 
-- [x] **Site name chosen** — CalcPath. Launch on `calcpath.pages.dev`, buy `calcpath.com` within 1–3 months (~$10/year via Cloudflare Registrar).
+- [x] **Site name chosen** — CalcRun. Launch on `calcrun.pages.dev`, buy `calcrun.com` within 1–3 months (~$10/year via Cloudflare Registrar).
 - [x] **Color palette finalized** — blue/green trust palette with contrast-verified pairs (see Section 2).
 - [x] **Font loaded** — Inter variable font `.woff2` self-hosted in `public/fonts/`. `@font-face` in global CSS. Inter `.ttf` for Satori OG image generation. JetBrains Mono for JSON formatter.
 - [x] **Lucide icons installed** — `lucide-react` in package.json. Icon names assigned per tool in `tools-data.ts`.

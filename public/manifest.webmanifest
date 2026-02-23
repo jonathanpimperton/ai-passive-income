@@ -1,6 +1,6 @@
 {
-  "name": "CalcPath — Free Financial Calculators",
-  "short_name": "CalcPath",
+  "name": "CalcRun — Free Financial Calculators",
+  "short_name": "CalcRun",
   "description": "Free, instant financial calculators with interactive charts and plain-English explanations. No signup, no ads, no data harvesting.",
   "start_url": "/",
   "display": "standalone",

@@ -333,7 +333,7 @@ Position as **the** free financial calculator resource. Every page reinforces fi
 ### Per-Tool Page SEO
 
 ```
-Title:       "Free [Tool Name] Online | CalcPath"
+Title:       "Free [Tool Name] Online | CalcRun"
 Description: "[Action verb] [what the tool does]. Free, fast, no signup required."
 H1:          "[Tool Name]"
 URL:         /tools/[category]/[tool-slug]

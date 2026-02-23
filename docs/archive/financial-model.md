@@ -23,7 +23,7 @@
 | Hosting cost | $0 | Cloudflare Pages free tier |
 | Email service cost | $0 | MailerLite free tier — 500 subscribers, automations included. $10/mo after 500 subs. |
 | Database cost | $0 | None needed — pure static site |
-| Domain cost | $0 at launch, ~$10/year later | Launch on `calcpath.pages.dev` ($0). Buy `calcpath.com` via Cloudflare Registrar (~$10/yr) within months 1–3 before backlinks accumulate. The .pages.dev subdomain hurts affiliate program acceptance and user trust. See `design-and-branding.md` Section 1 for migration plan. |
+| Domain cost | $0 at launch, ~$10/year later | Launch on `calcrun.pages.dev` ($0). Buy `calcrun.com` via Cloudflare Registrar (~$10/yr) within months 1–3 before backlinks accumulate. The .pages.dev subdomain hurts affiliate program acceptance and user trust. See `design-and-branding.md` Section 1 for migration plan. |
 
 ---
 

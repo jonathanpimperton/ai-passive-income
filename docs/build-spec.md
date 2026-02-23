@@ -1,13 +1,13 @@
-# CalcPath Build Spec
+# CalcRun Build Spec
 
-> Single source of truth for building CalcPath. Consolidated from strategy + plan-optimization docs.
+> Single source of truth for building CalcRun. Consolidated from strategy + plan-optimization docs.
 > For design details (colors, typography, layout, UI patterns), see `design-system.md`.
 
 ---
 
 ## What We're Building
 
-A focused financial calculator site called **CalcPath** (`calcpath.pages.dev` at launch).
+A focused financial calculator site called **CalcRun** (`calcrun.pages.dev` at launch).
 
 - **Astro** + Tailwind CSS v4 + React islands on Cloudflare Pages (free tier)
 - **15 MVP tools** (12 financial calculators + 3 utility tools)
@@ -112,9 +112,9 @@ Calculator.net is the category king (~100M visits/mo, 20+ years). Studying their
 - **Internal linking network:** Every calculator links to 5-6 related calculators, creating an internal link web. With only 15 tools, our related tools section is even more critical.
 
 **Where they're weak (exploit):**
-- **No real-time results** — submit button + page reload. CalcPath updates instantly as you drag a slider. This is our single biggest UX differentiator.
+- **No real-time results** — submit button + page reload. CalcRun updates instantly as you drag a slider. This is our single biggest UX differentiator.
 - **Ad-heavy, cluttered layout** — multiple 300x250 display ads throughout. Our "no ads" positioning directly attacks this.
-- **Dated design** — looks like 2010. No hover effects, no animations, no visual hierarchy, no sliders. CalcPath's modern design is a generational leap.
+- **Dated design** — looks like 2010. No hover effects, no animations, no visual hierarchy, no sliders. CalcRun's modern design is a generational leap.
 - **No mobile-first thinking** — tables and layouts don't adapt to mobile.
 - **No scenario comparison** — can't save and compare two sets of inputs.
 - **No email/export** — no "email me this" or PDF download. This is our email capture mechanism.
@@ -127,7 +127,7 @@ Calculator.net is the category king (~100M visits/mo, 20+ years). Studying their
 ### Value Proposition
 
 **For people making financial decisions** who need clarity on the numbers,
-**CalcPath** provides **free, instant, no-signup financial calculators** with interactive charts and plain-English explanations —
+**CalcRun** provides **free, instant, no-signup financial calculators** with interactive charts and plain-English explanations —
 **unlike NerdWallet and SmartAsset**, which gate results behind account forms and sell your data to financial advisors.
 
 ### One-Line USP
@@ -142,7 +142,7 @@ This is the copy direction for the homepage hero, meta descriptions, and social 
                     Deep Content / Education
                             ▲
                             │
-              NerdWallet ●  │  ● CalcPath (us)
+              NerdWallet ●  │  ● CalcRun (us)
                             │
                             │  ● Omni Calculator
               SmartAsset ●  │
@@ -168,7 +168,7 @@ At launch, we have **no moat**. This is a new domain with zero authority. The mo
 | Month 1 | Design quality | Clean, fast, modern — better UX than 90% of calculator sites |
 | Month 3-6 | Content depth | 500-1,000 words of educational content per tool (most competitors skip this) |
 | Month 6-12 | Email list | Owned audience that no algorithm change can take away |
-| Month 6-12 | Backlinks from embeds | Embeddable widgets with "Powered by CalcPath" generate passive backlinks |
+| Month 6-12 | Backlinks from embeds | Embeddable widgets with "Powered by CalcRun" generate passive backlinks |
 | Year 1+ | Domain authority | Accumulated SEO equity, indexed pages, backlink profile |
 | Year 2+ | Brand recognition | Direct traffic from bookmarks and word-of-mouth |
 
@@ -214,7 +214,7 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 
 | Path | Mechanism | Timeline |
 |------|----------|----------|
-| **Return visits** | User bookmarks CalcPath, returns for other calculators | Month 3+ |
+| **Return visits** | User bookmarks CalcRun, returns for other calculators | Month 3+ |
 | **Related tool clicks** | "Related Calculators" section drives 2-3 pages/session | Launch |
 | **Comparison table clicks** | "Best High-Yield Savings Accounts" table on calculator pages | Launch |
 | **Shared results** | User emails PDF to spouse/friend, friend visits site | Month 1+ |
@@ -266,11 +266,11 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 
 ### Strategic Rationale
 
-File converters are a **traffic acquisition strategy**, not a rebranding. CalcPath's identity, messaging, and revenue model remain anchored in financial calculators. Converters serve three purposes:
+File converters are a **traffic acquisition strategy**, not a rebranding. CalcRun's identity, messaging, and revenue model remain anchored in financial calculators. Converters serve three purposes:
 
 1. **Traffic volume** — File conversion queries (image compress, HEIC to JPG, PNG to JPG) get 10-100x more searches than financial calculator queries. This traffic builds domain authority that lifts financial calculator rankings.
 2. **Cross-promotion funnel** — Every converter page prominently links to financial calculators. A percentage of converter visitors discover and use the higher-value tools.
-3. **Privacy differentiation** — Every major competitor (iLovePDF ~220M visits/mo, Smallpdf ~56M, Convertio ~25M) uploads files to servers. CalcPath processes everything client-side. "Your files never leave your device" is a genuine competitive advantage.
+3. **Privacy differentiation** — Every major competitor (iLovePDF ~220M visits/mo, Smallpdf ~56M, Convertio ~25M) uploads files to servers. CalcRun processes everything client-side. "Your files never leave your device" is a genuine competitive advantage.
 
 **What this is NOT:** A pivot, a rebrand, or an equal product line. The homepage hero stays financial. The tagline stays financial. Financial calculators remain the primary navigation category. Converters live in a secondary "File Tools" category. If converters show no cross-traffic to financial tools after 6 months, evaluate cutting them.
 
@@ -610,12 +610,12 @@ const slug = tool.data.slug;
 ### Per-Tool Page Structure
 
 ```
-Title:       "Free [Tool Name] Online | CalcPath"
+Title:       "Free [Tool Name] Online | CalcRun"
 Description: "[Action verb] [what the tool does]. Free, instant, no signup — no ads or data harvesting."
 H1:          "[Tool Name]"
 URL:         /tools/[category]/[tool-slug]
 Schema:      WebApplication type + FAQ schema
-OG Image:    Auto-generated (tool name + CalcPath branding)
+OG Image:    Auto-generated (tool name + CalcRun branding)
 ```
 
 **Page sections (in order):**
@@ -677,7 +677,7 @@ Don't add Ezoic until 50+ daily visitors consistently. Ads hurt Core Web Vitals 
 
 **HIGH priority:**
 1. **Email capture** — "Email me a PDF of my results" on all 12 financial calculators (not utility tools — emailing a password is a security anti-pattern, QR codes are downloadable images, JSON is copy/paste). MailerLite free tier (500 subs, automations included; upgrade to $10/mo Growing Business plan at 500+ subs). 3-email drip: results PDF → educational content → affiliate recommendation. Email list is the insurance policy against Google algorithm changes.
-2. **Embeddable widgets** — iframe versions with "Powered by CalcPath" backlink. Omni Calculator got 564K+ backlinks this way.
+2. **Embeddable widgets** — iframe versions with "Powered by CalcRun" backlink. Omni Calculator got 564K+ backlinks this way.
 3. **"Best X" comparison tables** — on every financial calculator page. Highest affiliate CTR placement.
 
 **MEDIUM priority:**
@@ -746,7 +746,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 | Markdown to HTML | Markdown to HTML converter | Markdown preview online, convert Markdown to HTML |
 | Images to PDF | JPG to PDF, PNG to PDF | combine images to PDF, image to PDF converter |
 
-**Privacy-first long-tail targets** (lower KD, aligned with CalcPath's positioning):
+**Privacy-first long-tail targets** (lower KD, aligned with CalcRun's positioning):
 - "compress image without uploading"
 - "convert HEIC to JPG privately"
 - "PNG to JPG no upload"
@@ -755,7 +755,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 
 ### Keyword Strategy Notes
 
-- **Title tag formula:** "Free [Primary Keyword] Online | CalcPath"
+- **Title tag formula:** "Free [Primary Keyword] Online | CalcRun"
 - **H1:** "[Primary Keyword]" (natural, not keyword-stuffed)
 - **Educational content:** Target 2-3 secondary keywords naturally within the 500-1,000 word section
 - **FAQ section:** Each question should be a real long-tail query people search for
@@ -932,20 +932,20 @@ Must cover (FTC requires this — $53,088 per violation):
 
 | Section | Content |
 |---------|---------|
-| **Clear statement** | "CalcPath earns commissions from some links on this site. This helps us keep the tools free." |
+| **Clear statement** | "CalcRun earns commissions from some links on this site. This helps us keep the tools free." |
 | **What it means for users** | "You pay nothing extra. The products cost the same whether you use our link or go directly." |
 | **How we choose recommendations** | "We only recommend products we've researched. Affiliate relationships don't influence our calculator results — the math is the math." |
 | **List of affiliate relationships** | Name each program (Betterment, LendingTree, SoFi, etc.) with a brief description. Update as programs are added. |
-| **Not financial advice** | "CalcPath provides educational tools and information, not personalized financial advice. Consult a qualified financial advisor for decisions specific to your situation." |
+| **Not financial advice** | "CalcRun provides educational tools and information, not personalized financial advice. Consult a qualified financial advisor for decisions specific to your situation." |
 
 ### Terms of Use (`/terms`) — keep simple
 
 | Section | Content |
 |---------|---------|
 | **Calculator accuracy** | "Results are estimates based on the inputs you provide. Actual results may vary. We test our math rigorously but cannot guarantee accuracy for your specific situation." |
-| **Not financial advice** | "CalcPath is an educational tool, not a financial advisor. We don't know your full financial picture." |
+| **Not financial advice** | "CalcRun is an educational tool, not a financial advisor. We don't know your full financial picture." |
 | **Use at your own risk** | Standard disclaimer — no liability for decisions made based on calculator results. |
-| **Intellectual property** | Calculator code and content are copyrighted. Embeddable widgets are provided under fair use with required attribution ("Powered by CalcPath"). |
+| **Intellectual property** | Calculator code and content are copyrighted. Embeddable widgets are provided under fair use with required attribution ("Powered by CalcRun"). |
 
 ### Cookie Consent
 
@@ -965,7 +965,7 @@ The About page is a trust signal. For an AI-built project, honesty is critical �
 
 | Section | Content Direction |
 |---------|------------------|
-| **Mission** | "CalcPath exists to make financial math simple. Every calculator is free, instant, and private — we never ask for your data or bury results behind signup forms." |
+| **Mission** | "CalcRun exists to make financial math simple. Every calculator is free, instant, and private — we never ask for your data or bury results behind signup forms." |
 | **What we do** | "We build free financial calculators with clear explanations, interactive charts, and downloadable results. Our tools help you see your numbers so you can make informed decisions." |
 | **How we're different** | Reference USP: no signup walls, no data harvesting, no ad clutter. "Other financial sites gate results behind forms or sell your info to financial advisors. We don't." |
 | **How we make money** | Be transparent: "We earn commissions when you click affiliate links to financial products. This costs you nothing extra and helps keep our tools free. We never recommend a product to earn a commission — see our [disclosure](/disclosure)." |
@@ -976,11 +976,11 @@ The About page is a trust signal. For an AI-built project, honesty is critical �
 - Don't say "our team of financial experts" — there is no team
 - Don't say "AI-powered" or "built by AI" — NNGroup research shows this hurts credibility for straightforward tools
 - Don't invent team member bios or stock photos of people
-- Use "we" (the brand, CalcPath) not "I" — brands can speak in plural
+- Use "we" (the brand, CalcRun) not "I" — brands can speak in plural
 
 ### Tone
 
-Mission-focused, not personality-focused. The About page is about what CalcPath does for users, not about who's behind it. This is standard for tool sites (Calculator.net, Omni Calculator, and most tool sites don't have "team" pages).
+Mission-focused, not personality-focused. The About page is about what CalcRun does for users, not about who's behind it. This is standard for tool sites (Calculator.net, Omni Calculator, and most tool sites don't have "team" pages).
 
 ---
 
