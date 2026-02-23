@@ -18,6 +18,13 @@ import DebtPayoffCalc from '@components/tools/DebtPayoffCalc.tsx';
 import SavingsGoalCalc from '@components/tools/SavingsGoalCalc.tsx';
 import QrCodeGenerator from '@components/tools/QrCodeGenerator.tsx';
 import PasswordGenerator from '@components/tools/PasswordGenerator.tsx';
+import EmergencyFundCalc from '@components/tools/EmergencyFundCalc.tsx';
+import RoiCalc from '@components/tools/RoiCalc.tsx';
+import InflationCalc from '@components/tools/InflationCalc.tsx';
+import SalaryCalc from '@components/tools/SalaryCalc.tsx';
+import NetWorthCalc from '@components/tools/NetWorthCalc.tsx';
+import RentVsBuyCalc from '@components/tools/RentVsBuyCalc.tsx';
+import JsonFormatter from '@components/tools/JsonFormatter.tsx';
 
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
@@ -48,6 +55,13 @@ const CALCULATOR_MAP: Record<string, string> = {
   'savings-goal': 'SavingsGoalCalc',
   'qr-code': 'QrCodeGenerator',
   'password-generator': 'PasswordGenerator',
+  'emergency-fund': 'EmergencyFundCalc',
+  'roi': 'RoiCalc',
+  'inflation': 'InflationCalc',
+  'salary': 'SalaryCalc',
+  'net-worth': 'NetWorthCalc',
+  'rent-vs-buy': 'RentVsBuyCalc',
+  'json-formatter': 'JsonFormatter',
 };
 
 const hasCalculator = slug in CALCULATOR_MAP;
@@ -67,6 +81,13 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'savings-goal' && <SavingsGoalCalc client:load />}
     {slug === 'qr-code' && <QrCodeGenerator client:load />}
     {slug === 'password-generator' && <PasswordGenerator client:load />}
+    {slug === 'emergency-fund' && <EmergencyFundCalc client:load />}
+    {slug === 'roi' && <RoiCalc client:load />}
+    {slug === 'inflation' && <InflationCalc client:load />}
+    {slug === 'salary' && <SalaryCalc client:load />}
+    {slug === 'net-worth' && <NetWorthCalc client:load />}
+    {slug === 'rent-vs-buy' && <RentVsBuyCalc client:load />}
+    {slug === 'json-formatter' && <JsonFormatter client:load />}
     {!hasCalculator && <PlaceholderCalc name={name} client:load />}
     <Fragment slot="content">
       <Content />
