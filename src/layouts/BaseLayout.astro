@@ -10,6 +10,7 @@ interface Props {
   canonicalUrl?: string;
   ogImage?: string;
   structuredData?: string[];
+  noindex?: boolean;
 }
 
 const {
@@ -18,11 +19,14 @@ const {
   canonicalUrl,
   ogImage = '/favicon.svg',
   structuredData = [],
+  noindex = false,
 } = Astro.props;
 
 const SITE_URL = 'https://calcrun.com';
 const fullTitle = title.includes('CalcRun') ? title : `${title} | CalcRun`;
-const canonical = canonicalUrl || Astro.url.href;
+// Normalize canonical to always use production domain (not pages.dev or localhost)
+const pathname = Astro.url.pathname;
+const canonical = canonicalUrl || `${SITE_URL}${pathname}`;
 const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogImage}`;
 ---
 
@@ -34,6 +38,7 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
 
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
 
     <!-- Favicons -->
@@ -54,6 +59,7 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />

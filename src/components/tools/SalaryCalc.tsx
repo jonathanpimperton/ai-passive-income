@@ -207,7 +207,7 @@ export default function SalaryCalc() {
             <h2 className="text-lg font-semibold text-neutral-900">Income Details</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -216,9 +216,9 @@ export default function SalaryCalc() {
           </div>
           <div className="space-y-5">
             {inputMode === 'annual' ? (
-              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={500000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} />
+              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={500000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
             ) : (
-              <SliderInput label="Hourly Rate" id="sal-hourly" value={hourlyRate} min={7.25} max={200} step={0.25} onChange={setHourlyRate} prefix="$" formatDisplay={(v) => v.toFixed(2)} />
+              <SliderInput label="Hourly Rate" id="sal-hourly" value={hourlyRate} min={7.25} max={200} step={0.25} onChange={setHourlyRate} prefix="$" formatDisplay={(v) => v.toFixed(2)} hint="Your pay per hour before taxes" />
             )}
             <SliderInput label="Hours per Week" id="sal-hours" value={hoursPerWeek} min={1} max={80} step={1} onChange={setHoursPerWeek} />
             <SliderInput label="Weeks per Year" id="sal-weeks" value={weeksPerYear} min={1} max={52} step={1} onChange={setWeeksPerYear} />
@@ -241,7 +241,7 @@ export default function SalaryCalc() {
               </select>
             </div>
 
-            <SliderInput label="State Tax Rate" id="sal-state" value={stateTaxRate} min={0} max={13} step={0.1} onChange={setStateTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
+            <SliderInput label="State Tax Rate" id="sal-state" value={stateTaxRate} min={0} max={13} step={0.1} onChange={setStateTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Your state income tax rate — enter 0 for no-income-tax states (FL, TX, WA, etc.)" />
           </div>
         </div>
 

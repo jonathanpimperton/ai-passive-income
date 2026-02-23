@@ -126,7 +126,7 @@ export default function QrCodeGenerator() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Input</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -156,7 +156,7 @@ export default function QrCodeGenerator() {
               <div className="flex items-center justify-between mt-1.5">
                 <div className="flex items-center gap-1.5">
                   {isUrl ? (
-                    <Link size={12} className="text-primary-500" aria-hidden="true" />
+                    <Link size={12} className="text-primary-600" aria-hidden="true" />
                   ) : (
                     <Type size={12} className="text-neutral-400" aria-hidden="true" />
                   )}

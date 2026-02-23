@@ -113,7 +113,7 @@ export default function EmergencyFundCalc() {
             <h2 className="text-lg font-semibold text-neutral-900">Monthly Expenses</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -136,9 +136,9 @@ export default function EmergencyFundCalc() {
               <p className="text-xl font-bold text-primary-900 tabular-nums">{formatCurrency(monthlyExpenses)}</p>
             </div>
 
-            <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={100000} step={500} onChange={setCurrentSavings} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={5000} step={25} onChange={setMonthlySaving} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Savings Account APY" id="ef-rate" value={savingsRate} min={0} max={10} step={0.1} onChange={setSavingsRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
+            <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={100000} step={500} onChange={setCurrentSavings} prefix="$" formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
+            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={5000} step={25} onChange={setMonthlySaving} prefix="$" formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
+            <SliderInput label="Savings Account APY" id="ef-rate" value={savingsRate} min={0} max={10} step={0.1} onChange={setSavingsRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Interest rate on your savings account — high-yield accounts offer ~4-5%" />
           </div>
         </div>
 

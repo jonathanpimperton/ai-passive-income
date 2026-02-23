@@ -25,6 +25,28 @@ faq:
     answer: "The minimum recommended print size is 2cm x 2cm (about 0.8 x 0.8 inches) for close-range scanning (menus, business cards). For posters or signs scanned from a distance, use at least 10cm x 10cm. A general rule: the QR code should be at least 1/10th of the scanning distance. For a poster viewed from 3 feet away, make the code at least 3.6 inches."
   - question: "Can QR codes expire?"
     answer: "Static QR codes never expire — the data is encoded directly in the image. However, the content they link to can become unavailable. If a QR code points to a URL that goes offline, the code still works (it opens the URL) but the destination won't load. Always point QR codes to URLs you control and plan to maintain."
+workedExamples:
+  - title: "Restaurant menu QR code"
+    inputs:
+      type: "URL"
+      content: "https://myrestaurant.com/menu"
+      size: 300
+      errorCorrection: "H"
+    description: "A restaurant creates a QR code linking to their online menu. Using high error correction (H) is recommended since printed codes may get smudged or damaged. At 300px, the code prints clearly on table tents or at the bottom of paper menus. The static code never expires and works even if scanned from an angle."
+  - title: "Wi-Fi sharing at an event"
+    inputs:
+      type: "Wi-Fi"
+      content: "SSID:ConferenceWiFi;Password:welcome2026;"
+      size: 500
+      errorCorrection: "M"
+    description: "Event organizers create a large QR code for the venue Wi-Fi. When attendees scan it, their phone automatically connects — no typing long passwords. At 500px and medium error correction, the code is scannable from several feet away on a projected slide or printed poster."
+  - title: "Business card contact sharing"
+    inputs:
+      type: "Text"
+      content: "BEGIN:VCARD\nFN:Jane Smith\nTEL:+15551234567\nEMAIL:jane@example.com\nEND:VCARD"
+      size: 200
+      errorCorrection: "M"
+    description: "A vCard QR code on a business card lets contacts save your details with one scan. At 200px it fits neatly in a corner of a standard business card. When scanned, the phone prompts the user to save the contact — no manual typing of phone numbers or email addresses."
 ---
 
 Educational content will be added during Sprint 4.

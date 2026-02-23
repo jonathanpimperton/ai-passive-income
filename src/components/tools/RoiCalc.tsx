@@ -92,7 +92,7 @@ export default function RoiCalc() {
             <h2 className="text-lg font-semibold text-neutral-900">Investment Details</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -102,10 +102,10 @@ export default function RoiCalc() {
 
           <div className="space-y-5">
             <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Investment A</p>
-            <SliderInput label="Initial Investment" id="roi-initial" value={initialInvestment} min={100} max={1000000} step={100} onChange={setInitialInvestment} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Final Value" id="roi-final" value={finalValue} min={0} max={2000000} step={100} onChange={setFinalValue} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Dividends / Income Received" id="roi-div" value={dividendsReceived} min={0} max={100000} step={50} onChange={setDividendsReceived} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Time Held (Years)" id="roi-years" value={yearsHeld} min={0.25} max={50} step={0.25} onChange={setYearsHeld} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} />
+            <SliderInput label="Initial Investment" id="roi-initial" value={initialInvestment} min={100} max={1000000} step={100} onChange={setInitialInvestment} prefix="$" formatDisplay={formatNumber} hint="How much you originally put in" />
+            <SliderInput label="Final Value" id="roi-final" value={finalValue} min={0} max={2000000} step={100} onChange={setFinalValue} prefix="$" formatDisplay={formatNumber} hint="What your investment is worth now (or when you sold)" />
+            <SliderInput label="Dividends / Income Received" id="roi-div" value={dividendsReceived} min={0} max={100000} step={50} onChange={setDividendsReceived} prefix="$" formatDisplay={formatNumber} hint="Total cash payments received over the holding period" />
+            <SliderInput label="Time Held (Years)" id="roi-years" value={yearsHeld} min={0.25} max={50} step={0.25} onChange={setYearsHeld} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} hint="How long you held the investment — use 0.5 for 6 months" />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
 

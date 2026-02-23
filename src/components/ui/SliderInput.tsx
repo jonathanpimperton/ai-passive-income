@@ -17,6 +17,8 @@ interface SliderInputProps {
   /** Labels for slider min/max endpoints, e.g. "$0" / "$500K" */
   minLabel?: string;
   maxLabel?: string;
+  /** Plain-English hint displayed below the label */
+  hint?: string;
 }
 
 export default function SliderInput({
@@ -32,6 +34,7 @@ export default function SliderInput({
   formatDisplay,
   minLabel,
   maxLabel,
+  hint,
 }: SliderInputProps) {
   const displayValue = formatDisplay ? formatDisplay(value) : String(value);
 
@@ -43,9 +46,11 @@ export default function SliderInput({
 
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-neutral-700 mb-1.5">
+      <label htmlFor={id} className="block text-sm font-medium text-neutral-700 mb-0.5">
         {label}
       </label>
+      {hint && <p className="text-xs text-neutral-400 mb-1.5 leading-relaxed">{hint}</p>}
+      {!hint && <div className="mb-1" />}
       <div className="relative">
         {prefix && (
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm pointer-events-none">

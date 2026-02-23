@@ -67,7 +67,7 @@ const breadcrumbs = [
   <div class="mb-6">
     <div class="flex items-start gap-4 mb-3">
       {toolMeta && (
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50 text-primary-500 shrink-0">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50 text-primary-600 shrink-0">
           <ToolIcon name={toolMeta.icon} size={24} />
         </div>
       )}
@@ -99,7 +99,7 @@ const breadcrumbs = [
             <div class="flex flex-wrap gap-2 mb-3">
               {Object.entries(example.inputs).map(([key, value]) => (
                 <span class="inline-flex items-center gap-1 text-xs font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full">
-                  <span class="text-primary-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (s: string) => s.toUpperCase())}:</span>
+                  <span class="text-primary-600">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (s: string) => s.toUpperCase())}:</span>
                   <span class="tabular-nums">{typeof value === 'number' ? value.toLocaleString() : value}</span>
                 </span>
               ))}

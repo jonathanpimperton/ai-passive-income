@@ -82,7 +82,7 @@ const websiteSchema = buildWebsiteSchema();
           <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900">Popular Calculators</h2>
           <p class="text-neutral-500 mt-2">The tools people use most to plan their finances.</p>
         </div>
-        <a href="/tools" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-primary-500 hover:text-primary-700 transition-colors duration-150">
+        <a href="/tools" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
           View all
           <ToolIcon name="arrow-right" size={16} />
         </a>
@@ -95,11 +95,11 @@ const websiteSchema = buildWebsiteSchema();
             class="tool-card-popular group relative bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-1"
           >
             {/* Icon circle */}
-            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-50 text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 mb-4">
+            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 mb-4">
               <ToolIcon name={tool.icon} size={22} />
             </div>
 
-            <h3 class="text-lg font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150 mb-1.5">
+            <h3 class="text-lg font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-1.5">
               {tool.name}
             </h3>
             <p class="text-sm text-neutral-500 leading-relaxed">{tool.description}</p>
@@ -110,7 +110,7 @@ const websiteSchema = buildWebsiteSchema();
         ))}
       </div>
 
-      <a href="/tools" class="sm:hidden mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-500">
+      <a href="/tools" class="sm:hidden mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600">
         View all tools <ToolIcon name="arrow-right" size={16} />
       </a>
     </div>
@@ -158,11 +158,11 @@ const websiteSchema = buildWebsiteSchema();
             class="tool-card group bg-white border border-neutral-200/80 rounded-2xl p-5 hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
           >
             <div class="flex items-start gap-3.5">
-              <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 shrink-0">
+              <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 shrink-0">
                 <ToolIcon name={tool.icon} size={20} />
               </div>
               <div class="min-w-0">
-                <h3 class="text-base font-semibold text-neutral-900 group-hover:text-primary-500 transition-colors duration-150">
+                <h3 class="text-base font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150">
                   {tool.name}
                 </h3>
                 <p class="text-sm text-neutral-500 mt-1 leading-relaxed">{tool.description}</p>

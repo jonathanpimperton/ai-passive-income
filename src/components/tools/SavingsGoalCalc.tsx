@@ -157,7 +157,7 @@ export default function SavingsGoalCalc() {
             className={`flex-1 min-w-[140px] py-3.5 px-4 text-sm font-medium whitespace-nowrap transition-all duration-150
               ${mode === tab.key
                 ? 'bg-white border-b-2 border-primary-500 text-primary-900'
-                : 'bg-neutral-50 text-neutral-600 hover:text-primary-500 border-b-2 border-transparent'
+                : 'bg-neutral-50 text-neutral-600 hover:text-primary-600 border-b-2 border-transparent'
               }`}
             aria-selected={mode === tab.key}
             aria-controls="sg-results"
@@ -175,7 +175,7 @@ export default function SavingsGoalCalc() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -186,28 +186,31 @@ export default function SavingsGoalCalc() {
           <div className="space-y-5">
             <SliderInput
               label="Savings Goal"
+              hint="Your target amount — e.g. car, vacation, house deposit"
               id="sg-goal"
               value={goalAmount}
               min={1000}
-              max={1000000}
-              step={1000}
+              max={250000}
+              step={500}
               onChange={setGoalAmount}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}
             />
             <SliderInput
               label="Current Savings"
+              hint="How much you've already saved toward this goal"
               id="sg-current"
               value={currentSavings}
               min={0}
-              max={500000}
+              max={200000}
               step={500}
               onChange={setCurrentSavings}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}
             />
             <SliderInput
-              label="Expected Annual Return"
+              label="Annual Interest Rate"
+              hint="Rate your savings earn — ~4–5% for high-yield savings accounts"
               id="sg-rate"
               value={annualRate}
               min={0}
@@ -221,21 +224,24 @@ export default function SavingsGoalCalc() {
             {/* Mode-specific input */}
             {mode === 'monthly' ? (
               <SliderInput
-                label="Time to Reach Goal (Months)"
+                label="Timeframe"
+                hint="How many months you have to reach your goal"
                 id="sg-months"
                 value={months}
                 min={1}
                 max={360}
                 step={1}
                 onChange={setMonths}
+                suffix=" months"
               />
             ) : (
               <SliderInput
                 label="Monthly Contribution"
+                hint="How much you can put away each month"
                 id="sg-monthly"
                 value={monthlyContribution}
                 min={0}
-                max={10000}
+                max={5000}
                 step={25}
                 onChange={setMonthlyContribution}
                 prefix="$"

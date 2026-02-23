@@ -35,10 +35,10 @@ export async function getStaticPaths() {
 }
 
 const { tool } = Astro.props;
-const { name, slug, category, description, faq } = tool.data;
+const { name, slug, category, description, faq, keywords } = tool.data;
 const { Content } = await render(tool);
 
-const webAppSchema = buildWebApplicationSchema({ name, description, slug, category });
+const webAppSchema = buildWebApplicationSchema({ name, description, slug, category, keywords });
 const faqSchema = faq.length > 0 ? buildFaqSchema(faq) : null;
 const structuredData = [webAppSchema, ...(faqSchema ? [faqSchema] : [])];
 

@@ -207,7 +207,7 @@ export default function CompoundInterestCalc() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -218,17 +218,19 @@ export default function CompoundInterestCalc() {
           <div className="space-y-5">
             <SliderInput
               label="Starting Amount"
+              hint="Amount you're starting with today"
               id="ci-principal"
               value={principal}
               min={0}
-              max={1000000}
-              step={1000}
+              max={500000}
+              step={500}
               onChange={setPrincipal}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}
             />
             <SliderInput
               label="Monthly Contribution"
+              hint="Amount you'll add each month"
               id="ci-monthly"
               value={monthly}
               min={0}
@@ -239,7 +241,8 @@ export default function CompoundInterestCalc() {
               formatDisplay={(v) => formatNumber(v)}
             />
             <SliderInput
-              label="Annual Interest Rate"
+              label="Annual Growth Rate"
+              hint="~4-5% for savings accounts, ~7-10% for stock market index funds"
               id="ci-rate"
               value={rate}
               min={0}
@@ -251,6 +254,7 @@ export default function CompoundInterestCalc() {
             />
             <SliderInput
               label="Time Period (Years)"
+              hint="How long you'll let it grow"
               id="ci-years"
               value={years}
               min={1}
@@ -265,7 +269,7 @@ export default function CompoundInterestCalc() {
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-expanded={showAdvanced}
             >
               <ChevronDown
