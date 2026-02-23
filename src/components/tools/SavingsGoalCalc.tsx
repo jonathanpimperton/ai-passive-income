@@ -296,7 +296,7 @@ export default function SavingsGoalCalc() {
                 <p className="text-sm text-neutral-500 mb-1">Time to Reach Your Goal</p>
                 <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
                   {!isFinite(timeToGoalMonths) ? (
-                    <span className="text-negative-500">Not reachable</span>
+                    <span className="text-negative-600">Not reachable</span>
                   ) : goalAmount <= currentSavings ? (
                     <span className="text-accent-600">Already reached!</span>
                   ) : (
