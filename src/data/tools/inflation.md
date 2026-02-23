@@ -15,6 +15,11 @@ relatedTools:
   - "investment-return"
   - "savings-goal"
   - "salary"
+affiliateContext: "Invest to protect your purchasing power against inflation"
+affiliatePrograms:
+  - "Betterment"
+  - "Wealthfront"
+  - "Vanguard"
 faq:
   - question: "What is inflation and how does it work?"
     answer: "Inflation is the gradual increase in prices over time, which reduces the purchasing power of money. If inflation is 3% per year, something that costs $100 today would cost about $103 next year. It's measured by the Consumer Price Index (CPI), which tracks the average price change of a basket of goods and services."

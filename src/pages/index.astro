@@ -247,6 +247,9 @@ const websiteSchema = buildWebsiteSchema();
     transform: scale(0.95) translateY(4px);
     pointer-events: none;
   }
+  .tool-card.card-hidden {
+    display: none;
+  }
 
   /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce) {
@@ -280,9 +283,9 @@ const websiteSchema = buildWebsiteSchema();
 
         if (!shouldShow) {
           el.classList.add('hiding');
-          setTimeout(() => { el.style.display = 'none'; }, 200);
+          setTimeout(() => { el.classList.add('card-hidden'); }, 200);
         } else {
-          el.style.display = '';
+          el.classList.remove('card-hidden');
           // Force reflow for animation
           void el.offsetHeight;
           el.classList.remove('hiding');

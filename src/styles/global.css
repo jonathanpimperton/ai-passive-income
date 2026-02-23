@@ -25,23 +25,53 @@
   --color-primary-700: #1A3A5C;
   --color-primary-600: #1D4ED8;
   --color-primary-500: #2563EB;
+  --color-primary-400: #60A5FA;
   --color-primary-300: #93C5FD;
   --color-primary-200: #BFDBFE;
   --color-primary-100: #DBEAFE;
   --color-primary-50: #EFF6FF;
 
   /* Accent (green — growth/positive) */
+  --color-accent-800: #065F46;
   --color-accent-700: #047857;
   --color-accent-600: #059669;
   --color-accent-500: #10B981;
   --color-accent-100: #D1FAE5;
+  --color-accent-50: #ECFDF5;
 
   /* Negative (red — errors/losses) */
+  --color-negative-600: #DC2626;
   --color-negative-500: #EF4444;
   --color-negative-100: #FEE2E2;
+  --color-negative-50: #FEF2F2;
 
   /* Warning (amber) */
+  --color-warning-600: #D97706;
   --color-warning-500: #F59E0B;
+  --color-warning-100: #FEF3C7;
+  --color-warning-50: #FFFBEB;
+
+  /* Amber (alias for warning shades used in components) */
+  --color-amber-800: #92400E;
+  --color-amber-600: #D97706;
+  --color-amber-500: #F59E0B;
+  --color-amber-200: #FDE68A;
+  --color-amber-50: #FFFBEB;
+
+  /* Emerald (alias for accent/green shades used in components) */
+  --color-emerald-700: #047857;
+  --color-emerald-300: #6EE7B7;
+  --color-emerald-200: #A7F3D0;
+  --color-emerald-100: #D1FAE5;
+
+  /* Blue (alias for primary shades used in components) */
+  --color-blue-700: #1D4ED8;
+  --color-blue-300: #93C5FD;
+  --color-blue-200: #BFDBFE;
+  --color-blue-100: #DBEAFE;
+
+  /* Red (alias for negative shades) */
+  --color-red-600: #DC2626;
 
   /* Neutrals */
   --color-neutral-900: #111827;
@@ -49,6 +79,7 @@
   --color-neutral-600: #4B5563;
   --color-neutral-500: #6B7280;
   --color-neutral-400: #9CA3AF;
+  --color-neutral-300: #D1D5DB;
   --color-neutral-200: #E5E7EB;
   --color-neutral-100: #F3F4F6;
   --color-neutral-50: #F9FAFB;
@@ -127,6 +158,10 @@ a {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* Scrollbar hide utility */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {

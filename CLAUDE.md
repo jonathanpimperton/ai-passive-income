@@ -186,3 +186,52 @@ npm run build
 # Run tests
 npm test
 ```
+
+## Pre-Commit QA Checklist (MANDATORY)
+
+Every session that writes code MUST run through this checklist before committing. These checks come from recurring QA issues found across multiple sprints — skipping them guarantees rework.
+
+### 1. Build & Tests
+- [ ] `npm run build` — 0 errors, all pages generated
+- [ ] `npm test` — all tests passing
+- [ ] No new `[WARN]` messages in build output (investigate any that appear)
+
+### 2. SEO (every tool markdown file)
+- [ ] **Meta descriptions ≤160 chars** — Google truncates beyond this. Count characters for every new/edited `description` field in `src/data/tools/*.md`. This has been wrong on 11/15 tools before.
+- [ ] **`affiliateContext` + `affiliatePrograms`** — Add to every tool where there's a natural product fit (financial tools → investment/savings platforms). Don't force affiliates on utility tools (QR code, JSON formatter) with no natural fit.
+- [ ] **FAQ array** — 5+ questions per tool, substantive answers
+- [ ] **`relatedTools` array** — 4-7 cross-references, all slugs valid
+- [ ] **`workedExamples`** — 3 realistic scenarios per tool
+
+### 3. Accessibility (every new component)
+- [ ] **WCAG AA contrast** — Never use `accent-500` or `primary-500` for text on white backgrounds. Use `accent-600`/`primary-600` minimum. This has been wrong multiple times.
+- [ ] **`aria-hidden="true"`** on ALL decorative icons/SVGs
+- [ ] **`aria-expanded`** synced on all toggleable elements (dropdowns, collapsibles)
+- [ ] **`aria-live="polite"`** on dynamic content regions (calculator results)
+- [ ] **Keyboard navigation** — Every interactive element reachable via Tab, toggleable via Enter/Space, dismissible via Escape
+- [ ] **Focus management** — Focus traps in modals/menus, focus returns to trigger on close
+- [ ] **Visible `<label>` elements** on all form inputs (not just `aria-label` — use `aria-label` only when a visual label is genuinely impractical)
+- [ ] **Skip-to-content link** in BaseLayout (already exists — don't remove it)
+
+### 4. Design System (every new component/page)
+- [ ] **No duplicate icons** — Check `src/lib/tools-data.ts` before assigning a Lucide icon. Emergency Fund and Password Generator had the same icon once.
+- [ ] **Every card has**: `border border-neutral-200/80 shadow-card` + Lucide icon + hover effects (lift, shadow, icon color inversion)
+- [ ] **Section dividers** — gradient lines (`via-primary-300/30`), never plain `<hr>` or `border-b`
+- [ ] **No `display: none` in JS** — Use CSS classes for show/hide. Animate with opacity/transform first, then apply a `.card-hidden` class if needed for layout collapse.
+- [ ] **No inline styles in JS** — Use CSS classes toggled via `classList.add/remove`, not `el.style.x = y`
+- [ ] **Rounded corners** — `rounded-2xl` on major cards, `rounded-xl` on smaller elements, `rounded-lg` on inputs
+- [ ] **Section backgrounds alternate** — white → neutral-50 → primary-50. Never two adjacent sections with the same background.
+
+### 5. Tailwind v4 Tokens
+- [ ] **Every color used in a utility class MUST be defined in `@theme`** in `src/styles/global.css`. Tailwind v4 only generates utilities for explicitly defined tokens. If you use `bg-neutral-400` but `--color-neutral-400` isn't in `@theme`, it silently fails. This has broken styling before.
+
+### 6. Assets & Meta
+- [ ] **OG image URLs are absolute** — Must start with `https://calcpath.pages.dev/`, not relative paths
+- [ ] **Favicon/manifest references** point to files that actually exist in `public/`
+- [ ] **No hardcoded URLs** in components — Use helper functions (`getToolPath()`, etc.)
+
+### 7. Code Quality
+- [ ] **No unused imports** — Remove any imports that aren't referenced
+- [ ] **No `console.log`** — Remove before committing
+- [ ] **No invalid CSS class names** — Verify Tailwind classes exist (e.g., `text-negative-500` is not a valid class — use `text-red-600`)
+- [ ] **CSS classes referenced in JS exist in CSS** — If JS adds `classList.add('hiding')`, verify `.hiding` is defined in a `<style>` block or global CSS

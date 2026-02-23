@@ -14,6 +14,11 @@ relatedTools:
   - "savings-goal"
   - "emergency-fund"
   - "investment-return"
+affiliateContext: "Start growing your net worth with a smart investment account"
+affiliatePrograms:
+  - "Betterment"
+  - "SoFi"
+  - "Vanguard"
 faq:
   - question: "What is net worth and how do you calculate it?"
     answer: "Net worth is the total value of everything you own (assets) minus everything you owe (liabilities). Assets include cash, investments, property, and retirement accounts. Liabilities include mortgages, student loans, credit card debt, and car loans. Net worth = assets - liabilities."

@@ -15,6 +15,11 @@ relatedTools:
   - "inflation"
   - "net-worth"
   - "retirement-savings"
+affiliateContext: "Maximize your returns with a low-fee investment platform"
+affiliatePrograms:
+  - "Betterment"
+  - "Wealthfront"
+  - "Vanguard"
 faq:
   - question: "How do you calculate ROI?"
     answer: "The basic ROI formula is: ROI = (Net Profit / Cost of Investment) x 100. For example, if you invested $10,000 and it's now worth $13,000, your ROI is ($3,000 / $10,000) x 100 = 30%. Our calculator also computes annualized ROI, which accounts for how long you held the investment."
