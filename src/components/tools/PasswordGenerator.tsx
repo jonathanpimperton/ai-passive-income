@@ -299,7 +299,7 @@ export default function PasswordGenerator() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Options</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />

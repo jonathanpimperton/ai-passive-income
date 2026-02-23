@@ -229,7 +229,7 @@ export default function RetirementSavingsCalc() {
               ${
                 mode === tab.mode
                   ? 'bg-white border-b-2 border-primary-500 text-primary-900'
-                  : 'bg-neutral-50 text-neutral-600 hover:text-primary-500 border-b-2 border-transparent'
+                  : 'bg-neutral-50 text-neutral-600 hover:text-primary-600 border-b-2 border-transparent'
               }`}
             role="tab"
             aria-selected={mode === tab.mode}
@@ -247,7 +247,7 @@ export default function RetirementSavingsCalc() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -291,11 +291,12 @@ export default function RetirementSavingsCalc() {
             {/* Current Savings — always an input */}
             <SliderInput
               label="Current Savings"
+              hint="Total saved for retirement so far (401k, IRA, etc.)"
               id="ret-current-savings"
               value={currentSavings}
               min={0}
-              max={5000000}
-              step={5000}
+              max={2000000}
+              step={1000}
               onChange={setCurrentSavings}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}
@@ -305,6 +306,7 @@ export default function RetirementSavingsCalc() {
             {mode !== 'contribution' && (
               <SliderInput
                 label="Monthly Contribution"
+                hint="Amount you'll save each month toward retirement"
                 id="ret-monthly"
                 value={monthlyContribution}
                 min={0}
@@ -320,10 +322,11 @@ export default function RetirementSavingsCalc() {
             {(mode === 'contribution' || mode === 'retirement-age') && (
               <SliderInput
                 label="Target Retirement Balance"
+                hint="How much you want saved by retirement — in today's dollars"
                 id="ret-target"
                 value={targetBalance}
                 min={50000}
-                max={10000000}
+                max={5000000}
                 step={50000}
                 onChange={setTargetBalance}
                 prefix="$"
@@ -333,7 +336,8 @@ export default function RetirementSavingsCalc() {
 
             {/* Annual Return Rate — always an input */}
             <SliderInput
-              label="Annual Return Rate"
+              label="Expected Annual Return"
+              hint="Stock/bond portfolio average: ~6-8% is typical"
               id="ret-return"
               value={annualReturn}
               min={0}
@@ -347,6 +351,7 @@ export default function RetirementSavingsCalc() {
             {/* Inflation Rate — always an input */}
             <SliderInput
               label="Expected Inflation Rate"
+              hint="How fast prices rise — ~3% is the US long-term average"
               id="ret-inflation"
               value={inflationRate}
               min={0}

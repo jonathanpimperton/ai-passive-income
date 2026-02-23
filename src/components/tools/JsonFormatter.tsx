@@ -91,7 +91,7 @@ export default function JsonFormatter() {
             <h2 className="text-lg font-semibold text-neutral-900">Input</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset input"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -131,7 +131,7 @@ export default function JsonFormatter() {
                 type="checkbox"
                 checked={sortKeys}
                 onChange={(e) => setSortKeys(e.target.checked)}
-                className="rounded border-neutral-300 text-primary-500 focus:ring-primary-500/20"
+                className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20"
               />
               Sort keys
             </label>
@@ -167,7 +167,7 @@ export default function JsonFormatter() {
             {result.valid && (
               <button
                 onClick={() => handleCopy(result.formatted)}
-                className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-500 transition-colors duration-150"
+                className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
                 aria-label="Copy formatted JSON"
               >
                 {copied ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}

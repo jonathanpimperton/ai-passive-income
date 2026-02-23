@@ -157,7 +157,7 @@ export default function InflationCalc() {
             </h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -165,7 +165,7 @@ export default function InflationCalc() {
             </button>
           </div>
           <div className="space-y-5">
-            <SliderInput label="Dollar Amount" id="inf-amount" value={amount} min={1} max={1000000} step={100} onChange={setAmount} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Dollar Amount" id="inf-amount" value={amount} min={1} max={1000000} step={100} onChange={setAmount} prefix="$" formatDisplay={formatNumber} hint="The amount you want to check" />
 
             {mode === 'historical' ? (
               <>
@@ -180,7 +180,7 @@ export default function InflationCalc() {
             ) : (
               <>
                 <SliderInput label="Years Into Future" id="inf-future" value={futureYears} min={1} max={50} step={1} onChange={setFutureYears} />
-                <SliderInput label="Assumed Annual Inflation Rate" id="inf-rate" value={inflationRate} min={0} max={15} step={0.1} onChange={setInflationRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
+                <SliderInput label="Assumed Annual Inflation Rate" id="inf-rate" value={inflationRate} min={0} max={15} step={0.1} onChange={setInflationRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="How fast prices rise each year — ~3% is the US long-term average" />
               </>
             )}
           </div>

@@ -206,7 +206,7 @@ export default function LoanAmortizationCalc() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
             <button onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults">
               <RotateCcw size={12} aria-hidden="true" /> Reset
             </button>
@@ -214,18 +214,18 @@ export default function LoanAmortizationCalc() {
           <div className="space-y-5">
             <SliderInput label="Loan Amount" id="la-amount" value={loanAmount}
               min={1000} max={2000000} step={5000} onChange={setLoanAmount}
-              prefix="$" formatDisplay={(v) => formatNumber(v)} />
+              prefix="$" formatDisplay={(v) => formatNumber(v)} hint="Total amount you're borrowing" />
             <SliderInput label="Annual Interest Rate" id="la-rate" value={rate}
               min={0.1} max={20} step={0.1} onChange={setRate}
-              suffix="%" formatDisplay={(v) => v.toFixed(1)} />
+              suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Your loan's interest rate (check your loan terms)" />
             <SliderInput label="Loan Term (Years)" id="la-term" value={termYears}
-              min={1} max={40} step={1} onChange={setTermYears} />
+              min={1} max={40} step={1} onChange={setTermYears} hint="How long you have to pay it back" />
           </div>
 
           <div className="mt-6 pt-5">
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
             <button onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-expanded={showAdvanced}>
               <ChevronDown size={14} className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
               Advanced settings
@@ -233,7 +233,7 @@ export default function LoanAmortizationCalc() {
             <div className={`overflow-hidden transition-all duration-200 ${showAdvanced ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
               <SliderInput label="Extra Monthly Payment" id="la-extra" value={extraPayment}
                 min={0} max={5000} step={50} onChange={setExtraPayment}
-                prefix="$" formatDisplay={(v) => formatNumber(v)} />
+                prefix="$" formatDisplay={(v) => formatNumber(v)} hint="Any extra amount above your minimum — saves interest" />
             </div>
           </div>
         </div>

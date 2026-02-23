@@ -159,7 +159,7 @@ export default function NetWorthCalc() {
             <h2 className="text-lg font-semibold text-neutral-900">Your Finances</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />

@@ -29,6 +29,22 @@ faq:
     answer: "Absolutely. The average person has 100+ online accounts. A password manager stores all your passwords securely behind one master password, generates unique passwords for each site, and auto-fills them. This means you only need to remember one strong password. The risk of reusing passwords across sites far outweighs the risks of using a reputable password manager."
   - question: "How often should I change my passwords?"
     answer: "NIST (the National Institute of Standards and Technology) no longer recommends regular password rotation unless there's evidence of a breach. Forcing frequent changes leads to weaker passwords (people just increment a number). Instead, use unique, strong passwords for each account and change them only when a service reports a data breach."
+workedExamples:
+  - title: "Creating a strong master password"
+    inputs:
+      length: 20
+      characters: "uppercase, lowercase, numbers, symbols"
+    description: "A password manager master password needs to be exceptionally strong — it protects all your other passwords. Generate a 20+ character password with all character types enabled. A 20-character password with this complexity has over 130 bits of entropy, making it virtually uncrackable. Store your master password in a secure physical location as a backup."
+  - title: "Wi-Fi network password"
+    inputs:
+      length: 16
+      characters: "uppercase, lowercase, numbers"
+    description: "For a home Wi-Fi password you'll share with guests, use 16 characters with letters and numbers but no symbols — symbols can be difficult to type on smart TVs and IoT devices. This still provides over 95 bits of entropy, which is more than sufficient for WPA2/WPA3 protection."
+  - title: "API key or service token"
+    inputs:
+      length: 32
+      characters: "uppercase, lowercase, numbers"
+    description: "API keys and service tokens are never typed manually, so length is free. Use 32+ characters with alphanumeric characters for compatibility across systems (many APIs reject special characters). At 32 characters with upper/lowercase and numbers, you get approximately 190 bits of entropy — far beyond any brute-force capability."
 ---
 
 Educational content will be added during Sprint 4.

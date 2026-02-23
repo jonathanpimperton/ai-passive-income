@@ -50,8 +50,9 @@ export function buildWebApplicationSchema(tool: {
   description: string;
   slug: string;
   category: string;
+  keywords?: string[];
 }): string {
-  const schema = {
+  const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: tool.name,
@@ -65,7 +66,15 @@ export function buildWebApplicationSchema(tool: {
       priceCurrency: 'USD',
     },
     browserRequirements: 'Requires JavaScript',
+    publisher: {
+      '@type': 'Organization',
+      name: 'CalcRun',
+      url: SITE_URL,
+    },
   };
+  if (tool.keywords && tool.keywords.length > 0) {
+    schema.keywords = tool.keywords.join(', ');
+  }
   return JSON.stringify(schema);
 }
 
@@ -77,6 +86,15 @@ export function buildWebsiteSchema(): string {
     url: SITE_URL,
     description:
       'Free financial calculators with interactive charts and plain-English explanations. No signup, no ads, no data harvesting.',
+    publisher: {
+      '@type': 'Organization',
+      name: 'CalcRun',
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/favicon.svg`,
+      },
+    },
   };
   return JSON.stringify(schema);
 }

@@ -66,7 +66,7 @@ export default function PlaceholderCalc({ name }: PlaceholderCalcProps) {
       {/* Coming soon notice */}
       <div className="border-t border-neutral-100 px-6 py-4 bg-primary-50/50 flex items-center justify-center gap-2">
         <svg
-          className="w-4 h-4 text-primary-500"
+          className="w-4 h-4 text-primary-600"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

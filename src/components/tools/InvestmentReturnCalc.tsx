@@ -221,11 +221,12 @@ export default function InvestmentReturnCalc() {
         <SliderInput
           key="principal"
           label="Starting Amount"
+          hint="Your initial investment amount"
           id="ir-principal"
           value={principal}
           min={0}
-          max={1000000}
-          step={1000}
+          max={500000}
+          step={500}
           onChange={setPrincipal}
           prefix="$"
           formatDisplay={(v) => formatNumber(v)}
@@ -238,6 +239,7 @@ export default function InvestmentReturnCalc() {
         <SliderInput
           key="monthly"
           label="Monthly Contribution"
+          hint="Regular amount you'll invest each month"
           id="ir-monthly"
           value={monthly}
           min={0}
@@ -254,7 +256,8 @@ export default function InvestmentReturnCalc() {
       inputs.push(
         <SliderInput
           key="rate"
-          label="Annual Return Rate"
+          label="Expected Annual Return"
+          hint="Historical stock market average: ~7-10% before inflation"
           id="ir-rate"
           value={rate}
           min={0}
@@ -272,6 +275,7 @@ export default function InvestmentReturnCalc() {
         <SliderInput
           key="years"
           label="Time Period (Years)"
+          hint="How long you plan to stay invested"
           id="ir-years"
           value={years}
           min={1}
@@ -287,11 +291,12 @@ export default function InvestmentReturnCalc() {
         <SliderInput
           key="target"
           label="Target Amount"
+          hint="The amount you want to reach"
           id="ir-target"
           value={target}
           min={1000}
-          max={5000000}
-          step={5000}
+          max={2000000}
+          step={1000}
           onChange={setTarget}
           prefix="$"
           formatDisplay={(v) => formatNumber(v)}
@@ -320,7 +325,7 @@ export default function InvestmentReturnCalc() {
                   ${
                     isActive
                       ? 'bg-white border-b-2 border-primary-500 font-medium text-primary-900'
-                      : 'bg-neutral-50 text-neutral-600 hover:text-primary-500'
+                      : 'bg-neutral-50 text-neutral-600 hover:text-primary-600'
                   }`}
               >
                 {tab.label}
@@ -339,7 +344,7 @@ export default function InvestmentReturnCalc() {
             </h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -354,7 +359,7 @@ export default function InvestmentReturnCalc() {
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-500 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-expanded={showAdvanced}
             >
               <ChevronDown
