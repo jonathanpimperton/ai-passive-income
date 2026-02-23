@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: 'https://calcrun.pages.dev',
+  site: 'https://calcrun.com',
   integrations: [react(), sitemap()],
   vite: {
     plugins: [tailwindcss()],
