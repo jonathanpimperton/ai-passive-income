@@ -11,20 +11,20 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('calcpath-cookie-consent');
+    const consent = localStorage.getItem('calcrun-cookie-consent');
     if (consent === null) {
       setVisible(true);
     }
   }, []);
 
   function accept() {
-    localStorage.setItem('calcpath-cookie-consent', 'accepted');
+    localStorage.setItem('calcrun-cookie-consent', 'accepted');
     setVisible(false);
     // Google Analytics would be loaded here when configured
   }
 
   function decline() {
-    localStorage.setItem('calcpath-cookie-consent', 'declined');
+    localStorage.setItem('calcrun-cookie-consent', 'declined');
     setVisible(false);
   }
 

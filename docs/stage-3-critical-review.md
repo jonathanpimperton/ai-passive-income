@@ -1,4 +1,4 @@
-# Stage 3: Critical Review — Is CalcPath Ready for Build?
+# Stage 3: Critical Review — Is CalcRun Ready for Build?
 
 **Reviewed:** 2026-02-20
 **Documents reviewed:** `build-spec.md`, `design-system.md`, `CLAUDE.md`, `README.md`, plus all archived docs (`strategy.md`, `financial-model.md`, `market-research.md`, `viability-assessment.md`, `stage-1-exploration.md`)

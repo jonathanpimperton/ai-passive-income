@@ -191,7 +191,7 @@ NerdWallet, Bankrate, and every serious financial site does this. We should too.
 
 ### 2. Embeddable Calculator Widgets (Priority: HIGH)
 
-Offer iframe-embeddable versions of every calculator with a "Powered by CalcPath" backlink.
+Offer iframe-embeddable versions of every calculator with a "Powered by CalcRun" backlink.
 
 - Omni Calculator has 564K+ backlinks from 38.6K referring domains — largely from their embed program
 - Finance bloggers embed calculators in their posts → we get a do-follow backlink on every page that embeds it

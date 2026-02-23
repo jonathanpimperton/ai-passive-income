@@ -13,7 +13,7 @@ export interface FaqItem {
   answer: string;
 }
 
-const SITE_URL = 'https://calcpath.pages.dev';
+const SITE_URL = 'https://calcrun.pages.dev';
 
 export function buildBreadcrumbSchema(items: BreadcrumbItem[]): string {
   const schema = {
@@ -73,7 +73,7 @@ export function buildWebsiteSchema(): string {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'CalcPath',
+    name: 'CalcRun',
     url: SITE_URL,
     description:
       'Free financial calculators with interactive charts and plain-English explanations. No signup, no ads, no data harvesting.',
