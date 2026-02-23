@@ -240,6 +240,9 @@ export function solveForTime(
   compoundingFrequency: number = 12,
   timing: 'end' | 'beginning' = 'end'
 ): number {
+  // Guard: if no growth is possible, return Infinity
+  if (principal <= 0 && monthlyContribution <= 0) return Infinity;
+
   let low = 0;
   let high = 100;
   for (let i = 0; i < 100; i++) {
@@ -249,7 +252,11 @@ export function solveForTime(
     if (result < targetAmount) low = mid;
     else high = mid;
   }
-  return (low + high) / 2;
+  const finalYears = (low + high) / 2;
+  // If converged at the upper bound, the target is unreachable in 100 years
+  const finalResult = compoundInterest(principal, monthlyContribution, annualRate, finalYears, compoundingFrequency, timing);
+  if (finalResult < targetAmount * 0.99) return Infinity;
+  return finalYears;
 }
 
 /**

@@ -99,11 +99,16 @@ export default function InvestmentReturnCalc() {
         case 'returnRate': {
           const r = solveForRate(principal, monthly, target, years, frequency, timing);
           const pct = r * 100;
+          // Verify the solved rate actually reaches the target
+          const verified = compoundInterest(principal, monthly, r, years, frequency, timing);
+          const reachable = verified >= target * 0.99;
           return {
             label: 'Required Return Rate',
             value: pct,
-            formatted: `${pct.toFixed(2)}%`,
-            context: `To grow ${formatCurrency(principal)} + ${formatCurrency(monthly)}/mo to ${formatCurrency(target)} in ${years} year${years !== 1 ? 's' : ''}`,
+            formatted: reachable ? `${pct.toFixed(2)}%` : 'Not achievable',
+            context: reachable
+              ? `To grow ${formatCurrency(principal)} + ${formatCurrency(monthly)}/mo to ${formatCurrency(target)} in ${years} year${years !== 1 ? 's' : ''}`
+              : `Target requires a return rate exceeding 100% annually`,
             chartYears: years,
           };
         }
@@ -120,6 +125,15 @@ export default function InvestmentReturnCalc() {
         }
         case 'time': {
           const t = solveForTime(principal, monthly, rate / 100, target, frequency, timing);
+          if (!isFinite(t)) {
+            return {
+              label: 'Time Required',
+              value: Infinity,
+              formatted: 'Not reachable',
+              context: `Target of ${formatCurrency(target)} is not reachable with current inputs`,
+              chartYears: 1,
+            };
+          }
           const clamped = Math.max(0, t);
           const wholeYears = Math.floor(clamped);
           const remainderMonths = Math.round((clamped - wholeYears) * 12);
@@ -560,6 +574,9 @@ function ScheduleTable({
                     ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}
                     ${isExpanded ? 'bg-primary-50/50' : 'hover:bg-primary-50/30'}`}
                   onClick={() => setExpandedYear(isExpanded ? null : row.year)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedYear(isExpanded ? null : row.year); }}}
+                  tabIndex={0}
+                  role="button"
                   aria-expanded={isExpanded}
                 >
                   <td className="py-2.5 px-4 text-neutral-900 font-medium tabular-nums">

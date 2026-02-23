@@ -38,7 +38,10 @@ function getStrengthLevel(entropy: number): StrengthLevel {
 /* ── Crypto-safe random int ───────────────────────────────── */
 function secureRandomInt(max: number): number {
   const array = new Uint32Array(1);
-  crypto.getRandomValues(array);
+  const limit = Math.floor(0x100000000 / max) * max;
+  do {
+    crypto.getRandomValues(array);
+  } while (array[0] >= limit);
   return array[0] % max;
 }
 
@@ -226,6 +229,11 @@ export default function PasswordGenerator() {
   useEffect(() => {
     generate();
   }, [generate]);
+
+  // Cleanup copy timeout on unmount
+  useEffect(() => {
+    return () => { if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current); };
+  }, []);
 
   /* ── Copy to clipboard ─────────────────────────────────────── */
   const handleCopy = useCallback(async () => {
@@ -462,7 +470,7 @@ export default function PasswordGenerator() {
               className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-lg font-medium text-sm
                 transition-all duration-150
                 ${copied
-                  ? 'bg-accent-500 text-white'
+                  ? 'bg-accent-600 text-white'
                   : 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-800'
                 }
                 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed`}

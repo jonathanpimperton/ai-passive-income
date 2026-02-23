@@ -359,7 +359,7 @@ export default function DebtPayoffCalc() {
         </div>
 
         {/* ── Results Panel ─────────────────────────────── */}
-        <div id="dp-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           {!hasValidDebts ? (
             <div className="flex items-center justify-center h-full min-h-[300px]">
               <div className="text-center">
@@ -372,11 +372,10 @@ export default function DebtPayoffCalc() {
             <>
               {/* ── Strategy Toggle ────────────────────── */}
               <div className="mb-6">
-                <div className="inline-flex rounded-xl bg-neutral-100 p-1" role="tablist" aria-label="Debt payoff strategy">
+                <div className="inline-flex rounded-xl bg-neutral-100 p-1" role="radiogroup" aria-label="Debt payoff strategy">
                   <button
-                    role="tab"
-                    aria-selected={activeStrategy === 'avalanche'}
-                    aria-controls="dp-results"
+                    role="radio"
+                    aria-checked={activeStrategy === 'avalanche'}
                     onClick={() => setActiveStrategy('avalanche')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       activeStrategy === 'avalanche'
@@ -394,9 +393,8 @@ export default function DebtPayoffCalc() {
                     </span>
                   </button>
                   <button
-                    role="tab"
-                    aria-selected={activeStrategy === 'snowball'}
-                    aria-controls="dp-results"
+                    role="radio"
+                    aria-checked={activeStrategy === 'snowball'}
                     onClick={() => setActiveStrategy('snowball')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       activeStrategy === 'snowball'
@@ -600,7 +598,7 @@ export default function DebtPayoffCalc() {
                   </div>
                   <ol className="space-y-1.5">
                     {avalancheResult.payoffOrder.map((name, i) => (
-                      <li key={name} className="flex items-center gap-2.5">
+                      <li key={`${name}-${i}`} className="flex items-center gap-2.5">
                         <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold flex items-center justify-center">
                           {i + 1}
                         </span>
@@ -627,7 +625,7 @@ export default function DebtPayoffCalc() {
                   </div>
                   <ol className="space-y-1.5">
                     {snowballResult.payoffOrder.map((name, i) => (
-                      <li key={name} className="flex items-center gap-2.5">
+                      <li key={`${name}-${i}`} className="flex items-center gap-2.5">
                         <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center">
                           {i + 1}
                         </span>

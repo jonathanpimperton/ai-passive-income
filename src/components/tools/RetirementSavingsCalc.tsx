@@ -76,7 +76,7 @@ function solveForRetirementAge(
   for (let i = 0; i < 100; i++) {
     const mid = (low + high) / 2;
     const result = compoundInterest(currentSavings, monthlyContribution, annualRate, mid, 12);
-    if (Math.abs(result - targetBalance) < 100) break;
+    if (Math.abs(result - targetBalance) < Math.max(1, targetBalance * 0.001)) break;
     if (result < targetBalance) low = mid;
     else high = mid;
   }
@@ -142,20 +142,21 @@ export default function RetirementSavingsCalc() {
       }
       case 'retirement-age': {
         const age = solveForRetirementAge(currentAge, currentSavings, monthlyContribution, rateDecimal, targetBalance);
-        const years = Math.max(0, age - currentAge);
+        const roundedAge = Math.round(age);
+        const years = Math.max(0, roundedAge - currentAge);
         const nominal = compoundInterest(currentSavings, monthlyContribution, rateDecimal, years, 12);
         const real = nominal / Math.pow(1 + inflationDecimal, years);
         const totalContributions = currentSavings + monthlyContribution * 12 * years;
         const totalInterest = nominal - totalContributions;
         return {
           primaryLabel: 'Estimated Retirement Age',
-          primaryValue: age,
+          primaryValue: roundedAge,
           realValue: real,
           totalContributions,
           totalInterest,
           contextLine: `Saving ${formatCurrency(monthlyContribution)}/mo to reach ${formatCurrency(targetBalance)} at ${annualReturn}% return`,
           solvedMonthly: monthlyContribution,
-          solvedAge: Math.round(age),
+          solvedAge: roundedAge,
           solvedYears: years,
         };
       }

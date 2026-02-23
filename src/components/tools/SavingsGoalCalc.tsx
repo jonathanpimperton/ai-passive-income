@@ -118,6 +118,8 @@ export default function SavingsGoalCalc() {
       const interestEarned = goalAmount - totalContributions;
       return { totalContributions, interestEarned };
     } else {
+      // Guard: if time is infinite, goal is unreachable
+      if (!isFinite(timeToGoalYears)) return { totalContributions: 0, interestEarned: 0 };
       // Use precise time value (not ceiling) to avoid overshoot
       const preciseMonths = timeToGoalYears * 12;
       const totalContributions = currentSavings + monthlyContribution * preciseMonths;
@@ -285,7 +287,7 @@ export default function SavingsGoalCalc() {
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
                   Save {formatCurrency(monthlySavings)}/month for {months} month{months !== 1 ? 's' : ''}{' '}
-                  ({(months / 12).toFixed(1)} yr{months >= 24 ? 's' : ''}) to reach your{' '}
+                  ({(months / 12).toFixed(1)} yr{months !== 12 ? 's' : ''}) to reach your{' '}
                   {formatCurrency(goalAmount)} goal at {annualRate}% annual return
                 </p>
               </>

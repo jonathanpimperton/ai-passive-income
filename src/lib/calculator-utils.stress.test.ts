@@ -802,11 +802,11 @@ describe('solveForTime — stress tests', () => {
     expect(Math.abs(result - 500000)).toBeLessThan(2);
   });
 
-  it('returns value capped at 100 for unreachable targets', () => {
+  it('returns Infinity for unreachable targets', () => {
     // Very small contribution, no principal, low rate, huge target
-    // Binary search ceiling is 100, so result should be ≤ 100
+    // Target is not reachable within 100 years, so should return Infinity
     const years = solveForTime(0, 1, 0.01, 999999999, 12);
-    expect(years).toBeLessThanOrEqual(100);
+    expect(years).toBe(Infinity);
   });
 
   it('cross-validates with compoundInterest for multiple scenarios', () => {
@@ -1488,11 +1488,9 @@ describe('extreme and adversarial inputs', () => {
 
   it('solveForTime with 0 rate and 0 contribution and positive target', () => {
     // $10K at 0% with no contributions: can never reach $20K
-    // Binary search will converge near 100 (max)
+    // Target is unreachable, should return Infinity
     const years = solveForTime(10000, 0, 0, 20000, 12);
-    // At 0% rate, the result is always $10K regardless of time
-    // Binary search should converge to high=100
-    expect(years).toBe(100);
+    expect(years).toBe(Infinity);
   });
 
   it('debtPayoff with all zero-rate debts', () => {

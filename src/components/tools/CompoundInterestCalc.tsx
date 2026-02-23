@@ -68,6 +68,9 @@ function ScheduleTable({ data }: { data: YearRowData[] }) {
                     ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}
                     ${isExpanded ? 'bg-primary-50/50' : 'hover:bg-primary-50/30'}`}
                   onClick={() => setExpandedYear(isExpanded ? null : row.year)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedYear(isExpanded ? null : row.year); }}}
+                  tabIndex={0}
+                  role="button"
                   aria-expanded={isExpanded}
                 >
                   <td className="py-2.5 px-4 text-neutral-900 font-medium tabular-nums">
@@ -140,7 +143,7 @@ const DEFAULTS = {
   annualRate: 7,
   years: 20,
   compoundingFrequency: 12,
-  contributionTiming: 'end' as string,
+  contributionTiming: 'end' as 'end' | 'beginning',
 };
 
 export default function CompoundInterestCalc() {

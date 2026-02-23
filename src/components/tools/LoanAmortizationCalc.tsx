@@ -55,6 +55,9 @@ function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
                   ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}
                   ${expandedYear === group.year ? 'bg-primary-50/50' : 'hover:bg-primary-50/30'}`}
                 onClick={() => setExpandedYear(expandedYear === group.year ? null : group.year)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedYear(expandedYear === group.year ? null : group.year); }}}
+                tabIndex={0}
+                role="button"
                 aria-expanded={expandedYear === group.year}
               >
                 <td className="py-2.5 px-4 font-medium text-neutral-900 tabular-nums">

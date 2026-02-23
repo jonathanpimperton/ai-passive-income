@@ -172,10 +172,10 @@ export default function QrCodeGenerator() {
 
             {/* Size Selector */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
+              <label id="qr-size-label" className="block text-sm font-medium text-neutral-700 mb-2">
                 Size
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2" role="group" aria-labelledby="qr-size-label">
                 {SIZE_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
@@ -253,7 +253,6 @@ export default function QrCodeGenerator() {
                   alt={`QR code for: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`}
                   width={Math.min(size, 280)}
                   height={Math.min(size, 280)}
-                  className="image-rendering-pixelated"
                   style={{ imageRendering: 'pixelated' }}
                 />
               ) : (
