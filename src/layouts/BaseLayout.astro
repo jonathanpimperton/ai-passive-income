@@ -20,7 +20,7 @@ const {
   structuredData = [],
 } = Astro.props;
 
-const SITE_URL = 'https://calcrun.pages.dev';
+const SITE_URL = 'https://calcrun.com';
 const fullTitle = title.includes('CalcRun') ? title : `${title} | CalcRun`;
 const canonical = canonicalUrl || Astro.url.href;
 const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogImage}`;

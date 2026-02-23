@@ -31,7 +31,7 @@ Build a zero-investment online business that generates passive income, built ent
 ## Site Identity
 
 - **Name:** CalcRun
-- **Domain:** `calcrun.pages.dev` (free at launch) → `calcrun.com` (via Cloudflare Registrar)
+- **Domain:** `calcrun.com` (via Cloudflare Registrar, purchased). `calcrun.pages.dev` redirects to it.
 - **Logo:** SVG wordmark — navy "Calc" + blue "Run" (built in code, no external tools)
 - **Tagline:** "See your numbers instantly — no signup, no ads." (USP; see build-spec.md Value Proposition section)
 
@@ -226,7 +226,7 @@ Every session that writes code MUST run through this checklist before committing
 - [ ] **Every color used in a utility class MUST be defined in `@theme`** in `src/styles/global.css`. Tailwind v4 only generates utilities for explicitly defined tokens. If you use `bg-neutral-400` but `--color-neutral-400` isn't in `@theme`, it silently fails. This has broken styling before.
 
 ### 6. Assets & Meta
-- [ ] **OG image URLs are absolute** — Must start with `https://calcrun.pages.dev/`, not relative paths
+- [ ] **OG image URLs are absolute** — Must start with `https://calcrun.com/`, not relative paths
 - [ ] **Favicon/manifest references** point to files that actually exist in `public/`
 - [ ] **No hardcoded URLs** in components — Use helper functions (`getToolPath()`, etc.)
 

@@ -17,7 +17,7 @@
 | Short (8 chars) | Yes |
 | Easy to spell and say | Yes |
 | No competing brands in finance | Yes — only unrelated "calpath.com" (pathology lab) |
-| .pages.dev available | Yes — `calcrun.pages.dev` is unclaimed |
+| .com purchased | Yes — `calcrun.com` owned via Cloudflare Registrar |
 | .com likely available | Yes — no active site found |
 | SEO-friendly | Yes — "calc" is a high-value keyword root |
 
@@ -35,8 +35,8 @@
 
 | Phase | Domain | Cost |
 |-------|--------|------|
-| **Launch (now)** | `calcrun.pages.dev` | $0 |
-| **Month 1–3** | Buy `calcrun.com` via Cloudflare Registrar, 301 redirect .pages.dev | ~$10/year |
+| **Active** | `calcrun.com` (purchased via Cloudflare Registrar) | ~$10/year |
+| **Redirect** | `calcrun.pages.dev` → 301 redirect to `calcrun.com` | $0 |
 
 **Why this works:**
 - Cloudflare Pages free tier allows commercial use (unlike Vercel)
@@ -1072,7 +1072,7 @@ All design decisions above map to Tailwind CSS v4 `@theme` configuration in the 
 
 Before writing component code, confirm these decisions are locked:
 
-- [x] **Site name chosen** — CalcRun. Launch on `calcrun.pages.dev`, buy `calcrun.com` within 1–3 months (~$10/year via Cloudflare Registrar).
+- [x] **Site name chosen** — CalcRun. Live at `calcrun.com` (purchased via Cloudflare Registrar, ~$10/year). `calcrun.pages.dev` redirects to it.
 - [x] **Color palette finalized** — blue/green trust palette with contrast-verified pairs (see Section 2).
 - [x] **Font loaded** — Inter variable font `.woff2` self-hosted in `public/fonts/`. `@font-face` in global CSS. Inter `.ttf` for Satori OG image generation. JetBrains Mono for JSON formatter.
 - [x] **Lucide icons installed** — `lucide-react` in package.json. Icon names assigned per tool in `tools-data.ts`.

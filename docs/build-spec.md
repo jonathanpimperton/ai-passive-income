@@ -7,7 +7,7 @@
 
 ## What We're Building
 
-A focused financial calculator site called **CalcRun** (`calcrun.pages.dev` at launch).
+A focused financial calculator site called **CalcRun** (`calcrun.com`).
 
 - **Astro** + Tailwind CSS v4 + React islands on Cloudflare Pages (free tier)
 - **15 MVP tools** (12 financial calculators + 3 utility tools)
