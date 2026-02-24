@@ -15,9 +15,10 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Target, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Tabs ─────────────────────────────────────────────────── */
 type Mode = 'monthly' | 'time';
@@ -127,6 +128,9 @@ export default function SavingsGoalCalc() {
       return { totalContributions, interestEarned };
     }
   }, [mode, currentSavings, monthlySavings, monthlyContribution, months, timeToGoalYears, goalAmount]);
+
+  const animatedMonthlySavings = useAnimatedNumber(monthlySavings);
+  const animatedTimeMonths = useAnimatedNumber(timeToGoalMonths);
 
   const handleReset = useCallback(() => {
     setGoalAmount(DEFAULTS.goalAmount);
@@ -288,8 +292,8 @@ export default function SavingsGoalCalc() {
             {mode === 'monthly' ? (
               <>
                 <p className="text-sm text-neutral-500 mb-1">Monthly Savings Needed</p>
-                <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
-                  {formatCurrency(monthlySavings)}
+                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                  {formatCurrency(animatedMonthlySavings)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
                   Save {formatCurrency(monthlySavings)}/month for {months} month{months !== 1 ? 's' : ''}{' '}
@@ -300,13 +304,13 @@ export default function SavingsGoalCalc() {
             ) : (
               <>
                 <p className="text-sm text-neutral-500 mb-1">Time to Reach Your Goal</p>
-                <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
+                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                   {!isFinite(timeToGoalMonths) ? (
                     <span className="text-negative-600">Not reachable</span>
                   ) : goalAmount <= currentSavings ? (
                     <span className="text-accent-600">Already reached!</span>
                   ) : (
-                    formatTimeResult(timeToGoalMonths)
+                    formatTimeResult(Math.round(animatedTimeMonths))
                   )}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
@@ -322,28 +326,43 @@ export default function SavingsGoalCalc() {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                {formatCurrency(Math.max(0, summaryStats.totalContributions))}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Wallet size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                  {formatCurrency(Math.max(0, summaryStats.totalContributions))}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Interest Earned</p>
-              <p className="text-lg font-semibold text-accent-600 tabular-nums">
-                {formatCurrency(Math.max(0, summaryStats.interestEarned))}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Sparkles size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Interest Earned</p>
+                <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                  {formatCurrency(Math.max(0, summaryStats.interestEarned))}
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Remaining amount card */}
           <div className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Remaining to Save</p>
-                <p className="text-lg font-semibold text-primary-700 tabular-nums">
-                  {formatCurrency(Math.max(0, goalAmount - currentSavings))}
-                </p>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Target size={16} aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">Remaining to Save</p>
+                  <p className="text-lg font-semibold text-primary-700 tabular-nums">
+                    {formatCurrency(Math.max(0, goalAmount - currentSavings))}
+                  </p>
+                </div>
               </div>
               <div className="text-right">
                 <p className="text-xs text-neutral-500 mb-0.5">Goal Amount</p>

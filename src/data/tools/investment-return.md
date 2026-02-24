@@ -75,6 +75,11 @@ When you reinvest dividends (called DRIP — Dividend Reinvestment Plan), you bu
 
 ## The Power of Time in the Market
 
+<div class="stat-highlight">
+  <span class="stat-number">40%</span>
+  <span class="stat-text">of the S&P 500's total historical return has come from reinvested dividends — not share price appreciation. Always opt into DRIP if you don't need the income.</span>
+</div>
+
 One of the most researched findings in investing is that time in the market consistently beats timing the market. Since 1928, the S&P 500 has returned roughly 10% per year on average (about 7% after inflation). But those returns aren't distributed evenly — a handful of the best days each year contribute a disproportionate share of gains.
 
 Missing just the 10 best trading days over a 20-year period can cut your total returns by more than half. Since you can't predict which days those will be, staying invested through both good and bad stretches is the simplest path to capturing long-term growth.

@@ -60,6 +60,11 @@ Debt is one of the biggest obstacles to building wealth. The average American ho
 
 ## Snowball vs. Avalanche: Which Strategy Wins?
 
+<div class="stat-highlight">
+  <span class="stat-number">$104K</span>
+  <span class="stat-text">is the average American household debt. High-interest consumer debt compounds against you — the same force that builds wealth through investing works in reverse.</span>
+</div>
+
 The two most popular debt payoff strategies take opposite approaches:
 
 **The Avalanche Method** ranks debts by interest rate, highest first. You make minimum payments on everything except the highest-rate debt, throwing all extra money at that one. Once it's paid off, you roll that payment into the next highest rate. This method minimizes total interest paid — it's the mathematically optimal approach.

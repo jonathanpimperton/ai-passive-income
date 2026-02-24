@@ -75,6 +75,11 @@ The key variable most people overlook is **n** — the compounding frequency. In
 
 ## Why the First Years Feel Slow
 
+<div class="stat-highlight">
+  <span class="stat-number">76%</span>
+  <span class="stat-text">of a 30-year investment's total growth happens in the final 10 years — thanks to compounding on top of compounding.</span>
+</div>
+
 The most common misconception about compound interest is expecting fast results. In the first five years, growth feels linear — almost disappointing. A $10,000 deposit at 7% grows to about $14,000 after five years. Not life-changing.
 
 But here's what most people miss: that same deposit reaches $20,000 by year 10, $40,000 by year 20, and $76,000 by year 30. The first doubling took 10 years. The next doubling took 10 more. The third doubling took another 10. Each doubling adds a larger absolute amount because the base keeps growing.

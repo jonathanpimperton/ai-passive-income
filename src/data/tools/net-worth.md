@@ -60,6 +60,11 @@ Unlike income (which measures cash flow), net worth measures accumulated wealth.
 
 ## What Counts as an Asset?
 
+<div class="stat-highlight">
+  <span class="stat-number">$39K</span>
+  <span class="stat-text">is the median net worth for Americans under 35. A negative net worth in your 20s is normal — the key is whether the trend line is moving up each year.</span>
+</div>
+
 Assets are anything you own that has monetary value:
 
 - **Cash and savings** — checking accounts, savings accounts, money market funds, cash on hand

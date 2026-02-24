@@ -17,9 +17,10 @@ import {
   Legend,
   ReferenceLine,
 } from 'recharts';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, PiggyBank, Calendar, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Types ─────────────────────────────────────────────────── */
 type SolveMode = 'balance' | 'contribution' | 'retirement-age';
@@ -207,9 +208,10 @@ export default function RetirementSavingsCalc() {
   }, []);
 
   /* ── Format helper for primary result ────────────────────── */
+  const animatedPrimaryValue = useAnimatedNumber(results.primaryValue);
   const formattedPrimary = mode === 'retirement-age'
-    ? `Age ${Math.round(results.primaryValue)}`
-    : formatCurrency(results.primaryValue);
+    ? `Age ${Math.round(animatedPrimaryValue)}`
+    : formatCurrency(animatedPrimaryValue);
 
   const formattedPrimarySubtext = mode === 'retirement-age'
     ? `(${Math.round(results.solvedYears)} years from now)`
@@ -375,7 +377,7 @@ export default function RetirementSavingsCalc() {
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{results.primaryLabel}</p>
             <div className="flex items-baseline gap-2 flex-wrap">
-              <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
+              <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                 {formattedPrimary}
               </p>
               {formattedPrimarySubtext && (
@@ -390,32 +392,52 @@ export default function RetirementSavingsCalc() {
           {/* Breakdown Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
             {mode === 'balance' && (
-              <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-                <p className="text-xs text-neutral-500 mb-0.5">Nominal Balance</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {formatCurrency(results.primaryValue)}
-                </p>
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <PiggyBank size={16} aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">Nominal Balance</p>
+                  <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                    {formatCurrency(results.primaryValue)}
+                  </p>
+                </div>
               </div>
             )}
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">
-                {mode === 'balance' ? "Today's Dollars" : 'Inflation-Adjusted'}
-              </p>
-              <p className="text-lg font-semibold text-amber-600 tabular-nums">
-                {formatCurrency(results.realValue)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Calendar size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">
+                  {mode === 'balance' ? "Today's Dollars" : 'Inflation-Adjusted'}
+                </p>
+                <p className="text-lg font-semibold text-amber-600 tabular-nums">
+                  {formatCurrency(results.realValue)}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                {formatCurrency(results.totalContributions)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Wallet size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                  {formatCurrency(results.totalContributions)}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Interest Earned</p>
-              <p className="text-lg font-semibold text-accent-600 tabular-nums">
-                {formatCurrency(results.totalInterest)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Sparkles size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Interest Earned</p>
+                <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                  {formatCurrency(results.totalInterest)}
+                </p>
+              </div>
             </div>
           </div>
 

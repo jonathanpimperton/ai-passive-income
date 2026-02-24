@@ -19,12 +19,12 @@ const { faqs } = Astro.props;
 
   <div class="space-y-3">
     {faqs.map((faq) => (
-      <details class="group bg-white border border-neutral-200/80 rounded-xl shadow-card overflow-hidden">
+      <details class="group relative bg-white border border-neutral-200/80 rounded-xl shadow-card overflow-hidden hover:shadow-card-hover transition-all duration-200">
         <summary class="flex items-center justify-between cursor-pointer px-5 py-4 text-base font-medium text-neutral-900 hover:bg-neutral-50/50 transition-colors duration-150 [&::-webkit-details-marker]:hidden list-none">
           <span class="pr-4">{faq.question}</span>
-          <div class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-neutral-100 group-hover:bg-primary-50 group-open:bg-primary-50 transition-colors duration-200 shrink-0">
+          <div class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-neutral-100 group-hover:bg-primary-500 group-open:bg-primary-500 transition-colors duration-200 shrink-0">
             <svg
-              class="w-4 h-4 text-neutral-500 group-open:text-primary-600 transition-all duration-200 group-open:rotate-180"
+              class="w-4 h-4 text-neutral-500 group-hover:text-white group-open:text-white transition-all duration-200 group-open:rotate-180"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -38,6 +38,8 @@ const { faqs } = Astro.props;
         <div class="px-5 pb-5 text-sm text-neutral-700 leading-relaxed border-t border-neutral-100 pt-4">
           {faq.answer}
         </div>
+        {/* Bottom accent gradient on hover — matches homepage card pattern */}
+        <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 group-open:opacity-100 transition-opacity duration-200" />
       </details>
     ))}
   </div>

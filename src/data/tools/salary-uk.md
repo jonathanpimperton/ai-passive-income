@@ -63,6 +63,11 @@ Your take-home pay in the UK is your gross salary minus Income Tax, National Ins
 
 ## How UK Income Tax Works
 
+<div class="stat-highlight">
+  <span class="stat-number">60%</span>
+  <span class="stat-text">effective marginal tax rate between £100K and £125K due to the Personal Allowance taper. Salary sacrifice into a pension is the most common way to sidestep this trap.</span>
+</div>
+
 The UK uses a progressive tax band system. For the 2025/26 tax year, everyone gets a Personal Allowance of £12,570 — income up to this amount is tax-free. Income above the Personal Allowance is taxed at increasing rates: 20% Basic Rate (up to £50,270), 40% Higher Rate (up to £125,140), and 45% Additional Rate (above £125,140).
 
 Your tax code tells your employer how much Personal Allowance to apply. The standard code 1257L means a £12,570 allowance. If HMRC adjusts your code (for example, because you receive benefits in kind or owe tax from a previous year), your effective allowance changes — which directly affects your take-home pay.

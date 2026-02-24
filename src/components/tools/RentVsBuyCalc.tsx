@@ -10,9 +10,10 @@ import {
   Legend,
   ReferenceLine,
 } from 'recharts';
-import { RotateCcw, ChevronDown } from 'lucide-react';
+import { RotateCcw, ChevronDown, Home, DollarSign, TrendingUp, Landmark } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { formatCurrency, formatNumber, loanMonthlyPayment } from '../../lib/calculator-utils';
 
 const DEFAULTS = {
@@ -174,6 +175,12 @@ export default function RentVsBuyCalc() {
     };
   }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, propertyTaxRate, homeInsurance, hoaMonthly, maintenanceRate, homeAppreciation, monthlyRent, rentIncrease, rentersInsurance, investmentReturn, marginalTaxRate, timeHorizon]);
 
+  const animatedSavings = useAnimatedNumber(analysis.savings);
+  const animatedMortgage = useAnimatedNumber(analysis.monthlyMortgage);
+  const animatedBuyCost = useAnimatedNumber(analysis.monthlyBuyCost);
+  const animatedEquity = useAnimatedNumber(analysis.finalEquity);
+  const animatedDownPayment = useAnimatedNumber(analysis.downPayment);
+
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
@@ -242,8 +249,8 @@ export default function RentVsBuyCalc() {
             <p className="text-sm text-neutral-500 mb-1">
               Over {timeHorizon} years, {analysis.buyWins ? 'buying' : 'renting'} saves you
             </p>
-            <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${analysis.buyWins ? 'text-primary-900' : 'text-accent-600'}`}>
-              {formatCurrency(analysis.savings)}
+            <p className={`text-3xl sm:text-4xl font-bold tabular-nums result-number`}>
+              {formatCurrency(animatedSavings)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               {analysis.breakEvenYear
@@ -256,21 +263,41 @@ export default function RentVsBuyCalc() {
 
           {/* Summary cards */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Monthly Mortgage Payment</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(analysis.monthlyMortgage)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Landmark size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Monthly Mortgage</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(animatedMortgage)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Monthly Buy Cost</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(analysis.monthlyBuyCost)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <DollarSign size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Monthly Buy Cost</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(animatedBuyCost)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Home Equity at Year {timeHorizon}</p>
-              <p className="text-lg font-semibold text-accent-600 tabular-nums">{formatCurrency(analysis.finalEquity)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <TrendingUp size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Equity at Year {timeHorizon}</p>
+                <p className="text-lg font-semibold text-accent-600 tabular-nums">{formatCurrency(animatedEquity)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Down Payment</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(analysis.downPayment)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Home size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Down Payment</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(animatedDownPayment)}</p>
+              </div>
             </div>
           </div>
 

@@ -5,9 +5,12 @@
  * educational content, FAQ section, and related tools.
  *
  * Uses section background differentiation per design-system.md:
- * - White for calculator
- * - Neutral-50 for worked examples / educational content
+ * - Subtle gradient header for calculator
+ * - Neutral-50 with dot grid for worked examples / educational content
  * - Primary-50 for related tools
+ *
+ * Includes: scroll-reveal animations, back-to-calculator FAB,
+ * financial term tooltips, numbered worked examples.
  *
  * Structured data (WebApplication, FAQ) is handled by the page template
  * ([tool].astro → BaseLayout <head>) to avoid duplication.
@@ -59,44 +62,51 @@ const breadcrumbs = [
 ];
 ---
 
-{/* Calculator section — white background */}
-<div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <Breadcrumb items={breadcrumbs} />
+{/* Calculator section — subtle gradient header */}
+<div class="bg-gradient-to-b from-primary-50/40 to-white" data-calc-section>
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Breadcrumb items={breadcrumbs} />
 
-  {/* Page header with tool icon */}
-  <div class="mb-6">
-    <div class="flex items-start gap-4 mb-3">
-      {toolMeta && (
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50 text-primary-600 shrink-0">
-          <ToolIcon name={toolMeta.icon} size={24} />
+    {/* Page header with tool icon */}
+    <div class="mb-6">
+      <div class="flex items-start gap-4 mb-3">
+        {toolMeta && (
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-100 text-primary-600 shrink-0 shadow-sm">
+            <ToolIcon name={toolMeta.icon} size={24} />
+          </div>
+        )}
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900">{name}</h1>
+          <p class="text-lg text-neutral-500 mt-1">{description}</p>
         </div>
-      )}
-      <div>
-        <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900">{name}</h1>
-        <p class="text-lg text-neutral-500 mt-1">{description}</p>
       </div>
     </div>
-  </div>
 
-  {/* Affiliate disclosure — only on pages with affiliate links */}
-  {affiliateContext && <AffiliateDisclosure />}
+    {/* Affiliate disclosure — only on pages with affiliate links */}
+    {affiliateContext && <AffiliateDisclosure />}
 
-  {/* Calculator component injected via default slot */}
-  <div class="mb-12">
-    <slot />
+    {/* Calculator component injected via default slot */}
+    <div class="mb-12">
+      <slot />
+    </div>
   </div>
 </div>
 
-{/* Worked examples — neutral background for visual separation */}
+{/* Worked examples — neutral background with numbered cards */}
 {workedExamples && workedExamples.length > 0 && (
-  <div class="bg-neutral-50 border-t border-neutral-200/50">
+  <div class="bg-neutral-50 border-t border-neutral-200/50 scroll-reveal">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
       <h2 class="text-2xl font-bold text-neutral-900 mb-6">Real-World Examples</h2>
       <div class="space-y-4">
-        {workedExamples.map((example) => (
-          <div class="bg-white border border-neutral-200/80 rounded-xl p-5 sm:p-6 shadow-card">
-            <h3 class="text-base font-semibold text-neutral-900 mb-2">{example.title}</h3>
-            <div class="flex flex-wrap gap-2 mb-3">
+        {workedExamples.map((example, index) => (
+          <div class="bg-white border border-neutral-200/80 rounded-xl p-5 sm:p-6 shadow-card hover:shadow-card-hover transition-shadow duration-200">
+            <div class="flex items-start gap-3 mb-3">
+              <div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 text-primary-700 text-sm font-bold shrink-0 mt-0.5">
+                {index + 1}
+              </div>
+              <h3 class="text-base font-semibold text-neutral-900">{example.title}</h3>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-3 pl-10">
               {Object.entries(example.inputs).map(([key, value]) => (
                 <span class="inline-flex items-center gap-1 text-xs font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full">
                   <span class="text-primary-600">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (s: string) => s.toUpperCase())}:</span>
@@ -104,7 +114,7 @@ const breadcrumbs = [
                 </span>
               ))}
             </div>
-            <p class="text-sm text-neutral-700 leading-relaxed">{example.description}</p>
+            <p class="text-sm text-neutral-700 leading-relaxed pl-10">{example.description}</p>
           </div>
         ))}
       </div>
@@ -112,8 +122,8 @@ const breadcrumbs = [
   </div>
 )}
 
-{/* Educational content — neutral-50 background per design-system.md */}
-<div class:list={["bg-neutral-50", !(workedExamples && workedExamples.length > 0) && "border-t border-neutral-200/50"]}>
+{/* Educational content — neutral-50 with dot grid texture */}
+<div class:list={["bg-neutral-50 dot-grid-bg scroll-reveal", !(workedExamples && workedExamples.length > 0) && "border-t border-neutral-200/50"]}>
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
     <div class="prose max-w-[768px]">
       <slot name="content" />
@@ -121,11 +131,99 @@ const breadcrumbs = [
   </div>
 </div>
 
-{/* FAQ + Related tools — back in main container */}
-<div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+{/* FAQ + Related tools */}
+<div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 scroll-reveal">
   {/* FAQ section with schema markup */}
   {faq.length > 0 && <FaqSection faqs={faq} />}
 
   {/* Related tools */}
   {relatedTools.length > 0 && <RelatedTools slugs={relatedTools} />}
 </div>
+
+{/* Back-to-calculator floating action button */}
+<button
+  id="back-to-calc-btn"
+  class="back-to-calc fixed bottom-6 right-6 z-40 bg-primary-600 text-white rounded-full p-3.5 shadow-lg shadow-primary-600/25 hover:bg-primary-500 hover:shadow-primary-500/30"
+  aria-label="Back to calculator"
+>
+  <ToolIcon name="calculator" size={20} />
+</button>
+
+{/* Noscript fallback for scroll-reveal */}
+<noscript>
+  <style>
+    .scroll-reveal { opacity: 1 !important; transform: none !important; }
+  </style>
+</noscript>
+
+{/* Client-side scripts for scroll reveal, back-to-calc, and term tooltips */}
+<script>
+  /* Scroll-reveal entrance animations */
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -40px 0px' }
+    );
+    document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+  }
+
+  /* Back-to-calculator floating button */
+  const backBtn = document.getElementById('back-to-calc-btn');
+  const calcSection = document.querySelector('[data-calc-section]');
+  if (backBtn && calcSection) {
+    const calcObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          backBtn.classList.remove('visible');
+        } else {
+          backBtn.classList.add('visible');
+        }
+      },
+      { threshold: 0 }
+    );
+    calcObserver.observe(calcSection);
+    backBtn.addEventListener('click', () => {
+      calcSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  /* Financial term tooltip auto-detection */
+  const TERMS: Record<string, string> = {
+    'APR': 'Annual Percentage Rate — the yearly interest rate before compounding.',
+    'APY': 'Annual Percentage Yield — the effective yearly rate including compounding.',
+    'FICA': 'Federal Insurance Contributions Act — Social Security (6.2%) + Medicare (1.45%) taxes.',
+    'CAGR': 'Compound Annual Growth Rate — the smoothed annual return over a time period.',
+    'ROI': 'Return on Investment — the percentage gain or loss relative to the cost.',
+    'Rule of 72': 'Divide 72 by your interest rate to estimate years to double your money.',
+    'amortization': 'Spreading loan payments over time, with each payment covering interest and principal.',
+    'compound interest': 'Interest earned on both the original deposit and previously accumulated interest.',
+    '4% rule': 'Withdraw 4% of savings in year one of retirement, then adjust for inflation annually.',
+    'standard deduction': 'Amount subtracted from income before tax calculation ($14,600 single, $29,200 married for 2024).',
+    'PAYE': 'Pay As You Earn — the UK system where employers deduct tax before paying your salary.',
+    'National Insurance': 'UK payroll tax funding state pension and benefits. Employees pay 8% on earnings £12,570–£50,270.',
+    'PMI': 'Private Mortgage Insurance — required when your down payment is less than 20% of the home price.',
+    'DTI': 'Debt-to-Income ratio — your monthly debt payments divided by gross monthly income.',
+    'emergency fund': 'Savings covering 3–6 months of essential expenses for unexpected events.',
+  };
+
+  document.querySelectorAll('.prose strong').forEach(el => {
+    const text = el.textContent?.trim();
+    if (text && TERMS[text]) {
+      const wrapper = document.createElement('span');
+      wrapper.className = 'term-tooltip';
+      wrapper.setAttribute('data-definition', TERMS[text]);
+      wrapper.setAttribute('tabindex', '0');
+      wrapper.setAttribute('role', 'note');
+      wrapper.setAttribute('aria-label', `${text}: ${TERMS[text]}`);
+      el.parentNode?.insertBefore(wrapper, el);
+      wrapper.appendChild(el);
+    }
+  });
+</script>

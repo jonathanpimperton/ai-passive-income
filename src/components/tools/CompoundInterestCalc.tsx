@@ -14,9 +14,10 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { ChevronDown, RotateCcw } from 'lucide-react';
+import { ChevronDown, RotateCcw, TrendingUp, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Compounding frequency options ────────────────────────── */
 const COMPOUND_OPTIONS = [
@@ -330,30 +331,40 @@ export default function CompoundInterestCalc() {
 
         {/* ── Results Panel ───────────────────────────── */}
         <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
-          {/* Big Number */}
+          {/* Big Number — gradient text + count-up animation */}
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Final Balance</p>
-            <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
-              {formatCurrency(finalBalance)}
+            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+              {formatCurrency(useAnimatedNumber(finalBalance))}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               After {years} year{years !== 1 ? 's' : ''} of compounding at {rate}% annually
             </p>
           </div>
 
-          {/* Breakdown */}
+          {/* Breakdown — with icons */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                {formatCurrency(totalContributions)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Wallet size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                  {formatCurrency(totalContributions)}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Interest Earned</p>
-              <p className="text-lg font-semibold text-accent-600 tabular-nums">
-                {formatCurrency(totalInterest)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Sparkles size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Interest Earned</p>
+                <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                  {formatCurrency(totalInterest)}
+                </p>
+              </div>
             </div>
           </div>
 

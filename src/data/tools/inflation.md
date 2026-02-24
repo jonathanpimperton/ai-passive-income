@@ -68,6 +68,11 @@ The **inflation rate** is the percentage change in CPI from one period to anothe
 
 ## Historical Perspective
 
+<div class="stat-highlight">
+  <span class="stat-number">88%</span>
+  <span class="stat-text">of the dollar's purchasing power has been eroded since 1970. What cost $1 then costs $8.10 today — that's the invisible tax of inflation over 54 years.</span>
+</div>
+
 The long-term average US inflation rate since 1914 is approximately 3.3% per year. But averages hide dramatic variation:
 
 | Period | Inflation Rate | Context |

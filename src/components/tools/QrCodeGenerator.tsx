@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import * as QRCode from 'qrcode';
-import { Download, Image, FileCode, RotateCcw, Link, Type, AlertCircle } from 'lucide-react';
+import { Download, Image, FileCode, RotateCcw, Link, Type, AlertCircle, QrCode, Hash } from 'lucide-react';
 
 /* ── Error Correction Levels ──────────────────────────────── */
 const ERROR_CORRECTION_LEVELS = [
@@ -294,17 +294,27 @@ export default function QrCodeGenerator() {
 
           {/* Info Cards */}
           <div className="grid grid-cols-2 gap-3 mt-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Format</p>
-              <p className="text-sm font-semibold text-neutral-900">
-                QR Code (ISO 18004)
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <QrCode size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Format</p>
+                <p className="text-sm font-semibold text-neutral-900">
+                  QR Code (ISO 18004)
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Data Length</p>
-              <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                {charCount.toLocaleString()} character{charCount !== 1 ? 's' : ''}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Hash size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Data Length</p>
+                <p className="text-sm font-semibold text-neutral-900 tabular-nums">
+                  {charCount.toLocaleString()} character{charCount !== 1 ? 's' : ''}
+                </p>
+              </div>
             </div>
           </div>
 

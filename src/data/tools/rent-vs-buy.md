@@ -65,6 +65,11 @@ This calculator runs both scenarios side by side so you can make the decision wi
 
 ## The True Cost of Buying
 
+<div class="stat-highlight">
+  <span class="stat-number">5–7 yrs</span>
+  <span class="stat-text">is the typical break-even point for buying vs renting. If you might move sooner, renting is almost always the better financial decision.</span>
+</div>
+
 Buying a home involves more costs than most first-time buyers expect:
 
 | Cost | Typical Range | When You Pay |
