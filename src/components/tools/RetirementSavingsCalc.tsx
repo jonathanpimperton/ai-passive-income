@@ -295,7 +295,7 @@ export default function RetirementSavingsCalc() {
               id="ret-current-savings"
               value={currentSavings}
               min={0}
-              max={2000000}
+              max={5000000}
               step={1000}
               onChange={setCurrentSavings}
               prefix="$"
@@ -327,7 +327,7 @@ export default function RetirementSavingsCalc() {
                 value={targetBalance}
                 min={50000}
                 max={5000000}
-                step={50000}
+                step={25000}
                 onChange={setTargetBalance}
                 prefix="$"
                 formatDisplay={(v) => formatNumber(v)}

@@ -2,7 +2,7 @@
 name: "UK Salary & Take-Home Calculator"
 slug: "salary-uk"
 category: "income-and-planning"
-description: "Calculate your UK take-home pay after Income Tax, National Insurance, student loan repayments, and pension. See annual, monthly, weekly, and daily breakdowns."
+description: "Calculate UK take-home pay after Income Tax, National Insurance, student loans, and pension. See your net salary breakdown — free, no signup, no ads."
 keywords:
   - "UK salary calculator"
   - "UK take-home pay calculator"
@@ -55,4 +55,46 @@ workedExamples:
     description: "At £110,000, the Personal Allowance is reduced by £5,000 (half of the £10,000 above £100,000), leaving a £7,570 allowance. This means Income Tax is approximately £31,632 — effectively 60% on the £100K-£110K portion. Total with NI: £38,312 in deductions. Many taxpayers at this level use salary sacrifice to bring taxable income below £100,000 and reclaim the full Personal Allowance, saving thousands."
 ---
 
-Educational content will be added during Sprint 4.
+## Understanding Your UK Take-Home Pay
+
+Your take-home pay in the UK is your gross salary minus Income Tax, National Insurance, pension contributions, and (if applicable) student loan repayments. For most employees, these deductions are handled through PAYE (Pay As You Earn) — your employer calculates and deducts them before you receive your pay.
+
+## How UK Income Tax Works
+
+The UK uses a progressive tax band system. For the 2025/26 tax year, everyone gets a Personal Allowance of £12,570 — income up to this amount is tax-free. Income above the Personal Allowance is taxed at increasing rates: 20% Basic Rate (up to £50,270), 40% Higher Rate (up to £125,140), and 45% Additional Rate (above £125,140).
+
+Your tax code tells your employer how much Personal Allowance to apply. The standard code 1257L means a £12,570 allowance. If HMRC adjusts your code (for example, because you receive benefits in kind or owe tax from a previous year), your effective allowance changes — which directly affects your take-home pay.
+
+## The 60% Tax Trap
+
+Between £100,000 and £125,140, the UK tax system creates a hidden effective rate of about 60%. For every £2 you earn above £100,000, your Personal Allowance is reduced by £1. This means you're paying 40% Income Tax *plus* effectively losing 20% of your allowance, creating a combined 60% marginal rate.
+
+The most common strategy to avoid this trap is salary sacrifice into a pension. By reducing your taxable income to below £100,000, you reclaim the full Personal Allowance — which can save £5,000 or more in tax, while simultaneously boosting your pension pot.
+
+## National Insurance Contributions
+
+Employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270, then 2% on earnings above £50,270. Your employer also pays 13.8% on your earnings above £9,100 — this doesn't come out of your pay, but it's a significant cost to your employer.
+
+NI contributions count toward your State Pension entitlement. You need 35 qualifying years for the full new State Pension (currently £221.20 per week). If you have gaps, you can make voluntary Class 3 contributions to fill them.
+
+## Scottish Income Tax
+
+If you live in Scotland (regardless of where your employer is based), you pay Scottish Income Tax rates, which have six bands instead of three. The main difference is that Scotland charges 42% above £43,663 (vs 40% in England), and 48% above £125,140 (vs 45%). Lower earners in Scotland pay slightly less, while higher earners pay slightly more.
+
+Your payslip will show the same "Income Tax" line whether you're in Scotland or not — the difference is applied automatically through your tax code (Scottish codes start with "S").
+
+## Student Loan Repayments
+
+Student loan repayments are deducted from your pay once you earn above the threshold for your plan. The rate is 9% of income above the threshold (6% for Postgraduate Loans). These are not voluntary — they're automatically deducted through PAYE until the loan is repaid or written off.
+
+You can hold both a Plan (1, 2, 4, or 5) and a Postgraduate Loan simultaneously, meaning up to 15% of income above the thresholds could go to student loan repayments.
+
+## Common Mistakes
+
+1. **Not checking your tax code.** An incorrect tax code means you're either overpaying or underpaying tax all year. Check your code on your payslip against your HMRC online account.
+2. **Missing the salary sacrifice opportunity.** Salary sacrifice saves both Income Tax and NI. A £5,000 sacrifice at the higher rate can save you £2,400 in tax and NI combined.
+3. **Ignoring pension auto-enrolment.** The default 5% employee contribution (plus 3% employer) is the minimum. Increasing your contribution — especially via salary sacrifice — is one of the most tax-efficient ways to build wealth.
+
+## What to Do Next
+
+Enter your salary and adjust the optional fields to match your situation. If your tax code differs from the standard 1257L, enter it to see the impact on your allowance. If you're earning near £100,000, experiment with pension contributions to see how much you could save by reducing your taxable income below the Personal Allowance taper threshold.

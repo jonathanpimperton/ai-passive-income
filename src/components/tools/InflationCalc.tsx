@@ -130,12 +130,13 @@ export default function InflationCalc() {
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
       {/* Tabs */}
-      <div className="flex border-b border-neutral-200/80" role="tablist">
+      <div className="flex border-b border-neutral-200/80" role="tablist" aria-label="Inflation calculation mode">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             role="tab"
             aria-selected={mode === tab.key}
+            aria-controls="inf-results"
             onClick={() => setMode(tab.key)}
             className={`flex-1 py-3 text-sm font-medium transition-colors duration-150 ${
               mode === tab.key
@@ -187,7 +188,7 @@ export default function InflationCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="inf-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           {mode === 'historical' && historicalResult && (
             <>
               <div className="mb-6">

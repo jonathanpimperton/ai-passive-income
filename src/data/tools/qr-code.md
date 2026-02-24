@@ -49,4 +49,31 @@ workedExamples:
     description: "A vCard QR code on a business card lets contacts save your details with one scan. At 200px it fits neatly in a corner of a standard business card. When scanned, the phone prompts the user to save the contact — no manual typing of phone numbers or email addresses."
 ---
 
-Educational content will be added during Sprint 4.
+## What Is a QR Code?
+
+A QR (Quick Response) code is a two-dimensional barcode that stores information — URLs, text, contact details, Wi-Fi credentials, or email addresses — in a square grid of black and white modules. When scanned with a smartphone camera, the encoded content is read instantly.
+
+QR codes were invented in 1994 by Denso Wave, a subsidiary of Toyota, to track automotive parts during manufacturing. Today they're everywhere: restaurant menus, product packaging, event tickets, payment systems, and business cards.
+
+## Static vs Dynamic QR Codes
+
+**Static QR codes** encode data directly in the image. The destination is permanent — once created, it can't be changed. Our generator creates static codes, which are free, work offline, never expire, and don't depend on any third-party service.
+
+**Dynamic QR codes** redirect through a short URL service that can be updated later. They require an ongoing subscription and stop working if the service shuts down. For most use cases, static codes are the better choice.
+
+## Error Correction: Why QR Codes Still Work When Damaged
+
+QR codes include built-in error correction using Reed-Solomon algorithms. Even if part of the code is obscured, scratched, or covered by a logo, the remaining data can reconstruct the message. There are four levels: L (7% recovery), M (15%), Q (25%), and H (30%). Higher correction means the code can withstand more damage but requires more modules (making it slightly larger or denser).
+
+For printed materials that may get folded or smudged, use H (high) correction. For digital displays, M (medium) is usually sufficient.
+
+## Best Practices for QR Code Usage
+
+- **Always test before printing.** Scan the code with multiple phones before committing to a print run.
+- **Use appropriate sizing.** Minimum 2cm × 2cm for close-range scanning. For distance, the code should be at least 1/10th of the expected scanning distance.
+- **Maintain quiet zone.** Keep a white border around the QR code equal to at least 4 modules wide. Without it, scanners may not detect the code.
+- **Download as SVG for print.** SVG files scale to any size without losing quality, unlike PNG which can pixelate when enlarged.
+
+## When to Use This Tool
+
+Generate QR codes for URLs (website links, menus, landing pages), Wi-Fi networks (instant connection without typing passwords), contact information (vCard format for business cards), plain text, email addresses, or phone numbers. All processing happens in your browser — your data is never sent to our servers.

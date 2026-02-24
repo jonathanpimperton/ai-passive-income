@@ -45,7 +45,7 @@ Market research, competitor analysis, financial model, and strategy defined.
 
 **Chosen approach:**
 - 14 financial calculators + 4 utility tools (18 MVP total)
-- Phase 2: 8 client-side file converters as traffic acquisition (not a rebrand — financial calculators remain the core identity)
+- 8 client-side file converters built pre-launch as traffic acquisition (not a rebrand — financial calculators remain the core identity)
 - Affiliate-first monetization (not ad-dependent)
 - Email capture ("email me my results") → automated drip → affiliate conversions
 - Embeddable calculator widgets for passive backlinks
@@ -98,15 +98,19 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Build 8 secondary calculators (US salary, UK salary, mortgage payment, inflation, ROI, net worth, rent vs buy, emergency fund)
 - Build percentage calculator + JSON formatter
 
-**Sprint 4-5 — Polish & Launch:**
-- Educational content, comparison tables, PDF export, embeddable widgets, OG images
-- Deploy to Cloudflare Pages, submit to Google Search Console
+**Sprint 4 — SEO + Content + Monetization:**
+- SEO optimization: page titles, meta descriptions emphasizing "free, no signup, no ads"
+- Educational content, comparison tables, affiliate recommendations
 
-**Phase 2 — File Converters (Post-Launch, Month 4-6+):**
+**Sprint 5 — Client-Side File Converters (Pre-Launch):**
 - 8 client-side file converters as traffic acquisition strategy (image compress, resize, format convert, SVG→PNG, HEIC→JPG, CSV↔JSON, Markdown↔HTML, images→PDF)
 - All processing client-side — "Your files never leave your device" privacy positioning
 - Cross-promotion links from converter pages to financial calculators
 - NOT a rebrand — financial calculators remain the core identity, homepage hero, and primary revenue driver
+
+**Sprint 6 — Polish & Launch:**
+- PDF export, embeddable widgets, OG images, performance audit
+- Deploy to Cloudflare Pages, submit to Google Search Console
 
 ## Design Quality Standards (MANDATORY for All Sprints)
 
@@ -169,7 +173,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4, Sprint 1 (Foundation) is complete. Sprint 2 (core calculators) is next. All 18 tool pages exist with placeholder calculators — next step is building real calculator components starting with compound interest. The 18 tools include: 14 financial calculators (US + UK salary calculators, mortgage payment calculator added to original 12) + 4 utility tools (percentage calculator added to original 3). Phase 2 (8 file converters) is planned for post-launch (Month 4-6+) — see build-spec.md for details.
+3. **Current status:** Stage 4. Sprints 1-3 are complete. All 18 calculator tools are fully built (0 placeholders). Sprint 4 (SEO + content + monetization) is next. Sprint 5 (8 client-side file converters) is now pre-launch, not post-launch. The 18 tools include: 14 financial calculators (US + UK salary calculators, mortgage payment calculator added to original 12) + 4 utility tools (percentage calculator added to original 3). See build-spec.md for details.
 4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running

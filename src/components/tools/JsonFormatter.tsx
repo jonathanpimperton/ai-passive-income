@@ -99,7 +99,7 @@ export default function JsonFormatter() {
             </button>
           </div>
 
-          <label htmlFor="json-input" className="sr-only">Paste your JSON here</label>
+          <label htmlFor="json-input" className="block text-sm font-medium text-neutral-700 mb-2">Paste your JSON</label>
           <textarea
             id="json-input"
             value={input}

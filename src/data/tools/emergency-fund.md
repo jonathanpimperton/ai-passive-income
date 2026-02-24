@@ -51,4 +51,60 @@ workedExamples:
     description: "A freelancer with variable income needs a larger cushion — targeting 9 months at $4,200/month = $37,800. With $8,000 already saved and $800/month contributions at 5% APY, they'll reach the goal in about 3 years, 2 months. The high-yield interest contributes about $2,300 over that period."
 ---
 
-Educational content will be added during Sprint 4.
+## What Is an Emergency Fund?
+
+An emergency fund is money set aside specifically for unexpected financial shocks — job loss, medical bills, car breakdowns, or urgent home repairs. It's the financial buffer between you and debt when life doesn't go as planned.
+
+Without an emergency fund, unexpected expenses go on credit cards (at 20%+ interest) or force you to take on personal loans. With one, you handle emergencies from savings and your financial plan stays on track.
+
+## How Much Do You Need?
+
+The standard recommendation is 3-6 months of essential expenses. "Essential expenses" means the minimum you need to cover if income stopped: housing, food, utilities, insurance, transportation, and minimum debt payments. Not dining out, streaming subscriptions, or entertainment.
+
+The right target depends on your situation:
+
+- **3 months:** Dual-income household with stable jobs, good health insurance, and low debt
+- **6 months:** Single earner, family with children, or moderate job stability concerns
+- **9-12 months:** Self-employed, freelancer, variable income, single parent, or working in a volatile industry
+
+These are guidelines. Any amount is better than nothing — even $1,000 covers most car repairs and medical co-pays, preventing a credit card spiral.
+
+## Where to Keep Your Emergency Fund
+
+Your emergency fund needs to be:
+
+1. **Liquid** — accessible within 1-2 business days, not locked in a CD or investment account
+2. **Safe** — not subject to market fluctuations; stocks can crash at exactly the worst time
+3. **Separate** — in a different account from your spending money, ideally at a different bank
+
+A **high-yield savings account** meets all three criteria. With rates currently at 4-5% APY, your emergency fund actually earns meaningful interest while waiting. A $15,000 emergency fund at 5% APY earns $750 per year — money that works for you while it sits.
+
+Avoid keeping your emergency fund in investments (too volatile), under the mattress (no interest, not insured), or in your checking account (too easy to spend).
+
+## Building Your Emergency Fund: Step by Step
+
+1. **Start small.** If you have nothing saved, target $1,000 first. This covers most minor emergencies and builds the savings habit.
+2. **Automate.** Set up automatic transfers from checking to savings on payday. The money should move before you can spend it.
+3. **Use a separate bank.** Opening a high-yield savings account at a different institution from your checking creates friction that prevents impulse spending.
+4. **Build before aggressively paying debt.** The exception is high-interest credit card debt — but even then, maintain a $1,000-$2,000 starter fund. Without it, emergencies push you back into debt.
+5. **Replenish immediately.** If you use your emergency fund, make refilling it the top financial priority until it's restored.
+
+## What Counts as an Emergency?
+
+Clear definitions prevent fund raids:
+
+**Emergencies:** Job loss, medical/dental emergencies, essential car or home repairs, unexpected family situations, insurance deductibles after accidents
+
+**Not emergencies:** Vacations, holiday gifts, sales on electronics, routine car maintenance (plan for these separately), wanted-but-not-needed purchases
+
+## When to Use This Calculator
+
+Use the emergency fund calculator to:
+
+- **Set your target** — see the exact dollar amount for 3, 6, and 12-month coverage based on your actual expenses
+- **Create a timeline** — find out how long it will take to reach your target at your current savings rate
+- **Optimize your plan** — see how increasing your monthly savings or opening a higher-yield account changes the timeline
+
+## What to Do Next
+
+Enter your monthly essential expenses to see your 3, 6, and 12-month targets. If starting from zero, focus on reaching $1,000 first, then build toward the full target. Set up an automatic transfer today — even $50 per pay period adds up to $1,300 per year.

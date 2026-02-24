@@ -52,4 +52,43 @@ workedExamples:
     description: "Working 25 hours/week at $22/hour brings in $28,600/year. The full-time equivalent (40 hours/week) would be $45,760. This comparison helps when evaluating whether to take on additional hours or a second job."
 ---
 
-Educational content will be added during Sprint 4.
+## Understanding Your US Take-Home Pay
+
+Your take-home pay — also called net pay — is what actually lands in your bank account after all deductions. For most Americans, total deductions (federal tax, state tax, Social Security, and Medicare) consume 20-35% of gross income. The exact percentage depends on your income level, filing status, and state of residence.
+
+## How US Federal Income Tax Works
+
+The US uses a progressive (marginal) tax system. You don't pay one flat rate on your entire income — instead, different portions of your income are taxed at different rates. For 2024, a single filer pays 10% on the first $11,600, 12% on income from $11,601 to $47,150, 22% from $47,151 to $100,525, and so on up to 37% on income above $609,350.
+
+Before calculating tax, you subtract the standard deduction ($14,600 for single filers, $29,200 for married filing jointly). This means the first $14,600 of a single filer's income is effectively tax-free.
+
+## FICA: Social Security and Medicare
+
+Every worker pays FICA (Federal Insurance Contributions Act) taxes regardless of income level or filing status:
+
+- **Social Security:** 6.2% on income up to $168,600 (the wage base cap). Your employer pays an additional 6.2%.
+- **Medicare:** 1.45% on all income, with an additional 0.9% on income above $200,000 (single) or $250,000 (married).
+
+These taxes are non-negotiable — there's no deduction or filing status trick to reduce them.
+
+## State Income Tax: The Big Variable
+
+State income tax is the factor that creates the biggest difference in take-home pay between locations. Nine states charge no income tax at all: Alaska, Florida, Nevada, New Hampshire, South Dakota, Tennessee, Texas, Washington, and Wyoming. California's top rate is 13.3%, while states like Illinois use a flat 4.95%.
+
+A $100,000 salary in Texas (0% state tax) takes home roughly $5,000-$7,000 more per year than the same salary in California or New York. This is why our calculator includes a state tax rate input — it's often the largest variable in your paycheck.
+
+## Salary vs Hourly: Making the Comparison
+
+Converting between salary and hourly requires knowing your working hours. The standard formula for full-time is: Annual Salary ÷ 2,080 hours (40 hours × 52 weeks) = Hourly Rate.
+
+But hourly workers have overtime potential. Under the FLSA, hours beyond 40 per week earn 1.5x the regular rate. An hourly worker at $30/hour who consistently works 45 hours per week earns $81,900 annually — $19,500 more than the $62,400 base. When comparing job offers, factor in realistic overtime.
+
+## Common Mistakes
+
+1. **Forgetting FICA when comparing salaries.** Social Security and Medicare take 7.65% from every paycheck. A $75,000 salary loses $5,738 to FICA alone.
+2. **Ignoring state tax differences.** Moving from California to Texas for the same salary gives you an effective raise of 5-10%.
+3. **Not maximizing pre-tax deductions.** 401(k) contributions reduce your taxable income, lowering both federal and state tax while building retirement savings.
+
+## What to Do Next
+
+Run your actual salary through the calculator with your state's tax rate to see your real take-home pay. If you're comparing job offers in different states, enter both scenarios — the state tax difference alone might change your decision.

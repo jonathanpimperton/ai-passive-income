@@ -16,23 +16,6 @@ interface Item {
   value: number;
 }
 
-const ASSET_CATEGORIES = [
-  { key: 'cash', label: 'Cash & Savings' },
-  { key: 'investments', label: 'Investments' },
-  { key: 'retirement', label: 'Retirement Accounts' },
-  { key: 'realEstate', label: 'Real Estate' },
-  { key: 'vehicles', label: 'Vehicles' },
-  { key: 'other', label: 'Other Assets' },
-] as const;
-
-const LIABILITY_CATEGORIES = [
-  { key: 'mortgage', label: 'Mortgage' },
-  { key: 'studentLoans', label: 'Student Loans' },
-  { key: 'autoLoans', label: 'Auto Loans' },
-  { key: 'creditCards', label: 'Credit Cards' },
-  { key: 'otherDebt', label: 'Other Debt' },
-] as const;
-
 const ASSET_COLORS = ['#2563EB', '#3B82F6', '#60A5FA', '#10B981', '#F59E0B', '#8B5CF6'];
 const LIABILITY_COLORS = ['#EF4444', '#F97316', '#F59E0B', '#EC4899', '#6366F1'];
 
