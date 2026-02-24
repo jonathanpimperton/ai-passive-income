@@ -44,7 +44,7 @@ Evaluated 6 business models. Decision: **Free Online Tools Site**.
 Market research, competitor analysis, financial model, and strategy defined.
 
 **Chosen approach:**
-- 12 complex financial calculators + 3 high-value utility tools (15 MVP total)
+- 14 financial calculators + 4 utility tools (18 MVP total)
 - Phase 2: 8 client-side file converters as traffic acquisition (not a rebrand — financial calculators remain the core identity)
 - Affiliate-first monetization (not ad-dependent)
 - Email capture ("email me my results") → automated drip → affiliate conversions
@@ -53,7 +53,7 @@ Market research, competitor analysis, financial model, and strategy defined.
 - FTC-compliant affiliate disclosures on every page
 
 ### Stage 3: Plan Optimization + Design (Complete)
-MVP cut from 20 generic tools to 15 focused tools (12 financial + 3 utility).
+MVP expanded from 15 to 18 focused tools (14 financial + 4 utility).
 Switched from Next.js to Astro. Dropped simple tools that AI Overviews replace.
 Full design system defined: branding, colors, typography, calculator UI, navigation, accessibility.
 
@@ -62,9 +62,9 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 **Sprint 1 — Foundation + Visual Polish (Complete):**
 - Astro 5 + TypeScript + Tailwind CSS v4 + React scaffold
 - Design system: all color/typography/spacing tokens, self-hosted Inter + JetBrains Mono fonts
-- Content architecture: Zod-validated content collection (glob loader), 15 tool markdown files with full frontmatter
+- Content architecture: Zod-validated content collection (glob loader), 18 tool markdown files with full frontmatter
 - Page templates: BaseLayout, ToolPageLayout (breadcrumbs, tool icon, H1, affiliate disclosure, section backgrounds, worked examples, FAQ, related tools)
-- 22 pages: homepage, tools index, 15 tool pages, about, privacy, terms, disclosure, 404
+- 25 pages: homepage, tools index, 18 tool pages, about, privacy, terms, disclosure, 404
 - **Visual polish pass:** Every page upgraded to premium quality:
   - Homepage: animated gradient hero with floating orbs, trust indicators, gradient text, dual CTAs
   - All tool cards: Lucide icons with hover icon-fill animation, gradient bottom accent on hover
@@ -95,7 +95,8 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Build QR code generator + password generator
 
 **Sprint 3 — After:**
-- Build 6 secondary calculators + JSON formatter
+- Build 8 secondary calculators (US salary, UK salary, mortgage payment, inflation, ROI, net worth, rent vs buy, emergency fund)
+- Build percentage calculator + JSON formatter
 
 **Sprint 4-5 — Polish & Launch:**
 - Educational content, comparison tables, PDF export, embeddable widgets, OG images
@@ -168,7 +169,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4, Sprint 1 (Foundation) is complete. Sprint 2 (core calculators) is next. All 15 tool pages exist with placeholder calculators — next step is building real calculator components starting with compound interest. Phase 2 (8 file converters) is planned for post-launch (Month 4-6+) — see build-spec.md for details.
+3. **Current status:** Stage 4, Sprint 1 (Foundation) is complete. Sprint 2 (core calculators) is next. All 18 tool pages exist with placeholder calculators — next step is building real calculator components starting with compound interest. The 18 tools include: 14 financial calculators (US + UK salary calculators, mortgage payment calculator added to original 12) + 4 utility tools (percentage calculator added to original 3). Phase 2 (8 file converters) is planned for post-launch (Month 4-6+) — see build-spec.md for details.
 4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running
@@ -197,7 +198,7 @@ Every session that writes code MUST run through this checklist before committing
 - [ ] No new `[WARN]` messages in build output (investigate any that appear)
 
 ### 2. SEO (every tool markdown file)
-- [ ] **Meta descriptions ≤160 chars** — Google truncates beyond this. Count characters for every new/edited `description` field in `src/data/tools/*.md`. This has been wrong on 11/15 tools before.
+- [ ] **Meta descriptions ≤160 chars** — Google truncates beyond this. Count characters for every new/edited `description` field in `src/data/tools/*.md`. This has been wrong on multiple tools before.
 - [ ] **`affiliateContext` + `affiliatePrograms`** — Add to every tool where there's a natural product fit (financial tools → investment/savings platforms). Don't force affiliates on utility tools (QR code, JSON formatter) with no natural fit.
 - [ ] **FAQ array** — 5+ questions per tool, substantive answers
 - [ ] **`relatedTools` array** — 4-7 cross-references, all slugs valid

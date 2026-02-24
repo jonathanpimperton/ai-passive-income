@@ -1,15 +1,18 @@
 ---
-name: "Salary & Take-Home Calculator"
-slug: "salary"
+name: "US Salary & Take-Home Calculator"
+slug: "salary-us"
 category: "income-and-planning"
-description: "Convert salary to hourly rate, see take-home pay after taxes, and calculate overtime pay. Compare job offers instantly — free, no signup, no ads."
+description: "Calculate your US take-home pay after federal and state taxes, FICA, and 401(k). Convert salary to hourly rate and compare job offers — free, no signup."
 keywords:
   - "salary to hourly calculator"
   - "hourly to salary"
   - "annual salary calculator"
-  - "take-home pay calculator"
+  - "take-home pay calculator US"
+  - "US paycheck calculator"
   - "overtime calculator"
+  - "net pay calculator"
 relatedTools:
+  - "salary-uk"
   - "net-worth"
   - "retirement-savings"
   - "savings-goal"
@@ -20,12 +23,14 @@ faq:
     answer: "Divide your annual salary by the number of working hours in a year. For a standard full-time schedule (40 hours/week, 52 weeks/year), that's 2,080 hours. So a $60,000 salary equals approximately $28.85 per hour. If you get paid time off, the actual hourly rate is effectively higher."
   - question: "What is the difference between gross pay and net pay?"
     answer: "Gross pay is your total earnings before any deductions. Net pay (take-home pay) is what actually hits your bank account after federal taxes, state taxes, Social Security (6.2%), Medicare (1.45%), and any pre-tax deductions like 401(k) contributions or health insurance premiums."
-  - question: "How much of my salary goes to taxes?"
+  - question: "How much of my salary goes to taxes in the US?"
     answer: "For most Americans, total tax burden (federal + state + FICA) ranges from 20-35% of gross income. The exact amount depends on your filing status, state of residence, deductions, and income level. Someone earning $75,000 in California pays roughly 30% in total taxes, while the same salary in Texas (no state income tax) is about 22%."
   - question: "How do I calculate overtime pay?"
     answer: "Under the Fair Labor Standards Act (FLSA), overtime is 1.5 times your regular hourly rate for hours worked beyond 40 per week. If your regular rate is $25/hour, overtime is $37.50/hour. Some states have additional overtime rules — California requires overtime after 8 hours in a single day."
-  - question: "Is a $50,000 salary good?"
+  - question: "Is a $50,000 salary good in the US?"
     answer: "It depends heavily on location. $50,000 in Des Moines, Iowa has roughly the same purchasing power as $85,000 in San Francisco. The national median household income is about $75,000. Our calculator helps you see the real take-home pay so you can evaluate based on your actual expenses."
+  - question: "Which US states have no income tax?"
+    answer: "Nine states have no state income tax: Alaska, Florida, Nevada, New Hampshire (dividends and interest only), South Dakota, Tennessee, Texas, Washington, and Wyoming. Living in these states can significantly increase your take-home pay — a $75,000 salary in Texas keeps roughly $3,000-$5,000 more per year compared to California or New York."
 workedExamples:
   - title: "Comparing hourly vs salaried job offers"
     inputs:
@@ -33,7 +38,7 @@ workedExamples:
       hourlyRate: 35
       hoursPerWeek: 40
     description: "A salaried offer at $65,000/year vs an hourly position at $35/hour. The salary equals $31.25/hour (at 2,080 hours/year). The hourly job pays $3.75/hour more, plus overtime opportunities. At just 5 hours overtime per week, the hourly job earns $79,625/year — 22% more than the salary."
-  - title: "Take-home pay on a $75,000 salary"
+  - title: "Take-home pay on a $75,000 salary in New York"
     inputs:
       annualSalary: 75000
       filingStatus: "single"

@@ -257,7 +257,7 @@ export default function DebtPayoffCalc() {
                 {debtInputs.length > 1 && (
                   <button
                     onClick={() => removeDebt(debt.id)}
-                    className="absolute top-2.5 right-2.5 p-1 rounded-lg text-neutral-400 hover:text-negative-500 hover:bg-negative-50 transition-all duration-150"
+                    className="absolute top-2.5 right-2.5 p-1 rounded-lg text-neutral-400 hover:text-negative-600 hover:bg-negative-50 transition-all duration-150"
                     aria-label={`Remove ${debt.name || `debt ${index + 1}`}`}
                   >
                     <X size={14} aria-hidden="true" />
