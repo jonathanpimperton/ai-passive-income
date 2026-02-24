@@ -116,6 +116,45 @@ const websiteSchema = buildWebsiteSchema();
     </div>
   </section>
 
+  {/* Why CalcRun — value proposition section */}
+  <section class="py-16 sm:py-20 bg-neutral-50">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Why CalcRun?</h2>
+        <p class="text-neutral-500 max-w-[480px] mx-auto">Built different from the calculator sites you're used to.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-50 text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-200 mb-4">
+            <ToolIcon name="sparkles" size={24} />
+          </div>
+          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Zero Ads</h3>
+          <p class="text-sm text-neutral-500 leading-relaxed">No pop-ups, no banners, no sponsored placements. Your screen is 100% calculator.</p>
+          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-accent-500 to-primary-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+        </div>
+
+        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all duration-200 mb-4">
+            <ToolIcon name="shield-check" size={24} />
+          </div>
+          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Your Data Stays Yours</h3>
+          <p class="text-sm text-neutral-500 leading-relaxed">Every calculation runs in your browser. We never see, store, or sell your numbers.</p>
+          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+        </div>
+
+        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-warning-50 text-warning-600 group-hover:bg-warning-600 group-hover:text-white transition-all duration-200 mb-4">
+            <ToolIcon name="zap" size={24} />
+          </div>
+          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Real-Time Results</h3>
+          <p class="text-sm text-neutral-500 leading-relaxed">No submit buttons, no page reloads. Results update instantly as you adjust inputs.</p>
+          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-warning-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   {/* Gradient divider */}
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
     <div class="h-px bg-gradient-to-r from-transparent via-primary-300/40 to-transparent"></div>
@@ -174,6 +213,24 @@ const websiteSchema = buildWebsiteSchema();
           </a>
         ))}
       </div>
+    </div>
+  </section>
+
+  {/* CTA section — dark gradient before footer */}
+  <section class="cta-gradient relative overflow-hidden py-16 sm:py-20">
+    <div class="cta-orb" aria-hidden="true"></div>
+    <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">Ready to see your numbers?</h2>
+      <p class="text-primary-200/90 max-w-[480px] mx-auto mb-8 leading-relaxed">
+        18 free calculators, zero signup, instant results. Start making smarter financial decisions today.
+      </p>
+      <a
+        href="/tools"
+        class="inline-flex items-center justify-center gap-2 bg-accent-600 text-white font-semibold px-8 py-4 rounded-xl hover:bg-accent-500 shadow-lg shadow-accent-600/25 hover:shadow-accent-500/30 transition-all duration-200 hover:-translate-y-0.5"
+      >
+        Explore All Tools
+        <ToolIcon name="arrow-right" size={18} />
+      </a>
     </div>
   </section>
 </BaseLayout>
@@ -251,10 +308,29 @@ const websiteSchema = buildWebsiteSchema();
     display: none;
   }
 
+  /* CTA section gradient */
+  .cta-gradient {
+    background: linear-gradient(135deg, #0A2540 0%, #1A3A5C 50%, #0A2540 100%);
+  }
+  .cta-orb {
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    background: #2563EB;
+    filter: blur(100px);
+    opacity: 0.08;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: orbFloat1 10s ease-in-out infinite;
+  }
+
   /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .hero-gradient { animation: none; }
     .hero-orb { animation: none; opacity: 0; }
+    .cta-orb { animation: none; }
     .tool-card { transition-duration: 0.01ms; }
   }
 </style>

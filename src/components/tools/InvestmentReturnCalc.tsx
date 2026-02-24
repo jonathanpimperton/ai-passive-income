@@ -19,9 +19,10 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { ChevronDown, RotateCcw } from 'lucide-react';
+import { ChevronDown, RotateCcw, TrendingUp, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Solve-for-X tab definitions ─────────────────────────── */
 type SolveMode = 'endAmount' | 'contribution' | 'returnRate' | 'startingAmount' | 'time';
@@ -211,6 +212,14 @@ export default function InvestmentReturnCalc() {
     setFrequency(DEFAULTS.frequency);
     setTiming(DEFAULTS.timing);
   }, []);
+
+  /* ── Animated result value ─────────────────────────────── */
+  const animatedValue = useAnimatedNumber(result.value);
+  const animatedFormatted = (() => {
+    const isCurrency = mode === 'endAmount' || mode === 'contribution' || mode === 'startingAmount';
+    if (isCurrency) return formatCurrency(animatedValue);
+    return result.formatted;
+  })();
 
   /* ── Render input fields based on active mode ───────────── */
   const renderInputs = () => {
@@ -429,31 +438,46 @@ export default function InvestmentReturnCalc() {
           {/* Big Number */}
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{result.label}</p>
-            <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
-              {result.formatted}
+            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+              {animatedFormatted}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">{result.context}</p>
           </div>
 
           {/* Summary Breakdown */}
           <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Final Balance</p>
-              <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">
-                {formatCurrency(summary.finalBalance)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <TrendingUp size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Final Balance</p>
+                <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">
+                  {formatCurrency(summary.finalBalance)}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Invested</p>
-              <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">
-                {formatCurrency(summary.totalContributions)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Wallet size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Invested</p>
+                <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">
+                  {formatCurrency(summary.totalContributions)}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Earnings</p>
-              <p className="text-base sm:text-lg font-semibold text-accent-600 tabular-nums">
-                {formatCurrency(summary.totalEarnings)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Sparkles size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Earnings</p>
+                <p className="text-base sm:text-lg font-semibold text-accent-600 tabular-nums">
+                  {formatCurrency(summary.totalEarnings)}
+                </p>
+              </div>
             </div>
           </div>
 

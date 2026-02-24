@@ -18,9 +18,10 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { ChevronDown, RotateCcw } from 'lucide-react';
+import { ChevronDown, RotateCcw, Banknote, Percent, DollarSign } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Collapsible Year-Group Table ─────────────────────────── */
 interface YearGroup {
@@ -242,8 +243,8 @@ export default function LoanAmortizationCalc() {
         <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Monthly Payment</p>
-            <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
-              {formatCurrency(monthlyPayment)}
+            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+              {formatCurrency(useAnimatedNumber(monthlyPayment))}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               {extraPayment > 0 ? (
@@ -255,17 +256,32 @@ export default function LoanAmortizationCalc() {
           </div>
 
           <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Principal</p>
-              <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(loanAmount)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Banknote size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Principal</p>
+                <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(loanAmount)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Interest</p>
-              <p className="text-base sm:text-lg font-semibold text-negative-600 tabular-nums">{formatCurrency(totalInterest)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Percent size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Interest</p>
+                <p className="text-base sm:text-lg font-semibold text-negative-600 tabular-nums">{formatCurrency(totalInterest)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Cost</p>
-              <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(totalCost)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <DollarSign size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Cost</p>
+                <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(totalCost)}</p>
+              </div>
             </div>
           </div>
 

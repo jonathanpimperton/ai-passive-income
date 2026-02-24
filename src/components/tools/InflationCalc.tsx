@@ -8,7 +8,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, TrendingUp, Percent, Wallet, ArrowUpDown } from 'lucide-react';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
@@ -97,6 +98,9 @@ export default function InflationCalc() {
 
     return { futureValue, purchasingPower, totalInflation };
   }, [mode, amount, futureYears, inflationRate]);
+
+  const animatedHistorical = useAnimatedNumber(historicalResult?.adjustedValue ?? 0);
+  const animatedFuture = useAnimatedNumber(futureResult?.futureValue ?? 0);
 
   const chartData = useMemo(() => {
     if (mode === 'historical') {
@@ -193,26 +197,32 @@ export default function InflationCalc() {
             <>
               <div className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">{formatCurrency(amount)} in {startYear} equals</p>
-                <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
-                  {formatCurrency(historicalResult.adjustedValue)}
+                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                  {formatCurrency(animatedHistorical)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
                   in {endYear} dollars ({historicalResult.years} years, {(historicalResult.totalInflation * 100).toFixed(1)}% cumulative inflation)
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-                  <p className="text-xs text-neutral-500 mb-0.5">Avg. Annual Inflation</p>
-                  <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                    {(historicalResult.avgAnnualRate * 100).toFixed(2)}%
-                  </p>
+                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Percent size={16} aria-hidden="true" /></div>
+                  <div>
+                    <p className="text-xs text-neutral-500 mb-0.5">Avg. Annual Inflation</p>
+                    <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                      {(historicalResult.avgAnnualRate * 100).toFixed(2)}%
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-                  <p className="text-xs text-neutral-500 mb-0.5">{endYear} Purchasing Power</p>
-                  <p className="text-lg font-semibold text-accent-600 tabular-nums">
-                    {formatCurrency(historicalResult.purchasingPower)}
-                  </p>
-                  <p className="text-xs text-neutral-400">of original {formatCurrency(amount)}</p>
+                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
+                  <div>
+                    <p className="text-xs text-neutral-500 mb-0.5">{endYear} Purchasing Power</p>
+                    <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                      {formatCurrency(historicalResult.purchasingPower)}
+                    </p>
+                    <p className="text-xs text-neutral-400">of original {formatCurrency(amount)}</p>
+                  </div>
                 </div>
               </div>
             </>
@@ -230,29 +240,35 @@ export default function InflationCalc() {
                 <p className="text-sm text-neutral-500 mb-1">
                   {formatCurrency(amount)} today will cost
                 </p>
-                <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
-                  {formatCurrency(futureResult.futureValue)}
+                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                  {formatCurrency(animatedFuture)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
                   in {futureYears} years at {inflationRate.toFixed(1)}% annual inflation ({(futureResult.totalInflation * 100).toFixed(1)}% total)
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-                  <p className="text-xs text-neutral-500 mb-0.5">Your {formatCurrency(amount)} Will Buy</p>
-                  <p className="text-lg font-semibold text-accent-600 tabular-nums">
-                    {formatCurrency(futureResult.purchasingPower)}
-                  </p>
-                  <p className="text-xs text-neutral-400">worth of today's goods</p>
+                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
+                  <div>
+                    <p className="text-xs text-neutral-500 mb-0.5">Your {formatCurrency(amount)} Will Buy</p>
+                    <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                      {formatCurrency(futureResult.purchasingPower)}
+                    </p>
+                    <p className="text-xs text-neutral-400">worth of today's goods</p>
+                  </div>
                 </div>
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-                  <p className="text-xs text-neutral-500 mb-0.5">Purchasing Power Lost</p>
-                  <p className="text-lg font-semibold text-red-600 tabular-nums">
-                    {formatCurrency(amount - futureResult.purchasingPower)}
-                  </p>
-                  <p className="text-xs text-neutral-400">
-                    {((1 - futureResult.purchasingPower / amount) * 100).toFixed(1)}% decrease
-                  </p>
+                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><ArrowUpDown size={16} aria-hidden="true" /></div>
+                  <div>
+                    <p className="text-xs text-neutral-500 mb-0.5">Purchasing Power Lost</p>
+                    <p className="text-lg font-semibold text-red-600 tabular-nums">
+                      {formatCurrency(amount - futureResult.purchasingPower)}
+                    </p>
+                    <p className="text-xs text-neutral-400">
+                      {((1 - futureResult.purchasingPower / amount) * 100).toFixed(1)}% decrease
+                    </p>
+                  </div>
                 </div>
               </div>
             </>

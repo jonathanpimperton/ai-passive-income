@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { RotateCcw, Copy, Check, AlertCircle, CheckCircle } from 'lucide-react';
+import { RotateCcw, Copy, Check, AlertCircle, CheckCircle, Braces, Key, FileText, Minimize2 } from 'lucide-react';
 
 const SAMPLE_JSON = `{"name":"John Doe","age":30,"email":"john@example.com","address":{"street":"123 Main St","city":"New York","state":"NY","zip":"10001"},"hobbies":["reading","hiking","photography"],"active":true}`;
 
@@ -201,21 +201,41 @@ export default function JsonFormatter() {
           {/* Stats */}
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-              <div className="bg-white rounded-xl border border-neutral-200/80 p-3">
-                <p className="text-xs text-neutral-500 mb-0.5">Type</p>
-                <p className="text-sm font-semibold text-neutral-900">{stats.type}</p>
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-3 flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Braces size={14} aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">Type</p>
+                  <p className="text-sm font-semibold text-neutral-900">{stats.type}</p>
+                </div>
               </div>
-              <div className="bg-white rounded-xl border border-neutral-200/80 p-3">
-                <p className="text-xs text-neutral-500 mb-0.5">Top-Level Keys</p>
-                <p className="text-sm font-semibold text-neutral-900 tabular-nums">{stats.keys}</p>
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-3 flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Key size={14} aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">Top-Level Keys</p>
+                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">{stats.keys}</p>
+                </div>
               </div>
-              <div className="bg-white rounded-xl border border-neutral-200/80 p-3">
-                <p className="text-xs text-neutral-500 mb-0.5">Formatted Size</p>
-                <p className="text-sm font-semibold text-neutral-900 tabular-nums">{formatBytes(stats.size)}</p>
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-3 flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <FileText size={14} aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">Formatted Size</p>
+                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">{formatBytes(stats.size)}</p>
+                </div>
               </div>
-              <div className="bg-white rounded-xl border border-neutral-200/80 p-3">
-                <p className="text-xs text-neutral-500 mb-0.5">Minified Size</p>
-                <p className="text-sm font-semibold text-neutral-900 tabular-nums">{formatBytes(stats.minifiedSize)}</p>
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-3 flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Minimize2 size={14} aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">Minified Size</p>
+                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">{formatBytes(stats.minifiedSize)}</p>
+                </div>
               </div>
             </div>
           )}

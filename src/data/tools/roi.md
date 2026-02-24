@@ -64,6 +64,11 @@ ROI works for any investment type — stocks, real estate, business equipment, m
 
 ## Total ROI vs Annualized ROI
 
+<div class="stat-highlight">
+  <span class="stat-number">10%</span>
+  <span class="stat-text">average annual S&P 500 return (before inflation). But a 30% total return over 10 years is only 2.7% annualized — always compare using annualized ROI.</span>
+</div>
+
 Total ROI has a critical limitation: it doesn't account for time. A 30% return might sound better than 20%, but what if the 30% return took 10 years and the 20% return took 2 years?
 
 **Annualized ROI** solves this by converting any total return into an equivalent annual rate: Annualized ROI = (1 + Total ROI)^(1/Years) - 1. The 30% over 10 years becomes 2.7% annualized, while the 20% over 2 years is 9.5% annualized — a dramatically better investment.

@@ -6,7 +6,8 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Banknote, Globe, Shield, DollarSign, PiggyBank } from 'lucide-react';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
@@ -165,6 +166,8 @@ export default function SalaryCalc() {
     };
   }, [inputMode, salary, hourlyRate, hoursPerWeek, weeksPerYear, overtimeHours, stateTaxRate, filingStatus, retirement401k]);
 
+  const animatedNetAnnual = useAnimatedNumber(result.netAnnual);
+
   const pieData = useMemo(() => [
     { name: 'Take-Home Pay', value: result.netAnnual },
     { name: 'Federal Tax', value: result.federalTax },
@@ -247,8 +250,8 @@ export default function SalaryCalc() {
         <div id="sal-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
-            <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
-              {formatCurrency(result.netAnnual)}
+            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+              {formatCurrency(animatedNetAnnual)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               Effective deduction rate: {(result.effectiveTaxRate * 100).toFixed(1)}% · {formatCurrency(result.totalDeductions)} total deductions
@@ -285,27 +288,42 @@ export default function SalaryCalc() {
 
           {/* Tax breakdown cards */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Federal Income Tax</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.federalTax)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Banknote size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Federal Income Tax</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.federalTax)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">State Tax</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.stateTax)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Globe size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">State Tax</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.stateTax)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Social Security</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.fica.ss)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Shield size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Social Security</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.fica.ss)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Medicare</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.fica.medicare)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><DollarSign size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Medicare</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.fica.medicare)}</p>
+              </div>
             </div>
             {result.retirement401kAmount > 0 && (
-              <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-                <p className="text-xs text-neutral-500 mb-0.5">401(k)</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.retirement401kAmount)}</p>
-                <p className="text-xs text-accent-600 mt-0.5">Pre-tax</p>
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><PiggyBank size={16} aria-hidden="true" /></div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">401(k)</p>
+                  <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.retirement401kAmount)}</p>
+                  <p className="text-xs text-accent-600 mt-0.5">Pre-tax</p>
+                </div>
               </div>
             )}
           </div>

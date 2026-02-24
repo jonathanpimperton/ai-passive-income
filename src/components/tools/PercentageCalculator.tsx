@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Percent, Calculator, ArrowUpDown, Equal } from 'lucide-react';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 type CalcMode = 'whatIsXofY' | 'xIsWhatPercent' | 'percentChange' | 'percentDiff';
 
@@ -78,6 +79,7 @@ export default function PercentageCalculator() {
       case 'whatIsXofY': {
         const value = (a / 100) * b;
         return {
+          rawValue: value,
           mainValue: formatResult(value),
           mainLabel: `${inputA}% of ${inputB}`,
           mainUnit: '',
@@ -87,6 +89,7 @@ export default function PercentageCalculator() {
       case 'xIsWhatPercent': {
         const value = b !== 0 ? (a / b) * 100 : 0;
         return {
+          rawValue: value,
           mainValue: formatResult(value),
           mainLabel: `${inputA} is what % of ${inputB}`,
           mainUnit: '%',
@@ -97,6 +100,7 @@ export default function PercentageCalculator() {
         const value = a !== 0 ? ((b - a) / Math.abs(a)) * 100 : 0;
         const direction = value > 0 ? 'increase' : value < 0 ? 'decrease' : 'no change';
         return {
+          rawValue: Math.abs(value),
           mainValue: formatResult(Math.abs(value)),
           mainLabel: `${direction === 'increase' ? '+' : direction === 'decrease' ? '-' : ''}${formatResult(Math.abs(value))}% ${direction}`,
           mainUnit: '%',
@@ -109,6 +113,7 @@ export default function PercentageCalculator() {
         const avg = (Math.abs(a) + Math.abs(b)) / 2;
         const value = avg !== 0 ? (Math.abs(a - b) / avg) * 100 : 0;
         return {
+          rawValue: value,
           mainValue: formatResult(value),
           mainLabel: 'Percentage difference',
           mainUnit: '%',
@@ -130,6 +135,8 @@ export default function PercentageCalculator() {
         return { a: 'Value A', b: 'Value B', aSuffix: undefined, bPrefix: undefined };
     }
   }, [mode]);
+
+  const animatedResult = useAnimatedNumber(result.rawValue);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
@@ -235,9 +242,9 @@ export default function PercentageCalculator() {
             <p className={`text-4xl sm:text-5xl font-bold tabular-nums ${
               'isPositive' in result && result.isPositive ? 'text-accent-600' :
               'isNegative' in result && result.isNegative ? 'text-red-600' :
-              'text-primary-900'
+              'result-number'
             }`}>
-              {result.mainValue}{result.mainUnit && <span className="text-2xl ml-1">{result.mainUnit}</span>}
+              {formatResult(animatedResult)}{result.mainUnit && <span className="text-2xl ml-1">{result.mainUnit}</span>}
             </p>
             {mode === 'percentChange' && (
               <p className="text-sm text-neutral-600 mt-2">{result.mainLabel}</p>
@@ -245,14 +252,23 @@ export default function PercentageCalculator() {
           </div>
 
           {/* Formula display */}
-          <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6">
-            <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">Formula</p>
-            <p className="text-sm text-neutral-700 font-mono leading-relaxed">{result.context}</p>
+          <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+              <Calculator size={16} aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">Formula</p>
+              <p className="text-sm text-neutral-700 font-mono leading-relaxed">{result.context}</p>
+            </div>
           </div>
 
           {/* Helpful conversion card */}
           {mode === 'whatIsXofY' && a > 0 && b > 0 && (
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Percent size={16} aria-hidden="true" />
+              </div>
+              <div className="flex-1">
               <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Related Calculations</p>
               <div className="space-y-2 text-sm text-neutral-700">
                 <div className="flex justify-between">
@@ -268,40 +284,51 @@ export default function PercentageCalculator() {
                   <span className="font-medium tabular-nums">{formatResult((a / 2 / 100) * b)}</span>
                 </div>
               </div>
+              </div>
             </div>
           )}
 
           {mode === 'xIsWhatPercent' && b > 0 && (
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6">
-              <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Related</p>
-              <div className="space-y-2 text-sm text-neutral-700">
-                <div className="flex justify-between">
-                  <span>Remaining</span>
-                  <span className="font-medium tabular-nums">{formatResult(b - a)} ({formatResult(((b - a) / b) * 100)}%)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Ratio</span>
-                  <span className="font-medium tabular-nums">{formatResult(a)} : {formatResult(b - a)}</span>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Equal size={16} aria-hidden="true" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Related</p>
+                <div className="space-y-2 text-sm text-neutral-700">
+                  <div className="flex justify-between">
+                    <span>Remaining</span>
+                    <span className="font-medium tabular-nums">{formatResult(b - a)} ({formatResult(((b - a) / b) * 100)}%)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Ratio</span>
+                    <span className="font-medium tabular-nums">{formatResult(a)} : {formatResult(b - a)}</span>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {mode === 'percentChange' && a !== 0 && (
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6">
-              <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Details</p>
-              <div className="space-y-2 text-sm text-neutral-700">
-                <div className="flex justify-between">
-                  <span>Absolute change</span>
-                  <span className="font-medium tabular-nums">{formatResult(b - a)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Multiplier</span>
-                  <span className="font-medium tabular-nums">{formatResult(a !== 0 ? b / a : 0)}x</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Reverse change needed</span>
-                  <span className="font-medium tabular-nums">{formatResult(b !== 0 ? ((a - b) / Math.abs(b)) * 100 : 0)}%</span>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <ArrowUpDown size={16} aria-hidden="true" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Details</p>
+                <div className="space-y-2 text-sm text-neutral-700">
+                  <div className="flex justify-between">
+                    <span>Absolute change</span>
+                    <span className="font-medium tabular-nums">{formatResult(b - a)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Multiplier</span>
+                    <span className="font-medium tabular-nums">{formatResult(a !== 0 ? b / a : 0)}x</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Reverse change needed</span>
+                    <span className="font-medium tabular-nums">{formatResult(b !== 0 ? ((a - b) / Math.abs(b)) * 100 : 0)}%</span>
+                  </div>
                 </div>
               </div>
             </div>

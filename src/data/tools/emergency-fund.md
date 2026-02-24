@@ -61,6 +61,11 @@ Without an emergency fund, unexpected expenses go on credit cards (at 20%+ inter
 
 ## How Much Do You Need?
 
+<div class="stat-highlight">
+  <span class="stat-number">56%</span>
+  <span class="stat-text">of Americans can't cover a $1,000 emergency from savings. Even a small emergency fund prevents a car repair from spiraling into high-interest credit card debt.</span>
+</div>
+
 The standard recommendation is 3-6 months of essential expenses. "Essential expenses" means the minimum you need to cover if income stopped: housing, food, utilities, insurance, transportation, and minimum debt payments. Not dining out, streaming subscriptions, or entertainment.
 
 The right target depends on your situation:

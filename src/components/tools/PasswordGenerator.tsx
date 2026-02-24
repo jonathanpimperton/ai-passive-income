@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Copy, RefreshCw, Check, Shield, ShieldAlert, ShieldCheck, Eye, EyeOff, RotateCcw } from 'lucide-react';
+import { Copy, RefreshCw, Check, Shield, ShieldAlert, ShieldCheck, Eye, EyeOff, RotateCcw, Hash, Shuffle } from 'lucide-react';
 
 /* ── Character Sets ───────────────────────────────────────── */
 const CHAR_SETS: Record<string, string> = {
@@ -502,48 +502,58 @@ export default function PasswordGenerator() {
 
           {/* Info Cards */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Character Pool</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                {(() => {
-                  let size = 0;
-                  if (uppercase) {
-                    let s = CHAR_SETS.uppercase;
-                    if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
-                    size += s.length;
-                  }
-                  if (lowercase) {
-                    let s = CHAR_SETS.lowercase;
-                    if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
-                    size += s.length;
-                  }
-                  if (numbers) {
-                    let s = CHAR_SETS.numbers;
-                    if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
-                    size += s.length;
-                  }
-                  if (special) {
-                    let s = CHAR_SETS.special;
-                    if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
-                    size += s.length;
-                  }
-                  return size;
-                })()}
-              </p>
-              <p className="text-xs text-neutral-400">unique characters</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Hash size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Character Pool</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                  {(() => {
+                    let size = 0;
+                    if (uppercase) {
+                      let s = CHAR_SETS.uppercase;
+                      if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
+                      size += s.length;
+                    }
+                    if (lowercase) {
+                      let s = CHAR_SETS.lowercase;
+                      if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
+                      size += s.length;
+                    }
+                    if (numbers) {
+                      let s = CHAR_SETS.numbers;
+                      if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
+                      size += s.length;
+                    }
+                    if (special) {
+                      let s = CHAR_SETS.special;
+                      if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
+                      size += s.length;
+                    }
+                    return size;
+                  })()}
+                </p>
+                <p className="text-xs text-neutral-400">unique characters</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Combinations</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                {hasAnyCharset ? (
-                  entropy > 100 ? (
-                    <>10<sup className="text-xs">{Math.round(entropy * Math.LOG10E)}+</sup></>
-                  ) : (
-                    `~${(2 ** entropy).toExponential(1)}`
-                  )
-                ) : '0'}
-              </p>
-              <p className="text-xs text-neutral-400">possible passwords</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Shuffle size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Combinations</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                  {hasAnyCharset ? (
+                    entropy > 100 ? (
+                      <>10<sup className="text-xs">{Math.round(entropy * Math.LOG10E)}+</sup></>
+                    ) : (
+                      `~${(2 ** entropy).toExponential(1)}`
+                    )
+                  ) : '0'}
+                </p>
+                <p className="text-xs text-neutral-400">possible passwords</p>
+              </div>
             </div>
           </div>
 

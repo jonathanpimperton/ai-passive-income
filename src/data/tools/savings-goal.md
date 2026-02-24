@@ -64,6 +64,11 @@ Whether you're saving for a house down payment, a car, a vacation, or a wedding,
 
 ## How Savings Goal Math Works
 
+<div class="stat-highlight">
+  <span class="stat-number">5 months</span>
+  <span class="stat-text">of savings contributed for free by a 5% APY high-yield account on a $50,000 goal. That's $2,300 you never had to earn or budget for.</span>
+</div>
+
 The math is straightforward: take your target amount, subtract what you've already saved, then divide the remaining amount across the months you have — adjusted for interest earned.
 
 The interest component matters more than most people expect, especially for longer-term goals. Saving $1,000 per month toward a $50,000 goal at 0% interest takes 50 months. At 5% APY in a high-yield savings account, you reach the same goal in about 45 months — interest contributes roughly $2,300 and saves you 5 months.

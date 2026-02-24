@@ -61,6 +61,11 @@ Most common loans use amortization: mortgages, auto loans, personal loans, and s
 
 ## How Amortization Works
 
+<div class="stat-highlight">
+  <span class="stat-number">85%</span>
+  <span class="stat-text">of your first mortgage payment goes to interest, not principal. By year 30, that flips to 95%+ going to principal — but you've already paid the bank hundreds of thousands.</span>
+</div>
+
 The monthly payment formula is **M = P[r(1+r)^n] / [(1+r)^n - 1]**, where P is the loan amount, r is the monthly interest rate, and n is the total number of payments.
 
 What makes amortization counterintuitive is how the payment splits. In the early years of a 30-year mortgage, roughly 80-85% of each payment goes to interest. By the final years, 95%+ goes to principal. You're paying down the loan the entire time, but most of your early money is going to the bank, not to your equity.

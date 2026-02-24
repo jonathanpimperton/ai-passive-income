@@ -67,6 +67,11 @@ Understanding all four components prevents the common first-time buyer shock of 
 
 ## How Monthly Payments Are Calculated
 
+<div class="stat-highlight">
+  <span class="stat-number">$72K</span>
+  <span class="stat-text">is the extra cost of a 7% rate vs 6% on a $300,000 30-year mortgage. That one percentage point adds $200/month for the life of the loan.</span>
+</div>
+
 The standard mortgage payment formula is **M = P[r(1+r)^n]/[(1+r)^n – 1]**, where P is the loan amount, r is the monthly interest rate, and n is the total number of payments.
 
 The interest rate has an outsized impact. On a $300,000 loan over 30 years, the difference between 6% and 7% is $200 per month — $72,000 over the life of the loan.

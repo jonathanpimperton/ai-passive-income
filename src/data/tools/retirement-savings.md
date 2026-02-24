@@ -67,6 +67,11 @@ The short answer for most people is no. According to the Federal Reserve, about 
 
 ## How Retirement Savings Projections Work
 
+<div class="stat-highlight">
+  <span class="stat-number">25%</span>
+  <span class="stat-text">of non-retired US adults have zero retirement savings. The median for ages 55–64 is just $134,000 — far below the $1M+ most experts recommend.</span>
+</div>
+
 The math combines compound interest with regular contributions over time. Your existing savings grow at your expected rate of return, and each new contribution begins compounding from the moment it's deposited.
 
 The three variables that matter most:

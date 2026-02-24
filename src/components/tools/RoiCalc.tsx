@@ -9,7 +9,8 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, TrendingUp, DollarSign, Percent, Calendar } from 'lucide-react';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
@@ -70,6 +71,8 @@ export default function RoiCalc() {
     const ann = annualizedROI(r.totalReturn, yearsB);
     return { ...r, annualizedReturn: ann };
   }, [showComparison, initialB, finalB, yearsB, dividendsB]);
+
+  const animatedTotalReturn = useAnimatedNumber(resultA.totalReturn * 100);
 
   const chartData = useMemo(() => {
     const items = [
@@ -134,8 +137,8 @@ export default function RoiCalc() {
           {/* Investment A results */}
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{showComparison ? 'Investment A — ' : ''}Total Return</p>
-            <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${resultA.totalReturn >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
-              {fmtPct(resultA.totalReturn)}
+            <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${resultA.totalReturn >= 0 ? 'result-number' : 'text-red-600'}`}>
+              {animatedTotalReturn.toFixed(2)}%
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               {resultA.totalGain >= 0 ? 'Gained' : 'Lost'} {formatCurrency(Math.abs(resultA.totalGain))} over {yearsHeld} year{yearsHeld !== 1 ? 's' : ''}
@@ -143,17 +146,23 @@ export default function RoiCalc() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Annualized Return</p>
-              <p className={`text-lg font-semibold tabular-nums ${resultA.annualizedReturn >= 0 ? 'text-neutral-900' : 'text-red-600'}`}>
-                {fmtPct(resultA.annualizedReturn)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Calendar size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Annualized Return</p>
+                <p className={`text-lg font-semibold tabular-nums ${resultA.annualizedReturn >= 0 ? 'text-neutral-900' : 'text-red-600'}`}>
+                  {fmtPct(resultA.annualizedReturn)}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
-              <p className={`text-lg font-semibold tabular-nums ${resultA.totalGain >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
-                {formatCurrency(resultA.totalGain)}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultA.totalGain >= 0 ? 'bg-accent-50 text-accent-600' : 'bg-red-50 text-red-600'}`}><DollarSign size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
+                <p className={`text-lg font-semibold tabular-nums ${resultA.totalGain >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
+                  {formatCurrency(resultA.totalGain)}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -171,17 +180,23 @@ export default function RoiCalc() {
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-                  <p className="text-xs text-neutral-500 mb-0.5">Annualized Return</p>
-                  <p className={`text-lg font-semibold tabular-nums ${resultB.annualizedReturn >= 0 ? 'text-neutral-900' : 'text-red-600'}`}>
-                    {fmtPct(resultB.annualizedReturn)}
-                  </p>
+                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Calendar size={16} aria-hidden="true" /></div>
+                  <div>
+                    <p className="text-xs text-neutral-500 mb-0.5">Annualized Return</p>
+                    <p className={`text-lg font-semibold tabular-nums ${resultB.annualizedReturn >= 0 ? 'text-neutral-900' : 'text-red-600'}`}>
+                      {fmtPct(resultB.annualizedReturn)}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-                  <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
-                  <p className={`text-lg font-semibold tabular-nums ${resultB.totalGain >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
-                    {formatCurrency(resultB.totalGain)}
-                  </p>
+                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultB.totalGain >= 0 ? 'bg-accent-50 text-accent-600' : 'bg-red-50 text-red-600'}`}><DollarSign size={16} aria-hidden="true" /></div>
+                  <div>
+                    <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
+                    <p className={`text-lg font-semibold tabular-nums ${resultB.totalGain >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
+                      {formatCurrency(resultB.totalGain)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </>

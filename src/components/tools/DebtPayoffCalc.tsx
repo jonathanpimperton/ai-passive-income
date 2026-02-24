@@ -16,9 +16,10 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { Plus, X, RotateCcw } from 'lucide-react';
+import { Plus, X, RotateCcw, Clock, CreditCard, DollarSign } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Compact text input for debt card fields ─────────────── */
 interface DebtFieldProps {
@@ -225,6 +226,7 @@ export default function DebtPayoffCalc() {
     setActiveStrategy('avalanche');
   }, [getNextId]);
 
+  const animatedMonths = useAnimatedNumber(activeResult.months);
   const hasValidDebts = debts.length > 0;
 
   return (
@@ -342,17 +344,27 @@ export default function DebtPayoffCalc() {
             <div className="mt-5 pt-5">
               <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white rounded-lg border border-neutral-200/80 p-3">
-                  <p className="text-xs text-neutral-500 mb-0.5">Total Debt</p>
-                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                    {formatCurrency(totalDebt)}
-                  </p>
+                <div className="bg-white rounded-lg border border-neutral-200/80 p-3 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <CreditCard size={16} aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-neutral-500 mb-0.5">Total Debt</p>
+                    <p className="text-sm font-semibold text-neutral-900 tabular-nums">
+                      {formatCurrency(totalDebt)}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-white rounded-lg border border-neutral-200/80 p-3">
-                  <p className="text-xs text-neutral-500 mb-0.5">Total Min. Payments</p>
-                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                    {formatCurrency(totalMinPayments)}/mo
-                  </p>
+                <div className="bg-white rounded-lg border border-neutral-200/80 p-3 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <DollarSign size={16} aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-neutral-500 mb-0.5">Total Min. Payments</p>
+                    <p className="text-sm font-semibold text-neutral-900 tabular-nums">
+                      {formatCurrency(totalMinPayments)}/mo
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -423,8 +435,8 @@ export default function DebtPayoffCalc() {
               {/* ── Big Number: Time to Debt-Free ──────── */}
               <div className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">Debt-Free In</p>
-                <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
-                  {formatMonths(activeResult.months)}
+                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                  {formatMonths(Math.round(animatedMonths))}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
                   Paying {formatCurrency(totalMinPayments + extraPayment)}/mo total ({formatCurrency(extraPayment)} extra)

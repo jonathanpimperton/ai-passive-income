@@ -9,7 +9,8 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Target, TrendingUp } from 'lucide-react';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
@@ -82,6 +83,8 @@ export default function EmergencyFundCalc() {
       return { months, target, remaining, monthsToReach, pctFunded };
     });
   }, [monthlyExpenses, currentSavings, monthlySaving, savingsRate]);
+
+  const animatedRecommendedTarget = useAnimatedNumber(monthlyExpenses * 6);
 
   const chartData = useMemo(() => {
     const maxMonths = Math.min(
@@ -188,17 +191,23 @@ export default function EmergencyFundCalc() {
 
           {/* Summary cards */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Recommended Target</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(monthlyExpenses * 6)}</p>
-              <p className="text-xs text-neutral-400">6 months of expenses</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Target size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Recommended Target</p>
+                <p className="text-lg font-semibold result-number tabular-nums">{formatCurrency(animatedRecommendedTarget)}</p>
+                <p className="text-xs text-neutral-400">6 months of expenses</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Current Progress</p>
-              <p className="text-lg font-semibold text-accent-600 tabular-nums">
-                {monthlyExpenses > 0 ? `${((currentSavings / (monthlyExpenses * 6)) * 100).toFixed(0)}%` : '—'}
-              </p>
-              <p className="text-xs text-neutral-400">of 6-month target</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Current Progress</p>
+                <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                  {monthlyExpenses > 0 ? `${((currentSavings / (monthlyExpenses * 6)) * 100).toFixed(0)}%` : '—'}
+                </p>
+                <p className="text-xs text-neutral-400">of 6-month target</p>
+              </div>
             </div>
           </div>
 

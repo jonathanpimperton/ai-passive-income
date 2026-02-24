@@ -6,7 +6,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { RotateCcw, Plus, X } from 'lucide-react';
+import { RotateCcw, Plus, X, TrendingUp, CreditCard, Scale, Percent } from 'lucide-react';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import ChartTooltip from '../ui/ChartTooltip';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
@@ -123,6 +124,7 @@ export default function NetWorthCalc() {
   const totalAssets = useMemo(() => assets.reduce((sum, a) => sum + a.value, 0), [assets]);
   const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + l.value, 0), [liabilities]);
   const netWorth = totalAssets - totalLiabilities;
+  const animatedNetWorth = useAnimatedNumber(netWorth);
 
   const assetPieData = useMemo(
     () => assets.filter((a) => a.value > 0).map((a) => ({ name: a.name, value: a.value })),
@@ -201,8 +203,8 @@ export default function NetWorthCalc() {
         <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Your Net Worth</p>
-            <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${netWorth >= 0 ? 'text-primary-900' : 'text-red-600'}`}>
-              {formatCurrency(netWorth)}
+            <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${netWorth >= 0 ? 'result-number' : 'text-red-600'}`}>
+              {formatCurrency(animatedNetWorth)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               {formatCurrency(totalAssets)} in assets − {formatCurrency(totalLiabilities)} in liabilities
@@ -210,25 +212,37 @@ export default function NetWorthCalc() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Assets</p>
-              <p className="text-lg font-semibold text-accent-600 tabular-nums">{formatCurrency(totalAssets)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Assets</p>
+                <p className="text-lg font-semibold text-accent-600 tabular-nums">{formatCurrency(totalAssets)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Total Liabilities</p>
-              <p className="text-lg font-semibold text-red-600 tabular-nums">{formatCurrency(totalLiabilities)}</p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5"><CreditCard size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Total Liabilities</p>
+                <p className="text-lg font-semibold text-red-600 tabular-nums">{formatCurrency(totalLiabilities)}</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Debt-to-Asset Ratio</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                {totalAssets > 0 ? `${((totalLiabilities / totalAssets) * 100).toFixed(1)}%` : '0%'}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Percent size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Debt-to-Asset Ratio</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                  {totalAssets > 0 ? `${((totalLiabilities / totalAssets) * 100).toFixed(1)}%` : '0%'}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <p className="text-xs text-neutral-500 mb-0.5">Assets Owned Free</p>
-              <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                {totalAssets > 0 ? `${(((totalAssets - totalLiabilities) / totalAssets) * 100).toFixed(1)}%` : '0%'}
-              </p>
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Scale size={16} aria-hidden="true" /></div>
+              <div>
+                <p className="text-xs text-neutral-500 mb-0.5">Assets Owned Free</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                  {totalAssets > 0 ? `${(((totalAssets - totalLiabilities) / totalAssets) * 100).toFixed(1)}%` : '0%'}
+                </p>
+              </div>
             </div>
           </div>
 

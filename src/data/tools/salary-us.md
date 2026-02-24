@@ -60,6 +60,11 @@ Your take-home pay — also called net pay — is what actually lands in your ba
 
 ## How US Federal Income Tax Works
 
+<div class="stat-highlight">
+  <span class="stat-number">20–35%</span>
+  <span class="stat-text">of your gross income goes to combined federal, state, and FICA taxes. The exact rate depends on your income, filing status, and state.</span>
+</div>
+
 The US uses a progressive (marginal) tax system. You don't pay one flat rate on your entire income — instead, different portions of your income are taxed at different rates. For 2024, single filer brackets are:
 
 | Taxable Income | Marginal Rate |
