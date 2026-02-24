@@ -22,8 +22,11 @@ import EmergencyFundCalc from '@components/tools/EmergencyFundCalc.tsx';
 import RoiCalc from '@components/tools/RoiCalc.tsx';
 import InflationCalc from '@components/tools/InflationCalc.tsx';
 import SalaryCalc from '@components/tools/SalaryCalc.tsx';
+import SalaryUkCalc from '@components/tools/SalaryUkCalc.tsx';
 import NetWorthCalc from '@components/tools/NetWorthCalc.tsx';
 import RentVsBuyCalc from '@components/tools/RentVsBuyCalc.tsx';
+import MortgagePaymentCalc from '@components/tools/MortgagePaymentCalc.tsx';
+import PercentageCalculator from '@components/tools/PercentageCalculator.tsx';
 import JsonFormatter from '@components/tools/JsonFormatter.tsx';
 
 export async function getStaticPaths() {
@@ -88,8 +91,11 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'roi' && <RoiCalc client:load />}
     {slug === 'inflation' && <InflationCalc client:load />}
     {slug === 'salary-us' && <SalaryCalc client:load />}
+    {slug === 'salary-uk' && <SalaryUkCalc client:load />}
     {slug === 'net-worth' && <NetWorthCalc client:load />}
     {slug === 'rent-vs-buy' && <RentVsBuyCalc client:load />}
+    {slug === 'mortgage-payment' && <MortgagePaymentCalc client:load />}
+    {slug === 'percentage-calculator' && <PercentageCalculator client:load />}
     {slug === 'json-formatter' && <JsonFormatter client:load />}
     {!hasCalculator && <PlaceholderCalc name={name} client:load />}
     <Fragment slot="content">
