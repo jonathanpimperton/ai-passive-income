@@ -1,10 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   PieChart,
@@ -58,21 +53,9 @@ const MEDICARE_ADDITIONAL_THRESHOLD: Record<FilingStatus, number> = {
 const MEDICARE_ADDITIONAL_RATE = 0.009;
 
 function calcFederalTax(grossIncome: number, filingStatus: FilingStatus): number {
-  const taxableIncome = Math.max(0, grossIncome - STANDARD_DEDUCTION[filingStatus]);
+  const taxable = Math.max(0, grossIncome - STANDARD_DEDUCTION[filingStatus]);
   const brackets = BRACKETS[filingStatus];
   let tax = 0;
-  for (let i = brackets.length - 1; i >= 0; i--) {
-    const [threshold, rate] = brackets[i];
-    if (taxableIncome > threshold) {
-      tax += (taxableIncome - threshold) * rate;
-      const prevThreshold = i > 0 ? brackets[i - 1][1] : 0;
-      // Use remaining as base for next bracket — actually, let's calc properly
-      break;
-    }
-  }
-  // Recalculate correctly with proper marginal bracket math
-  tax = 0;
-  const taxable = Math.max(0, grossIncome - STANDARD_DEDUCTION[filingStatus]);
   for (let i = 0; i < brackets.length; i++) {
     const [threshold, rate] = brackets[i];
     const nextThreshold = i + 1 < brackets.length ? brackets[i + 1][0] : Infinity;
@@ -93,7 +76,7 @@ function calcFICA(grossIncome: number, filingStatus: FilingStatus) {
   return { ss, medicare: medicareBase + medicareAdditional, total: ss + medicareBase + medicareAdditional };
 }
 
-const PIE_COLORS = ['#2563EB', '#F59E0B', '#10B981', '#7C3AED', '#EF4444'];
+const PIE_COLORS = ['#2563EB', '#F59E0B', '#10B981', '#7C3AED', '#EF4444', '#EC4899'];
 
 const DEFAULTS = {
   salary: 75000,
@@ -103,6 +86,7 @@ const DEFAULTS = {
   overtimeHours: 0,
   stateTaxRate: 5,
   filingStatus: 'single' as FilingStatus,
+  retirement401k: 0,
 };
 
 export default function SalaryCalc() {
@@ -114,6 +98,7 @@ export default function SalaryCalc() {
   const [overtimeHours, setOvertimeHours] = useState(DEFAULTS.overtimeHours);
   const [stateTaxRate, setStateTaxRate] = useState(DEFAULTS.stateTaxRate);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>(DEFAULTS.filingStatus);
+  const [retirement401k, setRetirement401k] = useState(DEFAULTS.retirement401k);
 
   const handleReset = useCallback(() => {
     setSalary(DEFAULTS.salary);
@@ -123,6 +108,7 @@ export default function SalaryCalc() {
     setOvertimeHours(DEFAULTS.overtimeHours);
     setStateTaxRate(DEFAULTS.stateTaxRate);
     setFilingStatus(DEFAULTS.filingStatus);
+    setRetirement401k(DEFAULTS.retirement401k);
   }, []);
 
   const result = useMemo(() => {
@@ -145,12 +131,18 @@ export default function SalaryCalc() {
       grossAnnual = (regularHours * hourlyRate + otHours * hourlyRate * 1.5) * weeksPerYear;
     }
 
-    const federalTax = calcFederalTax(grossAnnual, filingStatus);
-    const fica = calcFICA(grossAnnual, filingStatus);
-    const stateTax = grossAnnual * (stateTaxRate / 100);
+    // 401(k) contribution — reduces federal & state taxable income, but NOT FICA
+    const retirement401kAmount = grossAnnual * (retirement401k / 100);
+    // Cap at IRS limit ($23,500 for 2024, used here as a reasonable limit)
+    const cappedRetirement = Math.min(retirement401kAmount, 23500);
+
+    const federalTax = calcFederalTax(grossAnnual - cappedRetirement, filingStatus);
+    const fica = calcFICA(grossAnnual, filingStatus); // FICA is on full gross
+    const stateTax = (grossAnnual - cappedRetirement) * (stateTaxRate / 100);
     const totalTax = federalTax + fica.total + stateTax;
-    const netAnnual = grossAnnual - totalTax;
-    const effectiveTaxRate = grossAnnual > 0 ? totalTax / grossAnnual : 0;
+    const totalDeductions = totalTax + cappedRetirement;
+    const netAnnual = grossAnnual - totalDeductions;
+    const effectiveTaxRate = grossAnnual > 0 ? totalDeductions / grossAnnual : 0;
 
     return {
       grossAnnual,
@@ -162,6 +154,8 @@ export default function SalaryCalc() {
       fica,
       stateTax,
       totalTax,
+      retirement401kAmount: cappedRetirement,
+      totalDeductions,
       netAnnual,
       netMonthly: netAnnual / 12,
       netBiweekly: netAnnual / 26,
@@ -169,7 +163,7 @@ export default function SalaryCalc() {
       netHourly: weeksPerYear > 0 && hoursPerWeek > 0 ? netAnnual / (hoursPerWeek * weeksPerYear) : 0,
       effectiveTaxRate,
     };
-  }, [inputMode, salary, hourlyRate, hoursPerWeek, weeksPerYear, overtimeHours, stateTaxRate, filingStatus]);
+  }, [inputMode, salary, hourlyRate, hoursPerWeek, weeksPerYear, overtimeHours, stateTaxRate, filingStatus, retirement401k]);
 
   const pieData = useMemo(() => [
     { name: 'Take-Home Pay', value: result.netAnnual },
@@ -177,17 +171,19 @@ export default function SalaryCalc() {
     { name: 'State Tax', value: result.stateTax },
     { name: 'Social Security', value: result.fica.ss },
     { name: 'Medicare', value: result.fica.medicare },
+    ...(result.retirement401kAmount > 0 ? [{ name: '401(k)', value: result.retirement401kAmount }] : []),
   ].filter((d) => d.value > 0), [result]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
       {/* Mode tabs */}
-      <div className="flex border-b border-neutral-200/80" role="tablist">
+      <div className="flex border-b border-neutral-200/80" role="tablist" aria-label="Salary input mode">
         {(['annual', 'hourly'] as const).map((m) => (
           <button
             key={m}
             role="tab"
             aria-selected={inputMode === m}
+            aria-controls="sal-results"
             onClick={() => setInputMode(m)}
             className={`flex-1 py-3 text-sm font-medium transition-colors duration-150 ${
               inputMode === m
@@ -216,7 +212,7 @@ export default function SalaryCalc() {
           </div>
           <div className="space-y-5">
             {inputMode === 'annual' ? (
-              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={500000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
+              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={1000000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
             ) : (
               <SliderInput label="Hourly Rate" id="sal-hourly" value={hourlyRate} min={7.25} max={200} step={0.25} onChange={setHourlyRate} prefix="$" formatDisplay={(v) => v.toFixed(2)} hint="Your pay per hour before taxes" />
             )}
@@ -242,18 +238,20 @@ export default function SalaryCalc() {
             </div>
 
             <SliderInput label="State Tax Rate" id="sal-state" value={stateTaxRate} min={0} max={13} step={0.1} onChange={setStateTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Your state income tax rate — enter 0 for no-income-tax states (FL, TX, WA, etc.)" />
+
+            <SliderInput label="401(k) Contribution" id="sal-401k" value={retirement401k} min={0} max={30} step={0.5} onChange={setRetirement401k} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Pre-tax 401(k) contribution — reduces federal & state taxes, not FICA" />
           </div>
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="sal-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold text-primary-900 tabular-nums">
               {formatCurrency(result.netAnnual)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              Effective tax rate: {(result.effectiveTaxRate * 100).toFixed(1)}% · {formatCurrency(result.totalTax)} total taxes
+              Effective deduction rate: {(result.effectiveTaxRate * 100).toFixed(1)}% · {formatCurrency(result.totalDeductions)} total deductions
             </p>
           </div>
 
@@ -303,6 +301,13 @@ export default function SalaryCalc() {
               <p className="text-xs text-neutral-500 mb-0.5">Medicare</p>
               <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.fica.medicare)}</p>
             </div>
+            {result.retirement401kAmount > 0 && (
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+                <p className="text-xs text-neutral-500 mb-0.5">401(k)</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.retirement401kAmount)}</p>
+                <p className="text-xs text-accent-600 mt-0.5">Pre-tax</p>
+              </div>
+            )}
           </div>
 
           {/* Pie chart */}

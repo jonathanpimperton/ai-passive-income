@@ -47,4 +47,32 @@ workedExamples:
     description: "API keys and service tokens are never typed manually, so length is free. Use 32+ characters with alphanumeric characters for compatibility across systems (many APIs reject special characters). At 32 characters with upper/lowercase and numbers, you get approximately 190 bits of entropy — far beyond any brute-force capability."
 ---
 
-Educational content will be added during Sprint 4.
+## Why Password Strength Matters
+
+Weak passwords are the leading cause of account breaches. According to security research, over 80% of hacking-related breaches involve stolen or weak credentials. The problem isn't that attackers are geniuses — it's that common passwords are trivially easy to crack.
+
+Modern password-cracking hardware can test billions of combinations per second. An 8-character password using all character types can be brute-forced in about 8 hours. Bump that to 12 characters and it takes roughly 3,000 years. At 16 characters, it's effectively uncrackable with current technology.
+
+## How This Generator Works
+
+Our password generator runs entirely in your browser using JavaScript's `crypto.getRandomValues()` — a cryptographically secure random number generator built into every modern browser. This is the same randomness source used by security-critical applications.
+
+No passwords are sent to our servers, stored, or logged. You can verify this by using the tool while disconnected from the internet — it works identically offline.
+
+## Password Strength: What the Numbers Mean
+
+Password strength is measured in **bits of entropy** — the number of binary decisions needed to guess the password. More entropy = harder to crack.
+
+- **40-50 bits:** Weak. Crackable with consumer hardware.
+- **60-70 bits:** Moderate. Resists casual attacks but not determined ones.
+- **80-90 bits:** Strong. Sufficient for most accounts.
+- **100+ bits:** Very strong. Suitable for master passwords, encryption keys, and high-security accounts.
+
+Each additional character type (uppercase, lowercase, numbers, symbols) and each additional character of length increases entropy. Length has a bigger impact than complexity — a 20-character alphanumeric password is stronger than a 10-character password with all character types.
+
+## Best Practices
+
+- **Use a unique password for every account.** If one service is breached, reused passwords let attackers access all your accounts.
+- **Use a password manager.** It generates, stores, and auto-fills unique passwords for every site. You only remember one master password.
+- **Don't change passwords on a schedule.** NIST recommends changing passwords only after a confirmed breach, not routinely. Forced rotation leads to weaker passwords.
+- **Enable two-factor authentication (2FA) wherever possible.** Even if your password is compromised, 2FA provides a second layer of protection.

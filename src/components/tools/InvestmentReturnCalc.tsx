@@ -225,7 +225,7 @@ export default function InvestmentReturnCalc() {
           id="ir-principal"
           value={principal}
           min={0}
-          max={500000}
+          max={1000000}
           step={500}
           onChange={setPrincipal}
           prefix="$"

@@ -52,4 +52,52 @@ workedExamples:
     description: "A $1 million retirement nest egg in today's dollars will have the purchasing power of only about $478,000 in 25 years at 3% inflation. This means your retirement withdrawals need to increase annually just to buy the same goods. Planning for inflation is one of the most overlooked aspects of retirement savings."
 ---
 
-Educational content will be added during Sprint 4.
+## What Is Inflation?
+
+Inflation is the gradual increase in the general price level of goods and services over time. When inflation rises, each unit of currency buys fewer items — your purchasing power decreases. A dollar today doesn't buy what a dollar bought 10 years ago, and it will buy even less 10 years from now.
+
+This isn't abstract economics — inflation directly affects your salary, savings, investments, and retirement planning. Understanding it helps you make better financial decisions at every stage of life.
+
+## How Inflation Is Measured
+
+The primary measure of inflation in the United States is the **Consumer Price Index (CPI)**, published monthly by the Bureau of Labor Statistics. The CPI tracks the average price change of a basket of about 80,000 goods and services that typical consumers buy — food, housing, transportation, medical care, clothing, and more.
+
+The **inflation rate** is the percentage change in CPI from one period to another. When news reports say "inflation is 3%," they mean the CPI increased 3% over the past 12 months — the same basket of goods that cost $100 a year ago now costs $103.
+
+## Historical Perspective
+
+The long-term average US inflation rate since 1914 is approximately 3.3% per year. But averages hide dramatic variation:
+
+- **1970s-early 1980s:** Inflation peaked at 14.8% (1980), driven by oil crises and loose monetary policy
+- **1990s-2010s:** The "Great Moderation" era, with inflation typically between 1.5-3%
+- **2021-2022:** Post-pandemic inflation surged to 9.1% (June 2022), the highest in 40 years
+- **Federal Reserve target:** 2% per year, considered optimal for a healthy economy
+
+## Why Inflation Matters for Your Finances
+
+Inflation is a silent tax on cash. Money sitting in a traditional savings account at 0.1% APY loses about 3% of its real value every year at average inflation. Over 10 years, $10,000 loses roughly $2,600 in purchasing power — it still says $10,000 in your account, but it buys $7,400 worth of goods.
+
+This is why financial planning must account for inflation:
+
+- **Salary negotiations:** A 2% annual raise when inflation is 3% is actually a 1% pay cut in real terms
+- **Retirement planning:** $1 million in 30 years buys roughly what $400,000 buys today at 3% average inflation
+- **Savings goals:** If you're saving for a house, college, or any multi-year goal, the target price is rising while you save
+
+## When to Use This Calculator
+
+Use the inflation calculator to:
+
+- **Convert historical prices** — see what something cost in the past in today's dollars
+- **Project future costs** — estimate what college tuition, a home, or retirement will cost in 10, 20, or 30 years
+- **Check if your salary kept pace** — compare your salary growth against cumulative inflation to see if you've gained or lost purchasing power
+- **Plan retirement withdrawals** — understand how much your annual withdrawals need to increase to maintain the same standard of living
+
+## Common Mistakes
+
+1. **Using nominal returns for planning.** A 10% investment return with 3% inflation is only 7% real return. Always adjust for inflation when making long-term projections.
+2. **Assuming inflation is constant.** Planning based on exactly 3% per year ignores that inflation can spike suddenly (as it did in 2021-2022). Build in a buffer.
+3. **Ignoring category-specific inflation.** Healthcare and education inflate at 5-7% per year — much faster than the overall CPI. If these are major future expenses, use their specific inflation rates.
+
+## What to Do Next
+
+Use the calculator to see how inflation affects your specific situation. Check whether your salary has kept up with inflation over the past 5-10 years. If you're planning for a major expense years from now, project what it will actually cost when you need the money.

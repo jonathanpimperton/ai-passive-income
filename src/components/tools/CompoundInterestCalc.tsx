@@ -222,7 +222,7 @@ export default function CompoundInterestCalc() {
               id="ci-principal"
               value={principal}
               min={0}
-              max={500000}
+              max={1000000}
               step={500}
               onChange={setPrincipal}
               prefix="$"

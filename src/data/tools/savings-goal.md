@@ -54,4 +54,57 @@ workedExamples:
     description: "Planning a $5,000 vacation in 12 months with $500 already saved. You'd need to save approximately $370/month in a high-yield savings account at 5% APY. The interest contributes about $55 toward your goal — small on a short timeline, but still better than a checking account."
 ---
 
-Educational content will be added during Sprint 4.
+## What Is a Savings Goal Calculator?
+
+A savings goal calculator works backward from a target amount to tell you exactly how much you need to save each month to reach your goal by a specific date. It factors in your current savings, monthly contribution capacity, and the interest your money earns along the way.
+
+Whether you're saving for a house down payment, a car, a vacation, or a wedding, knowing the exact monthly number removes the guesswork and makes the goal feel achievable.
+
+## How Savings Goal Math Works
+
+The math is straightforward: take your target amount, subtract what you've already saved, then divide the remaining amount across the months you have — adjusted for interest earned.
+
+The interest component matters more than most people expect, especially for longer-term goals. Saving $1,000 per month toward a $50,000 goal at 0% interest takes 50 months. At 5% APY in a high-yield savings account, you reach the same goal in about 45 months — interest contributes roughly $2,300 and saves you 5 months.
+
+For short-term goals (under 12 months), interest is less impactful. For multi-year goals like a house down payment, interest can contribute thousands of dollars.
+
+## Where to Put Your Savings
+
+Your savings vehicle should match your timeline:
+
+- **Under 1 year:** High-yield savings account. You need liquidity and safety. Current rates are 4-5% APY.
+- **1-3 years:** High-yield savings or a CD (Certificate of Deposit) ladder. CDs may offer slightly higher rates for money you can lock up.
+- **3-5 years:** Consider a conservative mix — mostly savings, perhaps a small allocation to bonds.
+- **5+ years:** If you can tolerate some volatility, a balanced investment account may outperform savings. But only if you won't panic-sell during a downturn.
+
+Never invest money you'll need within 2-3 years in the stock market. A 30% crash the year before you need a down payment would be devastating.
+
+## The 50/30/20 Rule
+
+One of the simplest budgeting frameworks is the 50/30/20 rule:
+
+- **50%** of after-tax income goes to needs (housing, food, insurance, minimum debt payments)
+- **30%** goes to wants (dining out, entertainment, subscriptions)
+- **20%** goes to savings and extra debt repayment
+
+If you earn $4,500 per month after taxes, that's $900 for savings. At 5% APY, you'd reach a $25,000 goal in about 26 months.
+
+## When to Use This Calculator
+
+Use the savings goal calculator when you:
+
+- **Have a specific financial target** — a dollar amount and a date you want to reach it
+- **Want to figure out how much to save monthly** — the calculator tells you the exact number
+- **Need to test scenarios** — what if you save $200 more per month, or move the deadline back 6 months?
+- **Are comparing savings accounts** — see how much faster you reach your goal at 5% vs 0.5% APY
+
+## Common Mistakes
+
+1. **Setting unrealistic monthly targets.** Start with an amount that's challenging but sustainable, then increase when you get a raise or pay off a debt.
+2. **Not automating savings.** Manual transfers get skipped. Set up automatic transfers on payday.
+3. **Keeping savings in a checking account.** Money in checking gets spent. A separate high-yield savings account at a different bank creates helpful friction.
+4. **Forgetting to adjust for inflation.** If you're saving for something 5+ years away, prices may be 10-15% higher by the time you buy.
+
+## What to Do Next
+
+Set a specific goal with a specific date and run the numbers. Once you see the monthly amount, set up an automatic transfer from your checking account. The most effective savings plans are the ones that require no willpower because the money moves itself.

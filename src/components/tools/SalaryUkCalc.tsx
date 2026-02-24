@@ -66,16 +66,65 @@ function formatGBP(value: number): string {
   return '£' + formatNumber(Math.round(value));
 }
 
-function calcPersonalAllowance(grossIncome: number): number {
+/**
+ * Parse a UK tax code and return the personal allowance it implies.
+ * Returns null if the code is empty/default (use standard PA calculation).
+ * Common formats: 1257L, BR, D0, D1, NT, K475, S1257L, C1257L
+ */
+function parseTaxCode(code: string): { allowance: number; isKCode: boolean; flatRate: number | null } | null {
+  const trimmed = code.trim().toUpperCase();
+  if (!trimmed || trimmed === '1257L') return null; // Standard code — use normal calculation
+
+  // Special flat-rate codes
+  if (trimmed === 'BR' || trimmed === 'SBR' || trimmed === 'CBR') return { allowance: 0, isKCode: false, flatRate: 0.20 };
+  if (trimmed === 'D0' || trimmed === 'SD0' || trimmed === 'CD0') return { allowance: 0, isKCode: false, flatRate: 0.40 };
+  if (trimmed === 'D1' || trimmed === 'CD1') return { allowance: 0, isKCode: false, flatRate: 0.45 };
+  if (trimmed === 'SD1') return { allowance: 0, isKCode: false, flatRate: 0.48 }; // Scottish top rate
+  if (trimmed === 'NT') return { allowance: 0, isKCode: false, flatRate: 0 };
+
+  // Strip S (Scottish) or C (Welsh) prefix for parsing
+  const stripped = trimmed.replace(/^[SC]/, '');
+
+  // K codes — negative allowance, e.g. K475 means -£4,750 allowance
+  const kMatch = stripped.match(/^K(\d+)$/);
+  if (kMatch) {
+    return { allowance: -(parseInt(kMatch[1], 10) * 10), isKCode: true, flatRate: null };
+  }
+
+  // Standard numeric codes, e.g. 1257L, 1000T, 500M1
+  const numMatch = stripped.match(/^(\d+)/);
+  if (numMatch) {
+    return { allowance: parseInt(numMatch[1], 10) * 10, isKCode: false, flatRate: null };
+  }
+
+  return null; // Unrecognized — fall back to standard
+}
+
+function calcPersonalAllowance(grossIncome: number, taxCodeOverride?: number | null): number {
+  if (taxCodeOverride !== undefined && taxCodeOverride !== null) return taxCodeOverride;
   if (grossIncome <= PA_TAPER_THRESHOLD) return PERSONAL_ALLOWANCE;
   if (grossIncome >= PA_TAPER_LIMIT) return 0;
   const reduction = Math.floor((grossIncome - PA_TAPER_THRESHOLD) / 2);
   return Math.max(0, PERSONAL_ALLOWANCE - reduction);
 }
 
-function calcIncomeTax(grossIncome: number, isScottish: boolean): number {
-  const pa = calcPersonalAllowance(grossIncome);
-  const taxable = Math.max(0, grossIncome - pa);
+function calcIncomeTax(grossIncome: number, isScottish: boolean, taxCodeParsed?: ReturnType<typeof parseTaxCode>): number {
+  // Flat-rate tax codes (BR, D0, D1, NT)
+  if (taxCodeParsed?.flatRate !== null && taxCodeParsed?.flatRate !== undefined) {
+    return grossIncome * taxCodeParsed.flatRate;
+  }
+
+  const paOverride = taxCodeParsed?.allowance ?? null;
+  const pa = calcPersonalAllowance(grossIncome, paOverride !== null ? Math.max(0, paOverride) : null);
+
+  // K codes add to taxable income instead of reducing it
+  let taxable: number;
+  if (taxCodeParsed?.isKCode && paOverride !== null) {
+    taxable = grossIncome + Math.abs(paOverride);
+  } else {
+    taxable = Math.max(0, grossIncome - pa);
+  }
+
   const bands = isScottish ? SCOTTISH_BANDS : UK_BANDS;
 
   let tax = 0;
@@ -108,6 +157,7 @@ const DEFAULTS = {
   studentLoan: 'none' as StudentLoanPlan,
   pensionPercent: 5,
   pensionIsSacrifice: false,
+  taxCode: '',
 };
 
 export default function SalaryUkCalc() {
@@ -116,6 +166,7 @@ export default function SalaryUkCalc() {
   const [studentLoan, setStudentLoan] = useState<StudentLoanPlan>(DEFAULTS.studentLoan);
   const [pensionPercent, setPensionPercent] = useState(DEFAULTS.pensionPercent);
   const [pensionIsSacrifice, setPensionIsSacrifice] = useState(DEFAULTS.pensionIsSacrifice);
+  const [taxCode, setTaxCode] = useState(DEFAULTS.taxCode);
 
   const handleReset = useCallback(() => {
     setSalary(DEFAULTS.salary);
@@ -123,7 +174,10 @@ export default function SalaryUkCalc() {
     setStudentLoan(DEFAULTS.studentLoan);
     setPensionPercent(DEFAULTS.pensionPercent);
     setPensionIsSacrifice(DEFAULTS.pensionIsSacrifice);
+    setTaxCode(DEFAULTS.taxCode);
   }, []);
+
+  const taxCodeParsed = useMemo(() => parseTaxCode(taxCode), [taxCode]);
 
   const result = useMemo(() => {
     const pensionAmount = salary * (pensionPercent / 100);
@@ -138,10 +192,15 @@ export default function SalaryUkCalc() {
       ? salary - pensionAmount // Salary sacrifice saves NI
       : salary;               // Standard pension: NI on full salary
 
-    const incomeTax = calcIncomeTax(taxableIncome, isScottish);
+    const incomeTax = calcIncomeTax(taxableIncome, isScottish, taxCodeParsed ?? undefined);
     const ni = calcNI(niIncome);
     const studentLoanRepayment = calcStudentLoan(salary, studentLoan);
-    const personalAllowance = calcPersonalAllowance(taxableIncome);
+
+    // Personal allowance: use tax code override if present
+    const paOverride = taxCodeParsed?.allowance ?? null;
+    const personalAllowance = taxCodeParsed?.flatRate !== null && taxCodeParsed?.flatRate !== undefined
+      ? 0
+      : calcPersonalAllowance(taxableIncome, paOverride !== null ? Math.max(0, paOverride) : null);
 
     const totalDeductions = incomeTax + ni + studentLoanRepayment + pensionAmount;
     const netAnnual = salary - totalDeductions;
@@ -155,13 +214,15 @@ export default function SalaryUkCalc() {
 
     // Marginal rate at current income
     let marginalRate = 0.20;
-    if (taxableIncome > personalAllowance + (isScottish ? 62430 : 112570)) {
+    if (taxCodeParsed?.flatRate !== null && taxCodeParsed?.flatRate !== undefined) {
+      marginalRate = taxCodeParsed.flatRate;
+    } else if (taxableIncome > personalAllowance + (isScottish ? 62430 : 112570)) {
       marginalRate = isScottish ? 0.48 : 0.45;
     } else if (taxableIncome > personalAllowance + (isScottish ? 31092 : 37700)) {
       marginalRate = isScottish ? 0.42 : 0.40;
     }
-    // 60% trap detection
-    const isIn60Trap = salary > PA_TAPER_THRESHOLD && salary < PA_TAPER_LIMIT;
+    // 60% trap detection (only when using standard allowance, not custom tax code)
+    const isIn60Trap = !taxCodeParsed && salary > PA_TAPER_THRESHOLD && salary < PA_TAPER_LIMIT;
 
     return {
       grossAnnual: salary,
@@ -179,8 +240,9 @@ export default function SalaryUkCalc() {
       effectiveTaxRate,
       marginalRate,
       isIn60Trap,
+      taxCodeInfo: taxCodeParsed,
     };
-  }, [salary, isScottish, studentLoan, pensionPercent, pensionIsSacrifice]);
+  }, [salary, isScottish, studentLoan, pensionPercent, pensionIsSacrifice, taxCodeParsed]);
 
   const pieData = useMemo(() => [
     { name: 'Take-Home Pay', value: result.netAnnual },
@@ -212,13 +274,39 @@ export default function SalaryUkCalc() {
               id="uk-salary"
               value={salary}
               min={10000}
-              max={200000}
+              max={500000}
               step={500}
               onChange={setSalary}
               prefix="£"
               formatDisplay={formatNumber}
               hint="Your gross yearly salary before deductions"
             />
+
+            {/* Tax code — optional */}
+            <div>
+              <label htmlFor="uk-tax-code" className="block text-sm font-medium text-neutral-700 mb-1.5">
+                Tax Code <span className="text-neutral-400 font-normal">(optional)</span>
+              </label>
+              <input
+                type="text"
+                id="uk-tax-code"
+                value={taxCode}
+                onChange={(e) => setTaxCode(e.target.value)}
+                placeholder="e.g. 1257L"
+                maxLength={10}
+                className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3 uppercase
+                  focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
+              />
+              <p className="text-xs text-neutral-400 mt-1">
+                {taxCodeParsed
+                  ? taxCodeParsed.flatRate !== null && taxCodeParsed.flatRate !== undefined
+                    ? `Flat rate: ${(taxCodeParsed.flatRate * 100).toFixed(0)}% on all income`
+                    : taxCodeParsed.isKCode
+                      ? `K code: adds ${formatGBP(Math.abs(taxCodeParsed.allowance))} to taxable income`
+                      : `Personal Allowance: ${formatGBP(taxCodeParsed.allowance)}`
+                  : 'Leave blank for standard 1257L (£12,570 allowance)'}
+              </p>
+            </div>
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
 

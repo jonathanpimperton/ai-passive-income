@@ -190,7 +190,7 @@ export default function SavingsGoalCalc() {
               id="sg-goal"
               value={goalAmount}
               min={1000}
-              max={250000}
+              max={500000}
               step={500}
               onChange={setGoalAmount}
               prefix="$"

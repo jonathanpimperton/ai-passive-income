@@ -50,4 +50,51 @@ workedExamples:
     description: "A $45,000 student loan at 5.5% with $600/month payments takes 8 years, 9 months with $18,000 in total interest. Adding just $100/month extra reduces it to 7 years, 2 months and saves $3,700 in interest — without dramatically impacting your monthly budget."
 ---
 
-Educational content will be added during Sprint 4.
+## What Is a Debt Payoff Calculator?
+
+A debt payoff calculator shows you exactly when you'll be debt-free based on your current balances, interest rates, and monthly payments. More importantly, it compares strategies — snowball vs. avalanche — so you can see which approach saves the most money and which gets you the fastest psychological wins.
+
+Debt is one of the biggest obstacles to building wealth. The average American household carries about $104,000 in total debt. High-interest consumer debt (credit cards, personal loans) is particularly destructive because it compounds against you — the same mechanism that builds wealth through investing works in reverse when you owe money.
+
+## Snowball vs. Avalanche: Which Strategy Wins?
+
+The two most popular debt payoff strategies take opposite approaches:
+
+**The Avalanche Method** ranks debts by interest rate, highest first. You make minimum payments on everything except the highest-rate debt, throwing all extra money at that one. Once it's paid off, you roll that payment into the next highest rate. This method minimizes total interest paid — it's the mathematically optimal approach.
+
+**The Snowball Method** ranks debts by balance, smallest first. You attack the smallest balance regardless of interest rate, paying it off quickly for a psychological win. Then you roll that payment into the next smallest. This method costs more in total interest but has a significantly higher completion rate in behavioral studies.
+
+The best method is the one you'll actually stick with. If you're motivated by seeing debts disappear, the snowball method's quick wins keep you going. If you're driven by efficiency, the avalanche method saves real money.
+
+## How Extra Payments Save You Money
+
+Every extra dollar you pay toward principal reduces the base that interest is calculated on for every future month. Consider a $20,000 credit card at 22% APR with a $400 minimum payment. Paying only the minimum takes over 9 years and costs $23,000+ in interest. Adding just $200 extra per month cuts the payoff time to about 3 years and saves over $14,000.
+
+## Should You Pay Off Debt or Invest?
+
+The answer depends on interest rates:
+
+- **Credit cards (18-25% APR):** Pay these off first. No investment reliably returns more than credit card interest rates.
+- **Student loans (4-7%):** Borderline. Mathematically, investing may win, but being debt-free has psychological value.
+- **Mortgage (3-7%):** Most financial planners recommend investing rather than making extra mortgage payments, since historical stock returns exceed mortgage rates.
+- **Always get your employer 401(k) match.** The instant 50-100% return on the match beats any debt payoff math.
+
+## When to Use This Calculator
+
+This calculator is most useful when you:
+
+- **Have multiple debts** and need to decide which to pay off first
+- **Want to see your debt-free date** — knowing the exact date creates motivation
+- **Are considering extra payments** and want to see the impact in hard dollars
+- **Need to decide between snowball and avalanche** — see the real difference for your specific debts
+
+## Common Mistakes
+
+1. **Paying only minimums.** Credit card minimum payments are designed to maximize interest revenue for the bank. They'll keep you in debt for decades.
+2. **Not having a small emergency fund first.** Without $1,000-$2,000 in savings, unexpected expenses push you back into debt.
+3. **Closing paid-off credit cards immediately.** This can hurt your credit score by reducing available credit. Keep old cards open with zero balance.
+4. **Ignoring the emotional factor.** A completed plan beats an abandoned optimal plan every time.
+
+## What to Do Next
+
+Enter all your debts and compare both strategies. The difference might surprise you — sometimes avalanche saves thousands more, sometimes it's small enough that snowball's motivational advantage wins. Either way, seeing your debt-free date in writing creates accountability.

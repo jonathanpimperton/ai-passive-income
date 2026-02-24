@@ -57,4 +57,58 @@ workedExamples:
     description: "A $280,000 loan at 7% for 30 years has a base payment of $1,863/month. Adding $300/month extra toward principal: the loan is paid off in 22.5 years instead of 30 (7.5 years early), saving approximately $108,000 in total interest. The total cost drops from $670,814 to $562,470."
 ---
 
-Educational content will be added during Sprint 4.
+## What Is a Mortgage Payment?
+
+A mortgage payment is the monthly amount you pay to your lender to repay your home loan. The basic payment covers principal (paying down the loan) and interest (the cost of borrowing). But your actual monthly housing cost includes more: property taxes, homeowners insurance, and potentially PMI (Private Mortgage Insurance) — together called PITI.
+
+Understanding all four components prevents the common first-time buyer shock of discovering their actual payment is $400-$800 more than the principal-and-interest amount they were quoted.
+
+## How Monthly Payments Are Calculated
+
+The standard mortgage payment formula is **M = P[r(1+r)^n]/[(1+r)^n – 1]**, where P is the loan amount, r is the monthly interest rate, and n is the total number of payments.
+
+The interest rate has an outsized impact. On a $300,000 loan over 30 years, the difference between 6% and 7% is $200 per month — $72,000 over the life of the loan. This is why even a quarter-point rate difference matters when shopping for a mortgage.
+
+## PITI: Your Real Monthly Cost
+
+Lenders and real estate sites often advertise the P&I (principal and interest) amount, but your actual monthly obligation includes:
+
+- **Principal & Interest (P&I):** The base loan payment
+- **Property Taxes:** Typically 0.5-2.5% of the home's assessed value per year, depending on your state and county
+- **Insurance:** Homeowners insurance averages $1,500-$3,000 per year nationally
+- **PMI:** If your down payment is less than 20%, you'll pay 0.5-1% of the loan amount per year until you reach 20% equity
+
+On a $350,000 home with 10% down, PMI alone can add $130-$265 per month.
+
+## 15-Year vs 30-Year: The Trade-Off
+
+The choice between 15 and 30 years is one of the most impactful financial decisions homebuyers make:
+
+A **30-year mortgage** offers lower monthly payments, more cash flow flexibility, and the ability to buy a more expensive home within your budget. But you pay substantially more in total interest.
+
+A **15-year mortgage** has higher monthly payments but typically comes with a lower interest rate (usually 0.5-0.75% less). Total interest paid is dramatically lower — often less than half of the 30-year total. You build equity much faster, owning your home free and clear 15 years sooner.
+
+## The Power of Extra Payments
+
+Extra payments toward principal are one of the most effective ways to reduce mortgage costs. Because mortgage interest is calculated on the remaining balance, every extra dollar of principal reduces interest for every remaining month of the loan.
+
+The math is compelling: on a $280,000 loan at 7%, adding just $200/month extra saves approximately $90,000 in total interest and pays off the loan 7 years early. Even making one extra payment per year (by dividing your monthly payment by 12 and adding that amount to each check) can shave 4-5 years off a 30-year term.
+
+## When to Use This Calculator
+
+Use the mortgage payment calculator when you:
+
+- **Are house shopping** and need to know what you can afford — enter different home prices to see the monthly impact
+- **Are comparing loan offers** — test different rates, terms, and down payment amounts
+- **Want to plan extra payments** — see exactly how much faster you'd be mortgage-free
+- **Need the full PITI picture** — add property tax and insurance estimates for a realistic monthly budget
+
+## Common Mistakes
+
+1. **Budgeting only for P&I.** Taxes, insurance, and PMI can add 30-50% on top. Always calculate PITI.
+2. **Stretching to the maximum approval.** Lenders may approve you for a payment of 43% of your income. The 28% guideline leaves much more room for other financial goals.
+3. **Ignoring the long-term cost of a low down payment.** A 5% down payment means a larger loan, higher interest total, and mandatory PMI — costing tens of thousands more than waiting to save 20%.
+
+## What to Do Next
+
+Enter your target home price and down payment to see the real monthly cost. Compare 15 and 30-year terms to see the trade-off. If you already have a mortgage, test how extra payments could accelerate your payoff timeline.

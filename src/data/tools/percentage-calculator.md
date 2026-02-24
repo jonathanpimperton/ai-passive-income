@@ -45,4 +45,35 @@ workedExamples:
     description: "A $250 item is 35% off. Discount amount: $250 × 0.35 = $87.50. Sale price: $250 – $87.50 = $162.50. If there's 8% sales tax on the discounted price: $162.50 × 1.08 = $175.50 final cost."
 ---
 
-Educational content will be added during Sprint 4.
+## How Percentages Work
+
+A percentage is simply a number expressed as a fraction of 100. The word "percent" literally means "per hundred." When you see 25%, it means 25 out of every 100, or 0.25 as a decimal, or 1/4 as a fraction.
+
+This calculator handles four common percentage operations: finding X% of a number, finding what percentage one number is of another, calculating percentage change (increase or decrease), and calculating percentage difference between two values.
+
+## The Four Calculation Modes
+
+**What is X% of Y?** — Multiply the number by the percentage as a decimal. Example: 18% of $85 = $85 × 0.18 = $15.30. Use this for tips, discounts, tax calculations, and proportions.
+
+**X is what % of Y?** — Divide the part by the whole and multiply by 100. Example: 42 out of 50 = (42 ÷ 50) × 100 = 84%. Use this for test scores, budget proportions, and performance metrics.
+
+**Percentage change** — Measures how much a value increased or decreased relative to its original value: ((New - Old) ÷ Old) × 100. Example: salary from $52,000 to $58,500 = +12.5%. Note that percentage changes are asymmetric — a 50% increase followed by a 50% decrease doesn't return to the original value.
+
+**Percentage difference** — Measures how far apart two values are relative to their average: |A - B| ÷ ((A + B) ÷ 2) × 100. Unlike percentage change, this has no direction and treats both values equally. Use it to compare two independent measurements, prices, or scores.
+
+## Mental Shortcuts
+
+Quick percentage tricks for everyday use:
+
+- **10% of any number:** Move the decimal point one place left. 10% of $85 = $8.50.
+- **5%:** Half of 10%. 5% of $85 = $4.25.
+- **20%:** Double 10%. 20% of $85 = $17.00.
+- **15%:** Add 10% and half of 10%. 15% of $85 = $8.50 + $4.25 = $12.75.
+- **25%:** Divide by 4. 25% of $200 = $50.
+- **1%:** Move the decimal two places left. 1% of $85 = $0.85. Then multiply for any percentage.
+
+## Common Percentage Pitfalls
+
+**Percentages don't add up symmetrically.** A 20% increase followed by a 20% decrease doesn't return to the starting value. $100 + 20% = $120. $120 - 20% = $96. You're down $4.
+
+**The base matters.** A $15 increase on a $50 item is 30%. The same $15 increase on a $500 item is 3%. Always consider what the percentage is relative to.

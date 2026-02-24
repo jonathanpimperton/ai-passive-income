@@ -57,4 +57,53 @@ workedExamples:
     description: "A 28-year-old maxing out their 401(k) at $23,500/year ($1,958/month) with an 8% return. By 60: approximately $2.8 million. Even retiring 5 years early, this provides $112,000/year under the 4% rule. Maxing contributions early creates extraordinary results over decades."
 ---
 
-Educational content will be added during Sprint 4.
+## What Is a Retirement Savings Calculator?
+
+A retirement savings calculator projects how much money you'll have when you stop working, based on your current savings, ongoing contributions, expected investment returns, and your retirement timeline. It answers the question that nags most working adults: "Am I saving enough?"
+
+The short answer for most people is no. According to the Federal Reserve, about 25% of non-retired adults have no retirement savings at all, and the median retirement savings for Americans aged 55-64 is approximately $134,000 — far below what most experts recommend.
+
+## How Retirement Savings Projections Work
+
+The math combines compound interest with regular contributions over time. Your existing savings grow at your expected rate of return, and each new contribution begins compounding from the moment it's deposited.
+
+The three variables that matter most:
+
+1. **Time** — the number of years until retirement. This is the single biggest factor. Starting at 25 instead of 35 with the same contributions can easily double your final balance.
+2. **Contribution rate** — how much you save each month. Even small increases make a difference because they compound over decades.
+3. **Rate of return** — what your investments earn on average. A diversified stock portfolio has historically returned about 10% per year (7% after inflation).
+
+## The 4% Rule Explained
+
+The most widely cited retirement guideline is the 4% rule: withdraw 4% of your savings in year one of retirement, then adjust for inflation each year. This approach was designed to make your money last at least 30 years based on historical market returns.
+
+To use the 4% rule backward: multiply your desired annual retirement income by 25. If you want $60,000 per year from savings, you need $1.5 million. If Social Security covers $24,000, you need your savings to provide $36,000 — requiring $900,000.
+
+## Retirement Account Types
+
+Understanding which accounts to use is as important as how much you save:
+
+- **401(k) / 403(b)** — employer-sponsored plans with pre-tax contributions and potential employer matching. Always contribute enough to get the full match — it's an instant 50-100% return.
+- **Traditional IRA** — tax-deductible contributions; you pay taxes when you withdraw in retirement.
+- **Roth IRA** — contributions are after-tax, but growth and withdrawals in retirement are tax-free. Generally better if you expect to be in a higher tax bracket later.
+- **HSA (Health Savings Account)** — triple tax advantage: tax-deductible contributions, tax-free growth, and tax-free withdrawals for medical expenses.
+
+## When to Use This Calculator
+
+Use the retirement savings calculator when you want to:
+
+- **Check if you're on track** — see whether your current savings rate will meet your retirement goal
+- **Test scenarios** — what happens if you retire 3 years early, increase contributions by 5%, or earn 1% less than expected?
+- **Find your target contribution** — work backward from your retirement goal to determine how much you need to save each month
+- **See the impact of starting now vs later** — visualize how delaying even one year affects your final balance
+
+## Common Mistakes
+
+1. **Underestimating expenses.** Healthcare alone can cost $300,000+ for a retired couple. Don't plan based on today's expenses without accounting for medical costs and inflation.
+2. **Ignoring inflation.** $1 million in 30 years will buy roughly what $400,000 buys today. Plan in inflation-adjusted terms.
+3. **Not accounting for Social Security.** Most Americans qualify for benefits, which reduces how much your personal savings need to cover. Check your projected benefit at ssa.gov.
+4. **Leaving employer match on the table.** If your employer matches 401(k) contributions and you're not contributing enough to get the full match, you're giving up free money.
+
+## What to Do Next
+
+Run your numbers with conservative assumptions (6-7% returns, 3% inflation). If the result falls short, experiment with increasing your monthly contribution. If you're not yet getting your full employer 401(k) match, that's the highest-priority first step — it's an immediate return that no other investment can match.

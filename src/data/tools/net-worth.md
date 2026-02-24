@@ -48,4 +48,72 @@ workedExamples:
     description: "Assets: $1,460,000 (home, retirement accounts, savings, investments). Liabilities: $100,000 (remaining mortgage and car). Net worth: $1,360,000. With the 4% rule, the investable portion ($895,000 excluding home equity) supports about $35,800/year in retirement withdrawals, plus Social Security."
 ---
 
-Educational content will be added during Sprint 4.
+## What Is Net Worth?
+
+Net worth is the simplest snapshot of your financial health: everything you own minus everything you owe. It's one number that captures your complete financial position — savings, investments, property, debts, and liabilities all rolled together.
+
+The formula is straightforward: **Net Worth = Total Assets - Total Liabilities**. If you own $200,000 in assets and owe $150,000 in debts, your net worth is $50,000.
+
+Unlike income (which measures cash flow), net worth measures accumulated wealth. You can earn a high salary and still have a low or negative net worth if spending and debt consume everything.
+
+## What Counts as an Asset?
+
+Assets are anything you own that has monetary value:
+
+- **Cash and savings** — checking accounts, savings accounts, money market funds, cash on hand
+- **Investments** — brokerage accounts, stocks, bonds, mutual funds, ETFs, cryptocurrency
+- **Retirement accounts** — 401(k), IRA, Roth IRA, pension values
+- **Property** — your home's current market value, rental properties, land
+- **Vehicles** — cars, boats (at current resale value, not what you paid)
+- **Other** — business ownership, valuable collections, life insurance cash value
+
+Be honest and conservative with valuations. Use current market values, not what you paid or what you hope something is worth.
+
+## What Counts as a Liability?
+
+Liabilities are everything you owe:
+
+- **Mortgage** — remaining balance on your home loan
+- **Student loans** — federal and private education debt
+- **Auto loans** — remaining car payments
+- **Credit card debt** — current balances
+- **Personal loans** — any other outstanding debt
+- **Medical debt, tax debt, or other obligations**
+
+## Net Worth by Age: How Do You Compare?
+
+According to the Federal Reserve's Survey of Consumer Finances, median net worth by age group is approximately:
+
+- **Under 35:** $39,000
+- **35-44:** $135,000
+- **45-54:** $247,000
+- **55-64:** $364,000
+- **65-74:** $410,000
+
+These are medians, meaning half of households have more and half have less. Don't be discouraged by averages (means), which are pulled up dramatically by wealthy outliers.
+
+## The Power of Tracking Over Time
+
+A single net worth calculation is useful. Tracking it quarterly is transformative. Net worth growth over time reveals whether your financial habits are working — even when month-to-month progress feels invisible.
+
+The trend matters more than the number. A 28-year-old with -$30,000 net worth who improves by $15,000 per year is in better shape than a 45-year-old with $200,000 net worth who's been flat for five years.
+
+## When to Use This Calculator
+
+Use the net worth calculator to:
+
+- **Get a baseline** — see exactly where you stand today
+- **Track progress** — calculate quarterly to see if your financial habits are moving the needle
+- **Identify priorities** — see which debts are largest and which assets need attention
+- **Plan for milestones** — set a target net worth for specific ages or life events
+
+## Common Mistakes
+
+1. **Overvaluing your home.** Use conservative estimates based on recent comparable sales, not Zillow optimism.
+2. **Forgetting to count all debts.** Include that $2,000 credit card balance and the $1,500 you owe your parents.
+3. **Including depreciating assets at purchase price.** Your car is worth what someone would pay for it today, not what you paid three years ago.
+4. **Checking too frequently.** Market fluctuations cause daily swings that are meaningless noise. Quarterly is the right cadence.
+
+## What to Do Next
+
+Calculate your net worth today and write it down with the date. Set a calendar reminder to recalculate in 3 months. Over time, you'll build a trendline that tells you more about your financial trajectory than any single number.

@@ -134,12 +134,13 @@ export default function PercentageCalculator() {
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
       {/* Mode tabs */}
-      <div className="flex border-b border-neutral-200/80 overflow-x-auto" role="tablist">
+      <div className="flex border-b border-neutral-200/80 overflow-x-auto" role="tablist" aria-label="Percentage calculation mode">
         {MODES.map((m) => (
           <button
             key={m.key}
             role="tab"
             aria-selected={mode === m.key}
+            aria-controls="pct-results"
             onClick={() => {
               setMode(m.key);
               // Reset to sensible defaults per mode
@@ -228,7 +229,7 @@ export default function PercentageCalculator() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="pct-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           <div className="mb-8">
             <p className="text-sm text-neutral-500 mb-1">Result</p>
             <p className={`text-4xl sm:text-5xl font-bold tabular-nums ${

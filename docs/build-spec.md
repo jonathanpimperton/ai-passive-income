@@ -265,7 +265,7 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 
 ---
 
-## Phase 2 Expansion: Client-Side File Converters (Post-Launch)
+## Client-Side File Converters (Pre-Launch Sprint)
 
 ### Strategic Rationale
 
@@ -277,9 +277,9 @@ File converters are a **traffic acquisition strategy**, not a rebranding. CalcRu
 
 **What this is NOT:** A pivot, a rebrand, or an equal product line. The homepage hero stays financial. The tagline stays financial. Financial calculators remain the primary navigation category. Converters live in a secondary "File Tools" category. If converters show no cross-traffic to financial tools after 6 months, evaluate cutting them.
 
-### Phase 2 Tools: Client-Side File Converters (8 tools)
+### Client-Side File Converters (8 tools)
 
-Build after the 18 MVP tools are live and generating organic traffic (Month 4-6+).
+Build as part of Sprint 5 (pre-launch), before deploying to Cloudflare Pages.
 
 **Tier A — Build first (zero/tiny bundle, high traffic, easy wins):**
 
@@ -367,31 +367,41 @@ Investment return, Retirement savings, Debt payoff, QR code generator, Password 
 
 US Salary & Take-Home, UK Salary & Take-Home, Mortgage Payment, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, Percentage calculator, JSON formatter
 
-### Sprint 4: Polish + Monetization + Launch (Days 13-16)
+### Sprint 4: SEO + Content + Monetization (Days 13-16)
 
+- SEO optimization: audit all page titles and meta descriptions to emphasize "free", "no signup", "no ads" for Google SERP visibility
 - Educational content (500-1,000 words per financial calculator, 200+ for utility)
-- FAQ sections with schema markup
-- "Related calculators" internal linking (4-6 per tool)
-- Worked examples (2-3 per calculator)
 - Affiliate recommendations per tool (start with Betterment — no traffic minimums)
 - "Best X" comparison tables on financial calculator pages
 - PDF export (jsPDF, client-side)
+- OG image generation (Satori + Sharp)
+
+### Sprint 5: Client-Side File Converters (Days 17-22)
+
+- Build 8 client-side file converters (see "Client-Side File Converters" section below)
+- Tier A first (image compress, resize, format convert, SVG→PNG) — zero/tiny bundle, high traffic
+- Tier B next (HEIC→JPG, CSV↔JSON) — small-medium bundle
+- Tier C last (Markdown↔HTML, Images→PDF) — moderate traffic
+- Privacy badge on every converter page
+- Cross-promotion links from converters to financial calculators
+
+### Sprint 6: Polish + Launch (Days 23-26)
+
 - Embeddable widget versions + embed code generator page
 - Performance audit (Core Web Vitals)
-- OG image generation (Satori + Sharp)
 - Deploy to Cloudflare Pages
-
-### Sprint 5: SEO, Share & Growth (Days 17-20)
-
 - Submit to Google Search Console, verify sitemap indexing
 - Browser testing (Chrome, Firefox, Safari, mobile)
 - Set up MailerLite automation: 1 universal 3-email drip (tag by calculator, conditional content)
+- Apply to Betterment affiliate program
+
+### Sprint 7: Growth (Days 27-30)
+
 - Create first 10-20 programmatic scenario pages (500+ unique words each)
 - Create 5-10 Pinterest infographic pins
 - Share: Product Hunt, Reddit (r/personalfinance, r/financialindependence), Dev.to article
-- Apply to Betterment affiliate program
 
-**Total: ~4 weeks** (5 sprints × 4 days = 20 working days)
+**Total: ~5-6 weeks** (7 sprints)
 
 > **Timeline is aspirational.** Sprint 4 (polish + monetization + launch) packs educational content, FAQ sections, worked examples, comparison tables, PDF export, embeddable widgets, OG images, AND performance audit into 4 days. If timeline slips, ship in two waves: **Wave 1** (Sprints 1-3) — 18 tools live with basic educational content. **Wave 2** (Sprints 4-5) — deep content, embeds, programmatic pages, polish. Prioritize getting the 6 core financial calculators to production quality over getting all 18 tools to draft quality.
 
@@ -797,7 +807,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 | Affiliate revenue | $0-$50 | $50-$200 | $200-$1,000 |
 | Pages per session | >1.5 | >2.0 | >2.0 |
 | Core Web Vitals | All green | All green | All green |
-| Tools indexed in Google | 18/18 | 26/26+ (18 MVP + 8 converters) | 30+ |
+| Tools indexed in Google | 26/26 (18 calculators + 8 converters) | 26/26+ | 30+ |
 
 ### Quarterly Review (2 hours)
 
@@ -824,7 +834,7 @@ $0 operating cost = never quit, always adapt.
 | <1,000 monthly PV | Month 12 | Add programmatic pages, try adjacent niches, increase outreach |
 | Zero affiliate conversions | Month 12 | Redesign CTAs, test placements, try different programs |
 | Traffic plateaus | Any | Expand tools, add comparison content, push embeddable widgets |
-| File converters show zero cross-traffic to financial tools | Month 10 (6 months post-converter launch) | Cut converters to tighten topical authority, or keep only if they build domain authority measurably |
+| File converters show zero cross-traffic to financial tools | 6 months post-launch | Cut converters to tighten topical authority, or keep only if they build domain authority measurably |
 | Google algorithm wipes rankings | Any | Email list is insurance. Lean into Pinterest, Reddit, direct traffic. |
 
 ---
@@ -1073,7 +1083,7 @@ MVP is shipped when:
 - [ ] First 10-20 programmatic scenario pages live
 - [ ] Google Analytics configured with cookie consent
 
-**Phase 2 — File Converters (Post-Launch, Month 4-6+):**
+**Sprint 5 — File Converters (Pre-Launch):**
 - [ ] Tier A file converters live: image compressor, image resizer, image format converter, SVG to PNG
 - [ ] Tier B file converters live: HEIC to JPG, CSV↔JSON
 - [ ] Tier C file converters live: Markdown↔HTML, images to PDF

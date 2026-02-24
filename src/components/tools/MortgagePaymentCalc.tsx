@@ -7,11 +7,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   PieChart,
   Pie,
   Cell,
-  ReferenceLine,
 } from 'recharts';
 import { ChevronDown, RotateCcw } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
@@ -284,18 +282,19 @@ export default function MortgagePaymentCalc() {
             </button>
           </div>
           <div className="space-y-5">
-            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={2000000} step={5000} onChange={setHomePrice} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Down Payment" id="mort-down" value={downPaymentPercent} min={0} max={50} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${formatCurrency(homePrice * (downPaymentPercent / 100))} down`} />
+            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={3000000} step={5000} onChange={setHomePrice} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Down Payment" id="mort-down" value={downPaymentPercent} min={0} max={90} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${formatCurrency(homePrice * (downPaymentPercent / 100))} down`} />
             <SliderInput label="Interest Rate" id="mort-rate" value={interestRate} min={1} max={15} step={0.125} onChange={setInterestRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} />
 
             {/* Loan term selection */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">Loan Term</label>
-              <div className="grid grid-cols-3 gap-2">
+              <label id="mort-term-label" className="block text-sm font-medium text-neutral-700 mb-2">Loan Term</label>
+              <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-labelledby="mort-term-label">
                 {[15, 20, 30].map((term) => (
                   <button
                     key={term}
                     onClick={() => setLoanTerm(term)}
+                    aria-pressed={loanTerm === term}
                     className={`py-2.5 rounded-lg text-sm font-medium transition-all duration-150 border ${
                       loanTerm === term
                         ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
@@ -308,7 +307,7 @@ export default function MortgagePaymentCalc() {
               </div>
             </div>
 
-            <SliderInput label="Extra Monthly Payment" id="mort-extra" value={extraMonthly} min={0} max={2000} step={25} onChange={setExtraMonthly} prefix="$" formatDisplay={formatNumber} hint="Additional principal paid each month" />
+            <SliderInput label="Extra Monthly Payment" id="mort-extra" value={extraMonthly} min={0} max={5000} step={25} onChange={setExtraMonthly} prefix="$" formatDisplay={formatNumber} hint="Additional principal paid each month" />
 
             {/* Advanced toggle */}
             <button
@@ -326,7 +325,7 @@ export default function MortgagePaymentCalc() {
 
             {showAdvanced && (
               <div className="space-y-5 pt-1">
-                <SliderInput label="Property Tax Rate" id="mort-tax" value={propertyTaxRate} min={0} max={4} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
+                <SliderInput label="Property Tax Rate" id="mort-tax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
                 <SliderInput label="Annual Insurance" id="mort-ins" value={insuranceAnnual} min={0} max={10000} step={100} onChange={setInsuranceAnnual} prefix="$" formatDisplay={formatNumber} />
               </div>
             )}

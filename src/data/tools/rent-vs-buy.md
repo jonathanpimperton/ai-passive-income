@@ -55,4 +55,70 @@ workedExamples:
     description: "A $280,000 home with only 5% down at 7% interest. PMI adds ~$150/month until you reach 20% equity. Total monthly housing cost: about $2,350 vs $1,500 rent. Break-even point: year 6. With only 5% down, the high PMI and large mortgage make this a close call — at 7 years, buying barely edges ahead by about $12,000."
 ---
 
-Educational content will be added during Sprint 4.
+## The Rent vs Buy Decision
+
+"Should I rent or buy?" is one of the most significant financial decisions most people face. The conventional wisdom — "buying is always better because you're building equity" — is an oversimplification. The real answer depends on your local market, how long you'll stay, interest rates, and what you'd do with the money you save by renting.
+
+This calculator runs both scenarios side by side so you can make the decision with data, not emotion.
+
+## The True Cost of Buying
+
+Buying a home involves more costs than most first-time buyers expect:
+
+- **Closing costs:** 2-5% of the purchase price at the time of buying
+- **Property taxes:** 0.5-2.5% of home value per year (varies dramatically by state and county)
+- **Insurance:** $1,500-$3,000+ per year for homeowners insurance
+- **Maintenance:** The 1% rule suggests budgeting 1-2% of home value per year for upkeep
+- **PMI:** If your down payment is under 20%, expect 0.5-1% of the loan amount per year
+- **Selling costs:** When you eventually sell, real estate commissions and closing costs run 6-10% of the sale price
+- **Opportunity cost:** Your down payment, tied up in the house, could have been invested
+
+Adding these up, the true annual cost of homeownership often exceeds the mortgage payment by 30-50%.
+
+## The True Cost of Renting
+
+Renting is simpler but not cost-free:
+
+- **Monthly rent:** Your base cost, typically increasing 3-5% per year
+- **Renter's insurance:** $150-$300 per year (much less than homeowners insurance)
+- **No equity building:** Your payments go entirely to your landlord, not into an asset you own
+- **Opportunity cost:** If renting is cheaper monthly, you could invest the difference — and historically, the stock market has returned 7-10% per year
+
+The critical question is whether that invested difference grows faster than the equity you'd build by owning.
+
+## The Break-Even Point
+
+The break-even point is when the total cost of buying equals the total cost of renting (including the investment gains from the renter's savings). For most markets, this falls between 5-7 years. Before the break-even point, renting is cheaper. After it, buying wins.
+
+Several factors move the break-even point:
+
+- **High home prices relative to rent** push it later (expensive coastal cities: 7-10+ years)
+- **Low interest rates** pull it earlier (cheaper mortgages mean less interest waste)
+- **High rent growth** pulls it earlier (if rent rises fast, buying locks in a fixed cost)
+- **High property taxes or HOA fees** push it later (ongoing costs of ownership)
+
+## The 5% Rule (Quick Test)
+
+A quick way to estimate: multiply the home's purchase price by 5%, then divide by 12. If you can rent a comparable place for less than this monthly amount, renting is likely the better financial choice.
+
+For a $400,000 home: 5% × $400,000 = $20,000 / 12 = $1,667/month. If comparable rent is under $1,667, renting likely wins. This rule isn't precise, but it's a useful starting point before running the full calculation.
+
+## When to Use This Calculator
+
+Use the rent vs buy calculator when you're:
+
+- **Deciding whether to buy your first home** — see the actual break-even point for your specific market
+- **Considering a move to a new city** — compare the cost of buying vs renting in the new location
+- **Evaluating a short-term stay** — if you might move in 3-4 years, see whether buying makes sense
+- **Comparing the investment alternative** — see what happens if you rent and invest the down payment instead
+
+## Common Mistakes
+
+1. **Only comparing rent to mortgage payment.** The mortgage is just one piece — taxes, insurance, maintenance, and PMI add 30-50% more.
+2. **Assuming home prices always rise.** In many markets, home prices have been flat or even declined for years. Don't assume 5% annual appreciation.
+3. **Ignoring the opportunity cost of the down payment.** A $60,000 down payment invested at 7% would grow to $118,000 in 10 years. That's real money you're choosing not to invest.
+4. **Buying because "rent is throwing money away."** Mortgage interest, property taxes, insurance, and maintenance are also "thrown away" — they don't build equity.
+
+## What to Do Next
+
+Enter your local numbers: home price, down payment, mortgage rate, monthly rent, and how long you plan to stay. The break-even timeline will tell you whether buying or renting makes more financial sense for your specific situation. If you're within a year or two of the break-even point, personal factors (stability, lifestyle, neighborhood) should tip the decision.
