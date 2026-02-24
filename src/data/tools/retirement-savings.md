@@ -63,6 +63,8 @@ A retirement savings calculator projects how much money you'll have when you sto
 
 The short answer for most people is no. According to the Federal Reserve, about 25% of non-retired adults have no retirement savings at all, and the median retirement savings for Americans aged 55-64 is approximately $134,000 — far below what most experts recommend.
 
+> **Key takeaway:** If you're behind, you're not alone — but the gap between where most people are and where they need to be makes starting today (not next year) the single most impactful financial decision you can make.
+
 ## How Retirement Savings Projections Work
 
 The math combines compound interest with regular contributions over time. Your existing savings grow at your expected rate of return, and each new contribution begins compounding from the moment it's deposited.
@@ -79,14 +81,20 @@ The most widely cited retirement guideline is the 4% rule: withdraw 4% of your s
 
 To use the 4% rule backward: multiply your desired annual retirement income by 25. If you want $60,000 per year from savings, you need $1.5 million. If Social Security covers $24,000, you need your savings to provide $36,000 — requiring $900,000.
 
+> **Tip:** The 4% rule assumes a 30-year retirement. If you plan to retire early (before 60), consider using a more conservative 3.5% or even 3% withdrawal rate to avoid running out of money.
+
 ## Retirement Account Types
 
 Understanding which accounts to use is as important as how much you save:
 
-- **401(k) / 403(b)** — employer-sponsored plans with pre-tax contributions and potential employer matching. Always contribute enough to get the full match — it's an instant 50-100% return.
-- **Traditional IRA** — tax-deductible contributions; you pay taxes when you withdraw in retirement.
-- **Roth IRA** — contributions are after-tax, but growth and withdrawals in retirement are tax-free. Generally better if you expect to be in a higher tax bracket later.
-- **HSA (Health Savings Account)** — triple tax advantage: tax-deductible contributions, tax-free growth, and tax-free withdrawals for medical expenses.
+| Account | Tax on Contributions | Tax on Withdrawals | Key Benefit |
+|---------|--------------------|--------------------|-------------|
+| **401(k) / 403(b)** | Pre-tax (reduces taxable income) | Taxed as income | Employer match (instant 50–100% return) |
+| **Traditional IRA** | Tax-deductible | Taxed as income | Lower your tax bill now |
+| **Roth IRA** | After-tax (no deduction) | Tax-free | Tax-free growth and withdrawals |
+| **HSA** | Tax-deductible | Tax-free (medical expenses) | Triple tax advantage |
+
+> **Example:** A 30-year-old earning $70,000 who puts $500/month into a Roth IRA at 7% average return would accumulate roughly $830,000 by age 65 — and every dollar of that growth comes out tax-free in retirement.
 
 ## When to Use This Calculator
 
@@ -103,6 +111,8 @@ Use the retirement savings calculator when you want to:
 2. **Ignoring inflation.** $1 million in 30 years will buy roughly what $400,000 buys today. Plan in inflation-adjusted terms.
 3. **Not accounting for Social Security.** Most Americans qualify for benefits, which reduces how much your personal savings need to cover. Check your projected benefit at ssa.gov.
 4. **Leaving employer match on the table.** If your employer matches 401(k) contributions and you're not contributing enough to get the full match, you're giving up free money.
+
+> **Key takeaway:** Mistake #2 is the one people underestimate most. At 3% inflation, you need roughly $2.4 million in future dollars to have the same spending power as $1 million today over a 30-year retirement. Always check the inflation-adjusted number.
 
 ## What to Do Next
 

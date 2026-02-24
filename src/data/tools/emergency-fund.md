@@ -57,15 +57,19 @@ An emergency fund is money set aside specifically for unexpected financial shock
 
 Without an emergency fund, unexpected expenses go on credit cards (at 20%+ interest) or force you to take on personal loans. With one, you handle emergencies from savings and your financial plan stays on track.
 
+> **Key takeaway:** An emergency fund isn't about earning returns — it's insurance against going into debt when the unexpected happens. Even a small fund can prevent a $1,000 car repair from becoming $1,400 in credit card charges.
+
 ## How Much Do You Need?
 
 The standard recommendation is 3-6 months of essential expenses. "Essential expenses" means the minimum you need to cover if income stopped: housing, food, utilities, insurance, transportation, and minimum debt payments. Not dining out, streaming subscriptions, or entertainment.
 
 The right target depends on your situation:
 
-- **3 months:** Dual-income household with stable jobs, good health insurance, and low debt
-- **6 months:** Single earner, family with children, or moderate job stability concerns
-- **9-12 months:** Self-employed, freelancer, variable income, single parent, or working in a volatile industry
+| Months of expenses | Best for | Why |
+| --- | --- | --- |
+| **3 months** | Dual-income household, stable jobs, good insurance, low debt | A second income provides a built-in safety net |
+| **6 months** | Single earner, family with children, moderate job stability concerns | Longer job searches and higher stakes demand a bigger buffer |
+| **9-12 months** | Self-employed, freelancer, variable income, single parent, volatile industry | Income gaps are unpredictable and can stretch for months |
 
 These are guidelines. Any amount is better than nothing — even $1,000 covers most car repairs and medical co-pays, preventing a credit card spiral.
 
@@ -79,6 +83,8 @@ Your emergency fund needs to be:
 
 A **high-yield savings account** meets all three criteria. With rates currently at 4-5% APY, your emergency fund actually earns meaningful interest while waiting. A $15,000 emergency fund at 5% APY earns $750 per year — money that works for you while it sits.
 
+> **Tip:** Open your high-yield savings account at a different bank from your checking. The 1-2 day transfer delay creates just enough friction to stop impulse spending, while still keeping the money accessible for genuine emergencies.
+
 Avoid keeping your emergency fund in investments (too volatile), under the mattress (no interest, not insured), or in your checking account (too easy to spend).
 
 ## Building Your Emergency Fund: Step by Step
@@ -89,6 +95,8 @@ Avoid keeping your emergency fund in investments (too volatile), under the mattr
 4. **Build before aggressively paying debt.** The exception is high-interest credit card debt — but even then, maintain a $1,000-$2,000 starter fund. Without it, emergencies push you back into debt.
 5. **Replenish immediately.** If you use your emergency fund, make refilling it the top financial priority until it's restored.
 
+> **Example:** Saving $200 per paycheck (biweekly) adds up to $5,200 in a year. At 5% APY, that grows to about $5,330. In just two years, you'd have nearly $11,000 — enough for a solid 3-month fund if your essential expenses are around $3,500/month.
+
 ## What Counts as an Emergency?
 
 Clear definitions prevent fund raids:
@@ -96,6 +104,8 @@ Clear definitions prevent fund raids:
 **Emergencies:** Job loss, medical/dental emergencies, essential car or home repairs, unexpected family situations, insurance deductibles after accidents
 
 **Not emergencies:** Vacations, holiday gifts, sales on electronics, routine car maintenance (plan for these separately), wanted-but-not-needed purchases
+
+> **Key takeaway:** If you have to ask "is this an emergency?" — it probably isn't. Create a separate sinking fund for predictable irregular expenses like car maintenance, holiday gifts, and annual subscriptions.
 
 ## When to Use This Calculator
 

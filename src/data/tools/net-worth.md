@@ -56,6 +56,8 @@ The formula is straightforward: **Net Worth = Total Assets - Total Liabilities**
 
 Unlike income (which measures cash flow), net worth measures accumulated wealth. You can earn a high salary and still have a low or negative net worth if spending and debt consume everything.
 
+> **Key takeaway:** Net worth is the single best measure of financial progress. Income tells you how fast water flows in; net worth tells you how much is actually in the bucket.
+
 ## What Counts as an Asset?
 
 Assets are anything you own that has monetary value:
@@ -84,19 +86,25 @@ Liabilities are everything you owe:
 
 According to the Federal Reserve's Survey of Consumer Finances, median net worth by age group is approximately:
 
-- **Under 35:** $39,000
-- **35-44:** $135,000
-- **45-54:** $247,000
-- **55-64:** $364,000
-- **65-74:** $410,000
+| Age Group | Median Net Worth |
+|-----------|-----------------|
+| Under 35  | $39,000         |
+| 35–44     | $135,000        |
+| 45–54     | $247,000        |
+| 55–64     | $364,000        |
+| 65–74     | $410,000        |
 
 These are medians, meaning half of households have more and half have less. Don't be discouraged by averages (means), which are pulled up dramatically by wealthy outliers.
+
+> **Tip:** Focus on the median, not the mean. The average net worth for 35–44 year-olds is over $500,000 — but that's skewed by a small number of millionaires. The median ($135,000) is a far more realistic benchmark.
 
 ## The Power of Tracking Over Time
 
 A single net worth calculation is useful. Tracking it quarterly is transformative. Net worth growth over time reveals whether your financial habits are working — even when month-to-month progress feels invisible.
 
 The trend matters more than the number. A 28-year-old with -$30,000 net worth who improves by $15,000 per year is in better shape than a 45-year-old with $200,000 net worth who's been flat for five years.
+
+> **Example:** If you started 2024 at -$10,000 and ended at $5,000, that $15,000 improvement means your habits are working — even though your net worth is still modest. Direction beats position.
 
 ## When to Use This Calculator
 
@@ -113,6 +121,8 @@ Use the net worth calculator to:
 2. **Forgetting to count all debts.** Include that $2,000 credit card balance and the $1,500 you owe your parents.
 3. **Including depreciating assets at purchase price.** Your car is worth what someone would pay for it today, not what you paid three years ago.
 4. **Checking too frequently.** Market fluctuations cause daily swings that are meaningless noise. Quarterly is the right cadence.
+
+> **Tip:** When valuing your car, check Kelley Blue Book or Edmunds for its private-party sale price — not the dealer trade-in value and not what you paid. This applies to boats, RVs, and other depreciating assets too.
 
 ## What to Do Next
 

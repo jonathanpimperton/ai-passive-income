@@ -61,11 +61,20 @@ QR codes were invented in 1994 by Denso Wave, a subsidiary of Toyota, to track a
 
 **Dynamic QR codes** redirect through a short URL service that can be updated later. They require an ongoing subscription and stop working if the service shuts down. For most use cases, static codes are the better choice.
 
+> **Key takeaway:** Static QR codes are free, work forever, and have zero dependencies. Only pay for dynamic codes if you genuinely need to change the destination URL after printing.
+
 ## Error Correction: Why QR Codes Still Work When Damaged
 
-QR codes include built-in error correction using Reed-Solomon algorithms. Even if part of the code is obscured, scratched, or covered by a logo, the remaining data can reconstruct the message. There are four levels: L (7% recovery), M (15%), Q (25%), and H (30%). Higher correction means the code can withstand more damage but requires more modules (making it slightly larger or denser).
+QR codes include built-in error correction using Reed-Solomon algorithms. Even if part of the code is obscured, scratched, or covered by a logo, the remaining data can reconstruct the message. Higher correction means the code can withstand more damage but requires more modules (making it slightly larger or denser).
 
-For printed materials that may get folded or smudged, use H (high) correction. For digital displays, M (medium) is usually sufficient.
+| Level | Recovery | Best For |
+|-------|----------|----------|
+| L (Low) | 7% | Digital screens, clean environments |
+| M (Medium) | 15% | General use, most digital and print |
+| Q (Quartile) | 25% | Outdoor signage, moderate wear |
+| H (High) | 30% | Business cards, menus, logos overlay |
+
+> **Tip:** For printed materials that may get folded or smudged, use H (high) correction. For digital displays where the code stays pristine, M (medium) is usually sufficient.
 
 ## Best Practices for QR Code Usage
 
@@ -74,6 +83,12 @@ For printed materials that may get folded or smudged, use H (high) correction. F
 - **Maintain quiet zone.** Keep a white border around the QR code equal to at least 4 modules wide. Without it, scanners may not detect the code.
 - **Download as SVG for print.** SVG files scale to any size without losing quality, unlike PNG which can pixelate when enlarged.
 
+> **Example:** A poster viewed from 3 feet away needs a QR code at least 3.6 inches wide (1/10th of the distance). A table tent scanned from 1 foot needs just 1.2 inches.
+
 ## When to Use This Tool
 
-Generate QR codes for URLs (website links, menus, landing pages), Wi-Fi networks (instant connection without typing passwords), contact information (vCard format for business cards), plain text, email addresses, or phone numbers. All processing happens in your browser — your data is never sent to our servers.
+Generate QR codes for URLs (website links, menus, landing pages), Wi-Fi networks (instant connection without typing passwords), contact information (vCard format for business cards), plain text, email addresses, or phone numbers.
+
+All processing happens in your browser — your data is never sent to our servers.
+
+> **Key takeaway:** Because QR code generation runs entirely client-side, you can safely encode sensitive content like Wi-Fi passwords or private URLs without any data leaving your device.

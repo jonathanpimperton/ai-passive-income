@@ -61,19 +61,25 @@ workedExamples:
 
 This calculator runs both scenarios side by side so you can make the decision with data, not emotion.
 
+> **Key takeaway:** There is no universal answer to "rent or buy." The right choice depends on your local price-to-rent ratio, your time horizon, and what you'd do with the savings. Run your own numbers before trusting rules of thumb.
+
 ## The True Cost of Buying
 
 Buying a home involves more costs than most first-time buyers expect:
 
-- **Closing costs:** 2-5% of the purchase price at the time of buying
-- **Property taxes:** 0.5-2.5% of home value per year (varies dramatically by state and county)
-- **Insurance:** $1,500-$3,000+ per year for homeowners insurance
-- **Maintenance:** The 1% rule suggests budgeting 1-2% of home value per year for upkeep
-- **PMI:** If your down payment is under 20%, expect 0.5-1% of the loan amount per year
-- **Selling costs:** When you eventually sell, real estate commissions and closing costs run 6-10% of the sale price
-- **Opportunity cost:** Your down payment, tied up in the house, could have been invested
+| Cost | Typical Range | When You Pay |
+|------|--------------|--------------|
+| Closing costs | 2–5% of purchase price | At purchase |
+| Property taxes | 0.5–2.5% of home value/year | Ongoing |
+| Homeowners insurance | $1,500–$3,000+/year | Ongoing |
+| Maintenance & repairs | 1–2% of home value/year | Ongoing |
+| PMI (if <20% down) | 0.5–1% of loan amount/year | Until 20% equity |
+| Selling costs | 6–10% of sale price | At sale |
+| Opportunity cost | Down payment could be invested | Ongoing (hidden) |
 
-Adding these up, the true annual cost of homeownership often exceeds the mortgage payment by 30-50%.
+Adding these up, the true annual cost of homeownership often exceeds the mortgage payment by 30–50%.
+
+> **Example:** On a $350,000 home, the mortgage might be $1,864/month — but property taxes, insurance, maintenance, and PMI can push total monthly costs to $2,650 or more.
 
 ## The True Cost of Renting
 
@@ -88,20 +94,26 @@ The critical question is whether that invested difference grows faster than the 
 
 ## The Break-Even Point
 
-The break-even point is when the total cost of buying equals the total cost of renting (including the investment gains from the renter's savings). For most markets, this falls between 5-7 years. Before the break-even point, renting is cheaper. After it, buying wins.
+The break-even point is when the total cost of buying equals the total cost of renting (including the investment gains from the renter's savings). For most markets, this falls between 5–7 years. Before the break-even point, renting is cheaper. After it, buying wins.
 
 Several factors move the break-even point:
 
-- **High home prices relative to rent** push it later (expensive coastal cities: 7-10+ years)
-- **Low interest rates** pull it earlier (cheaper mortgages mean less interest waste)
-- **High rent growth** pulls it earlier (if rent rises fast, buying locks in a fixed cost)
-- **High property taxes or HOA fees** push it later (ongoing costs of ownership)
+| Factor | Effect on Break-Even | Why |
+|--------|---------------------|-----|
+| High home prices relative to rent | Pushes later (7–10+ years) | More capital tied up, higher opportunity cost |
+| Low interest rates | Pulls earlier | Less money wasted on interest |
+| High rent growth | Pulls earlier | Buying locks in a fixed cost |
+| High property taxes or HOA fees | Pushes later | Ongoing ownership costs erode the buying advantage |
+
+> **Tip:** If you might move within 3 years, renting is almost always cheaper. The upfront closing costs and eventual selling costs make short-term ownership a losing proposition in most markets.
 
 ## The 5% Rule (Quick Test)
 
 A quick way to estimate: multiply the home's purchase price by 5%, then divide by 12. If you can rent a comparable place for less than this monthly amount, renting is likely the better financial choice.
 
-For a $400,000 home: 5% × $400,000 = $20,000 / 12 = $1,667/month. If comparable rent is under $1,667, renting likely wins. This rule isn't precise, but it's a useful starting point before running the full calculation.
+For a $400,000 home: 5% × $400,000 = $20,000 / 12 = **$1,667/month**. If comparable rent is under $1,667, renting likely wins.
+
+This rule isn't precise, but it's a useful starting point before running the full calculation.
 
 ## When to Use This Calculator
 
@@ -118,6 +130,8 @@ Use the rent vs buy calculator when you're:
 2. **Assuming home prices always rise.** In many markets, home prices have been flat or even declined for years. Don't assume 5% annual appreciation.
 3. **Ignoring the opportunity cost of the down payment.** A $60,000 down payment invested at 7% would grow to $118,000 in 10 years. That's real money you're choosing not to invest.
 4. **Buying because "rent is throwing money away."** Mortgage interest, property taxes, insurance, and maintenance are also "thrown away" — they don't build equity.
+
+> **Key takeaway:** In the early years of a mortgage, most of your payment goes to interest — not equity. On a 30-year loan at 7%, only about 30% of your payment reduces the principal in year one.
 
 ## What to Do Next
 

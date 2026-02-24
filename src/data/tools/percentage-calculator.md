@@ -51,6 +51,8 @@ A percentage is simply a number expressed as a fraction of 100. The word "percen
 
 This calculator handles four common percentage operations: finding X% of a number, finding what percentage one number is of another, calculating percentage change (increase or decrease), and calculating percentage difference between two values.
 
+> **Key takeaway:** Every percentage problem boils down to one of these four operations. Identify which one you need, and the math is straightforward.
+
 ## The Four Calculation Modes
 
 **What is X% of Y?** — Multiply the number by the percentage as a decimal. Example: 18% of $85 = $85 × 0.18 = $15.30. Use this for tips, discounts, tax calculations, and proportions.
@@ -61,19 +63,27 @@ This calculator handles four common percentage operations: finding X% of a numbe
 
 **Percentage difference** — Measures how far apart two values are relative to their average: |A - B| ÷ ((A + B) ÷ 2) × 100. Unlike percentage change, this has no direction and treats both values equally. Use it to compare two independent measurements, prices, or scores.
 
+> **Tip:** Not sure whether to use percentage change or percentage difference? If you have a clear "before" and "after," use percentage change. If you're comparing two independent values with no time relationship, use percentage difference.
+
 ## Mental Shortcuts
 
 Quick percentage tricks for everyday use:
 
-- **10% of any number:** Move the decimal point one place left. 10% of $85 = $8.50.
-- **5%:** Half of 10%. 5% of $85 = $4.25.
-- **20%:** Double 10%. 20% of $85 = $17.00.
-- **15%:** Add 10% and half of 10%. 15% of $85 = $8.50 + $4.25 = $12.75.
-- **25%:** Divide by 4. 25% of $200 = $50.
-- **1%:** Move the decimal two places left. 1% of $85 = $0.85. Then multiply for any percentage.
+| Percentage | Shortcut | Example ($85) |
+|---|---|---|
+| 10% | Move decimal one place left | $8.50 |
+| 5% | Half of 10% | $4.25 |
+| 15% | 10% + half of 10% | $8.50 + $4.25 = $12.75 |
+| 20% | Double 10% | $17.00 |
+| 25% | Divide by 4 | $21.25 |
+| 1% | Move decimal two places left | $0.85 (then multiply for any %) |
+
+> **Example:** To calculate an 18% tip on $85, start with 10% ($8.50), add another 10% ($8.50), then subtract 2% ($1.70). That gives you $8.50 + $8.50 – $1.70 = $15.30.
 
 ## Common Percentage Pitfalls
 
 **Percentages don't add up symmetrically.** A 20% increase followed by a 20% decrease doesn't return to the starting value. $100 + 20% = $120. $120 - 20% = $96. You're down $4.
 
 **The base matters.** A $15 increase on a $50 item is 30%. The same $15 increase on a $500 item is 3%. Always consider what the percentage is relative to.
+
+> **Key takeaway:** When you see a percentage in a headline or ad, always ask "percent of *what*?" A "50% off" sale and a "buy one get one free" deal are mathematically identical — but the framing changes how people perceive the value.

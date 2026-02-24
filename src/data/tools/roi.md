@@ -60,11 +60,15 @@ The basic formula is **ROI = (Net Profit / Cost of Investment) × 100**. An inve
 
 ROI works for any investment type — stocks, real estate, business equipment, marketing campaigns, education, or even home renovations. Its universality makes it the default metric for comparing very different types of investments.
 
+> **Key takeaway:** ROI is the one metric that lets you compare completely different investments — a rental property vs. a stock portfolio vs. a marketing campaign — on the same scale.
+
 ## Total ROI vs Annualized ROI
 
 Total ROI has a critical limitation: it doesn't account for time. A 30% return might sound better than 20%, but what if the 30% return took 10 years and the 20% return took 2 years?
 
 **Annualized ROI** solves this by converting any total return into an equivalent annual rate: Annualized ROI = (1 + Total ROI)^(1/Years) - 1. The 30% over 10 years becomes 2.7% annualized, while the 20% over 2 years is 9.5% annualized — a dramatically better investment.
+
+> **Example:** A 30% total return over 10 years is just 2.7% annualized, while a 20% return over 2 years is 9.5% annualized. The "smaller" return was actually the far better investment.
 
 Always compare investments using annualized returns to get a fair comparison.
 
@@ -72,13 +76,17 @@ Always compare investments using annualized returns to get a fair comparison.
 
 Different investments carry different risk-return profiles:
 
-- **Stock market (S&P 500):** ~10% average annual return historically (7% after inflation)
-- **Real estate:** 8-12% total return (appreciation + rental income), varies hugely by location
-- **Bonds:** 4-6% for investment-grade corporate bonds
-- **High-yield savings:** 4-5% currently, with near-zero risk
-- **Venture capital:** Targets 25%+ but most investments lose money; returns are driven by rare outliers
+| Asset Class | Typical Annual Return | Risk Level | Notes |
+|---|---|---|---|
+| Stock market (S&P 500) | ~10% (7% after inflation) | Moderate–High | Long-term historical average |
+| Real estate | 8–12% | Moderate | Appreciation + rental income; varies by location |
+| Bonds (investment-grade) | 4–6% | Low–Moderate | Corporate bonds |
+| High-yield savings | 4–5% | Near-zero | Current rates |
+| Venture capital | 25%+ target | Very High | Most investments lose money; returns driven by rare outliers |
 
 Any ROI that consistently beats inflation (3%) is positive in real terms. Returns above 7% are generally considered strong for the level of risk involved.
+
+> **Tip:** Use annualized ROI — not total ROI — when comparing against these benchmarks. A 50% total return sounds great until you realize it took 10 years (just 4.1% annualized).
 
 ## When to Use This Calculator
 
@@ -95,6 +103,8 @@ Use the ROI calculator when you:
 2. **Comparing total returns across different time periods.** A 50% return over 10 years (4.1% annualized) is worse than 25% over 3 years (7.7% annualized). Always annualize.
 3. **Forgetting about inflation.** A 5% return during 3% inflation is only 2% real ROI. Your purchasing power barely grew.
 4. **Excluding income from the calculation.** Dividends, rent, and interest payments are part of total return and must be included.
+
+> **Key takeaway:** The single biggest ROI mistake is comparing raw totals across different time horizons. Always annualize first, then compare.
 
 ## What to Do Next
 

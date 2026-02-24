@@ -49,6 +49,8 @@ JSON (JavaScript Object Notation) is a lightweight data format for storing and e
 
 Despite its name, JSON is language-independent — it's used in virtually every programming language: Python, Java, Go, Ruby, C#, PHP, and more. It's the default format for REST APIs, configuration files, data storage, and inter-service communication across the web.
 
+> **Key takeaway:** If you work with web APIs, cloud services, or modern software of any kind, you will encounter JSON. Learning to read and debug it is a fundamental developer skill.
+
 ## Formatting vs Validation
 
 **Formatting** (also called beautifying or pretty-printing) takes syntactically valid JSON and adds indentation, line breaks, and consistent spacing to make it easy to read. Minified API responses or one-line config files become instantly readable.
@@ -57,19 +59,27 @@ Despite its name, JSON is language-independent — it's used in virtually every 
 
 Our tool does both simultaneously — it formats valid JSON and flags errors in invalid JSON with the exact line and character position.
 
+> **Tip:** Paste your JSON into the tool before filing a bug report or asking for help. A clean, formatted snippet communicates the problem far faster than a minified blob.
+
 ## Common JSON Errors and How to Fix Them
 
-- **Trailing commas:** `{"a": 1, "b": 2,}` — remove the comma after the last item
-- **Single quotes:** `{'name': 'Alice'}` — use double quotes: `{"name": "Alice"}`
-- **Unquoted keys:** `{name: "Alice"}` — all keys must be double-quoted: `{"name": "Alice"}`
-- **Comments:** `{"port": 8080 // default}` — JSON doesn't support comments; remove them
-- **Missing commas:** `{"a": 1 "b": 2}` — add a comma between key-value pairs
+| Error | Example | Fix |
+|---|---|---|
+| Trailing comma | `{"a": 1, "b": 2,}` | Remove the comma after the last item |
+| Single quotes | `{'name': 'Alice'}` | Use double quotes: `{"name": "Alice"}` |
+| Unquoted keys | `{name: "Alice"}` | All keys must be double-quoted: `{"name": "Alice"}` |
+| Comments | `{"port": 8080 // default}` | JSON has no comment syntax — remove them |
+| Missing commas | `{"a": 1 "b": 2}` | Add a comma between key-value pairs |
+
+> **Example:** The most common error we see is trailing commas. JavaScript allows them, but JSON does not — if you copy an object literal from your code, strip the trailing commas before pasting.
 
 ## Beautify vs Minify
 
 **Beautify** adds whitespace for readability — use this when reading, debugging, or documenting JSON. Choose 2-space or 4-space indentation based on your project's convention.
 
 **Minify** removes all unnecessary whitespace — use this when sending JSON over a network or storing it efficiently. A well-structured 50-line JSON file might compress to a single line, reducing file size by 30-50%.
+
+> **Tip:** Use beautified JSON during development and minified JSON in production. Most build tools and API gateways can handle this automatically, but for quick one-off tasks, paste it here.
 
 ## Privacy
 
