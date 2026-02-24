@@ -13,7 +13,7 @@ relatedTools:
   - "password-generator"
   - "json-formatter"
   - "savings-goal"
-  - "salary"
+  - "salary-us"
 faq:
   - question: "What is a QR code?"
     answer: "A QR (Quick Response) code is a two-dimensional barcode that stores data like URLs, text, contact info, or Wi-Fi credentials. When scanned with a smartphone camera, it instantly opens the encoded content. QR codes were invented in 1994 by Denso Wave for tracking automotive parts and are now used everywhere from restaurant menus to payment systems."

@@ -13,7 +13,7 @@ relatedTools:
   - "qr-code"
   - "json-formatter"
   - "savings-goal"
-  - "salary"
+  - "salary-us"
 affiliateContext: "Use a password manager"
 affiliatePrograms:
   - "1Password"

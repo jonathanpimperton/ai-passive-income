@@ -42,7 +42,7 @@ export interface ToolMeta {
 }
 
 /**
- * All 15 MVP tools with metadata for navigation and homepage display.
+ * All 18 MVP tools with metadata for navigation and homepage display.
  * Order within each category matches the build-spec priority.
  */
 export const TOOLS: ToolMeta[] = [
@@ -84,6 +84,13 @@ export const TOOLS: ToolMeta[] = [
     icon: 'calculator',
   },
   {
+    name: 'Mortgage Payment Calculator',
+    slug: 'mortgage-payment',
+    category: 'debt-and-loans',
+    description: 'Calculate your monthly mortgage payment and total interest.',
+    icon: 'landmark',
+  },
+  {
     name: 'Debt Payoff Calculator',
     slug: 'debt-payoff',
     category: 'debt-and-loans',
@@ -106,11 +113,18 @@ export const TOOLS: ToolMeta[] = [
     icon: 'piggy-bank',
   },
   {
-    name: 'Salary & Take-Home Calculator',
-    slug: 'salary',
+    name: 'US Salary & Take-Home Calculator',
+    slug: 'salary-us',
     category: 'income-and-planning',
-    description: 'Convert between salary, hourly, and take-home pay.',
+    description: 'Calculate US take-home pay after federal and state taxes.',
     icon: 'wallet',
+  },
+  {
+    name: 'UK Salary & Take-Home Calculator',
+    slug: 'salary-uk',
+    category: 'income-and-planning',
+    description: 'Calculate UK take-home pay after Income Tax, NI, and pension.',
+    icon: 'coins',
   },
   {
     name: 'Net Worth Calculator',
@@ -150,6 +164,13 @@ export const TOOLS: ToolMeta[] = [
     icon: 'shield-check',
   },
   {
+    name: 'Percentage Calculator',
+    slug: 'percentage-calculator',
+    category: 'utility',
+    description: 'Calculate percentages, percentage change, and more instantly.',
+    icon: 'divide',
+  },
+  {
     name: 'JSON Formatter',
     slug: 'json-formatter',
     category: 'utility',
@@ -177,8 +198,9 @@ export function getToolPath(tool: ToolMeta): string {
 export const POPULAR_TOOL_SLUGS = [
   'compound-interest',
   'loan-amortization',
+  'mortgage-payment',
   'retirement-savings',
   'investment-return',
   'debt-payoff',
-  'salary',
+  'salary-us',
 ];

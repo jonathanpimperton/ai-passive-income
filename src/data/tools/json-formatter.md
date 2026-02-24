@@ -12,7 +12,7 @@ keywords:
 relatedTools:
   - "password-generator"
   - "qr-code"
-  - "salary"
+  - "salary-us"
   - "roi"
 faq:
   - question: "What is JSON?"

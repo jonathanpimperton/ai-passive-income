@@ -14,7 +14,7 @@ relatedTools:
   - "retirement-savings"
   - "investment-return"
   - "savings-goal"
-  - "salary"
+  - "salary-us"
 affiliateContext: "Invest to protect your purchasing power against inflation"
 affiliatePrograms:
   - "Betterment"

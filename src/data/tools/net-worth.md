@@ -10,7 +10,7 @@ keywords:
   - "am I on track"
 relatedTools:
   - "retirement-savings"
-  - "salary"
+  - "salary-us"
   - "savings-goal"
   - "emergency-fund"
   - "investment-return"

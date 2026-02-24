@@ -10,7 +10,7 @@
 A focused financial calculator site called **CalcRun** (`calcrun.com`).
 
 - **Astro** + Tailwind CSS v4 + React islands on Cloudflare Pages (free tier)
-- **15 MVP tools** (12 financial calculators + 3 utility tools)
+- **18 MVP tools** (14 financial calculators + 4 utility tools)
 - **Affiliate-first monetization** (not ad-dependent)
 - **Deep educational content** per tool for E-E-A-T and topical authority
 - **Email capture** ("email me my results") on financial calculators → automated drip → affiliate conversions
@@ -109,7 +109,7 @@ Calculator.net is the category king (~100M visits/mo, 20+ years). Studying their
 - **Comprehensive amortization tables:** Month-by-month breakdowns with deposits, interest, and running balances. Users love this granularity.
 - **9 compounding frequency options:** Annually through continuously, plus beginning/end-of-period contribution timing.
 - **Deep educational content:** 1,000+ words per calculator with formulas, worked examples, historical context. This is the E-E-A-T play that validates our content strategy.
-- **Internal linking network:** Every calculator links to 5-6 related calculators, creating an internal link web. With only 15 tools, our related tools section is even more critical.
+- **Internal linking network:** Every calculator links to 5-6 related calculators, creating an internal link web. With only 18 tools, our related tools section is even more critical.
 
 **Where they're weak (exploit):**
 - **No real-time results** — submit button + page reload. CalcRun updates instantly as you drag a slider. This is our single biggest UX differentiator.
@@ -222,7 +222,7 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 
 ---
 
-## MVP: 15 Tools
+## MVP: 18 Tools
 
 ### Core Financial Calculators (6 — build first, Sprint 1-2)
 
@@ -235,28 +235,31 @@ This aligns with the $65-$250/mo range in our revenue projections. The email lis
 | 5 | **Debt Payoff Calculator** | Snowball vs avalanche comparison, total interest saved | debt-and-loans | "Consolidate your debt" → SoFi, LendingClub |
 | 6 | **Savings Goal Calculator** | Timeline visualization, reverse calculator ("how much per month?") | saving-and-growth | "High-yield savings" → Marcus, Ally |
 
-### Secondary Financial Calculators (6 — Sprint 3)
+### Secondary Financial Calculators (8 — Sprint 3)
 
 | # | Tool | Key Features | Category | Affiliate Context |
 |---|------|-------------|----------|-------------------|
-| 7 | **Salary & Take-Home Calculator** | Overtime, tax withholding, take-home pay | income-and-planning | None |
-| 8 | **Inflation Calculator** | Historical CPI data, purchasing power chart | economic | None |
-| 9 | **ROI Calculator** | Annualized return, total return, comparison mode | saving-and-growth | None |
-| 10 | **Net Worth Calculator** | Categorized assets/liabilities, visual breakdown | income-and-planning | None |
-| 11 | **Rent vs Buy Calculator** | Total cost comparison over N years, break-even point | debt-and-loans | "Get pre-approved" → LendingTree |
-| 12 | **Emergency Fund Calculator** | Expense-based, 3/6/12 month targets | income-and-planning | None |
+| 7 | **US Salary & Take-Home Calculator** | Federal + state taxes, FICA, 401(k), filing status, overtime, salary-to-hourly | income-and-planning | None |
+| 8 | **UK Salary & Take-Home Calculator** | Income Tax bands (incl. Scottish rates), National Insurance, student loan plans (1/2/4/5/PG), pension auto-enrolment, salary sacrifice, 60% tax trap | income-and-planning | None |
+| 9 | **Mortgage Payment Calculator** | Monthly P&I, PITI breakdown, extra payment impact, 15 vs 30-year comparison, amortization schedule | debt-and-loans | "Compare mortgage rates" → LendingTree, SoFi |
+| 10 | **Inflation Calculator** | Historical CPI data, purchasing power chart | economic | None |
+| 11 | **ROI Calculator** | Annualized return, total return, comparison mode | saving-and-growth | None |
+| 12 | **Net Worth Calculator** | Categorized assets/liabilities, visual breakdown | income-and-planning | None |
+| 13 | **Rent vs Buy Calculator** | Total cost comparison over N years, break-even point | debt-and-loans | "Get pre-approved" → LendingTree |
+| 14 | **Emergency Fund Calculator** | Expense-based, 3/6/12 month targets | income-and-planning | None |
 
-### Utility Tools (3 — Sprint 2-3)
+### Utility Tools (4 — Sprint 2-3)
 
 | # | Tool | Key Features | Category | Affiliate Context |
 |---|------|-------------|----------|-------------------|
-| 13 | **QR Code Generator** | Multiple format options, downloadable PNG/SVG | utility | None |
-| 14 | **Password Generator** | Customizable, strength meter | utility | "Use a password manager" → 1Password, NordPass |
-| 15 | **JSON Formatter/Validator** | Syntax highlighting | utility | None |
+| 15 | **QR Code Generator** | Multiple format options, downloadable PNG/SVG | utility | None |
+| 16 | **Password Generator** | Customizable, strength meter | utility | "Use a password manager" → 1Password, NordPass |
+| 17 | **Percentage Calculator** | What is X% of Y, percentage change, percentage difference, reverse percentage | utility | None |
+| 18 | **JSON Formatter/Validator** | Syntax highlighting | utility | None |
 
-**Why include utility tools despite the financial niche focus?** These 3 tools are a calculated trade-off against topical authority. QR code and password generator have very high search volumes with low competition — they bring traffic that may discover financial tools via the homepage and navigation. Password generator also has affiliate potential (1Password, NordPass). They're fast to build (1-2 days total) so the cost is low. If after 6 months they show no crossover traffic to financial tools, consider removing them to tighten topical authority. JSON formatter is the weakest fit (developer audience, high ad-blocker rate) — build it last, cut it first if needed.
+**Why include utility tools despite the financial niche focus?** These 4 tools are a calculated trade-off against topical authority. QR code, password generator, and percentage calculator have very high search volumes with low competition — they bring traffic that may discover financial tools via the homepage and navigation. Password generator has affiliate potential (1Password, NordPass). Percentage calculator is the highest-traffic simple calculator keyword and serves as a top-of-funnel entry point. They're fast to build (1-2 days total) so the cost is low. If after 6 months they show no crossover traffic to financial tools, consider removing them to tighten topical authority. JSON formatter is the weakest fit (developer audience, high ad-blocker rate) — build it last, cut it first if needed.
 
-**No affiliate context (by design):** Salary, inflation, ROI, emergency fund, net worth, QR code, JSON formatter. Don't force it — forced recommendations hurt trust.
+**No affiliate context (by design):** US/UK salary, inflation, ROI, emergency fund, net worth, QR code, percentage calculator, JSON formatter. Don't force it — forced recommendations hurt trust.
 
 **Post-MVP expansion (financial calculators):** Credit card payoff, auto loan, college savings (529), tax bracket, budget (50/30/20), down payment, break-even, profit margin calculators. Note: 529 and budget tools serve new segments (parents, young savers) that strengthen existing audience. Break-even and profit margin serve small business — a potential new segment, but one with strong affiliate potential (invoicing, accounting SaaS). Evaluate based on search demand data at the time.
 
@@ -276,7 +279,7 @@ File converters are a **traffic acquisition strategy**, not a rebranding. CalcRu
 
 ### Phase 2 Tools: Client-Side File Converters (8 tools)
 
-Build after the 15 MVP tools are live and generating organic traffic (Month 4-6+).
+Build after the 18 MVP tools are live and generating organic traffic (Month 4-6+).
 
 **Tier A — Build first (zero/tiny bundle, high traffic, easy wins):**
 
@@ -362,7 +365,7 @@ Investment return, Retirement savings, Debt payoff, QR code generator, Password 
 
 ### Sprint 3: Remaining Tools (Days 9-12)
 
-Salary converter, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, JSON formatter
+US Salary & Take-Home, UK Salary & Take-Home, Mortgage Payment, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, Percentage calculator, JSON formatter
 
 ### Sprint 4: Polish + Monetization + Launch (Days 13-16)
 
@@ -390,7 +393,7 @@ Salary converter, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, JSON f
 
 **Total: ~4 weeks** (5 sprints × 4 days = 20 working days)
 
-> **Timeline is aspirational.** Sprint 4 (polish + monetization + launch) packs educational content, FAQ sections, worked examples, comparison tables, PDF export, embeddable widgets, OG images, AND performance audit into 4 days. If timeline slips, ship in two waves: **Wave 1** (Sprints 1-3) — 15 tools live with basic educational content. **Wave 2** (Sprints 4-5) — deep content, embeds, programmatic pages, polish. Prioritize getting the 6 core financial calculators to production quality over getting all 15 tools to draft quality.
+> **Timeline is aspirational.** Sprint 4 (polish + monetization + launch) packs educational content, FAQ sections, worked examples, comparison tables, PDF export, embeddable widgets, OG images, AND performance audit into 4 days. If timeline slips, ship in two waves: **Wave 1** (Sprints 1-3) — 18 tools live with basic educational content. **Wave 2** (Sprints 4-5) — deep content, embeds, programmatic pages, polish. Prioritize getting the 6 core financial calculators to production quality over getting all 18 tools to draft quality.
 
 ---
 
@@ -471,7 +474,7 @@ Salary converter, Inflation, ROI, Net worth, Rent vs buy, Emergency fund, JSON f
 |----------|--------|-----------|
 | Framework | Astro | Zero JS default, React islands, first-class CF Pages |
 | Interactive tools | React via `client:load` | Best ecosystem for forms, charts, state |
-| Charts | recharts | React-native, no wrapper needed. ~40KB gzip — test CWV impact on first calculator before committing to all 15. If too heavy, consider Lightweight Charts by TradingView (~40KB but Canvas-based, faster rendering) or hand-rolled SVG for simpler charts. |
+| Charts | recharts | React-native, no wrapper needed. ~40KB gzip — test CWV impact on first calculator before committing to all 18. If too heavy, consider Lightweight Charts by TradingView (~40KB but Canvas-based, faster rendering) or hand-rolled SVG for simpler charts. |
 | Icons | Lucide React | Free, MIT, consistent 24px line style |
 | Styling | Tailwind CSS v4 | CSS-based config, rapid development, small bundles |
 | Hosting | Cloudflare Pages (free) | Unlimited bandwidth, commercial use, edge delivery |
@@ -545,6 +548,8 @@ import RetirementSavingsCalc from '@components/tools/RetirementSavingsCalc.tsx';
 import DebtPayoffCalc from '@components/tools/DebtPayoffCalc.tsx';
 import SavingsGoalCalc from '@components/tools/SavingsGoalCalc.tsx';
 import SalaryCalc from '@components/tools/SalaryCalc.tsx';
+import SalaryUkCalc from '@components/tools/SalaryUkCalc.tsx';
+import MortgagePaymentCalc from '@components/tools/MortgagePaymentCalc.tsx';
 import InflationCalc from '@components/tools/InflationCalc.tsx';
 import RoiCalc from '@components/tools/RoiCalc.tsx';
 import NetWorthCalc from '@components/tools/NetWorthCalc.tsx';
@@ -552,6 +557,7 @@ import RentVsBuyCalc from '@components/tools/RentVsBuyCalc.tsx';
 import EmergencyFundCalc from '@components/tools/EmergencyFundCalc.tsx';
 import QrCodeGenerator from '@components/tools/QrCodeGenerator.tsx';
 import PasswordGenerator from '@components/tools/PasswordGenerator.tsx';
+import PercentageCalculator from '@components/tools/PercentageCalculator.tsx';
 import JsonFormatter from '@components/tools/JsonFormatter.tsx';
 
 export async function getStaticPaths() {
@@ -573,7 +579,9 @@ const slug = tool.data.slug;
     {slug === 'retirement-savings' && <RetirementSavingsCalc client:load />}
     {slug === 'debt-payoff' && <DebtPayoffCalc client:load />}
     {slug === 'savings-goal' && <SavingsGoalCalc client:load />}
-    {slug === 'salary' && <SalaryCalc client:load />}
+    {slug === 'salary-us' && <SalaryCalc client:load />}
+    {slug === 'salary-uk' && <SalaryUkCalc client:load />}
+    {slug === 'mortgage-payment' && <MortgagePaymentCalc client:load />}
     {slug === 'inflation' && <InflationCalc client:load />}
     {slug === 'roi' && <RoiCalc client:load />}
     {slug === 'net-worth' && <NetWorthCalc client:load />}
@@ -581,6 +589,7 @@ const slug = tool.data.slug;
     {slug === 'emergency-fund' && <EmergencyFundCalc client:load />}
     {slug === 'qr-code' && <QrCodeGenerator client:load />}
     {slug === 'password-generator' && <PasswordGenerator client:load />}
+    {slug === 'percentage-calculator' && <PercentageCalculator client:load />}
     {slug === 'json-formatter' && <JsonFormatter client:load />}
   </ToolPageLayout>
 </BaseLayout>
@@ -642,7 +651,7 @@ OG Image:    Auto-generated (tool name + CalcRun branding)
 ### Off-Page SEO
 
 - Submit to Google Search Console on deploy day
-- Product Hunt launch (once 15 tools live)
+- Product Hunt launch (once 18 tools live)
 - Reddit: r/personalfinance, r/financialindependence, r/FinancialPlanning
 - Dev.to article: "How I Built a Financial Calculator Site with Astro"
 - Embeddable widgets = passive backlinks
@@ -718,7 +727,9 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 | Retirement Savings | retirement calculator, retirement savings calculator | how much to save for retirement, 401k calculator, retirement planning calculator |
 | Debt Payoff | debt payoff calculator, debt repayment calculator | snowball vs avalanche calculator, how long to pay off debt, debt free date |
 | Savings Goal | savings calculator, savings goal calculator | how much to save per month, savings goal planner, savings timeline |
-| Salary & Take-Home | salary to hourly calculator, hourly to salary | annual salary calculator, take-home pay calculator, overtime calculator |
+| US Salary & Take-Home | salary to hourly calculator, US take-home pay calculator | annual salary calculator, hourly to salary, overtime calculator, US paycheck calculator, net pay calculator |
+| UK Salary & Take-Home | UK salary calculator, UK take-home pay calculator | UK tax calculator, PAYE calculator, National Insurance calculator, student loan repayment calculator UK, salary after tax UK |
+| Mortgage Payment | mortgage calculator, mortgage payment calculator | home loan calculator, monthly mortgage payment, how much house can I afford, mortgage amortization, mortgage interest calculator |
 | Inflation | inflation calculator, CPI calculator | purchasing power calculator, what was X worth in Y year, inflation rate |
 | ROI | ROI calculator, return on investment calculator | how to calculate ROI, investment ROI, annualized return calculator |
 | Net Worth | net worth calculator | how to calculate net worth, personal net worth tracker, am I on track |
@@ -731,6 +742,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 |------|----------------|-------------------|
 | QR Code Generator | QR code generator, free QR code generator | create QR code, QR code maker, QR code for URL |
 | Password Generator | password generator, random password generator | strong password generator, secure password, password creator |
+| Percentage Calculator | percentage calculator, percent calculator | what is X percent of Y, percentage change calculator, percent increase calculator, percentage difference calculator |
 | JSON Formatter | JSON formatter, JSON beautifier | JSON validator, format JSON online, JSON pretty print |
 
 ### File Converter Tools (Phase 2)
@@ -785,7 +797,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 | Affiliate revenue | $0-$50 | $50-$200 | $200-$1,000 |
 | Pages per session | >1.5 | >2.0 | >2.0 |
 | Core Web Vitals | All green | All green | All green |
-| Tools indexed in Google | 15/15 | 23/23+ (15 MVP + 8 converters) | 30+ |
+| Tools indexed in Google | 18/18 | 26/26+ (18 MVP + 8 converters) | 30+ |
 
 ### Quarterly Review (2 hours)
 
@@ -863,7 +875,7 @@ The site is built to be **low-maintenance by design**: static site (no server), 
 
 | Action | Volume | Purpose |
 |--------|--------|---------|
-| 15 MVP tools live with educational content | 15 pages | Core product |
+| 18 MVP tools live with educational content | 18 pages | Core product |
 | 10-20 programmatic scenario pages | 10-20 pages | Long-tail keyword capture |
 | Submit to Google Search Console | 1 | Start indexing |
 | Product Hunt launch | 1 | Initial traffic spike + backlinks |
@@ -1009,9 +1021,10 @@ MailerLite free tier includes automation workflows with branching logic. The dri
 | `debt-payoff` | Snowball vs. avalanche: which actually works better | Consolidate debt: SoFi, LendingClub |
 | `savings-goal` | The 50/30/20 rule and where savings fits | High-yield savings: Marcus, Ally |
 | `rent-vs-buy` | Hidden costs of buying most calculators miss | Get pre-approved: LendingTree |
-| `salary`, `inflation`, `roi`, `net-worth`, `emergency-fund` | General financial planning tip | No affiliate — educational only |
+| `mortgage-payment` | How extra payments save tens of thousands in interest | Compare mortgage rates: LendingTree, SoFi |
+| `salary-us`, `salary-uk`, `inflation`, `roi`, `net-worth`, `emergency-fund` | General financial planning tip | No affiliate — educational only |
 
-**Utility tools (QR code, password generator, JSON formatter) have no email capture.** Emailing a password is a security risk, QR codes are downloadable images, and JSON output is copy/paste. These tools serve traffic diversification, not the email funnel.
+**Utility tools (QR code, password generator, percentage calculator, JSON formatter) have no email capture.** Emailing a password is a security risk, QR codes are downloadable images, percentages are instant lookups, and JSON output is copy/paste. These tools serve traffic diversification, not the email funnel.
 
 ### Key Rules
 - **Never send more than 3 emails** unless user actively engages (opens, clicks). Respect the "no spam" promise.
@@ -1026,7 +1039,7 @@ MailerLite free tier includes automation workflows with branching logic. The dri
 MVP is shipped when:
 
 **Tools & Content:**
-- [ ] 15 tools live and functional (Sprint 1: 15 placeholder pages live; Sprint 2-3: real calculators)
+- [ ] 18 tools live and functional (Sprint 1: 18 placeholder pages live; Sprint 2-3: real calculators)
 - [x] Financial math has unit tests (Vitest) that pass (27 tests covering compound interest, loan amortization, savings goal, formatting)
 - [ ] All tool pages have educational content (500+ words financial, 200+ utility)
 - [x] FAQ sections with schema markup on all tools (3-5 questions each, targeting long-tail keywords)

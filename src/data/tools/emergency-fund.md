@@ -10,7 +10,7 @@ keywords:
   - "emergency savings"
 relatedTools:
   - "savings-goal"
-  - "salary"
+  - "salary-us"
   - "net-worth"
   - "debt-payoff"
   - "compound-interest"

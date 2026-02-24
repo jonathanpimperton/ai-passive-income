@@ -58,9 +58,12 @@ const CALCULATOR_MAP: Record<string, string> = {
   'emergency-fund': 'EmergencyFundCalc',
   'roi': 'RoiCalc',
   'inflation': 'InflationCalc',
-  'salary': 'SalaryCalc',
+  'salary-us': 'SalaryCalc',
+  'salary-uk': 'SalaryUkCalc',
   'net-worth': 'NetWorthCalc',
   'rent-vs-buy': 'RentVsBuyCalc',
+  'mortgage-payment': 'MortgagePaymentCalc',
+  'percentage-calculator': 'PercentageCalculator',
   'json-formatter': 'JsonFormatter',
 };
 
@@ -84,7 +87,7 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'emergency-fund' && <EmergencyFundCalc client:load />}
     {slug === 'roi' && <RoiCalc client:load />}
     {slug === 'inflation' && <InflationCalc client:load />}
-    {slug === 'salary' && <SalaryCalc client:load />}
+    {slug === 'salary-us' && <SalaryCalc client:load />}
     {slug === 'net-worth' && <NetWorthCalc client:load />}
     {slug === 'rent-vs-buy' && <RentVsBuyCalc client:load />}
     {slug === 'json-formatter' && <JsonFormatter client:load />}
