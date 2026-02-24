@@ -56,6 +56,8 @@ A debt payoff calculator shows you exactly when you'll be debt-free based on you
 
 Debt is one of the biggest obstacles to building wealth. The average American household carries about $104,000 in total debt. High-interest consumer debt (credit cards, personal loans) is particularly destructive because it compounds against you — the same mechanism that builds wealth through investing works in reverse when you owe money.
 
+> **Key takeaway:** Compound interest is a double-edged sword. When you invest, it builds wealth over time. When you carry debt, it erodes wealth at the same rate — or faster, since credit card APRs far exceed typical investment returns.
+
 ## Snowball vs. Avalanche: Which Strategy Wins?
 
 The two most popular debt payoff strategies take opposite approaches:
@@ -66,18 +68,26 @@ The two most popular debt payoff strategies take opposite approaches:
 
 The best method is the one you'll actually stick with. If you're motivated by seeing debts disappear, the snowball method's quick wins keep you going. If you're driven by efficiency, the avalanche method saves real money.
 
+> **Tip:** Not sure which to pick? Start with avalanche. If you find yourself losing motivation after a few months, switch to snowball. Any structured payoff plan beats making random payments.
+
 ## How Extra Payments Save You Money
 
 Every extra dollar you pay toward principal reduces the base that interest is calculated on for every future month. Consider a $20,000 credit card at 22% APR with a $400 minimum payment. Paying only the minimum takes over 9 years and costs $23,000+ in interest. Adding just $200 extra per month cuts the payoff time to about 3 years and saves over $14,000.
+
+> **Example:** That $200/month extra on a $20,000 balance saves $14,000 in interest — a 70x return on your first extra payment alone. The earlier you start, the more each dollar saves.
 
 ## Should You Pay Off Debt or Invest?
 
 The answer depends on interest rates:
 
-- **Credit cards (18-25% APR):** Pay these off first. No investment reliably returns more than credit card interest rates.
-- **Student loans (4-7%):** Borderline. Mathematically, investing may win, but being debt-free has psychological value.
-- **Mortgage (3-7%):** Most financial planners recommend investing rather than making extra mortgage payments, since historical stock returns exceed mortgage rates.
-- **Always get your employer 401(k) match.** The instant 50-100% return on the match beats any debt payoff math.
+| Debt Type | Typical APR | Pay Off or Invest? |
+|---|---|---|
+| Credit cards | 18–25% | **Pay off first.** No investment reliably returns more than credit card rates. |
+| Student loans | 4–7% | **Borderline.** Investing may win mathematically, but being debt-free has psychological value. |
+| Mortgage | 3–7% | **Invest.** Historical stock returns exceed most mortgage rates. |
+| 401(k) match | N/A | **Always contribute enough to get the match.** An instant 50–100% return beats any debt payoff math. |
+
+> **Key takeaway:** Use the interest rate as your decision line. If the debt's APR exceeds your expected investment return (historically 7–10% for stocks), pay it off first. Below that threshold, investing while making minimum payments often wins.
 
 ## When to Use This Calculator
 

@@ -60,11 +60,15 @@ A savings goal calculator works backward from a target amount to tell you exactl
 
 Whether you're saving for a house down payment, a car, a vacation, or a wedding, knowing the exact monthly number removes the guesswork and makes the goal feel achievable.
 
+> **Key takeaway:** The single most important step is turning a vague goal ("I want to save more") into a specific number and date. Once you have those, the math tells you exactly what to do each month.
+
 ## How Savings Goal Math Works
 
 The math is straightforward: take your target amount, subtract what you've already saved, then divide the remaining amount across the months you have — adjusted for interest earned.
 
 The interest component matters more than most people expect, especially for longer-term goals. Saving $1,000 per month toward a $50,000 goal at 0% interest takes 50 months. At 5% APY in a high-yield savings account, you reach the same goal in about 45 months — interest contributes roughly $2,300 and saves you 5 months.
+
+> **Example:** At 5% APY, interest effectively gives you 5 free months of savings on a $50,000 goal. That is $2,300 you never had to earn or budget for.
 
 For short-term goals (under 12 months), interest is less impactful. For multi-year goals like a house down payment, interest can contribute thousands of dollars.
 
@@ -72,12 +76,14 @@ For short-term goals (under 12 months), interest is less impactful. For multi-ye
 
 Your savings vehicle should match your timeline:
 
-- **Under 1 year:** High-yield savings account. You need liquidity and safety. Current rates are 4-5% APY.
-- **1-3 years:** High-yield savings or a CD (Certificate of Deposit) ladder. CDs may offer slightly higher rates for money you can lock up.
-- **3-5 years:** Consider a conservative mix — mostly savings, perhaps a small allocation to bonds.
-- **5+ years:** If you can tolerate some volatility, a balanced investment account may outperform savings. But only if you won't panic-sell during a downturn.
+| Timeline | Best Option | Typical Return | Notes |
+|----------|------------|----------------|-------|
+| Under 1 year | High-yield savings account | 4-5% APY | Maximum liquidity and safety |
+| 1-3 years | HYSA or CD ladder | 4-5.5% APY | CDs may offer slightly higher rates for locked funds |
+| 3-5 years | Conservative mix | 4-6% | Mostly savings, perhaps a small bond allocation |
+| 5+ years | Balanced investment account | 6-8% | Only if you can tolerate volatility without panic-selling |
 
-Never invest money you'll need within 2-3 years in the stock market. A 30% crash the year before you need a down payment would be devastating.
+> **Tip:** Never invest money you'll need within 2-3 years in the stock market. A 30% crash the year before you need a down payment would be devastating — stick with savings accounts for short-term goals.
 
 ## The 50/30/20 Rule
 
@@ -88,6 +94,8 @@ One of the simplest budgeting frameworks is the 50/30/20 rule:
 - **20%** goes to savings and extra debt repayment
 
 If you earn $4,500 per month after taxes, that's $900 for savings. At 5% APY, you'd reach a $25,000 goal in about 26 months.
+
+> **Tip:** The 20% savings target is a starting point, not a ceiling. If you can save 25-30% by trimming wants, you will reach your goal months earlier. Use the calculator to see exactly how much each extra $100/month shaves off your timeline.
 
 ## When to Use This Calculator
 

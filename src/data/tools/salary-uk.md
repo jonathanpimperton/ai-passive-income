@@ -59,6 +59,8 @@ workedExamples:
 
 Your take-home pay in the UK is your gross salary minus Income Tax, National Insurance, pension contributions, and (if applicable) student loan repayments. For most employees, these deductions are handled through PAYE (Pay As You Earn) — your employer calculates and deducts them before you receive your pay.
 
+> **Key takeaway:** On a typical £35,000 salary, roughly £8,000 goes to deductions — meaning you keep about 77p of every pound earned. At £55,000, that drops to around 69p.
+
 ## How UK Income Tax Works
 
 The UK uses a progressive tax band system. For the 2025/26 tax year, everyone gets a Personal Allowance of £12,570 — income up to this amount is tax-free. Income above the Personal Allowance is taxed at increasing rates: 20% Basic Rate (up to £50,270), 40% Higher Rate (up to £125,140), and 45% Additional Rate (above £125,140).
@@ -71,11 +73,19 @@ Between £100,000 and £125,140, the UK tax system creates a hidden effective ra
 
 The most common strategy to avoid this trap is salary sacrifice into a pension. By reducing your taxable income to below £100,000, you reclaim the full Personal Allowance — which can save £5,000 or more in tax, while simultaneously boosting your pension pot.
 
+> **Tip:** If you earn between £100,000 and £125,140, every £1,000 you sacrifice into a pension effectively costs you only £400 after tax savings. Run the numbers with different pension contribution levels to find your optimal strategy.
+
 ## National Insurance Contributions
 
 Employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270, then 2% on earnings above £50,270. Your employer also pays 13.8% on your earnings above £9,100 — this doesn't come out of your pay, but it's a significant cost to your employer.
 
 NI contributions count toward your State Pension entitlement. You need 35 qualifying years for the full new State Pension (currently £221.20 per week). If you have gaps, you can make voluntary Class 3 contributions to fill them.
+
+| Salary Band | Employee NI Rate | Employer NI Rate |
+|---|---|---|
+| Below £12,570 | 0% | 13.8% above £9,100 |
+| £12,570 – £50,270 | 8% | 13.8% |
+| Above £50,270 | 2% | 13.8% |
 
 ## Scottish Income Tax
 
@@ -85,15 +95,27 @@ Your payslip will show the same "Income Tax" line whether you're in Scotland or 
 
 ## Student Loan Repayments
 
-Student loan repayments are deducted from your pay once you earn above the threshold for your plan. The rate is 9% of income above the threshold (6% for Postgraduate Loans). These are not voluntary — they're automatically deducted through PAYE until the loan is repaid or written off.
+Student loan repayments are deducted from your pay once you earn above the threshold for your plan. These are not voluntary — they're automatically deducted through PAYE until the loan is repaid or written off.
+
+| Plan | Applies To | Threshold | Rate |
+|---|---|---|---|
+| Plan 1 | Pre-2012 (England/Wales, Scotland, NI) | £24,990/year | 9% |
+| Plan 2 | Post-2012 (England/Wales) | £27,295/year | 9% |
+| Plan 4 | Post-2012 (Scotland) | £31,395/year | 9% |
+| Plan 5 | From 2023 onwards | £25,000/year | 9% |
+| Postgraduate | Postgraduate loans | £21,000/year | 6% |
 
 You can hold both a Plan (1, 2, 4, or 5) and a Postgraduate Loan simultaneously, meaning up to 15% of income above the thresholds could go to student loan repayments.
+
+> **Example:** On a £35,000 salary with a Plan 2 loan, you'd repay 9% of income above £27,295 — that's £694/year or about £58/month deducted from your pay.
 
 ## Common Mistakes
 
 1. **Not checking your tax code.** An incorrect tax code means you're either overpaying or underpaying tax all year. Check your code on your payslip against your HMRC online account.
 2. **Missing the salary sacrifice opportunity.** Salary sacrifice saves both Income Tax and NI. A £5,000 sacrifice at the higher rate can save you £2,400 in tax and NI combined.
 3. **Ignoring pension auto-enrolment.** The default 5% employee contribution (plus 3% employer) is the minimum. Increasing your contribution — especially via salary sacrifice — is one of the most tax-efficient ways to build wealth.
+
+> **Key takeaway:** A wrong tax code is the single most common cause of unexpected tax bills. Log in to your HMRC personal tax account at least once a year to verify your code matches your circumstances.
 
 ## What to Do Next
 

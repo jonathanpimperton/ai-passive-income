@@ -63,11 +63,15 @@ A mortgage payment is the monthly amount you pay to your lender to repay your ho
 
 Understanding all four components prevents the common first-time buyer shock of discovering their actual payment is $400-$800 more than the principal-and-interest amount they were quoted.
 
+> **Key takeaway:** The mortgage amount your lender quotes is just principal and interest. Your real monthly cost (PITI) can be 30-50% higher once you add taxes, insurance, and PMI.
+
 ## How Monthly Payments Are Calculated
 
 The standard mortgage payment formula is **M = P[r(1+r)^n]/[(1+r)^n – 1]**, where P is the loan amount, r is the monthly interest rate, and n is the total number of payments.
 
-The interest rate has an outsized impact. On a $300,000 loan over 30 years, the difference between 6% and 7% is $200 per month — $72,000 over the life of the loan. This is why even a quarter-point rate difference matters when shopping for a mortgage.
+The interest rate has an outsized impact. On a $300,000 loan over 30 years, the difference between 6% and 7% is $200 per month — $72,000 over the life of the loan.
+
+> **Tip:** Even a quarter-point rate difference matters. Shop at least 3-4 lenders — rate quotes can vary by 0.5% or more for the same borrower, which translates to tens of thousands over the life of the loan.
 
 ## PITI: Your Real Monthly Cost
 
@@ -82,17 +86,30 @@ On a $350,000 home with 10% down, PMI alone can add $130-$265 per month.
 
 ## 15-Year vs 30-Year: The Trade-Off
 
-The choice between 15 and 30 years is one of the most impactful financial decisions homebuyers make:
+The choice between 15 and 30 years is one of the most impactful financial decisions homebuyers make. Here's how a $300,000 loan compares:
+
+| | 30-Year (6.5%) | 15-Year (5.75%) |
+|---|---|---|
+| **Monthly P&I** | $1,896 | $2,494 |
+| **Total interest paid** | $382,633 | $148,858 |
+| **Balance after 10 years** | $237,000 | $126,000 |
+| **Total cost of loan** | $682,633 | $448,858 |
 
 A **30-year mortgage** offers lower monthly payments, more cash flow flexibility, and the ability to buy a more expensive home within your budget. But you pay substantially more in total interest.
 
-A **15-year mortgage** has higher monthly payments but typically comes with a lower interest rate (usually 0.5-0.75% less). Total interest paid is dramatically lower — often less than half of the 30-year total. You build equity much faster, owning your home free and clear 15 years sooner.
+A **15-year mortgage** costs $598 more per month but typically comes with a lower interest rate (usually 0.5-0.75% less). Total interest paid is dramatically lower — often less than half of the 30-year total. You build equity much faster, owning your home free and clear 15 years sooner.
+
+> **Example:** On a $300,000 loan, choosing 15 years over 30 saves $233,775 in interest — enough to fund a child's college education or a substantial retirement boost.
 
 ## The Power of Extra Payments
 
 Extra payments toward principal are one of the most effective ways to reduce mortgage costs. Because mortgage interest is calculated on the remaining balance, every extra dollar of principal reduces interest for every remaining month of the loan.
 
-The math is compelling: on a $280,000 loan at 7%, adding just $200/month extra saves approximately $90,000 in total interest and pays off the loan 7 years early. Even making one extra payment per year (by dividing your monthly payment by 12 and adding that amount to each check) can shave 4-5 years off a 30-year term.
+The math is compelling: on a $280,000 loan at 7%, adding just $200/month extra saves approximately $90,000 in total interest and pays off the loan 7 years early.
+
+Even making one extra payment per year (by dividing your monthly payment by 12 and adding that amount to each check) can shave 4-5 years off a 30-year term.
+
+> **Key takeaway:** Extra payments have the biggest impact in the early years of your mortgage, when most of each payment goes toward interest. Starting early maximizes your savings.
 
 ## When to Use This Calculator
 

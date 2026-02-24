@@ -56,7 +56,11 @@ workedExamples:
 
 ## What Is Investment Return?
 
-Investment return measures how much money your investments have gained or lost over a period of time. It encompasses two forms of growth: capital appreciation (the value of your investment going up) and income (dividends, interest, or rent payments). Understanding your total return — both forms combined — is essential for evaluating whether your portfolio is meeting your financial goals.
+Investment return measures how much money your investments have gained or lost over a period of time. It encompasses two forms of growth: capital appreciation (the value of your investment going up) and income (dividends, interest, or rent payments).
+
+Understanding your total return — both forms combined — is essential for evaluating whether your portfolio is meeting your financial goals.
+
+> **Key takeaway:** Always look at *total* return (price gains + income), not just whether your share price went up. Dividends and interest can account for a significant portion of your overall gains.
 
 ## How Investment Returns Work
 
@@ -67,11 +71,15 @@ When you invest, your money can grow in two ways:
 
 When you reinvest dividends (called DRIP — Dividend Reinvestment Plan), you buy additional shares with each dividend payment. Those new shares then earn their own dividends, creating a compounding effect. Historically, dividend reinvestment has accounted for roughly 40% of the S&P 500's total return.
 
+> **Tip:** If you don't need dividend income to cover living expenses, always opt into DRIP. The compounding effect of reinvested dividends is one of the easiest ways to accelerate portfolio growth without changing your contribution amount.
+
 ## The Power of Time in the Market
 
 One of the most researched findings in investing is that time in the market consistently beats timing the market. Since 1928, the S&P 500 has returned roughly 10% per year on average (about 7% after inflation). But those returns aren't distributed evenly — a handful of the best days each year contribute a disproportionate share of gains.
 
 Missing just the 10 best trading days over a 20-year period can cut your total returns by more than half. Since you can't predict which days those will be, staying invested through both good and bad stretches is the simplest path to capturing long-term growth.
+
+> **Key takeaway:** The cost of being out of the market on the wrong days far exceeds the benefit of avoiding the worst days. Consistency beats cleverness.
 
 ## Understanding Annualized Returns
 
@@ -98,10 +106,14 @@ Use the investment return calculator when you want to:
 
 ## Common Mistakes
 
-1. **Ignoring inflation.** A 10% nominal return with 3% inflation is only 7% in real purchasing power. Over 30 years, this difference is enormous.
-2. **Extrapolating short-term results.** A 20% return in one year doesn't mean you'll earn 20% next year. Use conservative long-term averages (7-10%) for planning.
-3. **Forgetting investment fees.** A 1% annual management fee might seem small, but over 30 years on a $500,000 portfolio, it costs over $300,000 in lost growth.
-4. **Taking dividends as cash.** Unless you need the income now, reinvesting dividends significantly boosts long-term returns through compounding.
+| Mistake | Why it matters | Impact |
+|---|---|---|
+| **Ignoring inflation** | A 10% nominal return with 3% inflation is only 7% real | Over 30 years, inflation can erode nearly half your nominal gains |
+| **Extrapolating short-term results** | A 20% year doesn't predict next year's return | Use 7–10% long-term averages for planning |
+| **Forgetting investment fees** | A 1% annual fee seems small | Over 30 years on $500K, it costs **$300,000+** in lost growth |
+| **Taking dividends as cash** | You miss the compounding effect of reinvestment | DRIP has historically delivered ~40% of S&P 500 total returns |
+
+> **Example:** Two investors each start with $100,000 and earn 8% annually for 30 years. One pays a 1% management fee, the other pays 0.1%. The difference? The high-fee investor ends up with roughly **$240,000 less** — all from a seemingly small 0.9% gap.
 
 ## What to Do Next
 

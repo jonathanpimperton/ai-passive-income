@@ -58,6 +58,8 @@ Inflation is the gradual increase in the general price level of goods and servic
 
 This isn't abstract economics — inflation directly affects your salary, savings, investments, and retirement planning. Understanding it helps you make better financial decisions at every stage of life.
 
+> **Key takeaway:** If your money isn't growing faster than inflation, you're getting poorer — even if your account balance stays the same.
+
 ## How Inflation Is Measured
 
 The primary measure of inflation in the United States is the **Consumer Price Index (CPI)**, published monthly by the Bureau of Labor Statistics. The CPI tracks the average price change of a basket of about 80,000 goods and services that typical consumers buy — food, housing, transportation, medical care, clothing, and more.
@@ -68,14 +70,20 @@ The **inflation rate** is the percentage change in CPI from one period to anothe
 
 The long-term average US inflation rate since 1914 is approximately 3.3% per year. But averages hide dramatic variation:
 
-- **1970s-early 1980s:** Inflation peaked at 14.8% (1980), driven by oil crises and loose monetary policy
-- **1990s-2010s:** The "Great Moderation" era, with inflation typically between 1.5-3%
-- **2021-2022:** Post-pandemic inflation surged to 9.1% (June 2022), the highest in 40 years
-- **Federal Reserve target:** 2% per year, considered optimal for a healthy economy
+| Period | Inflation Rate | Context |
+|---|---|---|
+| 1970s–early 1980s | Peaked at 14.8% (1980) | Oil crises and loose monetary policy |
+| 1990s–2010s | 1.5–3% | The "Great Moderation" era |
+| 2021–2022 | Surged to 9.1% (June 2022) | Post-pandemic supply shocks; highest in 40 years |
+| Fed target (current) | 2% per year | Considered optimal for a healthy economy |
+
+> **Tip:** When planning long-term, don't rely on the Fed's 2% target alone. Historical averages run closer to 3.3%, and spikes like 2022 can erode years of savings in months.
 
 ## Why Inflation Matters for Your Finances
 
 Inflation is a silent tax on cash. Money sitting in a traditional savings account at 0.1% APY loses about 3% of its real value every year at average inflation. Over 10 years, $10,000 loses roughly $2,600 in purchasing power — it still says $10,000 in your account, but it buys $7,400 worth of goods.
+
+> **Example:** If you stashed $10,000 in a standard savings account in 2014, it would still show $10,000 in 2024 — but you'd need about $12,600 to buy the same things. That's a hidden loss of $2,600.
 
 This is why financial planning must account for inflation:
 
@@ -98,6 +106,10 @@ Use the inflation calculator to:
 2. **Assuming inflation is constant.** Planning based on exactly 3% per year ignores that inflation can spike suddenly (as it did in 2021-2022). Build in a buffer.
 3. **Ignoring category-specific inflation.** Healthcare and education inflate at 5-7% per year — much faster than the overall CPI. If these are major future expenses, use their specific inflation rates.
 
+> **Key takeaway:** Always use *real* (inflation-adjusted) returns when comparing investments or projecting future costs. A 10% return with 3% inflation is only a 7% real gain.
+
 ## What to Do Next
 
-Use the calculator to see how inflation affects your specific situation. Check whether your salary has kept up with inflation over the past 5-10 years. If you're planning for a major expense years from now, project what it will actually cost when you need the money.
+Use the calculator to see how inflation affects your specific situation. Check whether your salary has kept up with inflation over the past 5-10 years.
+
+If you're planning for a major expense years from now, project what it will actually cost when you need the money.

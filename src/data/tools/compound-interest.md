@@ -59,6 +59,8 @@ Compound interest is often called the eighth wonder of the world, and for good r
 
 Here's the concept in plain terms: you deposit money, it earns interest, and then the next period you earn interest on the original amount *plus* the interest you already earned. Each cycle, the base grows slightly larger. Over decades, this snowball effect becomes dramatic.
 
+> **Key takeaway:** The magic of compound interest isn't the rate — it's the time. Every year you delay costs you more than the last, because you're losing the compounding on top of compounding.
+
 ## How Compound Interest Works
 
 The formula behind compound interest is **A = P(1 + r/n)^(nt)**, where:
@@ -77,22 +79,32 @@ The most common misconception about compound interest is expecting fast results.
 
 But here's what most people miss: that same deposit reaches $20,000 by year 10, $40,000 by year 20, and $76,000 by year 30. The first doubling took 10 years. The next doubling took 10 more. The third doubling took another 10. Each doubling adds a larger absolute amount because the base keeps growing.
 
-This is why starting early matters far more than starting big. Someone who invests $200 per month from age 22 to 32 and then stops will often have more at retirement than someone who invests $200 per month from age 32 to 62. Ten years of contributions with 30 years of compounding beats 30 years of contributions with less compounding time.
+This is why starting early matters far more than starting big. Someone who invests $200 per month from age 22 to 32 and then stops will often have more at retirement than someone who invests $200 per month from age 32 to 62.
+
+Ten years of contributions with 30 years of compounding beats 30 years of contributions with less compounding time.
+
+> **Example:** At 7% annual return, $10,000 left untouched grows to $14K in 5 years, $20K in 10, $40K in 20, and $76K in 30. You earn more in the last 10 years than in the first 20 combined.
 
 ## Compounding Frequency: Does It Really Matter?
 
 Banks advertise various compounding frequencies. Here's how $10,000 at 5% grows over 10 years with different frequencies:
 
-- **Annually:** $16,289
-- **Monthly:** $16,470
-- **Daily:** $16,487
-- **Continuously:** $16,487
+| Frequency | Final Balance | Gain vs. Annual |
+|---|---|---|
+| Annually | $16,289 | — |
+| Monthly | $16,470 | +$181 |
+| Daily | $16,487 | +$198 |
+| Continuously | $16,487 | +$198 |
 
-The difference between annual and monthly compounding is about $181 over a decade — meaningful but not transformative. The difference between monthly and daily is just $17. Focus more on the interest rate itself and your contribution amount than on compounding frequency.
+The difference between annual and monthly compounding is about $181 over a decade — meaningful but not transformative. The difference between monthly and daily is just $17.
+
+> **Tip:** Don't obsess over compounding frequency. Increasing your contribution by even $50/month will dwarf the difference between monthly and daily compounding.
 
 ## Contribution Timing: Beginning vs End of Period
 
 When you set up automatic contributions, they typically process at the beginning or end of each month. Contributing at the beginning of the period means your money earns an extra month of interest each cycle. Over 30 years with $500 monthly contributions at 7%, beginning-of-period timing adds roughly $20,000 more compared to end-of-period. It's a small change that costs nothing extra.
+
+> **Tip:** If your employer offers payroll-deducted retirement contributions, they typically invest at the beginning of the pay period — giving you this timing advantage automatically.
 
 ## When to Use This Calculator
 

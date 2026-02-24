@@ -56,11 +56,25 @@ workedExamples:
 
 Your take-home pay — also called net pay — is what actually lands in your bank account after all deductions. For most Americans, total deductions (federal tax, state tax, Social Security, and Medicare) consume 20-35% of gross income. The exact percentage depends on your income level, filing status, and state of residence.
 
+> **Key takeaway:** If you earn $75,000, expect roughly $50,000-$60,000 to actually reach your bank account, depending on your state. Always budget from net pay, not gross.
+
 ## How US Federal Income Tax Works
 
-The US uses a progressive (marginal) tax system. You don't pay one flat rate on your entire income — instead, different portions of your income are taxed at different rates. For 2024, a single filer pays 10% on the first $11,600, 12% on income from $11,601 to $47,150, 22% from $47,151 to $100,525, and so on up to 37% on income above $609,350.
+The US uses a progressive (marginal) tax system. You don't pay one flat rate on your entire income — instead, different portions of your income are taxed at different rates. For 2024, single filer brackets are:
+
+| Taxable Income | Marginal Rate |
+|---|---|
+| $0 – $11,600 | 10% |
+| $11,601 – $47,150 | 12% |
+| $47,151 – $100,525 | 22% |
+| $100,526 – $191,950 | 24% |
+| $191,951 – $243,725 | 32% |
+| $243,726 – $609,350 | 35% |
+| Over $609,350 | 37% |
 
 Before calculating tax, you subtract the standard deduction ($14,600 for single filers, $29,200 for married filing jointly). This means the first $14,600 of a single filer's income is effectively tax-free.
+
+> **Example:** On a $60,000 salary, your taxable income is $45,400 after the standard deduction. You pay 10% on the first $11,600 and 12% on the remaining $33,800 — for a total federal tax of about $5,216, an effective rate of just 8.7%.
 
 ## FICA: Social Security and Medicare
 
@@ -73,15 +87,32 @@ These taxes are non-negotiable — there's no deduction or filing status trick t
 
 ## State Income Tax: The Big Variable
 
-State income tax is the factor that creates the biggest difference in take-home pay between locations. Nine states charge no income tax at all: Alaska, Florida, Nevada, New Hampshire, South Dakota, Tennessee, Texas, Washington, and Wyoming. California's top rate is 13.3%, while states like Illinois use a flat 4.95%.
+State income tax is the factor that creates the biggest difference in take-home pay between locations. Nine states charge no income tax at all: Alaska, Florida, Nevada, New Hampshire, South Dakota, Tennessee, Texas, Washington, and Wyoming.
+
+At the other end, top marginal rates vary widely:
+
+| State | Top Rate | Type |
+|---|---|---|
+| California | 13.3% | Progressive |
+| New York | 10.9% | Progressive |
+| New Jersey | 10.75% | Progressive |
+| Illinois | 4.95% | Flat |
+| Texas | 0% | No income tax |
+| Florida | 0% | No income tax |
 
 A $100,000 salary in Texas (0% state tax) takes home roughly $5,000-$7,000 more per year than the same salary in California or New York. This is why our calculator includes a state tax rate input — it's often the largest variable in your paycheck.
+
+> **Tip:** If you work remotely and can choose where to live, running the same salary through different states in the calculator can reveal thousands of dollars in annual savings.
 
 ## Salary vs Hourly: Making the Comparison
 
 Converting between salary and hourly requires knowing your working hours. The standard formula for full-time is: Annual Salary ÷ 2,080 hours (40 hours × 52 weeks) = Hourly Rate.
 
-But hourly workers have overtime potential. Under the FLSA, hours beyond 40 per week earn 1.5x the regular rate. An hourly worker at $30/hour who consistently works 45 hours per week earns $81,900 annually — $19,500 more than the $62,400 base. When comparing job offers, factor in realistic overtime.
+But hourly workers have overtime potential. Under the FLSA, hours beyond 40 per week earn 1.5x the regular rate. An hourly worker at $30/hour who consistently works 45 hours per week earns $81,900 annually — $19,500 more than the $62,400 base.
+
+When comparing job offers, factor in realistic overtime. Also consider benefits: a salaried position often includes health insurance, retirement matching, and paid time off that hourly roles may lack.
+
+> **Key takeaway:** Don't compare offers on base pay alone. A $62,400 salary with a 4% 401(k) match and employer-paid health insurance can outvalue an $80,000 hourly equivalent with no benefits.
 
 ## Common Mistakes
 

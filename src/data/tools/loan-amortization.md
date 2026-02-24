@@ -57,20 +57,39 @@ Loan amortization is the process of paying off a debt through regular, equal pay
 
 Most common loans use amortization: mortgages, auto loans, personal loans, and student loans. The key characteristic is that your monthly payment stays the same, but the split between principal and interest shifts dramatically over time.
 
+> **Key takeaway:** Your monthly payment never changes, but where the money goes changes completely — early payments mostly enrich the lender, while later payments mostly build your equity.
+
 ## How Amortization Works
 
 The monthly payment formula is **M = P[r(1+r)^n] / [(1+r)^n - 1]**, where P is the loan amount, r is the monthly interest rate, and n is the total number of payments.
 
 What makes amortization counterintuitive is how the payment splits. In the early years of a 30-year mortgage, roughly 80-85% of each payment goes to interest. By the final years, 95%+ goes to principal. You're paying down the loan the entire time, but most of your early money is going to the bank, not to your equity.
 
-For example, on a $300,000 mortgage at 7% over 30 years, your first payment of $1,996 breaks down to approximately $1,750 in interest and only $246 toward principal. By payment 180 (halfway through), it's about $1,100 in interest and $896 to principal. The final payment is almost entirely principal.
+For example, on a $300,000 mortgage at 7% over 30 years:
+
+| Payment | Interest | Principal | Balance Remaining |
+|---------|----------|-----------|-------------------|
+| #1 (month 1) | $1,750 | $246 | $299,754 |
+| #180 (halfway) | $1,100 | $896 | ~$218,000 |
+| #360 (final) | ~$12 | ~$1,984 | $0 |
+
+> **Example:** After 15 years and 180 payments on this mortgage, you will have paid roughly $359,280 total — yet your balance has only dropped by about $82,000. The interest front-loading is that extreme.
 
 ## Why Understanding Amortization Matters
 
 Knowing how amortization works changes how you think about loans:
 
 - **Early extra payments are incredibly powerful.** An extra $200 per month on a $300,000 mortgage at 7% saves approximately $76,000 in total interest and eliminates 6 years of payments. The earlier you make extra payments, the more you save because that money stops generating interest for the lender.
-- **Short-term loans cost far less overall.** A 15-year mortgage has a higher monthly payment than a 30-year, but the total interest paid is typically less than half. On a $250,000 loan, the difference can exceed $150,000.
+- **Short-term loans cost far less overall.** A 15-year mortgage has a higher monthly payment than a 30-year, but the total interest paid is typically less than half. Here's the comparison on a $250,000 loan at 6.5%:
+
+| | 15-Year Term | 30-Year Term |
+|---|---|---|
+| Monthly payment | $2,178 | $1,580 |
+| Total interest | $142,088 | $319,019 |
+| Total cost | $392,088 | $569,019 |
+
+> **Tip:** The 15-year mortgage costs $598/month more but saves $176,931 in interest. If you can afford the higher payment, the shorter term is almost always the better deal.
+
 - **Refinancing makes more sense early.** If you're 20 years into a 30-year mortgage, most of your remaining payments are already going to principal. Refinancing at that point saves less than refinancing in the first 5-10 years.
 
 ## When to Use This Calculator
@@ -96,6 +115,8 @@ This calculator helps you:
 2. **Ignoring the front-loading of interest.** Building only 5% equity in the first 5 years of a 30-year mortgage is normal, not a sign that something is wrong.
 3. **Refinancing too late.** Refinancing in year 25 of a 30-year mortgage rarely saves meaningful money because you're already past the interest-heavy years.
 4. **Not checking for prepayment penalties.** Before making extra payments, verify your loan terms allow it without fees.
+
+> **Key takeaway:** The single most expensive mistake is choosing a loan based on the monthly payment alone. A 30-year loan can cost you over $150,000 more than a 15-year loan on the same amount — that difference just doesn't show up in the monthly number.
 
 ## What to Do Next
 
