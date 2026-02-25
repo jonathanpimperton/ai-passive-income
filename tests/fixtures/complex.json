@@ -1,0 +1,252 @@
+[
+  {
+    "id": 1,
+    "name": "Employee 1",
+    "department": "Engineering",
+    "salary": 118756,
+    "isActive": false,
+    "startDate": "2020-01-01",
+    "skills": "JavaScript",
+    "notes": "Has a \"special\" role, manages 2 people"
+  },
+  {
+    "id": 2,
+    "name": "Employee 2",
+    "department": "Marketing",
+    "salary": 88484,
+    "isActive": true,
+    "startDate": "2021-02-02",
+    "skills": "JavaScript; Python",
+    "notes": ""
+  },
+  {
+    "id": 3,
+    "name": "Employee 3",
+    "department": "Sales",
+    "salary": 61448,
+    "isActive": true,
+    "startDate": "2022-03-03",
+    "skills": "JavaScript; Python; Rust",
+    "notes": ""
+  },
+  {
+    "id": 4,
+    "name": "Employee 4",
+    "department": "HR",
+    "salary": 136654,
+    "isActive": false,
+    "startDate": "2023-04-04",
+    "skills": "JavaScript; Python; Rust; Go",
+    "notes": ""
+  },
+  {
+    "id": 5,
+    "name": "Employee 5",
+    "department": "Finance",
+    "salary": 64106,
+    "isActive": true,
+    "startDate": "2024-05-05",
+    "skills": "JavaScript",
+    "notes": "Has a \"special\" role, manages 6 people"
+  },
+  {
+    "id": 6,
+    "name": "Employee 6",
+    "department": "Engineering",
+    "salary": 117411,
+    "isActive": true,
+    "startDate": "2020-06-06",
+    "skills": "JavaScript; Python",
+    "notes": ""
+  },
+  {
+    "id": 7,
+    "name": "Employee 7",
+    "department": "Marketing",
+    "salary": 52515,
+    "isActive": false,
+    "startDate": "2021-07-07",
+    "skills": "JavaScript; Python; Rust",
+    "notes": ""
+  },
+  {
+    "id": 8,
+    "name": "Employee 8",
+    "department": "Sales",
+    "salary": 101412,
+    "isActive": true,
+    "startDate": "2022-08-08",
+    "skills": "JavaScript; Python; Rust; Go",
+    "notes": ""
+  },
+  {
+    "id": 9,
+    "name": "Employee 9",
+    "department": "HR",
+    "salary": 141140,
+    "isActive": true,
+    "startDate": "2023-09-09",
+    "skills": "JavaScript",
+    "notes": "Has a \"special\" role, manages 10 people"
+  },
+  {
+    "id": 10,
+    "name": "Employee 10",
+    "department": "Finance",
+    "salary": 98080,
+    "isActive": false,
+    "startDate": "2024-01-10",
+    "skills": "JavaScript; Python",
+    "notes": ""
+  },
+  {
+    "id": 11,
+    "name": "Employee 11",
+    "department": "Engineering",
+    "salary": 146084,
+    "isActive": true,
+    "startDate": "2020-02-11",
+    "skills": "JavaScript; Python; Rust",
+    "notes": ""
+  },
+  {
+    "id": 12,
+    "name": "Employee 12",
+    "department": "Marketing",
+    "salary": 115451,
+    "isActive": true,
+    "startDate": "2021-03-12",
+    "skills": "JavaScript; Python; Rust; Go",
+    "notes": ""
+  },
+  {
+    "id": 13,
+    "name": "Employee 13",
+    "department": "Sales",
+    "salary": 60483,
+    "isActive": false,
+    "startDate": "2022-04-13",
+    "skills": "JavaScript",
+    "notes": "Has a \"special\" role, manages 14 people"
+  },
+  {
+    "id": 14,
+    "name": "Employee 14",
+    "department": "HR",
+    "salary": 86779,
+    "isActive": true,
+    "startDate": "2023-05-14",
+    "skills": "JavaScript; Python",
+    "notes": ""
+  },
+  {
+    "id": 15,
+    "name": "Employee 15",
+    "department": "Finance",
+    "salary": 93572,
+    "isActive": true,
+    "startDate": "2024-06-15",
+    "skills": "JavaScript; Python; Rust",
+    "notes": ""
+  },
+  {
+    "id": 16,
+    "name": "Employee 16",
+    "department": "Engineering",
+    "salary": 117764,
+    "isActive": false,
+    "startDate": "2020-07-16",
+    "skills": "JavaScript; Python; Rust; Go",
+    "notes": ""
+  },
+  {
+    "id": 17,
+    "name": "Employee 17",
+    "department": "Marketing",
+    "salary": 148880,
+    "isActive": true,
+    "startDate": "2021-08-17",
+    "skills": "JavaScript",
+    "notes": "Has a \"special\" role, manages 18 people"
+  },
+  {
+    "id": 18,
+    "name": "Employee 18",
+    "department": "Sales",
+    "salary": 117081,
+    "isActive": true,
+    "startDate": "2022-09-18",
+    "skills": "JavaScript; Python",
+    "notes": ""
+  },
+  {
+    "id": 19,
+    "name": "Employee 19",
+    "department": "HR",
+    "salary": 74609,
+    "isActive": false,
+    "startDate": "2023-01-19",
+    "skills": "JavaScript; Python; Rust",
+    "notes": ""
+  },
+  {
+    "id": 20,
+    "name": "Employee 20",
+    "department": "Finance",
+    "salary": 77506,
+    "isActive": true,
+    "startDate": "2024-02-20",
+    "skills": "JavaScript; Python; Rust; Go",
+    "notes": ""
+  },
+  {
+    "id": 21,
+    "name": "Employee 21",
+    "department": "Engineering",
+    "salary": 69441,
+    "isActive": true,
+    "startDate": "2020-03-21",
+    "skills": "JavaScript",
+    "notes": "Has a \"special\" role, manages 22 people"
+  },
+  {
+    "id": 22,
+    "name": "Employee 22",
+    "department": "Marketing",
+    "salary": 67028,
+    "isActive": false,
+    "startDate": "2021-04-22",
+    "skills": "JavaScript; Python",
+    "notes": ""
+  },
+  {
+    "id": 23,
+    "name": "Employee 23",
+    "department": "Sales",
+    "salary": 105385,
+    "isActive": true,
+    "startDate": "2022-05-23",
+    "skills": "JavaScript; Python; Rust",
+    "notes": ""
+  },
+  {
+    "id": 24,
+    "name": "Employee 24",
+    "department": "HR",
+    "salary": 51818,
+    "isActive": true,
+    "startDate": "2023-06-24",
+    "skills": "JavaScript; Python; Rust; Go",
+    "notes": ""
+  },
+  {
+    "id": 25,
+    "name": "Employee 25",
+    "department": "Finance",
+    "salary": 132752,
+    "isActive": false,
+    "startDate": "2024-07-25",
+    "skills": "JavaScript",
+    "notes": "Has a \"special\" role, manages 26 people"
+  }
+]

@@ -10,7 +10,7 @@
 A focused financial calculator site called **CalcRun** (`calcrun.com`).
 
 - **Astro** + Tailwind CSS v4 + React islands on Cloudflare Pages (free tier)
-- **18 MVP tools** (14 financial calculators + 4 utility tools)
+- **33 tools** (14 financial calculators + 4 utility tools + 15 file converters)
 - **Affiliate-first monetization** (not ad-dependent)
 - **Deep educational content** per tool for E-E-A-T and topical authority
 - **Email capture** ("email me my results") on financial calculators → automated drip → affiliate conversions
@@ -109,7 +109,7 @@ Calculator.net is the category king (~100M visits/mo, 20+ years). Studying their
 - **Comprehensive amortization tables:** Month-by-month breakdowns with deposits, interest, and running balances. Users love this granularity.
 - **9 compounding frequency options:** Annually through continuously, plus beginning/end-of-period contribution timing.
 - **Deep educational content:** 1,000+ words per calculator with formulas, worked examples, historical context. This is the E-E-A-T play that validates our content strategy.
-- **Internal linking network:** Every calculator links to 5-6 related calculators, creating an internal link web. With only 18 tools, our related tools section is even more critical.
+- **Internal linking network:** Every calculator links to 5-6 related calculators, creating an internal link web. With 33 tools, cross-promotion via related tools sections is a key internal linking strategy.
 
 **Where they're weak (exploit):**
 - **No real-time results** — submit button + page reload. CalcRun updates instantly as you drag a slider. This is our single biggest UX differentiator.
@@ -403,7 +403,7 @@ US Salary & Take-Home, UK Salary & Take-Home, Mortgage Payment, Inflation, ROI, 
 
 **Total: ~5-6 weeks** (7 sprints)
 
-> **Timeline is aspirational.** Sprint 4 (polish + monetization + launch) packs educational content, FAQ sections, worked examples, comparison tables, PDF export, embeddable widgets, OG images, AND performance audit into 4 days. If timeline slips, ship in two waves: **Wave 1** (Sprints 1-3) — 18 tools live with basic educational content. **Wave 2** (Sprints 4-5) — deep content, embeds, programmatic pages, polish. Prioritize getting the 6 core financial calculators to production quality over getting all 18 tools to draft quality.
+> **Timeline is aspirational.** Sprint 4 (polish + monetization + launch) packs educational content, FAQ sections, worked examples, comparison tables, PDF export, embeddable widgets, OG images, AND performance audit into 4 days. If timeline slips, ship in two waves: **Wave 1** (Sprints 1-3) — 18 calculator tools live with basic educational content. **Wave 2** (Sprints 4-5) — deep content, file converters, polish. Prioritize getting the 6 core financial calculators to production quality first.
 
 ---
 
@@ -661,7 +661,7 @@ OG Image:    Auto-generated (tool name + CalcRun branding)
 ### Off-Page SEO
 
 - Submit to Google Search Console on deploy day
-- Product Hunt launch (once 18 tools live)
+- Product Hunt launch (33 tools live)
 - Reddit: r/personalfinance, r/financialindependence, r/FinancialPlanning
 - Dev.to article: "How I Built a Financial Calculator Site with Astro"
 - Embeddable widgets = passive backlinks
@@ -807,7 +807,7 @@ Primary keyword = the main term we want to rank for. Secondary = supporting long
 | Affiliate revenue | $0-$50 | $50-$200 | $200-$1,000 |
 | Pages per session | >1.5 | >2.0 | >2.0 |
 | Core Web Vitals | All green | All green | All green |
-| Tools indexed in Google | 26/26 (18 calculators + 8 converters) | 26/26+ | 30+ |
+| Tools indexed in Google | 33/33 (18 calculators + 15 converters) | 33/33+ | 35+ |
 
 ### Quarterly Review (2 hours)
 
@@ -885,7 +885,7 @@ The site is built to be **low-maintenance by design**: static site (no server), 
 
 | Action | Volume | Purpose |
 |--------|--------|---------|
-| 18 MVP tools live with educational content | 18 pages | Core product |
+| 33 tools live with educational content | 33 pages | Core product |
 | 10-20 programmatic scenario pages | 10-20 pages | Long-tail keyword capture |
 | Submit to Google Search Console | 1 | Start indexing |
 | Product Hunt launch | 1 | Initial traffic spike + backlinks |
@@ -1049,7 +1049,7 @@ MailerLite free tier includes automation workflows with branching logic. The dri
 MVP is shipped when:
 
 **Tools & Content:**
-- [ ] 18 tools live and functional (Sprint 1: 18 placeholder pages live; Sprint 2-3: real calculators)
+- [ ] 33 tools live and functional (18 calculators + 15 file converters)
 - [x] Financial math has unit tests (Vitest) that pass (27 tests covering compound interest, loan amortization, savings goal, formatting)
 - [ ] All tool pages have educational content (500+ words financial, 200+ utility)
 - [x] FAQ sections with schema markup on all tools (3-5 questions each, targeting long-tail keywords)

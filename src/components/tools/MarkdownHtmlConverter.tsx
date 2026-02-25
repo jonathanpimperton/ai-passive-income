@@ -100,8 +100,7 @@ export default function MarkdownHtmlConverter() {
     } catch {
       const ta = document.createElement('textarea');
       ta.value = result;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
+      ta.className = 'sr-only';
       document.body.appendChild(ta);
       ta.select();
       document.execCommand('copy');

@@ -52,17 +52,74 @@ export default function WordToPdf() {
     setError('');
 
     try {
-      const html2pdf = (await import('html2pdf.js')).default;
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename: file.name.replace(/\.docx?$/i, '') + '.pdf',
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-      };
-      await html2pdf().set(opt).from(previewRef.current).save();
-    } catch {
-      setError('PDF conversion failed. The document may be too complex.');
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = (await import('html2canvas')).default;
+
+      // Render the preview div to a canvas
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const usableWidth = pageWidth - margin * 2;
+      const usableHeight = pageHeight - margin * 2;
+
+      // Scale image to fit page width
+      const imgWidth = usableWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Handle multi-page documents
+      let remainingHeight = imgHeight;
+      let yOffset = 0;
+
+      while (remainingHeight > 0) {
+        if (yOffset > 0) pdf.addPage();
+
+        // Use a sliced portion of the canvas for each page
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        const sliceHeight = Math.min(
+          canvas.height - (yOffset / imgHeight) * canvas.height,
+          (usableHeight / imgHeight) * canvas.height
+        );
+        sliceCanvas.height = sliceHeight;
+
+        const ctx = sliceCanvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(
+            canvas,
+            0, (yOffset / imgHeight) * canvas.height,
+            canvas.width, sliceHeight,
+            0, 0,
+            canvas.width, sliceHeight
+          );
+          const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.95);
+          const sliceImgHeight = (sliceHeight * imgWidth) / canvas.width;
+          pdf.addImage(sliceData, 'JPEG', margin, margin, imgWidth, sliceImgHeight);
+        }
+
+        // Free memory
+        sliceCanvas.width = 0;
+        sliceCanvas.height = 0;
+
+        remainingHeight -= usableHeight;
+        yOffset += usableHeight;
+      }
+
+      // Free source canvas memory
+      canvas.width = 0;
+      canvas.height = 0;
+
+      pdf.save(file.name.replace(/\.docx?$/i, '') + '.pdf');
+    } catch (e) {
+      setError('PDF conversion failed. ' + (e instanceof Error ? e.message : 'Please try a simpler document.'));
     }
     setConverting(false);
   }, [file]);

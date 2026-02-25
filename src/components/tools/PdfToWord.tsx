@@ -14,9 +14,71 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+interface TextItem {
+  str: string;
+  x: number;
+  y: number;
+  width: number;
+  fontSize: number;
+}
+
+interface ExtractedLine {
+  text: string;
+  fontSize: number;
+}
+
 interface ExtractedPage {
   pageNum: number;
-  lines: string[];
+  lines: ExtractedLine[];
+}
+
+/** Group text items into lines using tolerance-based Y grouping */
+function extractLines(items: TextItem[]): ExtractedLine[] {
+  if (items.length === 0) return [];
+
+  // Sort by Y descending (PDF coords are bottom-up), then X ascending
+  const sorted = [...items].sort((a, b) => b.y - a.y || a.x - b.x);
+
+  // Group items into lines using Y tolerance (items within 3 PDF units = same line)
+  const lines: { items: TextItem[]; y: number }[] = [];
+  for (const item of sorted) {
+    const existing = lines.find((l) => Math.abs(l.y - item.y) <= 3);
+    if (existing) {
+      existing.items.push(item);
+    } else {
+      lines.push({ items: [item], y: item.y });
+    }
+  }
+
+  // Sort lines top-to-bottom, items within each line left-to-right
+  lines.sort((a, b) => b.y - a.y);
+
+  return lines.map((line) => {
+    line.items.sort((a, b) => a.x - b.x);
+
+    // Build line text with smart spacing
+    let text = '';
+    for (let i = 0; i < line.items.length; i++) {
+      const item = line.items[i];
+      if (i > 0) {
+        const prev = line.items[i - 1];
+        const gap = item.x - (prev.x + prev.width);
+        // Large gap → tab-like spacing, small gap → single space
+        if (gap > prev.fontSize * 2) {
+          text += '\t';
+        } else if (gap > 0.5) {
+          text += ' ';
+        }
+      }
+      text += item.str;
+    }
+
+    // Use median font size for the line
+    const sizes = line.items.map((it) => it.fontSize);
+    const medianSize = sizes.sort((a, b) => a - b)[Math.floor(sizes.length / 2)];
+
+    return { text: text.trim(), fontSize: medianSize };
+  }).filter((l) => l.text.length > 0);
 }
 
 export default function PdfToWord() {
@@ -45,22 +107,22 @@ export default function PdfToWord() {
       for (let i = 1; i <= pdfDoc.numPages; i++) {
         const page = await pdfDoc.getPage(i);
         const textContent = await page.getTextContent();
-        // Group text items by Y position to reconstruct lines
-        const lineMap = new Map<number, string[]>();
+
+        const items: TextItem[] = [];
         for (const item of textContent.items) {
-          if ('str' in item && item.str) {
-            const y = Math.round(('transform' in item ? (item.transform as number[])[5] : 0));
-            if (!lineMap.has(y)) lineMap.set(y, []);
-            lineMap.get(y)!.push(item.str);
+          if ('str' in item && item.str && 'transform' in item) {
+            const t = item.transform as number[];
+            items.push({
+              str: item.str,
+              x: t[4],
+              y: t[5],
+              width: ('width' in item ? (item as { width: number }).width : 0),
+              fontSize: Math.abs(t[0]) || Math.abs(t[3]) || 12,
+            });
           }
         }
-        // Sort by Y descending (PDF coords are bottom-up)
-        const sortedLines = Array.from(lineMap.entries())
-          .sort((a, b) => b[0] - a[0])
-          .map(([, words]) => words.join(' ').trim())
-          .filter(Boolean);
 
-        extracted.push({ pageNum: i, lines: sortedLines });
+        extracted.push({ pageNum: i, lines: extractLines(items) });
       }
       setFile(f);
       setPages(extracted);
@@ -81,25 +143,38 @@ export default function PdfToWord() {
 
       const children: docxLib.Paragraph[] = [];
 
+      // Determine the most common font size across all pages (= body text)
+      const allSizes = pages.flatMap((p) => p.lines.map((l) => l.fontSize));
+      const sizeFreq = new Map<number, number>();
+      for (const s of allSizes) {
+        const rounded = Math.round(s);
+        sizeFreq.set(rounded, (sizeFreq.get(rounded) || 0) + 1);
+      }
+      let bodySize = 12;
+      let maxFreq = 0;
+      for (const [size, freq] of sizeFreq) {
+        if (freq > maxFreq) { bodySize = size; maxFreq = freq; }
+      }
+
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
         if (i > 0) {
           children.push(new Paragraph({ children: [new PageBreak()] }));
         }
         for (const line of page.lines) {
-          // Simple heuristic: short lines in ALL CAPS or starting with numbers are likely headings
-          const isHeading = line.length < 80 && (line === line.toUpperCase() && line.length > 3);
+          // Heading = font size significantly larger than body text
+          const isHeading = line.fontSize > bodySize * 1.2 && line.text.length < 120;
+          const isBold = isHeading || (line.fontSize > bodySize * 1.05 && line.text.length < 80);
+
           children.push(
             new Paragraph({
-              children: [
-                new TextRun({
-                  text: line,
-                  bold: isHeading,
-                  size: isHeading ? 28 : 22,
-                  font: 'Calibri',
-                }),
-              ],
-              spacing: { after: 120 },
+              children: [new TextRun({
+                text: line.text,
+                bold: isBold,
+                size: isHeading ? 28 : 22,
+                font: 'Calibri',
+              })],
+              spacing: { after: isHeading ? 200 : 80 },
             }),
           );
         }
@@ -194,7 +269,7 @@ export default function PdfToWord() {
                   </p>
                   {page.lines.length > 0 ? (
                     page.lines.map((line, li) => (
-                      <p key={li} className="text-sm text-neutral-800 leading-relaxed">{line}</p>
+                      <p key={li} className="text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap">{line.text}</p>
                     ))
                   ) : (
                     <p className="text-sm text-neutral-400 italic">No text found on this page (may be image-only)</p>

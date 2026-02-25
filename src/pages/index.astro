@@ -48,6 +48,13 @@ const categoryCards: { slug: CategorySlug; icon: string; color: string; hoverBg:
     hoverBg: 'group-hover:bg-accent-600 group-hover:text-white',
     count: TOOLS.filter(t => t.category === 'utility').length,
   },
+  {
+    slug: 'file-tools',
+    icon: 'file-text',
+    color: 'text-primary-600 bg-primary-50',
+    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
+    count: TOOLS.filter(t => t.category === 'file-tools').length,
+  },
 ];
 
 /** Persona data for "Who Is This For?" section */
@@ -114,7 +121,7 @@ const ctaHooks = [
 
 <BaseLayout
   title="Free Financial Calculators Online | CalcRun"
-  description="See your numbers instantly — no signup, no ads, no data harvesting. Free financial calculators with interactive charts and plain-English explanations."
+  description="Free financial calculators, file converters, and utility tools — no signup, no ads. Interactive charts, instant results, plain-English explanations."
   structuredData={[websiteSchema]}
 >
   {/* ===== HERO ===== */}
@@ -163,7 +170,7 @@ const ctaHooks = [
   <section class="py-10 sm:py-12 bg-white border-b border-neutral-100">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-16 lg:gap-20">
-        <div class="stat-counter text-center" data-target="26">
+        <div class="stat-counter text-center" data-target="33">
           <div class="text-3xl sm:text-4xl font-bold text-primary-600 tabular-nums">
             <span class="stat-number">0</span>
           </div>
@@ -329,10 +336,10 @@ const ctaHooks = [
   <section class="py-16 sm:py-20 lg:py-24 bg-neutral-50">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">All Tools</h2>
-      <p class="text-neutral-500 mb-8">Browse by category or filter to find the right calculator.</p>
+      <p class="text-neutral-500 mb-8">Browse by category or filter to find the right tool.</p>
 
       {/* Category navigation cards */}
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
         {categoryCards.map((cat) => (
           <button
             data-category-card={cat.slug}

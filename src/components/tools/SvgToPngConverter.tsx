@@ -122,7 +122,7 @@ export default function SvgToPngConverter() {
           acceptLabel="Supports: SVG files"
           onFiles={handleFiles}
         />
-        <div className="bg-white rounded-2xl border border-neutral-200/80 p-5">
+        <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5">
           <SliderInput
             label="Scale"
             id="svg-scale"
@@ -149,7 +149,7 @@ export default function SvgToPngConverter() {
 
         {pngPreview && file ? (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-neutral-200/80 p-4 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-4 overflow-hidden">
               <div className="bg-[repeating-conic-gradient(#f3f4f6_0%_25%,white_0%_50%)] bg-[length:16px_16px] rounded-lg p-2">
                 <img
                   src={pngPreview}

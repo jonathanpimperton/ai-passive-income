@@ -1,0 +1,14 @@
+Name,Age,City,Bio,Salary
+"Alice Johnson",30,"New York","Senior developer with 10+ years experience, specializing in React and Node.js",95000
+"Bob ""Bobby"" Smith",25,"Los Angeles","Jr. developer
+loves Python",65000
+"Charlie O'Brien",35,"Chicago, IL","Team lead, manages 12+ engineers across 3 continents",120000
+"Diana, Princess of Testing",28,"San Francisco","QA engineer; uses Selenium, Playwright, and Cypress",85000
+"Eve ""The Debugger"" Wilson",42,"Austin","Staff engineer — C++, Rust, Go specialist",155000
+"Frank N. Stein",31,"Portland, OR","Full-stack dev
+with a passion for
+open source contributions",78000
+"Grace Hopper Jr.",55,"Washington DC","Distinguished engineer, inventor of COBOL++, awarded 3 patents",200000
+"Hans Müller",29,"Berlin, Germany","Backend developer, PostgreSQL & Redis expert, bilingual (DE/EN)",92000
+"Iris 日本語",33,"Tokyo","Frontend specialist, expert in i18n/l10n, speaks 4 languages",88000
+"José García-López",40,"Madrid, Spain","DevOps lead, manages CI/CD for 50+ microservices",110000
