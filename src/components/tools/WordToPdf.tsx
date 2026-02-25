@@ -34,8 +34,9 @@ export default function WordToPdf() {
       const mammoth = await import('mammoth');
       const arrayBuffer = await f.arrayBuffer();
       const result = await mammoth.convertToHtml({ arrayBuffer });
+      const DOMPurify = (await import('dompurify')).default;
       setFile(f);
-      setHtmlContent(result.value);
+      setHtmlContent(DOMPurify.sanitize(result.value));
       if (result.messages.length > 0) {
         setWarnings(result.messages.map((m) => m.message).slice(0, 5));
       }

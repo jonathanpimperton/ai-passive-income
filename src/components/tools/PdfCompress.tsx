@@ -47,8 +47,7 @@ export default function PdfCompress() {
     try {
       // Strategy: render each page to canvas at reduced quality, rebuild PDF with images
       const pdfjsLib = await import('pdfjs-dist');
-      // Use fake worker to avoid bundling issues
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       const loadingTask = pdfjsLib.getDocument({ data: await file.arrayBuffer() });
       const pdfDoc = await loadingTask.promise;
 
@@ -69,6 +68,10 @@ export default function PdfCompress() {
         // Convert canvas to JPEG at user-selected quality
         const jpegDataUrl = canvas.toDataURL('image/jpeg', quality / 100);
         const jpegBytes = Uint8Array.from(atob(jpegDataUrl.split(',')[1]), (c) => c.charCodeAt(0));
+
+        // Free canvas memory immediately
+        canvas.width = 0;
+        canvas.height = 0;
 
         const jpegImage = await newPdf.embedJpg(jpegBytes);
         const newPage = newPdf.addPage([viewport.width, viewport.height]);

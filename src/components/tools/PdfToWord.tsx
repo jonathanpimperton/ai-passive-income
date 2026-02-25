@@ -36,7 +36,7 @@ export default function PdfToWord() {
 
     try {
       const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       const loadingTask = pdfjsLib.getDocument({ data: await f.arrayBuffer() });
       const pdfDoc = await loadingTask.promise;
       setPageCount(pdfDoc.numPages);

@@ -38,10 +38,10 @@ export default function PdfToImage() {
     const f = files[0];
     if (!f) return;
     setError('');
-    setImages([]);
+    setImages((prev) => { prev.forEach((img) => URL.revokeObjectURL(img.preview)); return []; });
     try {
       const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       const loadingTask = pdfjsLib.getDocument({ data: await f.arrayBuffer() });
       const pdfDoc = await loadingTask.promise;
       setFile(f);
@@ -55,10 +55,10 @@ export default function PdfToImage() {
     if (!file) return;
     setProcessing(true);
     setError('');
-    setImages([]);
+    setImages((prev) => { prev.forEach((img) => URL.revokeObjectURL(img.preview)); return []; });
     try {
       const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       const loadingTask = pdfjsLib.getDocument({ data: await file.arrayBuffer() });
       const pdfDoc = await loadingTask.promise;
       const results: PageImage[] = [];
@@ -88,6 +88,10 @@ export default function PdfToImage() {
           );
         });
 
+        // Free canvas memory immediately
+        canvas.width = 0;
+        canvas.height = 0;
+
         results.push({
           pageNum: i,
           blob,
@@ -105,12 +109,10 @@ export default function PdfToImage() {
 
   const downloadImage = (img: PageImage) => {
     const ext = format === 'image/jpeg' ? '.jpg' : '.png';
-    const url = URL.createObjectURL(img.blob);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = img.preview;
     a.download = (file?.name.replace(/\.pdf$/i, '') || 'page') + `_p${img.pageNum}${ext}`;
     a.click();
-    URL.revokeObjectURL(url);
   };
 
   const downloadAll = () => images.forEach(downloadImage);

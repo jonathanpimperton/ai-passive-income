@@ -2,7 +2,7 @@
  * Excel to PDF — convert XLSX/CSV spreadsheets to PDF using SheetJS + jsPDF.
  * Renders the first sheet as a table in the PDF. Client-side only.
  */
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { Download, FileText, Table } from 'lucide-react';
 import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
@@ -26,8 +26,6 @@ export default function ExcelToPdf() {
   const [processing, setProcessing] = useState(false);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState('');
-  const tableRef = useRef<HTMLDivElement>(null);
-
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
     if (!f) return;
@@ -99,13 +97,14 @@ export default function ExcelToPdf() {
       // Data rows
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(7);
-      for (const row of sheet.rows) {
+      for (let ri = 0; ri < sheet.rows.length; ri++) {
+        const row = sheet.rows[ri];
         if (y > pdf.internal.pageSize.getHeight() - margin) {
           pdf.addPage();
           y = margin + 5;
         }
         // Alternating row background
-        if (sheet.rows.indexOf(row) % 2 === 0) {
+        if (ri % 2 === 0) {
           pdf.setFillColor(250, 250, 250);
           pdf.rect(margin, y - 4, usableW, rowH, 'F');
         }
@@ -198,7 +197,7 @@ export default function ExcelToPdf() {
         )}
 
         {sheet ? (
-          <div className="space-y-3" ref={tableRef}>
+          <div className="space-y-3">
             <p className="text-sm font-medium text-neutral-700">
               Preview: {sheet.name} ({sheet.rows.length} rows, {sheet.headers.length} columns)
             </p>
