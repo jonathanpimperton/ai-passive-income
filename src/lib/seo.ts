@@ -85,7 +85,7 @@ export function buildWebsiteSchema(): string {
     name: 'CalcRun',
     url: SITE_URL,
     description:
-      'Free financial calculators with interactive charts and plain-English explanations. No signup, no ads, no data harvesting.',
+      'Free financial calculators, file converters, and utility tools with interactive charts and instant results. No signup, no ads.',
     publisher: {
       '@type': 'Organization',
       name: 'CalcRun',
