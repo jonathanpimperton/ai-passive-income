@@ -22,6 +22,17 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+/** Detect if an image has any transparent pixels by sampling the canvas alpha channel */
+function hasTransparency(ctx: CanvasRenderingContext2D, w: number, h: number): boolean {
+  // Sample a grid of pixels rather than checking every single one (performance)
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const step = Math.max(1, Math.floor(data.length / (4 * 10000))); // sample ~10k pixels
+  for (let i = 3; i < data.length; i += 4 * step) {
+    if (data[i] < 250) return true;
+  }
+  return false;
+}
+
 function compressImage(file: File, quality: number, maxWidth: number): Promise<CompressedFile> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
@@ -36,21 +47,52 @@ function compressImage(file: File, quality: number, maxWidth: number): Promise<C
       canvas.height = h;
       const ctx = canvas.getContext('2d');
       if (!ctx) { reject(new Error('Canvas not supported')); return; }
+
+      // Draw image first to detect transparency
       ctx.drawImage(img, 0, 0, w, h);
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) { reject(new Error('Compression failed')); return; }
-          resolve({
-            name: file.name.replace(/\.[^.]+$/, '') + '_compressed.jpg',
-            originalSize: file.size,
-            compressedSize: blob.size,
-            blob,
-            preview: URL.createObjectURL(blob),
-          });
-        },
-        'image/jpeg',
-        quality / 100,
-      );
+
+      const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+      const transparent = isPng && hasTransparency(ctx, w, h);
+
+      if (transparent) {
+        // Keep PNG format to preserve transparency — re-render at reduced quality
+        // For PNGs with transparency, we keep PNG format but resize if needed
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { reject(new Error('Compression failed')); return; }
+            resolve({
+              name: file.name.replace(/\.[^.]+$/, '') + '_compressed.png',
+              originalSize: file.size,
+              compressedSize: blob.size,
+              blob,
+              preview: URL.createObjectURL(blob),
+            });
+          },
+          'image/png',
+        );
+      } else {
+        // No transparency (or not PNG) — safe to convert to JPEG
+        // Fill white background first to avoid black areas from alpha channel
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalCompositeOperation = 'source-over';
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { reject(new Error('Compression failed')); return; }
+            resolve({
+              name: file.name.replace(/\.[^.]+$/, '') + '_compressed.jpg',
+              originalSize: file.size,
+              compressedSize: blob.size,
+              blob,
+              preview: URL.createObjectURL(blob),
+            });
+          },
+          'image/jpeg',
+          quality / 100,
+        );
+      }
     };
     img.onerror = () => { URL.revokeObjectURL(srcUrl); reject(new Error('Failed to load image')); };
     img.src = srcUrl;

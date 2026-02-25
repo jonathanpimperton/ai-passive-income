@@ -36,35 +36,64 @@ function markdownToHtml(md: string): string {
   return sanitizeHtml(markedInstance.marked(md) as string);
 }
 
+let turndownInstance: import('turndown') | null = null;
+
+async function loadTurndown() {
+  if (!turndownInstance) {
+    const TurndownService = (await import('turndown')).default;
+    turndownInstance = new TurndownService({
+      headingStyle: 'atx',
+      codeBlockStyle: 'fenced',
+      bulletListMarker: '-',
+    });
+
+    // Add table support (GFM tables)
+    turndownInstance.addRule('table', {
+      filter: 'table',
+      replacement: function (_content, node) {
+        const table = node as HTMLTableElement;
+        const rows = Array.from(table.rows);
+        if (rows.length === 0) return '';
+
+        const getCellText = (cell: HTMLTableCellElement) =>
+          cell.textContent?.trim().replace(/\|/g, '\\|') || '';
+
+        const mdRows: string[] = [];
+
+        // First row as header
+        const headerCells = Array.from(rows[0].cells);
+        mdRows.push('| ' + headerCells.map(getCellText).join(' | ') + ' |');
+        mdRows.push('| ' + headerCells.map(() => '---').join(' | ') + ' |');
+
+        // Remaining rows
+        for (let i = 1; i < rows.length; i++) {
+          const cells = Array.from(rows[i].cells);
+          // Pad cells to match header count
+          while (cells.length < headerCells.length) {
+            const td = document.createElement('td');
+            cells.push(td);
+          }
+          mdRows.push('| ' + cells.map(getCellText).join(' | ') + ' |');
+        }
+
+        return '\n\n' + mdRows.join('\n') + '\n\n';
+      },
+    });
+
+    // Handle thead/tbody/tr/td/th by removing them (handled by table rule)
+    turndownInstance.addRule('tableElements', {
+      filter: ['thead', 'tbody', 'tfoot', 'tr', 'td', 'th'],
+      replacement: function (content) {
+        return content;
+      },
+    });
+  }
+  return turndownInstance;
+}
+
 function htmlToMarkdown(html: string): string {
-  // Simple HTML-to-Markdown conversion (covers common tags)
-  let md = html;
-  // Headers
-  md = md.replace(/<h([1-6])[^>]*>(.*?)<\/h[1-6]>/gi, (_, level, text) => '#'.repeat(Number(level)) + ' ' + text.trim() + '\n\n');
-  // Bold, italic
-  md = md.replace(/<(strong|b)>(.*?)<\/\1>/gi, '**$2**');
-  md = md.replace(/<(em|i)>(.*?)<\/\1>/gi, '*$2*');
-  // Code
-  md = md.replace(/<code>(.*?)<\/code>/gi, '`$1`');
-  md = md.replace(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, '```\n$1\n```\n\n');
-  // Links and images
-  md = md.replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)');
-  md = md.replace(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*\/?>/gi, '![$2]($1)');
-  // Lists
-  md = md.replace(/<li>(.*?)<\/li>/gi, '- $1\n');
-  md = md.replace(/<\/?[ou]l[^>]*>/gi, '\n');
-  // Paragraphs and breaks
-  md = md.replace(/<br\s*\/?>/gi, '\n');
-  md = md.replace(/<p>(.*?)<\/p>/gi, '$1\n\n');
-  md = md.replace(/<hr\s*\/?>/gi, '---\n\n');
-  // Blockquotes
-  md = md.replace(/<blockquote>([\s\S]*?)<\/blockquote>/gi, (_, content) =>
-    content.trim().split('\n').map((l: string) => '> ' + l.trim()).join('\n') + '\n\n');
-  // Strip remaining tags
-  md = md.replace(/<[^>]+>/g, '');
-  // Clean up whitespace
-  md = md.replace(/\n{3,}/g, '\n\n').trim();
-  return md;
+  if (!turndownInstance) return 'Loading converter...';
+  return turndownInstance.turndown(html);
 }
 
 export default function MarkdownHtmlConverter() {
@@ -76,12 +105,13 @@ export default function MarkdownHtmlConverter() {
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadMarked().then(() => setReady(true));
+    Promise.all([loadMarked(), loadTurndown()]).then(() => setReady(true));
   }, []);
 
   const result = useMemo(() => {
     if (!input.trim()) return '';
-    if (mode === 'md-to-html') return ready ? markdownToHtml(input) : 'Loading...';
+    if (!ready) return 'Loading...';
+    if (mode === 'md-to-html') return markdownToHtml(input);
     return htmlToMarkdown(input);
   }, [input, mode, ready]);
 

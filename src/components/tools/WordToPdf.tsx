@@ -1,5 +1,6 @@
 /**
- * Word to PDF — convert DOCX to PDF using mammoth.js + jsPDF + html2canvas.
+ * Word to PDF — convert DOCX to PDF using mammoth.js + pdfmake.
+ * Produces a vector PDF with selectable text, proper fonts, and tables.
  * Client-side only. No server upload.
  */
 import { useState, useCallback, useRef } from 'react';
@@ -47,82 +48,60 @@ export default function WordToPdf() {
   }, []);
 
   const convertToPdf = useCallback(async () => {
-    if (!previewRef.current || !file) return;
+    if (!htmlContent || !file) return;
     setConverting(true);
     setError('');
 
     try {
-      const { jsPDF } = await import('jspdf');
-      const html2canvas = (await import('html2canvas')).default;
+      // Import pdfmake and html-to-pdfmake for vector PDF generation
+      const pdfMakeModule = await import('pdfmake/build/pdfmake');
+      const pdfMake = pdfMakeModule.default || pdfMakeModule;
+      const htmlToPdfmake = (await import('html-to-pdfmake')).default;
 
-      // Render the preview div to a canvas
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const usableWidth = pageWidth - margin * 2;
-      const usableHeight = pageHeight - margin * 2;
-
-      // Scale image to fit page width
-      const imgWidth = usableWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      // Handle multi-page documents
-      let remainingHeight = imgHeight;
-      let yOffset = 0;
-
-      while (remainingHeight > 0) {
-        if (yOffset > 0) pdf.addPage();
-
-        // Use a sliced portion of the canvas for each page
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = canvas.width;
-        const sliceHeight = Math.min(
-          canvas.height - (yOffset / imgHeight) * canvas.height,
-          (usableHeight / imgHeight) * canvas.height
-        );
-        sliceCanvas.height = sliceHeight;
-
-        const ctx = sliceCanvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(
-            canvas,
-            0, (yOffset / imgHeight) * canvas.height,
-            canvas.width, sliceHeight,
-            0, 0,
-            canvas.width, sliceHeight
-          );
-          const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.95);
-          const sliceImgHeight = (sliceHeight * imgWidth) / canvas.width;
-          pdf.addImage(sliceData, 'JPEG', margin, margin, imgWidth, sliceImgHeight);
-        }
-
-        // Free memory
-        sliceCanvas.width = 0;
-        sliceCanvas.height = 0;
-
-        remainingHeight -= usableHeight;
-        yOffset += usableHeight;
+      // Load pdfmake fonts
+      const pdfFontsModule = await import('pdfmake/build/vfs_fonts');
+      if (pdfFontsModule.pdfMake?.vfs) {
+        pdfMake.vfs = pdfFontsModule.pdfMake.vfs;
+      } else if (pdfFontsModule.default?.pdfMake?.vfs) {
+        pdfMake.vfs = pdfFontsModule.default.pdfMake.vfs;
       }
 
-      // Free source canvas memory
-      canvas.width = 0;
-      canvas.height = 0;
+      // Convert HTML to pdfmake document definition
+      const pdfContent = htmlToPdfmake(htmlContent, {
+        tableAutoSize: true,
+        imagesByReference: true,
+        defaultStyles: {
+          h1: { fontSize: 24, bold: true, marginBottom: 10, marginTop: 16 },
+          h2: { fontSize: 20, bold: true, marginBottom: 8, marginTop: 14 },
+          h3: { fontSize: 16, bold: true, marginBottom: 6, marginTop: 12 },
+          h4: { fontSize: 14, bold: true, marginBottom: 4, marginTop: 10 },
+          p: { fontSize: 11, marginBottom: 6, lineHeight: 1.4 },
+          li: { fontSize: 11, marginBottom: 3 },
+          a: { color: '#1a56db' },
+          th: { fontSize: 10, bold: true, fillColor: '#f0f4f8' },
+          td: { fontSize: 10 },
+        },
+      });
 
-      pdf.save(file.name.replace(/\.docx?$/i, '') + '.pdf');
+      const docDefinition = {
+        content: Array.isArray(pdfContent) ? pdfContent : [pdfContent],
+        pageSize: 'A4' as const,
+        pageMargins: [40, 40, 40, 40] as [number, number, number, number],
+        defaultStyle: {
+          fontSize: 11,
+          lineHeight: 1.4,
+        },
+        images: (pdfContent as { images?: Record<string, string> }).images || {},
+      };
+
+      pdfMake.createPdf(docDefinition).download(
+        file.name.replace(/\.docx?$/i, '') + '.pdf'
+      );
     } catch (e) {
       setError('PDF conversion failed. ' + (e instanceof Error ? e.message : 'Please try a simpler document.'));
     }
     setConverting(false);
-  }, [file]);
+  }, [htmlContent, file]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -174,7 +153,7 @@ export default function WordToPdf() {
             )}
 
             <p className="text-xs text-neutral-400">
-              Best for text-heavy documents. Complex layouts, charts, and macros may not convert perfectly.
+              Produces a vector PDF with selectable text. Complex layouts may vary slightly from the original.
             </p>
           </div>
         )}
