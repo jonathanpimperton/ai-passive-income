@@ -88,21 +88,29 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - SEO: WebApplication, FAQPage, BreadcrumbList, WebSite structured data schemas
 - Static assets: SVG favicon, PNG icons, manifest, robots.txt, sitemap
 
-**Sprint 2 — Next:**
-- Build 6 core financial calculators (compound interest, loan, investment, retirement, debt payoff, savings goal)
+**Sprint 2 — Core Calculators + Utilities (Complete):**
+- 6 core financial calculators: compound interest, loan amortization, investment return, retirement savings, debt payoff, savings goal
 - Compound interest + loan: collapsible year-group schedule tables (not raw 120-row dumps)
 - Investment + retirement: "Solve for X" multi-tab pattern (solve for end amount, contribution, return rate, starting amount, or time)
-- Build QR code generator + password generator
+- QR code generator + password generator
 
-**Sprint 3 — After:**
-- Build 8 secondary calculators (US salary, UK salary, mortgage payment, inflation, ROI, net worth, rent vs buy, emergency fund)
-- Build percentage calculator + JSON formatter
+**Sprint 3 — Secondary Calculators + Utilities (Complete):**
+- 8 secondary calculators: US salary, UK salary, mortgage payment, inflation, ROI, net worth, rent vs buy, emergency fund
+- Percentage calculator + JSON formatter
+- UK salary: HMRC tax code parsing (1257L, BR, D0, D1, NT, K codes)
+- US salary: 401(k) pre-tax contribution with IRS $23,500 cap
 
-**Sprint 4 — SEO + Content + Monetization:**
-- SEO optimization: page titles, meta descriptions emphasizing "free, no signup, no ads"
-- Educational content, comparison tables, affiliate recommendations
+**Sprint 4 — SEO + Content + Monetization (Complete):**
+- SEO: meta descriptions ≤160 chars, keywords, structured data on all 18 tools
+- Educational content: 500-1000 words per tool, comparison tables, key terms
+- 5+ FAQ items per tool with substantive answers
+- 3 worked examples per tool with realistic scenarios
+- Affiliate programs on all financial tools (Betterment, Wealthfront, Marcus, SoFi, etc.)
+- Utility tools correctly exclude affiliates (no forced product fits)
+- Slider QA: fixed min/max ranges across 9 calculators (17 sliders)
+- Accessibility: aria-label/aria-controls/role attributes on all interactive elements
 
-**Sprint 5 — Client-Side File Converters (Pre-Launch):**
+**Sprint 5 — Client-Side File Converters (Next):**
 - 8 client-side file converters as traffic acquisition strategy (image compress, resize, format convert, SVG→PNG, HEIC→JPG, CSV↔JSON, Markdown↔HTML, images→PDF)
 - All processing client-side — "Your files never leave your device" privacy positioning
 - Cross-promotion links from converter pages to financial calculators
@@ -173,7 +181,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4. Sprints 1-3 are complete. All 18 calculator tools are fully built (0 placeholders). Sprint 4 (SEO + content + monetization) is next. Sprint 5 (8 client-side file converters) is now pre-launch, not post-launch. The 18 tools include: 14 financial calculators (US + UK salary calculators, mortgage payment calculator added to original 12) + 4 utility tools (percentage calculator added to original 3). See build-spec.md for details.
+3. **Current status:** Stage 4. Sprints 1-4 are complete. All 18 calculator tools are fully built with SEO content, FAQs, worked examples, and affiliate programs. Sprint 5 (8 client-side file converters) is next. The 18 tools include: 14 financial calculators (US + UK salary calculators, mortgage payment calculator added to original 12) + 4 utility tools (percentage calculator added to original 3). See build-spec.md for details.
 4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running
