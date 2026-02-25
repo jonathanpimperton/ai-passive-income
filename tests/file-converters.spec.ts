@@ -1,59 +1,167 @@
 /**
- * E2E tests for all file converter tools.
- * Tests each converter with complex real-world files.
+ * E2E tests for file converter tools.
+ *
+ * These tests go beyond "does the page load" — they verify:
+ *  - File upload triggers extraction/parsing
+ *  - Preview shows real content from the input file
+ *  - Download button is clickable and triggers a download
+ *  - Downloaded file has non-zero size
+ *  - Downloaded file contains expected content (where parseable)
+ *
+ * Test fixtures live in tests/fixtures/.
  */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, Download } from '@playwright/test';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const FIXTURES = path.join(__dirname, 'fixtures');
 
-/** Helper: upload a file via the FileDropZone input */
+/** Upload a single file via the FileDropZone input */
 async function uploadFile(page: Page, filePath: string) {
   const fileInput = page.locator('input[type="file"]').first();
   await fileInput.setInputFiles(filePath);
 }
 
-/** Helper: upload multiple files */
+/** Upload multiple files */
 async function uploadFiles(page: Page, filePaths: string[]) {
   const fileInput = page.locator('input[type="file"]').first();
   await fileInput.setInputFiles(filePaths);
 }
 
-/** Helper: wait for processing spinners to disappear */
+/** Wait for processing spinners to disappear */
 async function waitForProcessing(page: Page, timeout = 30000) {
-  await page.waitForFunction(() => {
-    const text = document.body.innerText;
-    return !text.includes('Converting...') && !text.includes('Generating...') && !text.includes('Processing...');
-  }, { timeout });
+  await page.waitForFunction(
+    () => {
+      const text = document.body.innerText;
+      return (
+        !text.includes('Converting...') &&
+        !text.includes('Generating...') &&
+        !text.includes('Processing...') &&
+        !text.includes('Reading Word') &&
+        !text.includes('Extracting text')
+      );
+    },
+    { timeout }
+  );
 }
 
-/** Helper: scope locator to the main tool area (exclude header/nav/footer) */
-function toolArea(page: Page) {
-  return page.locator('main, [role="main"], article').first();
+/**
+ * Click a download button and wait for the download event.
+ * Returns the Download object so we can inspect the file.
+ */
+async function clickAndWaitForDownload(
+  page: Page,
+  buttonLocator: ReturnType<Page['getByRole']>
+): Promise<Download> {
+  const [download] = await Promise.all([
+    page.waitForEvent('download', { timeout: 30000 }),
+    buttonLocator.click(),
+  ]);
+  return download;
 }
+
+/**
+ * Save a download to a temp path and return the path + file size.
+ */
+async function saveDownload(download: Download): Promise<{ path: string; size: number }> {
+  const tmpPath = path.join('/tmp', `test-download-${Date.now()}-${download.suggestedFilename()}`);
+  await download.saveAs(tmpPath);
+  const stats = fs.statSync(tmpPath);
+  return { path: tmpPath, size: stats.size };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  WORD TO PDF
+// ════════════════════════════════════════════════════════════════
+
+test.describe('Word to PDF', () => {
+  test('converts DOCX and produces a downloadable PDF', async ({ page }) => {
+    await page.goto('/tools/file-tools/word-to-pdf');
+    await page.waitForLoadState('networkidle');
+
+    await uploadFile(page, path.join(FIXTURES, 'complex.docx'));
+    await waitForProcessing(page, 30000);
+
+    // Preview should show document content
+    await expect(page.getByText('Annual Performance Review').first()).toBeVisible({
+      timeout: 20000,
+    });
+    await expect(page.getByText('Executive Summary').first()).toBeVisible();
+
+    // Should NOT show an error
+    const errors = page.locator('[class*="red-50"]');
+    await expect(errors).toHaveCount(0);
+
+    // Download button should be available
+    const downloadBtn = page.getByRole('button', { name: /download.*pdf/i }).first();
+    await expect(downloadBtn).toBeVisible();
+    await expect(downloadBtn).toBeEnabled();
+
+    // Click download and verify a file is produced
+    const download = await clickAndWaitForDownload(page, downloadBtn);
+    expect(download.suggestedFilename()).toMatch(/\.pdf$/i);
+
+    const { size } = await saveDownload(download);
+    expect(size).toBeGreaterThan(1000); // PDF should be at least 1KB
+  });
+});
+
+// ════════════════════════════════════════════════════════════════
+//  PDF TO WORD
+// ════════════════════════════════════════════════════════════════
+
+test.describe('PDF to Word', () => {
+  test('extracts text from PDF and produces a downloadable DOCX', async ({ page }) => {
+    await page.goto('/tools/file-tools/pdf-to-word');
+    await page.waitForLoadState('networkidle');
+
+    await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
+    await waitForProcessing(page, 30000);
+
+    // Preview should show extracted text
+    await expect(page.getByText('CONFIDENTIAL').first()).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText('Quarterly Financial Report').first()).toBeVisible();
+
+    // Should show page count
+    await expect(page.getByText(/\d+\s*page/i).first()).toBeVisible();
+
+    // Should NOT show error
+    const errors = page.locator('[class*="red-50"]').filter({
+      hasText: /error|failed|corrupt|encrypt/i,
+    });
+    await expect(errors).toHaveCount(0);
+
+    // Download button should be available
+    const downloadBtn = page.getByRole('button', { name: /download/i });
+    await expect(downloadBtn).toBeVisible();
+    await expect(downloadBtn).toBeEnabled();
+
+    // Click download and verify a DOCX is produced
+    const download = await clickAndWaitForDownload(page, downloadBtn);
+    expect(download.suggestedFilename()).toMatch(/\.docx$/i);
+
+    const { size } = await saveDownload(download);
+    expect(size).toBeGreaterThan(500); // DOCX should be at least 500 bytes
+  });
+});
 
 // ════════════════════════════════════════════════════════════════
 //  IMAGE TOOLS
 // ════════════════════════════════════════════════════════════════
 
 test.describe('Image Compressor', () => {
-  test('compresses a high-res JPEG photo', async ({ page }) => {
+  test('compresses a JPEG and shows size savings', async ({ page }) => {
     await page.goto('/tools/file-tools/image-compressor');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'test-photo.jpg'));
     await waitForProcessing(page);
 
-    // Should show compressed result with file name
     await expect(page.getByText('test-photo')).toBeVisible({ timeout: 15000 });
-
-    // Should show size savings
     await expect(page.getByText(/\(-?\d+%\)/)).toBeVisible({ timeout: 5000 });
-
-    // Download button should be available
     await expect(page.getByRole('button', { name: /download/i }).first()).toBeVisible();
   });
 
@@ -64,7 +172,6 @@ test.describe('Image Compressor', () => {
     await uploadFile(page, path.join(FIXTURES, 'test-image.png'));
     await waitForProcessing(page);
 
-    // Should display compressed result
     await expect(page.getByText('test-image')).toBeVisible({ timeout: 10000 });
   });
 });
@@ -76,10 +183,8 @@ test.describe('Image Resizer', () => {
 
     await uploadFile(page, path.join(FIXTURES, 'test-image.png'));
 
-    // Should show original dimensions (1200×800) somewhere in the info
     await expect(page.getByText(/1200\s*×\s*800/).first()).toBeVisible({ timeout: 10000 });
 
-    // Width and Height input fields should be populated
     const widthInput = page.locator('input[type="number"]').first();
     await expect(widthInput).toHaveValue('1200', { timeout: 5000 });
   });
@@ -93,10 +198,7 @@ test.describe('Image Format Converter', () => {
     await uploadFile(page, path.join(FIXTURES, 'test-image.png'));
     await waitForProcessing(page);
 
-    // Should show conversion result with file name
     await expect(page.getByText('test-image.jpg')).toBeVisible({ timeout: 10000 });
-
-    // Download button should be available
     await expect(page.getByRole('button', { name: /download/i }).first()).toBeVisible();
   });
 
@@ -104,32 +206,24 @@ test.describe('Image Format Converter', () => {
     await page.goto('/tools/file-tools/image-format-converter');
     await page.waitForLoadState('networkidle');
 
-    // Select PNG as target format (value is MIME type)
     await page.locator('#target-format').selectOption('image/png');
-
     await uploadFile(page, path.join(FIXTURES, 'test-image.webp'));
     await waitForProcessing(page);
 
-    // Should show converted result
     await expect(page.getByText('test-image.png')).toBeVisible({ timeout: 15000 });
   });
 });
 
 test.describe('SVG to PNG', () => {
-  test('converts complex SVG with gradients and filters', async ({ page }) => {
+  test('converts SVG and produces downloadable PNG', async ({ page }) => {
     await page.goto('/tools/file-tools/svg-to-png');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.svg'));
     await waitForProcessing(page);
 
-    // Should show PNG preview image
     await expect(page.locator('img[alt*="PNG preview"]')).toBeVisible({ timeout: 15000 });
-
-    // Should show dimensions (width × height)
     await expect(page.getByText(/\d+\s*×\s*\d+\s*px/).first()).toBeVisible({ timeout: 5000 });
-
-    // Download button should appear
     await expect(page.getByRole('button', { name: /download png/i })).toBeVisible();
   });
 });
@@ -139,20 +233,14 @@ test.describe('Images to PDF', () => {
     await page.goto('/tools/file-tools/images-to-pdf');
     await page.waitForLoadState('networkidle');
 
-    // Upload two images
     await uploadFiles(page, [
       path.join(FIXTURES, 'test-image.png'),
       path.join(FIXTURES, 'test-image-2.png'),
     ]);
 
-    // Wait for images to load — should show "2 images"
     await expect(page.getByText(/2\s*image/)).toBeVisible({ timeout: 10000 });
-
-    // Both images should appear in the list
     await expect(page.getByText('test-image.png')).toBeVisible();
     await expect(page.getByText('test-image-2.png')).toBeVisible();
-
-    // Download PDF button should be available
     await expect(page.getByRole('button', { name: /download pdf/i })).toBeVisible();
   });
 });
@@ -171,14 +259,9 @@ test.describe('PDF Merge', () => {
       path.join(FIXTURES, 'complex-2.pdf'),
     ]);
 
-    // Should show both files
     await expect(page.getByText('complex.pdf').first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('complex-2.pdf')).toBeVisible({ timeout: 10000 });
-
-    // Total pages should show (3 + 2 = 5)
     await expect(page.getByText(/5\s*total\s*page/i)).toBeVisible({ timeout: 10000 });
-
-    // Merge button should be available
     await expect(page.getByRole('button', { name: /merge/i })).toBeVisible();
   });
 });
@@ -190,25 +273,19 @@ test.describe('PDF Split', () => {
 
     await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
 
-    // Should show page count (3 pages)
     await expect(page.getByText(/3\s*pages/i).first()).toBeVisible({ timeout: 15000 });
-
-    // Extract/Split button should appear
     await expect(page.getByRole('button', { name: /extract|split/i })).toBeVisible();
   });
 });
 
 test.describe('PDF Compress', () => {
-  test('loads a multi-page PDF and shows compress button', async ({ page }) => {
+  test('loads a PDF and shows compress button', async ({ page }) => {
     await page.goto('/tools/file-tools/pdf-compress');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
 
-    // Should show the file info (3 pages)
     await expect(page.getByText(/3\s*pages/i).first()).toBeVisible({ timeout: 15000 });
-
-    // Compress button should be visible
     await expect(page.getByRole('button', { name: /compress pdf/i })).toBeVisible();
   });
 });
@@ -220,37 +297,10 @@ test.describe('PDF to Image', () => {
 
     await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
 
-    // Should show the loaded file info (3 pages)
     await expect(page.getByText(/3\s*pages/i).first()).toBeVisible({ timeout: 15000 });
-
-    // Convert button or page images should appear
-    // The component may auto-convert or show a convert button
     await expect(
       page.getByRole('button', { name: /convert|download/i }).first()
     ).toBeVisible({ timeout: 20000 });
-  });
-});
-
-test.describe('PDF to Word', () => {
-  test('extracts text from complex PDF and converts to DOCX', async ({ page }) => {
-    await page.goto('/tools/file-tools/pdf-to-word');
-    await page.waitForLoadState('networkidle');
-
-    await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
-    await waitForProcessing(page, 30000);
-
-    // Should show extracted text preview with content from the PDF
-    await expect(page.getByText('CONFIDENTIAL').first()).toBeVisible({ timeout: 20000 });
-
-    // Should also find other PDF content
-    await expect(page.getByText('Quarterly Financial Report').first()).toBeVisible();
-
-    // Should NOT show an error message about encryption/corruption
-    const errorMessages = page.locator('[class*="red"]').filter({ hasText: /error|failed|corrupt|encrypt/i });
-    await expect(errorMessages).toHaveCount(0);
-
-    // Download button should be available
-    await expect(page.getByRole('button', { name: /download/i })).toBeVisible();
   });
 });
 
@@ -258,48 +308,20 @@ test.describe('PDF to Word', () => {
 //  DOCUMENT CONVERSION TOOLS
 // ════════════════════════════════════════════════════════════════
 
-test.describe('Word to PDF', () => {
-  test('converts complex DOCX with tables and formatting', async ({ page }) => {
-    await page.goto('/tools/file-tools/word-to-pdf');
-    await page.waitForLoadState('networkidle');
-
-    await uploadFile(page, path.join(FIXTURES, 'complex.docx'));
-    await waitForProcessing(page, 30000);
-
-    // Should show preview of the document content
-    await expect(page.getByText('Annual Performance Review').first()).toBeVisible({ timeout: 20000 });
-
-    // Should show Executive Summary heading
-    await expect(page.getByText('Executive Summary').first()).toBeVisible();
-
-    // Should NOT show "too complex" error
-    const tooComplex = page.locator('text=too complex');
-    await expect(tooComplex).toHaveCount(0);
-
-    // Download/Convert button should be available
-    await expect(page.getByRole('button', { name: /download|pdf/i }).first()).toBeVisible();
-  });
-});
-
 test.describe('Excel to PDF', () => {
-  test('converts multi-sheet XLSX with 50 rows', async ({ page }) => {
+  test('converts XLSX and shows table preview', async ({ page }) => {
     await page.goto('/tools/file-tools/excel-to-pdf');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.xlsx'));
     await waitForProcessing(page, 30000);
 
-    // Should show preview header with sheet info
     await expect(page.getByText(/Preview:.*Employees/i)).toBeVisible({ timeout: 20000 });
-
-    // Should show table preview with actual data
     await expect(page.getByText('FirstName1').first()).toBeVisible();
 
-    // Should NOT show an error
-    const errorMessages = page.locator('[class*="red"]').filter({ hasText: /error|failed/i });
-    await expect(errorMessages).toHaveCount(0);
+    const errors = page.locator('[class*="red"]').filter({ hasText: /error|failed/i });
+    await expect(errors).toHaveCount(0);
 
-    // Download button should be available
     await expect(page.getByRole('button', { name: /download.*pdf/i })).toBeVisible();
   });
 });
@@ -309,35 +331,36 @@ test.describe('Excel to PDF', () => {
 // ════════════════════════════════════════════════════════════════
 
 test.describe('CSV to JSON Converter', () => {
-  test('converts complex CSV with quoted fields to JSON', async ({ page }) => {
+  test('converts CSV with quoted fields and produces valid JSON', async ({ page }) => {
     await page.goto('/tools/file-tools/csv-json');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.csv'));
 
-    // Wait for output to populate
     const output = page.locator('#csv-json-output');
     await expect(output).not.toHaveValue('', { timeout: 10000 });
 
-    // Verify the JSON output contains expected data
     const outputText = await output.inputValue();
+
+    // Verify JSON is valid
+    const parsed = JSON.parse(outputText);
+    expect(Array.isArray(parsed)).toBe(true);
+    expect(parsed.length).toBeGreaterThan(0);
+
+    // Verify content from the CSV
     expect(outputText).toContain('Alice Johnson');
     expect(outputText).toContain('95000');
+    expect(outputText).toContain('Chicago, IL'); // quoted field with comma
 
-    // Verify quoted fields with commas were parsed correctly
-    expect(outputText).toContain('Chicago, IL');
-
-    // Copy/Download should be available
     await expect(page.getByRole('button', { name: 'Download' })).toBeVisible();
   });
 });
 
 test.describe('JSON to CSV Converter', () => {
-  test('converts complex JSON to CSV', async ({ page }) => {
+  test('converts JSON to CSV with headers and data rows', async ({ page }) => {
     await page.goto('/tools/file-tools/csv-json');
     await page.waitForLoadState('networkidle');
 
-    // Switch to JSON → CSV mode by clicking the toggle button
     await page.getByRole('button', { name: /csv.*json|json.*csv/i }).click();
 
     await uploadFile(page, path.join(FIXTURES, 'complex.json'));
@@ -346,43 +369,47 @@ test.describe('JSON to CSV Converter', () => {
     await expect(output).not.toHaveValue('', { timeout: 10000 });
 
     const outputText = await output.inputValue();
-    // Should contain CSV headers
+
+    // Verify CSV structure: has headers and data
+    const lines = outputText.trim().split('\n');
+    expect(lines.length).toBeGreaterThan(1); // header + at least 1 data row
+
     expect(outputText).toContain('id');
     expect(outputText).toContain('name');
     expect(outputText).toContain('department');
-    // Should contain data rows
     expect(outputText).toContain('Employee 1');
   });
 });
 
 test.describe('Markdown to HTML Converter', () => {
-  test('converts complex Markdown to HTML', async ({ page }) => {
+  test('converts Markdown to valid HTML with semantic tags', async ({ page }) => {
     await page.goto('/tools/file-tools/markdown-html');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.md'));
 
-    // Wait for output to populate
     const output = page.locator('#md-html-output');
     await expect(output).not.toHaveValue('', { timeout: 10000 });
 
     const outputText = await output.inputValue();
-    // Should contain converted HTML tags
+
+    // Verify HTML structure
     expect(outputText).toContain('<h1>');
     expect(outputText).toContain('<strong>');
     expect(outputText).toContain('<code');
 
-    // Copy/Download should be available
+    // Verify it's not just the raw markdown
+    expect(outputText).not.toMatch(/^# /m);
+
     await expect(page.getByRole('button', { name: 'Download' })).toBeVisible();
   });
 });
 
 test.describe('HTML to Markdown Converter', () => {
-  test('converts complex HTML to Markdown', async ({ page }) => {
+  test('converts HTML to Markdown with proper formatting', async ({ page }) => {
     await page.goto('/tools/file-tools/markdown-html');
     await page.waitForLoadState('networkidle');
 
-    // Switch to HTML → Markdown mode
     await page.getByRole('button', { name: /markdown.*html|html.*markdown/i }).click();
 
     await uploadFile(page, path.join(FIXTURES, 'complex.html'));
@@ -391,14 +418,18 @@ test.describe('HTML to Markdown Converter', () => {
     await expect(output).not.toHaveValue('', { timeout: 10000 });
 
     const outputText = await output.inputValue();
-    // Should contain markdown formatting
+
+    // Verify markdown formatting
     expect(outputText).toContain('# ');
     expect(outputText).toContain('**');
+
+    // Verify it's not just raw HTML
+    expect(outputText).not.toContain('<h1>');
   });
 });
 
 // ════════════════════════════════════════════════════════════════
-//  HEIC (may not work without native support — test gracefully)
+//  HEIC
 // ════════════════════════════════════════════════════════════════
 
 test.describe('HEIC to JPG', () => {
@@ -406,9 +437,7 @@ test.describe('HEIC to JPG', () => {
     await page.goto('/tools/file-tools/heic-to-jpg');
     await page.waitForLoadState('networkidle');
 
-    // Just verify the tool page loads correctly
     await expect(page.getByText(/heic/i).first()).toBeVisible();
-    // Upload zone should be visible
     await expect(page.locator('input[type="file"]')).toBeAttached();
   });
 });

@@ -1,12 +1,33 @@
 /**
- * PDF to Word — extract text from PDF and generate a DOCX using pdfjs-dist + docx.
- * Preserves bold/italic from font names, detects tables from coordinate clustering,
- * extracts colors and font sizes. Client-side only. No server upload.
+ * PDF to Word — extract text + images from PDF and generate a DOCX.
+ * Uses pdfjs-dist for extraction and the docx library for DOCX generation.
+ *
+ * Key improvements over naive approaches:
+ *  - Paragraph merging: consecutive body-text lines → single paragraphs
+ *  - Proportional font sizes: PDF sizes mapped to DOCX half-points
+ *  - Heading detection: H1/H2/H3 via font-size ratio + text length
+ *  - Image extraction: embedded raster images pulled from PDF operators
+ *  - List detection: bullet/number prefixes start new paragraphs
+ *  - Hyphen handling: trailing hyphens at line breaks are removed
+ *
+ * Client-side only. No server upload.
  */
 import { useState, useCallback } from 'react';
 import { Download, FileText } from 'lucide-react';
 import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
+import {
+  type TextItem,
+  type ExtractedPage,
+  type ExtractedImage,
+  parseFontStyle,
+  groupIntoLines,
+  detectTables,
+  mergeParagraphLines,
+  findBodyFontSize,
+  pdfSizeToDocxHalfPoints,
+  detectHeadingLevel,
+} from '../../lib/pdf-word-utils';
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -14,173 +35,85 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-interface TextItem {
-  str: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fontSize: number;
-  fontName: string;
-  isBold: boolean;
-  isItalic: boolean;
-}
+/**
+ * Extract embedded raster images from a PDF page via its operator list.
+ * Returns PNG blobs for each image found.
+ */
+async function extractPageImages(
+  page: { getOperatorList: () => Promise<{ fnArray: number[]; argsArray: unknown[][] }>; objs: { get: (name: string, cb: (data: unknown) => void) => void }; getViewport: (opts: { scale: number }) => { height: number } },
+  OPS: Record<string, number>
+): Promise<ExtractedImage[]> {
+  const images: ExtractedImage[] = [];
 
-interface TextRun {
-  text: string;
-  bold: boolean;
-  italic: boolean;
-  fontSize: number;
-}
+  try {
+    const ops = await page.getOperatorList();
+    const viewport = page.getViewport({ scale: 1 });
 
-interface ExtractedLine {
-  runs: TextRun[];
-  fontSize: number;
-  x: number;
-}
+    for (let i = 0; i < ops.fnArray.length; i++) {
+      if (
+        ops.fnArray[i] === OPS.paintImageXObject ||
+        ops.fnArray[i] === OPS.paintJpegXObject
+      ) {
+        const imageName = ops.argsArray[i][0] as string;
 
-interface TableCell {
-  runs: TextRun[];
-}
+        try {
+          const imgData = await new Promise<{
+            data: Uint8ClampedArray;
+            width: number;
+            height: number;
+          }>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('timeout')), 3000);
+            page.objs.get(imageName, (data: unknown) => {
+              clearTimeout(timeout);
+              const d = data as { data?: Uint8ClampedArray; width?: number; height?: number };
+              if (d?.data && d.width && d.height) {
+                resolve({ data: d.data, width: d.width, height: d.height });
+              } else {
+                reject(new Error('no data'));
+              }
+            });
+          });
 
-interface TableRow {
-  cells: TableCell[];
-}
+          // Skip tiny images (icons, bullets, decoration < 20×20)
+          if (imgData.width < 20 || imgData.height < 20) continue;
 
-interface ExtractedBlock {
-  type: 'paragraph' | 'table';
-  lines?: ExtractedLine[];
-  rows?: TableRow[];
-}
+          // Convert raw RGBA to PNG via canvas
+          const canvas = document.createElement('canvas');
+          canvas.width = imgData.width;
+          canvas.height = imgData.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) continue;
 
-interface ExtractedPage {
-  pageNum: number;
-  blocks: ExtractedBlock[];
-}
+          const imageData = new ImageData(
+            new Uint8ClampedArray(imgData.data),
+            imgData.width,
+            imgData.height
+          );
+          ctx.putImageData(imageData, 0, 0);
 
-/** Detect bold/italic from PDF font name (e.g. "TimesNewRoman-Bold", "Arial-BoldItalic") */
-function parseFontStyle(fontName: string): { bold: boolean; italic: boolean } {
-  const lower = fontName.toLowerCase();
-  return {
-    bold: lower.includes('bold') || lower.includes('heavy') || lower.includes('black'),
-    italic: lower.includes('italic') || lower.includes('oblique'),
-  };
-}
+          const blob = await new Promise<Blob | null>((resolve) =>
+            canvas.toBlob(resolve, 'image/png')
+          );
+          if (!blob) continue;
 
-/** Group text items into lines using Y-coordinate tolerance */
-function groupIntoLines(items: TextItem[]): ExtractedLine[] {
-  if (items.length === 0) return [];
+          const pngData = new Uint8Array(await blob.arrayBuffer());
 
-  // Sort by Y descending (PDF coords are bottom-up), then X ascending
-  const sorted = [...items].sort((a, b) => b.y - a.y || a.x - b.x);
-
-  // Group into lines by Y tolerance (within 3 PDF units = same line)
-  const lineGroups: { items: TextItem[]; y: number }[] = [];
-  for (const item of sorted) {
-    const existing = lineGroups.find((l) => Math.abs(l.y - item.y) <= 3);
-    if (existing) {
-      existing.items.push(item);
-    } else {
-      lineGroups.push({ items: [item], y: item.y });
-    }
-  }
-
-  // Sort lines top-to-bottom
-  lineGroups.sort((a, b) => b.y - a.y);
-
-  return lineGroups.map((group) => {
-    group.items.sort((a, b) => a.x - b.x);
-
-    // Build runs: consecutive items with same bold/italic get merged
-    const runs: TextRun[] = [];
-    for (let i = 0; i < group.items.length; i++) {
-      const item = group.items[i];
-      let gap = '';
-      if (i > 0) {
-        const prev = group.items[i - 1];
-        const distance = item.x - (prev.x + prev.width);
-        if (distance > prev.fontSize * 2) gap = '\t';
-        else if (distance > 0.5) gap = ' ';
-      }
-
-      const text = gap + item.str;
-      const lastRun = runs[runs.length - 1];
-
-      // Merge into existing run if same style
-      if (lastRun && lastRun.bold === item.isBold && lastRun.italic === item.isItalic) {
-        lastRun.text += text;
-      } else {
-        runs.push({ text, bold: item.isBold, italic: item.isItalic, fontSize: item.fontSize });
+          images.push({
+            data: pngData,
+            width: imgData.width,
+            height: imgData.height,
+            y: viewport.height / 2, // approximate position
+          });
+        } catch {
+          // Skip images that fail to extract (encrypted, corrupt, etc.)
+        }
       }
     }
-
-    // Use median font size for the line
-    const sizes = group.items.map((it) => it.fontSize);
-    const medianSize = sizes.sort((a, b) => a - b)[Math.floor(sizes.length / 2)];
-
-    return { runs, fontSize: medianSize, x: group.items[0]?.x ?? 0 };
-  }).filter((l) => l.runs.some((r) => r.text.trim().length > 0));
-}
-
-/** Detect table structures from lines by finding consistent column X positions */
-function detectTables(lines: ExtractedLine[]): ExtractedBlock[] {
-  if (lines.length < 3) {
-    return [{ type: 'paragraph', lines }];
+  } catch {
+    // Operator list access failed — continue without images
   }
 
-  // Look for groups of consecutive lines with tab characters (likely table rows)
-  const blocks: ExtractedBlock[] = [];
-  let currentParaLines: ExtractedLine[] = [];
-  let currentTableLines: ExtractedLine[] = [];
-
-  for (const line of lines) {
-    const fullText = line.runs.map((r) => r.text).join('');
-    const hasTab = fullText.includes('\t');
-
-    if (hasTab) {
-      // Flush current paragraph lines
-      if (currentParaLines.length > 0) {
-        blocks.push({ type: 'paragraph', lines: currentParaLines });
-        currentParaLines = [];
-      }
-      currentTableLines.push(line);
-    } else {
-      // Flush table lines
-      if (currentTableLines.length > 0) {
-        blocks.push(buildTable(currentTableLines));
-        currentTableLines = [];
-      }
-      currentParaLines.push(line);
-    }
-  }
-
-  // Flush remaining
-  if (currentTableLines.length > 0) blocks.push(buildTable(currentTableLines));
-  if (currentParaLines.length > 0) blocks.push({ type: 'paragraph', lines: currentParaLines });
-
-  return blocks;
-}
-
-function buildTable(lines: ExtractedLine[]): ExtractedBlock {
-  const rows: TableRow[] = lines.map((line) => {
-    const fullText = line.runs.map((r) => r.text).join('');
-    const cellTexts = fullText.split('\t');
-    return {
-      cells: cellTexts.map((text) => ({
-        runs: [{ text: text.trim(), bold: line.runs[0]?.bold ?? false, italic: false, fontSize: line.fontSize }],
-      })),
-    };
-  });
-
-  // Normalize column count
-  const maxCols = Math.max(...rows.map((r) => r.cells.length));
-  for (const row of rows) {
-    while (row.cells.length < maxCols) {
-      row.cells.push({ runs: [{ text: '', bold: false, italic: false, fontSize: 11 }] });
-    }
-  }
-
-  return { type: 'table', rows };
+  return images;
 }
 
 export default function PdfToWord() {
@@ -214,7 +147,8 @@ export default function PdfToWord() {
         for (const item of textContent.items) {
           if ('str' in item && item.str && 'transform' in item) {
             const t = item.transform as number[];
-            const fontName = ('fontName' in item ? (item as { fontName: string }).fontName : '') || '';
+            const fontName =
+              ('fontName' in item ? (item as { fontName: string }).fontName : '') || '';
             const style = parseFontStyle(fontName);
             items.push({
               str: item.str,
@@ -232,7 +166,14 @@ export default function PdfToWord() {
 
         const lines = groupIntoLines(items);
         const blocks = detectTables(lines);
-        extracted.push({ pageNum: i, blocks });
+
+        // Extract embedded images from this page
+        const pageImages = await extractPageImages(
+          page as unknown as Parameters<typeof extractPageImages>[0],
+          pdfjsLib.OPS
+        );
+
+        extracted.push({ pageNum: i, blocks, images: pageImages });
       }
       setFile(f);
       setPages(extracted);
@@ -249,73 +190,149 @@ export default function PdfToWord() {
 
     try {
       const docxLib = await import('docx');
-      const { Document, Packer, Paragraph, TextRun, PageBreak, Table, TableRow: DocxTableRow,
-        TableCell: DocxTableCell, WidthType, BorderStyle, AlignmentType } = docxLib;
+      const {
+        Document,
+        Packer,
+        Paragraph,
+        TextRun,
+        ImageRun,
+        PageBreak,
+        Table,
+        TableRow: DocxTableRow,
+        TableCell: DocxTableCell,
+        WidthType,
+        HeadingLevel,
+      } = docxLib;
 
-      const children: (InstanceType<typeof Paragraph> | InstanceType<typeof Table>)[] = [];
+      type ParagraphChild = InstanceType<typeof TextRun> | InstanceType<typeof ImageRun>;
+      type SectionChild = InstanceType<typeof Paragraph> | InstanceType<typeof Table>;
 
-      // Determine body text size
-      const allSizes = pages.flatMap((p) =>
-        p.blocks.flatMap((b) => b.lines?.map((l) => l.fontSize) ?? [])
-      );
-      const sizeFreq = new Map<number, number>();
-      for (const s of allSizes) {
-        const rounded = Math.round(s);
-        sizeFreq.set(rounded, (sizeFreq.get(rounded) || 0) + 1);
-      }
-      let bodySize = 12;
-      let maxFreq = 0;
-      for (const [size, freq] of sizeFreq) {
-        if (freq > maxFreq) { bodySize = size; maxFreq = freq; }
-      }
+      const children: SectionChild[] = [];
 
-      for (let pi = 0; pi < pages.length; pi++) {
+      // ── Pre-process: find body size & merge paragraph lines ──────
+
+      const bodySize = findBodyFontSize(pages);
+
+      const processedPages = pages.map((p) => ({
+        ...p,
+        blocks: mergeParagraphLines(p.blocks, bodySize),
+      }));
+
+      // ── Build DOCX content ──────────────────────────────────────
+
+      for (let pi = 0; pi < processedPages.length; pi++) {
         if (pi > 0) {
           children.push(new Paragraph({ children: [new PageBreak()] }));
         }
 
-        for (const block of pages[pi].blocks) {
+        const page = processedPages[pi];
+
+        for (const block of page.blocks) {
           if (block.type === 'table' && block.rows && block.rows.length > 0) {
-            // Generate a proper DOCX table
-            const rows = block.rows.map((row, ri) =>
-              new DocxTableRow({
-                children: row.cells.map((cell) =>
-                  new DocxTableCell({
-                    children: [new Paragraph({
-                      children: cell.runs.map((run) => new TextRun({
-                        text: run.text,
-                        bold: run.bold || ri === 0,
-                        size: 20,
-                        font: 'Calibri',
-                      })),
-                    })],
-                    width: { size: 100 / row.cells.length, type: WidthType.PERCENTAGE },
-                  })
-                ),
-              })
+            // ── Table ────────────────────────────────────────────
+            const rows = block.rows.map(
+              (row, ri) =>
+                new DocxTableRow({
+                  children: row.cells.map(
+                    (cell) =>
+                      new DocxTableCell({
+                        children: [
+                          new Paragraph({
+                            children: cell.runs.map(
+                              (run) =>
+                                new TextRun({
+                                  text: run.text,
+                                  bold: run.bold || ri === 0,
+                                  size: pdfSizeToDocxHalfPoints(run.fontSize, bodySize),
+                                  font: 'Calibri',
+                                })
+                            ),
+                          }),
+                        ],
+                        width: {
+                          size: 100 / row.cells.length,
+                          type: WidthType.PERCENTAGE,
+                        },
+                      })
+                  ),
+                })
             );
 
-            children.push(new Table({
-              rows,
-              width: { size: 100, type: WidthType.PERCENTAGE },
-            }));
+            children.push(
+              new Table({
+                rows,
+                width: { size: 100, type: WidthType.PERCENTAGE },
+              })
+            );
             children.push(new Paragraph({ text: '' }));
           } else if (block.lines) {
+            // ── Paragraphs ───────────────────────────────────────
             for (const line of block.lines) {
-              const isHeading = line.fontSize > bodySize * 1.2 && line.runs.map((r) => r.text).join('').length < 120;
-              const lineText = line.runs.map((r) => r.text).join('');
+              const headingLevel = detectHeadingLevel(line, bodySize);
 
-              children.push(new Paragraph({
-                children: line.runs.map((run) => new TextRun({
-                  text: run.text,
-                  bold: run.bold || isHeading,
-                  italics: run.italic,
-                  size: isHeading ? 28 : 22,
-                  font: 'Calibri',
-                })),
-                spacing: { after: isHeading ? 200 : 80 },
-                indent: line.x > 100 ? { left: Math.min(Math.round((line.x - 50) * 10), 1440) } : undefined,
-              }));
+              const headingMap: Record<number, (typeof HeadingLevel)[keyof typeof HeadingLevel] | undefined> = {
+                1: HeadingLevel.HEADING_1,
+                2: HeadingLevel.HEADING_2,
+                3: HeadingLevel.HEADING_3,
+                0: undefined,
+              };
+
+              const docxRuns: ParagraphChild[] = line.runs.map(
+                (run) =>
+                  new TextRun({
+                    text: run.text,
+                    bold: run.bold || headingLevel > 0,
+                    italics: run.italic,
+                    size: pdfSizeToDocxHalfPoints(run.fontSize, bodySize),
+                    font: 'Calibri',
+                  })
+              );
+
+              children.push(
+                new Paragraph({
+                  children: docxRuns,
+                  heading: headingMap[headingLevel],
+                  spacing: {
+                    after: headingLevel > 0 ? 200 : 120,
+                    before: headingLevel === 1 ? 240 : headingLevel > 0 ? 160 : 0,
+                  },
+                  indent:
+                    line.x > 100
+                      ? { left: Math.min(Math.round((line.x - 50) * 10), 1440) }
+                      : undefined,
+                })
+              );
+            }
+          }
+        }
+
+        // ── Embed extracted images for this page ─────────────────
+        if (page.images && page.images.length > 0) {
+          for (const img of page.images) {
+            // Scale image to fit within page width (max ~600px for A4 at 96 DPI)
+            const maxWidth = 580;
+            let w = img.width;
+            let h = img.height;
+            if (w > maxWidth) {
+              h = Math.round(h * (maxWidth / w));
+              w = maxWidth;
+            }
+
+            try {
+              children.push(
+                new Paragraph({
+                  children: [
+                    new ImageRun({
+                      data: img.data,
+                      transformation: { width: w, height: h },
+                      type: 'png',
+                    }),
+                  ],
+                  spacing: { before: 120, after: 120 },
+                })
+              );
+            } catch {
+              // Skip images that fail to embed
             }
           }
         }
@@ -335,9 +352,13 @@ export default function PdfToWord() {
     setGenerating(false);
   }, [pages, file]);
 
-  const totalLines = pages.reduce((sum, p) =>
-    sum + p.blocks.reduce((bs, b) => bs + (b.lines?.length ?? 0) + (b.rows?.length ?? 0), 0), 0
+  const totalLines = pages.reduce(
+    (sum, p) =>
+      sum +
+      p.blocks.reduce((bs, b) => bs + (b.lines?.length ?? 0) + (b.rows?.length ?? 0), 0),
+    0
   );
+  const totalImages = pages.reduce((sum, p) => sum + (p.images?.length ?? 0), 0);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -357,7 +378,10 @@ export default function PdfToWord() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-neutral-900 truncate">{file.name}</p>
-                <p className="text-xs text-neutral-500">{pageCount} page{pageCount !== 1 ? 's' : ''} — {totalLines} lines extracted</p>
+                <p className="text-xs text-neutral-500">
+                  {pageCount} page{pageCount !== 1 ? 's' : ''} — {totalLines} text blocks
+                  {totalImages > 0 && ` — ${totalImages} image${totalImages !== 1 ? 's' : ''}`}
+                </p>
               </div>
             </div>
 
@@ -368,7 +392,10 @@ export default function PdfToWord() {
             >
               {generating ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                  <div
+                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                    aria-hidden="true"
+                  />
                   Generating DOCX...
                 </>
               ) : (
@@ -380,7 +407,8 @@ export default function PdfToWord() {
             </button>
 
             <p className="text-xs text-neutral-400">
-              Preserves bold, italic, headings, and tables. Scanned/image-only PDFs need OCR (not supported).
+              Preserves text, bold, italic, headings, tables, and embedded images. Scanned or
+              image-only PDFs need OCR (not supported in-browser).
             </p>
           </div>
         )}
@@ -388,13 +416,18 @@ export default function PdfToWord() {
 
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+            {error}
+          </div>
         )}
 
         {processing && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-primary-50 border border-primary-200">
-            <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-            <span className="text-sm text-primary-700">Extracting text from PDF...</span>
+            <div
+              className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"
+              aria-hidden="true"
+            />
+            <span className="text-sm text-primary-700">Extracting text and images from PDF...</span>
           </div>
         )}
 
@@ -413,9 +446,21 @@ export default function PdfToWord() {
                         <table key={bi} className="w-full text-xs border-collapse mb-3">
                           <tbody>
                             {block.rows.map((row, ri) => (
-                              <tr key={ri} className={ri === 0 ? 'bg-neutral-100 font-medium' : ri % 2 === 0 ? 'bg-neutral-50' : ''}>
+                              <tr
+                                key={ri}
+                                className={
+                                  ri === 0
+                                    ? 'bg-neutral-100 font-medium'
+                                    : ri % 2 === 0
+                                      ? 'bg-neutral-50'
+                                      : ''
+                                }
+                              >
                                 {row.cells.map((cell, ci) => (
-                                  <td key={ci} className="border border-neutral-200 px-2 py-1 text-neutral-700">
+                                  <td
+                                    key={ci}
+                                    className="border border-neutral-200 px-2 py-1 text-neutral-700"
+                                  >
                                     {cell.runs.map((r) => r.text).join('')}
                                   </td>
                                 ))}
@@ -426,25 +471,42 @@ export default function PdfToWord() {
                       );
                     }
                     return block.lines?.map((line, li) => (
-                      <p key={`${bi}-${li}`} className="text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap">
+                      <p
+                        key={`${bi}-${li}`}
+                        className="text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap"
+                      >
                         {line.runs.map((run, ri) => (
-                          <span key={ri} className={`${run.bold ? 'font-bold' : ''} ${run.italic ? 'italic' : ''}`}>
+                          <span
+                            key={ri}
+                            className={`${run.bold ? 'font-bold' : ''} ${run.italic ? 'italic' : ''}`}
+                          >
                             {run.text}
                           </span>
                         ))}
                       </p>
                     ));
                   })}
+                  {page.images && page.images.length > 0 && (
+                    <p className="text-xs text-neutral-400 mt-2">
+                      {page.images.length} embedded image{page.images.length !== 1 ? 's' : ''} extracted
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
           </div>
-        ) : !processing && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
-            <p className="text-sm text-neutral-500">Upload a PDF to convert it to a Word document</p>
-            <p className="text-xs text-neutral-400 mt-1">Extracts text with formatting and generates an editable .docx</p>
-          </div>
+        ) : (
+          !processing && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
+              <p className="text-sm text-neutral-500">
+                Upload a PDF to convert it to a Word document
+              </p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Extracts text, formatting, and images into an editable .docx
+              </p>
+            </div>
+          )
         )}
       </div>
     </div>
