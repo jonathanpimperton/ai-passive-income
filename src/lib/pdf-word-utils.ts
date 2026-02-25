@@ -1,6 +1,12 @@
 /**
  * Pure utility functions for PDF text extraction and DOCX reconstruction.
  * Extracted from PdfToWord.tsx so they can be unit-tested independently.
+ *
+ * Key design principle: CONSERVATIVE merging. A PDF line break is preserved
+ * unless there's strong evidence it was caused by text wrapping (the previous
+ * line fills >85% of the available text width). This prevents address blocks,
+ * label-value pairs, and other intentionally-short lines from being mashed
+ * into run-on paragraphs.
  */
 
 // ── Types ────────────────────────────────────────────────────────
@@ -27,7 +33,12 @@ export interface TextRun {
 export interface ExtractedLine {
   runs: TextRun[];
   fontSize: number;
+  /** Left X position (PDF units) */
   x: number;
+  /** Rightmost extent of text on this line (PDF units). Used to detect
+   *  whether a line fills the full text width (wrapping) or ends short
+   *  (intentional line break). */
+  endX: number;
 }
 
 export interface TableCell {
@@ -45,13 +56,9 @@ export interface ExtractedBlock {
 }
 
 export interface ExtractedImage {
-  /** Raw PNG blob data */
   data: Uint8Array;
-  /** Width in pixels */
   width: number;
-  /** Height in pixels */
   height: number;
-  /** Approximate Y position on the page (PDF coords, bottom-up) */
   y: number;
 }
 
@@ -63,7 +70,6 @@ export interface ExtractedPage {
 
 // ── Font Style Detection ─────────────────────────────────────────
 
-/** Detect bold/italic from PDF font name (e.g. "TimesNewRoman-Bold", "Arial-BoldItalic") */
 export function parseFontStyle(fontName: string): { bold: boolean; italic: boolean } {
   const lower = fontName.toLowerCase();
   return {
@@ -85,14 +91,16 @@ export function parseFontStyle(fontName: string): { bold: boolean; italic: boole
  * Within each line, items are sorted left-to-right, and consecutive items
  * with the same bold/italic style are merged into runs.
  * Large horizontal gaps become tab characters (for table detection later).
+ *
+ * Each line tracks `endX` — the rightmost text extent — used later
+ * to decide whether the line fills the page width (wrapping) or is
+ * intentionally short.
  */
 export function groupIntoLines(items: TextItem[], yTolerance = 3): ExtractedLine[] {
   if (items.length === 0) return [];
 
-  // Sort by Y descending (PDF coords are bottom-up), then X ascending
   const sorted = [...items].sort((a, b) => b.y - a.y || a.x - b.x);
 
-  // Group into lines by Y tolerance
   const lineGroups: { items: TextItem[]; y: number }[] = [];
   for (const item of sorted) {
     const existing = lineGroups.find((l) => Math.abs(l.y - item.y) <= yTolerance);
@@ -103,14 +111,12 @@ export function groupIntoLines(items: TextItem[], yTolerance = 3): ExtractedLine
     }
   }
 
-  // Sort lines top-to-bottom (higher Y = higher on page)
   lineGroups.sort((a, b) => b.y - a.y);
 
   return lineGroups
     .map((group) => {
       group.items.sort((a, b) => a.x - b.x);
 
-      // Build runs: consecutive items with same bold/italic get merged
       const runs: TextRun[] = [];
       for (let i = 0; i < group.items.length; i++) {
         const item = group.items[i];
@@ -125,7 +131,6 @@ export function groupIntoLines(items: TextItem[], yTolerance = 3): ExtractedLine
         const text = gap + item.str;
         const lastRun = runs[runs.length - 1];
 
-        // Merge into existing run if same style
         if (lastRun && lastRun.bold === item.isBold && lastRun.italic === item.isItalic) {
           lastRun.text += text;
         } else {
@@ -133,22 +138,20 @@ export function groupIntoLines(items: TextItem[], yTolerance = 3): ExtractedLine
         }
       }
 
-      // Use median font size for the line
       const sizes = group.items.map((it) => it.fontSize).sort((a, b) => a - b);
       const medianSize = sizes[Math.floor(sizes.length / 2)];
 
-      return { runs, fontSize: medianSize, x: group.items[0]?.x ?? 0 };
+      // Calculate endX: rightmost extent of the last text item
+      const lastItem = group.items[group.items.length - 1];
+      const endX = lastItem.x + lastItem.width;
+
+      return { runs, fontSize: medianSize, x: group.items[0]?.x ?? 0, endX };
     })
     .filter((l) => l.runs.some((r) => r.text.trim().length > 0));
 }
 
 // ── Table Detection ──────────────────────────────────────────────
 
-/**
- * Build a table block from a set of lines.
- * Each line is split by tab characters into cells.
- * Column count is normalized (padded with empty cells).
- */
 export function buildTable(lines: ExtractedLine[]): ExtractedBlock {
   const rows: TableRow[] = lines.map((line) => {
     const fullText = line.runs.map((r) => r.text).join('');
@@ -167,7 +170,6 @@ export function buildTable(lines: ExtractedLine[]): ExtractedBlock {
     };
   });
 
-  // Normalize column count
   const maxCols = Math.max(...rows.map((r) => r.cells.length));
   for (const row of rows) {
     while (row.cells.length < maxCols) {
@@ -178,11 +180,6 @@ export function buildTable(lines: ExtractedLine[]): ExtractedBlock {
   return { type: 'table', rows };
 }
 
-/**
- * Detect table structures from lines by finding consecutive lines with tab
- * characters (large horizontal gaps between text items).
- * Interleaves paragraph and table blocks.
- */
 export function detectTables(lines: ExtractedLine[]): ExtractedBlock[] {
   if (lines.length === 0) return [];
   if (lines.length < 3) {
@@ -212,35 +209,65 @@ export function detectTables(lines: ExtractedLine[]): ExtractedBlock[] {
     }
   }
 
-  // Flush remaining
   if (currentTableLines.length > 0) blocks.push(buildTable(currentTableLines));
   if (currentParaLines.length > 0) blocks.push({ type: 'paragraph', lines: currentParaLines });
 
   return blocks;
 }
 
+// ── Right Margin Estimation ──────────────────────────────────────
+
+/**
+ * Estimate the right edge of the text area by finding the maximum endX
+ * among body-sized lines. This represents where text hits the right margin
+ * when it fills the full line width (i.e., wrapping lines).
+ *
+ * Returns 0 if no body-sized lines are found (caller should skip merging).
+ */
+export function estimateRightMargin(pages: ExtractedPage[], bodySize: number): number {
+  let maxEndX = 0;
+  for (const page of pages) {
+    for (const block of page.blocks) {
+      if (block.lines) {
+        for (const line of block.lines) {
+          if (Math.abs(line.fontSize - bodySize) < 1.5 && line.endX > maxEndX) {
+            maxEndX = line.endX;
+          }
+        }
+      }
+    }
+  }
+  return maxEndX;
+}
+
 // ── Paragraph Merging ────────────────────────────────────────────
 
 /**
- * Merge consecutive body-text lines within paragraph blocks into single
- * logical paragraphs.  Without this, every wrapped PDF line becomes its
- * own paragraph in the DOCX output, which looks terrible.
+ * CONSERVATIVELY merge consecutive body-text lines that were wrapped
+ * by the PDF renderer. The key heuristic:
  *
- * Lines are merged when they share:
- *  - similar font size (within 1.5 units of body size)
- *  - similar left margin (within 30 PDF units)
- *  - are NOT heading-sized
+ *   Only merge line N+1 into line N if line N fills >85% of the
+ *   available text width — meaning its text ran to near the right
+ *   margin, strongly suggesting the line break was caused by wrapping,
+ *   not by intentional formatting.
  *
- * A new paragraph starts on:
- *  - font size change
- *  - left margin shift
- *  - heading-like text (large font + short text)
- *  - lines starting with bullet/number characters
+ * This prevents address blocks, dates, label-value pairs, and other
+ * intentionally-short lines from being mashed together.
+ *
+ * Additional conditions for merging:
+ *  - Same font size (within 1.5 units)
+ *  - Same left margin (within 30 PDF units)
+ *  - Body-sized text (not headings)
+ *  - Next line doesn't start with bullet/number
  */
 export function mergeParagraphLines(
   blocks: ExtractedBlock[],
-  bodySize: number
+  bodySize: number,
+  rightMargin: number
 ): ExtractedBlock[] {
+  // If we couldn't estimate the right margin, skip merging entirely
+  if (rightMargin <= 0) return blocks;
+
   return blocks.map((block) => {
     if (block.type !== 'paragraph' || !block.lines || block.lines.length <= 1) {
       return block;
@@ -264,13 +291,30 @@ export function mergeParagraphLines(
       const isHeading = line.fontSize > bodySize * 1.15;
       const prevIsHeading = prev.fontSize > bodySize * 1.15;
 
+      // KEY HEURISTIC: did the previous line fill the available text width?
+      // If the text area runs from prev.x to rightMargin, the available width
+      // is (rightMargin - prev.x). The prev line used (prev.endX - prev.x).
+      // Only merge if prev line fills >85% of available width.
+      const availableWidth = rightMargin - prev.x;
+      const prevLineWidth = prev.endX - prev.x;
+      const prevFillsWidth = availableWidth > 0 && prevLineWidth > availableWidth * 0.85;
+
       // Check if line starts with a bullet or number (list item)
       const lineText = line.runs.map((r) => r.text).join('').trimStart();
-      const isList = /^[\u2022\u2023\u25E6\u25AA\u25CF\u2013\u2014•\-–—]\s/.test(lineText) ||
+      const isList =
+        /^[\u2022\u2023\u25E6\u25AA\u25CF\u2013\u2014•\-–—]\s/.test(lineText) ||
         /^\d{1,3}[.)]\s/.test(lineText);
 
-      // Merge if: same font size, similar margin, body-sized, not heading, not list item
-      if (sameSize && sameMargin && isBodySize && !isHeading && !prevIsHeading && !isList) {
+      // Merge ONLY if: same style, body-sized, AND previous line fills the width
+      if (
+        sameSize &&
+        sameMargin &&
+        isBodySize &&
+        !isHeading &&
+        !prevIsHeading &&
+        !isList &&
+        prevFillsWidth
+      ) {
         current.push(line);
       } else {
         groups.push(current);
@@ -279,19 +323,16 @@ export function mergeParagraphLines(
     }
     if (current.length > 0) groups.push(current);
 
-    // Convert each group of lines into a single merged line
     const mergedLines: ExtractedLine[] = groups.map((group) => {
       if (group.length === 1) return group[0];
 
       const allRuns: TextRun[] = [];
       for (let i = 0; i < group.length; i++) {
         if (i > 0) {
-          // Join lines with a space (unless previous ends with hyphen = word break)
           const lastRun = allRuns[allRuns.length - 1];
           if (lastRun) {
             const lastChar = lastRun.text.trimEnd().slice(-1);
             if (lastChar === '-') {
-              // Remove trailing hyphen (word was hyphenated across lines)
               lastRun.text = lastRun.text.replace(/-\s*$/, '');
             } else if (!lastRun.text.endsWith(' ')) {
               lastRun.text += ' ';
@@ -299,7 +340,6 @@ export function mergeParagraphLines(
           }
         }
         for (const run of group[i].runs) {
-          // Try to merge with previous run if same style
           const lastRun = allRuns[allRuns.length - 1];
           if (lastRun && lastRun.bold === run.bold && lastRun.italic === run.italic) {
             lastRun.text += run.text;
@@ -313,6 +353,7 @@ export function mergeParagraphLines(
         runs: allRuns,
         fontSize: group[0].fontSize,
         x: group[0].x,
+        endX: group[group.length - 1].endX,
       };
     });
 
@@ -322,10 +363,6 @@ export function mergeParagraphLines(
 
 // ── Font Size Helpers ────────────────────────────────────────────
 
-/**
- * Find the most frequently used font size across all pages.
- * This is the "body text" size — everything else is relative to it.
- */
 export function findBodyFontSize(pages: ExtractedPage[]): number {
   const sizeFreq = new Map<number, number>();
   for (const page of pages) {
@@ -350,20 +387,12 @@ export function findBodyFontSize(pages: ExtractedPage[]): number {
   return bodySize;
 }
 
-/**
- * Map a PDF font size to DOCX half-points, proportional to body text.
- * Body text = 22 half-points (11pt). Clamped to reasonable range.
- */
 export function pdfSizeToDocxHalfPoints(pdfSize: number, bodySize: number): number {
   const ratio = pdfSize / bodySize;
   const docxSize = Math.round(22 * ratio);
-  return Math.max(16, Math.min(56, docxSize)); // 8pt – 28pt
+  return Math.max(16, Math.min(56, docxSize));
 }
 
-/**
- * Classify a line as a heading level (0 = body, 1 = H1, 2 = H2, 3 = H3).
- * Based on font size relative to body text and text length.
- */
 export function detectHeadingLevel(
   line: ExtractedLine,
   bodySize: number
@@ -371,11 +400,10 @@ export function detectHeadingLevel(
   const ratio = line.fontSize / bodySize;
   const text = line.runs.map((r) => r.text).join('');
 
-  // Only short-ish text can be a heading
   if (text.length > 120) return 0;
 
-  if (ratio >= 1.6) return 1; // H1: 60%+ larger
-  if (ratio >= 1.3) return 2; // H2: 30-59% larger
-  if (ratio >= 1.15) return 3; // H3: 15-29% larger
+  if (ratio >= 1.6) return 1;
+  if (ratio >= 1.3) return 2;
+  if (ratio >= 1.15) return 3;
   return 0;
 }

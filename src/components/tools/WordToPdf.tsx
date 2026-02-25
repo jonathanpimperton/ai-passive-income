@@ -1,7 +1,8 @@
 /**
- * Word to PDF — convert DOCX to PDF using mammoth.js + html2pdf.js.
- * mammoth extracts structured HTML from the DOCX, then html2pdf.js renders
- * the styled HTML to a paginated PDF. Client-side only. No server upload.
+ * Word to PDF — convert DOCX to PDF using mammoth.js + jsPDF + html2canvas.
+ * mammoth extracts structured HTML from the DOCX, we render it into a hidden
+ * DOM element, html2canvas screenshots it, and jsPDF paginates it into A4 pages.
+ * Client-side only. No server upload.
  */
 import { useState, useCallback, useRef } from 'react';
 import { Download, FileText } from 'lucide-react';
@@ -52,24 +53,33 @@ export default function WordToPdf() {
     setConverting(true);
     setError('');
 
-    try {
-      const html2pdf = (await import('html2pdf.js')).default;
+    // Strategy: render HTML into a visible DOM element, use html2canvas to
+    // capture it as a canvas, then slice that canvas into A4 pages with jsPDF.
+    // We use jsPDF + html2canvas directly (NOT html2pdf.js which produces blank output).
 
-      // Create an off-screen container with clean document styling.
-      // This is separate from the visible preview so we control the render
-      // exactly (no Tailwind prose styles, no border/shadow, A4 proportions).
-      const container = document.createElement('div');
+    const container = document.createElement('div');
+    const style = document.createElement('style');
+
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
       container.className = 'word-to-pdf-render';
       container.innerHTML = htmlContent;
 
-      // Inject scoped styles for the off-screen render
-      const style = document.createElement('style');
+      // The element must be in-viewport for html2canvas to capture it.
+      // We position it at 0,0 behind everything with z-index -1.
       style.textContent = `
         .word-to-pdf-render {
-          position: absolute;
-          left: -9999px;
+          position: fixed;
           top: 0;
-          width: 170mm;
+          left: 0;
+          z-index: -1;
+          pointer-events: none;
+          width: 754px;
+          padding: 20px;
           font-family: 'Times New Roman', 'Georgia', serif;
           font-size: 12pt;
           line-height: 1.5;
@@ -96,28 +106,67 @@ export default function WordToPdf() {
       document.head.appendChild(style);
       document.body.appendChild(container);
 
-      const pdfFilename = file.name.replace(/\.docx?$/i, '') + '.pdf';
+      // Wait for layout + paint
+      await new Promise<void>((r) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => r()))
+      );
+      await new Promise((r) => setTimeout(r, 300));
 
-      await html2pdf()
-        .set({
-          margin: [15, 15, 15, 15],
-          filename: pdfFilename,
-          image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            letterRendering: true,
-            logging: false,
-          },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-        })
-        .from(container)
-        .save();
+      // Capture the rendered HTML as a canvas
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      // A4 dimensions in mm
+      const pageW = 210;
+      const pageH = 297;
+      const margin = 15; // mm on each side
+      const contentW = pageW - margin * 2;
+      const contentH = pageH - margin * 2;
+
+      // Calculate how much of the canvas fits per page
+      const imgWidthPx = canvas.width;
+      const imgHeightPx = canvas.height;
+      const pxPerMm = imgWidthPx / contentW; // pixels per mm at this scale
+      const pageHeightPx = contentH * pxPerMm; // canvas pixels per page
+
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const totalPages = Math.ceil(imgHeightPx / pageHeightPx);
+
+      for (let i = 0; i < totalPages; i++) {
+        if (i > 0) pdf.addPage();
+
+        // Slice a page-height strip from the full canvas
+        const sliceY = i * pageHeightPx;
+        const sliceH = Math.min(pageHeightPx, imgHeightPx - sliceY);
+
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = imgWidthPx;
+        pageCanvas.height = sliceH;
+        const ctx = pageCanvas.getContext('2d');
+        if (!ctx) continue;
+
+        // Fill white background first (prevents transparent edges)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, sliceY, imgWidthPx, sliceH, 0, 0, imgWidthPx, sliceH);
+
+        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+        const sliceHMm = sliceH / pxPerMm;
+        pdf.addImage(pageImgData, 'JPEG', margin, margin, contentW, sliceHMm);
+      }
+
+      const pdfFilename = file.name.replace(/\.docx?$/i, '') + '.pdf';
+      pdf.save(pdfFilename);
 
       document.body.removeChild(container);
       document.head.removeChild(style);
     } catch (e) {
+      try { document.body.removeChild(container); } catch {}
+      try { document.head.removeChild(style); } catch {}
       setError(
         'PDF conversion failed. ' +
           (e instanceof Error ? e.message : 'Please try a simpler document.')

@@ -25,6 +25,7 @@ import {
   detectTables,
   mergeParagraphLines,
   findBodyFontSize,
+  estimateRightMargin,
   pdfSizeToDocxHalfPoints,
   detectHeadingLevel,
 } from '../../lib/pdf-word-utils';
@@ -209,13 +210,14 @@ export default function PdfToWord() {
 
       const children: SectionChild[] = [];
 
-      // ── Pre-process: find body size & merge paragraph lines ──────
+      // ── Pre-process: find body size, right margin, merge paragraph lines ──
 
       const bodySize = findBodyFontSize(pages);
+      const rightMargin = estimateRightMargin(pages, bodySize);
 
       const processedPages = pages.map((p) => ({
         ...p,
-        blocks: mergeParagraphLines(p.blocks, bodySize),
+        blocks: mergeParagraphLines(p.blocks, bodySize, rightMargin),
       }));
 
       // ── Build DOCX content ──────────────────────────────────────
