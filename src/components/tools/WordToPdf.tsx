@@ -1,7 +1,15 @@
 /**
- * Word to PDF — convert DOCX to PDF using mammoth.js + jsPDF + html2canvas.
- * mammoth extracts structured HTML from the DOCX, we render it into a hidden
- * DOM element, html2canvas screenshots it, and jsPDF paginates it into A4 pages.
+ * Word to PDF — convert DOCX to PDF using mammoth.js + html2canvas + jsPDF.
+ *
+ * Pipeline:
+ *  1. mammoth extracts structured HTML from the DOCX
+ *  2. Render into a hidden DOM element at exact A4 content-area width
+ *  3. html2canvas captures it as a high-res canvas
+ *  4. jsPDF paginates it into A4 pages with smart page-break detection
+ *
+ * The rendering CSS closely matches Word's default styles (Calibri 11pt,
+ * 1.15 line-height, 1-inch margins) for high visual fidelity.
+ *
  * Client-side only. No server upload.
  */
 import { useState, useCallback, useRef } from 'react';
@@ -35,7 +43,15 @@ export default function WordToPdf() {
     try {
       const mammoth = await import('mammoth');
       const arrayBuffer = await f.arrayBuffer();
-      const result = await mammoth.convertToHtml({ arrayBuffer });
+
+      // Use mammoth's convertToHtml with style map for better fidelity
+      const result = await mammoth.convertToHtml({
+        arrayBuffer,
+        options: {
+          includeDefaultStyleMap: true,
+        },
+      } as Parameters<typeof mammoth.convertToHtml>[0]);
+
       const DOMPurify = (await import('dompurify')).default;
       setFile(f);
       setHtmlContent(DOMPurify.sanitize(result.value));
@@ -53,10 +69,6 @@ export default function WordToPdf() {
     setConverting(true);
     setError('');
 
-    // Strategy: render HTML into a visible DOM element, use html2canvas to
-    // capture it as a canvas, then slice that canvas into A4 pages with jsPDF.
-    // We use jsPDF + html2canvas directly (NOT html2pdf.js which produces blank output).
-
     const container = document.createElement('div');
     const style = document.createElement('style');
 
@@ -69,8 +81,14 @@ export default function WordToPdf() {
       container.className = 'word-to-pdf-render';
       container.innerHTML = htmlContent;
 
-      // The element must be in-viewport for html2canvas to capture it.
-      // We position it at 0,0 behind everything with z-index -1.
+      // Render at exact A4 content width for accurate page dimensions.
+      // A4 = 210mm × 297mm. With 1-inch (25.4mm) margins on each side:
+      //   Content width = 210 - 50.8 = 159.2mm
+      //   At 96 DPI: 159.2mm / 25.4mm × 96px = 601px
+      // We render at this width so the canvas maps exactly to A4 content area.
+      const CONTENT_WIDTH_PX = 601;
+      const MARGIN_MM = 25.4; // 1 inch
+
       style.textContent = `
         .word-to-pdf-render {
           position: fixed;
@@ -78,41 +96,114 @@ export default function WordToPdf() {
           left: 0;
           z-index: -1;
           pointer-events: none;
-          width: 754px;
-          padding: 20px;
-          font-family: 'Times New Roman', 'Georgia', serif;
-          font-size: 12pt;
-          line-height: 1.5;
+          width: ${CONTENT_WIDTH_PX}px;
+          padding: 0;
+          margin: 0;
+          font-family: 'Calibri', 'Carlito', 'Segoe UI', 'Liberation Sans', 'Arial', sans-serif;
+          font-size: 11pt;
+          line-height: 1.15;
           color: #000;
           background: #fff;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
         }
-        .word-to-pdf-render h1 { font-size: 22pt; margin: 18pt 0 10pt; font-weight: bold; }
-        .word-to-pdf-render h2 { font-size: 18pt; margin: 16pt 0 8pt; font-weight: bold; }
-        .word-to-pdf-render h3 { font-size: 14pt; margin: 14pt 0 6pt; font-weight: bold; }
-        .word-to-pdf-render h4 { font-size: 12pt; margin: 12pt 0 4pt; font-weight: bold; }
-        .word-to-pdf-render p  { margin: 0 0 8pt; }
-        .word-to-pdf-render ul, .word-to-pdf-render ol { margin: 6pt 0; padding-left: 24pt; }
-        .word-to-pdf-render li { margin: 3pt 0; }
-        .word-to-pdf-render table { border-collapse: collapse; width: 100%; margin: 10pt 0; }
+        .word-to-pdf-render h1 {
+          font-size: 20pt; margin: 12pt 0 6pt; font-weight: bold;
+          font-family: 'Calibri Light', 'Calibri', 'Carlito', 'Segoe UI', sans-serif;
+          color: #2F5496;
+        }
+        .word-to-pdf-render h2 {
+          font-size: 16pt; margin: 10pt 0 4pt; font-weight: bold;
+          font-family: 'Calibri Light', 'Calibri', 'Carlito', 'Segoe UI', sans-serif;
+          color: #2F5496;
+        }
+        .word-to-pdf-render h3 {
+          font-size: 13pt; margin: 8pt 0 4pt; font-weight: bold;
+          font-family: 'Calibri Light', 'Calibri', 'Carlito', 'Segoe UI', sans-serif;
+          color: #1F3864;
+        }
+        .word-to-pdf-render h4 {
+          font-size: 11pt; margin: 6pt 0 2pt; font-weight: bold;
+          font-style: italic;
+          color: #2F5496;
+        }
+        .word-to-pdf-render p {
+          margin: 0 0 8pt;
+          orphans: 2;
+          widows: 2;
+        }
+        .word-to-pdf-render ul, .word-to-pdf-render ol {
+          margin: 4pt 0;
+          padding-left: 36pt;
+        }
+        .word-to-pdf-render li {
+          margin: 2pt 0;
+        }
+        .word-to-pdf-render table {
+          border-collapse: collapse;
+          width: 100%;
+          margin: 8pt 0;
+        }
         .word-to-pdf-render th,
-        .word-to-pdf-render td { border: 1px solid #999; padding: 5pt 8pt; text-align: left; font-size: 10pt; vertical-align: top; }
-        .word-to-pdf-render th { background: #f0f4f8; font-weight: bold; }
-        .word-to-pdf-render img { max-width: 100%; height: auto; }
-        .word-to-pdf-render a { color: #1a56db; text-decoration: underline; }
-        .word-to-pdf-render blockquote { margin: 8pt 0; padding-left: 12pt; border-left: 3pt solid #ccc; color: #444; }
-        .word-to-pdf-render pre, .word-to-pdf-render code { font-family: 'Courier New', monospace; font-size: 10pt; background: #f5f5f5; padding: 2pt 4pt; }
-        .word-to-pdf-render pre { padding: 8pt; margin: 8pt 0; overflow-x: auto; }
+        .word-to-pdf-render td {
+          border: 1px solid #a6a6a6;
+          padding: 4pt 6pt;
+          text-align: left;
+          font-size: 10pt;
+          vertical-align: top;
+        }
+        .word-to-pdf-render th {
+          background: #d9e2f3;
+          font-weight: bold;
+          color: #1F3864;
+        }
+        .word-to-pdf-render img {
+          max-width: 100%;
+          height: auto;
+        }
+        .word-to-pdf-render a {
+          color: #0563C1;
+          text-decoration: underline;
+        }
+        .word-to-pdf-render blockquote {
+          margin: 6pt 0;
+          padding-left: 12pt;
+          border-left: 3pt solid #d9e2f3;
+          color: #404040;
+          font-style: italic;
+        }
+        .word-to-pdf-render pre, .word-to-pdf-render code {
+          font-family: 'Consolas', 'Courier New', monospace;
+          font-size: 10pt;
+          background: #f2f2f2;
+          padding: 2pt 4pt;
+        }
+        .word-to-pdf-render pre {
+          padding: 8pt;
+          margin: 6pt 0;
+          overflow-x: auto;
+          border: 1px solid #d9d9d9;
+        }
+        .word-to-pdf-render strong, .word-to-pdf-render b {
+          font-weight: bold;
+        }
+        .word-to-pdf-render em, .word-to-pdf-render i {
+          font-style: italic;
+        }
+        .word-to-pdf-render u {
+          text-decoration: underline;
+        }
       `;
       document.head.appendChild(style);
       document.body.appendChild(container);
 
-      // Wait for layout + paint
+      // Wait for layout + font loading + paint
       await new Promise<void>((r) =>
         requestAnimationFrame(() => requestAnimationFrame(() => r()))
       );
-      await new Promise((r) => setTimeout(r, 300));
+      await new Promise((r) => setTimeout(r, 400));
 
-      // Capture the rendered HTML as a canvas
+      // Capture the rendered HTML as a high-res canvas
       const canvas = await html2canvas(container, {
         scale: 2,
         useCORS: true,
@@ -123,49 +214,48 @@ export default function WordToPdf() {
       // A4 dimensions in mm
       const pageW = 210;
       const pageH = 297;
-      const margin = 15; // mm on each side
-      const contentW = pageW - margin * 2;
-      const contentH = pageH - margin * 2;
+      const contentW = pageW - MARGIN_MM * 2; // 159.2mm
+      const contentH = pageH - MARGIN_MM * 2; // 246.2mm
 
       const imgWidthPx = canvas.width;
       const imgHeightPx = canvas.height;
       const pxPerMm = imgWidthPx / contentW;
       const pageHeightPx = contentH * pxPerMm;
 
-      // Get pixel data once to scan for natural break points
+      // Get pixel data to find natural page-break points
       const fullCtx = canvas.getContext('2d');
       const fullPixels = fullCtx?.getImageData(0, 0, imgWidthPx, imgHeightPx).data;
 
       /**
-       * Find the nearest all-white row to `targetY` within a search range.
+       * Scan upward from `targetY` to find the nearest all-white row.
        * This prevents page breaks from cutting through text mid-line.
-       * Scans upward from targetY by up to `searchRange` pixels.
        */
       function findBreakPoint(targetY: number, searchRange: number): number {
         if (!fullPixels) return targetY;
         const end = Math.min(targetY, imgHeightPx);
         const start = Math.max(0, end - searchRange);
 
-        // Scan upward from targetY looking for a white row
         for (let row = end; row >= start; row--) {
           let isWhite = true;
           const rowOffset = row * imgWidthPx * 4;
-          // Sample every 4th pixel across the row (performance)
           for (let x = 0; x < imgWidthPx; x += 4) {
             const idx = rowOffset + x * 4;
-            if (fullPixels[idx] < 250 || fullPixels[idx + 1] < 250 || fullPixels[idx + 2] < 250) {
+            if (
+              fullPixels[idx] < 250 ||
+              fullPixels[idx + 1] < 250 ||
+              fullPixels[idx + 2] < 250
+            ) {
               isWhite = false;
               break;
             }
           }
           if (isWhite) return row;
         }
-        return targetY; // Fallback: no white row found, cut at original position
+        return targetY;
       }
 
       const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
-      // Build page slices by finding natural break points
       let currentY = 0;
       let pageIndex = 0;
 
@@ -176,14 +266,11 @@ export default function WordToPdf() {
         const remaining = imgHeightPx - currentY;
 
         if (remaining <= pageHeightPx) {
-          // Last page — take everything remaining
           sliceEnd = imgHeightPx;
         } else {
-          // Find a natural break point near the ideal page boundary
-          // Search within ~50px (~2 text lines) upward from the ideal break
           const idealEnd = currentY + pageHeightPx;
-          sliceEnd = findBreakPoint(Math.round(idealEnd), Math.round(pxPerMm * 10));
-          // If findBreakPoint returned same as currentY (degenerate), use ideal
+          // Search within ~12mm (about 3 text lines) for a natural break
+          sliceEnd = findBreakPoint(Math.round(idealEnd), Math.round(pxPerMm * 12));
           if (sliceEnd <= currentY) sliceEnd = Math.round(idealEnd);
         }
 
@@ -192,7 +279,11 @@ export default function WordToPdf() {
         pageCanvas.width = imgWidthPx;
         pageCanvas.height = sliceH;
         const ctx = pageCanvas.getContext('2d');
-        if (!ctx) { currentY = sliceEnd; pageIndex++; continue; }
+        if (!ctx) {
+          currentY = sliceEnd;
+          pageIndex++;
+          continue;
+        }
 
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
@@ -200,7 +291,7 @@ export default function WordToPdf() {
 
         const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
         const sliceHMm = sliceH / pxPerMm;
-        pdf.addImage(pageImgData, 'JPEG', margin, margin, contentW, sliceHMm);
+        pdf.addImage(pageImgData, 'JPEG', MARGIN_MM, MARGIN_MM, contentW, sliceHMm);
 
         currentY = sliceEnd;
         pageIndex++;
@@ -212,8 +303,12 @@ export default function WordToPdf() {
       document.body.removeChild(container);
       document.head.removeChild(style);
     } catch (e) {
-      try { document.body.removeChild(container); } catch {}
-      try { document.head.removeChild(style); } catch {}
+      try {
+        document.body.removeChild(container);
+      } catch {}
+      try {
+        document.head.removeChild(style);
+      } catch {}
       setError(
         'PDF conversion failed. ' +
           (e instanceof Error ? e.message : 'Please try a simpler document.')
@@ -277,8 +372,8 @@ export default function WordToPdf() {
             )}
 
             <p className="text-xs text-neutral-400">
-              Renders your document as a high-fidelity PDF. Tables, lists, and formatting are
-              preserved. Very complex layouts may differ slightly from the original.
+              Renders your document as a high-fidelity PDF with proper A4 layout and margins.
+              Tables, lists, and formatting are preserved.
             </p>
           </div>
         )}
