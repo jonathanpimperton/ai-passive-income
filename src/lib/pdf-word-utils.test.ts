@@ -36,10 +36,10 @@ const RIGHT_MARGIN = 523;
 
 function makeLine(
   text: string,
-  opts: { fontSize?: number; x?: number; endX?: number; bold?: boolean; italic?: boolean } = {}
+  opts: { fontSize?: number; x?: number; y?: number; endX?: number; bold?: boolean; italic?: boolean } = {}
 ): ExtractedLine {
-  const { fontSize = 12, x = 72, endX = 200, bold = false, italic = false } = opts;
-  return { runs: [{ text, bold, italic, fontSize }], fontSize, x, endX };
+  const { fontSize = 12, x = 72, y = 700, endX = 200, bold = false, italic = false } = opts;
+  return { runs: [{ text, bold, italic, fontSize }], fontSize, x, y, endX };
 }
 
 function makeFullWidthLine(text: string, x = 72): ExtractedLine {

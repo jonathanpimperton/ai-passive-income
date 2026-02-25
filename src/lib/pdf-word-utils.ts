@@ -35,6 +35,8 @@ export interface ExtractedLine {
   fontSize: number;
   /** Left X position (PDF units) */
   x: number;
+  /** Y position (PDF units, bottom-up: higher Y = higher on page) */
+  y: number;
   /** Rightmost extent of text on this line (PDF units). Used to detect
    *  whether a line fills the full text width (wrapping) or ends short
    *  (intentional line break). */
@@ -145,7 +147,7 @@ export function groupIntoLines(items: TextItem[], yTolerance = 3): ExtractedLine
       const lastItem = group.items[group.items.length - 1];
       const endX = lastItem.x + lastItem.width;
 
-      return { runs, fontSize: medianSize, x: group.items[0]?.x ?? 0, endX };
+      return { runs, fontSize: medianSize, x: group.items[0]?.x ?? 0, y: group.y, endX };
     })
     .filter((l) => l.runs.some((r) => r.text.trim().length > 0));
 }
@@ -353,6 +355,7 @@ export function mergeParagraphLines(
         runs: allRuns,
         fontSize: group[0].fontSize,
         x: group[0].x,
+        y: group[0].y,
         endX: group[group.length - 1].endX,
       };
     });

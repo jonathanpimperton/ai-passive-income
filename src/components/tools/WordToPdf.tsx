@@ -127,36 +127,83 @@ export default function WordToPdf() {
       const contentW = pageW - margin * 2;
       const contentH = pageH - margin * 2;
 
-      // Calculate how much of the canvas fits per page
       const imgWidthPx = canvas.width;
       const imgHeightPx = canvas.height;
-      const pxPerMm = imgWidthPx / contentW; // pixels per mm at this scale
-      const pageHeightPx = contentH * pxPerMm; // canvas pixels per page
+      const pxPerMm = imgWidthPx / contentW;
+      const pageHeightPx = contentH * pxPerMm;
+
+      // Get pixel data once to scan for natural break points
+      const fullCtx = canvas.getContext('2d');
+      const fullPixels = fullCtx?.getImageData(0, 0, imgWidthPx, imgHeightPx).data;
+
+      /**
+       * Find the nearest all-white row to `targetY` within a search range.
+       * This prevents page breaks from cutting through text mid-line.
+       * Scans upward from targetY by up to `searchRange` pixels.
+       */
+      function findBreakPoint(targetY: number, searchRange: number): number {
+        if (!fullPixels) return targetY;
+        const end = Math.min(targetY, imgHeightPx);
+        const start = Math.max(0, end - searchRange);
+
+        // Scan upward from targetY looking for a white row
+        for (let row = end; row >= start; row--) {
+          let isWhite = true;
+          const rowOffset = row * imgWidthPx * 4;
+          // Sample every 4th pixel across the row (performance)
+          for (let x = 0; x < imgWidthPx; x += 4) {
+            const idx = rowOffset + x * 4;
+            if (fullPixels[idx] < 250 || fullPixels[idx + 1] < 250 || fullPixels[idx + 2] < 250) {
+              isWhite = false;
+              break;
+            }
+          }
+          if (isWhite) return row;
+        }
+        return targetY; // Fallback: no white row found, cut at original position
+      }
 
       const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      const totalPages = Math.ceil(imgHeightPx / pageHeightPx);
 
-      for (let i = 0; i < totalPages; i++) {
-        if (i > 0) pdf.addPage();
+      // Build page slices by finding natural break points
+      let currentY = 0;
+      let pageIndex = 0;
 
-        // Slice a page-height strip from the full canvas
-        const sliceY = i * pageHeightPx;
-        const sliceH = Math.min(pageHeightPx, imgHeightPx - sliceY);
+      while (currentY < imgHeightPx) {
+        if (pageIndex > 0) pdf.addPage();
 
+        let sliceEnd: number;
+        const remaining = imgHeightPx - currentY;
+
+        if (remaining <= pageHeightPx) {
+          // Last page — take everything remaining
+          sliceEnd = imgHeightPx;
+        } else {
+          // Find a natural break point near the ideal page boundary
+          // Search within ~50px (~2 text lines) upward from the ideal break
+          const idealEnd = currentY + pageHeightPx;
+          sliceEnd = findBreakPoint(Math.round(idealEnd), Math.round(pxPerMm * 10));
+          // If findBreakPoint returned same as currentY (degenerate), use ideal
+          if (sliceEnd <= currentY) sliceEnd = Math.round(idealEnd);
+        }
+
+        const sliceH = sliceEnd - currentY;
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = imgWidthPx;
         pageCanvas.height = sliceH;
         const ctx = pageCanvas.getContext('2d');
-        if (!ctx) continue;
+        if (!ctx) { currentY = sliceEnd; pageIndex++; continue; }
 
-        // Fill white background first (prevents transparent edges)
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        ctx.drawImage(canvas, 0, sliceY, imgWidthPx, sliceH, 0, 0, imgWidthPx, sliceH);
+        ctx.drawImage(canvas, 0, currentY, imgWidthPx, sliceH, 0, 0, imgWidthPx, sliceH);
 
         const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
         const sliceHMm = sliceH / pxPerMm;
         pdf.addImage(pageImgData, 'JPEG', margin, margin, contentW, sliceHMm);
+
+        currentY = sliceEnd;
+        pageIndex++;
       }
 
       const pdfFilename = file.name.replace(/\.docx?$/i, '') + '.pdf';
