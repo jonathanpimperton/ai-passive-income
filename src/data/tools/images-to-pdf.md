@@ -15,10 +15,6 @@ relatedTools:
   - "image-resizer"
   - "image-format-converter"
   - "svg-to-png"
-affiliateContext: "Protect your privacy when creating PDFs"
-affiliatePrograms:
-  - "NordVPN"
-  - "NordPass"
 workedExamples:
   - title: "Scanned document for submission"
     inputs:

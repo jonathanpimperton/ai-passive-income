@@ -163,7 +163,7 @@ export default function ImagesToPdf() {
           multiple
           onFiles={handleFiles}
         />
-        <div className="bg-white rounded-2xl border border-neutral-200/80 p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5 space-y-4">
           <div>
             <label htmlFor="pdf-page-size" className="block text-sm font-medium text-neutral-700 mb-1">Page size</label>
             <select
@@ -248,7 +248,7 @@ export default function ImagesToPdf() {
 
             <div className="space-y-2">
               {images.map((img, i) => (
-                <div key={img.id} className="flex items-center gap-3 bg-white rounded-xl border border-neutral-200/80 p-3">
+                <div key={img.id} className="flex items-center gap-3 bg-white rounded-xl border border-neutral-200/80 shadow-card p-3">
                   <div className="flex flex-col gap-0.5">
                     <button
                       onClick={() => moveImage(i, -1)}
