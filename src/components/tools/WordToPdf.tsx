@@ -1,18 +1,19 @@
 /**
- * Word to PDF — convert DOCX to PDF using mammoth.js + html2canvas + jsPDF.
+ * Word to PDF — convert DOCX to PDF by parsing the OOXML directly.
  *
  * Pipeline:
- *  1. mammoth extracts structured HTML from the DOCX
- *  2. Render into a hidden DOM element at exact A4 content-area width
- *  3. html2canvas captures it as a high-res canvas
- *  4. jsPDF paginates it into A4 pages with smart page-break detection
+ *  1. JSZip extracts the DOCX (it's a ZIP of XML files)
+ *  2. Parse word/document.xml + word/styles.xml for exact formatting
+ *  3. Render faithful HTML preserving fonts, sizes, colors, tables, images
+ *  4. html2canvas captures the rendered HTML at high resolution
+ *  5. jsPDF paginates into A4 pages with smart page-break detection
  *
- * The rendering CSS closely matches Word's default styles (Calibri 11pt,
- * 1.15 line-height, 1-inch margins) for high visual fidelity.
+ * This replaces the mammoth.js approach which stripped all formatting
+ * and produced simplified semantic HTML that looked nothing like the original.
  *
  * Client-side only. No server upload.
  */
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Download, FileText } from 'lucide-react';
 import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
@@ -23,6 +24,668 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+// ── DOCX XML Parser ──────────────────────────────────────────────
+
+/** Parse DOCX XML into faithful HTML preserving formatting */
+async function parseDocxToHtml(arrayBuffer: ArrayBuffer): Promise<{
+  html: string;
+  warnings: string[];
+}> {
+  const JSZip = (await import('jszip')).default;
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const warnings: string[] = [];
+
+  // Parse document XML
+  const docXml = await zip.file('word/document.xml')?.async('text');
+  if (!docXml) throw new Error('Invalid DOCX: missing word/document.xml');
+
+  // Parse styles XML (optional)
+  const stylesXml = await zip.file('word/styles.xml')?.async('text');
+
+  // Parse numbering XML (optional, for lists)
+  const numberingXml = await zip.file('word/numbering.xml')?.async('text');
+
+  // Extract images as base64
+  const imageMap = new Map<string, string>();
+  const relsXml = await zip.file('word/_rels/document.xml.rels')?.async('text');
+  const relsDoc = relsXml ? new DOMParser().parseFromString(relsXml, 'text/xml') : null;
+
+  if (relsDoc) {
+    const rels = relsDoc.getElementsByTagName('Relationship');
+    for (let i = 0; i < rels.length; i++) {
+      const rel = rels[i];
+      const id = rel.getAttribute('Id') || '';
+      const target = rel.getAttribute('Target') || '';
+      const type = rel.getAttribute('Type') || '';
+
+      if (type.includes('/image')) {
+        const imgPath = target.startsWith('/') ? target.slice(1) : `word/${target}`;
+        const imgFile = zip.file(imgPath);
+        if (imgFile) {
+          try {
+            const imgData = await imgFile.async('base64');
+            const ext = target.split('.').pop()?.toLowerCase() || 'png';
+            const mime =
+              ext === 'jpg' || ext === 'jpeg'
+                ? 'image/jpeg'
+                : ext === 'png'
+                  ? 'image/png'
+                  : ext === 'gif'
+                    ? 'image/gif'
+                    : ext === 'svg'
+                      ? 'image/svg+xml'
+                      : `image/${ext}`;
+            imageMap.set(id, `data:${mime};base64,${imgData}`);
+          } catch {
+            warnings.push(`Could not extract image: ${target}`);
+          }
+        }
+      }
+    }
+  }
+
+  // Parse styles into a lookup
+  const styleMap = new Map<
+    string,
+    {
+      fontFamily?: string;
+      fontSize?: string;
+      bold?: boolean;
+      italic?: boolean;
+      color?: string;
+      underline?: boolean;
+      alignment?: string;
+      spaceBefore?: string;
+      spaceAfter?: string;
+      lineSpacing?: string;
+      indentLeft?: string;
+      indentRight?: string;
+      indentFirstLine?: string;
+      isHeading?: boolean;
+      headingLevel?: number;
+    }
+  >();
+
+  // Default document font/size
+  let defaultFont = 'Calibri';
+  let defaultSize = '11pt';
+
+  if (stylesXml) {
+    const stylesDoc = new DOMParser().parseFromString(stylesXml, 'text/xml');
+
+    // Get document defaults
+    const docDefaults = stylesDoc.getElementsByTagName('w:docDefaults')[0];
+    if (docDefaults) {
+      const rPrDefault = docDefaults.getElementsByTagName('w:rPrDefault')[0];
+      if (rPrDefault) {
+        const rPr = rPrDefault.getElementsByTagName('w:rPr')[0];
+        if (rPr) {
+          const szEl = rPr.getElementsByTagName('w:sz')[0];
+          if (szEl) {
+            const halfPts = parseInt(szEl.getAttribute('w:val') || '22', 10);
+            defaultSize = `${halfPts / 2}pt`;
+          }
+          const fontEl = rPr.getElementsByTagName('w:rFonts')[0];
+          if (fontEl) {
+            defaultFont =
+              fontEl.getAttribute('w:ascii') ||
+              fontEl.getAttribute('w:hAnsi') ||
+              fontEl.getAttribute('w:cs') ||
+              'Calibri';
+          }
+        }
+      }
+    }
+
+    // Parse each style definition
+    const styleEls = stylesDoc.getElementsByTagName('w:style');
+    for (let i = 0; i < styleEls.length; i++) {
+      const styleEl = styleEls[i];
+      const styleId = styleEl.getAttribute('w:styleId') || '';
+      const styleType = styleEl.getAttribute('w:type') || '';
+      const style: (typeof styleMap extends Map<string, infer V> ? V : never) = {};
+
+      // Check if heading
+      const nameEl = styleEl.getElementsByTagName('w:name')[0];
+      const name = nameEl?.getAttribute('w:val') || '';
+      if (name.toLowerCase().startsWith('heading')) {
+        style.isHeading = true;
+        const level = parseInt(name.replace(/\D/g, ''), 10);
+        if (level >= 1 && level <= 6) style.headingLevel = level;
+      }
+
+      // Run properties (font, size, bold, italic, color)
+      const rPr = styleEl.getElementsByTagName('w:rPr')[0];
+      if (rPr) {
+        const fontEl = rPr.getElementsByTagName('w:rFonts')[0];
+        if (fontEl) {
+          style.fontFamily =
+            fontEl.getAttribute('w:ascii') ||
+            fontEl.getAttribute('w:hAnsi') ||
+            fontEl.getAttribute('w:cs') ||
+            undefined;
+        }
+        const szEl = rPr.getElementsByTagName('w:sz')[0];
+        if (szEl) {
+          const halfPts = parseInt(szEl.getAttribute('w:val') || '0', 10);
+          if (halfPts > 0) style.fontSize = `${halfPts / 2}pt`;
+        }
+        if (rPr.getElementsByTagName('w:b').length > 0) style.bold = true;
+        if (rPr.getElementsByTagName('w:i').length > 0) style.italic = true;
+        if (rPr.getElementsByTagName('w:u').length > 0) style.underline = true;
+        const colorEl = rPr.getElementsByTagName('w:color')[0];
+        if (colorEl) {
+          const val = colorEl.getAttribute('w:val');
+          if (val && val !== 'auto') style.color = `#${val}`;
+        }
+      }
+
+      // Paragraph properties
+      const pPr = styleEl.getElementsByTagName('w:pPr')[0];
+      if (pPr) {
+        const jcEl = pPr.getElementsByTagName('w:jc')[0];
+        if (jcEl) style.alignment = jcEl.getAttribute('w:val') || undefined;
+
+        const spacingEl = pPr.getElementsByTagName('w:spacing')[0];
+        if (spacingEl) {
+          const before = spacingEl.getAttribute('w:before');
+          if (before) style.spaceBefore = `${parseInt(before, 10) / 20}pt`;
+          const after = spacingEl.getAttribute('w:after');
+          if (after) style.spaceAfter = `${parseInt(after, 10) / 20}pt`;
+          const line = spacingEl.getAttribute('w:line');
+          if (line) {
+            const lineVal = parseInt(line, 10);
+            // line value in 240ths of a line (240 = single, 480 = double)
+            style.lineSpacing = `${lineVal / 240}`;
+          }
+        }
+
+        const indEl = pPr.getElementsByTagName('w:ind')[0];
+        if (indEl) {
+          const left = indEl.getAttribute('w:left') || indEl.getAttribute('w:start');
+          if (left) style.indentLeft = `${parseInt(left, 10) / 20}pt`;
+          const right = indEl.getAttribute('w:right') || indEl.getAttribute('w:end');
+          if (right) style.indentRight = `${parseInt(right, 10) / 20}pt`;
+          const firstLine = indEl.getAttribute('w:firstLine');
+          if (firstLine) style.indentFirstLine = `${parseInt(firstLine, 10) / 20}pt`;
+        }
+      }
+
+      if (styleType === 'paragraph' || styleType === 'character') {
+        styleMap.set(styleId, style);
+      }
+    }
+  }
+
+  // Parse numbering definitions for list formatting
+  const numFmtMap = new Map<string, Map<number, { fmt: string; text: string }>>();
+  if (numberingXml) {
+    const numDoc = new DOMParser().parseFromString(numberingXml, 'text/xml');
+    const abstractNums = numDoc.getElementsByTagName('w:abstractNum');
+    for (let i = 0; i < abstractNums.length; i++) {
+      const an = abstractNums[i];
+      const abstractNumId = an.getAttribute('w:abstractNumId') || '';
+      const levels = new Map<number, { fmt: string; text: string }>();
+      const lvls = an.getElementsByTagName('w:lvl');
+      for (let j = 0; j < lvls.length; j++) {
+        const lvl = lvls[j];
+        const ilvl = parseInt(lvl.getAttribute('w:ilvl') || '0', 10);
+        const numFmt =
+          lvl.getElementsByTagName('w:numFmt')[0]?.getAttribute('w:val') || 'decimal';
+        const lvlText =
+          lvl.getElementsByTagName('w:lvlText')[0]?.getAttribute('w:val') || '%1.';
+        levels.set(ilvl, { fmt: numFmt, text: lvlText });
+      }
+      numFmtMap.set(abstractNumId, levels);
+    }
+  }
+
+  // ── Parse document body ────────────────────────────────────────
+
+  const docDoc = new DOMParser().parseFromString(docXml, 'text/xml');
+  const body = docDoc.getElementsByTagName('w:body')[0];
+  if (!body) throw new Error('Invalid DOCX: missing w:body');
+
+  // Get page margins from section properties
+  let marginTop = '72pt'; // 1 inch default
+  let marginBottom = '72pt';
+  let marginLeft = '72pt';
+  let marginRight = '72pt';
+  const sectPr = body.getElementsByTagName('w:sectPr')[0];
+  if (sectPr) {
+    const pgMar = sectPr.getElementsByTagName('w:pgMar')[0];
+    if (pgMar) {
+      const t = pgMar.getAttribute('w:top');
+      const b = pgMar.getAttribute('w:bottom');
+      const l = pgMar.getAttribute('w:left');
+      const r = pgMar.getAttribute('w:right');
+      if (t) marginTop = `${parseInt(t, 10) / 20}pt`;
+      if (b) marginBottom = `${parseInt(b, 10) / 20}pt`;
+      if (l) marginLeft = `${parseInt(l, 10) / 20}pt`;
+      if (r) marginRight = `${parseInt(r, 10) / 20}pt`;
+    }
+  }
+
+  /** Convert a w:rPr element to inline CSS */
+  function runPropsToStyle(
+    rPr: Element | null,
+    parentStyleId?: string
+  ): string {
+    const parts: string[] = [];
+    const parentStyle = parentStyleId ? styleMap.get(parentStyleId) : undefined;
+
+    let fontFamily = parentStyle?.fontFamily || defaultFont;
+    let fontSize = parentStyle?.fontSize || defaultSize;
+    let bold = parentStyle?.bold || false;
+    let italic = parentStyle?.italic || false;
+    let underline = parentStyle?.underline || false;
+    let color = parentStyle?.color || '';
+
+    if (rPr) {
+      const fontEl = rPr.getElementsByTagName('w:rFonts')[0];
+      if (fontEl) {
+        fontFamily =
+          fontEl.getAttribute('w:ascii') ||
+          fontEl.getAttribute('w:hAnsi') ||
+          fontEl.getAttribute('w:cs') ||
+          fontFamily;
+      }
+      const szEl = rPr.getElementsByTagName('w:sz')[0];
+      if (szEl) {
+        const halfPts = parseInt(szEl.getAttribute('w:val') || '0', 10);
+        if (halfPts > 0) fontSize = `${halfPts / 2}pt`;
+      }
+      const bEl = rPr.getElementsByTagName('w:b')[0];
+      if (bEl) {
+        const val = bEl.getAttribute('w:val');
+        bold = val !== '0' && val !== 'false';
+      }
+      const iEl = rPr.getElementsByTagName('w:i')[0];
+      if (iEl) {
+        const val = iEl.getAttribute('w:val');
+        italic = val !== '0' && val !== 'false';
+      }
+      const uEl = rPr.getElementsByTagName('w:u')[0];
+      if (uEl) {
+        const val = uEl.getAttribute('w:val');
+        underline = val !== 'none' && val !== undefined;
+      }
+      const colorEl = rPr.getElementsByTagName('w:color')[0];
+      if (colorEl) {
+        const val = colorEl.getAttribute('w:val');
+        if (val && val !== 'auto') color = `#${val}`;
+      }
+    }
+
+    // Safe font family (add fallback)
+    const safeFontFamily = `'${fontFamily}', '${defaultFont}', sans-serif`;
+    parts.push(`font-family:${safeFontFamily}`);
+    parts.push(`font-size:${fontSize}`);
+    if (bold) parts.push('font-weight:bold');
+    if (italic) parts.push('font-style:italic');
+    if (underline) parts.push('text-decoration:underline');
+    if (color) parts.push(`color:${color}`);
+
+    return parts.join(';');
+  }
+
+  /** Convert a w:pPr element to CSS style for a paragraph */
+  function paraPropsToStyle(pPr: Element | null, styleId?: string): string {
+    const parts: string[] = [];
+    const parentStyle = styleId ? styleMap.get(styleId) : undefined;
+
+    // Alignment
+    let alignment = parentStyle?.alignment || '';
+    let spaceBefore = parentStyle?.spaceBefore || '0pt';
+    let spaceAfter = parentStyle?.spaceAfter || '8pt';
+    let lineSpacing = parentStyle?.lineSpacing || '1.15';
+    let indentLeft = parentStyle?.indentLeft || '0pt';
+    let indentRight = parentStyle?.indentRight || '0pt';
+    let indentFirstLine = parentStyle?.indentFirstLine || '0pt';
+
+    if (pPr) {
+      const jcEl = pPr.getElementsByTagName('w:jc')[0];
+      if (jcEl) alignment = jcEl.getAttribute('w:val') || alignment;
+
+      const spacingEl = pPr.getElementsByTagName('w:spacing')[0];
+      if (spacingEl) {
+        const before = spacingEl.getAttribute('w:before');
+        if (before) spaceBefore = `${parseInt(before, 10) / 20}pt`;
+        const after = spacingEl.getAttribute('w:after');
+        if (after) spaceAfter = `${parseInt(after, 10) / 20}pt`;
+        const line = spacingEl.getAttribute('w:line');
+        if (line) {
+          const lineVal = parseInt(line, 10);
+          lineSpacing = `${lineVal / 240}`;
+        }
+      }
+
+      const indEl = pPr.getElementsByTagName('w:ind')[0];
+      if (indEl) {
+        const left = indEl.getAttribute('w:left') || indEl.getAttribute('w:start');
+        if (left) indentLeft = `${parseInt(left, 10) / 20}pt`;
+        const right = indEl.getAttribute('w:right') || indEl.getAttribute('w:end');
+        if (right) indentRight = `${parseInt(right, 10) / 20}pt`;
+        const fl = indEl.getAttribute('w:firstLine');
+        if (fl) indentFirstLine = `${parseInt(fl, 10) / 20}pt`;
+        const hanging = indEl.getAttribute('w:hanging');
+        if (hanging) {
+          const hangPt = parseInt(hanging, 10) / 20;
+          indentFirstLine = `-${hangPt}pt`;
+          // Add the hanging value to left indent
+          const leftVal = parseFloat(indentLeft);
+          indentLeft = `${leftVal + hangPt}pt`;
+        }
+      }
+    }
+
+    // Map alignment
+    if (alignment === 'center') parts.push('text-align:center');
+    else if (alignment === 'right' || alignment === 'end') parts.push('text-align:right');
+    else if (alignment === 'both' || alignment === 'distribute') parts.push('text-align:justify');
+    else parts.push('text-align:left');
+
+    parts.push(`margin-top:${spaceBefore}`);
+    parts.push(`margin-bottom:${spaceAfter}`);
+    parts.push(`line-height:${lineSpacing}`);
+    parts.push(`margin-left:${indentLeft}`);
+    parts.push(`margin-right:${indentRight}`);
+    if (indentFirstLine !== '0pt') parts.push(`text-indent:${indentFirstLine}`);
+
+    return parts.join(';');
+  }
+
+  /** Process a paragraph element */
+  function processParagraph(pEl: Element): string {
+    const pPr = pEl.getElementsByTagName('w:pPr')[0];
+    let styleId = '';
+    if (pPr) {
+      const pStyleEl = pPr.getElementsByTagName('w:pStyle')[0];
+      styleId = pStyleEl?.getAttribute('w:val') || '';
+    }
+
+    const parentStyle = styleId ? styleMap.get(styleId) : undefined;
+    const paraStyle = paraPropsToStyle(pPr, styleId);
+
+    // Check if this is a heading
+    const isHeading = parentStyle?.isHeading;
+    const headingLevel = parentStyle?.headingLevel || 0;
+    const tag =
+      isHeading && headingLevel >= 1 && headingLevel <= 6
+        ? `h${headingLevel}`
+        : 'p';
+
+    // Process runs within the paragraph
+    let runsHtml = '';
+    const children = pEl.childNodes;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i] as Element;
+      if (!child.tagName) continue;
+
+      const localName = child.tagName.replace(/^w:/, '');
+
+      if (localName === 'r') {
+        // Text run
+        const rPr = child.getElementsByTagName('w:rPr')[0];
+        const runStyle = runPropsToStyle(rPr, styleId);
+
+        // Get text content
+        const tEls = child.getElementsByTagName('w:t');
+        let text = '';
+        for (let j = 0; j < tEls.length; j++) {
+          text += tEls[j].textContent || '';
+        }
+
+        // Check for breaks
+        const brEls = child.getElementsByTagName('w:br');
+        let breakHtml = '';
+        for (let j = 0; j < brEls.length; j++) {
+          const brType = brEls[j].getAttribute('w:type');
+          if (brType === 'page') {
+            breakHtml += '<div style="page-break-before:always"></div>';
+          } else {
+            breakHtml += '<br/>';
+          }
+        }
+
+        // Check for tabs
+        const tabEls = child.getElementsByTagName('w:tab');
+        if (tabEls.length > 0) {
+          text = '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0' + text;
+        }
+
+        // Check for images
+        const drawingEls = child.getElementsByTagName('w:drawing');
+        for (let j = 0; j < drawingEls.length; j++) {
+          const drawing = drawingEls[j];
+          // Get relationship ID for the image
+          const blipEls = drawing.getElementsByTagName('a:blip');
+          for (let k = 0; k < blipEls.length; k++) {
+            const embed = blipEls[k].getAttribute('r:embed');
+            if (embed && imageMap.has(embed)) {
+              // Get image dimensions from extent
+              const extEls = drawing.getElementsByTagName('wp:extent');
+              let imgStyle = 'max-width:100%;height:auto';
+              if (extEls.length > 0) {
+                const cx = parseInt(extEls[0].getAttribute('cx') || '0', 10);
+                const cy = parseInt(extEls[0].getAttribute('cy') || '0', 10);
+                if (cx > 0 && cy > 0) {
+                  // EMU to px (914400 EMU = 1 inch, 96 DPI)
+                  const widthPx = Math.round((cx / 914400) * 96);
+                  const heightPx = Math.round((cy / 914400) * 96);
+                  imgStyle = `width:${widthPx}px;height:${heightPx}px;max-width:100%`;
+                }
+              }
+              runsHtml += `<img src="${imageMap.get(embed)}" style="${imgStyle}" />`;
+            }
+          }
+        }
+
+        if (text) {
+          // Escape HTML entities
+          const escaped = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          runsHtml += `<span style="${runStyle}">${escaped}</span>`;
+        }
+        runsHtml += breakHtml;
+      } else if (localName === 'hyperlink') {
+        // Hyperlink
+        const runs = child.getElementsByTagName('w:r');
+        let linkText = '';
+        for (let j = 0; j < runs.length; j++) {
+          const tEls = runs[j].getElementsByTagName('w:t');
+          for (let k = 0; k < tEls.length; k++) {
+            linkText += tEls[k].textContent || '';
+          }
+        }
+        const rId = child.getAttribute('r:id') || '';
+        // Get URL from rels (if available)
+        let href = '#';
+        if (relsDoc && rId) {
+          const relEls = relsDoc.getElementsByTagName('Relationship');
+          for (let j = 0; j < relEls.length; j++) {
+            if (relEls[j].getAttribute('Id') === rId) {
+              href = relEls[j].getAttribute('Target') || '#';
+              break;
+            }
+          }
+        }
+        const escaped = linkText
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        runsHtml += `<a href="${href}" style="color:#0563C1;text-decoration:underline">${escaped}</a>`;
+      }
+    }
+
+    // Empty paragraph = just spacing
+    if (!runsHtml.trim()) {
+      runsHtml = '&nbsp;';
+    }
+
+    return `<${tag} style="${paraStyle}">${runsHtml}</${tag}>`;
+  }
+
+  /** Process a table element */
+  function processTable(tblEl: Element): string {
+    let tableHtml = '<table style="border-collapse:collapse;width:100%;margin:8pt 0">';
+
+    // Get table grid for column widths
+    const gridCols = tblEl.getElementsByTagName('w:gridCol');
+    const colWidths: number[] = [];
+    let totalWidth = 0;
+    for (let i = 0; i < gridCols.length; i++) {
+      const w = parseInt(gridCols[i].getAttribute('w:w') || '0', 10);
+      colWidths.push(w);
+      totalWidth += w;
+    }
+
+    // Check table-level borders
+    const tblPr = tblEl.getElementsByTagName('w:tblPr')[0];
+    let tableBorderStyle = 'border:1px solid #a6a6a6';
+    if (tblPr) {
+      const borders = tblPr.getElementsByTagName('w:tblBorders')[0];
+      if (borders) {
+        // Check if borders are "none"
+        const top = borders.getElementsByTagName('w:top')[0];
+        if (top && top.getAttribute('w:val') === 'none') {
+          tableBorderStyle = 'border:none';
+        }
+      }
+    }
+
+    const rows = tblEl.getElementsByTagName('w:tr');
+    for (let r = 0; r < rows.length; r++) {
+      // Only process direct child rows (not nested table rows)
+      if (rows[r].parentElement !== tblEl) continue;
+
+      tableHtml += '<tr>';
+      const cells = rows[r].getElementsByTagName('w:tc');
+      for (let c = 0; c < cells.length; c++) {
+        if (cells[c].parentElement !== rows[r]) continue;
+
+        const tcPr = cells[c].getElementsByTagName('w:tcPr')[0];
+        let cellStyle = `${tableBorderStyle};padding:4pt 6pt;vertical-align:top`;
+
+        // Cell width
+        if (tcPr) {
+          const tcW = tcPr.getElementsByTagName('w:tcW')[0];
+          if (tcW) {
+            const w = parseInt(tcW.getAttribute('w:w') || '0', 10);
+            const type = tcW.getAttribute('w:type');
+            if (type === 'pct') {
+              cellStyle += `;width:${(w / 50)}%`; // w:type="pct" uses 50ths of percent
+            } else if (w > 0 && totalWidth > 0) {
+              cellStyle += `;width:${((w / totalWidth) * 100).toFixed(1)}%`;
+            }
+          }
+
+          // Cell shading
+          const shd = tcPr.getElementsByTagName('w:shd')[0];
+          if (shd) {
+            const fill = shd.getAttribute('w:fill');
+            if (fill && fill !== 'auto' && fill !== 'FFFFFF') {
+              cellStyle += `;background-color:#${fill}`;
+            }
+          }
+
+          // Cell borders
+          const tcBorders = tcPr.getElementsByTagName('w:tcBorders')[0];
+          if (tcBorders) {
+            const sides = ['top', 'bottom', 'left', 'right'] as const;
+            for (const side of sides) {
+              const borderEl = tcBorders.getElementsByTagName(`w:${side}`)[0];
+              if (borderEl) {
+                const val = borderEl.getAttribute('w:val');
+                if (val === 'none' || val === 'nil') {
+                  cellStyle += `;border-${side}:none`;
+                } else {
+                  const sz = parseInt(borderEl.getAttribute('w:sz') || '4', 10);
+                  const color = borderEl.getAttribute('w:color') || 'auto';
+                  const borderColor = color === 'auto' ? '#000' : `#${color}`;
+                  cellStyle += `;border-${side}:${sz / 8}pt solid ${borderColor}`;
+                }
+              }
+            }
+          }
+
+          // Column span
+          const gridSpan = tcPr.getElementsByTagName('w:gridSpan')[0];
+          if (gridSpan) {
+            const span = parseInt(gridSpan.getAttribute('w:val') || '1', 10);
+            if (span > 1) {
+              cellStyle += `" colspan="${span}`;
+            }
+          }
+
+          // Vertical merge
+          const vMerge = tcPr.getElementsByTagName('w:vMerge')[0];
+          if (vMerge && !vMerge.getAttribute('w:val')) {
+            // This is a continuation cell, skip it (Word hides these)
+            continue;
+          }
+        }
+
+        // Process paragraphs inside the cell
+        let cellContent = '';
+        const cellChildren = cells[c].childNodes;
+        for (let p = 0; p < cellChildren.length; p++) {
+          const cellChild = cellChildren[p] as Element;
+          if (!cellChild.tagName) continue;
+          const localName = cellChild.tagName.replace(/^w:/, '');
+          if (localName === 'p') {
+            cellContent += processParagraph(cellChild);
+          } else if (localName === 'tbl') {
+            cellContent += processTable(cellChild);
+          }
+        }
+
+        tableHtml += `<td style="${cellStyle}">${cellContent || '&nbsp;'}</td>`;
+      }
+      tableHtml += '</tr>';
+    }
+
+    tableHtml += '</table>';
+    return tableHtml;
+  }
+
+  // ── Build the HTML ──────────────────────────────────────────────
+
+  let htmlParts: string[] = [];
+  const bodyChildren = body.childNodes;
+
+  for (let i = 0; i < bodyChildren.length; i++) {
+    const child = bodyChildren[i] as Element;
+    if (!child.tagName) continue;
+    const localName = child.tagName.replace(/^w:/, '');
+
+    if (localName === 'p') {
+      htmlParts.push(processParagraph(child));
+    } else if (localName === 'tbl') {
+      htmlParts.push(processTable(child));
+    }
+  }
+
+  // Wrap in a container with document-level styling
+  const html = `<div style="
+    font-family:'${defaultFont}',sans-serif;
+    font-size:${defaultSize};
+    color:#000;
+    line-height:1.15;
+    padding:${marginTop} ${marginRight} ${marginBottom} ${marginLeft};
+    box-sizing:border-box;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  ">${htmlParts.join('\n')}</div>`;
+
+  return { html, warnings };
+}
+
+// ── Main Component ───────────────────────────────────────────────
+
 export default function WordToPdf() {
   const [file, setFile] = useState<File | null>(null);
   const [htmlContent, setHtmlContent] = useState('');
@@ -31,6 +694,14 @@ export default function WordToPdf() {
   const [error, setError] = useState('');
   const [warnings, setWarnings] = useState<string[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupRef.current?.();
+    };
+  }, []);
 
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
@@ -41,25 +712,18 @@ export default function WordToPdf() {
     setProcessing(true);
 
     try {
-      const mammoth = await import('mammoth');
       const arrayBuffer = await f.arrayBuffer();
-
-      // Use mammoth's convertToHtml with style map for better fidelity
-      const result = await mammoth.convertToHtml({
-        arrayBuffer,
-        options: {
-          includeDefaultStyleMap: true,
-        },
-      } as Parameters<typeof mammoth.convertToHtml>[0]);
-
-      const DOMPurify = (await import('dompurify')).default;
+      const result = await parseDocxToHtml(arrayBuffer);
       setFile(f);
-      setHtmlContent(DOMPurify.sanitize(result.value));
-      if (result.messages.length > 0) {
-        setWarnings(result.messages.map((m) => m.message).slice(0, 5));
+      setHtmlContent(result.html);
+      if (result.warnings.length > 0) {
+        setWarnings(result.warnings.slice(0, 5));
       }
-    } catch {
-      setError('Could not read this file — make sure it is a .docx file (not .doc).');
+    } catch (e) {
+      setError(
+        'Could not read this file — ' +
+          (e instanceof Error ? e.message : 'make sure it is a .docx file (not .doc).')
+      );
     }
     setProcessing(false);
   }, []);
@@ -78,16 +742,11 @@ export default function WordToPdf() {
         import('jspdf'),
       ]);
 
-      container.className = 'word-to-pdf-render';
-      container.innerHTML = htmlContent;
-
-      // Render at exact A4 content width for accurate page dimensions.
-      // A4 = 210mm × 297mm. With 1-inch (25.4mm) margins on each side:
-      //   Content width = 210 - 50.8 = 159.2mm
-      //   At 96 DPI: 159.2mm / 25.4mm × 96px = 601px
-      // We render at this width so the canvas maps exactly to A4 content area.
-      const CONTENT_WIDTH_PX = 601;
-      const MARGIN_MM = 25.4; // 1 inch
+      // Render container at A4 content width
+      // A4 = 210mm × 297mm. The document padding handles margins,
+      // so we render at full A4 width and let the document's own
+      // margins provide the spacing.
+      const A4_WIDTH_PX = 794; // 210mm at 96 DPI
 
       style.textContent = `
         .word-to-pdf-render {
@@ -96,66 +755,15 @@ export default function WordToPdf() {
           left: 0;
           z-index: -1;
           pointer-events: none;
-          width: ${CONTENT_WIDTH_PX}px;
-          padding: 0;
+          width: ${A4_WIDTH_PX}px;
           margin: 0;
-          font-family: 'Calibri', 'Carlito', 'Segoe UI', 'Liberation Sans', 'Arial', sans-serif;
-          font-size: 11pt;
-          line-height: 1.15;
-          color: #000;
+          padding: 0;
           background: #fff;
-          -webkit-font-smoothing: antialiased;
-          text-rendering: optimizeLegibility;
         }
-        .word-to-pdf-render h1 {
-          font-size: 20pt; margin: 12pt 0 6pt; font-weight: bold;
-          font-family: 'Calibri Light', 'Calibri', 'Carlito', 'Segoe UI', sans-serif;
-          color: #2F5496;
-        }
-        .word-to-pdf-render h2 {
-          font-size: 16pt; margin: 10pt 0 4pt; font-weight: bold;
-          font-family: 'Calibri Light', 'Calibri', 'Carlito', 'Segoe UI', sans-serif;
-          color: #2F5496;
-        }
-        .word-to-pdf-render h3 {
-          font-size: 13pt; margin: 8pt 0 4pt; font-weight: bold;
-          font-family: 'Calibri Light', 'Calibri', 'Carlito', 'Segoe UI', sans-serif;
-          color: #1F3864;
-        }
-        .word-to-pdf-render h4 {
-          font-size: 11pt; margin: 6pt 0 2pt; font-weight: bold;
-          font-style: italic;
-          color: #2F5496;
-        }
-        .word-to-pdf-render p {
-          margin: 0 0 8pt;
-          orphans: 2;
-          widows: 2;
-        }
-        .word-to-pdf-render ul, .word-to-pdf-render ol {
-          margin: 4pt 0;
-          padding-left: 36pt;
-        }
-        .word-to-pdf-render li {
-          margin: 2pt 0;
-        }
-        .word-to-pdf-render table {
-          border-collapse: collapse;
-          width: 100%;
-          margin: 8pt 0;
-        }
-        .word-to-pdf-render th,
-        .word-to-pdf-render td {
-          border: 1px solid #a6a6a6;
-          padding: 4pt 6pt;
-          text-align: left;
-          font-size: 10pt;
-          vertical-align: top;
-        }
-        .word-to-pdf-render th {
-          background: #d9e2f3;
-          font-weight: bold;
-          color: #1F3864;
+        .word-to-pdf-render h1, .word-to-pdf-render h2, .word-to-pdf-render h3,
+        .word-to-pdf-render h4, .word-to-pdf-render h5, .word-to-pdf-render h6 {
+          margin-top: 12pt;
+          margin-bottom: 4pt;
         }
         .word-to-pdf-render img {
           max-width: 100%;
@@ -165,45 +773,26 @@ export default function WordToPdf() {
           color: #0563C1;
           text-decoration: underline;
         }
-        .word-to-pdf-render blockquote {
-          margin: 6pt 0;
-          padding-left: 12pt;
-          border-left: 3pt solid #d9e2f3;
-          color: #404040;
-          font-style: italic;
-        }
-        .word-to-pdf-render pre, .word-to-pdf-render code {
-          font-family: 'Consolas', 'Courier New', monospace;
-          font-size: 10pt;
-          background: #f2f2f2;
-          padding: 2pt 4pt;
-        }
-        .word-to-pdf-render pre {
-          padding: 8pt;
-          margin: 6pt 0;
-          overflow-x: auto;
-          border: 1px solid #d9d9d9;
-        }
-        .word-to-pdf-render strong, .word-to-pdf-render b {
-          font-weight: bold;
-        }
-        .word-to-pdf-render em, .word-to-pdf-render i {
-          font-style: italic;
-        }
-        .word-to-pdf-render u {
-          text-decoration: underline;
-        }
       `;
+
+      container.className = 'word-to-pdf-render';
+      container.innerHTML = htmlContent;
+
       document.head.appendChild(style);
       document.body.appendChild(container);
 
-      // Wait for layout + font loading + paint
+      cleanupRef.current = () => {
+        try { document.body.removeChild(container); } catch {}
+        try { document.head.removeChild(style); } catch {}
+      };
+
+      // Wait for layout + images to load
       await new Promise<void>((r) =>
         requestAnimationFrame(() => requestAnimationFrame(() => r()))
       );
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 500));
 
-      // Capture the rendered HTML as a high-res canvas
+      // Capture at 2x scale for high quality
       const canvas = await html2canvas(container, {
         scale: 2,
         useCORS: true,
@@ -211,25 +800,19 @@ export default function WordToPdf() {
         backgroundColor: '#ffffff',
       });
 
-      // A4 dimensions in mm
+      // A4 in mm
       const pageW = 210;
       const pageH = 297;
-      const contentW = pageW - MARGIN_MM * 2; // 159.2mm
-      const contentH = pageH - MARGIN_MM * 2; // 246.2mm
 
       const imgWidthPx = canvas.width;
       const imgHeightPx = canvas.height;
-      const pxPerMm = imgWidthPx / contentW;
-      const pageHeightPx = contentH * pxPerMm;
+      const pxPerMm = imgWidthPx / pageW;
+      const pageHeightPx = pageH * pxPerMm;
 
-      // Get pixel data to find natural page-break points
+      // Get pixel data for smart page breaks
       const fullCtx = canvas.getContext('2d');
       const fullPixels = fullCtx?.getImageData(0, 0, imgWidthPx, imgHeightPx).data;
 
-      /**
-       * Scan upward from `targetY` to find the nearest all-white row.
-       * This prevents page breaks from cutting through text mid-line.
-       */
       function findBreakPoint(targetY: number, searchRange: number): number {
         if (!fullPixels) return targetY;
         const end = Math.min(targetY, imgHeightPx);
@@ -269,7 +852,6 @@ export default function WordToPdf() {
           sliceEnd = imgHeightPx;
         } else {
           const idealEnd = currentY + pageHeightPx;
-          // Search within ~12mm (about 3 text lines) for a natural break
           sliceEnd = findBreakPoint(Math.round(idealEnd), Math.round(pxPerMm * 12));
           if (sliceEnd <= currentY) sliceEnd = Math.round(idealEnd);
         }
@@ -291,7 +873,7 @@ export default function WordToPdf() {
 
         const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
         const sliceHMm = sliceH / pxPerMm;
-        pdf.addImage(pageImgData, 'JPEG', MARGIN_MM, MARGIN_MM, contentW, sliceHMm);
+        pdf.addImage(pageImgData, 'JPEG', 0, 0, pageW, sliceHMm);
 
         currentY = sliceEnd;
         pageIndex++;
@@ -300,15 +882,11 @@ export default function WordToPdf() {
       const pdfFilename = file.name.replace(/\.docx?$/i, '') + '.pdf';
       pdf.save(pdfFilename);
 
-      document.body.removeChild(container);
-      document.head.removeChild(style);
+      cleanupRef.current?.();
+      cleanupRef.current = null;
     } catch (e) {
-      try {
-        document.body.removeChild(container);
-      } catch {}
-      try {
-        document.head.removeChild(style);
-      } catch {}
+      cleanupRef.current?.();
+      cleanupRef.current = null;
       setError(
         'PDF conversion failed. ' +
           (e instanceof Error ? e.message : 'Please try a simpler document.')
@@ -372,8 +950,8 @@ export default function WordToPdf() {
             )}
 
             <p className="text-xs text-neutral-400">
-              Renders your document as a high-fidelity PDF with proper A4 layout and margins.
-              Tables, lists, and formatting are preserved.
+              Parses your document's XML directly for faithful rendering of fonts, sizes,
+              tables, and images.
             </p>
           </div>
         )}
@@ -401,7 +979,8 @@ export default function WordToPdf() {
             <p className="text-sm font-medium text-neutral-700">Document Preview</p>
             <div
               ref={previewRef}
-              className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-8 prose prose-sm max-w-none min-h-[400px] overflow-auto font-sans leading-relaxed"
+              className="bg-white rounded-2xl border border-neutral-200/80 shadow-card min-h-[400px] max-h-[700px] overflow-auto"
+              style={{ padding: 0 }}
               dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
           </div>
