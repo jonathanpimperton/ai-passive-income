@@ -10,6 +10,107 @@ const popularTools = POPULAR_TOOL_SLUGS
 
 const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][];
 const websiteSchema = buildWebsiteSchema();
+
+/** Category card metadata for visual category navigation */
+const categoryCards: { slug: CategorySlug; icon: string; color: string; hoverBg: string; count: number }[] = [
+  {
+    slug: 'saving-and-growth',
+    icon: 'trending-up',
+    color: 'text-accent-600 bg-accent-50',
+    hoverBg: 'group-hover:bg-accent-600 group-hover:text-white',
+    count: TOOLS.filter(t => t.category === 'saving-and-growth').length,
+  },
+  {
+    slug: 'debt-and-loans',
+    icon: 'credit-card',
+    color: 'text-primary-600 bg-primary-50',
+    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
+    count: TOOLS.filter(t => t.category === 'debt-and-loans').length,
+  },
+  {
+    slug: 'income-and-planning',
+    icon: 'briefcase',
+    color: 'text-primary-600 bg-primary-50',
+    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
+    count: TOOLS.filter(t => t.category === 'income-and-planning').length,
+  },
+  {
+    slug: 'economic',
+    icon: 'trending-down',
+    color: 'text-warning-600 bg-warning-50',
+    hoverBg: 'group-hover:bg-warning-600 group-hover:text-white',
+    count: TOOLS.filter(t => t.category === 'economic').length,
+  },
+  {
+    slug: 'utility',
+    icon: 'zap',
+    color: 'text-accent-600 bg-accent-50',
+    hoverBg: 'group-hover:bg-accent-600 group-hover:text-white',
+    count: TOOLS.filter(t => t.category === 'utility').length,
+  },
+];
+
+/** Persona data for "Who Is This For?" section */
+const personas = [
+  {
+    hook: 'Just got your first real paycheck?',
+    description: 'See how even small monthly savings grow into serious money over time.',
+    icon: 'graduation-cap',
+    color: 'text-accent-600 bg-accent-50',
+    hoverBg: 'group-hover:bg-accent-600 group-hover:text-white',
+    tools: [
+      { name: 'Compound Interest', slug: 'compound-interest', category: 'saving-and-growth' as CategorySlug },
+      { name: 'Savings Goal', slug: 'savings-goal', category: 'saving-and-growth' as CategorySlug },
+      { name: 'Emergency Fund', slug: 'emergency-fund', category: 'income-and-planning' as CategorySlug },
+    ],
+  },
+  {
+    hook: 'Buying vs. renting?',
+    description: 'Compare the real cost of homeownership against renting — with actual numbers.',
+    icon: 'home',
+    color: 'text-primary-600 bg-primary-50',
+    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
+    tools: [
+      { name: 'Rent vs. Buy', slug: 'rent-vs-buy', category: 'debt-and-loans' as CategorySlug },
+      { name: 'Mortgage Payment', slug: 'mortgage-payment', category: 'debt-and-loans' as CategorySlug },
+      { name: 'Loan Amortization', slug: 'loan-amortization', category: 'debt-and-loans' as CategorySlug },
+    ],
+  },
+  {
+    hook: 'On track for retirement?',
+    description: 'Find out if your savings rate will actually get you there — adjusted for inflation.',
+    icon: 'piggy-bank',
+    color: 'text-warning-600 bg-warning-50',
+    hoverBg: 'group-hover:bg-warning-600 group-hover:text-white',
+    tools: [
+      { name: 'Retirement Savings', slug: 'retirement-savings', category: 'income-and-planning' as CategorySlug },
+      { name: 'Investment Return', slug: 'investment-return', category: 'saving-and-growth' as CategorySlug },
+      { name: 'Inflation', slug: 'inflation', category: 'economic' as CategorySlug },
+    ],
+  },
+  {
+    hook: 'Drowning in payments?',
+    description: 'Compare snowball vs. avalanche strategies and pick a payoff date you can actually hit.',
+    icon: 'credit-card',
+    color: 'text-primary-600 bg-primary-50',
+    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
+    tools: [
+      { name: 'Debt Payoff', slug: 'debt-payoff', category: 'debt-and-loans' as CategorySlug },
+      { name: 'Loan Amortization', slug: 'loan-amortization', category: 'debt-and-loans' as CategorySlug },
+      { name: 'Savings Goal', slug: 'savings-goal', category: 'saving-and-growth' as CategorySlug },
+    ],
+  },
+];
+
+/** Specific CTA hooks for the bottom section */
+const ctaHooks = [
+  { text: 'Wondering if you can retire at 55?', link: '/tools/income-and-planning/retirement-savings', label: 'Try the retirement calculator' },
+  { text: 'Evaluating a job offer?', link: '/tools/income-and-planning/salary-us', label: 'See your real take-home pay' },
+  { text: 'Buying your first home?', link: '/tools/debt-and-loans/mortgage-payment', label: 'Calculate your monthly payment' },
+];
+
+/** Words to cycle through in the hero */
+const heroWords = ['Time', 'Privacy', 'Intelligence'];
 ---
 
 <BaseLayout
@@ -17,22 +118,39 @@ const websiteSchema = buildWebsiteSchema();
   description="See your numbers instantly — no signup, no ads, no data harvesting. Free financial calculators with interactive charts and plain-English explanations."
   structuredData={[websiteSchema]}
 >
-  {/* Hero section — animated dark gradient per design-system.md */}
+  {/* ===== HERO ===== */}
   <section class="hero-gradient relative overflow-hidden py-20 sm:py-28 lg:py-32">
-    {/* Subtle animated glow orbs for depth */}
+    <div class="hero-dots absolute inset-0" aria-hidden="true"></div>
     <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
     <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
 
+    <div class="hero-float-icon hero-float-icon-1" aria-hidden="true">
+      <ToolIcon name="calculator" size={20} />
+    </div>
+    <div class="hero-float-icon hero-float-icon-2" aria-hidden="true">
+      <ToolIcon name="trending-up" size={18} />
+    </div>
+    <div class="hero-float-icon hero-float-icon-3" aria-hidden="true">
+      <ToolIcon name="dollar-sign" size={16} />
+    </div>
+    <div class="hero-float-icon hero-float-icon-4" aria-hidden="true">
+      <ToolIcon name="percent" size={18} />
+    </div>
+
     <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-4 py-1.5 mb-6">
-        <ToolIcon name="sparkles" class="text-primary-300" size={16} />
-        <span class="text-sm font-medium text-primary-200">100% free, no signup required</span>
+      <div class="hero-badge-wrapper inline-block mb-6">
+        <div class="hero-badge inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5">
+          <ToolIcon name="sparkles" class="text-primary-300" size={16} />
+          <span class="text-sm font-medium text-primary-200">100% free, no signup required</span>
+        </div>
       </div>
 
       <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em] max-w-[700px] mx-auto">
         Financial Calculators That
-        <span class="text-transparent bg-clip-text bg-[linear-gradient(135deg,#93C5FD,#10B981)]">
-          Respect Your Time
+        <span class="hero-cycling-text relative inline-block">
+          <span class="text-transparent bg-clip-text bg-[linear-gradient(135deg,#93C5FD,#10B981)]">
+            Respect Your <span class="hero-word-container"><span class="hero-word" data-words={JSON.stringify(heroWords)}>Time</span></span>
+          </span>
         </span>
       </h1>
       <p class="mt-5 text-lg sm:text-xl text-primary-200/90 max-w-[560px] mx-auto leading-relaxed">
@@ -56,7 +174,6 @@ const websiteSchema = buildWebsiteSchema();
         </a>
       </div>
 
-      {/* Trust indicators */}
       <div class="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-sm text-primary-300/80">
         <div class="flex items-center gap-2">
           <ToolIcon name="lock" size={16} />
@@ -74,7 +191,42 @@ const websiteSchema = buildWebsiteSchema();
     </div>
   </section>
 
-  {/* Popular Calculators — 6 cards, covers all 5 customer segments */}
+  {/* ===== STATS BAR ===== */}
+  <section class="py-10 sm:py-12 bg-white border-b border-neutral-100">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-16 lg:gap-20">
+        <div class="stat-counter text-center" data-target="18">
+          <div class="text-3xl sm:text-4xl font-bold text-primary-600 tabular-nums">
+            <span class="stat-number">0</span>
+          </div>
+          <div class="text-sm text-neutral-500 mt-1 font-medium">Free Tools</div>
+        </div>
+        <div class="hidden sm:block w-px h-10 bg-gradient-to-b from-transparent via-neutral-200 to-transparent" aria-hidden="true"></div>
+        <div class="stat-counter text-center" data-target="5">
+          <div class="text-3xl sm:text-4xl font-bold text-primary-600 tabular-nums">
+            <span class="stat-number">0</span>
+          </div>
+          <div class="text-sm text-neutral-500 mt-1 font-medium">Categories</div>
+        </div>
+        <div class="hidden sm:block w-px h-10 bg-gradient-to-b from-transparent via-neutral-200 to-transparent" aria-hidden="true"></div>
+        <div class="stat-counter text-center" data-target="0">
+          <div class="text-3xl sm:text-4xl font-bold text-accent-600 tabular-nums">
+            <span class="stat-number">0</span>
+          </div>
+          <div class="text-sm text-neutral-500 mt-1 font-medium">Ads</div>
+        </div>
+        <div class="hidden sm:block w-px h-10 bg-gradient-to-b from-transparent via-neutral-200 to-transparent" aria-hidden="true"></div>
+        <div class="stat-counter text-center" data-target="100" data-suffix="%">
+          <div class="text-3xl sm:text-4xl font-bold text-accent-600 tabular-nums">
+            <span class="stat-number">0</span><span class="stat-suffix"></span>
+          </div>
+          <div class="text-sm text-neutral-500 mt-1 font-medium">Client-Side</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ===== POPULAR CALCULATORS ===== */}
   <section id="popular" class="py-16 sm:py-20 lg:py-24">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-end justify-between mb-10">
@@ -94,17 +246,13 @@ const websiteSchema = buildWebsiteSchema();
             href={getToolPath(tool)}
             class="tool-card-popular group relative bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-1"
           >
-            {/* Icon circle */}
             <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 mb-4">
               <ToolIcon name={tool.icon} size={22} />
             </div>
-
             <h3 class="text-lg font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-1.5">
               {tool.name}
             </h3>
             <p class="text-sm text-neutral-500 leading-relaxed">{tool.description}</p>
-
-            {/* Subtle bottom accent on hover */}
             <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
           </a>
         ))}
@@ -116,55 +264,122 @@ const websiteSchema = buildWebsiteSchema();
     </div>
   </section>
 
-  {/* Why CalcRun — value proposition section */}
+  {/* ===== WHO IS THIS FOR? ===== */}
   <section class="py-16 sm:py-20 bg-neutral-50">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Why CalcRun?</h2>
-        <p class="text-neutral-500 max-w-[480px] mx-auto">Built different from the calculator sites you're used to.</p>
+        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Who Is This For?</h2>
+        <p class="text-neutral-500 max-w-[520px] mx-auto">Real questions. Real tools to answer them.</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-50 text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-200 mb-4">
-            <ToolIcon name="sparkles" size={24} />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {personas.map((persona) => (
+          <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden">
+            <div class="flex items-start gap-4">
+              <div class={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${persona.color} ${persona.hoverBg} transition-all duration-200 shrink-0`}>
+                <ToolIcon name={persona.icon} size={24} />
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-semibold text-neutral-900 mb-1">{persona.hook}</h3>
+                <p class="text-sm text-neutral-500 leading-relaxed mb-3">{persona.description}</p>
+                <div class="flex flex-wrap gap-2">
+                  {persona.tools.map((tool) => (
+                    <a
+                      href={`/tools/${tool.category}/${tool.slug}`}
+                      class="inline-flex items-center gap-1 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-full transition-colors duration-150"
+                    >
+                      {tool.name}
+                      <ToolIcon name="arrow-right" size={12} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
           </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Zero Ads</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed">No pop-ups, no banners, no sponsored placements. Your screen is 100% calculator.</p>
-          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-accent-500 to-primary-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-        </div>
+        ))}
+      </div>
+    </div>
+  </section>
 
-        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all duration-200 mb-4">
-            <ToolIcon name="shield-check" size={24} />
-          </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Your Data Stays Yours</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed">Every calculation runs in your browser. We never see, store, or sell your numbers.</p>
-          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-        </div>
+  {/* ===== HOW WE COMPARE — standalone comparison table ===== */}
+  <section class="py-16 sm:py-20">
+    <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">How We Compare</h2>
+        <p class="text-neutral-500 max-w-[480px] mx-auto">The table speaks for itself.</p>
+      </div>
 
-        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-warning-50 text-warning-600 group-hover:bg-warning-600 group-hover:text-white transition-all duration-200 mb-4">
-            <ToolIcon name="zap" size={24} />
-          </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Real-Time Results</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed">No submit buttons, no page reloads. Results update instantly as you adjust inputs.</p>
-          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-warning-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+      <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-neutral-100">
+                <th class="text-left font-medium text-neutral-500 px-6 py-3 w-[200px]">Feature</th>
+                <th class="text-center font-medium text-neutral-400 px-4 py-3">Calculator.net</th>
+                <th class="text-center font-medium text-neutral-400 px-4 py-3">Bankrate</th>
+                <th class="text-center font-semibold text-primary-600 px-4 py-3 bg-primary-50/50">CalcRun</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-neutral-100">
+                <td class="px-6 py-3 font-medium text-neutral-700">Real-time results</td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
+                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
+              </tr>
+              <tr class="border-b border-neutral-100">
+                <td class="px-6 py-3 font-medium text-neutral-700">Zero ads</td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
+                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
+              </tr>
+              <tr class="border-b border-neutral-100">
+                <td class="px-6 py-3 font-medium text-neutral-700">No account required</td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="Partial"><ToolIcon name="minus" size={14} /></span></td>
+                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
+              </tr>
+              <tr class="border-b border-neutral-100">
+                <td class="px-6 py-3 font-medium text-neutral-700">Interactive charts</td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="Partial"><ToolIcon name="minus" size={14} /></span></td>
+                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
+              </tr>
+              <tr>
+                <td class="px-6 py-3 font-medium text-neutral-700">Data never sold</td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="Unknown"><ToolIcon name="minus" size={14} /></span></td>
+                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
+                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </section>
 
-  {/* Gradient divider */}
-  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/40 to-transparent"></div>
-  </div>
-
-  {/* All Tools with category filters */}
-  <section class="py-16 sm:py-20 lg:py-24">
+  {/* ===== ALL TOOLS ===== */}
+  <section class="py-16 sm:py-20 lg:py-24 bg-neutral-50">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">All Tools</h2>
-      <p class="text-neutral-500 mb-8">Filter by category to find the right calculator for you.</p>
+      <p class="text-neutral-500 mb-8">Browse by category or filter to find the right calculator.</p>
+
+      {/* Category navigation cards */}
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
+        {categoryCards.map((cat) => (
+          <button
+            data-category-card={cat.slug}
+            class="category-nav-card group text-left bg-white border border-neutral-200/80 rounded-xl p-4 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
+          >
+            <div class={`inline-flex items-center justify-center w-9 h-9 rounded-lg ${cat.color} ${cat.hoverBg} transition-all duration-200 mb-2.5`}>
+              <ToolIcon name={cat.icon} size={18} />
+            </div>
+            <div class="text-sm font-semibold text-neutral-900 mb-0.5">{CATEGORIES[cat.slug].label}</div>
+            <div class="text-xs text-neutral-400">{cat.count} {cat.count === 1 ? 'tool' : 'tools'}</div>
+          </button>
+        ))}
+      </div>
 
       {/* Category filter pills */}
       <div class="flex flex-wrap gap-2 mb-10" role="tablist" aria-label="Filter tools by category">
@@ -194,7 +409,7 @@ const websiteSchema = buildWebsiteSchema();
           <a
             href={getToolPath(tool)}
             data-tool-category={tool.category}
-            class="tool-card group bg-white border border-neutral-200/80 rounded-2xl p-5 hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
+            class="tool-card group bg-white border border-neutral-200/80 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
           >
             <div class="flex items-start gap-3.5">
               <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 shrink-0">
@@ -216,14 +431,28 @@ const websiteSchema = buildWebsiteSchema();
     </div>
   </section>
 
-  {/* CTA section — dark gradient before footer */}
+  {/* ===== BOTTOM CTA ===== */}
   <section class="cta-gradient relative overflow-hidden py-16 sm:py-20">
     <div class="cta-orb" aria-hidden="true"></div>
     <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">Ready to see your numbers?</h2>
-      <p class="text-primary-200/90 max-w-[480px] mx-auto mb-8 leading-relaxed">
-        18 free calculators, zero signup, instant results. Start making smarter financial decisions today.
-      </p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white mb-8">Start with a question that matters to you</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-[900px] mx-auto mb-10">
+        {ctaHooks.map((hook) => (
+          <a
+            href={hook.link}
+            class="group bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-5 hover:bg-white/15 hover:border-white/25 transition-all duration-200 hover:-translate-y-0.5 text-left"
+          >
+            <p class="text-white font-medium mb-2">{hook.text}</p>
+            <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-400 group-hover:text-accent-300 transition-colors duration-150">
+              {hook.label}
+              <ToolIcon name="arrow-right" size={14} />
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <p class="text-primary-300/80 text-sm mb-4">Or explore everything we offer</p>
       <a
         href="/tools"
         class="inline-flex items-center justify-center gap-2 bg-accent-600 text-white font-semibold px-8 py-4 rounded-xl hover:bg-accent-500 shadow-lg shadow-accent-600/25 hover:shadow-accent-500/30 transition-all duration-200 hover:-translate-y-0.5"
@@ -236,7 +465,7 @@ const websiteSchema = buildWebsiteSchema();
 </BaseLayout>
 
 <style>
-  /* Animated gradient hero */
+  /* ===== HERO ===== */
   .hero-gradient {
     background: linear-gradient(135deg, #0A2540 0%, #112D4E 30%, #1A3A5C 50%, #0F2847 70%, #0A2540 100%);
     background-size: 400% 400%;
@@ -248,7 +477,11 @@ const websiteSchema = buildWebsiteSchema();
     50% { background-position: 100% 50%; }
   }
 
-  /* Floating glow orbs */
+  .hero-dots {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
   .hero-orb {
     position: absolute;
     border-radius: 50%;
@@ -281,7 +514,65 @@ const websiteSchema = buildWebsiteSchema();
     50% { transform: translate(20px, -25px); }
   }
 
-  /* Category filter pills */
+  .hero-float-icon {
+    position: absolute;
+    color: rgba(147, 197, 253, 0.15);
+    pointer-events: none;
+  }
+  .hero-float-icon-1 { top: 18%; left: 8%; animation: iconDrift1 12s ease-in-out infinite; }
+  .hero-float-icon-2 { top: 25%; right: 10%; animation: iconDrift2 14s ease-in-out infinite; }
+  .hero-float-icon-3 { bottom: 30%; left: 12%; animation: iconDrift3 11s ease-in-out infinite; }
+  .hero-float-icon-4 { bottom: 20%; right: 15%; animation: iconDrift4 13s ease-in-out infinite; }
+
+  @keyframes iconDrift1 {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.6; }
+    50% { transform: translate(15px, -20px) rotate(10deg); opacity: 1; }
+  }
+  @keyframes iconDrift2 {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
+    50% { transform: translate(-20px, 15px) rotate(-8deg); opacity: 0.9; }
+  }
+  @keyframes iconDrift3 {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.4; }
+    50% { transform: translate(10px, 15px) rotate(12deg); opacity: 0.8; }
+  }
+  @keyframes iconDrift4 {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
+    50% { transform: translate(-15px, -10px) rotate(-6deg); opacity: 0.9; }
+  }
+
+  .hero-badge-wrapper {
+    position: relative;
+    padding: 1px;
+    border-radius: 9999px;
+    background: conic-gradient(from 0deg, #93C5FD, #10B981, #2563EB, #93C5FD);
+    animation: badgeRotate 4s linear infinite;
+  }
+
+  @keyframes badgeRotate {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+  }
+
+  .hero-word-container {
+    display: inline-block;
+    min-width: 5.5em;
+    text-align: left;
+  }
+  .hero-word {
+    display: inline-block;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .hero-word.fade-out {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  .hero-word.fade-in {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  /* ===== CATEGORY PILLS ===== */
   .category-pill {
     background-color: var(--color-neutral-100);
     color: var(--color-neutral-700);
@@ -295,7 +586,12 @@ const websiteSchema = buildWebsiteSchema();
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
   }
 
-  /* Smooth filter transitions */
+  .category-nav-card.active {
+    border-color: var(--color-primary-400);
+    box-shadow: 0 0 0 1px var(--color-primary-400), 0 4px 12px rgba(37, 99, 235, 0.1);
+  }
+
+  /* ===== FILTER TRANSITIONS ===== */
   .tool-card {
     transition: all 0.2s ease, opacity 0.25s ease, transform 0.25s ease;
   }
@@ -308,7 +604,7 @@ const websiteSchema = buildWebsiteSchema();
     display: none;
   }
 
-  /* CTA section gradient */
+  /* ===== CTA SECTION ===== */
   .cta-gradient {
     background: linear-gradient(135deg, #0A2540 0%, #1A3A5C 50%, #0A2540 100%);
   }
@@ -326,47 +622,141 @@ const websiteSchema = buildWebsiteSchema();
     animation: orbFloat1 10s ease-in-out infinite;
   }
 
-  /* Respect reduced motion */
+  /* ===== REDUCED MOTION ===== */
   @media (prefers-reduced-motion: reduce) {
     .hero-gradient { animation: none; }
     .hero-orb { animation: none; opacity: 0; }
+    .hero-float-icon { animation: none; }
+    .hero-badge-wrapper { animation: none; }
     .cta-orb { animation: none; }
     .tool-card { transition-duration: 0.01ms; }
+    .hero-word { transition-duration: 0.01ms; }
   }
 </style>
 
 <script>
+  // ===== Category filter logic =====
   const pills = document.querySelectorAll('.category-pill');
   const cards = document.querySelectorAll('.tool-card');
+  const navCards = document.querySelectorAll('.category-nav-card');
+
+  function filterByCategory(category: string) {
+    pills.forEach((p) => {
+      const pillCat = (p as HTMLElement).dataset.category;
+      if (pillCat === category || (category === 'all' && pillCat === 'all')) {
+        p.classList.add('active');
+        p.setAttribute('aria-selected', 'true');
+      } else {
+        p.classList.remove('active');
+        p.setAttribute('aria-selected', 'false');
+      }
+    });
+
+    navCards.forEach((nc) => {
+      const ncCat = (nc as HTMLElement).dataset.categoryCard;
+      if (ncCat === category) {
+        nc.classList.add('active');
+      } else {
+        nc.classList.remove('active');
+      }
+    });
+
+    cards.forEach((card) => {
+      const cardCategory = (card as HTMLElement).dataset.toolCategory;
+      const shouldShow = category === 'all' || cardCategory === category;
+      const el = card as HTMLElement;
+
+      if (!shouldShow) {
+        el.classList.add('hiding');
+        setTimeout(() => { el.classList.add('card-hidden'); }, 200);
+      } else {
+        el.classList.remove('card-hidden');
+        void el.offsetHeight;
+        el.classList.remove('hiding');
+      }
+    });
+  }
 
   pills.forEach((pill) => {
     pill.addEventListener('click', () => {
-      const category = (pill as HTMLElement).dataset.category;
-
-      // Update active pill
-      pills.forEach((p) => {
-        p.classList.remove('active');
-        p.setAttribute('aria-selected', 'false');
-      });
-      pill.classList.add('active');
-      pill.setAttribute('aria-selected', 'true');
-
-      // Animate filter with fade
-      cards.forEach((card) => {
-        const cardCategory = (card as HTMLElement).dataset.toolCategory;
-        const shouldShow = category === 'all' || cardCategory === category;
-        const el = card as HTMLElement;
-
-        if (!shouldShow) {
-          el.classList.add('hiding');
-          setTimeout(() => { el.classList.add('card-hidden'); }, 200);
-        } else {
-          el.classList.remove('card-hidden');
-          // Force reflow for animation
-          void el.offsetHeight;
-          el.classList.remove('hiding');
-        }
-      });
+      const category = (pill as HTMLElement).dataset.category || 'all';
+      filterByCategory(category);
     });
   });
+
+  navCards.forEach((nc) => {
+    nc.addEventListener('click', () => {
+      const category = (nc as HTMLElement).dataset.categoryCard || 'all';
+      filterByCategory(category);
+      document.getElementById('tools-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // ===== Animated stat counters =====
+  const statCounters = document.querySelectorAll('.stat-counter');
+  let statsAnimated = false;
+
+  function animateCounter(el: Element) {
+    const numberEl = el.querySelector('.stat-number') as HTMLElement;
+    const suffixEl = el.querySelector('.stat-suffix') as HTMLElement;
+    const target = parseInt((el as HTMLElement).dataset.target || '0', 10);
+    const suffix = (el as HTMLElement).dataset.suffix || '';
+
+    if (suffixEl && suffix) {
+      suffixEl.textContent = suffix;
+    }
+
+    if (target === 0) {
+      numberEl.textContent = '0';
+      return;
+    }
+
+    const duration = 1200;
+    const startTime = performance.now();
+
+    function update(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+      numberEl.textContent = current.toString();
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && !statsAnimated) {
+        statsAnimated = true;
+        statCounters.forEach((counter) => animateCounter(counter));
+      }
+    });
+  }, { threshold: 0.5 });
+
+  statCounters.forEach((counter) => statsObserver.observe(counter));
+
+  // ===== Hero word cycling =====
+  const heroWord = document.querySelector('.hero-word') as HTMLElement;
+  if (heroWord) {
+    const words: string[] = JSON.parse(heroWord.dataset.words || '[]');
+    let currentIndex = 0;
+
+    setInterval(() => {
+      heroWord.classList.add('fade-out');
+
+      setTimeout(() => {
+        currentIndex = (currentIndex + 1) % words.length;
+        heroWord.textContent = words[currentIndex];
+        heroWord.classList.remove('fade-out');
+        heroWord.classList.add('fade-in');
+        void heroWord.offsetHeight;
+        heroWord.classList.remove('fade-in');
+      }, 300);
+    }, 3000);
+  }
 </script>
