@@ -110,7 +110,6 @@ const ctaHooks = [
 ];
 
 /** Words to cycle through in the hero */
-const heroWords = ['Time', 'Privacy', 'Intelligence'];
 ---
 
 <BaseLayout
@@ -124,19 +123,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
     <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
 
-    <div class="hero-float-icon hero-float-icon-1" aria-hidden="true">
-      <ToolIcon name="calculator" size={20} />
-    </div>
-    <div class="hero-float-icon hero-float-icon-2" aria-hidden="true">
-      <ToolIcon name="trending-up" size={18} />
-    </div>
-    <div class="hero-float-icon hero-float-icon-3" aria-hidden="true">
-      <ToolIcon name="dollar-sign" size={16} />
-    </div>
-    <div class="hero-float-icon hero-float-icon-4" aria-hidden="true">
-      <ToolIcon name="percent" size={18} />
-    </div>
-
     <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <div class="hero-badge-wrapper inline-block mb-6">
         <div class="hero-badge inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5">
@@ -147,14 +133,10 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
 
       <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em] max-w-[700px] mx-auto">
         Financial Calculators That
-        <span class="hero-cycling-text relative inline-block">
-          <span class="text-transparent bg-clip-text bg-[linear-gradient(135deg,#93C5FD,#10B981)]">
-            Respect Your <span class="hero-word-container"><span class="hero-word" data-words={JSON.stringify(heroWords)}>Time</span></span>
-          </span>
-        </span>
+        <span class="text-transparent bg-clip-text bg-[linear-gradient(135deg,#93C5FD,#10B981)]">Respect Your Time</span>
       </h1>
       <p class="mt-5 text-lg sm:text-xl text-primary-200/90 max-w-[560px] mx-auto leading-relaxed">
-        See your numbers instantly — no signup, no ads, no data harvesting. Just clear math and honest results.
+        Get answers in seconds — no signup, no ads, no nonsense.
       </p>
 
       <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -174,20 +156,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
         </a>
       </div>
 
-      <div class="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-sm text-primary-300/80">
-        <div class="flex items-center gap-2">
-          <ToolIcon name="lock" size={16} />
-          <span>Runs in your browser</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <ToolIcon name="eye" size={16} />
-          <span>No data harvesting</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <ToolIcon name="zap" size={16} />
-          <span>Instant results</span>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -216,11 +184,9 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
           <div class="text-sm text-neutral-500 mt-1 font-medium">Ads</div>
         </div>
         <div class="hidden sm:block w-px h-10 bg-gradient-to-b from-transparent via-neutral-200 to-transparent" aria-hidden="true"></div>
-        <div class="stat-counter text-center" data-target="100" data-suffix="%">
-          <div class="text-3xl sm:text-4xl font-bold text-accent-600 tabular-nums">
-            <span class="stat-number">0</span><span class="stat-suffix"></span>
-          </div>
-          <div class="text-sm text-neutral-500 mt-1 font-medium">Client-Side</div>
+        <div class="text-center">
+          <div class="text-3xl sm:text-4xl font-bold text-accent-600 tabular-nums">$0</div>
+          <div class="text-sm text-neutral-500 mt-1 font-medium">Forever</div>
         </div>
       </div>
     </div>
@@ -514,62 +480,11 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     50% { transform: translate(20px, -25px); }
   }
 
-  .hero-float-icon {
-    position: absolute;
-    color: rgba(147, 197, 253, 0.15);
-    pointer-events: none;
-  }
-  .hero-float-icon-1 { top: 18%; left: 8%; animation: iconDrift1 12s ease-in-out infinite; }
-  .hero-float-icon-2 { top: 25%; right: 10%; animation: iconDrift2 14s ease-in-out infinite; }
-  .hero-float-icon-3 { bottom: 30%; left: 12%; animation: iconDrift3 11s ease-in-out infinite; }
-  .hero-float-icon-4 { bottom: 20%; right: 15%; animation: iconDrift4 13s ease-in-out infinite; }
-
-  @keyframes iconDrift1 {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.6; }
-    50% { transform: translate(15px, -20px) rotate(10deg); opacity: 1; }
-  }
-  @keyframes iconDrift2 {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
-    50% { transform: translate(-20px, 15px) rotate(-8deg); opacity: 0.9; }
-  }
-  @keyframes iconDrift3 {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.4; }
-    50% { transform: translate(10px, 15px) rotate(12deg); opacity: 0.8; }
-  }
-  @keyframes iconDrift4 {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
-    50% { transform: translate(-15px, -10px) rotate(-6deg); opacity: 0.9; }
-  }
-
   .hero-badge-wrapper {
     position: relative;
     padding: 1px;
     border-radius: 9999px;
-    background: conic-gradient(from 0deg, #93C5FD, #10B981, #2563EB, #93C5FD);
-    animation: badgeRotate 4s linear infinite;
-  }
-
-  @keyframes badgeRotate {
-    0% { filter: hue-rotate(0deg); }
-    100% { filter: hue-rotate(360deg); }
-  }
-
-  .hero-word-container {
-    display: inline-block;
-    min-width: 5.5em;
-    text-align: left;
-  }
-  .hero-word {
-    display: inline-block;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
-  .hero-word.fade-out {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  .hero-word.fade-in {
-    opacity: 0;
-    transform: translateY(8px);
+    background: conic-gradient(from 135deg, #93C5FD, #10B981, #2563EB, #93C5FD);
   }
 
   /* ===== CATEGORY PILLS ===== */
@@ -626,11 +541,8 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
   @media (prefers-reduced-motion: reduce) {
     .hero-gradient { animation: none; }
     .hero-orb { animation: none; opacity: 0; }
-    .hero-float-icon { animation: none; }
-    .hero-badge-wrapper { animation: none; }
     .cta-orb { animation: none; }
     .tool-card { transition-duration: 0.01ms; }
-    .hero-word { transition-duration: 0.01ms; }
   }
 </style>
 
@@ -740,23 +652,4 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
 
   statCounters.forEach((counter) => statsObserver.observe(counter));
 
-  // ===== Hero word cycling =====
-  const heroWord = document.querySelector('.hero-word') as HTMLElement;
-  if (heroWord) {
-    const words: string[] = JSON.parse(heroWord.dataset.words || '[]');
-    let currentIndex = 0;
-
-    setInterval(() => {
-      heroWord.classList.add('fade-out');
-
-      setTimeout(() => {
-        currentIndex = (currentIndex + 1) % words.length;
-        heroWord.textContent = words[currentIndex];
-        heroWord.classList.remove('fade-out');
-        heroWord.classList.add('fade-in');
-        void heroWord.offsetHeight;
-        heroWord.classList.remove('fade-in');
-      }, 300);
-    }, 3000);
-  }
 </script>
