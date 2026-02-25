@@ -1,7 +1,7 @@
 /**
- * Word to PDF — convert DOCX to PDF using mammoth.js + pdfmake.
- * Produces a vector PDF with selectable text, proper fonts, and tables.
- * Client-side only. No server upload.
+ * Word to PDF — convert DOCX to PDF using mammoth.js + html2pdf.js.
+ * mammoth extracts structured HTML from the DOCX, then html2pdf.js renders
+ * the styled HTML to a paginated PDF. Client-side only. No server upload.
  */
 import { useState, useCallback, useRef } from 'react';
 import { Download, FileText } from 'lucide-react';
@@ -53,52 +53,75 @@ export default function WordToPdf() {
     setError('');
 
     try {
-      // Import pdfmake and html-to-pdfmake for vector PDF generation
-      const pdfMakeModule = await import('pdfmake/build/pdfmake');
-      const pdfMake = pdfMakeModule.default || pdfMakeModule;
-      const htmlToPdfmake = (await import('html-to-pdfmake')).default;
+      const html2pdf = (await import('html2pdf.js')).default;
 
-      // Load pdfmake fonts
-      const pdfFontsModule = await import('pdfmake/build/vfs_fonts');
-      if (pdfFontsModule.pdfMake?.vfs) {
-        pdfMake.vfs = pdfFontsModule.pdfMake.vfs;
-      } else if (pdfFontsModule.default?.pdfMake?.vfs) {
-        pdfMake.vfs = pdfFontsModule.default.pdfMake.vfs;
-      }
+      // Create an off-screen container with clean document styling.
+      // This is separate from the visible preview so we control the render
+      // exactly (no Tailwind prose styles, no border/shadow, A4 proportions).
+      const container = document.createElement('div');
+      container.className = 'word-to-pdf-render';
+      container.innerHTML = htmlContent;
 
-      // Convert HTML to pdfmake document definition
-      const pdfContent = htmlToPdfmake(htmlContent, {
-        tableAutoSize: true,
-        imagesByReference: true,
-        defaultStyles: {
-          h1: { fontSize: 24, bold: true, marginBottom: 10, marginTop: 16 },
-          h2: { fontSize: 20, bold: true, marginBottom: 8, marginTop: 14 },
-          h3: { fontSize: 16, bold: true, marginBottom: 6, marginTop: 12 },
-          h4: { fontSize: 14, bold: true, marginBottom: 4, marginTop: 10 },
-          p: { fontSize: 11, marginBottom: 6, lineHeight: 1.4 },
-          li: { fontSize: 11, marginBottom: 3 },
-          a: { color: '#1a56db' },
-          th: { fontSize: 10, bold: true, fillColor: '#f0f4f8' },
-          td: { fontSize: 10 },
-        },
-      });
+      // Inject scoped styles for the off-screen render
+      const style = document.createElement('style');
+      style.textContent = `
+        .word-to-pdf-render {
+          position: absolute;
+          left: -9999px;
+          top: 0;
+          width: 170mm;
+          font-family: 'Times New Roman', 'Georgia', serif;
+          font-size: 12pt;
+          line-height: 1.5;
+          color: #000;
+          background: #fff;
+        }
+        .word-to-pdf-render h1 { font-size: 22pt; margin: 18pt 0 10pt; font-weight: bold; }
+        .word-to-pdf-render h2 { font-size: 18pt; margin: 16pt 0 8pt; font-weight: bold; }
+        .word-to-pdf-render h3 { font-size: 14pt; margin: 14pt 0 6pt; font-weight: bold; }
+        .word-to-pdf-render h4 { font-size: 12pt; margin: 12pt 0 4pt; font-weight: bold; }
+        .word-to-pdf-render p  { margin: 0 0 8pt; }
+        .word-to-pdf-render ul, .word-to-pdf-render ol { margin: 6pt 0; padding-left: 24pt; }
+        .word-to-pdf-render li { margin: 3pt 0; }
+        .word-to-pdf-render table { border-collapse: collapse; width: 100%; margin: 10pt 0; }
+        .word-to-pdf-render th,
+        .word-to-pdf-render td { border: 1px solid #999; padding: 5pt 8pt; text-align: left; font-size: 10pt; vertical-align: top; }
+        .word-to-pdf-render th { background: #f0f4f8; font-weight: bold; }
+        .word-to-pdf-render img { max-width: 100%; height: auto; }
+        .word-to-pdf-render a { color: #1a56db; text-decoration: underline; }
+        .word-to-pdf-render blockquote { margin: 8pt 0; padding-left: 12pt; border-left: 3pt solid #ccc; color: #444; }
+        .word-to-pdf-render pre, .word-to-pdf-render code { font-family: 'Courier New', monospace; font-size: 10pt; background: #f5f5f5; padding: 2pt 4pt; }
+        .word-to-pdf-render pre { padding: 8pt; margin: 8pt 0; overflow-x: auto; }
+      `;
+      document.head.appendChild(style);
+      document.body.appendChild(container);
 
-      const docDefinition = {
-        content: Array.isArray(pdfContent) ? pdfContent : [pdfContent],
-        pageSize: 'A4' as const,
-        pageMargins: [40, 40, 40, 40] as [number, number, number, number],
-        defaultStyle: {
-          fontSize: 11,
-          lineHeight: 1.4,
-        },
-        images: (pdfContent as { images?: Record<string, string> }).images || {},
-      };
+      const pdfFilename = file.name.replace(/\.docx?$/i, '') + '.pdf';
 
-      pdfMake.createPdf(docDefinition).download(
-        file.name.replace(/\.docx?$/i, '') + '.pdf'
-      );
+      await html2pdf()
+        .set({
+          margin: [15, 15, 15, 15],
+          filename: pdfFilename,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            letterRendering: true,
+            logging: false,
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+        })
+        .from(container)
+        .save();
+
+      document.body.removeChild(container);
+      document.head.removeChild(style);
     } catch (e) {
-      setError('PDF conversion failed. ' + (e instanceof Error ? e.message : 'Please try a simpler document.'));
+      setError(
+        'PDF conversion failed. ' +
+          (e instanceof Error ? e.message : 'Please try a simpler document.')
+      );
     }
     setConverting(false);
   }, [htmlContent, file]);
@@ -132,7 +155,10 @@ export default function WordToPdf() {
             >
               {converting ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                  <div
+                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                    aria-hidden="true"
+                  />
                   Converting to PDF...
                 </>
               ) : (
@@ -147,13 +173,16 @@ export default function WordToPdf() {
               <div className="text-xs text-amber-700 bg-amber-50 rounded-lg p-3">
                 <p className="font-medium mb-1">Notes:</p>
                 <ul className="list-disc pl-4 space-y-0.5">
-                  {warnings.map((w, i) => <li key={i}>{w}</li>)}
+                  {warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
                 </ul>
               </div>
             )}
 
             <p className="text-xs text-neutral-400">
-              Produces a vector PDF with selectable text. Complex layouts may vary slightly from the original.
+              Renders your document as a high-fidelity PDF. Tables, lists, and formatting are
+              preserved. Very complex layouts may differ slightly from the original.
             </p>
           </div>
         )}
@@ -161,12 +190,17 @@ export default function WordToPdf() {
 
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+            {error}
+          </div>
         )}
 
         {processing && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-primary-50 border border-primary-200">
-            <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+            <div
+              className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"
+              aria-hidden="true"
+            />
             <span className="text-sm text-primary-700">Reading Word document...</span>
           </div>
         )}
@@ -180,12 +214,18 @@ export default function WordToPdf() {
               dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
           </div>
-        ) : !processing && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
-            <p className="text-sm text-neutral-500">Upload a Word document (.docx) to convert it to PDF</p>
-            <p className="text-xs text-neutral-400 mt-1">Preview appears here, then download as PDF</p>
-          </div>
+        ) : (
+          !processing && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
+              <p className="text-sm text-neutral-500">
+                Upload a Word document (.docx) to convert it to PDF
+              </p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Preview appears here, then download as PDF
+              </p>
+            </div>
+          )
         )}
       </div>
     </div>
