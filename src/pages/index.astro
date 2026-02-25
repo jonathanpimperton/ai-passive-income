@@ -102,22 +102,6 @@ const personas = [
   },
 ];
 
-/** Ticker items for scrolling marquee */
-const tickerItems = [
-  { label: 'Monthly mortgage payment', slug: 'mortgage-payment', category: 'debt-and-loans' as CategorySlug },
-  { label: 'Retirement savings goal', slug: 'retirement-savings', category: 'income-and-planning' as CategorySlug },
-  { label: 'Debt payoff timeline', slug: 'debt-payoff', category: 'debt-and-loans' as CategorySlug },
-  { label: 'Investment growth', slug: 'investment-return', category: 'saving-and-growth' as CategorySlug },
-  { label: 'Salary breakdown', slug: 'salary-us', category: 'income-and-planning' as CategorySlug },
-  { label: 'Compound interest', slug: 'compound-interest', category: 'saving-and-growth' as CategorySlug },
-  { label: 'Loan amortization', slug: 'loan-amortization', category: 'debt-and-loans' as CategorySlug },
-  { label: 'Rent vs. buy analysis', slug: 'rent-vs-buy', category: 'debt-and-loans' as CategorySlug },
-  { label: 'Emergency fund target', slug: 'emergency-fund', category: 'income-and-planning' as CategorySlug },
-  { label: 'Net worth tracker', slug: 'net-worth', category: 'income-and-planning' as CategorySlug },
-  { label: 'ROI calculation', slug: 'roi', category: 'saving-and-growth' as CategorySlug },
-  { label: 'Inflation impact', slug: 'inflation', category: 'economic' as CategorySlug },
-];
-
 /** Specific CTA hooks for the bottom section */
 const ctaHooks = [
   { text: 'Wondering if you can retire at 55?', link: '/tools/income-and-planning/retirement-savings', label: 'Try the retirement calculator' },
@@ -134,16 +118,12 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
   description="See your numbers instantly — no signup, no ads, no data harvesting. Free financial calculators with interactive charts and plain-English explanations."
   structuredData={[websiteSchema]}
 >
-  {/* ===== HERO — animated dark gradient with floating icons and dot pattern ===== */}
+  {/* ===== HERO ===== */}
   <section class="hero-gradient relative overflow-hidden py-20 sm:py-28 lg:py-32">
-    {/* Dot pattern overlay */}
     <div class="hero-dots absolute inset-0" aria-hidden="true"></div>
-
-    {/* Floating glow orbs */}
     <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
     <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
 
-    {/* Floating mini-icons */}
     <div class="hero-float-icon hero-float-icon-1" aria-hidden="true">
       <ToolIcon name="calculator" size={20} />
     </div>
@@ -158,7 +138,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     </div>
 
     <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      {/* Animated gradient-border badge */}
       <div class="hero-badge-wrapper inline-block mb-6">
         <div class="hero-badge inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5">
           <ToolIcon name="sparkles" class="text-primary-300" size={16} />
@@ -195,7 +174,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
         </a>
       </div>
 
-      {/* Trust indicators */}
       <div class="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-sm text-primary-300/80">
         <div class="flex items-center gap-2">
           <ToolIcon name="lock" size={16} />
@@ -213,23 +191,7 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     </div>
   </section>
 
-  {/* ===== SCROLLING TICKER ===== */}
-  <div class="ticker-strip relative overflow-hidden bg-primary-900 py-3 border-y border-white/5">
-    <div class="ticker-track flex whitespace-nowrap" aria-hidden="true">
-      {[...tickerItems, ...tickerItems].map((item) => (
-        <a
-          href={`/tools/${item.category}/${item.slug}`}
-          tabindex="-1"
-          class="ticker-item inline-flex items-center gap-2 mx-6 text-sm text-primary-300/70 hover:text-primary-200 transition-colors duration-150"
-        >
-          <span class="w-1 h-1 rounded-full bg-primary-500/50 shrink-0" aria-hidden="true"></span>
-          {item.label}
-        </a>
-      ))}
-    </div>
-  </div>
-
-  {/* ===== ANIMATED STATS BAR ===== */}
+  {/* ===== STATS BAR ===== */}
   <section class="py-10 sm:py-12 bg-white border-b border-neutral-100">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-16 lg:gap-20">
@@ -302,52 +264,8 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     </div>
   </section>
 
-  {/* ===== HOW IT WORKS — 3-step process ===== */}
-  <section class="py-16 sm:py-20 bg-neutral-50 relative overflow-hidden">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">How It Works</h2>
-        <p class="text-neutral-500 max-w-[480px] mx-auto">Three steps. No account. No waiting.</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 relative">
-        {/* Connecting line — desktop only */}
-        <div class="hidden sm:block absolute top-7 left-[calc(16.67%+28px)] right-[calc(16.67%+28px)] h-px bg-gradient-to-r from-primary-300 via-primary-400 to-accent-400" aria-hidden="true"></div>
-
-        <div class="text-center relative">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-500 text-white shadow-lg shadow-primary-500/25 mb-5 relative z-10">
-            <ToolIcon name="layout-grid" size={22} />
-          </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Pick a calculator</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed max-w-[260px] mx-auto">Choose from 18 free financial and utility tools — no signup required.</p>
-        </div>
-
-        <div class="text-center relative">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-500 text-white shadow-lg shadow-primary-500/25 mb-5 relative z-10">
-            <ToolIcon name="sliders-horizontal" size={22} />
-          </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Adjust your numbers</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed max-w-[260px] mx-auto">Drag sliders or type values. Everything updates as you go.</p>
-        </div>
-
-        <div class="text-center relative">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent-600 text-white shadow-lg shadow-accent-600/25 mb-5 relative z-10">
-            <ToolIcon name="line-chart" size={22} />
-          </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">See results instantly</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed max-w-[260px] mx-auto">Charts, breakdowns, and plain-English explanations — in real time.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  {/* Gradient divider */}
-  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/40 to-transparent"></div>
-  </div>
-
-  {/* ===== WHO IS THIS FOR? — persona cards ===== */}
-  <section class="py-16 sm:py-20 lg:py-24">
+  {/* ===== WHO IS THIS FOR? ===== */}
+  <section class="py-16 sm:py-20 bg-neutral-50">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Who Is This For?</h2>
@@ -384,49 +302,15 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     </div>
   </section>
 
-  {/* ===== WHY CALCRUN — value proposition with comparison table ===== */}
-  <section class="py-16 sm:py-20 bg-neutral-50">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Why CalcRun?</h2>
-        <p class="text-neutral-500 max-w-[480px] mx-auto">Built different from the calculator sites you're used to.</p>
+  {/* ===== HOW WE COMPARE — standalone comparison table ===== */}
+  <section class="py-16 sm:py-20">
+    <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">How We Compare</h2>
+        <p class="text-neutral-500 max-w-[480px] mx-auto">The table speaks for itself.</p>
       </div>
 
-      {/* Feature cards */}
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-50 text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-200 mb-4">
-            <ToolIcon name="sparkles" size={24} />
-          </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Zero Ads</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed">No pop-ups, no banners, no sponsored placements. Your screen is 100% calculator.</p>
-          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-accent-500 to-primary-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-        </div>
-
-        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all duration-200 mb-4">
-            <ToolIcon name="shield-check" size={24} />
-          </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Your Data Stays Yours</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed">Every calculation runs in your browser. We never see, store, or sell your numbers.</p>
-          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-        </div>
-
-        <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 text-center relative overflow-hidden">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-warning-50 text-warning-600 group-hover:bg-warning-600 group-hover:text-white transition-all duration-200 mb-4">
-            <ToolIcon name="zap" size={24} />
-          </div>
-          <h3 class="text-lg font-semibold text-neutral-900 mb-2">Real-Time Results</h3>
-          <p class="text-sm text-neutral-500 leading-relaxed">No submit buttons, no page reloads. Results update instantly as you adjust inputs.</p>
-          <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-warning-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-        </div>
-      </div>
-
-      {/* Comparison table */}
       <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-card overflow-hidden">
-        <div class="px-6 py-4 bg-neutral-50 border-b border-neutral-200/80">
-          <h3 class="text-base font-semibold text-neutral-900">How we compare</h3>
-        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
@@ -475,13 +359,8 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     </div>
   </section>
 
-  {/* Gradient divider */}
-  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/40 to-transparent"></div>
-  </div>
-
-  {/* ===== ALL TOOLS — with category navigation cards + filter ===== */}
-  <section class="py-16 sm:py-20 lg:py-24">
+  {/* ===== ALL TOOLS ===== */}
+  <section class="py-16 sm:py-20 lg:py-24 bg-neutral-50">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">All Tools</h2>
       <p class="text-neutral-500 mb-8">Browse by category or filter to find the right calculator.</p>
@@ -552,7 +431,7 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     </div>
   </section>
 
-  {/* ===== BOTTOM CTA — specific tool hooks ===== */}
+  {/* ===== BOTTOM CTA ===== */}
   <section class="cta-gradient relative overflow-hidden py-16 sm:py-20">
     <div class="cta-orb" aria-hidden="true"></div>
     <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -598,13 +477,11 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     50% { background-position: 100% 50%; }
   }
 
-  /* Dot pattern overlay */
   .hero-dots {
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 
-  /* Floating glow orbs */
   .hero-orb {
     position: absolute;
     border-radius: 50%;
@@ -637,32 +514,15 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     50% { transform: translate(20px, -25px); }
   }
 
-  /* Floating mini icons */
   .hero-float-icon {
     position: absolute;
     color: rgba(147, 197, 253, 0.15);
     pointer-events: none;
   }
-  .hero-float-icon-1 {
-    top: 18%;
-    left: 8%;
-    animation: iconDrift1 12s ease-in-out infinite;
-  }
-  .hero-float-icon-2 {
-    top: 25%;
-    right: 10%;
-    animation: iconDrift2 14s ease-in-out infinite;
-  }
-  .hero-float-icon-3 {
-    bottom: 30%;
-    left: 12%;
-    animation: iconDrift3 11s ease-in-out infinite;
-  }
-  .hero-float-icon-4 {
-    bottom: 20%;
-    right: 15%;
-    animation: iconDrift4 13s ease-in-out infinite;
-  }
+  .hero-float-icon-1 { top: 18%; left: 8%; animation: iconDrift1 12s ease-in-out infinite; }
+  .hero-float-icon-2 { top: 25%; right: 10%; animation: iconDrift2 14s ease-in-out infinite; }
+  .hero-float-icon-3 { bottom: 30%; left: 12%; animation: iconDrift3 11s ease-in-out infinite; }
+  .hero-float-icon-4 { bottom: 20%; right: 15%; animation: iconDrift4 13s ease-in-out infinite; }
 
   @keyframes iconDrift1 {
     0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.6; }
@@ -681,7 +541,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     50% { transform: translate(-15px, -10px) rotate(-6deg); opacity: 0.9; }
   }
 
-  /* Animated gradient border badge */
   .hero-badge-wrapper {
     position: relative;
     padding: 1px;
@@ -695,10 +554,9 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     100% { filter: hue-rotate(360deg); }
   }
 
-  /* Hero word cycling — fixed width prevents CLS */
   .hero-word-container {
     display: inline-block;
-    min-width: 5.5em; /* wide enough for "Intelligence" */
+    min-width: 5.5em;
     text-align: left;
   }
   .hero-word {
@@ -712,20 +570,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
   .hero-word.fade-in {
     opacity: 0;
     transform: translateY(8px);
-  }
-
-  /* ===== SCROLLING TICKER ===== */
-  .ticker-track {
-    animation: ticker 40s linear infinite;
-  }
-
-  .ticker-strip:hover .ticker-track {
-    animation-play-state: paused;
-  }
-
-  @keyframes ticker {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
   }
 
   /* ===== CATEGORY PILLS ===== */
@@ -742,7 +586,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
   }
 
-  /* Category nav card active state */
   .category-nav-card.active {
     border-color: var(--color-primary-400);
     box-shadow: 0 0 0 1px var(--color-primary-400), 0 4px 12px rgba(37, 99, 235, 0.1);
@@ -785,7 +628,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     .hero-orb { animation: none; opacity: 0; }
     .hero-float-icon { animation: none; }
     .hero-badge-wrapper { animation: none; }
-    .ticker-track { animation: none; }
     .cta-orb { animation: none; }
     .tool-card { transition-duration: 0.01ms; }
     .hero-word { transition-duration: 0.01ms; }
@@ -799,7 +641,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
   const navCards = document.querySelectorAll('.category-nav-card');
 
   function filterByCategory(category: string) {
-    // Update active pill
     pills.forEach((p) => {
       const pillCat = (p as HTMLElement).dataset.category;
       if (pillCat === category || (category === 'all' && pillCat === 'all')) {
@@ -811,7 +652,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
       }
     });
 
-    // Update active nav card
     navCards.forEach((nc) => {
       const ncCat = (nc as HTMLElement).dataset.categoryCard;
       if (ncCat === category) {
@@ -821,7 +661,6 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
       }
     });
 
-    // Animate filter
     cards.forEach((card) => {
       const cardCategory = (card as HTMLElement).dataset.toolCategory;
       const shouldShow = category === 'all' || cardCategory === category;
