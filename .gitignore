@@ -32,6 +32,7 @@ Thumbs.db
 coverage/
 test-results/
 playwright-report/
+tests/visual-output/
 
 # Misc
 *.log

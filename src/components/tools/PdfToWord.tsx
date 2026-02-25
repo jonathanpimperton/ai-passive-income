@@ -25,6 +25,7 @@ import {
   detectTables,
   mergeParagraphLines,
   findBodyFontSize,
+  estimateRightMargin,
   pdfSizeToDocxHalfPoints,
   detectHeadingLevel,
 } from '../../lib/pdf-word-utils';
@@ -37,7 +38,12 @@ function formatSize(bytes: number): string {
 
 /**
  * Extract embedded raster images from a PDF page via its operator list.
- * Returns PNG blobs for each image found.
+ * Tracks the current transform matrix (CTM) to get each image's actual
+ * Y position on the page, so images can be interleaved with text at the
+ * correct location in the document.
+ *
+ * The operator pattern is: save → transform → paintImageXObject → restore.
+ * The transform's f value gives the Y position in PDF coords (bottom-up).
  */
 async function extractPageImages(
   page: { getOperatorList: () => Promise<{ fnArray: number[]; argsArray: unknown[][] }>; objs: { get: (name: string, cb: (data: unknown) => void) => void }; getViewport: (opts: { scale: number }) => { height: number } },
@@ -49,7 +55,21 @@ async function extractPageImages(
     const ops = await page.getOperatorList();
     const viewport = page.getViewport({ scale: 1 });
 
+    // Track CTM to get image positions. The CTM is set by OPS.transform
+    // entries that precede OPS.paintImageXObject. The pattern is:
+    //   save → transform [a,b,c,d,e,f] → paintImageXObject → restore
+    // where e=x, f=y in PDF coordinates (bottom-up).
+    let lastTransformY = viewport.height / 2; // fallback
+
     for (let i = 0; i < ops.fnArray.length; i++) {
+      // Track the most recent transform before an image paint
+      if (ops.fnArray[i] === OPS.transform) {
+        const args = ops.argsArray[i] as number[];
+        if (args.length >= 6) {
+          lastTransformY = args[5]; // f = Y translation
+        }
+      }
+
       if (
         ops.fnArray[i] === OPS.paintImageXObject ||
         ops.fnArray[i] === OPS.paintJpegXObject
@@ -102,7 +122,7 @@ async function extractPageImages(
             data: pngData,
             width: imgData.width,
             height: imgData.height,
-            y: viewport.height / 2, // approximate position
+            y: lastTransformY,
           });
         } catch {
           // Skip images that fail to extract (encrypted, corrupt, etc.)
@@ -209,13 +229,14 @@ export default function PdfToWord() {
 
       const children: SectionChild[] = [];
 
-      // ── Pre-process: find body size & merge paragraph lines ──────
+      // ── Pre-process: find body size, right margin, merge paragraph lines ──
 
       const bodySize = findBodyFontSize(pages);
+      const rightMargin = estimateRightMargin(pages, bodySize);
 
       const processedPages = pages.map((p) => ({
         ...p,
-        blocks: mergeParagraphLines(p.blocks, bodySize),
+        blocks: mergeParagraphLines(p.blocks, bodySize, rightMargin),
       }));
 
       // ── Build DOCX content ──────────────────────────────────────
@@ -227,9 +248,65 @@ export default function PdfToWord() {
 
         const page = processedPages[pi];
 
-        for (const block of page.blocks) {
+        // ── Interleave images with text blocks by Y position ──
+        // PDF coordinates are bottom-up: higher Y = higher on page.
+        // Text blocks already have real Y values on their lines (from groupIntoLines).
+        // Images have real Y from the CTM transform.
+        // Strategy: emit blocks in order, insert images just before the first
+        // block whose top line is BELOW the image on the page.
+
+        // Sort images by Y descending (top of page first)
+        const sortedImages = (page.images || [])
+          .slice()
+          .sort((a, b) => b.y - a.y);
+        let imgIdx = 0;
+
+        // Get the Y position for each block from its first line
+        // (lines are sorted top-to-bottom, so first line has the highest Y)
+        const blockYPositions: number[] = page.blocks.map((block) => {
+          if (block.lines && block.lines.length > 0) {
+            return block.lines[0].y ?? 0;
+          }
+          // Tables or blocks without lines: use 0 (bottom of page)
+          return 0;
+        });
+
+        function emitImageParagraph(img: ExtractedImage) {
+          const maxWidth = 580;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxWidth) {
+            h = Math.round(h * (maxWidth / w));
+            w = maxWidth;
+          }
+          try {
+            children.push(
+              new Paragraph({
+                children: [
+                  new ImageRun({
+                    data: img.data,
+                    transformation: { width: w, height: h },
+                    type: 'png',
+                  }),
+                ],
+                spacing: { before: 120, after: 120 },
+              })
+            );
+          } catch {
+            // Skip images that fail to embed
+          }
+        }
+
+        for (let bi = 0; bi < page.blocks.length; bi++) {
+          // Insert any images that belong before this text block
+          const blockApproxY = blockYPositions[bi];
+          while (imgIdx < sortedImages.length && sortedImages[imgIdx].y >= blockApproxY) {
+            emitImageParagraph(sortedImages[imgIdx]);
+            imgIdx++;
+          }
+
+          const block = page.blocks[bi];
           if (block.type === 'table' && block.rows && block.rows.length > 0) {
-            // ── Table ────────────────────────────────────────────
             const rows = block.rows.map(
               (row, ri) =>
                 new DocxTableRow({
@@ -266,7 +343,6 @@ export default function PdfToWord() {
             );
             children.push(new Paragraph({ text: '' }));
           } else if (block.lines) {
-            // ── Paragraphs ───────────────────────────────────────
             for (const line of block.lines) {
               const headingLevel = detectHeadingLevel(line, bodySize);
 
@@ -306,35 +382,10 @@ export default function PdfToWord() {
           }
         }
 
-        // ── Embed extracted images for this page ─────────────────
-        if (page.images && page.images.length > 0) {
-          for (const img of page.images) {
-            // Scale image to fit within page width (max ~600px for A4 at 96 DPI)
-            const maxWidth = 580;
-            let w = img.width;
-            let h = img.height;
-            if (w > maxWidth) {
-              h = Math.round(h * (maxWidth / w));
-              w = maxWidth;
-            }
-
-            try {
-              children.push(
-                new Paragraph({
-                  children: [
-                    new ImageRun({
-                      data: img.data,
-                      transformation: { width: w, height: h },
-                      type: 'png',
-                    }),
-                  ],
-                  spacing: { before: 120, after: 120 },
-                })
-              );
-            } catch {
-              // Skip images that fail to embed
-            }
-          }
+        // Emit any remaining images that come after the last text block
+        while (imgIdx < sortedImages.length) {
+          emitImageParagraph(sortedImages[imgIdx]);
+          imgIdx++;
         }
       }
 
