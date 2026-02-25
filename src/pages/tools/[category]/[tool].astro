@@ -36,6 +36,13 @@ import HeicToJpgConverter from '@components/tools/HeicToJpgConverter.tsx';
 import CsvJsonConverter from '@components/tools/CsvJsonConverter.tsx';
 import MarkdownHtmlConverter from '@components/tools/MarkdownHtmlConverter.tsx';
 import ImagesToPdf from '@components/tools/ImagesToPdf.tsx';
+import PdfMerge from '@components/tools/PdfMerge.tsx';
+import PdfSplit from '@components/tools/PdfSplit.tsx';
+import PdfCompress from '@components/tools/PdfCompress.tsx';
+import PdfToImage from '@components/tools/PdfToImage.tsx';
+import WordToPdf from '@components/tools/WordToPdf.tsx';
+import PdfToWord from '@components/tools/PdfToWord.tsx';
+import ExcelToPdf from '@components/tools/ExcelToPdf.tsx';
 
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
@@ -84,6 +91,13 @@ const CALCULATOR_MAP: Record<string, string> = {
   'csv-json': 'CsvJsonConverter',
   'markdown-html': 'MarkdownHtmlConverter',
   'images-to-pdf': 'ImagesToPdf',
+  'pdf-merge': 'PdfMerge',
+  'pdf-split': 'PdfSplit',
+  'pdf-compress': 'PdfCompress',
+  'pdf-to-image': 'PdfToImage',
+  'word-to-pdf': 'WordToPdf',
+  'pdf-to-word': 'PdfToWord',
+  'excel-to-pdf': 'ExcelToPdf',
 };
 
 const hasCalculator = slug in CALCULATOR_MAP;
@@ -121,6 +135,13 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'csv-json' && <CsvJsonConverter client:load />}
     {slug === 'markdown-html' && <MarkdownHtmlConverter client:load />}
     {slug === 'images-to-pdf' && <ImagesToPdf client:load />}
+    {slug === 'pdf-merge' && <PdfMerge client:load />}
+    {slug === 'pdf-split' && <PdfSplit client:load />}
+    {slug === 'pdf-compress' && <PdfCompress client:load />}
+    {slug === 'pdf-to-image' && <PdfToImage client:load />}
+    {slug === 'word-to-pdf' && <WordToPdf client:load />}
+    {slug === 'pdf-to-word' && <PdfToWord client:load />}
+    {slug === 'excel-to-pdf' && <ExcelToPdf client:load />}
     {!hasCalculator && <PlaceholderCalc name={name} client:load />}
     <Fragment slot="content">
       <Content />
