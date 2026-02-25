@@ -8,5 +8,8 @@ export default defineConfig({
   integrations: [react(), sitemap()],
   vite: {
     plugins: [tailwindcss()],
+    ssr: {
+      noExternal: ['pdfjs-dist'],
+    },
   },
 });

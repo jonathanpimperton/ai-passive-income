@@ -42,7 +42,7 @@ export interface ToolMeta {
 }
 
 /**
- * All 26 tools (18 MVP + 8 file converters) with metadata for navigation and homepage display.
+ * All 33 tools (18 MVP + 15 file converters) with metadata for navigation and homepage display.
  * Order within each category matches the build-spec priority.
  */
 export const TOOLS: ToolMeta[] = [
@@ -233,6 +233,55 @@ export const TOOLS: ToolMeta[] = [
     category: 'file-tools',
     description: 'Combine multiple images into a single PDF. Reorder pages, set margins.',
     icon: 'file-text',
+  },
+  {
+    name: 'PDF Merge',
+    slug: 'pdf-merge',
+    category: 'file-tools',
+    description: 'Combine multiple PDF files into one document. Free, private — no upload.',
+    icon: 'file-plus',
+  },
+  {
+    name: 'PDF Split',
+    slug: 'pdf-split',
+    category: 'file-tools',
+    description: 'Extract pages from a PDF or split into individual pages.',
+    icon: 'scissors',
+  },
+  {
+    name: 'PDF Compress',
+    slug: 'pdf-compress',
+    category: 'file-tools',
+    description: 'Reduce PDF file size by optimizing embedded images.',
+    icon: 'archive',
+  },
+  {
+    name: 'PDF to Image Converter',
+    slug: 'pdf-to-image',
+    category: 'file-tools',
+    description: 'Convert PDF pages to JPG or PNG images in your browser.',
+    icon: 'image-down',
+  },
+  {
+    name: 'Word to PDF Converter',
+    slug: 'word-to-pdf',
+    category: 'file-tools',
+    description: 'Convert Word documents (.docx) to PDF in your browser.',
+    icon: 'file-output',
+  },
+  {
+    name: 'PDF to Word Converter',
+    slug: 'pdf-to-word',
+    category: 'file-tools',
+    description: 'Convert PDF files to editable Word documents (.docx).',
+    icon: 'file-input',
+  },
+  {
+    name: 'Excel to PDF Converter',
+    slug: 'excel-to-pdf',
+    category: 'file-tools',
+    description: 'Convert Excel spreadsheets and CSV files to PDF.',
+    icon: 'sheet',
   },
 ];
 
