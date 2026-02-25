@@ -92,8 +92,8 @@ const personas = [
     hook: 'Drowning in payments?',
     description: 'Compare snowball vs. avalanche strategies and pick a payoff date you can actually hit.',
     icon: 'credit-card',
-    color: 'text-negative-600 bg-negative-50',
-    hoverBg: 'group-hover:bg-negative-600 group-hover:text-white',
+    color: 'text-primary-600 bg-primary-50',
+    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
     tools: [
       { name: 'Debt Payoff', slug: 'debt-payoff', category: 'debt-and-loans' as CategorySlug },
       { name: 'Loan Amortization', slug: 'loan-amortization', category: 'debt-and-loans' as CategorySlug },
@@ -170,7 +170,7 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
         Financial Calculators That
         <span class="hero-cycling-text relative inline-block">
           <span class="text-transparent bg-clip-text bg-[linear-gradient(135deg,#93C5FD,#10B981)]">
-            Respect Your <span class="hero-word" data-words={JSON.stringify(heroWords)}>Time</span>
+            Respect Your <span class="hero-word-container"><span class="hero-word" data-words={JSON.stringify(heroWords)}>Time</span></span>
           </span>
         </span>
       </h1>
@@ -316,10 +316,7 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
 
         <div class="text-center relative">
           <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-500 text-white shadow-lg shadow-primary-500/25 mb-5 relative z-10">
-            <span class="text-lg font-bold">1</span>
-          </div>
-          <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-50 text-primary-600 mb-3">
-            <ToolIcon name="layout-grid" size={20} />
+            <ToolIcon name="layout-grid" size={22} />
           </div>
           <h3 class="text-lg font-semibold text-neutral-900 mb-2">Pick a calculator</h3>
           <p class="text-sm text-neutral-500 leading-relaxed max-w-[260px] mx-auto">Choose from 18 free financial and utility tools — no signup required.</p>
@@ -327,10 +324,7 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
 
         <div class="text-center relative">
           <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-500 text-white shadow-lg shadow-primary-500/25 mb-5 relative z-10">
-            <span class="text-lg font-bold">2</span>
-          </div>
-          <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-50 text-primary-600 mb-3">
-            <ToolIcon name="sliders-horizontal" size={20} />
+            <ToolIcon name="sliders-horizontal" size={22} />
           </div>
           <h3 class="text-lg font-semibold text-neutral-900 mb-2">Adjust your numbers</h3>
           <p class="text-sm text-neutral-500 leading-relaxed max-w-[260px] mx-auto">Drag sliders or type values. Everything updates as you go.</p>
@@ -338,10 +332,7 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
 
         <div class="text-center relative">
           <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent-600 text-white shadow-lg shadow-accent-600/25 mb-5 relative z-10">
-            <span class="text-lg font-bold">3</span>
-          </div>
-          <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-50 text-accent-600 mb-3">
-            <ToolIcon name="line-chart" size={20} />
+            <ToolIcon name="line-chart" size={22} />
           </div>
           <h3 class="text-lg font-semibold text-neutral-900 mb-2">See results instantly</h3>
           <p class="text-sm text-neutral-500 leading-relaxed max-w-[260px] mx-auto">Charts, breakdowns, and plain-English explanations — in real time.</p>
@@ -582,7 +573,7 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
         ))}
       </div>
 
-      <p class="text-primary-300/60 text-sm mb-4">Or explore everything we offer</p>
+      <p class="text-primary-300/80 text-sm mb-4">Or explore everything we offer</p>
       <a
         href="/tools"
         class="inline-flex items-center justify-center gap-2 bg-accent-600 text-white font-semibold px-8 py-4 rounded-xl hover:bg-accent-500 shadow-lg shadow-accent-600/25 hover:shadow-accent-500/30 transition-all duration-200 hover:-translate-y-0.5"
@@ -704,7 +695,12 @@ const heroWords = ['Time', 'Privacy', 'Intelligence'];
     100% { filter: hue-rotate(360deg); }
   }
 
-  /* Hero word cycling animation */
+  /* Hero word cycling — fixed width prevents CLS */
+  .hero-word-container {
+    display: inline-block;
+    min-width: 5.5em; /* wide enough for "Intelligence" */
+    text-align: left;
+  }
   .hero-word {
     display: inline-block;
     transition: opacity 0.3s ease, transform 0.3s ease;
