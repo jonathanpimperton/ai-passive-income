@@ -482,7 +482,7 @@ export default function SalaryUkCalc() {
           <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Income Breakdown</h3>
             <div className="h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie
                     data={pieData}

@@ -305,7 +305,7 @@ export default function RentVsBuyCalc() {
           <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Net Cost Comparison Over Time</h3>
             <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={analysis.yearData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <defs>
                     <linearGradient id="rvbBuy" x1="0" y1="0" x2="0" y2="1">

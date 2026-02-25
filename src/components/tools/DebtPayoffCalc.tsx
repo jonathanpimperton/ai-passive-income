@@ -16,7 +16,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { Plus, X, RotateCcw, Clock, CreditCard, DollarSign } from 'lucide-react';
+import { Plus, X, RotateCcw, CreditCard, DollarSign } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
@@ -546,7 +546,7 @@ export default function DebtPayoffCalc() {
                     Balance Over Time
                   </h3>
                   <div className="h-56 sm:h-64">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                         <XAxis

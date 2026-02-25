@@ -290,7 +290,7 @@ export default function LoanAmortizationCalc() {
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
               <h3 className="text-sm font-medium text-neutral-700 mb-2">Principal vs Interest</h3>
               <div className="h-40">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={2}
                       animationDuration={600}>
@@ -307,7 +307,7 @@ export default function LoanAmortizationCalc() {
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
               <h3 className="text-sm font-medium text-neutral-700 mb-2">Balance Over Time</h3>
               <div className="h-40">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                     <XAxis dataKey="year" tick={{ fontSize: 10, fill: '#6B7280' }} tickLine={false} />

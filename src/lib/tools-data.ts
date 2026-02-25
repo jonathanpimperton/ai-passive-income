@@ -42,7 +42,7 @@ export interface ToolMeta {
 }
 
 /**
- * All 18 MVP tools with metadata for navigation and homepage display.
+ * All 26 tools (18 MVP + 8 file converters) with metadata for navigation and homepage display.
  * Order within each category matches the build-spec priority.
  */
 export const TOOLS: ToolMeta[] = [
@@ -176,6 +176,63 @@ export const TOOLS: ToolMeta[] = [
     category: 'utility',
     description: 'Format, validate, and beautify JSON with syntax highlighting.',
     icon: 'braces',
+  },
+  // File Tools
+  {
+    name: 'Image Compressor',
+    slug: 'image-compressor',
+    category: 'file-tools',
+    description: 'Compress JPG, PNG, and WebP images in your browser. No upload, no signup.',
+    icon: 'minimize-2',
+  },
+  {
+    name: 'Image Resizer',
+    slug: 'image-resizer',
+    category: 'file-tools',
+    description: 'Resize images by pixels or percentage. Maintains aspect ratio.',
+    icon: 'scaling',
+  },
+  {
+    name: 'Image Format Converter',
+    slug: 'image-format-converter',
+    category: 'file-tools',
+    description: 'Convert between PNG, JPG, and WebP instantly in your browser.',
+    icon: 'image',
+  },
+  {
+    name: 'SVG to PNG Converter',
+    slug: 'svg-to-png',
+    category: 'file-tools',
+    description: 'Convert SVG files to high-resolution PNG images. Adjustable scale.',
+    icon: 'file-image',
+  },
+  {
+    name: 'HEIC to JPG Converter',
+    slug: 'heic-to-jpg',
+    category: 'file-tools',
+    description: 'Convert iPhone HEIC photos to JPG. Private — files never leave your device.',
+    icon: 'smartphone',
+  },
+  {
+    name: 'CSV ↔ JSON Converter',
+    slug: 'csv-json',
+    category: 'file-tools',
+    description: 'Convert between CSV and JSON formats. Paste or upload, download instantly.',
+    icon: 'table',
+  },
+  {
+    name: 'Markdown ↔ HTML Converter',
+    slug: 'markdown-html',
+    category: 'file-tools',
+    description: 'Convert Markdown to HTML and back. Live preview included.',
+    icon: 'file-code',
+  },
+  {
+    name: 'Images to PDF',
+    slug: 'images-to-pdf',
+    category: 'file-tools',
+    description: 'Combine multiple images into a single PDF. Reorder pages, set margins.',
+    icon: 'file-text',
   },
 ];
 

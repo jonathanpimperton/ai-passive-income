@@ -254,7 +254,7 @@ export default function NetWorthCalc() {
               {assetPieData.length > 0 ? (
                 <>
                   <div className="h-[180px]">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <PieChart>
                         <Pie data={assetPieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" animationDuration={600}>
                           {assetPieData.map((_, i) => (
@@ -285,7 +285,7 @@ export default function NetWorthCalc() {
               {liabilityPieData.length > 0 ? (
                 <>
                   <div className="h-[180px]">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <PieChart>
                         <Pie data={liabilityPieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" animationDuration={600}>
                           {liabilityPieData.map((_, i) => (
