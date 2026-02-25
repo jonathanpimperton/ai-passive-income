@@ -442,7 +442,7 @@ export default function MortgagePaymentCalc() {
           <div className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Principal vs Interest</h3>
             <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value" animationDuration={600}>
                     {pieData.map((_, i) => (
@@ -468,7 +468,7 @@ export default function MortgagePaymentCalc() {
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
               <h3 className="text-sm font-medium text-neutral-700 mb-3">Balance Over Time</h3>
               <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={result.chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 6" stroke="#e5e7eb" />
                     <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#6b7280' }} interval={Math.max(0, Math.floor(result.chartData.length / 8) - 1)} />
