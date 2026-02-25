@@ -69,51 +69,156 @@ export default function ExcelToPdf() {
     try {
       const { jsPDF } = await import('jspdf');
       const sheet = sheets[activeSheet];
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const colCount = sheet.headers.length;
+
+      // Auto-detect orientation: many columns → landscape
+      const orientation = colCount > 6 ? 'landscape' : 'portrait';
+      const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
 
       const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
       const margin = 10;
       const usableW = pageW - margin * 2;
-      const colCount = sheet.headers.length;
-      const colW = usableW / colCount;
-      const rowH = 7;
+
+      // Calculate content-aware column widths based on actual data
+      const fontSize = Math.max(5, Math.min(8, colCount <= 5 ? 8 : colCount <= 10 ? 7 : 5));
+      pdf.setFontSize(fontSize);
+      const charWidth = pdf.getTextWidth('W'); // use wide character for measurement
+
+      // Measure max content width per column (header + all data rows, sample up to 100 rows)
+      const sampleRows = sheet.rows.slice(0, 100);
+      const colMaxChars: number[] = sheet.headers.map((h) => String(h).length);
+      for (const row of sampleRows) {
+        for (let i = 0; i < colCount; i++) {
+          const cellLen = String(row[i] ?? '').length;
+          if (cellLen > colMaxChars[i]) colMaxChars[i] = cellLen;
+        }
+      }
+
+      // Compute proportional widths based on content, with min/max bounds
+      const minColW = charWidth * 3; // at least 3 chars wide
+      const maxColW = usableW * 0.4; // no column takes more than 40% of page
+      let rawWidths = colMaxChars.map((chars) => {
+        const w = Math.max(minColW, Math.min(maxColW, (chars + 1) * charWidth));
+        return w;
+      });
+
+      // Scale to fit usableW
+      const totalRaw = rawWidths.reduce((a, b) => a + b, 0);
+      const scale = usableW / totalRaw;
+      const colWidths = rawWidths.map((w) => w * scale);
+
+      const lineH = fontSize * 0.5; // mm per text line
+      const cellPad = 1; // padding inside cell
+
+      /** Get X offset for column i */
+      const colX = (i: number) => {
+        let x = margin;
+        for (let c = 0; c < i; c++) x += colWidths[c];
+        return x;
+      };
+
+      /** Wrap text to fit within a given width (in mm) */
+      const wrapText = (text: string, maxW: number): string[] => {
+        const words = text.split(/\s+/);
+        if (words.length === 0) return [''];
+        const lines: string[] = [];
+        let current = '';
+        for (const word of words) {
+          const test = current ? current + ' ' + word : word;
+          if (pdf.getTextWidth(test) <= maxW - cellPad * 2) {
+            current = test;
+          } else {
+            if (current) lines.push(current);
+            // If single word is too long, truncate with ellipsis
+            if (pdf.getTextWidth(word) > maxW - cellPad * 2) {
+              let truncated = word;
+              while (truncated.length > 1 && pdf.getTextWidth(truncated + '…') > maxW - cellPad * 2) {
+                truncated = truncated.slice(0, -1);
+              }
+              current = truncated + '…';
+            } else {
+              current = word;
+            }
+          }
+        }
+        if (current) lines.push(current);
+        return lines.length > 0 ? lines : [''];
+      };
+
       let y = margin + 5;
 
       // Title
-      pdf.setFontSize(14);
-      pdf.text(sheet.name, margin, y);
-      y += 10;
-
-      // Header row
-      pdf.setFontSize(8);
+      pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      pdf.setFillColor(240, 240, 240);
-      pdf.rect(margin, y - 4, usableW, rowH, 'F');
-      sheet.headers.forEach((h, i) => {
-        pdf.text(String(h).substring(0, 25), margin + i * colW + 1, y);
-      });
-      y += rowH;
+      pdf.text(sheet.name, margin, y);
+      y += 8;
+
+      // Reset to data font size
+      pdf.setFontSize(fontSize);
+
+      /** Draw a table row and return its height */
+      const drawRow = (cells: string[], yPos: number, isHeader: boolean): number => {
+        // Wrap all cells and find max line count
+        const wrappedCells = cells.map((cell, i) => wrapText(String(cell), colWidths[i]));
+        const maxLines = Math.max(...wrappedCells.map((wc) => wc.length));
+        const rowH = maxLines * lineH + cellPad * 2;
+
+        // Background
+        if (isHeader) {
+          pdf.setFillColor(230, 235, 242);
+          pdf.rect(margin, yPos, usableW, rowH, 'F');
+        }
+
+        // Draw cell text
+        pdf.setFont('helvetica', isHeader ? 'bold' : 'normal');
+        for (let i = 0; i < colCount; i++) {
+          const lines = wrappedCells[i] || [''];
+          const x = colX(i) + cellPad;
+          for (let li = 0; li < lines.length; li++) {
+            pdf.text(lines[li], x, yPos + cellPad + lineH * (li + 0.8));
+          }
+        }
+
+        // Draw cell borders
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineWidth(0.2);
+        for (let i = 0; i <= colCount; i++) {
+          const x = colX(Math.min(i, colCount - 1)) + (i === colCount ? colWidths[colCount - 1] : 0);
+          pdf.line(x, yPos, x, yPos + rowH);
+        }
+        pdf.line(margin, yPos, margin + usableW, yPos);
+        pdf.line(margin, yPos + rowH, margin + usableW, yPos + rowH);
+
+        return rowH;
+      };
+
+      // Header
+      y += drawRow(sheet.headers, y, true);
 
       // Data rows
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(7);
       for (let ri = 0; ri < sheet.rows.length; ri++) {
         const row = sheet.rows[ri];
-        if (y > pdf.internal.pageSize.getHeight() - margin) {
+        // Estimate row height to check for page break
+        const wrappedCells = row.map((cell, i) => wrapText(String(cell), colWidths[i]));
+        const maxLines = Math.max(...wrappedCells.map((wc) => wc.length));
+        const estH = maxLines * lineH + cellPad * 2;
+
+        if (y + estH > pageH - margin) {
           pdf.addPage();
           y = margin + 5;
+          // Repeat header on new page
+          y += drawRow(sheet.headers, y, true);
         }
+
         // Alternating row background
         if (ri % 2 === 0) {
-          pdf.setFillColor(250, 250, 250);
-          pdf.rect(margin, y - 4, usableW, rowH, 'F');
+          pdf.setFillColor(248, 249, 250);
+          const rowH = maxLines * lineH + cellPad * 2;
+          pdf.rect(margin, y, usableW, rowH, 'F');
         }
-        row.forEach((cell, i) => {
-          if (i < colCount) {
-            pdf.text(String(cell).substring(0, 30), margin + i * colW + 1, y);
-          }
-        });
-        y += rowH;
+
+        y += drawRow(row.slice(0, colCount), y, false);
       }
 
       pdf.save(file.name.replace(/\.(xlsx?|csv)$/i, '') + '.pdf');

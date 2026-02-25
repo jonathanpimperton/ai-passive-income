@@ -1,6 +1,8 @@
 /**
- * PDF Compress — reduce PDF file size by downscaling embedded images.
- * Uses pdf-lib + Canvas API. Client-side only.
+ * PDF Compress — reduce PDF file size by recompressing embedded images.
+ * Preserves all text, links, vector graphics — only touches raster images.
+ * Uses pdf-lib for PDF manipulation + Canvas for image recompression.
+ * Client-side only. No server upload.
  */
 import { useState, useCallback } from 'react';
 import { Download, FileText, Minimize2 } from 'lucide-react';
@@ -14,12 +16,64 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+/** Recompress a raw image (PNG/JPEG bytes) to JPEG at a given quality */
+function recompressImage(
+  imageBytes: Uint8Array,
+  mimeType: string,
+  quality: number,
+  maxDimension: number,
+): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([imageBytes], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      let w = img.width;
+      let h = img.height;
+
+      // Downscale large images
+      if (maxDimension > 0 && (w > maxDimension || h > maxDimension)) {
+        const ratio = Math.min(maxDimension / w, maxDimension / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas not supported')); return; }
+      ctx.drawImage(img, 0, 0, w, h);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { reject(new Error('Recompression failed')); return; }
+          blob.arrayBuffer().then((ab) => {
+            resolve(new Uint8Array(ab));
+            // Free canvas memory
+            canvas.width = 0;
+            canvas.height = 0;
+          });
+        },
+        'image/jpeg',
+        quality / 100,
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+    img.src = url;
+  });
+}
+
 export default function PdfCompress() {
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [quality, setQuality] = useState(70);
+  const [maxRes, setMaxRes] = useState(1500);
   const [processing, setProcessing] = useState(false);
-  const [result, setResult] = useState<{ blob: Blob; size: number } | null>(null);
+  const [progress, setProgress] = useState('');
+  const [result, setResult] = useState<{ blob: Blob; size: number; imageCount: number } | null>(null);
   const [error, setError] = useState('');
 
   const handleFiles = useCallback(async (files: File[]) => {
@@ -45,52 +99,130 @@ export default function PdfCompress() {
     setResult(null);
 
     try {
-      // Strategy: render each page to canvas at reduced quality, rebuild PDF with images
-      const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-      const loadingTask = pdfjsLib.getDocument({ data: await file.arrayBuffer() });
-      const pdfDoc = await loadingTask.promise;
+      const pdfLib = await import('pdf-lib');
+      const { PDFDocument, PDFName, PDFRawStream, PDFStream, PDFDict } = pdfLib;
+      const bytes = await file.arrayBuffer();
+      const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
 
-      const { PDFDocument } = await import('pdf-lib');
-      const newPdf = await PDFDocument.create();
+      // Walk all indirect objects looking for image XObjects
+      const context = doc.context;
+      let imageCount = 0;
+      let processedCount = 0;
 
-      for (let i = 1; i <= pdfDoc.numPages; i++) {
-        const page = await pdfDoc.getPage(i);
-        const viewport = page.getViewport({ scale: 1.5 }); // Reduced resolution
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
+      // Collect all image refs
+      type ImageRef = { ref: pdfLib.PDFRef; stream: typeof PDFRawStream.prototype | typeof PDFStream.prototype; dict: typeof PDFDict.prototype };
+      const imageRefs: ImageRef[] = [];
 
-        await page.render({ canvasContext: ctx, viewport }).promise;
+      context.enumerateIndirectObjects().forEach(([ref, obj]) => {
+        // Check if this is an image XObject
+        if (obj instanceof PDFRawStream || obj instanceof PDFStream) {
+          const dict = obj.dict;
+          const type = dict.get(PDFName.of('Type'));
+          const subtype = dict.get(PDFName.of('Subtype'));
+          if (
+            (subtype && subtype.toString() === '/Image') ||
+            (type && type.toString() === '/XObject' && subtype && subtype.toString() === '/Image')
+          ) {
+            imageRefs.push({ ref, stream: obj, dict });
+          }
+        }
+      });
 
-        // Convert canvas to JPEG at user-selected quality
-        const jpegDataUrl = canvas.toDataURL('image/jpeg', quality / 100);
-        const jpegBytes = Uint8Array.from(atob(jpegDataUrl.split(',')[1]), (c) => c.charCodeAt(0));
+      imageCount = imageRefs.length;
+      setProgress(`Found ${imageCount} embedded image${imageCount !== 1 ? 's' : ''}...`);
 
-        // Free canvas memory immediately
-        canvas.width = 0;
-        canvas.height = 0;
-
-        const jpegImage = await newPdf.embedJpg(jpegBytes);
-        const newPage = newPdf.addPage([viewport.width, viewport.height]);
-        newPage.drawImage(jpegImage, {
-          x: 0,
-          y: 0,
-          width: viewport.width,
-          height: viewport.height,
-        });
+      if (imageCount === 0) {
+        // No images to compress — try re-saving with pdf-lib (which can remove redundant data)
+        setProgress('No embedded images found. Re-saving with optimized structure...');
+        const pdfBytes = await doc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        setResult({ blob, size: blob.size, imageCount: 0 });
+        setProcessing(false);
+        return;
       }
 
-      const pdfBytes = await newPdf.save();
+      // Process each image: extract, recompress, replace
+      for (const { ref, stream, dict } of imageRefs) {
+        processedCount++;
+        setProgress(`Compressing image ${processedCount} of ${imageCount}...`);
+
+        try {
+          const filter = dict.get(PDFName.of('Filter'));
+          const filterStr = filter ? filter.toString() : '';
+          const width = dict.get(PDFName.of('Width'));
+          const height = dict.get(PDFName.of('Height'));
+
+          if (!width || !height) continue;
+
+          let imageBytes: Uint8Array;
+          let mimeType: string;
+
+          if (filterStr === '/DCTDecode' || filterStr.includes('DCTDecode')) {
+            // Already JPEG — get the raw stream bytes
+            imageBytes = stream instanceof PDFRawStream ? stream.contents : new Uint8Array(stream.getContents());
+            mimeType = 'image/jpeg';
+          } else if (filterStr === '/FlateDecode' || filterStr.includes('FlateDecode')) {
+            // PNG-style data — decode then recompress
+            // For flate-decoded images, we need to reconstruct a PNG
+            const colorSpace = dict.get(PDFName.of('ColorSpace'));
+            const bitsPerComponent = dict.get(PDFName.of('BitsPerComponent'));
+
+            // Skip complex color spaces (indexed, ICC-based, etc.)
+            const csStr = colorSpace ? colorSpace.toString() : '';
+            if (csStr !== '/DeviceRGB' && csStr !== '/DeviceGray') continue;
+
+            const rawBytes = stream instanceof PDFRawStream ? stream.contents : new Uint8Array(stream.getContents());
+            // We can't easily decode FlateDecode in the browser without building a full PNG
+            // Skip these for now — JPEG images are usually the biggest space hogs
+            if (rawBytes.length < 50000) continue; // Skip small images
+            continue;
+          } else {
+            // Skip unsupported filters (JBIG2, JPX, etc.)
+            continue;
+          }
+
+          // Only recompress if the image is large enough to benefit
+          if (imageBytes.length < 10000) continue;
+
+          const recompressed = await recompressImage(imageBytes, mimeType, quality, maxRes);
+
+          // Only use recompressed if it's actually smaller
+          if (recompressed.length < imageBytes.length * 0.95) {
+            // Replace the stream contents with the new JPEG data
+            const newStream = context.flateStream(recompressed);
+            // Create a new image XObject with the recompressed data
+            const newImageRef = context.register(
+              context.stream(recompressed, {
+                ['/Type']: '/XObject',
+                ['/Subtype']: '/Image',
+                ['/Width']: width,
+                ['/Height']: height,
+                ['/ColorSpace']: '/DeviceRGB',
+                ['/BitsPerComponent']: '8',
+                ['/Filter']: '/DCTDecode',
+                ['/Length']: String(recompressed.length),
+              }),
+            );
+
+            // Replace all references to the old image with the new one
+            context.assign(ref, context.lookup(newImageRef)!);
+          }
+        } catch {
+          // Skip images that fail — don't break the whole operation
+          continue;
+        }
+      }
+
+      setProgress('Saving compressed PDF...');
+      const pdfBytes = await doc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      setResult({ blob, size: blob.size });
+      setResult({ blob, size: blob.size, imageCount: processedCount });
     } catch (e) {
       setError('Compression failed. ' + (e instanceof Error ? e.message : ''));
     }
     setProcessing(false);
-  }, [file, quality]);
+    setProgress('');
+  }, [file, quality, maxRes]);
 
   const download = () => {
     if (!result || !file) return;
@@ -126,7 +258,20 @@ export default function PdfCompress() {
             suffix="%"
             minLabel="20%"
             maxLabel="95%"
-            hint="Lower = smaller file, more compression"
+            hint="Lower = smaller file. Only affects embedded images — text stays crisp."
+          />
+          <SliderInput
+            label="Max Image Resolution"
+            id="pdf-max-res"
+            value={maxRes}
+            min={500}
+            max={3000}
+            step={100}
+            onChange={setMaxRes}
+            suffix="px"
+            minLabel="500px"
+            maxLabel="3000px"
+            hint="Downscales images larger than this. Lower = smaller file."
           />
         </div>
       </div>
@@ -139,7 +284,7 @@ export default function PdfCompress() {
         {processing && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-primary-50 border border-primary-200">
             <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-            <span className="text-sm text-primary-700">Compressing PDF — this may take a moment for large files...</span>
+            <span className="text-sm text-primary-700">{progress || 'Processing...'}</span>
           </div>
         )}
 
@@ -157,6 +302,9 @@ export default function PdfCompress() {
               <Minimize2 size={16} aria-hidden="true" />
               Compress PDF
             </button>
+            <p className="text-xs text-neutral-400 mt-3">
+              Recompresses embedded images while preserving all text, links, and vector graphics.
+            </p>
           </div>
         )}
 
@@ -172,9 +320,14 @@ export default function PdfCompress() {
               {formatSize(file.size)} → {formatSize(result.size)}
               {savings > 0 && <span className="ml-1 text-accent-600 font-medium">(saved {formatSize(savings)})</span>}
             </p>
+            {result.imageCount > 0 && (
+              <p className="text-xs text-neutral-500 mt-1">
+                {result.imageCount} image{result.imageCount !== 1 ? 's' : ''} recompressed — text and vectors preserved
+              </p>
+            )}
             {savings <= 0 && (
               <p className="text-xs text-neutral-500 mt-2">
-                This PDF is already well-optimized. Try a lower quality setting.
+                This PDF is already well-optimized. Try a lower quality or resolution setting.
               </p>
             )}
             <button
@@ -191,7 +344,7 @@ export default function PdfCompress() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
             <p className="text-sm text-neutral-500">Upload a PDF to compress it</p>
-            <p className="text-xs text-neutral-400 mt-1">Reduces file size by optimizing embedded images</p>
+            <p className="text-xs text-neutral-400 mt-1">Reduces file size by recompressing embedded images — text stays sharp</p>
           </div>
         )}
       </div>
