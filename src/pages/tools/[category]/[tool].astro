@@ -28,6 +28,14 @@ import RentVsBuyCalc from '@components/tools/RentVsBuyCalc.tsx';
 import MortgagePaymentCalc from '@components/tools/MortgagePaymentCalc.tsx';
 import PercentageCalculator from '@components/tools/PercentageCalculator.tsx';
 import JsonFormatter from '@components/tools/JsonFormatter.tsx';
+import ImageCompressor from '@components/tools/ImageCompressor.tsx';
+import ImageResizer from '@components/tools/ImageResizer.tsx';
+import ImageFormatConverter from '@components/tools/ImageFormatConverter.tsx';
+import SvgToPngConverter from '@components/tools/SvgToPngConverter.tsx';
+import HeicToJpgConverter from '@components/tools/HeicToJpgConverter.tsx';
+import CsvJsonConverter from '@components/tools/CsvJsonConverter.tsx';
+import MarkdownHtmlConverter from '@components/tools/MarkdownHtmlConverter.tsx';
+import ImagesToPdf from '@components/tools/ImagesToPdf.tsx';
 
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
@@ -68,6 +76,14 @@ const CALCULATOR_MAP: Record<string, string> = {
   'mortgage-payment': 'MortgagePaymentCalc',
   'percentage-calculator': 'PercentageCalculator',
   'json-formatter': 'JsonFormatter',
+  'image-compressor': 'ImageCompressor',
+  'image-resizer': 'ImageResizer',
+  'image-format-converter': 'ImageFormatConverter',
+  'svg-to-png': 'SvgToPngConverter',
+  'heic-to-jpg': 'HeicToJpgConverter',
+  'csv-json': 'CsvJsonConverter',
+  'markdown-html': 'MarkdownHtmlConverter',
+  'images-to-pdf': 'ImagesToPdf',
 };
 
 const hasCalculator = slug in CALCULATOR_MAP;
@@ -97,6 +113,14 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'mortgage-payment' && <MortgagePaymentCalc client:load />}
     {slug === 'percentage-calculator' && <PercentageCalculator client:load />}
     {slug === 'json-formatter' && <JsonFormatter client:load />}
+    {slug === 'image-compressor' && <ImageCompressor client:load />}
+    {slug === 'image-resizer' && <ImageResizer client:load />}
+    {slug === 'image-format-converter' && <ImageFormatConverter client:load />}
+    {slug === 'svg-to-png' && <SvgToPngConverter client:load />}
+    {slug === 'heic-to-jpg' && <HeicToJpgConverter client:load />}
+    {slug === 'csv-json' && <CsvJsonConverter client:load />}
+    {slug === 'markdown-html' && <MarkdownHtmlConverter client:load />}
+    {slug === 'images-to-pdf' && <ImagesToPdf client:load />}
     {!hasCalculator && <PlaceholderCalc name={name} client:load />}
     <Fragment slot="content">
       <Content />
