@@ -110,45 +110,6 @@ test.describe('Word to PDF', () => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  PDF TO WORD
-// ════════════════════════════════════════════════════════════════
-
-test.describe('PDF to Word', () => {
-  test('extracts text from PDF and produces a downloadable DOCX', async ({ page }) => {
-    await page.goto('/tools/file-tools/pdf-to-word');
-    await page.waitForLoadState('networkidle');
-
-    await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
-    await waitForProcessing(page, 30000);
-
-    // Preview should show extracted text
-    await expect(page.getByText('CONFIDENTIAL').first()).toBeVisible({ timeout: 20000 });
-    await expect(page.getByText('Quarterly Financial Report').first()).toBeVisible();
-
-    // Should show page count
-    await expect(page.getByText(/\d+\s*page/i).first()).toBeVisible();
-
-    // Should NOT show error
-    const errors = page.locator('[class*="red-50"]').filter({
-      hasText: /error|failed|corrupt|encrypt/i,
-    });
-    await expect(errors).toHaveCount(0);
-
-    // Download button should be available
-    const downloadBtn = page.getByRole('button', { name: /download/i });
-    await expect(downloadBtn).toBeVisible();
-    await expect(downloadBtn).toBeEnabled();
-
-    // Click download and verify a DOCX is produced
-    const download = await clickAndWaitForDownload(page, downloadBtn);
-    expect(download.suggestedFilename()).toMatch(/\.docx$/i);
-
-    const { size } = await saveDownload(download);
-    expect(size).toBeGreaterThan(500); // DOCX should be at least 500 bytes
-  });
-});
-
-// ════════════════════════════════════════════════════════════════
 //  IMAGE TOOLS
 // ════════════════════════════════════════════════════════════════
 

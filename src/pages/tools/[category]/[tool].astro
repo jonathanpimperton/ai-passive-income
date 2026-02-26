@@ -41,7 +41,6 @@ import PdfSplit from '@components/tools/PdfSplit.tsx';
 import PdfCompress from '@components/tools/PdfCompress.tsx';
 import PdfToImage from '@components/tools/PdfToImage.tsx';
 import WordToPdf from '@components/tools/WordToPdf.tsx';
-import PdfToWord from '@components/tools/PdfToWord.tsx';
 import ExcelToPdf from '@components/tools/ExcelToPdf.tsx';
 
 export async function getStaticPaths() {
@@ -96,7 +95,6 @@ const CALCULATOR_MAP: Record<string, string> = {
   'pdf-compress': 'PdfCompress',
   'pdf-to-image': 'PdfToImage',
   'word-to-pdf': 'WordToPdf',
-  'pdf-to-word': 'PdfToWord',
   'excel-to-pdf': 'ExcelToPdf',
 };
 
@@ -140,7 +138,6 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'pdf-compress' && <PdfCompress client:load />}
     {slug === 'pdf-to-image' && <PdfToImage client:load />}
     {slug === 'word-to-pdf' && <WordToPdf client:load />}
-    {slug === 'pdf-to-word' && <PdfToWord client:load />}
     {slug === 'excel-to-pdf' && <ExcelToPdf client:load />}
     {!hasCalculator && <PlaceholderCalc name={name} client:load />}
     <Fragment slot="content">

@@ -270,13 +270,6 @@ export const TOOLS: ToolMeta[] = [
     icon: 'file-output',
   },
   {
-    name: 'PDF to Word Converter',
-    slug: 'pdf-to-word',
-    category: 'file-tools',
-    description: 'Convert PDF files to editable Word documents (.docx).',
-    icon: 'file-input',
-  },
-  {
     name: 'Excel to PDF Converter',
     slug: 'excel-to-pdf',
     category: 'file-tools',
