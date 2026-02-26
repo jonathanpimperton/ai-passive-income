@@ -60,6 +60,9 @@ export default function WordToPdf() {
         ignoreLastRenderedPageBreak: false,
         inWrapper: true,
         className: 'docx',
+        // Wraps default wrapper styles (gray bg, 30px padding, shadows) in
+        // @media not print — so they only apply on screen, not in the PDF output.
+        hideWrapperOnPrint: true,
       });
 
       // Preview-only styles (screen only — NOT included in print output)
@@ -116,35 +119,50 @@ export default function WordToPdf() {
 ${headContent}
 <style>
   ${pageSizeRule}
+
   @media print {
+    /* ── Reset html/body ────────────────────────────── */
     html, body {
       margin: 0 !important;
       padding: 0 !important;
       background: #fff !important;
+      width: auto !important;
+      height: auto !important;
     }
+
+    /* ── Reset docx-preview wrapper ─────────────────── */
+    /* Default: background:gray, padding:30px, display:flex,
+       align-items:center — all break print pagination */
     .docx-wrapper {
-      background: #fff !important;
-      box-shadow: none !important;
+      background: transparent !important;
       padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
     }
-    /* Each docx-preview page section — force proper page breaks */
+
+    /* ── Reset docx-preview page sections ───────────── */
+    /* Default: margin-bottom:30px, box-shadow, overflow:hidden */
+    .docx-wrapper > section.docx,
     section.docx {
       box-shadow: none !important;
       margin: 0 !important;
-      page-break-after: always;
-      break-after: page;
+      margin-bottom: 0 !important;
       overflow: visible !important;
     }
-    section.docx:last-child {
-      page-break-after: auto;
-      break-after: auto;
+
+    /* ── Page breaks between sections (not before first) */
+    .docx-wrapper > section.docx + section.docx {
+      page-break-before: always;
+      break-before: page;
     }
-    /* Prevent elements from breaking across pages */
+
+    /* ── Prevent elements splitting across pages ───── */
     h1, h2, h3, h4, h5, h6 { page-break-after: avoid; break-after: avoid; }
     table { page-break-inside: avoid; break-inside: avoid; }
     tr { page-break-inside: avoid; break-inside: avoid; }
     img { page-break-inside: avoid; break-inside: avoid; }
   }
+
   body {
     margin: 0; padding: 0; background: #fff;
     -webkit-print-color-adjust: exact;
