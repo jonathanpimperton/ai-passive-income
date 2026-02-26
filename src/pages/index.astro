@@ -11,52 +11,6 @@ const popularTools = POPULAR_TOOL_SLUGS
 const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][];
 const websiteSchema = buildWebsiteSchema();
 
-/** Category card metadata for visual category navigation */
-const categoryCards: { slug: CategorySlug; icon: string; color: string; hoverBg: string; count: number }[] = [
-  {
-    slug: 'saving-and-growth',
-    icon: 'trending-up',
-    color: 'text-accent-600 bg-accent-50',
-    hoverBg: 'group-hover:bg-accent-600 group-hover:text-white',
-    count: TOOLS.filter(t => t.category === 'saving-and-growth').length,
-  },
-  {
-    slug: 'debt-and-loans',
-    icon: 'credit-card',
-    color: 'text-primary-600 bg-primary-50',
-    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
-    count: TOOLS.filter(t => t.category === 'debt-and-loans').length,
-  },
-  {
-    slug: 'income-and-planning',
-    icon: 'briefcase',
-    color: 'text-primary-600 bg-primary-50',
-    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
-    count: TOOLS.filter(t => t.category === 'income-and-planning').length,
-  },
-  {
-    slug: 'economic',
-    icon: 'trending-down',
-    color: 'text-warning-600 bg-warning-50',
-    hoverBg: 'group-hover:bg-warning-600 group-hover:text-white',
-    count: TOOLS.filter(t => t.category === 'economic').length,
-  },
-  {
-    slug: 'utility',
-    icon: 'zap',
-    color: 'text-accent-600 bg-accent-50',
-    hoverBg: 'group-hover:bg-accent-600 group-hover:text-white',
-    count: TOOLS.filter(t => t.category === 'utility').length,
-  },
-  {
-    slug: 'file-tools',
-    icon: 'file-text',
-    color: 'text-primary-600 bg-primary-50',
-    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
-    count: TOOLS.filter(t => t.category === 'file-tools').length,
-  },
-];
-
 /** Persona data for "Who Is This For?" section */
 const personas = [
   {
@@ -170,7 +124,7 @@ const ctaHooks = [
   <section class="py-10 sm:py-12 bg-white border-b border-neutral-100">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-16 lg:gap-20">
-        <div class="stat-counter text-center" data-target="33">
+        <div class="stat-counter text-center" data-target="38">
           <div class="text-3xl sm:text-4xl font-bold text-primary-600 tabular-nums">
             <span class="stat-number">0</span>
           </div>
@@ -338,22 +292,6 @@ const ctaHooks = [
       <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">All Tools</h2>
       <p class="text-neutral-500 mb-8">Browse by category or filter to find the right tool.</p>
 
-      {/* Category navigation cards */}
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-        {categoryCards.map((cat) => (
-          <button
-            data-category-card={cat.slug}
-            class="category-nav-card group text-left bg-white border border-neutral-200/80 rounded-xl p-4 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
-          >
-            <div class={`inline-flex items-center justify-center w-9 h-9 rounded-lg ${cat.color} ${cat.hoverBg} transition-all duration-200 mb-2.5`}>
-              <ToolIcon name={cat.icon} size={18} />
-            </div>
-            <div class="text-sm font-semibold text-neutral-900 mb-0.5">{CATEGORIES[cat.slug].label}</div>
-            <div class="text-xs text-neutral-400">{cat.count} {cat.count === 1 ? 'tool' : 'tools'}</div>
-          </button>
-        ))}
-      </div>
-
       {/* Category filter pills */}
       <div class="flex flex-wrap gap-2 mb-10" role="tablist" aria-label="Filter tools by category">
         <button
@@ -508,11 +446,6 @@ const ctaHooks = [
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
   }
 
-  .category-nav-card.active {
-    border-color: var(--color-primary-400);
-    box-shadow: 0 0 0 1px var(--color-primary-400), 0 4px 12px rgba(37, 99, 235, 0.1);
-  }
-
   /* ===== FILTER TRANSITIONS ===== */
   .tool-card {
     transition: all 0.2s ease, opacity 0.25s ease, transform 0.25s ease;
@@ -557,7 +490,6 @@ const ctaHooks = [
   // ===== Category filter logic =====
   const pills = document.querySelectorAll('.category-pill');
   const cards = document.querySelectorAll('.tool-card');
-  const navCards = document.querySelectorAll('.category-nav-card');
 
   function filterByCategory(category: string) {
     pills.forEach((p) => {
@@ -568,15 +500,6 @@ const ctaHooks = [
       } else {
         p.classList.remove('active');
         p.setAttribute('aria-selected', 'false');
-      }
-    });
-
-    navCards.forEach((nc) => {
-      const ncCat = (nc as HTMLElement).dataset.categoryCard;
-      if (ncCat === category) {
-        nc.classList.add('active');
-      } else {
-        nc.classList.remove('active');
       }
     });
 
@@ -600,14 +523,6 @@ const ctaHooks = [
     pill.addEventListener('click', () => {
       const category = (pill as HTMLElement).dataset.category || 'all';
       filterByCategory(category);
-    });
-  });
-
-  navCards.forEach((nc) => {
-    nc.addEventListener('click', () => {
-      const category = (nc as HTMLElement).dataset.categoryCard || 'all';
-      filterByCategory(category);
-      document.getElementById('tools-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 

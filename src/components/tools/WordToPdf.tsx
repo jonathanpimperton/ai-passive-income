@@ -123,10 +123,10 @@ export default function WordToPdf() {
         format: [pageWidthPt, pageHeightPt],
       });
 
-      for (let i = 0; i < sections.length; i++) {
-        setProgressMsg(`Rendering page ${i + 1} of ${sections.length}...`);
+      let pdfPageCount = 0;
 
-        if (i > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
+      for (let i = 0; i < sections.length; i++) {
+        setProgressMsg(`Rendering section ${i + 1} of ${sections.length}...`);
 
         // Render this section to a canvas at 2x scale for print quality
         const canvas = await html2canvas(sections[i] as HTMLElement, {
@@ -134,14 +134,42 @@ export default function WordToPdf() {
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
-          // html2canvas needs the window context from the iframe
           windowWidth: sections[i].scrollWidth,
           windowHeight: sections[i].scrollHeight,
         });
 
-        // Add the canvas as a JPEG image filling the entire page
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
+        // Calculate how many PDF pages this section spans.
+        // docx-preview may render multi-page content as one tall section
+        // when the DOCX has no explicit page breaks.
+        const pxPerPt = canvas.width / pageWidthPt;
+        const pageHeightPx = pageHeightPt * pxPerPt;
+        const sectionPages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
+
+        for (let p = 0; p < sectionPages; p++) {
+          if (pdfPageCount > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
+          pdfPageCount++;
+
+          setProgressMsg(`Rendering page ${pdfPageCount}...`);
+
+          // Slice the corresponding vertical portion of the canvas
+          const srcY = p * pageHeightPx;
+          const srcH = Math.min(pageHeightPx, canvas.height - srcY);
+
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = Math.round(pageHeightPx);
+          const pCtx = pageCanvas.getContext('2d')!;
+          pCtx.fillStyle = '#ffffff';
+          pCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          pCtx.drawImage(
+            canvas,
+            0, srcY, canvas.width, Math.round(srcH),
+            0, 0, canvas.width, Math.round(srcH),
+          );
+
+          const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
+        }
       }
 
       // Save with the document name
@@ -210,7 +238,7 @@ export default function WordToPdf() {
 
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">
             {error}
           </div>
         )}

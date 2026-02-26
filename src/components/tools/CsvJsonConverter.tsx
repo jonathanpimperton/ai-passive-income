@@ -219,7 +219,7 @@ export default function CsvJsonConverter() {
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
+            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700" role="alert">{error}</div>
           )}
 
           <textarea
