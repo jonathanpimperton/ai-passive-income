@@ -41,8 +41,13 @@ import PdfSplit from '@components/tools/PdfSplit.tsx';
 import PdfCompress from '@components/tools/PdfCompress.tsx';
 import PdfToImage from '@components/tools/PdfToImage.tsx';
 import WordToPdf from '@components/tools/WordToPdf.tsx';
-import PdfToWord from '@components/tools/PdfToWord.tsx';
 import ExcelToPdf from '@components/tools/ExcelToPdf.tsx';
+import Base64EncodeDecode from '@components/tools/Base64EncodeDecode.tsx';
+import UrlEncodeDecode from '@components/tools/UrlEncodeDecode.tsx';
+import JwtDecoder from '@components/tools/JwtDecoder.tsx';
+import JsonYamlConverter from '@components/tools/JsonYamlConverter.tsx';
+import JsonXmlConverter from '@components/tools/JsonXmlConverter.tsx';
+import PngToIco from '@components/tools/PngToIco.tsx';
 
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
@@ -96,8 +101,13 @@ const CALCULATOR_MAP: Record<string, string> = {
   'pdf-compress': 'PdfCompress',
   'pdf-to-image': 'PdfToImage',
   'word-to-pdf': 'WordToPdf',
-  'pdf-to-word': 'PdfToWord',
   'excel-to-pdf': 'ExcelToPdf',
+  'base64-encode-decode': 'Base64EncodeDecode',
+  'url-encode-decode': 'UrlEncodeDecode',
+  'jwt-decoder': 'JwtDecoder',
+  'json-yaml': 'JsonYamlConverter',
+  'json-xml': 'JsonXmlConverter',
+  'png-to-ico': 'PngToIco',
 };
 
 const hasCalculator = slug in CALCULATOR_MAP;
@@ -140,8 +150,13 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'pdf-compress' && <PdfCompress client:load />}
     {slug === 'pdf-to-image' && <PdfToImage client:load />}
     {slug === 'word-to-pdf' && <WordToPdf client:load />}
-    {slug === 'pdf-to-word' && <PdfToWord client:load />}
     {slug === 'excel-to-pdf' && <ExcelToPdf client:load />}
+    {slug === 'base64-encode-decode' && <Base64EncodeDecode client:load />}
+    {slug === 'url-encode-decode' && <UrlEncodeDecode client:load />}
+    {slug === 'jwt-decoder' && <JwtDecoder client:load />}
+    {slug === 'json-yaml' && <JsonYamlConverter client:load />}
+    {slug === 'json-xml' && <JsonXmlConverter client:load />}
+    {slug === 'png-to-ico' && <PngToIco client:load />}
     {!hasCalculator && <PlaceholderCalc name={name} client:load />}
     <Fragment slot="content">
       <Content />

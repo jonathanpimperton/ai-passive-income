@@ -499,7 +499,7 @@ Calculators dropdown:
     └── Inflation Calculator
 
 Tools link:
-→ /tools (lists all 33 tools across 6 categories)
+→ /tools (lists all 32 tools across 6 categories)
 
 Utility tools (not in Calculators dropdown — different category):
 ├── QR Code Generator
@@ -561,7 +561,7 @@ File Tools (Phase 2 — secondary category, not in Calculators dropdown):
 │  [Saving & Growth]  [Debt & Loans]  [Income & Planning]  │
 │  [Economic]  [Utility Tools]                             │
 │                                                          │
-│  (filterable grid of all 33 tools)                       │
+│  (filterable grid of all 32 tools)                       │
 │                                                          │
 ├──────────────────────────────────────────────────────────┤
 │  Footer: About | Privacy | Terms | Affiliate Disclosure   │
@@ -1081,7 +1081,7 @@ Before writing component code, confirm these decisions are locked:
 - [ ] **Calculator layout validated** — build compound interest calculator first, test the input/result pattern at 375px (iPhone SE) and 1024px+ before building the rest.
 - [ ] **"Solve for X" tabs validated** — test multi-tab pattern on investment calculator before applying to retirement.
 - [ ] **Schedule table pattern validated** — test collapsible year-group table on compound interest before applying to loan amortization.
-- [ ] **Visual polish verified** — card hovers, gradient accents, whitespace, skeleton loading all implemented and looking good across all 33 tools.
+- [ ] **Visual polish verified** — card hovers, gradient accents, whitespace, skeleton loading all implemented and looking good across all 32 tools.
 - [ ] **File converter UI validated** (Phase 2) — test drag-and-drop upload + privacy badge on image compressor before building remaining converters.
 
 ---

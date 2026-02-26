@@ -19,7 +19,7 @@ A focused **financial calculator site** that generates passive income through af
 - Stage 1: Explored 6 business models → selected free tools site
 - Stage 2: Market research, financial model, competitor analysis
 - Stage 3: Revised plan after 2026 market reality check (AI Overviews, ad RPM crash, framework choice)
-- **Stage 4: Build** — 33 tools live (14 financial calculators + 4 utility tools + 15 file converters)
+- **Stage 4: Build** — 32 tools live (14 financial calculators + 4 utility tools + 14 file converters)
 
 See `docs/strategy.md` for the full plan.
 

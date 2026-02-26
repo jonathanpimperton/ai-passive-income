@@ -10,10 +10,10 @@ keywords:
   - "Word to PDF converter free"
   - "DOCX to PDF without uploading"
 relatedTools:
-  - "pdf-to-word"
   - "pdf-merge"
   - "excel-to-pdf"
   - "pdf-compress"
+  - "pdf-split"
 workedExamples:
   - title: "Converting a resume for job applications"
     inputs:

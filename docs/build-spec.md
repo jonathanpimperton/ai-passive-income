@@ -10,7 +10,7 @@
 A focused financial calculator site called **CalcRun** (`calcrun.com`).
 
 - **Astro** + Tailwind CSS v4 + React islands on Cloudflare Pages (free tier)
-- **33 tools** (14 financial calculators + 4 utility tools + 15 file converters)
+- **32 tools** (14 financial calculators + 4 utility tools + 14 file converters)
 - **Affiliate-first monetization** (not ad-dependent)
 - **Deep educational content** per tool for E-E-A-T and topical authority
 - **Email capture** ("email me my results") on financial calculators → automated drip → affiliate conversions
@@ -109,7 +109,7 @@ Calculator.net is the category king (~100M visits/mo, 20+ years). Studying their
 - **Comprehensive amortization tables:** Month-by-month breakdowns with deposits, interest, and running balances. Users love this granularity.
 - **9 compounding frequency options:** Annually through continuously, plus beginning/end-of-period contribution timing.
 - **Deep educational content:** 1,000+ words per calculator with formulas, worked examples, historical context. This is the E-E-A-T play that validates our content strategy.
-- **Internal linking network:** Every calculator links to 5-6 related calculators, creating an internal link web. With 33 tools, cross-promotion via related tools sections is a key internal linking strategy.
+- **Internal linking network:** Every calculator links to 5-6 related calculators, creating an internal link web. With 32 tools, cross-promotion via related tools sections is a key internal linking strategy.
 
 **Where they're weak (exploit):**
 - **No real-time results** — submit button + page reload. CalcRun updates instantly as you drag a slider. This is our single biggest UX differentiator.
@@ -661,7 +661,7 @@ OG Image:    Auto-generated (tool name + CalcRun branding)
 ### Off-Page SEO
 
 - Submit to Google Search Console on deploy day
-- Product Hunt launch (33 tools live)
+- Product Hunt launch (32 tools live)
 - Reddit: r/personalfinance, r/financialindependence, r/FinancialPlanning
 - Dev.to article: "How I Built a Financial Calculator Site with Astro"
 - Embeddable widgets = passive backlinks
@@ -885,7 +885,7 @@ The site is built to be **low-maintenance by design**: static site (no server), 
 
 | Action | Volume | Purpose |
 |--------|--------|---------|
-| 33 tools live with educational content | 33 pages | Core product |
+| 32 tools live with educational content | 32 pages | Core product |
 | 10-20 programmatic scenario pages | 10-20 pages | Long-tail keyword capture |
 | Submit to Google Search Console | 1 | Start indexing |
 | Product Hunt launch | 1 | Initial traffic spike + backlinks |
@@ -1049,7 +1049,7 @@ MailerLite free tier includes automation workflows with branching logic. The dri
 MVP is shipped when:
 
 **Tools & Content:**
-- [ ] 33 tools live and functional (18 calculators + 15 file converters)
+- [ ] 32 tools live and functional (18 calculators + 14 file converters)
 - [x] Financial math has unit tests (Vitest) that pass (27 tests covering compound interest, loan amortization, savings goal, formatting)
 - [ ] All tool pages have educational content (500+ words financial, 200+ utility)
 - [x] FAQ sections with schema markup on all tools (3-5 questions each, targeting long-tail keywords)
