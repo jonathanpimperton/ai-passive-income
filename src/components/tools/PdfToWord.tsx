@@ -197,6 +197,89 @@ async function rgbaToPng(
   return new Uint8Array(await blob.arrayBuffer());
 }
 
+/** Convert any pdfjs image object to PNG bytes.
+ *  Handles raw RGBA data objects, HTMLImageElement, and ImageBitmap. */
+async function imageObjToPng(
+  imgObj: unknown,
+  fallbackWidth?: number,
+  fallbackHeight?: number
+): Promise<{ pngBytes: Uint8Array; imgWidth: number; imgHeight: number } | null> {
+  // Raw RGBA data: { width, height, data: Uint8ClampedArray }
+  if (imgObj && typeof imgObj === 'object' && 'data' in imgObj) {
+    const raw = imgObj as { width: number; height: number; data: Uint8ClampedArray };
+    if (raw.data && raw.width > 1 && raw.height > 1) {
+      const pngBytes = await rgbaToPng(raw.data, raw.width, raw.height);
+      return { pngBytes, imgWidth: raw.width, imgHeight: raw.height };
+    }
+  }
+
+  // HTMLImageElement (common for JPEG images in pdfjs)
+  if (typeof HTMLImageElement !== 'undefined' && imgObj instanceof HTMLImageElement) {
+    const w = imgObj.naturalWidth || fallbackWidth || imgObj.width;
+    const h = imgObj.naturalHeight || fallbackHeight || imgObj.height;
+    if (w > 1 && h > 1) {
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(imgObj, 0, 0, w, h);
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/png')
+      );
+      if (!blob) return null;
+      return { pngBytes: new Uint8Array(await blob.arrayBuffer()), imgWidth: w, imgHeight: h };
+    }
+  }
+
+  // ImageBitmap
+  if (typeof ImageBitmap !== 'undefined' && imgObj instanceof ImageBitmap) {
+    const w = imgObj.width;
+    const h = imgObj.height;
+    if (w > 1 && h > 1) {
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(imgObj, 0, 0, w, h);
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/png')
+      );
+      if (!blob) return null;
+      return { pngBytes: new Uint8Array(await blob.arrayBuffer()), imgWidth: w, imgHeight: h };
+    }
+  }
+
+  return null;
+}
+
+/** Resolve an image object from pdfjs page.objs or page.commonObjs with timeout */
+function resolveImageObj(
+  page: {
+    objs: { get: (name: string, callback: (data: unknown) => void) => void };
+    commonObjs: { get: (name: string, callback: (data: unknown) => void) => void };
+  },
+  imgName: string,
+  timeoutMs = 2000
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    let resolved = false;
+    const done = (data: unknown) => {
+      if (!resolved) {
+        resolved = true;
+        resolve(data);
+      }
+    };
+    page.objs.get(imgName, done);
+    page.commonObjs.get(imgName, done);
+    setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        reject(new Error('timeout'));
+      }
+    }, timeoutMs);
+  });
+}
+
 /** Extract embedded images from a PDF page using the operator list */
 async function extractPageImages(
   page: {
@@ -225,36 +308,17 @@ async function extractPageImages(
       } else if (fn === pdfjsOPS.transform) {
         const t = args as number[];
         ctm = multiplyMatrix(ctm, t);
-      } else if (fn === pdfjsOPS.paintImageXObject) {
+      } else if (fn === pdfjsOPS.paintImageXObject || fn === pdfjsOPS.paintJpegXObject) {
         const imgName = args[0] as string;
         try {
-          const imgObj = await new Promise<{
-            width: number;
-            height: number;
-            data: Uint8ClampedArray;
-          }>((resolve, reject) => {
-            let resolved = false;
-            page.objs.get(imgName, (data: unknown) => {
-              if (!resolved) {
-                resolved = true;
-                resolve(data as { width: number; height: number; data: Uint8ClampedArray });
-              }
-            });
-            page.commonObjs.get(imgName, (data: unknown) => {
-              if (!resolved) {
-                resolved = true;
-                resolve(data as { width: number; height: number; data: Uint8ClampedArray });
-              }
-            });
-            setTimeout(() => {
-              if (!resolved) {
-                resolved = true;
-                reject(new Error('timeout'));
-              }
-            }, 2000);
-          });
+          const imgObj = await resolveImageObj(page, imgName);
+          const result = await imageObjToPng(
+            imgObj,
+            fn === pdfjsOPS.paintJpegXObject ? (args[1] as number) : undefined,
+            fn === pdfjsOPS.paintJpegXObject ? (args[2] as number) : undefined
+          );
 
-          if (imgObj && imgObj.data && imgObj.width > 1 && imgObj.height > 1) {
+          if (result) {
             const displayWidth = Math.abs(ctm[0]);
             const displayHeight = Math.abs(ctm[3]);
             const xPos = ctm[4];
@@ -263,10 +327,8 @@ async function extractPageImages(
             // Skip tiny images (likely artifacts)
             if (displayWidth < 5 || displayHeight < 5) continue;
 
-            const pngBytes = await rgbaToPng(imgObj.data, imgObj.width, imgObj.height);
-
             images.push({
-              pngBytes,
+              pngBytes: result.pngBytes,
               x: xPos,
               y: pageHeight - yFromBottom - displayHeight,
               widthPt: displayWidth,
@@ -459,7 +521,7 @@ export default function PdfToWord() {
                   x: Math.round(line.x * PT_TO_TWIP),
                   y: Math.round(line.y * PT_TO_TWIP),
                 },
-                width: Math.max(Math.round(line.width * PT_TO_TWIP), 200),
+                width: Math.max(Math.round(line.width * PT_TO_TWIP * 1.15), 200),
                 height: Math.round(
                   Math.max(...line.runs.map((r) => r.fontSize)) * PT_TO_TWIP * 1.3
                 ),
