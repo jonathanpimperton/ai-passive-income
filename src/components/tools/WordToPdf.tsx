@@ -10,8 +10,11 @@
  *  3. jsPDF assembles the canvas slices into a multi-page PDF.
  *
  * Both preview and conversion use docx-preview in the main document
- * (not an iframe) so html2canvas can access all styles. The preview
- * container has `all: revert` CSS to neutralise Tailwind preflight.
+ * (not an iframe) so html2canvas can access all styles. Both the
+ * preview and conversion containers use the `docx-preview-container`
+ * class, which triggers `all: revert` in global.css to neutralise
+ * Tailwind preflight — without this, margins, line-heights, and
+ * fonts render incorrectly in the conversion path.
  *
  * Client-side only. No server upload.
  */
@@ -114,6 +117,11 @@ export default function WordToPdf() {
     const styleContainer = document.createElement('div');
     convContainer.appendChild(styleContainer);
     const contentContainer = document.createElement('div');
+    // Must match the preview container's class so the same `all: revert`
+    // rule (in global.css) neutralises Tailwind preflight. Without this,
+    // headings, margins, line-heights, and fonts render differently from
+    // the preview, producing a visually broken PDF.
+    contentContainer.className = 'docx-preview-container';
     convContainer.appendChild(contentContainer);
 
     try {
