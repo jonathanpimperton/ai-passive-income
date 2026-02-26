@@ -42,7 +42,7 @@ export interface ToolMeta {
 }
 
 /**
- * All 32 tools (18 MVP + 14 file converters) with metadata for navigation and homepage display.
+ * All 38 tools (18 MVP + 14 file converters + 6 developer/utility) with metadata for navigation and homepage display.
  * Order within each category matches the build-spec priority.
  */
 export const TOOLS: ToolMeta[] = [
@@ -177,6 +177,27 @@ export const TOOLS: ToolMeta[] = [
     description: 'Format, validate, and beautify JSON with syntax highlighting.',
     icon: 'braces',
   },
+  {
+    name: 'Base64 Encode/Decode',
+    slug: 'base64-encode-decode',
+    category: 'utility',
+    description: 'Encode text or files to Base64 and decode Base64 back — free, instant, private.',
+    icon: 'binary',
+  },
+  {
+    name: 'URL Encode/Decode',
+    slug: 'url-encode-decode',
+    category: 'utility',
+    description: 'URL-encode and decode text instantly. Supports component and full URI modes.',
+    icon: 'link',
+  },
+  {
+    name: 'JWT Decoder',
+    slug: 'jwt-decoder',
+    category: 'utility',
+    description: 'Decode JWT tokens to inspect header, payload, and expiration — no signup, no server.',
+    icon: 'key-round',
+  },
   // File Tools
   {
     name: 'Image Compressor',
@@ -275,6 +296,27 @@ export const TOOLS: ToolMeta[] = [
     category: 'file-tools',
     description: 'Convert Excel spreadsheets and CSV files to PDF.',
     icon: 'sheet',
+  },
+  {
+    name: 'JSON ↔ YAML Converter',
+    slug: 'json-yaml',
+    category: 'file-tools',
+    description: 'Convert between JSON and YAML formats instantly — free, private, no signup.',
+    icon: 'file-json',
+  },
+  {
+    name: 'JSON ↔ XML Converter',
+    slug: 'json-xml',
+    category: 'file-tools',
+    description: 'Convert between JSON and XML formats with attribute support — free and private.',
+    icon: 'file-code-2',
+  },
+  {
+    name: 'PNG to ICO Converter',
+    slug: 'png-to-ico',
+    category: 'file-tools',
+    description: 'Convert PNG images to ICO favicon files with multiple sizes — free, no upload.',
+    icon: 'app-window',
   },
 ];
 
