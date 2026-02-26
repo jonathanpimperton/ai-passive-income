@@ -62,11 +62,13 @@ export default function WordToPdf() {
         className: 'docx',
       });
 
-      // Add minimal body styles to iframe for preview appearance
+      // Preview-only styles (screen only — NOT included in print output)
       const previewStyle = iDoc.createElement('style');
       previewStyle.textContent = `
-        body { margin: 0; padding: 12px; background: #f5f5f5; }
-        .docx-wrapper { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        @media screen {
+          body { margin: 0; padding: 12px; background: #f5f5f5; }
+          .docx-wrapper { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        }
       `;
       iDoc.head.appendChild(previewStyle);
 
@@ -97,13 +99,51 @@ export default function WordToPdf() {
     const headContent = iDoc.head.innerHTML;
     const bodyContent = iDoc.body.innerHTML;
 
+    // Detect page dimensions from docx-preview's rendered sections
+    // (each <section class="docx"> has inline styles with the page size)
+    let pageSizeRule = '@page { margin: 0; }';
+    const firstSection = iDoc.querySelector('section.docx') as HTMLElement | null;
+    if (firstSection) {
+      const style = firstSection.getAttribute('style') || '';
+      const wMatch = style.match(/width:\s*([\d.]+)\s*pt/);
+      const hMatch = style.match(/min-height:\s*([\d.]+)\s*pt/);
+      if (wMatch && hMatch) {
+        pageSizeRule = `@page { size: ${wMatch[1]}pt ${hMatch[1]}pt; margin: 0; }`;
+      }
+    }
+
     printWindow.document.write(`<!DOCTYPE html><html><head><title>${docName}</title>
 ${headContent}
 <style>
-  @page { size: A4; margin: 0; }
+  ${pageSizeRule}
   @media print {
-    body { margin: 0; padding: 0; }
-    .docx-wrapper { box-shadow: none !important; padding: 0 !important; }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #fff !important;
+    }
+    .docx-wrapper {
+      background: #fff !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+    /* Each docx-preview page section — force proper page breaks */
+    section.docx {
+      box-shadow: none !important;
+      margin: 0 !important;
+      page-break-after: always;
+      break-after: page;
+      overflow: visible !important;
+    }
+    section.docx:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+    /* Prevent elements from breaking across pages */
+    h1, h2, h3, h4, h5, h6 { page-break-after: avoid; break-after: avoid; }
+    table { page-break-inside: avoid; break-inside: avoid; }
+    tr { page-break-inside: avoid; break-inside: avoid; }
+    img { page-break-inside: avoid; break-inside: avoid; }
   }
   body {
     margin: 0; padding: 0; background: #fff;
@@ -111,8 +151,6 @@ ${headContent}
     print-color-adjust: exact;
   }
   img { max-width: 100%; }
-  table { page-break-inside: avoid; }
-  tr { page-break-inside: avoid; }
 </style>
 </head><body>${bodyContent}</body></html>`);
     printWindow.document.close();
