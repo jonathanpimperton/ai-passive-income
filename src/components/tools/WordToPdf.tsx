@@ -4,9 +4,10 @@
  * Pipeline:
  *  1. docx-preview renders the DOCX into a same-document container
  *     for a high-fidelity preview (preserves fonts, spacing, colors).
- *  2. For PDF conversion, the same rendered content is captured via
- *     html2canvas into canvas images.
- *  3. jsPDF assembles the canvases into a multi-page PDF.
+ *  2. For PDF conversion, each rendered section is captured via
+ *     html2canvas into a full-height canvas. Sections taller than one
+ *     page are sliced into page-sized chunks.
+ *  3. jsPDF assembles the canvas slices into a multi-page PDF.
  *
  * Both preview and conversion use docx-preview in the main document
  * (not an iframe) so html2canvas can access all styles. The preview
@@ -107,7 +108,7 @@ export default function WordToPdf() {
     // We re-render here so the visible preview stays untouched.
     const convContainer = document.createElement('div');
     convContainer.style.cssText =
-      'position:fixed;left:0;top:0;width:794px;z-index:-9999;opacity:0;pointer-events:none;overflow:hidden;';
+      'position:fixed;left:0;top:0;width:794px;z-index:-9999;opacity:0;pointer-events:none;overflow:visible;';
     document.body.appendChild(convContainer);
 
     const styleContainer = document.createElement('div');
@@ -173,32 +174,55 @@ export default function WordToPdf() {
       let pdfPageCount = 0;
 
       for (let i = 0; i < sections.length; i++) {
-        setProgressMsg(`Rendering page ${i + 1} of ${sections.length}...`);
+        setProgressMsg(`Rendering section ${i + 1} of ${sections.length}...`);
 
         const section = sections[i] as HTMLElement;
 
-        // Force section to exact page dimensions so html2canvas captures
-        // exactly one page. docx-preview with breakPages:true already splits
-        // content at page boundaries — we just need to clamp the height so
-        // no overflow leaks into the canvas and causes bad page splits.
-        section.style.height = `${pageHeightPt}pt`;
-        section.style.maxHeight = `${pageHeightPt}pt`;
-        section.style.overflow = 'hidden';
-
+        // Capture the full section — do NOT clamp height. docx-preview
+        // creates sections per document section break, not per page.
+        // A multi-page document without explicit section breaks produces
+        // ONE tall section containing all content.
         const canvas = await html2canvas(section, {
           scale: 2,
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
           windowWidth: section.scrollWidth || 794,
+          windowHeight: section.scrollHeight || 1123,
         });
 
-        // One section = one PDF page (no canvas slicing needed)
-        if (pdfPageCount > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
-        pdfPageCount++;
+        // Calculate how many PDF pages this section spans.
+        // The canvas width corresponds to pageWidthPt, so derive
+        // the pixel-to-pt ratio and compute page height in pixels.
+        const pxPerPt = canvas.width / pageWidthPt;
+        const pageHeightPx = pageHeightPt * pxPerPt;
+        const sectionPages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
 
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
+        for (let p = 0; p < sectionPages; p++) {
+          if (pdfPageCount > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
+          pdfPageCount++;
+
+          setProgressMsg(`Rendering page ${pdfPageCount}...`);
+
+          // Slice the corresponding vertical portion of the section canvas
+          const srcY = p * pageHeightPx;
+          const srcH = Math.min(pageHeightPx, canvas.height - srcY);
+
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = Math.round(pageHeightPx);
+          const pCtx = pageCanvas.getContext('2d')!;
+          pCtx.fillStyle = '#ffffff';
+          pCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          pCtx.drawImage(
+            canvas,
+            0, Math.round(srcY), canvas.width, Math.round(srcH),
+            0, 0, canvas.width, Math.round(srcH),
+          );
+
+          const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
+        }
       }
 
       const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
