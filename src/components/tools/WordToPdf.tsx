@@ -4,13 +4,20 @@
  * Pipeline:
  *  1. docx-preview renders the DOCX into a same-document container
  *     for a high-fidelity preview (preserves fonts, spacing, colors).
- *  2. For PDF conversion, the same rendered content is captured via
- *     html2canvas into canvas images.
- *  3. jsPDF assembles the canvases into a multi-page PDF.
+ *  2. For PDF conversion the DOCX is re-rendered into a hidden
+ *     container. All decorative styles (wrapper padding/bg, section
+ *     shadows/margins/overflow) are stripped so we get a single
+ *     continuous block of clean page content.
+ *  3. html2canvas captures the entire rendered content as one tall
+ *     canvas — no assumptions about page or section breaks.
+ *  4. The canvas is sliced into page-height chunks using the page
+ *     dimensions from the DOCX (read from the section inline style).
+ *  5. jsPDF assembles the slices into a multi-page PDF.
  *
- * Both preview and conversion use docx-preview in the main document
- * (not an iframe) so html2canvas can access all styles. The preview
- * container has `all: revert` CSS to neutralise Tailwind preflight.
+ * Both preview and conversion containers use the
+ * `docx-preview-container` class, triggering `all: revert` in
+ * global.css to neutralise Tailwind preflight. Without this,
+ * margins, line-heights, and fonts render incorrectly.
  *
  * Client-side only. No server upload.
  */
@@ -107,12 +114,17 @@ export default function WordToPdf() {
     // We re-render here so the visible preview stays untouched.
     const convContainer = document.createElement('div');
     convContainer.style.cssText =
-      'position:fixed;left:0;top:0;width:794px;z-index:-9999;opacity:0;pointer-events:none;overflow:hidden;';
+      'position:fixed;left:0;top:0;width:794px;z-index:-9999;opacity:0;pointer-events:none;overflow:visible;';
     document.body.appendChild(convContainer);
 
     const styleContainer = document.createElement('div');
     convContainer.appendChild(styleContainer);
     const contentContainer = document.createElement('div');
+    // Must match the preview container's class so the same `all: revert`
+    // rule (in global.css) neutralises Tailwind preflight. Without this,
+    // headings, margins, line-heights, and fonts render differently from
+    // the preview, producing a visually broken PDF.
+    contentContainer.className = 'docx-preview-container';
     convContainer.appendChild(contentContainer);
 
     try {
@@ -148,21 +160,60 @@ export default function WordToPdf() {
         tempStyles.push(clone);
       });
 
-      // Make container measurable for html2canvas
-      convContainer.style.opacity = '1';
-
-      const sections = contentContainer.querySelectorAll('section.docx');
-
-      if (sections.length === 0) {
-        throw new Error('No page sections found in the rendered document');
+      // Read page dimensions from the first section's inline style.
+      // docx-preview always creates at least one <section> even for a
+      // document with zero explicit page/section breaks.
+      const firstSection = contentContainer.querySelector('section.docx') as HTMLElement | null;
+      let pageWidthPt = 595.28; // A4 defaults
+      let pageHeightPt = 841.89;
+      if (firstSection) {
+        const s = firstSection.getAttribute('style') || '';
+        const w = s.match(/width:\s*([\d.]+)\s*pt/);
+        const h = s.match(/min-height:\s*([\d.]+)\s*pt/);
+        if (w) pageWidthPt = parseFloat(w[1]);
+        if (h) pageHeightPt = parseFloat(h[1]);
       }
 
-      // Read page dimensions from the first section (in pt)
-      const firstStyle = sections[0].getAttribute('style') || '';
-      const wMatch = firstStyle.match(/width:\s*([\d.]+)\s*pt/);
-      const hMatch = firstStyle.match(/min-height:\s*([\d.]+)\s*pt/);
-      const pageWidthPt = wMatch ? parseFloat(wMatch[1]) : 595.28;
-      const pageHeightPt = hMatch ? parseFloat(hMatch[1]) : 841.89;
+      // Strip all decorative wrapper/section styles so we get a single
+      // continuous block of clean content for capture. docx-preview adds
+      // wrapper padding, gray background, section shadows, 30px gaps
+      // between sections, and overflow:hidden on sections — all of which
+      // would corrupt the canvas or clip content.
+      const wrapper = contentContainer.querySelector('.docx-wrapper') as HTMLElement;
+      if (wrapper) {
+        wrapper.style.cssText = 'padding:0;margin:0;background:#fff;display:block;';
+      }
+      contentContainer.querySelectorAll('section.docx').forEach((el) => {
+        const se = el as HTMLElement;
+        se.style.marginBottom = '0';
+        se.style.boxShadow = 'none';
+        se.style.overflow = 'visible';
+      });
+
+      // Make container visible for html2canvas and let content dictate width
+      convContainer.style.opacity = '1';
+      convContainer.style.width = 'auto';
+
+      // Capture the entire rendered content as one tall canvas.
+      // We capture the wrapper (or container) — NOT individual sections —
+      // so the result is correct regardless of how docx-preview splits
+      // (or doesn't split) the DOM.
+      const captureTarget = wrapper || contentContainer;
+      setProgressMsg('Capturing document...');
+
+      const canvas = await html2canvas(captureTarget, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      // Slice the tall canvas into page-height chunks.
+      // pxPerPt converts between the canvas pixel space and the PDF
+      // point space using the known page width as the reference.
+      const pxPerPt = canvas.width / pageWidthPt;
+      const pageHeightPx = pageHeightPt * pxPerPt;
+      const totalPages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
 
       const pdf = new jsPDF({
         orientation: pageWidthPt > pageHeightPt ? 'landscape' : 'portrait',
@@ -170,34 +221,26 @@ export default function WordToPdf() {
         format: [pageWidthPt, pageHeightPt],
       });
 
-      let pdfPageCount = 0;
+      for (let p = 0; p < totalPages; p++) {
+        if (p > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
+        setProgressMsg(`Rendering page ${p + 1} of ${totalPages}...`);
 
-      for (let i = 0; i < sections.length; i++) {
-        setProgressMsg(`Rendering page ${i + 1} of ${sections.length}...`);
+        const srcY = p * pageHeightPx;
+        const srcH = Math.min(pageHeightPx, canvas.height - srcY);
 
-        const section = sections[i] as HTMLElement;
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = Math.round(pageHeightPx);
+        const pCtx = pageCanvas.getContext('2d')!;
+        pCtx.fillStyle = '#ffffff';
+        pCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        pCtx.drawImage(
+          canvas,
+          0, Math.round(srcY), canvas.width, Math.round(srcH),
+          0, 0, canvas.width, Math.round(srcH),
+        );
 
-        // Force section to exact page dimensions so html2canvas captures
-        // exactly one page. docx-preview with breakPages:true already splits
-        // content at page boundaries — we just need to clamp the height so
-        // no overflow leaks into the canvas and causes bad page splits.
-        section.style.height = `${pageHeightPt}pt`;
-        section.style.maxHeight = `${pageHeightPt}pt`;
-        section.style.overflow = 'hidden';
-
-        const canvas = await html2canvas(section, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          windowWidth: section.scrollWidth || 794,
-        });
-
-        // One section = one PDF page (no canvas slicing needed)
-        if (pdfPageCount > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
-        pdfPageCount++;
-
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
         pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
       }
 
