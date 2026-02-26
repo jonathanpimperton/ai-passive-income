@@ -2,13 +2,12 @@
  * Word to PDF — render DOCX using docx-preview, then capture to PDF.
  *
  * Pipeline:
- *  1. docx-preview renders the DOCX into HTML+CSS inside an iframe
+ *  1. docx-preview renders the DOCX into an iframe for preview
  *     (isolated from Tailwind CSS preflight).
- *  2. html2canvas renders each page section to a canvas image.
- *  3. jsPDF assembles the canvases into a multi-page PDF.
- *
- * Each docx-preview <section> = one canvas = one PDF page.
- * Page breaks are guaranteed because we control page boundaries directly.
+ *  2. For PDF conversion, re-renders into a hidden main-document container
+ *     so html2canvas can access all styles in the same document context.
+ *  3. html2canvas renders each page section to a canvas image.
+ *  4. jsPDF assembles the canvases into a multi-page PDF.
  *
  * Client-side only. No server upload.
  */
@@ -31,6 +30,7 @@ export default function WordToPdf() {
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const arrayBufferRef = useRef<ArrayBuffer | null>(null);
 
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
@@ -42,6 +42,7 @@ export default function WordToPdf() {
     try {
       const { renderAsync } = await import('docx-preview');
       const arrayBuffer = await f.arrayBuffer();
+      arrayBufferRef.current = arrayBuffer;
 
       const iframe = iframeRef.current;
       if (!iframe?.contentDocument) throw new Error('Preview container not available');
@@ -89,21 +90,63 @@ export default function WordToPdf() {
   }, []);
 
   const convertToPdf = useCallback(async () => {
-    if (!rendered || !file || !iframeRef.current?.contentDocument) return;
+    if (!rendered || !file || !arrayBufferRef.current) return;
     setError('');
     setConverting(true);
-    setProgressMsg('Preparing...');
+    setProgressMsg('Preparing document...');
+
+    // Create a temporary container in the MAIN document for conversion.
+    // html2canvas needs elements in the same document context to access styles.
+    const convContainer = document.createElement('div');
+    convContainer.style.cssText =
+      'position:fixed;left:0;top:0;width:794px;z-index:-9999;opacity:0;pointer-events:none;overflow:hidden;';
+    document.body.appendChild(convContainer);
+
+    // We need a head container for docx-preview styles
+    const styleContainer = document.createElement('div');
+    convContainer.appendChild(styleContainer);
+    const contentContainer = document.createElement('div');
+    convContainer.appendChild(contentContainer);
 
     try {
-      const [html2canvasModule, jsPDFModule] = await Promise.all([
+      const [{ renderAsync }, html2canvasModule, jsPDFModule] = await Promise.all([
+        import('docx-preview'),
         import('html2canvas'),
         import('jspdf'),
       ]);
       const html2canvas = html2canvasModule.default;
       const { jsPDF } = jsPDFModule;
 
-      const iDoc = iframeRef.current.contentDocument;
-      const sections = iDoc.querySelectorAll('section.docx');
+      setProgressMsg('Rendering document for conversion...');
+
+      // Re-render the DOCX into the main-document container
+      // This creates style elements as children of styleContainer
+      // and section elements as children of contentContainer
+      await renderAsync(arrayBufferRef.current, contentContainer, styleContainer, {
+        breakPages: true,
+        renderHeaders: true,
+        renderFooters: true,
+        renderFootnotes: true,
+        renderEndnotes: true,
+        experimental: false,
+        useBase64URL: true,
+        ignoreLastRenderedPageBreak: false,
+        inWrapper: true,
+        className: 'docx',
+      });
+
+      // Move any <style> elements from styleContainer into the document head temporarily
+      const tempStyles: HTMLStyleElement[] = [];
+      styleContainer.querySelectorAll('style').forEach((s) => {
+        const clone = s.cloneNode(true) as HTMLStyleElement;
+        document.head.appendChild(clone);
+        tempStyles.push(clone);
+      });
+
+      // Make container visible (but behind everything) for html2canvas measurement
+      convContainer.style.opacity = '1';
+
+      const sections = contentContainer.querySelectorAll('section.docx');
 
       if (sections.length === 0) {
         throw new Error('No page sections found in the rendered document');
@@ -128,19 +171,19 @@ export default function WordToPdf() {
       for (let i = 0; i < sections.length; i++) {
         setProgressMsg(`Rendering section ${i + 1} of ${sections.length}...`);
 
+        const section = sections[i] as HTMLElement;
+
         // Render this section to a canvas at 2x scale for print quality
-        const canvas = await html2canvas(sections[i] as HTMLElement, {
+        const canvas = await html2canvas(section, {
           scale: 2,
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
-          windowWidth: sections[i].scrollWidth,
-          windowHeight: sections[i].scrollHeight,
+          windowWidth: section.scrollWidth || 794,
+          windowHeight: section.scrollHeight || 1123,
         });
 
         // Calculate how many PDF pages this section spans.
-        // docx-preview may render multi-page content as one tall section
-        // when the DOCX has no explicit page breaks.
         const pxPerPt = canvas.width / pageWidthPt;
         const pageHeightPx = pageHeightPt * pxPerPt;
         const sectionPages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
@@ -175,11 +218,17 @@ export default function WordToPdf() {
       // Save with the document name
       const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
       pdf.save(`${docName}.pdf`);
+
+      // Clean up temporary styles
+      tempStyles.forEach((s) => s.remove());
     } catch (e) {
       setError(
         'Conversion failed — ' +
           (e instanceof Error ? e.message : 'please try again.')
       );
+    } finally {
+      // Clean up temporary container
+      convContainer.remove();
     }
     setConverting(false);
     setProgressMsg('');

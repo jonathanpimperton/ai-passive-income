@@ -11,58 +11,6 @@ const popularTools = POPULAR_TOOL_SLUGS
 const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][];
 const websiteSchema = buildWebsiteSchema();
 
-/** Persona data for "Who Is This For?" section */
-const personas = [
-  {
-    hook: 'Just got your first real paycheck?',
-    description: 'See how even small monthly savings grow into serious money over time.',
-    icon: 'graduation-cap',
-    color: 'text-accent-600 bg-accent-50',
-    hoverBg: 'group-hover:bg-accent-600 group-hover:text-white',
-    tools: [
-      { name: 'Compound Interest', slug: 'compound-interest', category: 'saving-and-growth' as CategorySlug },
-      { name: 'Savings Goal', slug: 'savings-goal', category: 'saving-and-growth' as CategorySlug },
-      { name: 'Emergency Fund', slug: 'emergency-fund', category: 'income-and-planning' as CategorySlug },
-    ],
-  },
-  {
-    hook: 'Buying vs. renting?',
-    description: 'Compare the real cost of homeownership against renting — with actual numbers.',
-    icon: 'home',
-    color: 'text-primary-600 bg-primary-50',
-    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
-    tools: [
-      { name: 'Rent vs. Buy', slug: 'rent-vs-buy', category: 'debt-and-loans' as CategorySlug },
-      { name: 'Mortgage Payment', slug: 'mortgage-payment', category: 'debt-and-loans' as CategorySlug },
-      { name: 'Loan Amortization', slug: 'loan-amortization', category: 'debt-and-loans' as CategorySlug },
-    ],
-  },
-  {
-    hook: 'On track for retirement?',
-    description: 'Find out if your savings rate will actually get you there — adjusted for inflation.',
-    icon: 'piggy-bank',
-    color: 'text-warning-600 bg-warning-50',
-    hoverBg: 'group-hover:bg-warning-600 group-hover:text-white',
-    tools: [
-      { name: 'Retirement Savings', slug: 'retirement-savings', category: 'income-and-planning' as CategorySlug },
-      { name: 'Investment Return', slug: 'investment-return', category: 'saving-and-growth' as CategorySlug },
-      { name: 'Inflation', slug: 'inflation', category: 'economic' as CategorySlug },
-    ],
-  },
-  {
-    hook: 'Drowning in payments?',
-    description: 'Compare snowball vs. avalanche strategies and pick a payoff date you can actually hit.',
-    icon: 'credit-card',
-    color: 'text-primary-600 bg-primary-50',
-    hoverBg: 'group-hover:bg-primary-600 group-hover:text-white',
-    tools: [
-      { name: 'Debt Payoff', slug: 'debt-payoff', category: 'debt-and-loans' as CategorySlug },
-      { name: 'Loan Amortization', slug: 'loan-amortization', category: 'debt-and-loans' as CategorySlug },
-      { name: 'Savings Goal', slug: 'savings-goal', category: 'saving-and-growth' as CategorySlug },
-    ],
-  },
-];
-
 /** Specific CTA hooks for the bottom section */
 const ctaHooks = [
   { text: 'Wondering if you can retire at 55?', link: '/tools/income-and-planning/retirement-savings', label: 'Try the retirement calculator' },
@@ -158,8 +106,8 @@ const ctaHooks = [
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-end justify-between mb-10">
         <div>
-          <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900">Popular Calculators</h2>
-          <p class="text-neutral-500 mt-2">The tools people use most to plan their finances.</p>
+          <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900">Most Popular</h2>
+          <p class="text-neutral-500 mt-2">The tools people search for most.</p>
         </div>
         <a href="/tools" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
           View all
@@ -167,19 +115,23 @@ const ctaHooks = [
         </a>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {popularTools.map((tool) => (
           <a
             href={getToolPath(tool)}
             class="tool-card-popular group relative bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-1"
           >
-            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 mb-4">
-              <ToolIcon name={tool.icon} size={22} />
+            <div class="flex items-start gap-4">
+              <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 shrink-0">
+                <ToolIcon name={tool.icon} size={24} />
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-1">
+                  {tool.name}
+                </h3>
+                <p class="text-sm text-neutral-500 leading-relaxed">{tool.description}</p>
+              </div>
             </div>
-            <h3 class="text-lg font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-1.5">
-              {tool.name}
-            </h3>
-            <p class="text-sm text-neutral-500 leading-relaxed">{tool.description}</p>
             <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
           </a>
         ))}
@@ -191,100 +143,19 @@ const ctaHooks = [
     </div>
   </section>
 
-  {/* ===== WHO IS THIS FOR? ===== */}
-  <section class="py-16 sm:py-20 bg-neutral-50">
+  {/* ===== VISUAL SEPARATOR ===== */}
+  <div class="relative py-12 sm:py-16">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Who Is This For?</h2>
-        <p class="text-neutral-500 max-w-[520px] mx-auto">Real questions. Real tools to answer them.</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        {personas.map((persona) => (
-          <div class="group bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden">
-            <div class="flex items-start gap-4">
-              <div class={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${persona.color} ${persona.hoverBg} transition-all duration-200 shrink-0`}>
-                <ToolIcon name={persona.icon} size={24} />
-              </div>
-              <div class="min-w-0">
-                <h3 class="text-lg font-semibold text-neutral-900 mb-1">{persona.hook}</h3>
-                <p class="text-sm text-neutral-500 leading-relaxed mb-3">{persona.description}</p>
-                <div class="flex flex-wrap gap-2">
-                  {persona.tools.map((tool) => (
-                    <a
-                      href={`/tools/${tool.category}/${tool.slug}`}
-                      class="inline-flex items-center gap-1 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-full transition-colors duration-150"
-                    >
-                      {tool.name}
-                      <ToolIcon name="arrow-right" size={12} />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  {/* ===== HOW WE COMPARE — standalone comparison table ===== */}
-  <section class="py-16 sm:py-20">
-    <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">How We Compare</h2>
-        <p class="text-neutral-500 max-w-[480px] mx-auto">The table speaks for itself.</p>
-      </div>
-
-      <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-card overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b border-neutral-100">
-                <th class="text-left font-medium text-neutral-500 px-6 py-3 w-[200px]">Feature</th>
-                <th class="text-center font-medium text-neutral-400 px-4 py-3">Calculator.net</th>
-                <th class="text-center font-medium text-neutral-400 px-4 py-3">Bankrate</th>
-                <th class="text-center font-semibold text-primary-600 px-4 py-3 bg-primary-50/50">CalcRun</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="border-b border-neutral-100">
-                <td class="px-6 py-3 font-medium text-neutral-700">Real-time results</td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
-                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
-              </tr>
-              <tr class="border-b border-neutral-100">
-                <td class="px-6 py-3 font-medium text-neutral-700">Zero ads</td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
-                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
-              </tr>
-              <tr class="border-b border-neutral-100">
-                <td class="px-6 py-3 font-medium text-neutral-700">No account required</td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="Partial"><ToolIcon name="minus" size={14} /></span></td>
-                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
-              </tr>
-              <tr class="border-b border-neutral-100">
-                <td class="px-6 py-3 font-medium text-neutral-700">Interactive charts</td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="Partial"><ToolIcon name="minus" size={14} /></span></td>
-                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-3 font-medium text-neutral-700">Data never sold</td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="Unknown"><ToolIcon name="minus" size={14} /></span></td>
-                <td class="text-center px-4 py-3"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-400" aria-label="No"><ToolIcon name="x-circle" size={14} /></span></td>
-                <td class="text-center px-4 py-3 bg-primary-50/50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent-100 text-accent-600" aria-label="Yes"><ToolIcon name="check" size={14} /></span></td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="relative flex items-center gap-6">
+        <div class="flex-1 h-px bg-gradient-to-r from-transparent via-primary-300/40 to-primary-300/40"></div>
+        <div class="flex items-center gap-3 px-5 py-2.5 bg-white rounded-full border border-neutral-200/80 shadow-card">
+          <ToolIcon name="layout-grid" size={18} class="text-primary-500" />
+          <span class="text-sm font-semibold text-neutral-700 tracking-wide uppercase">Explore All Tools</span>
         </div>
+        <div class="flex-1 h-px bg-gradient-to-r from-primary-300/40 via-primary-300/40 to-transparent"></div>
       </div>
     </div>
-  </section>
+  </div>
 
   {/* ===== ALL TOOLS ===== */}
   <section class="py-16 sm:py-20 lg:py-24 bg-neutral-50">
