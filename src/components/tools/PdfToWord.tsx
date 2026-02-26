@@ -521,7 +521,7 @@ export default function PdfToWord() {
                   x: Math.round(line.x * PT_TO_TWIP),
                   y: Math.round(line.y * PT_TO_TWIP),
                 },
-                width: Math.max(Math.round(line.width * PT_TO_TWIP * 1.15), 200),
+                width: Math.max(Math.round(line.width * PT_TO_TWIP), 200),
                 height: Math.round(
                   Math.max(...line.runs.map((r) => r.fontSize)) * PT_TO_TWIP * 1.3
                 ),
@@ -656,8 +656,8 @@ export default function PdfToWord() {
             </button>
 
             <p className="text-xs text-neutral-400">
-              Text is placed at exact positions from the PDF — fully editable in Word with
-              preserved layout.
+              Text is extracted and placed at matching positions from the PDF.
+              Works best with text-heavy, single-column documents.
               {totalImages > 0 && ' Embedded images included at original positions.'}
             </p>
           </div>
@@ -684,7 +684,7 @@ export default function PdfToWord() {
         {pages.length > 0 ? (
           <div className="space-y-3">
             <p className="text-sm font-medium text-neutral-700">
-              Original PDF — your Word document will preserve this layout with editable text
+              Original PDF — text and images will be extracted into an editable Word document
             </p>
             <div className="bg-neutral-100 rounded-2xl border border-neutral-200/80 shadow-card p-4 max-h-[600px] overflow-auto space-y-4">
               {pages.map((page) => (
@@ -709,7 +709,7 @@ export default function PdfToWord() {
                 Upload a PDF to convert it to an editable Word document
               </p>
               <p className="text-xs text-neutral-400 mt-1">
-                Text stays at exact positions — fully editable with preserved layout
+                Text is extracted and positioned to approximate the original layout
               </p>
             </div>
           )
