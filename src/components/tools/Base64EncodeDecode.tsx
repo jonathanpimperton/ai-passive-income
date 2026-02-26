@@ -162,7 +162,7 @@ export default function Base64EncodeDecode() {
               type="checkbox"
               checked={lineWrap}
               onChange={(e) => setLineWrap(e.target.checked)}
-              className="rounded border-neutral-300 text-primary-500 focus:ring-primary-500"
+              className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
             />
             Wrap lines (76 chars)
           </label>

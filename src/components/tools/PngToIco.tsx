@@ -130,7 +130,7 @@ export default function PngToIco() {
           {/* Source info */}
           <div className="flex items-center justify-between p-4 rounded-xl border border-neutral-200 bg-white">
             <div className="flex items-center gap-3">
-              <Image size={20} className="text-primary-500" aria-hidden="true" />
+              <Image size={20} className="text-primary-600" aria-hidden="true" />
               <div>
                 <p className="text-sm font-semibold text-neutral-900">{sourceName}</p>
                 <p className="text-xs text-neutral-500">
@@ -176,7 +176,7 @@ export default function PngToIco() {
                   >
                     {isSelected && (
                       <div className="absolute top-1.5 right-1.5">
-                        <Check size={14} className="text-primary-500" aria-hidden="true" />
+                        <Check size={14} className="text-primary-600" aria-hidden="true" />
                       </div>
                     )}
                     <div
@@ -189,7 +189,6 @@ export default function PngToIco() {
                           alt={`Preview at ${size}×${size}`}
                           width={Math.max(size, 32)}
                           height={Math.max(size, 32)}
-                          className="image-rendering-pixelated"
                           style={{ imageRendering: size <= 32 ? 'pixelated' : 'auto' }}
                         />
                       )}
