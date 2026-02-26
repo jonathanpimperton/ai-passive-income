@@ -100,7 +100,7 @@ export default function PdfCompress() {
 
     try {
       const pdfLib = await import('pdf-lib');
-      const { PDFDocument, PDFName, PDFRawStream, PDFStream, PDFDict } = pdfLib;
+      const { PDFDocument, PDFName, PDFRawStream, PDFStream } = pdfLib;
       const bytes = await file.arrayBuffer();
       const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
 
@@ -110,7 +110,7 @@ export default function PdfCompress() {
       let processedCount = 0;
 
       // Collect all image refs
-      type ImageRef = { ref: pdfLib.PDFRef; stream: typeof PDFRawStream.prototype | typeof PDFStream.prototype; dict: typeof PDFDict.prototype };
+      type ImageRef = { ref: pdfLib.PDFRef; stream: InstanceType<typeof PDFRawStream> | InstanceType<typeof PDFStream>; dict: InstanceType<typeof pdfLib.PDFDict> };
       const imageRefs: ImageRef[] = [];
 
       context.enumerateIndirectObjects().forEach(([ref, obj]) => {
@@ -188,24 +188,15 @@ export default function PdfCompress() {
 
           // Only use recompressed if it's actually smaller
           if (recompressed.length < imageBytes.length * 0.95) {
-            // Replace the stream contents with the new JPEG data
-            const newStream = context.flateStream(recompressed);
-            // Create a new image XObject with the recompressed data
-            const newImageRef = context.register(
-              context.stream(recompressed, {
-                ['/Type']: '/XObject',
-                ['/Subtype']: '/Image',
-                ['/Width']: width,
-                ['/Height']: height,
-                ['/ColorSpace']: '/DeviceRGB',
-                ['/BitsPerComponent']: '8',
-                ['/Filter']: '/DCTDecode',
-                ['/Length']: String(recompressed.length),
-              }),
-            );
+            // Embed the recompressed JPEG using pdf-lib's high-level API
+            // which correctly builds the image XObject dict (Width, Height,
+            // Filter, ColorSpace, etc.) from the JPEG headers.
+            const newImage = await doc.embedJpg(recompressed);
 
-            // Replace all references to the old image with the new one
-            context.assign(ref, context.lookup(newImageRef)!);
+            // Point the old reference to the new image object so every
+            // page that used the original image now uses the compressed one.
+            const newObj = context.lookup(newImage.ref);
+            if (newObj) context.assign(ref, newObj);
           }
         } catch {
           // Skip images that fail — don't break the whole operation
