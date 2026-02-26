@@ -1,13 +1,16 @@
 /**
- * Word to PDF — render DOCX using docx-preview, then capture to PDF.
+ * Word to PDF — client-side DOCX to PDF converter.
  *
  * Pipeline:
- *  1. docx-preview renders the DOCX into an iframe for preview
- *     (isolated from Tailwind CSS preflight).
- *  2. For PDF conversion, re-renders into a hidden main-document container
- *     so html2canvas can access all styles in the same document context.
- *  3. html2canvas renders each page section to a canvas image.
+ *  1. mammoth.js converts DOCX to clean semantic HTML for preview.
+ *  2. For PDF conversion, docx-preview renders into a hidden same-document
+ *     container (preserving page dimensions and layout fidelity).
+ *  3. html2canvas captures each page section to a canvas image.
  *  4. jsPDF assembles the canvases into a multi-page PDF.
+ *
+ * Preview uses mammoth (not docx-preview) so the HTML lives in the main
+ * document rather than an iframe — accessible, testable, and unaffected
+ * by Tailwind CSS preflight thanks to scoped reset styles.
  *
  * Client-side only. No server upload.
  */
@@ -26,10 +29,10 @@ export default function WordToPdf() {
   const [file, setFile] = useState<File | null>(null);
   const [rendering, setRendering] = useState(false);
   const [rendered, setRendered] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState('');
   const [converting, setConverting] = useState(false);
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState('');
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const arrayBufferRef = useRef<ArrayBuffer | null>(null);
 
   const handleFiles = useCallback(async (files: File[]) => {
@@ -37,53 +40,38 @@ export default function WordToPdf() {
     if (!f) return;
     setError('');
     setRendered(false);
+    setPreviewHtml('');
     setRendering(true);
 
     try {
-      const { renderAsync } = await import('docx-preview');
+      const mammoth = await import('mammoth');
       const arrayBuffer = await f.arrayBuffer();
       arrayBufferRef.current = arrayBuffer;
 
-      const iframe = iframeRef.current;
-      if (!iframe?.contentDocument) throw new Error('Preview container not available');
-      const iDoc = iframe.contentDocument;
+      // Convert DOCX to semantic HTML for preview
+      const result = await mammoth.convertToHtml(
+        { arrayBuffer },
+        {
+          styleMap: [
+            "p[style-name='Title'] => h1:fresh",
+            "p[style-name='Heading 1'] => h1:fresh",
+            "p[style-name='Heading 2'] => h2:fresh",
+            "p[style-name='Heading 3'] => h3:fresh",
+          ],
+        },
+      );
 
-      // Reset iframe to a clean document
-      iDoc.open();
-      iDoc.write('<!DOCTYPE html><html><head></head><body></body></html>');
-      iDoc.close();
+      if (!result.value || result.value.trim().length === 0) {
+        throw new Error('No content found in this document.');
+      }
 
-      // Render DOCX into the iframe's document (completely isolated from Tailwind)
-      await renderAsync(arrayBuffer, iDoc.body, iDoc.head, {
-        breakPages: true,
-        renderHeaders: true,
-        renderFooters: true,
-        renderFootnotes: true,
-        renderEndnotes: true,
-        experimental: false,
-        useBase64URL: true,
-        ignoreLastRenderedPageBreak: false,
-        inWrapper: true,
-        className: 'docx',
-        hideWrapperOnPrint: true,
-      });
-
-      // Preview-only styles
-      const previewStyle = iDoc.createElement('style');
-      previewStyle.textContent = `
-        @media screen {
-          body { margin: 0; padding: 12px; background: #f5f5f5; }
-          .docx-wrapper { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        }
-      `;
-      iDoc.head.appendChild(previewStyle);
-
+      setPreviewHtml(result.value);
       setFile(f);
       setRendered(true);
     } catch (e) {
       setError(
         'Could not read this file — ' +
-          (e instanceof Error ? e.message : 'make sure it is a .docx file (not .doc).')
+          (e instanceof Error ? e.message : 'make sure it is a .docx file (not .doc).'),
       );
     }
     setRendering(false);
@@ -95,14 +83,14 @@ export default function WordToPdf() {
     setConverting(true);
     setProgressMsg('Preparing document...');
 
-    // Create a temporary container in the MAIN document for conversion.
-    // html2canvas needs elements in the same document context to access styles.
+    // Create a hidden container in the main document for high-fidelity rendering.
+    // docx-preview preserves page dimensions via section elements, which
+    // html2canvas needs to capture for accurate PDF output.
     const convContainer = document.createElement('div');
     convContainer.style.cssText =
       'position:fixed;left:0;top:0;width:794px;z-index:-9999;opacity:0;pointer-events:none;overflow:hidden;';
     document.body.appendChild(convContainer);
 
-    // We need a head container for docx-preview styles
     const styleContainer = document.createElement('div');
     convContainer.appendChild(styleContainer);
     const contentContainer = document.createElement('div');
@@ -119,9 +107,7 @@ export default function WordToPdf() {
 
       setProgressMsg('Rendering document for conversion...');
 
-      // Re-render the DOCX into the main-document container
-      // This creates style elements as children of styleContainer
-      // and section elements as children of contentContainer
+      // Re-render the DOCX via docx-preview for page-accurate layout
       await renderAsync(arrayBufferRef.current, contentContainer, styleContainer, {
         breakPages: true,
         renderHeaders: true,
@@ -135,7 +121,7 @@ export default function WordToPdf() {
         className: 'docx',
       });
 
-      // Move any <style> elements from styleContainer into the document head temporarily
+      // Move docx-preview styles into document head temporarily
       const tempStyles: HTMLStyleElement[] = [];
       styleContainer.querySelectorAll('style').forEach((s) => {
         const clone = s.cloneNode(true) as HTMLStyleElement;
@@ -143,7 +129,7 @@ export default function WordToPdf() {
         tempStyles.push(clone);
       });
 
-      // Make container visible (but behind everything) for html2canvas measurement
+      // Make container measurable for html2canvas
       convContainer.style.opacity = '1';
 
       const sections = contentContainer.querySelectorAll('section.docx');
@@ -152,14 +138,13 @@ export default function WordToPdf() {
         throw new Error('No page sections found in the rendered document');
       }
 
-      // Read page dimensions from the first section's inline style (in pt)
+      // Read page dimensions from the first section (in pt)
       const firstStyle = sections[0].getAttribute('style') || '';
       const wMatch = firstStyle.match(/width:\s*([\d.]+)\s*pt/);
       const hMatch = firstStyle.match(/min-height:\s*([\d.]+)\s*pt/);
       const pageWidthPt = wMatch ? parseFloat(wMatch[1]) : 595.28;
       const pageHeightPt = hMatch ? parseFloat(hMatch[1]) : 841.89;
 
-      // Create PDF with page size matching the DOCX page dimensions
       const pdf = new jsPDF({
         orientation: pageWidthPt > pageHeightPt ? 'landscape' : 'portrait',
         unit: 'pt',
@@ -173,7 +158,6 @@ export default function WordToPdf() {
 
         const section = sections[i] as HTMLElement;
 
-        // Render this section to a canvas at 2x scale for print quality
         const canvas = await html2canvas(section, {
           scale: 2,
           useCORS: true,
@@ -183,7 +167,7 @@ export default function WordToPdf() {
           windowHeight: section.scrollHeight || 1123,
         });
 
-        // Calculate how many PDF pages this section spans.
+        // Calculate how many PDF pages this section spans
         const pxPerPt = canvas.width / pageWidthPt;
         const pageHeightPx = pageHeightPt * pxPerPt;
         const sectionPages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
@@ -194,7 +178,6 @@ export default function WordToPdf() {
 
           setProgressMsg(`Rendering page ${pdfPageCount}...`);
 
-          // Slice the corresponding vertical portion of the canvas
           const srcY = p * pageHeightPx;
           const srcH = Math.min(pageHeightPx, canvas.height - srcY);
 
@@ -215,7 +198,6 @@ export default function WordToPdf() {
         }
       }
 
-      // Save with the document name
       const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
       pdf.save(`${docName}.pdf`);
 
@@ -224,10 +206,9 @@ export default function WordToPdf() {
     } catch (e) {
       setError(
         'Conversion failed — ' +
-          (e instanceof Error ? e.message : 'please try again.')
+          (e instanceof Error ? e.message : 'please try again.'),
       );
     } finally {
-      // Clean up temporary container
       convContainer.remove();
     }
     setConverting(false);
@@ -298,7 +279,7 @@ export default function WordToPdf() {
               className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"
               aria-hidden="true"
             />
-            <span className="text-sm text-primary-700">Rendering Word document...</span>
+            <span className="text-sm text-primary-700">Reading Word document...</span>
           </div>
         )}
 
@@ -306,16 +287,13 @@ export default function WordToPdf() {
           <p className="text-sm font-medium text-neutral-700">Document Preview</p>
         )}
 
-        <iframe
-          ref={iframeRef}
-          title="Document preview"
-          className={rendered
-            ? 'w-full bg-white rounded-2xl border border-neutral-200/80 shadow-card'
-            : ''}
-          style={rendered
-            ? { height: '600px', border: 'none' }
-            : { position: 'fixed', left: '-10000px', top: '0', width: '794px', height: '1123px', border: 'none' }}
-        />
+        {rendered && previewHtml && (
+          <div
+            className="docx-html-preview bg-white rounded-2xl border border-neutral-200/80 shadow-card p-6 overflow-y-auto"
+            style={{ maxHeight: '600px' }}
+            dangerouslySetInnerHTML={{ __html: previewHtml }}
+          />
+        )}
 
         {!rendered && !rendering && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
