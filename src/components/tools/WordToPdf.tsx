@@ -3,11 +3,11 @@
  *
  * Pipeline:
  *  1. docx-preview (battle-tested library, 174K weekly downloads) renders the
- *     DOCX into an HTML+CSS DOM — handling styles, lists, tables, images,
+ *     DOCX into HTML+CSS — handling styles, lists, tables, images,
  *     headers/footers, footnotes, page breaks, and more.
- *  2. Browser's native print engine renders to PDF (pixel-perfect output).
+ *  2. Rendered into an iframe (isolated from Tailwind CSS preflight).
+ *  3. Browser's native print engine renders to PDF (pixel-perfect output).
  *
- * This avoids hand-rolling an OOXML parser for the 6,000+ page spec.
  * Client-side only. No server upload.
  */
 import { useState, useCallback, useRef } from 'react';
@@ -26,8 +26,7 @@ export default function WordToPdf() {
   const [rendering, setRendering] = useState(false);
   const [rendered, setRendered] = useState(false);
   const [error, setError] = useState('');
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const styleRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
@@ -40,22 +39,36 @@ export default function WordToPdf() {
       const { renderAsync } = await import('docx-preview');
       const arrayBuffer = await f.arrayBuffer();
 
-      // Clear previous content
-      if (bodyRef.current) bodyRef.current.innerHTML = '';
-      if (styleRef.current) styleRef.current.innerHTML = '';
+      const iframe = iframeRef.current;
+      if (!iframe?.contentDocument) throw new Error('Preview container not available');
+      const iDoc = iframe.contentDocument;
 
-      await renderAsync(arrayBuffer, bodyRef.current!, styleRef.current!, {
+      // Reset iframe to a clean document
+      iDoc.open();
+      iDoc.write('<!DOCTYPE html><html><head></head><body></body></html>');
+      iDoc.close();
+
+      // Render DOCX into the iframe's document (completely isolated from Tailwind)
+      await renderAsync(arrayBuffer, iDoc.body, iDoc.head, {
         breakPages: true,
         renderHeaders: true,
         renderFooters: true,
         renderFootnotes: true,
         renderEndnotes: true,
-        experimental: true,
+        experimental: false, // Tab stops use document.createRange — incompatible with cross-document rendering
         useBase64URL: true, // Critical: blob URLs don't work in the print window
         ignoreLastRenderedPageBreak: false,
         inWrapper: true,
-        hideWrapperOnPrint: false,
+        className: 'docx',
       });
+
+      // Add minimal body styles to iframe for preview appearance
+      const previewStyle = iDoc.createElement('style');
+      previewStyle.textContent = `
+        body { margin: 0; padding: 12px; background: #f5f5f5; }
+        .docx-wrapper { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      `;
+      iDoc.head.appendChild(previewStyle);
 
       setFile(f);
       setRendered(true);
@@ -69,9 +82,10 @@ export default function WordToPdf() {
   }, []);
 
   const convertToPdf = useCallback(() => {
-    if (!rendered || !file || !bodyRef.current || !styleRef.current) return;
+    if (!rendered || !file || !iframeRef.current?.contentDocument) return;
     setError('');
 
+    const iDoc = iframeRef.current.contentDocument;
     const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
@@ -79,16 +93,17 @@ export default function WordToPdf() {
       return;
     }
 
-    // Extract the rendered HTML and styles from docx-preview
-    const bodyHtml = bodyRef.current.innerHTML;
-    const styleHtml = styleRef.current.innerHTML;
+    // Extract the rendered HTML and styles from the iframe
+    const headContent = iDoc.head.innerHTML;
+    const bodyContent = iDoc.body.innerHTML;
 
     printWindow.document.write(`<!DOCTYPE html><html><head><title>${docName}</title>
-${styleHtml}
+${headContent}
 <style>
   @page { size: A4; margin: 0; }
   @media print {
     body { margin: 0; padding: 0; }
+    .docx-wrapper { box-shadow: none !important; padding: 0 !important; }
   }
   body {
     margin: 0; padding: 0; background: #fff;
@@ -99,7 +114,7 @@ ${styleHtml}
   table { page-break-inside: avoid; }
   tr { page-break-inside: avoid; }
 </style>
-</head><body>${bodyHtml}</body></html>`);
+</head><body>${bodyContent}</body></html>`);
     printWindow.document.close();
 
     const triggerPrint = () => {
@@ -127,8 +142,8 @@ ${styleHtml}
         {file && rendered && (
           <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                <FileText size={20} className="text-blue-600" aria-hidden="true" />
+              <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
+                <FileText size={20} className="text-primary-600" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-neutral-900 truncate">{file.name}</p>
@@ -153,9 +168,6 @@ ${styleHtml}
       </div>
 
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
-        {/* Hidden container for docx-preview generated styles */}
-        <div ref={styleRef} style={{ display: 'none' }} />
-
         {error && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
             {error}
@@ -177,15 +189,19 @@ ${styleHtml}
         )}
 
         {/*
-          Body container — always in DOM so docx-preview can render into it.
-          Positioned offscreen while rendering, visible once ready.
+          Iframe for docx-preview rendering — completely isolated from
+          Tailwind CSS preflight so headings, lists, tables, paragraph
+          spacing, etc. render correctly with browser default styles.
         */}
-        <div
-          ref={bodyRef}
+        <iframe
+          ref={iframeRef}
+          title="Document preview"
           className={rendered
-            ? 'bg-neutral-100 rounded-2xl border border-neutral-200/80 shadow-card min-h-[400px] max-h-[700px] overflow-auto'
+            ? 'w-full bg-white rounded-2xl border border-neutral-200/80 shadow-card'
             : ''}
-          style={rendered ? undefined : { position: 'fixed', left: '-10000px', top: '0', width: '794px', height: '1123px' }}
+          style={rendered
+            ? { height: '600px', border: 'none' }
+            : { position: 'fixed', left: '-10000px', top: '0', width: '794px', height: '1123px', border: 'none' }}
         />
 
         {!rendered && !rendering && (
