@@ -173,9 +173,17 @@ export default function WordToPdf() {
       let pdfPageCount = 0;
 
       for (let i = 0; i < sections.length; i++) {
-        setProgressMsg(`Rendering section ${i + 1} of ${sections.length}...`);
+        setProgressMsg(`Rendering page ${i + 1} of ${sections.length}...`);
 
         const section = sections[i] as HTMLElement;
+
+        // Force section to exact page dimensions so html2canvas captures
+        // exactly one page. docx-preview with breakPages:true already splits
+        // content at page boundaries — we just need to clamp the height so
+        // no overflow leaks into the canvas and causes bad page splits.
+        section.style.height = `${pageHeightPt}pt`;
+        section.style.maxHeight = `${pageHeightPt}pt`;
+        section.style.overflow = 'hidden';
 
         const canvas = await html2canvas(section, {
           scale: 2,
@@ -183,38 +191,14 @@ export default function WordToPdf() {
           logging: false,
           backgroundColor: '#ffffff',
           windowWidth: section.scrollWidth || 794,
-          windowHeight: section.scrollHeight || 1123,
         });
 
-        // Calculate how many PDF pages this section spans
-        const pxPerPt = canvas.width / pageWidthPt;
-        const pageHeightPx = pageHeightPt * pxPerPt;
-        const sectionPages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
+        // One section = one PDF page (no canvas slicing needed)
+        if (pdfPageCount > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
+        pdfPageCount++;
 
-        for (let p = 0; p < sectionPages; p++) {
-          if (pdfPageCount > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
-          pdfPageCount++;
-
-          setProgressMsg(`Rendering page ${pdfPageCount}...`);
-
-          const srcY = p * pageHeightPx;
-          const srcH = Math.min(pageHeightPx, canvas.height - srcY);
-
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = Math.round(pageHeightPx);
-          const pCtx = pageCanvas.getContext('2d')!;
-          pCtx.fillStyle = '#ffffff';
-          pCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-          pCtx.drawImage(
-            canvas,
-            0, srcY, canvas.width, Math.round(srcH),
-            0, 0, canvas.width, Math.round(srcH),
-          );
-
-          const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
-          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
-        }
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
       }
 
       const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
