@@ -62,6 +62,10 @@ export default function PdfToWord() {
 
       try {
         const data = await f.arrayBuffer();
+        // Clone before giving to pdfjs — getDocument() transfers the
+        // ArrayBuffer to a web worker, which detaches the original.
+        const safeCopy = data.slice(0);
+
         const pdfjsLib = await import('pdfjs-dist');
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -93,7 +97,7 @@ export default function PdfToWord() {
         }
 
         setFile(f);
-        setPdfBytes(data);
+        setPdfBytes(safeCopy);
         setPreviews(pages);
       } catch {
         setError('Could not read this PDF — it may be encrypted or corrupted.');
