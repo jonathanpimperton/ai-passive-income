@@ -9,11 +9,12 @@
  *  2. Each section is captured individually with html2canvas at its full
  *     rendered height. Capturing per-section (not the wrapper) ensures
  *     canvas.width == section width, giving an exact pxPerPt ratio.
- *  3. If a section fits in one page (~pageHeight), it becomes one PDF page
- *     as-is — its padding (= page margins) is already in the canvas.
- *  4. If a section is taller (no-break documents), we slice the content
- *     area and re-insert top/bottom margins on every page.
- *  5. jsPDF assembles the pages into a multi-page PDF.
+ *  3. For multi-page sections (no-break documents), we slice the content
+ *     area into pages. Instead of blindly cutting at fixed intervals, we
+ *     scan the canvas pixels to find natural break points (whitespace
+ *     between paragraphs) near each page boundary. This prevents lines
+ *     from the next page bleeding onto the current one.
+ *  4. jsPDF assembles the pages into a multi-page PDF.
  *
  * Both preview and conversion containers use the `docx-preview-container`
  * class, triggering `all: revert` in global.css to neutralise Tailwind
@@ -30,6 +31,48 @@ function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+/**
+ * Scan canvas pixels upward from `targetY` to find a row that is mostly
+ * whitespace — indicating a gap between paragraphs. This gives us a natural
+ * page break position rather than cutting blindly at a fixed interval.
+ *
+ * Searches within `[targetY - searchRange, targetY]` for a band of at least
+ * `minGap` consecutive mostly-white rows. Returns the TOP of that gap
+ * (content ends there, blank space follows). Falls back to `targetY` if no
+ * gap is found.
+ */
+function findNaturalBreak(
+  ctx: CanvasRenderingContext2D,
+  targetY: number,
+  searchRange: number,
+  contentLeftPx: number,
+  contentWidthPx: number,
+  minGap: number,
+): number {
+  const scanWidth = Math.max(1, Math.round(contentWidthPx));
+  const scanLeft = Math.max(0, Math.round(contentLeftPx));
+  let consecutive = 0;
+
+  for (let y = Math.round(targetY); y > Math.round(targetY - searchRange); y--) {
+    if (y < 0) break;
+    const row = ctx.getImageData(scanLeft, y, scanWidth, 1).data;
+    let white = 0;
+    for (let i = 0; i < row.length; i += 4) {
+      if (row[i] > 240 && row[i + 1] > 240 && row[i + 2] > 240) white++;
+    }
+    if (white / (scanWidth) >= 0.97) {
+      consecutive++;
+      if (consecutive >= minGap) {
+        // Return the top of the gap — this is where content ends
+        return y;
+      }
+    } else {
+      consecutive = 0;
+    }
+  }
+  return Math.round(targetY);
 }
 
 export default function WordToPdf() {
@@ -182,6 +225,8 @@ export default function WordToPdf() {
       const cs = window.getComputedStyle(firstSection);
       const marginTopCss = parseFloat(cs.paddingTop) || 0;
       const marginBottomCss = parseFloat(cs.paddingBottom) || 0;
+      const marginLeftCss = parseFloat(cs.paddingLeft) || 0;
+      const marginRightCss = parseFloat(cs.paddingRight) || 0;
 
       const SCALE = 2;
 
@@ -210,54 +255,69 @@ export default function WordToPdf() {
         const pxPerPt = canvas.width / pageWidthPt;
         const pageHeightPx = pageHeightPt * pxPerPt;
 
-        if (canvas.height <= pageHeightPx * 1.02) {
-          // ── Single-page section ──────────────────────────────────
-          // The canvas already contains the section's padding (= page
-          // margins) on all four sides. Use it as-is.
+        const marginTopPx = marginTopCss * SCALE;
+        const marginBottomPx = marginBottomCss * SCALE;
+        const contentLeftPx = marginLeftCss * SCALE;
+        const contentWidthPx = canvas.width - (marginLeftCss + marginRightCss) * SCALE;
+        const contentStartPx = marginTopPx;
+        const contentEndPx = canvas.height - marginBottomPx;
+        const pageContentPx = pageHeightPx - marginTopPx - marginBottomPx;
+
+        // Use the section canvas context to scan for natural break points
+        const sectionCtx = canvas.getContext('2d')!;
+        // Search range: bottom 15% of page content area — enough to find
+        // a paragraph gap without losing too much content per page.
+        const searchRange = pageContentPx * 0.15;
+        // Require 4+ consecutive white rows to count as a paragraph gap
+        // (avoids cutting at thin inter-line spacing).
+        const minGap = Math.max(4, Math.round(SCALE * 3));
+
+        // Dynamic page loop: find natural break points instead of fixed slices.
+        // Each iteration moves `sliceStart` forward by the actual amount used.
+        let sliceStart = contentStartPx;
+        while (sliceStart < contentEndPx) {
           if (pdfPageCount > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
           pdfPageCount++;
           setProgressMsg(`Rendering page ${pdfPageCount}...`);
 
-          const imgData = canvas.toDataURL('image/jpeg', 0.95);
-          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
-        } else {
-          // ── Multi-page section (no explicit breaks) ──────────────
-          // The section is taller than one page. Slice the content area
-          // and re-insert top/bottom margins on every page so each PDF
-          // page has proper margins.
-          const marginTopPx = marginTopCss * SCALE;
-          const marginBottomPx = marginBottomCss * SCALE;
-          const contentStartPx = marginTopPx;
-          const contentEndPx = canvas.height - marginBottomPx;
-          const pageContentPx = pageHeightPx - marginTopPx - marginBottomPx;
-          const numPages = Math.max(1, Math.ceil((contentEndPx - contentStartPx) / pageContentPx));
+          const remaining = contentEndPx - sliceStart;
+          let srcH: number;
 
-          for (let p = 0; p < numPages; p++) {
-            if (pdfPageCount > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
-            pdfPageCount++;
-            setProgressMsg(`Rendering page ${pdfPageCount}...`);
-
-            const srcY = contentStartPx + p * pageContentPx;
-            const srcH = Math.min(pageContentPx, contentEndPx - srcY);
-
-            const pageCanvas = document.createElement('canvas');
-            pageCanvas.width = canvas.width;
-            pageCanvas.height = Math.round(pageHeightPx);
-            const pCtx = pageCanvas.getContext('2d')!;
-            pCtx.fillStyle = '#ffffff';
-            pCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-
-            // Place content below the top margin; left/right margins
-            // are already embedded in the full-width canvas slice.
-            pCtx.drawImage(
-              canvas,
-              0, Math.round(srcY), canvas.width, Math.round(srcH),
-              0, Math.round(marginTopPx), canvas.width, Math.round(srcH),
+          if (remaining <= pageContentPx * 1.1) {
+            // Remaining content fits on one page (with up to 10% slack)
+            srcH = remaining;
+          } else {
+            // Find a natural break point (paragraph gap) near the ideal boundary
+            const idealEnd = sliceStart + pageContentPx;
+            const breakY = findNaturalBreak(
+              sectionCtx, idealEnd, searchRange,
+              contentLeftPx, contentWidthPx, minGap,
             );
-
-            const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
-            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
+            srcH = breakY - sliceStart;
+            // Safety: if findNaturalBreak returned something too small, use the
+            // ideal boundary to avoid degenerate tiny pages.
+            if (srcH < pageContentPx * 0.5) srcH = Math.min(pageContentPx, remaining);
           }
+
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = Math.round(pageHeightPx);
+          const pCtx = pageCanvas.getContext('2d')!;
+          pCtx.fillStyle = '#ffffff';
+          pCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+
+          // Place content below the top margin; left/right margins
+          // are already embedded in the full-width canvas slice.
+          pCtx.drawImage(
+            canvas,
+            0, Math.round(sliceStart), canvas.width, Math.round(srcH),
+            0, Math.round(marginTopPx), canvas.width, Math.round(srcH),
+          );
+
+          const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
+
+          sliceStart += srcH;
         }
       }
 

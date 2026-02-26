@@ -16,6 +16,23 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+/** Parse JPEG dimensions from SOF marker (needed when images are downscaled) */
+function getJpegDimensions(data: Uint8Array): { width: number; height: number } | null {
+  if (data.length < 4 || data[0] !== 0xFF || data[1] !== 0xD8) return null;
+  let i = 2;
+  while (i < data.length - 9) {
+    if (data[i] !== 0xFF) { i++; continue; }
+    const marker = data[i + 1];
+    // SOF markers: C0-CF except C4 (DHT), C8 (reserved), CC (DAC)
+    if (marker >= 0xC0 && marker <= 0xCF && marker !== 0xC4 && marker !== 0xC8 && marker !== 0xCC) {
+      return { height: (data[i + 5] << 8) | data[i + 6], width: (data[i + 7] << 8) | data[i + 8] };
+    }
+    const segLen = (data[i + 2] << 8) | data[i + 3];
+    i += 2 + segLen;
+  }
+  return null;
+}
+
 /** Recompress a raw image (PNG/JPEG bytes) to JPEG at a given quality */
 function recompressImage(
   imageBytes: Uint8Array,
@@ -100,7 +117,7 @@ export default function PdfCompress() {
 
     try {
       const pdfLib = await import('pdf-lib');
-      const { PDFDocument, PDFName, PDFRawStream, PDFStream } = pdfLib;
+      const { PDFDocument, PDFName, PDFRawStream, PDFStream, PDFNumber } = pdfLib;
       const bytes = await file.arrayBuffer();
       const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
 
@@ -188,15 +205,23 @@ export default function PdfCompress() {
 
           // Only use recompressed if it's actually smaller
           if (recompressed.length < imageBytes.length * 0.95) {
-            // Embed the recompressed JPEG using pdf-lib's high-level API
-            // which correctly builds the image XObject dict (Width, Height,
-            // Filter, ColorSpace, etc.) from the JPEG headers.
-            const newImage = await doc.embedJpg(recompressed);
+            // Build a new PDFRawStream in-place on the existing ref.
+            // Unlike doc.embedJpg() which registers a NEW indirect object
+            // (leaving the old one AND new one in the file, making it bigger),
+            // this directly replaces the existing object's content.
+            const dims = getJpegDimensions(recompressed);
+            const newDict = pdfLib.PDFDict.withContext(context);
+            newDict.set(PDFName.of('Type'), PDFName.of('XObject'));
+            newDict.set(PDFName.of('Subtype'), PDFName.of('Image'));
+            newDict.set(PDFName.of('Width'), PDFNumber.of(dims?.width ?? parseInt(width.toString(), 10)));
+            newDict.set(PDFName.of('Height'), PDFNumber.of(dims?.height ?? parseInt(height.toString(), 10)));
+            newDict.set(PDFName.of('ColorSpace'), PDFName.of('DeviceRGB'));
+            newDict.set(PDFName.of('BitsPerComponent'), PDFNumber.of(8));
+            newDict.set(PDFName.of('Filter'), PDFName.of('DCTDecode'));
+            newDict.set(PDFName.of('Length'), PDFNumber.of(recompressed.length));
 
-            // Point the old reference to the new image object so every
-            // page that used the original image now uses the compressed one.
-            const newObj = context.lookup(newImage.ref);
-            if (newObj) context.assign(ref, newObj);
+            const replacement = PDFRawStream.of(newDict, recompressed);
+            context.assign(ref, replacement);
           }
         } catch {
           // Skip images that fail — don't break the whole operation
