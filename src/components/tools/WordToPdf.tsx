@@ -87,23 +87,18 @@ export default function WordToPdf() {
   }, []);
 
   const convertToPdf = useCallback(() => {
-    if (!rendered || !file || !iframeRef.current?.contentDocument) return;
+    if (!rendered || !file || !iframeRef.current?.contentDocument || !iframeRef.current?.contentWindow) return;
     setError('');
 
     const iDoc = iframeRef.current.contentDocument;
+    const iWin = iframeRef.current.contentWindow;
     const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      setError('Pop-up blocked — please allow pop-ups for this site to save as PDF.');
-      return;
-    }
 
-    // Extract the rendered HTML and styles from the iframe
-    const headContent = iDoc.head.innerHTML;
-    const bodyContent = iDoc.body.innerHTML;
+    // Browser uses document title as suggested PDF filename
+    iDoc.title = docName;
 
-    // Detect page dimensions from docx-preview's rendered sections
-    // (each <section class="docx"> has inline styles with the page size)
+    // Detect page size from docx-preview's rendered sections
+    // (each <section class="docx" style="width:Xpt; min-height:Ypt; ...">)
     let pageSizeRule = '@page { margin: 0; }';
     const firstSection = iDoc.querySelector('section.docx') as HTMLElement | null;
     if (firstSection) {
@@ -115,74 +110,46 @@ export default function WordToPdf() {
       }
     }
 
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>${docName}</title>
-${headContent}
-<style>
-  ${pageSizeRule}
+    // Inject print CSS into the SAME document (no innerHTML copying)
+    // hideWrapperOnPrint:true already wraps wrapper styles in @media not print,
+    // so only a few overrides are needed here.
+    const printStyle = iDoc.createElement('style');
+    printStyle.id = 'pdf-print-overrides';
+    printStyle.textContent = `
+      ${pageSizeRule}
+      @media print {
+        body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #fff !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        /* overflow:hidden is NOT wrapped by hideWrapperOnPrint — must override */
+        section.docx {
+          overflow: visible !important;
+        }
+        /* Force page breaks between page sections */
+        .docx-wrapper > section.docx + section.docx {
+          page-break-before: always;
+          break-before: page;
+        }
+        h1, h2, h3, h4, h5, h6 { page-break-after: avoid; }
+        table, tr, img { page-break-inside: avoid; }
+      }
+    `;
+    iDoc.head.appendChild(printStyle);
 
-  @media print {
-    /* ── Reset html/body ────────────────────────────── */
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      background: #fff !important;
-      width: auto !important;
-      height: auto !important;
+    // Print the iframe directly — exact docx-preview rendering, no HTML copying
+    try {
+      iWin.focus();
+      iWin.print();
+    } catch {
+      setError('Print failed — your browser may have blocked it.');
     }
 
-    /* ── Reset docx-preview wrapper ─────────────────── */
-    /* Default: background:gray, padding:30px, display:flex,
-       align-items:center — all break print pagination */
-    .docx-wrapper {
-      background: transparent !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      display: block !important;
-    }
-
-    /* ── Reset docx-preview page sections ───────────── */
-    /* Default: margin-bottom:30px, box-shadow, overflow:hidden */
-    .docx-wrapper > section.docx,
-    section.docx {
-      box-shadow: none !important;
-      margin: 0 !important;
-      margin-bottom: 0 !important;
-      overflow: visible !important;
-    }
-
-    /* ── Page breaks between sections (not before first) */
-    .docx-wrapper > section.docx + section.docx {
-      page-break-before: always;
-      break-before: page;
-    }
-
-    /* ── Prevent elements splitting across pages ───── */
-    h1, h2, h3, h4, h5, h6 { page-break-after: avoid; break-after: avoid; }
-    table { page-break-inside: avoid; break-inside: avoid; }
-    tr { page-break-inside: avoid; break-inside: avoid; }
-    img { page-break-inside: avoid; break-inside: avoid; }
-  }
-
-  body {
-    margin: 0; padding: 0; background: #fff;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  img { max-width: 100%; }
-</style>
-</head><body>${bodyContent}</body></html>`);
-    printWindow.document.close();
-
-    const triggerPrint = () => {
-      try { printWindow.print(); } catch {}
-    };
-
-    if (printWindow.document.readyState === 'complete') {
-      setTimeout(triggerPrint, 300);
-    } else {
-      printWindow.addEventListener('load', () => setTimeout(triggerPrint, 300));
-      setTimeout(triggerPrint, 3000);
-    }
+    // Clean up after print dialog closes (print() is synchronous/blocking)
+    printStyle.remove();
   }, [rendered, file]);
 
   return (
@@ -216,8 +183,8 @@ ${headContent}
             </button>
 
             <p className="text-xs text-neutral-400">
-              Opens your browser's print dialog — select "Save as PDF" for
-              pixel-perfect output with fonts, images, tables, and lists preserved.
+              Opens your browser's print dialog — select &ldquo;Save as PDF&rdquo;
+              as the destination for pixel-perfect output.
             </p>
           </div>
         )}
