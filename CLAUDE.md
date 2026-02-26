@@ -44,7 +44,7 @@ Evaluated 6 business models. Decision: **Free Online Tools Site**.
 Market research, competitor analysis, financial model, and strategy defined.
 
 **Chosen approach:**
-- 14 financial calculators + 4 utility tools (18 MVP) + 15 file converters (33 total)
+- 14 financial calculators + 4 utility tools (18 MVP) + 14 file converters (32 total)
 - File converters built as traffic acquisition (not a rebrand — financial calculators remain the core identity)
 - Affiliate-first monetization (not ad-dependent)
 - Email capture ("email me my results") → automated drip → affiliate conversions
@@ -62,9 +62,9 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 **Sprint 1 — Foundation + Visual Polish (Complete):**
 - Astro 5 + TypeScript + Tailwind CSS v4 + React scaffold
 - Design system: all color/typography/spacing tokens, self-hosted Inter + JetBrains Mono fonts
-- Content architecture: Zod-validated content collection (glob loader), 33 tool markdown files with full frontmatter
+- Content architecture: Zod-validated content collection (glob loader), 32 tool markdown files with full frontmatter
 - Page templates: BaseLayout, ToolPageLayout (breadcrumbs, tool icon, H1, affiliate disclosure, section backgrounds, worked examples, FAQ, related tools)
-- 40 pages: homepage, tools index, 33 tool pages, about, privacy, terms, disclosure, 404
+- 39 pages: homepage, tools index, 32 tool pages, about, privacy, terms, disclosure, 404
 - **Visual polish pass:** Every page upgraded to premium quality:
   - Homepage: animated gradient hero with floating orbs, trust indicators, gradient text, dual CTAs
   - All tool cards: Lucide icons with hover icon-fill animation, gradient bottom accent on hover
@@ -111,10 +111,11 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Accessibility: aria-label/aria-controls/role attributes on all interactive elements
 
 **Sprint 5 — Client-Side File Converters (Complete):**
-- 15 client-side file converters as traffic acquisition strategy:
+- 14 client-side file converters as traffic acquisition strategy:
   - Image tools: compress, resize, format convert, SVG→PNG, HEIC→JPG, images→PDF
-  - Document tools: CSV↔JSON, Markdown↔HTML, Word→PDF, Excel→PDF, PDF→Word
+  - Document tools: CSV↔JSON, Markdown↔HTML, Word→PDF, Excel→PDF
   - PDF tools: compress, merge, split, PDF→image
+- PDF→Word removed — requires server-side OCR/layout reconstruction for acceptable quality
 - All processing client-side — "Your files never leave your device" privacy positioning
 - Cross-promotion links from converter pages to financial calculators
 - NOT a rebrand — financial calculators remain the core identity, homepage hero, and primary revenue driver
@@ -184,7 +185,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4. Sprints 1-5 are complete. All 33 tools are fully built: 14 financial calculators + 4 utility tools (18 MVP) + 15 file converters. All have SEO content, FAQs, worked examples, and affiliate programs (where applicable — file converters correctly exclude affiliates). Sprint 6 (Polish & Launch) is next.
+3. **Current status:** Stage 4. Sprints 1-5 are complete. All 32 tools are fully built: 14 financial calculators + 4 utility tools (18 MVP) + 14 file converters (PDF-to-Word removed — requires server-side processing). All have SEO content, FAQs, worked examples, and affiliate programs (where applicable — file converters correctly exclude affiliates). Sprint 6 (Polish & Launch) is next.
 4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running

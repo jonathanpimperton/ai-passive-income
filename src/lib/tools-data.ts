@@ -42,7 +42,7 @@ export interface ToolMeta {
 }
 
 /**
- * All 33 tools (18 MVP + 15 file converters) with metadata for navigation and homepage display.
+ * All 32 tools (18 MVP + 14 file converters) with metadata for navigation and homepage display.
  * Order within each category matches the build-spec priority.
  */
 export const TOOLS: ToolMeta[] = [
