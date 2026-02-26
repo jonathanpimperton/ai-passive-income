@@ -177,7 +177,7 @@ export default function JsonFormatter() {
           </div>
 
           {result.error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 mb-4">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 mb-4" role="alert">
               <div className="flex items-start gap-2">
                 <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" aria-hidden="true" />
                 <div>

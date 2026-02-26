@@ -238,7 +238,7 @@ export default function QrCodeGenerator() {
               style={{ minWidth: Math.min(size + 48, 320), minHeight: Math.min(size + 48, 320) }}
             >
               {error ? (
-                <div className="flex flex-col items-center gap-3 text-center p-4">
+                <div className="flex flex-col items-center gap-3 text-center p-4" role="alert">
                   <div className="w-12 h-12 rounded-full bg-negative-100 flex items-center justify-center">
                     <AlertCircle size={24} className="text-negative-500" aria-hidden="true" />
                   </div>

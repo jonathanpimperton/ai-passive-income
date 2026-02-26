@@ -278,7 +278,7 @@ export default function PdfCompress() {
 
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">{error}</div>
         )}
 
         {processing && (

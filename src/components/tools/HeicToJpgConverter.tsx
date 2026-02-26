@@ -143,7 +143,7 @@ export default function HeicToJpgConverter() {
         )}
 
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">
             {error}
           </div>
         )}

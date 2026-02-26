@@ -243,8 +243,8 @@ export default function ExcelToPdf() {
         {file && sheets.length > 0 && (
           <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                <Table size={20} className="text-green-600" aria-hidden="true" />
+              <div className="w-10 h-10 rounded-lg bg-accent-50 flex items-center justify-center">
+                <Table size={20} className="text-accent-600" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-neutral-900 truncate">{file.name}</p>
@@ -291,7 +291,7 @@ export default function ExcelToPdf() {
 
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">{error}</div>
         )}
 
         {processing && (
