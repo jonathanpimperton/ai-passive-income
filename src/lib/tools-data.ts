@@ -335,13 +335,12 @@ export function getToolPath(tool: ToolMeta): string {
   return `/tools/${tool.category}/${tool.slug}`;
 }
 
-/** Popular tools for homepage — covers all 5 customer segments */
+/** Popular tools for homepage — top 6 by Google search volume across all categories */
 export const POPULAR_TOOL_SLUGS = [
-  'compound-interest',
-  'loan-amortization',
-  'mortgage-payment',
-  'retirement-savings',
-  'investment-return',
-  'debt-payoff',
-  'salary-us',
+  'mortgage-payment',      // ~3.35M monthly searches
+  'word-to-pdf',           // ~500K-1M monthly searches
+  'image-compressor',      // ~200-500K monthly searches
+  'compound-interest',     // ~150-300K monthly searches
+  'pdf-merge',             // ~200-500K monthly searches
+  'salary-us',             // ~250K monthly searches
 ];
