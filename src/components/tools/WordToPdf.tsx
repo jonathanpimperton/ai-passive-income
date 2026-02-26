@@ -2,15 +2,15 @@
  * Word to PDF — client-side DOCX to PDF converter.
  *
  * Pipeline:
- *  1. mammoth.js converts DOCX to clean semantic HTML for preview.
- *  2. For PDF conversion, docx-preview renders into a hidden same-document
- *     container (preserving page dimensions and layout fidelity).
- *  3. html2canvas captures each page section to a canvas image.
- *  4. jsPDF assembles the canvases into a multi-page PDF.
+ *  1. docx-preview renders the DOCX into a same-document container
+ *     for a high-fidelity preview (preserves fonts, spacing, colors).
+ *  2. For PDF conversion, the same rendered content is captured via
+ *     html2canvas into canvas images.
+ *  3. jsPDF assembles the canvases into a multi-page PDF.
  *
- * Preview uses mammoth (not docx-preview) so the HTML lives in the main
- * document rather than an iframe — accessible, testable, and unaffected
- * by Tailwind CSS preflight thanks to scoped reset styles.
+ * Both preview and conversion use docx-preview in the main document
+ * (not an iframe) so html2canvas can access all styles. The preview
+ * container has `all: revert` CSS to neutralise Tailwind preflight.
  *
  * Client-side only. No server upload.
  */
@@ -29,43 +29,63 @@ export default function WordToPdf() {
   const [file, setFile] = useState<File | null>(null);
   const [rendering, setRendering] = useState(false);
   const [rendered, setRendered] = useState(false);
-  const [previewHtml, setPreviewHtml] = useState('');
   const [converting, setConverting] = useState(false);
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState('');
   const arrayBufferRef = useRef<ArrayBuffer | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const previewStylesRef = useRef<HTMLStyleElement[]>([]);
 
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
     if (!f) return;
     setError('');
     setRendered(false);
-    setPreviewHtml('');
     setRendering(true);
 
+    // Clean up previous preview styles
+    previewStylesRef.current.forEach((s) => s.remove());
+    previewStylesRef.current = [];
+
     try {
-      const mammoth = await import('mammoth');
+      const { renderAsync } = await import('docx-preview');
       const arrayBuffer = await f.arrayBuffer();
       arrayBufferRef.current = arrayBuffer;
 
-      // Convert DOCX to semantic HTML for preview
-      const result = await mammoth.convertToHtml(
-        { arrayBuffer },
-        {
-          styleMap: [
-            "p[style-name='Title'] => h1:fresh",
-            "p[style-name='Heading 1'] => h1:fresh",
-            "p[style-name='Heading 2'] => h2:fresh",
-            "p[style-name='Heading 3'] => h3:fresh",
-          ],
-        },
-      );
+      const container = previewRef.current;
+      if (!container) throw new Error('Preview container not available');
 
-      if (!result.value || result.value.trim().length === 0) {
-        throw new Error('No content found in this document.');
-      }
+      // Clear previous content
+      container.innerHTML = '';
 
-      setPreviewHtml(result.value);
+      // Create style target inside the container
+      const styleHost = document.createElement('div');
+      styleHost.style.display = 'none';
+      container.appendChild(styleHost);
+
+      // Render DOCX into the preview container (main document, not iframe)
+      await renderAsync(arrayBuffer, container, styleHost, {
+        breakPages: true,
+        renderHeaders: true,
+        renderFooters: true,
+        renderFootnotes: true,
+        renderEndnotes: true,
+        experimental: false,
+        useBase64URL: true,
+        ignoreLastRenderedPageBreak: false,
+        inWrapper: true,
+        className: 'docx',
+      });
+
+      // Move docx-preview <style> elements to document head so they apply
+      const styles: HTMLStyleElement[] = [];
+      styleHost.querySelectorAll('style').forEach((s) => {
+        const clone = s.cloneNode(true) as HTMLStyleElement;
+        document.head.appendChild(clone);
+        styles.push(clone);
+      });
+      previewStylesRef.current = styles;
+
       setFile(f);
       setRendered(true);
     } catch (e) {
@@ -83,9 +103,8 @@ export default function WordToPdf() {
     setConverting(true);
     setProgressMsg('Preparing document...');
 
-    // Create a hidden container in the main document for high-fidelity rendering.
-    // docx-preview preserves page dimensions via section elements, which
-    // html2canvas needs to capture for accurate PDF output.
+    // Create a hidden container for conversion rendering.
+    // We re-render here so the visible preview stays untouched.
     const convContainer = document.createElement('div');
     convContainer.style.cssText =
       'position:fixed;left:0;top:0;width:794px;z-index:-9999;opacity:0;pointer-events:none;overflow:hidden;';
@@ -279,7 +298,7 @@ export default function WordToPdf() {
               className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"
               aria-hidden="true"
             />
-            <span className="text-sm text-primary-700">Reading Word document...</span>
+            <span className="text-sm text-primary-700">Rendering Word document...</span>
           </div>
         )}
 
@@ -287,13 +306,15 @@ export default function WordToPdf() {
           <p className="text-sm font-medium text-neutral-700">Document Preview</p>
         )}
 
-        {rendered && previewHtml && (
-          <div
-            className="docx-html-preview bg-white rounded-2xl border border-neutral-200/80 shadow-card p-6 overflow-y-auto"
-            style={{ maxHeight: '600px' }}
-            dangerouslySetInnerHTML={{ __html: previewHtml }}
-          />
-        )}
+        <div
+          ref={previewRef}
+          className={
+            rendered
+              ? 'docx-preview-container bg-white rounded-2xl border border-neutral-200/80 shadow-card overflow-y-auto'
+              : 'docx-preview-container'
+          }
+          style={rendered ? { maxHeight: '600px' } : { display: 'none' }}
+        />
 
         {!rendered && !rendering && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
