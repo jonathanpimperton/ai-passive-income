@@ -3,17 +3,16 @@
  *
  * Pipeline:
  *  1. JSZip extracts the DOCX (it's a ZIP of XML files)
- *  2. Parse word/document.xml + word/styles.xml for exact formatting
- *  3. Render faithful HTML preserving fonts, sizes, colors, tables, images
- *  4. html2canvas captures the rendered HTML at high resolution
- *  5. jsPDF paginates into A4 pages with smart page-break detection
+ *  2. Parse word/document.xml + word/styles.xml + word/numbering.xml
+ *  3. Render faithful HTML preserving fonts, sizes, colors, tables, images, lists
+ *  4. Browser's native print engine renders to PDF (pixel-perfect output)
  *
- * This replaces the mammoth.js approach which stripped all formatting
- * and produced simplified semantic HTML that looked nothing like the original.
+ * Uses the browser's print-to-PDF for perfect rendering — CSS page breaks,
+ * font rendering, and image placement are all handled natively.
  *
  * Client-side only. No server upload.
  */
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Download, FileText } from 'lucide-react';
 import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
@@ -219,6 +218,7 @@ async function parseDocxToHtml(arrayBuffer: ArrayBuffer): Promise<{
 
   // Parse numbering definitions for list formatting
   const numFmtMap = new Map<string, Map<number, { fmt: string; text: string }>>();
+  const numIdMap = new Map<string, string>();
   if (numberingXml) {
     const numDoc = new DOMParser().parseFromString(numberingXml, 'text/xml');
     const abstractNums = numDoc.getElementsByTagName('w:abstractNum');
@@ -237,6 +237,16 @@ async function parseDocxToHtml(arrayBuffer: ArrayBuffer): Promise<{
         levels.set(ilvl, { fmt: numFmt, text: lvlText });
       }
       numFmtMap.set(abstractNumId, levels);
+    }
+
+    // Map numId → abstractNumId
+    const nums = numDoc.getElementsByTagName('w:num');
+    for (let i = 0; i < nums.length; i++) {
+      const numEl = nums[i];
+      const numId = numEl.getAttribute('w:numId') || '';
+      const absIdEl = numEl.getElementsByTagName('w:abstractNumId')[0];
+      const absId = absIdEl?.getAttribute('w:val') || '';
+      if (numId && absId) numIdMap.set(numId, absId);
     }
   }
 
@@ -395,6 +405,20 @@ async function parseDocxToHtml(arrayBuffer: ArrayBuffer): Promise<{
     return parts.join(';');
   }
 
+  /** Convert number to Roman numerals */
+  function toRoman(n: number): string {
+    const vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+    const syms = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I'];
+    let result = '';
+    for (let i = 0; i < vals.length; i++) {
+      while (n >= vals[i]) { result += syms[i]; n -= vals[i]; }
+    }
+    return result;
+  }
+
+  // Track numbered list counters: numId → array of counts per level
+  const listCounters = new Map<string, number[]>();
+
   /** Process a paragraph element */
   function processParagraph(pEl: Element): string {
     const pPr = pEl.getElementsByTagName('w:pPr')[0];
@@ -405,6 +429,48 @@ async function parseDocxToHtml(arrayBuffer: ArrayBuffer): Promise<{
     }
 
     const parentStyle = styleId ? styleMap.get(styleId) : undefined;
+
+    // Detect list numbering
+    let listPrefix = '';
+    let listIndentStyle = '';
+    if (pPr) {
+      const numPr = pPr.getElementsByTagName('w:numPr')[0];
+      if (numPr) {
+        const ilvlEl = numPr.getElementsByTagName('w:ilvl')[0];
+        const numIdEl = numPr.getElementsByTagName('w:numId')[0];
+        const ilvl = parseInt(ilvlEl?.getAttribute('w:val') || '0', 10);
+        const numIdVal = numIdEl?.getAttribute('w:val') || '';
+
+        if (numIdVal && numIdVal !== '0') {
+          const abstractId = numIdMap.get(numIdVal) || '';
+          const levels = numFmtMap.get(abstractId);
+          const levelInfo = levels?.get(ilvl);
+          listIndentStyle = `padding-left:${(ilvl + 1) * 24}pt;`;
+
+          if (levelInfo && levelInfo.fmt === 'bullet') {
+            const bullets = ['\u2022', '\u25E6', '\u25AA', '\u2022', '\u25E6', '\u25AA'];
+            listPrefix = `<span style="display:inline-block;width:18pt;text-align:center">${bullets[ilvl % bullets.length]}</span>`;
+          } else {
+            // Numbered list
+            if (!listCounters.has(numIdVal)) listCounters.set(numIdVal, []);
+            const counters = listCounters.get(numIdVal)!;
+            while (counters.length <= ilvl) counters.push(0);
+            counters[ilvl] = (counters[ilvl] || 0) + 1;
+            for (let l = ilvl + 1; l < counters.length; l++) counters[l] = 0;
+            const num = counters[ilvl];
+            let marker: string;
+            const fmt = levelInfo?.fmt || 'decimal';
+            if (fmt === 'lowerLetter') marker = String.fromCharCode(96 + ((num - 1) % 26) + 1) + '.';
+            else if (fmt === 'upperLetter') marker = String.fromCharCode(64 + ((num - 1) % 26) + 1) + '.';
+            else if (fmt === 'lowerRoman') marker = toRoman(num).toLowerCase() + '.';
+            else if (fmt === 'upperRoman') marker = toRoman(num) + '.';
+            else marker = num + '.';
+            listPrefix = `<span style="display:inline-block;min-width:18pt;text-align:right;margin-right:6pt">${marker}</span>`;
+          }
+        }
+      }
+    }
+
     const paraStyle = paraPropsToStyle(pPr, styleId);
 
     // Check if this is a heading
@@ -526,7 +592,7 @@ async function parseDocxToHtml(arrayBuffer: ArrayBuffer): Promise<{
       runsHtml = '&nbsp;';
     }
 
-    return `<${tag} style="${paraStyle}">${runsHtml}</${tag}>`;
+    return `<${tag} style="${paraStyle}${listIndentStyle}">${listPrefix}${runsHtml}</${tag}>`;
   }
 
   /** Process a table element */
@@ -690,18 +756,9 @@ export default function WordToPdf() {
   const [file, setFile] = useState<File | null>(null);
   const [htmlContent, setHtmlContent] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [converting, setConverting] = useState(false);
   const [error, setError] = useState('');
   const [warnings, setWarnings] = useState<string[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      cleanupRef.current?.();
-    };
-  }, []);
 
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
@@ -728,171 +785,46 @@ export default function WordToPdf() {
     setProcessing(false);
   }, []);
 
-  const convertToPdf = useCallback(async () => {
+  const convertToPdf = useCallback(() => {
     if (!htmlContent || !file) return;
-    setConverting(true);
     setError('');
 
-    const container = document.createElement('div');
-    const style = document.createElement('style');
-
-    try {
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ]);
-
-      // Render container at A4 content width
-      // A4 = 210mm × 297mm. The document padding handles margins,
-      // so we render at full A4 width and let the document's own
-      // margins provide the spacing.
-      const A4_WIDTH_PX = 794; // 210mm at 96 DPI
-
-      style.textContent = `
-        .word-to-pdf-render {
-          position: fixed;
-          top: 0;
-          left: 0;
-          z-index: -1;
-          pointer-events: none;
-          width: ${A4_WIDTH_PX}px;
-          margin: 0;
-          padding: 0;
-          background: #fff;
-        }
-        .word-to-pdf-render h1, .word-to-pdf-render h2, .word-to-pdf-render h3,
-        .word-to-pdf-render h4, .word-to-pdf-render h5, .word-to-pdf-render h6 {
-          margin-top: 12pt;
-          margin-bottom: 4pt;
-        }
-        .word-to-pdf-render img {
-          max-width: 100%;
-          height: auto;
-        }
-        .word-to-pdf-render a {
-          color: #0563C1;
-          text-decoration: underline;
-        }
-      `;
-
-      container.className = 'word-to-pdf-render';
-      container.innerHTML = htmlContent;
-
-      document.head.appendChild(style);
-      document.body.appendChild(container);
-
-      cleanupRef.current = () => {
-        try { document.body.removeChild(container); } catch {}
-        try { document.head.removeChild(style); } catch {}
-      };
-
-      // Wait for layout + images to load
-      await new Promise<void>((r) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => r()))
-      );
-      await new Promise((r) => setTimeout(r, 500));
-
-      // Capture at 2x scale for high quality
-      const canvas = await html2canvas(container, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      });
-
-      // A4 in mm
-      const pageW = 210;
-      const pageH = 297;
-
-      const imgWidthPx = canvas.width;
-      const imgHeightPx = canvas.height;
-      const pxPerMm = imgWidthPx / pageW;
-      const pageHeightPx = pageH * pxPerMm;
-
-      // Get pixel data for smart page breaks
-      const fullCtx = canvas.getContext('2d');
-      const fullPixels = fullCtx?.getImageData(0, 0, imgWidthPx, imgHeightPx).data;
-
-      function findBreakPoint(targetY: number, searchRange: number): number {
-        if (!fullPixels) return targetY;
-        const end = Math.min(targetY, imgHeightPx);
-        const start = Math.max(0, end - searchRange);
-
-        for (let row = end; row >= start; row--) {
-          let isWhite = true;
-          const rowOffset = row * imgWidthPx * 4;
-          for (let x = 0; x < imgWidthPx; x += 4) {
-            const idx = rowOffset + x * 4;
-            if (
-              fullPixels[idx] < 250 ||
-              fullPixels[idx + 1] < 250 ||
-              fullPixels[idx + 2] < 250
-            ) {
-              isWhite = false;
-              break;
-            }
-          }
-          if (isWhite) return row;
-        }
-        return targetY;
-      }
-
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-
-      let currentY = 0;
-      let pageIndex = 0;
-
-      while (currentY < imgHeightPx) {
-        if (pageIndex > 0) pdf.addPage();
-
-        let sliceEnd: number;
-        const remaining = imgHeightPx - currentY;
-
-        if (remaining <= pageHeightPx) {
-          sliceEnd = imgHeightPx;
-        } else {
-          const idealEnd = currentY + pageHeightPx;
-          sliceEnd = findBreakPoint(Math.round(idealEnd), Math.round(pxPerMm * 12));
-          if (sliceEnd <= currentY) sliceEnd = Math.round(idealEnd);
-        }
-
-        const sliceH = sliceEnd - currentY;
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = imgWidthPx;
-        pageCanvas.height = sliceH;
-        const ctx = pageCanvas.getContext('2d');
-        if (!ctx) {
-          currentY = sliceEnd;
-          pageIndex++;
-          continue;
-        }
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        ctx.drawImage(canvas, 0, currentY, imgWidthPx, sliceH, 0, 0, imgWidthPx, sliceH);
-
-        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
-        const sliceHMm = sliceH / pxPerMm;
-        pdf.addImage(pageImgData, 'JPEG', 0, 0, pageW, sliceHMm);
-
-        currentY = sliceEnd;
-        pageIndex++;
-      }
-
-      const pdfFilename = file.name.replace(/\.docx?$/i, '') + '.pdf';
-      pdf.save(pdfFilename);
-
-      cleanupRef.current?.();
-      cleanupRef.current = null;
-    } catch (e) {
-      cleanupRef.current?.();
-      cleanupRef.current = null;
-      setError(
-        'PDF conversion failed. ' +
-          (e instanceof Error ? e.message : 'Please try a simpler document.')
-      );
+    const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      setError('Pop-up blocked — please allow pop-ups for this site to save as PDF.');
+      return;
     }
-    setConverting(false);
+
+    printWindow.document.write(`<!DOCTYPE html><html>
+<head><title>${docName}</title>
+<style>
+  @page { size: A4; margin: 0; }
+  @media print { body { margin: 0; padding: 0; } }
+  body {
+    margin: 0; padding: 0; background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  img { max-width: 100%; height: auto; }
+  a { color: #0563C1; text-decoration: underline; }
+  h1, h2, h3, h4, h5, h6 { margin-top: 12pt; margin-bottom: 4pt; }
+  table { page-break-inside: avoid; }
+  tr { page-break-inside: avoid; }
+</style>
+</head><body>${htmlContent}</body></html>`);
+    printWindow.document.close();
+
+    const triggerPrint = () => {
+      try { printWindow.print(); } catch {}
+    };
+
+    if (printWindow.document.readyState === 'complete') {
+      setTimeout(triggerPrint, 200);
+    } else {
+      printWindow.addEventListener('load', () => setTimeout(triggerPrint, 200));
+      setTimeout(triggerPrint, 2000);
+    }
   }, [htmlContent, file]);
 
   return (
@@ -919,23 +851,11 @@ export default function WordToPdf() {
 
             <button
               onClick={convertToPdf}
-              disabled={converting || !htmlContent}
+              disabled={!htmlContent}
               className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg transition-colors duration-150"
             >
-              {converting ? (
-                <>
-                  <div
-                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-                    aria-hidden="true"
-                  />
-                  Converting to PDF...
-                </>
-              ) : (
-                <>
-                  <Download size={16} aria-hidden="true" />
-                  Download as PDF
-                </>
-              )}
+              <Download size={16} aria-hidden="true" />
+              Save as PDF
             </button>
 
             {warnings.length > 0 && (
@@ -950,8 +870,8 @@ export default function WordToPdf() {
             )}
 
             <p className="text-xs text-neutral-400">
-              Parses your document's XML directly for faithful rendering of fonts, sizes,
-              tables, and images.
+              Opens your browser's print dialog — select "Save as PDF" for
+              pixel-perfect output with fonts, images, tables, and lists preserved.
             </p>
           </div>
         )}
