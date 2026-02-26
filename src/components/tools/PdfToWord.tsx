@@ -1,207 +1,395 @@
 /**
- * PDF to Word — extract text + images from PDF and generate a DOCX.
- * Uses pdfjs-dist for extraction and the docx library for DOCX generation.
+ * PDF to Word — positioned text frames approach.
  *
- * Key improvements over naive approaches:
- *  - Paragraph merging: consecutive body-text lines → single paragraphs
- *  - Proportional font sizes: PDF sizes mapped to DOCX half-points
- *  - Heading detection: H1/H2/H3 via font-size ratio + text length
- *  - Image extraction: embedded raster images pulled from PDF operators
- *  - List detection: bullet/number prefixes start new paragraphs
- *  - Hyphen handling: trailing hyphens at line breaks are removed
+ * Instead of trying to reconstruct document flow (paragraphs, tables, headings),
+ * which always loses formatting, this extracts every text line with its EXACT
+ * (x, y) position from the PDF and places it as an absolutely-positioned frame
+ * in the DOCX. Images are extracted and embedded at their exact positions too.
+ *
+ * The result: editable text that looks like the original PDF, because nothing
+ * gets reconstructed — everything stays exactly where it was.
  *
  * Client-side only. No server upload.
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Download, FileText } from 'lucide-react';
 import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
-import {
-  type TextItem,
-  type ExtractedPage,
-  type ExtractedImage,
-  parseFontStyle,
-  groupIntoLines,
-  detectTables,
-  mergeParagraphLines,
-  findBodyFontSize,
-  estimateRightMargin,
-  pdfSizeToDocxHalfPoints,
-  detectHeadingLevel,
-} from '../../lib/pdf-word-utils';
+import { parseFontStyle } from '../../lib/pdf-word-utils';
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+// ── Types ────────────────────────────────────────────────────────
+
+interface TextRunData {
+  text: string;
+  bold: boolean;
+  italic: boolean;
+  fontSize: number; // PDF points
+  fontName: string;
 }
 
-/**
- * Extract embedded raster images from a PDF page via its operator list.
- * Tracks the current transform matrix (CTM) to get each image's actual
- * Y position on the page, so images can be interleaved with text at the
- * correct location in the document.
- *
- * The operator pattern is: save → transform → paintImageXObject → restore.
- * The transform's f value gives the Y position in PDF coords (bottom-up).
- */
+interface PositionedLine {
+  x: number; // PDF points from left edge
+  y: number; // PDF points from TOP of page (already flipped from PDF coords)
+  width: number; // approximate line width in PDF points
+  runs: TextRunData[];
+}
+
+interface ExtractedImageData {
+  pngBytes: Uint8Array;
+  x: number; // PDF points from left edge
+  y: number; // PDF points from TOP of page (flipped)
+  widthPt: number; // display width in PDF points
+  heightPt: number; // display height in PDF points
+}
+
+interface PageData {
+  pageNum: number;
+  widthPt: number;
+  heightPt: number;
+  lines: PositionedLine[];
+  images: ExtractedImageData[];
+  previewUrl: string; // canvas render for visual preview
+}
+
+// ── Helpers ──────────────────────────────────────────────────────
+
+/** Group raw pdfjs text items into lines by Y proximity, preserving exact positions. */
+function groupTextIntoLines(
+  items: Array<{
+    str: string;
+    transform: number[];
+    width: number;
+    height: number;
+    fontName: string;
+  }>,
+  styles: Record<string, { fontFamily?: string }>,
+  pageHeight: number,
+  yTolerance = 3
+): PositionedLine[] {
+  if (items.length === 0) return [];
+
+  // Parse each text item into our format
+  const parsed = items
+    .filter((item) => item.str.trim().length > 0)
+    .map((item) => {
+      const x = item.transform[4];
+      const yFromBottom = item.transform[5];
+      // Font size from transform matrix (handles rotation/scaling)
+      const fontSize = Math.sqrt(
+        item.transform[2] * item.transform[2] + item.transform[3] * item.transform[3]
+      );
+      const fontName = styles[item.fontName]?.fontFamily || item.fontName || '';
+      const { bold, italic } = parseFontStyle(fontName);
+
+      return {
+        str: item.str,
+        x,
+        yFromBottom,
+        yFromTop: pageHeight - yFromBottom - fontSize, // flip Y to top-down
+        width: item.width,
+        fontSize,
+        fontName,
+        bold,
+        italic,
+      };
+    });
+
+  if (parsed.length === 0) return [];
+
+  // Group by Y proximity (items on the same visual line)
+  const lineGroups: { items: (typeof parsed)[0][]; yFromTop: number }[] = [];
+  // Sort top-to-bottom first
+  const sorted = [...parsed].sort((a, b) => a.yFromTop - b.yFromTop);
+
+  for (const item of sorted) {
+    const existing = lineGroups.find((g) => Math.abs(g.yFromTop - item.yFromTop) <= yTolerance);
+    if (existing) {
+      existing.items.push(item);
+    } else {
+      lineGroups.push({ items: [item], yFromTop: item.yFromTop });
+    }
+  }
+
+  // Sort groups top-to-bottom, items within each group left-to-right
+  lineGroups.sort((a, b) => a.yFromTop - b.yFromTop);
+
+  return lineGroups.map((group) => {
+    group.items.sort((a, b) => a.x - b.x);
+
+    // Build runs, inserting spaces for gaps between items
+    const runs: TextRunData[] = [];
+    for (let i = 0; i < group.items.length; i++) {
+      const item = group.items[i];
+      let prefix = '';
+      if (i > 0) {
+        const prev = group.items[i - 1];
+        const gap = item.x - (prev.x + prev.width);
+        if (gap > item.fontSize * 0.3) prefix = ' ';
+      }
+
+      const text = prefix + item.str;
+      const lastRun = runs[runs.length - 1];
+
+      // Merge into previous run if same style
+      if (
+        lastRun &&
+        lastRun.bold === item.bold &&
+        lastRun.italic === item.italic &&
+        Math.abs(lastRun.fontSize - item.fontSize) < 1
+      ) {
+        lastRun.text += text;
+      } else {
+        runs.push({
+          text,
+          bold: item.bold,
+          italic: item.italic,
+          fontSize: item.fontSize,
+          fontName: item.fontName,
+        });
+      }
+    }
+
+    // Line position = leftmost item's X, topmost Y in group
+    const firstItem = group.items[0];
+    const lastItem = group.items[group.items.length - 1];
+    const lineWidth = lastItem.x + lastItem.width - firstItem.x;
+
+    return {
+      x: firstItem.x,
+      y: group.yFromTop,
+      width: lineWidth,
+      runs,
+    };
+  });
+}
+
+/** Multiply two 2D transform matrices [a, b, c, d, e, f] */
+function multiplyMatrix(
+  m1: number[],
+  m2: number[]
+): number[] {
+  return [
+    m1[0] * m2[0] + m1[2] * m2[1],
+    m1[1] * m2[0] + m1[3] * m2[1],
+    m1[0] * m2[2] + m1[2] * m2[3],
+    m1[1] * m2[2] + m1[3] * m2[3],
+    m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+    m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
+  ];
+}
+
+/** Convert raw RGBA image data from pdfjs to PNG via canvas */
+async function rgbaToPng(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number
+): Promise<Uint8Array> {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d')!;
+  const imageData = new ImageData(data, width, height);
+  ctx.putImageData(imageData, 0, 0);
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/png')
+  );
+  if (!blob) throw new Error('Failed to encode PNG');
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+/** Extract embedded images from a PDF page using the operator list */
 async function extractPageImages(
-  page: { getOperatorList: () => Promise<{ fnArray: number[]; argsArray: unknown[][] }>; objs: { get: (name: string, cb: (data: unknown) => void) => void }; getViewport: (opts: { scale: number }) => { height: number } },
-  OPS: Record<string, number>
-): Promise<ExtractedImage[]> {
-  const images: ExtractedImage[] = [];
+  page: {
+    getOperatorList: () => Promise<{ fnArray: number[]; argsArray: unknown[][] }>;
+    objs: { get: (name: string, callback: (data: unknown) => void) => void };
+    commonObjs: { get: (name: string, callback: (data: unknown) => void) => void };
+  },
+  pageHeight: number,
+  pdfjsOPS: Record<string, number>
+): Promise<ExtractedImageData[]> {
+  const images: ExtractedImageData[] = [];
 
   try {
     const ops = await page.getOperatorList();
-    const viewport = page.getViewport({ scale: 1 });
-
-    // Track CTM to get image positions. The CTM is set by OPS.transform
-    // entries that precede OPS.paintImageXObject. The pattern is:
-    //   save → transform [a,b,c,d,e,f] → paintImageXObject → restore
-    // where e=x, f=y in PDF coordinates (bottom-up).
-    let lastTransformY = viewport.height / 2; // fallback
+    const ctmStack: number[][] = [];
+    let ctm = [1, 0, 0, 1, 0, 0]; // identity matrix
 
     for (let i = 0; i < ops.fnArray.length; i++) {
-      // Track the most recent transform before an image paint
-      if (ops.fnArray[i] === OPS.transform) {
-        const args = ops.argsArray[i] as number[];
-        if (args.length >= 6) {
-          lastTransformY = args[5]; // f = Y translation
-        }
-      }
+      const fn = ops.fnArray[i];
+      const args = ops.argsArray[i];
 
-      if (
-        ops.fnArray[i] === OPS.paintImageXObject ||
-        ops.fnArray[i] === OPS.paintJpegXObject
-      ) {
-        const imageName = ops.argsArray[i][0] as string;
-
+      if (fn === pdfjsOPS.save) {
+        ctmStack.push([...ctm]);
+      } else if (fn === pdfjsOPS.restore) {
+        ctm = ctmStack.pop() || [1, 0, 0, 1, 0, 0];
+      } else if (fn === pdfjsOPS.transform) {
+        const t = args as number[];
+        ctm = multiplyMatrix(ctm, t);
+      } else if (fn === pdfjsOPS.paintImageXObject) {
+        const imgName = args[0] as string;
         try {
-          const imgData = await new Promise<{
-            data: Uint8ClampedArray;
+          const imgObj = await new Promise<{
             width: number;
             height: number;
+            data: Uint8ClampedArray;
           }>((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('timeout')), 3000);
-            page.objs.get(imageName, (data: unknown) => {
-              clearTimeout(timeout);
-              const d = data as { data?: Uint8ClampedArray; width?: number; height?: number };
-              if (d?.data && d.width && d.height) {
-                resolve({ data: d.data, width: d.width, height: d.height });
-              } else {
-                reject(new Error('no data'));
+            let resolved = false;
+            page.objs.get(imgName, (data: unknown) => {
+              if (!resolved) {
+                resolved = true;
+                resolve(data as { width: number; height: number; data: Uint8ClampedArray });
               }
             });
+            page.commonObjs.get(imgName, (data: unknown) => {
+              if (!resolved) {
+                resolved = true;
+                resolve(data as { width: number; height: number; data: Uint8ClampedArray });
+              }
+            });
+            setTimeout(() => {
+              if (!resolved) {
+                resolved = true;
+                reject(new Error('timeout'));
+              }
+            }, 2000);
           });
 
-          // Skip tiny images (icons, bullets, decoration < 20×20)
-          if (imgData.width < 20 || imgData.height < 20) continue;
+          if (imgObj && imgObj.data && imgObj.width > 1 && imgObj.height > 1) {
+            const displayWidth = Math.abs(ctm[0]);
+            const displayHeight = Math.abs(ctm[3]);
+            const xPos = ctm[4];
+            const yFromBottom = ctm[5];
 
-          // Convert raw RGBA to PNG via canvas
-          const canvas = document.createElement('canvas');
-          canvas.width = imgData.width;
-          canvas.height = imgData.height;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) continue;
+            // Skip tiny images (likely artifacts)
+            if (displayWidth < 5 || displayHeight < 5) continue;
 
-          const imageData = new ImageData(
-            new Uint8ClampedArray(imgData.data),
-            imgData.width,
-            imgData.height
-          );
-          ctx.putImageData(imageData, 0, 0);
+            const pngBytes = await rgbaToPng(imgObj.data, imgObj.width, imgObj.height);
 
-          const blob = await new Promise<Blob | null>((resolve) =>
-            canvas.toBlob(resolve, 'image/png')
-          );
-          if (!blob) continue;
-
-          const pngData = new Uint8Array(await blob.arrayBuffer());
-
-          images.push({
-            data: pngData,
-            width: imgData.width,
-            height: imgData.height,
-            y: lastTransformY,
-          });
+            images.push({
+              pngBytes,
+              x: xPos,
+              y: pageHeight - yFromBottom - displayHeight,
+              widthPt: displayWidth,
+              heightPt: displayHeight,
+            });
+          }
         } catch {
-          // Skip images that fail to extract (encrypted, corrupt, etc.)
+          // Skip images we can't extract
         }
       }
     }
   } catch {
-    // Operator list access failed — continue without images
+    // If operator list fails entirely, continue without images
   }
 
   return images;
 }
 
+// ── Main Component ───────────────────────────────────────────────
+
 export default function PdfToWord() {
   const [file, setFile] = useState<File | null>(null);
-  const [pageCount, setPageCount] = useState(0);
-  const [pages, setPages] = useState<ExtractedPage[]>([]);
+  const [pages, setPages] = useState<PageData[]>([]);
   const [processing, setProcessing] = useState(false);
+  const [progressMsg, setProgressMsg] = useState('');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
 
-  const handleFiles = useCallback(async (files: File[]) => {
-    const f = files[0];
-    if (!f) return;
-    setError('');
-    setPages([]);
-    setProcessing(true);
+  // Clean up preview object URLs on unmount
+  useEffect(() => {
+    return () => {
+      pages.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    };
+  }, [pages]);
 
-    try {
-      const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-      const loadingTask = pdfjsLib.getDocument({ data: await f.arrayBuffer() });
-      const pdfDoc = await loadingTask.promise;
-      setPageCount(pdfDoc.numPages);
+  const handleFiles = useCallback(
+    async (files: File[]) => {
+      const f = files[0];
+      if (!f) return;
+      setError('');
+      pages.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      setPages([]);
+      setProcessing(true);
+      setProgressMsg('Loading PDF...');
 
-      const extracted: ExtractedPage[] = [];
-      for (let i = 1; i <= pdfDoc.numPages; i++) {
-        const page = await pdfDoc.getPage(i);
-        const textContent = await page.getTextContent();
+      try {
+        const pdfjsLib = await import('pdfjs-dist');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
-        const items: TextItem[] = [];
-        for (const item of textContent.items) {
-          if ('str' in item && item.str && 'transform' in item) {
-            const t = item.transform as number[];
-            const fontName =
-              ('fontName' in item ? (item as { fontName: string }).fontName : '') || '';
-            const style = parseFontStyle(fontName);
-            items.push({
-              str: item.str,
-              x: t[4],
-              y: t[5],
-              width: ('width' in item ? (item as { width: number }).width : 0),
-              height: ('height' in item ? (item as { height: number }).height : 0),
-              fontSize: Math.abs(t[0]) || Math.abs(t[3]) || 12,
-              fontName,
-              isBold: style.bold,
-              isItalic: style.italic,
-            });
-          }
+        const pdfDoc = await pdfjsLib.getDocument({ data: await f.arrayBuffer() }).promise;
+        const PREVIEW_SCALE = 2;
+        const extractedPages: PageData[] = [];
+
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          setProgressMsg(`Processing page ${i} of ${pdfDoc.numPages}...`);
+
+          const page = await pdfDoc.getPage(i);
+          const baseViewport = page.getViewport({ scale: 1 });
+          const previewViewport = page.getViewport({ scale: PREVIEW_SCALE });
+
+          // 1. Render canvas for visual preview
+          const canvas = document.createElement('canvas');
+          canvas.width = previewViewport.width;
+          canvas.height = previewViewport.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) continue;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          await page.render({ canvasContext: ctx, viewport: previewViewport }).promise;
+          const blob = await new Promise<Blob | null>((resolve) =>
+            canvas.toBlob(resolve, 'image/png')
+          );
+          const previewUrl = blob ? URL.createObjectURL(blob) : '';
+
+          // 2. Extract text with exact positions
+          const textContent = await page.getTextContent();
+          const textItems = textContent.items.filter(
+            (item: Record<string, unknown>) => typeof item.str === 'string'
+          ) as Array<{
+            str: string;
+            transform: number[];
+            width: number;
+            height: number;
+            fontName: string;
+          }>;
+          const styles = (textContent.styles || {}) as Record<
+            string,
+            { fontFamily?: string }
+          >;
+
+          const lines = groupTextIntoLines(
+            textItems,
+            styles,
+            baseViewport.height
+          );
+
+          // 3. Extract embedded images
+          const images = await extractPageImages(
+            page as unknown as Parameters<typeof extractPageImages>[0],
+            baseViewport.height,
+            pdfjsLib.OPS as unknown as Record<string, number>
+          );
+
+          extractedPages.push({
+            pageNum: i,
+            widthPt: baseViewport.width,
+            heightPt: baseViewport.height,
+            lines,
+            images,
+            previewUrl,
+          });
         }
 
-        const lines = groupIntoLines(items);
-        const blocks = detectTables(lines);
-
-        // Extract embedded images from this page
-        const pageImages = await extractPageImages(
-          page as unknown as Parameters<typeof extractPageImages>[0],
-          pdfjsLib.OPS
-        );
-
-        extracted.push({ pageNum: i, blocks, images: pageImages });
+        setFile(f);
+        setPages(extractedPages);
+      } catch {
+        setError('Could not read this PDF — it may be encrypted or corrupted.');
       }
-      setFile(f);
-      setPages(extracted);
-    } catch {
-      setError('Could not read this PDF — it may be encrypted, image-only, or corrupted.');
-    }
-    setProcessing(false);
-  }, []);
+      setProcessing(false);
+      setProgressMsg('');
+    },
+    [pages]
+  );
 
   const generateDocx = useCallback(async () => {
     if (pages.length === 0 || !file) return;
@@ -216,180 +404,130 @@ export default function PdfToWord() {
         Paragraph,
         TextRun,
         ImageRun,
-        PageBreak,
-        Table,
-        TableRow: DocxTableRow,
-        TableCell: DocxTableCell,
-        WidthType,
-        HeadingLevel,
+        FrameAnchorType,
+        HeightRule,
+        FrameWrap,
+        TextWrappingType,
+        HorizontalPositionRelativeFrom,
+        VerticalPositionRelativeFrom,
       } = docxLib;
 
-      type ParagraphChild = InstanceType<typeof TextRun> | InstanceType<typeof ImageRun>;
-      type SectionChild = InstanceType<typeof Paragraph> | InstanceType<typeof Table>;
+      const PT_TO_TWIP = 20;
+      const PT_TO_EMU = 12700;
+      const PT_TO_HALF_PT = 2;
 
-      const children: SectionChild[] = [];
-
-      // ── Pre-process: find body size, right margin, merge paragraph lines ──
-
-      const bodySize = findBodyFontSize(pages);
-      const rightMargin = estimateRightMargin(pages, bodySize);
-
-      const processedPages = pages.map((p) => ({
-        ...p,
-        blocks: mergeParagraphLines(p.blocks, bodySize, rightMargin),
-      }));
-
-      // ── Build DOCX content ──────────────────────────────────────
-
-      for (let pi = 0; pi < processedPages.length; pi++) {
-        if (pi > 0) {
-          children.push(new Paragraph({ children: [new PageBreak()] }));
-        }
-
-        const page = processedPages[pi];
-
-        // ── Interleave images with text blocks by Y position ──
-        // PDF coordinates are bottom-up: higher Y = higher on page.
-        // Text blocks already have real Y values on their lines (from groupIntoLines).
-        // Images have real Y from the CTM transform.
-        // Strategy: emit blocks in order, insert images just before the first
-        // block whose top line is BELOW the image on the page.
-
-        // Sort images by Y descending (top of page first)
-        const sortedImages = (page.images || [])
-          .slice()
-          .sort((a, b) => b.y - a.y);
-        let imgIdx = 0;
-
-        // Get the Y position for each block from its first line
-        // (lines are sorted top-to-bottom, so first line has the highest Y)
-        const blockYPositions: number[] = page.blocks.map((block) => {
-          if (block.lines && block.lines.length > 0) {
-            return block.lines[0].y ?? 0;
-          }
-          // Tables or blocks without lines: use 0 (bottom of page)
-          return 0;
-        });
-
-        function emitImageParagraph(img: ExtractedImage) {
-          const maxWidth = 580;
-          let w = img.width;
-          let h = img.height;
-          if (w > maxWidth) {
-            h = Math.round(h * (maxWidth / w));
-            w = maxWidth;
-          }
-          try {
-            children.push(
-              new Paragraph({
-                children: [
-                  new ImageRun({
-                    data: img.data,
-                    transformation: { width: w, height: h },
-                    type: 'png',
-                  }),
-                ],
-                spacing: { before: 120, after: 120 },
-              })
-            );
-          } catch {
-            // Skip images that fail to embed
-          }
-        }
-
-        for (let bi = 0; bi < page.blocks.length; bi++) {
-          // Insert any images that belong before this text block
-          const blockApproxY = blockYPositions[bi];
-          while (imgIdx < sortedImages.length && sortedImages[imgIdx].y >= blockApproxY) {
-            emitImageParagraph(sortedImages[imgIdx]);
-            imgIdx++;
-          }
-
-          const block = page.blocks[bi];
-          if (block.type === 'table' && block.rows && block.rows.length > 0) {
-            const rows = block.rows.map(
-              (row, ri) =>
-                new DocxTableRow({
-                  children: row.cells.map(
-                    (cell) =>
-                      new DocxTableCell({
-                        children: [
-                          new Paragraph({
-                            children: cell.runs.map(
-                              (run) =>
-                                new TextRun({
-                                  text: run.text,
-                                  bold: run.bold || ri === 0,
-                                  size: pdfSizeToDocxHalfPoints(run.fontSize, bodySize),
-                                  font: 'Calibri',
-                                })
-                            ),
-                          }),
-                        ],
-                        width: {
-                          size: 100 / row.cells.length,
-                          type: WidthType.PERCENTAGE,
-                        },
-                      })
-                  ),
-                })
-            );
-
-            children.push(
-              new Table({
-                rows,
-                width: { size: 100, type: WidthType.PERCENTAGE },
-              })
-            );
-            children.push(new Paragraph({ text: '' }));
-          } else if (block.lines) {
-            for (const line of block.lines) {
-              const headingLevel = detectHeadingLevel(line, bodySize);
-
-              const headingMap: Record<number, (typeof HeadingLevel)[keyof typeof HeadingLevel] | undefined> = {
-                1: HeadingLevel.HEADING_1,
-                2: HeadingLevel.HEADING_2,
-                3: HeadingLevel.HEADING_3,
-                0: undefined,
-              };
-
-              const docxRuns: ParagraphChild[] = line.runs.map(
-                (run) =>
-                  new TextRun({
-                    text: run.text,
-                    bold: run.bold || headingLevel > 0,
-                    italics: run.italic,
-                    size: pdfSizeToDocxHalfPoints(run.fontSize, bodySize),
-                    font: 'Calibri',
-                  })
-              );
-
-              children.push(
-                new Paragraph({
-                  children: docxRuns,
-                  heading: headingMap[headingLevel],
-                  spacing: {
-                    after: headingLevel > 0 ? 200 : 120,
-                    before: headingLevel === 1 ? 240 : headingLevel > 0 ? 160 : 0,
-                  },
-                  indent:
-                    line.x > 100
-                      ? { left: Math.min(Math.round((line.x - 50) * 10), 1440) }
-                      : undefined,
-                })
-              );
-            }
-          }
-        }
-
-        // Emit any remaining images that come after the last text block
-        while (imgIdx < sortedImages.length) {
-          emitImageParagraph(sortedImages[imgIdx]);
-          imgIdx++;
-        }
+      /** Map PDF font name to a common Word font */
+      function mapFont(fontName: string): string {
+        const lower = fontName.toLowerCase();
+        if (lower.includes('times') || lower.includes('serif')) return 'Times New Roman';
+        if (lower.includes('courier') || lower.includes('mono')) return 'Courier New';
+        if (lower.includes('helvetica') || lower.includes('arial') || lower.includes('sans'))
+          return 'Arial';
+        if (lower.includes('calibri')) return 'Calibri';
+        if (lower.includes('georgia')) return 'Georgia';
+        if (lower.includes('verdana')) return 'Verdana';
+        if (lower.includes('cambria')) return 'Cambria';
+        if (lower.includes('tahoma')) return 'Tahoma';
+        if (lower.includes('trebuchet')) return 'Trebuchet MS';
+        return fontName.split('-')[0].split('+').pop() || 'Arial';
       }
 
-      const doc = new Document({ sections: [{ children }] });
+      const sections = pages.map((page) => {
+        const pageWidthTwip = Math.round(page.widthPt * PT_TO_TWIP);
+        const pageHeightTwip = Math.round(page.heightPt * PT_TO_TWIP);
+
+        const children: InstanceType<typeof Paragraph>[] = [];
+
+        // Add positioned text frames for each line
+        for (const line of page.lines) {
+          const textRuns = line.runs.map(
+            (r) =>
+              new TextRun({
+                text: r.text,
+                bold: r.bold,
+                italics: r.italic,
+                size: Math.round(r.fontSize * PT_TO_HALF_PT),
+                font: mapFont(r.fontName),
+              })
+          );
+
+          children.push(
+            new Paragraph({
+              frame: {
+                type: 'absolute',
+                position: {
+                  x: Math.round(line.x * PT_TO_TWIP),
+                  y: Math.round(line.y * PT_TO_TWIP),
+                },
+                width: Math.max(Math.round(line.width * PT_TO_TWIP), 200),
+                height: Math.round(
+                  Math.max(...line.runs.map((r) => r.fontSize)) * PT_TO_TWIP * 1.3
+                ),
+                anchor: {
+                  horizontal: FrameAnchorType.PAGE,
+                  vertical: FrameAnchorType.PAGE,
+                },
+                wrap: FrameWrap.NONE,
+                rule: HeightRule.AUTO,
+              },
+              children: textRuns,
+              spacing: { before: 0, after: 0, line: 240 },
+            })
+          );
+        }
+
+        // Add positioned images
+        for (const img of page.images) {
+          // docx lib multiplies transformation dims × 9525 to get EMU
+          // We want: displayPx * 9525 = widthPt * 12700
+          // So displayPx = widthPt * 12700 / 9525 ≈ widthPt * 1.3333
+          const displayW = Math.round(img.widthPt * (4 / 3));
+          const displayH = Math.round(img.heightPt * (4 / 3));
+
+          children.push(
+            new Paragraph({
+              children: [
+                new ImageRun({
+                  type: 'png',
+                  data: img.pngBytes,
+                  transformation: { width: displayW, height: displayH },
+                  floating: {
+                    horizontalPosition: {
+                      relative: HorizontalPositionRelativeFrom.PAGE,
+                      offset: Math.round(img.x * PT_TO_EMU),
+                    },
+                    verticalPosition: {
+                      relative: VerticalPositionRelativeFrom.PAGE,
+                      offset: Math.round(img.y * PT_TO_EMU),
+                    },
+                    behindDocument: true,
+                    allowOverlap: true,
+                    wrap: { type: TextWrappingType.NONE },
+                  },
+                }),
+              ],
+              spacing: { before: 0, after: 0, line: 240 },
+            })
+          );
+        }
+
+        // Need at least one paragraph per section
+        if (children.length === 0) {
+          children.push(new Paragraph({ children: [], spacing: { before: 0, after: 0 } }));
+        }
+
+        return {
+          properties: {
+            page: {
+              size: { width: pageWidthTwip, height: pageHeightTwip },
+              margin: { top: 0, bottom: 0, left: 0, right: 0 },
+            },
+          },
+          children,
+        };
+      });
+
+      const doc = new Document({ sections });
       const buffer = await Packer.toBlob(doc);
       const url = URL.createObjectURL(buffer);
       const a = document.createElement('a');
@@ -403,13 +541,8 @@ export default function PdfToWord() {
     setGenerating(false);
   }, [pages, file]);
 
-  const totalLines = pages.reduce(
-    (sum, p) =>
-      sum +
-      p.blocks.reduce((bs, b) => bs + (b.lines?.length ?? 0) + (b.rows?.length ?? 0), 0),
-    0
-  );
-  const totalImages = pages.reduce((sum, p) => sum + (p.images?.length ?? 0), 0);
+  const totalLines = pages.reduce((sum, p) => sum + p.lines.length, 0);
+  const totalImages = pages.reduce((sum, p) => sum + p.images.length, 0);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -430,8 +563,11 @@ export default function PdfToWord() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-neutral-900 truncate">{file.name}</p>
                 <p className="text-xs text-neutral-500">
-                  {pageCount} page{pageCount !== 1 ? 's' : ''} — {totalLines} text blocks
-                  {totalImages > 0 && ` — ${totalImages} image${totalImages !== 1 ? 's' : ''}`}
+                  {pages.length} page{pages.length !== 1 ? 's' : ''} &middot; {totalLines} text
+                  line{totalLines !== 1 ? 's' : ''}
+                  {totalImages > 0 && (
+                    <> &middot; {totalImages} image{totalImages !== 1 ? 's' : ''}</>
+                  )}
                 </p>
               </div>
             </div>
@@ -458,8 +594,9 @@ export default function PdfToWord() {
             </button>
 
             <p className="text-xs text-neutral-400">
-              Preserves text, bold, italic, headings, tables, and embedded images. Scanned or
-              image-only PDFs need OCR (not supported in-browser).
+              Text is placed at exact positions from the PDF — fully editable in Word with
+              preserved layout.
+              {totalImages > 0 && ' Embedded images included at original positions.'}
             </p>
           </div>
         )}
@@ -478,70 +615,26 @@ export default function PdfToWord() {
               className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"
               aria-hidden="true"
             />
-            <span className="text-sm text-primary-700">Extracting text and images from PDF...</span>
+            <span className="text-sm text-primary-700">{progressMsg || 'Processing...'}</span>
           </div>
         )}
 
         {pages.length > 0 ? (
           <div className="space-y-3">
-            <p className="text-sm font-medium text-neutral-700">Extracted Content Preview</p>
-            <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-6 max-h-[500px] overflow-auto">
+            <p className="text-sm font-medium text-neutral-700">
+              Original PDF — your Word document will preserve this layout with editable text
+            </p>
+            <div className="bg-neutral-100 rounded-2xl border border-neutral-200/80 shadow-card p-4 max-h-[600px] overflow-auto space-y-4">
               {pages.map((page) => (
-                <div key={page.pageNum} className="mb-6 last:mb-0">
-                  <p className="text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wide">
+                <div key={page.pageNum} className="relative">
+                  <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded">
                     Page {page.pageNum}
-                  </p>
-                  {page.blocks.map((block, bi) => {
-                    if (block.type === 'table' && block.rows) {
-                      return (
-                        <table key={bi} className="w-full text-xs border-collapse mb-3">
-                          <tbody>
-                            {block.rows.map((row, ri) => (
-                              <tr
-                                key={ri}
-                                className={
-                                  ri === 0
-                                    ? 'bg-neutral-100 font-medium'
-                                    : ri % 2 === 0
-                                      ? 'bg-neutral-50'
-                                      : ''
-                                }
-                              >
-                                {row.cells.map((cell, ci) => (
-                                  <td
-                                    key={ci}
-                                    className="border border-neutral-200 px-2 py-1 text-neutral-700"
-                                  >
-                                    {cell.runs.map((r) => r.text).join('')}
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      );
-                    }
-                    return block.lines?.map((line, li) => (
-                      <p
-                        key={`${bi}-${li}`}
-                        className="text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap"
-                      >
-                        {line.runs.map((run, ri) => (
-                          <span
-                            key={ri}
-                            className={`${run.bold ? 'font-bold' : ''} ${run.italic ? 'italic' : ''}`}
-                          >
-                            {run.text}
-                          </span>
-                        ))}
-                      </p>
-                    ));
-                  })}
-                  {page.images && page.images.length > 0 && (
-                    <p className="text-xs text-neutral-400 mt-2">
-                      {page.images.length} embedded image{page.images.length !== 1 ? 's' : ''} extracted
-                    </p>
-                  )}
+                  </div>
+                  <img
+                    src={page.previewUrl}
+                    alt={`Page ${page.pageNum}`}
+                    className="w-full rounded-lg shadow-md bg-white"
+                  />
                 </div>
               ))}
             </div>
@@ -551,10 +644,10 @@ export default function PdfToWord() {
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
               <p className="text-sm text-neutral-500">
-                Upload a PDF to convert it to a Word document
+                Upload a PDF to convert it to an editable Word document
               </p>
               <p className="text-xs text-neutral-400 mt-1">
-                Extracts text, formatting, and images into an editable .docx
+                Text stays at exact positions — fully editable with preserved layout
               </p>
             </div>
           )
