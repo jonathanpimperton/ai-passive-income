@@ -1,12 +1,14 @@
 /**
- * Word to PDF — render DOCX using docx-preview, then print to PDF.
+ * Word to PDF — render DOCX using docx-preview, then capture to PDF.
  *
  * Pipeline:
- *  1. docx-preview (battle-tested library, 174K weekly downloads) renders the
- *     DOCX into HTML+CSS — handling styles, lists, tables, images,
- *     headers/footers, footnotes, page breaks, and more.
- *  2. Rendered into an iframe (isolated from Tailwind CSS preflight).
- *  3. Browser's native print engine renders to PDF (pixel-perfect output).
+ *  1. docx-preview renders the DOCX into HTML+CSS inside an iframe
+ *     (isolated from Tailwind CSS preflight).
+ *  2. html2canvas renders each page section to a canvas image.
+ *  3. jsPDF assembles the canvases into a multi-page PDF.
+ *
+ * Each docx-preview <section> = one canvas = one PDF page.
+ * Page breaks are guaranteed because we control page boundaries directly.
  *
  * Client-side only. No server upload.
  */
@@ -25,6 +27,8 @@ export default function WordToPdf() {
   const [file, setFile] = useState<File | null>(null);
   const [rendering, setRendering] = useState(false);
   const [rendered, setRendered] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -55,17 +59,15 @@ export default function WordToPdf() {
         renderFooters: true,
         renderFootnotes: true,
         renderEndnotes: true,
-        experimental: false, // Tab stops use document.createRange — incompatible with cross-document rendering
-        useBase64URL: true, // Critical: blob URLs don't work in the print window
+        experimental: false,
+        useBase64URL: true,
         ignoreLastRenderedPageBreak: false,
         inWrapper: true,
         className: 'docx',
-        // Wraps default wrapper styles (gray bg, 30px padding, shadows) in
-        // @media not print — so they only apply on screen, not in the PDF output.
         hideWrapperOnPrint: true,
       });
 
-      // Preview-only styles (screen only — NOT included in print output)
+      // Preview-only styles
       const previewStyle = iDoc.createElement('style');
       previewStyle.textContent = `
         @media screen {
@@ -86,70 +88,73 @@ export default function WordToPdf() {
     setRendering(false);
   }, []);
 
-  const convertToPdf = useCallback(() => {
-    if (!rendered || !file || !iframeRef.current?.contentDocument || !iframeRef.current?.contentWindow) return;
+  const convertToPdf = useCallback(async () => {
+    if (!rendered || !file || !iframeRef.current?.contentDocument) return;
     setError('');
+    setConverting(true);
+    setProgressMsg('Preparing...');
 
-    const iDoc = iframeRef.current.contentDocument;
-    const iWin = iframeRef.current.contentWindow;
-    const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
-
-    // Browser uses document title as suggested PDF filename
-    iDoc.title = docName;
-
-    // Detect page size from docx-preview's rendered sections
-    // (each <section class="docx" style="width:Xpt; min-height:Ypt; ...">)
-    let pageSizeRule = '@page { margin: 0; }';
-    const firstSection = iDoc.querySelector('section.docx') as HTMLElement | null;
-    if (firstSection) {
-      const style = firstSection.getAttribute('style') || '';
-      const wMatch = style.match(/width:\s*([\d.]+)\s*pt/);
-      const hMatch = style.match(/min-height:\s*([\d.]+)\s*pt/);
-      if (wMatch && hMatch) {
-        pageSizeRule = `@page { size: ${wMatch[1]}pt ${hMatch[1]}pt; margin: 0; }`;
-      }
-    }
-
-    // Inject print CSS into the SAME document (no innerHTML copying)
-    // hideWrapperOnPrint:true already wraps wrapper styles in @media not print,
-    // so only a few overrides are needed here.
-    const printStyle = iDoc.createElement('style');
-    printStyle.id = 'pdf-print-overrides';
-    printStyle.textContent = `
-      ${pageSizeRule}
-      @media print {
-        body {
-          margin: 0 !important;
-          padding: 0 !important;
-          background: #fff !important;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        /* overflow:hidden is NOT wrapped by hideWrapperOnPrint — must override */
-        section.docx {
-          overflow: visible !important;
-        }
-        /* Force page breaks between page sections */
-        .docx-wrapper > section.docx + section.docx {
-          page-break-before: always;
-          break-before: page;
-        }
-        h1, h2, h3, h4, h5, h6 { page-break-after: avoid; }
-        table, tr, img { page-break-inside: avoid; }
-      }
-    `;
-    iDoc.head.appendChild(printStyle);
-
-    // Print the iframe directly — exact docx-preview rendering, no HTML copying
     try {
-      iWin.focus();
-      iWin.print();
-    } catch {
-      setError('Print failed — your browser may have blocked it.');
-    }
+      const [html2canvasModule, jsPDFModule] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+      const html2canvas = html2canvasModule.default;
+      const { jsPDF } = jsPDFModule;
 
-    // Clean up after print dialog closes (print() is synchronous/blocking)
-    printStyle.remove();
+      const iDoc = iframeRef.current.contentDocument;
+      const sections = iDoc.querySelectorAll('section.docx');
+
+      if (sections.length === 0) {
+        throw new Error('No page sections found in the rendered document');
+      }
+
+      // Read page dimensions from the first section's inline style (in pt)
+      const firstStyle = sections[0].getAttribute('style') || '';
+      const wMatch = firstStyle.match(/width:\s*([\d.]+)\s*pt/);
+      const hMatch = firstStyle.match(/min-height:\s*([\d.]+)\s*pt/);
+      const pageWidthPt = wMatch ? parseFloat(wMatch[1]) : 595.28;
+      const pageHeightPt = hMatch ? parseFloat(hMatch[1]) : 841.89;
+
+      // Create PDF with page size matching the DOCX page dimensions
+      const pdf = new jsPDF({
+        orientation: pageWidthPt > pageHeightPt ? 'landscape' : 'portrait',
+        unit: 'pt',
+        format: [pageWidthPt, pageHeightPt],
+      });
+
+      for (let i = 0; i < sections.length; i++) {
+        setProgressMsg(`Rendering page ${i + 1} of ${sections.length}...`);
+
+        if (i > 0) pdf.addPage([pageWidthPt, pageHeightPt]);
+
+        // Render this section to a canvas at 2x scale for print quality
+        const canvas = await html2canvas(sections[i] as HTMLElement, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          // html2canvas needs the window context from the iframe
+          windowWidth: sections[i].scrollWidth,
+          windowHeight: sections[i].scrollHeight,
+        });
+
+        // Add the canvas as a JPEG image filling the entire page
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthPt, pageHeightPt);
+      }
+
+      // Save with the document name
+      const docName = file.name.replace(/\.docx?$/i, '').replace(/[<>&"']/g, '');
+      pdf.save(`${docName}.pdf`);
+    } catch (e) {
+      setError(
+        'Conversion failed — ' +
+          (e instanceof Error ? e.message : 'please try again.')
+      );
+    }
+    setConverting(false);
+    setProgressMsg('');
   }, [rendered, file]);
 
   return (
@@ -176,15 +181,28 @@ export default function WordToPdf() {
 
             <button
               onClick={convertToPdf}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors duration-150"
+              disabled={converting}
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg transition-colors duration-150"
             >
-              <Download size={16} aria-hidden="true" />
-              Save as PDF
+              {converting ? (
+                <>
+                  <div
+                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                    aria-hidden="true"
+                  />
+                  {progressMsg || 'Converting...'}
+                </>
+              ) : (
+                <>
+                  <Download size={16} aria-hidden="true" />
+                  Download as PDF
+                </>
+              )}
             </button>
 
             <p className="text-xs text-neutral-400">
-              Opens your browser's print dialog — select &ldquo;Save as PDF&rdquo;
-              as the destination for pixel-perfect output.
+              Renders each page to an image and assembles into a PDF — page
+              breaks are guaranteed.
             </p>
           </div>
         )}
@@ -211,11 +229,6 @@ export default function WordToPdf() {
           <p className="text-sm font-medium text-neutral-700">Document Preview</p>
         )}
 
-        {/*
-          Iframe for docx-preview rendering — completely isolated from
-          Tailwind CSS preflight so headings, lists, tables, paragraph
-          spacing, etc. render correctly with browser default styles.
-        */}
         <iframe
           ref={iframeRef}
           title="Document preview"

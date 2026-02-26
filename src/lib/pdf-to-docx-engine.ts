@@ -87,12 +87,34 @@ function mulMatrix(m1: number[], m2: number[]): number[] {
   ];
 }
 
-async function rgbaToPng(data: Uint8ClampedArray, w: number, h: number): Promise<Uint8Array> {
+async function pixelDataToPng(
+  data: Uint8Array | Uint8ClampedArray,
+  w: number,
+  h: number
+): Promise<Uint8Array> {
+  // Handle both RGB (3-channel) and RGBA (4-channel) data
+  let rgba: Uint8ClampedArray;
+  if (data.length === w * h * 4) {
+    // Already RGBA — ensure it's a Uint8ClampedArray
+    rgba = data instanceof Uint8ClampedArray ? data : new Uint8ClampedArray(data);
+  } else if (data.length === w * h * 3) {
+    // RGB → RGBA: add alpha=255 for each pixel
+    rgba = new Uint8ClampedArray(w * h * 4);
+    for (let i = 0, j = 0; i < data.length; i += 3, j += 4) {
+      rgba[j] = data[i];
+      rgba[j + 1] = data[i + 1];
+      rgba[j + 2] = data[i + 2];
+      rgba[j + 3] = 255;
+    }
+  } else {
+    throw new Error(`Unexpected pixel data length: ${data.length} for ${w}x${h}`);
+  }
+
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
-  ctx.putImageData(new ImageData(data, w, h), 0, 0);
+  ctx.putImageData(new ImageData(rgba, w, h), 0, 0);
   const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/png'));
   if (!blob) throw new Error('PNG encode failed');
   return new Uint8Array(await blob.arrayBuffer());
@@ -103,11 +125,11 @@ async function imageObjToPng(
   fbW?: number,
   fbH?: number
 ): Promise<{ pngBytes: Uint8Array; w: number; h: number } | null> {
-  // Raw RGBA data object
+  // Raw pixel data object (may be Uint8Array or Uint8ClampedArray, RGB or RGBA)
   if (imgObj && typeof imgObj === 'object' && 'data' in imgObj) {
-    const raw = imgObj as { width: number; height: number; data: Uint8ClampedArray };
+    const raw = imgObj as { width: number; height: number; data: Uint8Array | Uint8ClampedArray };
     if (raw.data && raw.width > 1 && raw.height > 1) {
-      return { pngBytes: await rgbaToPng(raw.data, raw.width, raw.height), w: raw.width, h: raw.height };
+      return { pngBytes: await pixelDataToPng(raw.data, raw.width, raw.height), w: raw.width, h: raw.height };
     }
   }
   // HTMLImageElement (common for JPEG in pdfjs)
@@ -142,12 +164,22 @@ async function imageObjToPng(
 
 function resolveImageObj(
   page: {
-    objs: { get: (n: string, cb: (d: unknown) => void) => void };
-    commonObjs: { get: (n: string, cb: (d: unknown) => void) => void };
+    objs: { get: ((n: string, cb: (d: unknown) => void) => void) & ((n: string) => unknown) };
+    commonObjs: { get: ((n: string, cb: (d: unknown) => void) => void) & ((n: string) => unknown) };
   },
   name: string,
-  timeoutMs = 2000
+  timeoutMs = 10000
 ): Promise<unknown> {
+  // Try synchronous resolution first (no dangling promises)
+  try {
+    return Promise.resolve(page.objs.get(name));
+  } catch { /* not in page objects */ }
+  try {
+    return Promise.resolve(page.commonObjs.get(name));
+  } catch { /* not in common objects */ }
+
+  // Fall back to async with callback — but only call the correct collection
+  // to avoid creating dangling entries in the wrong one
   return new Promise((resolve, reject) => {
     let done = false;
     const finish = (d: unknown) => {
@@ -156,8 +188,12 @@ function resolveImageObj(
         resolve(d);
       }
     };
-    page.objs.get(name, finish);
-    page.commonObjs.get(name, finish);
+    // Global images use commonObjs (name starts with 'g_')
+    if (name.startsWith('g_')) {
+      page.commonObjs.get(name, finish);
+    } else {
+      page.objs.get(name, finish);
+    }
     setTimeout(() => {
       if (!done) {
         done = true;
@@ -189,8 +225,10 @@ function extractTextLines(
   const parsed = items.map((item) => {
     const x = item.transform[4];
     const yBot = item.transform[5];
+    // transform = [scaleX, skewY, skewX, scaleY, translateX, translateY]
+    // Font size = magnitude of the horizontal scale vector (indices 0,1)
     const fontSize = Math.sqrt(
-      item.transform[2] * item.transform[2] + item.transform[3] * item.transform[3]
+      item.transform[0] * item.transform[0] + item.transform[1] * item.transform[1]
     );
     const fontName = styles[item.fontName]?.fontFamily || item.fontName || '';
     const { bold, italic } = parseFontStyle(fontName);
@@ -315,8 +353,9 @@ async function extractImages(
           fn === OPS.paintJpegXObject ? (args[2] as number) : undefined
         );
         if (result) {
-          const displayW = Math.abs(ctm[0]);
-          const displayH = Math.abs(ctm[3]);
+          // Use vector magnitude for correct dimensions with rotated/skewed images
+          const displayW = Math.sqrt(ctm[0] * ctm[0] + ctm[1] * ctm[1]);
+          const displayH = Math.sqrt(ctm[2] * ctm[2] + ctm[3] * ctm[3]);
           const xPos = ctm[4];
           const yBot = ctm[5];
           if (displayW < 5 || displayH < 5) continue; // skip artifacts
