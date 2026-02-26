@@ -548,6 +548,34 @@ a {
   transform: translateY(-2px);
 }
 
+/* =============================================
+   DOCX preview container — neutralise Tailwind
+   preflight so docx-preview's inline styles and
+   generated CSS render correctly.
+
+   `all: revert` on descendants restores browser
+   defaults (undoes preflight). docx-preview's own
+   class selectors (higher specificity) and inline
+   styles still override where needed.
+
+   Only applied to children — NOT the container
+   itself, which keeps its Tailwind utility classes.
+   ============================================= */
+
+.docx-preview-container * {
+  all: revert;
+}
+
+.docx-preview-container .docx-wrapper {
+  background: #f5f5f5;
+  padding: 12px;
+}
+
+.docx-preview-container .docx-wrapper > section.docx {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   html {
