@@ -105,7 +105,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Educational content: 500-1000 words per tool, comparison tables, key terms
 - 5+ FAQ items per tool with substantive answers
 - 3 worked examples per tool with realistic scenarios
-- Affiliate programs on all financial tools (Betterment, Wealthfront, Marcus, SoFi, etc.)
+- Affiliate programs on all financial tools — geography-relevant (US: Betterment, SoFi, Marcus; UK: Nutmeg, Moneybox, InvestEngine; plus Wealthfront, Vanguard, LendingTree, etc.)
 - Utility tools correctly exclude affiliates (no forced product fits)
 - Slider QA: fixed min/max ranges across 9 calculators (17 sliders)
 - Accessibility: aria-label/aria-controls/role attributes on all interactive elements
@@ -116,7 +116,8 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
   - Document tools: CSV↔JSON, Markdown↔HTML, Excel→PDF
   - PDF tools: compress, merge, split, PDF→image
 - PDF→Word removed — requires server-side OCR/layout reconstruction for acceptable quality
-- Word→PDF removed — client-side docx-preview + html2canvas cannot reliably match Word's page breaks
+- Word→PDF removed — client-side docx-preview + html2canvas cannot reliably match Word's page breaks. Orphaned deps (`pdfmake`, `html-to-pdfmake`, `docx-preview`) cleaned up.
+- PDF Compressor fix: replaced `doc.embedJpg()` (which duplicated objects, making files bigger) with in-place `PDFRawStream` replacement via `context.assign()`
 - All processing client-side — "Your files never leave your device" privacy positioning
 - Cross-promotion links from converter pages to financial calculators
 - NOT a rebrand — financial calculators remain the core identity, homepage hero, and primary revenue driver
@@ -186,7 +187,8 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4. Sprints 1-5 are complete. All 31 tools are fully built: 14 financial calculators + 4 utility tools (18 MVP) + 13 file converters (PDF-to-Word and Word-to-PDF removed — both require server-side processing for acceptable quality). All have SEO content, FAQs, worked examples, and affiliate programs (where applicable — file converters correctly exclude affiliates). Sprint 6 (Polish & Launch) is next.
+3. **Current status:** Stage 4. Sprints 1-5 are complete. All 31 tools are fully built: 14 financial calculators + 4 utility tools (18 MVP) + 13 file converters (PDF-to-Word and Word-to-PDF removed — both require server-side processing for acceptable quality). All have SEO content, FAQs, worked examples, and affiliate programs (where applicable — financial tools have geography-relevant affiliates, file converters/utility tools correctly exclude affiliates). Sprint 6 (Polish & Launch) is next.
+5. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running
