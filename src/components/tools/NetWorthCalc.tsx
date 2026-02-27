@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   PieChart,
   Pie,
@@ -126,40 +126,14 @@ export default function NetWorthCalc() {
   const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + l.value, 0), [liabilities]);
   const netWorth = totalAssets - totalLiabilities;
   const animatedNetWorth = useAnimatedNumber(netWorth);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  const getPdfData = useCallback(() => ({
-    toolName: 'Net Worth Calculator',
-    sections: [
-      {
-        title: 'Assets',
-        rows: [
-          ...assets.filter((a) => a.name || a.value > 0).map((a) => ({
-            label: a.name || 'Unnamed Asset',
-            value: formatCurrency(a.value),
-          })),
-          { label: 'Total Assets', value: formatCurrency(totalAssets) },
-        ],
-      },
-      {
-        title: 'Liabilities',
-        rows: [
-          ...liabilities.filter((l) => l.name || l.value > 0).map((l) => ({
-            label: l.name || 'Unnamed Liability',
-            value: formatCurrency(l.value),
-          })),
-          { label: 'Total Liabilities', value: formatCurrency(totalLiabilities) },
-        ],
-      },
-      {
-        title: 'Summary',
-        rows: [
-          { label: 'Net Worth', value: formatCurrency(netWorth) },
-          { label: 'Debt-to-Asset Ratio', value: totalAssets > 0 ? `${((totalLiabilities / totalAssets) * 100).toFixed(1)}%` : '0%' },
-          { label: 'Assets Owned Free', value: totalAssets > 0 ? `${(((totalAssets - totalLiabilities) / totalAssets) * 100).toFixed(1)}%` : '0%' },
-        ],
-      },
-    ],
-  }), [assets, liabilities, totalAssets, totalLiabilities, netWorth]);
+  const getInputs = useCallback(() => [
+    { label: 'Total Assets', value: formatCurrency(totalAssets) },
+    { label: 'Total Liabilities', value: formatCurrency(totalLiabilities) },
+    { label: 'Number of Assets', value: `${assets.filter((a) => a.name || a.value > 0).length}` },
+    { label: 'Number of Liabilities', value: `${liabilities.filter((l) => l.name || l.value > 0).length}` },
+  ], [assets, liabilities, totalAssets, totalLiabilities]);
 
   const assetPieData = useMemo(
     () => assets.filter((a) => a.value > 0).map((a) => ({ name: a.name, value: a.value })),
@@ -235,7 +209,7 @@ export default function NetWorthCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Your Net Worth</p>
             <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${netWorth >= 0 ? 'result-number' : 'text-red-600'}`}>
@@ -282,7 +256,7 @@ export default function NetWorthCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Net Worth Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Charts side by side */}

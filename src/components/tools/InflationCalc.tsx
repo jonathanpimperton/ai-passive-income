@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   AreaChart,
   Area,
@@ -60,6 +60,7 @@ const DEFAULTS = {
 };
 
 export default function InflationCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<Mode>('historical');
   const [amount, setAmount] = useState(DEFAULTS.amount);
   const [startYear, setStartYear] = useState(DEFAULTS.startYear);
@@ -103,47 +104,24 @@ export default function InflationCalc() {
   const animatedHistorical = useAnimatedNumber(historicalResult?.adjustedValue ?? 0);
   const animatedFuture = useAnimatedNumber(futureResult?.futureValue ?? 0);
 
-  const getPdfData = useCallback(() => {
-    if (mode === 'historical' && historicalResult) {
-      return {
-        toolName: 'Inflation Calculator',
-        sections: [
-          {
-            title: 'Historical Inflation',
-            rows: [
-              { label: 'Original Amount', value: formatCurrency(amount) },
-              { label: 'Start Year', value: String(startYear) },
-              { label: 'End Year', value: String(endYear) },
-              { label: 'Equivalent Value', value: formatCurrency(historicalResult.adjustedValue) },
-              { label: 'Cumulative Inflation', value: `${(historicalResult.totalInflation * 100).toFixed(1)}%` },
-              { label: 'Avg. Annual Inflation', value: `${(historicalResult.avgAnnualRate * 100).toFixed(2)}%` },
-              { label: `${endYear} Purchasing Power`, value: formatCurrency(historicalResult.purchasingPower) },
-            ],
-          },
-        ],
-      };
+  const getInputs = useCallback(() => {
+    const inputs = [
+      { label: 'Mode', value: mode === 'historical' ? 'Historical' : 'Future Projection' },
+      { label: 'Dollar Amount', value: formatCurrency(amount) },
+    ];
+    if (mode === 'historical') {
+      inputs.push(
+        { label: 'Start Year', value: String(startYear) },
+        { label: 'End Year', value: String(endYear) },
+      );
+    } else {
+      inputs.push(
+        { label: 'Years Into Future', value: `${futureYears} years` },
+        { label: 'Assumed Annual Inflation', value: `${inflationRate.toFixed(1)}%` },
+      );
     }
-    if (mode === 'future' && futureResult) {
-      return {
-        toolName: 'Inflation Calculator',
-        sections: [
-          {
-            title: 'Future Projection',
-            rows: [
-              { label: 'Original Amount', value: formatCurrency(amount) },
-              { label: 'Years Into Future', value: String(futureYears) },
-              { label: 'Assumed Annual Inflation', value: `${inflationRate.toFixed(1)}%` },
-              { label: 'Cost in Future Dollars', value: formatCurrency(futureResult.futureValue) },
-              { label: 'Purchasing Power', value: formatCurrency(futureResult.purchasingPower) },
-              { label: 'Purchasing Power Lost', value: formatCurrency(amount - futureResult.purchasingPower) },
-              { label: 'Total Inflation', value: `${(futureResult.totalInflation * 100).toFixed(1)}%` },
-            ],
-          },
-        ],
-      };
-    }
-    return { toolName: 'Inflation Calculator', sections: [] };
-  }, [mode, amount, startYear, endYear, historicalResult, futureYears, inflationRate, futureResult]);
+    return inputs;
+  }, [mode, amount, startYear, endYear, futureYears, inflationRate]);
 
   const chartData = useMemo(() => {
     if (mode === 'historical') {
@@ -235,7 +213,7 @@ export default function InflationCalc() {
         </div>
 
         {/* Results */}
-        <div id="inf-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="inf-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           {mode === 'historical' && historicalResult && (
             <>
               <div className="mb-6">
@@ -318,7 +296,7 @@ export default function InflationCalc() {
           )}
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Inflation Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Chart */}

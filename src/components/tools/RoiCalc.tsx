@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   BarChart,
   Bar,
@@ -36,6 +36,7 @@ function annualizedROI(totalReturn: number, years: number): number {
 }
 
 export default function RoiCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [initialInvestment, setInitialInvestment] = useState(DEFAULTS.initialInvestment);
   const [finalValue, setFinalValue] = useState(DEFAULTS.finalValue);
   const [yearsHeld, setYearsHeld] = useState(DEFAULTS.yearsHeld);
@@ -87,37 +88,23 @@ export default function RoiCalc() {
 
   const fmtPct = (v: number) => `${(v * 100).toFixed(2)}%`;
 
-  const getPdfData = useCallback(() => {
-    const sections = [
-      {
-        title: 'Investment A',
-        rows: [
-          { label: 'Initial Investment', value: formatCurrency(initialInvestment) },
-          { label: 'Final Value', value: formatCurrency(finalValue) },
-          { label: 'Dividends Received', value: formatCurrency(dividendsReceived) },
-          { label: 'Time Held', value: `${yearsHeld} year${yearsHeld !== 1 ? 's' : ''}` },
-          { label: 'Total Return', value: fmtPct(resultA.totalReturn) },
-          { label: 'Annualized Return', value: fmtPct(resultA.annualizedReturn) },
-          { label: 'Total Gain / Loss', value: formatCurrency(resultA.totalGain) },
-        ],
-      },
+  const getInputs = useCallback(() => {
+    const inputs = [
+      { label: 'Initial Investment (A)', value: formatCurrency(initialInvestment) },
+      { label: 'Final Value (A)', value: formatCurrency(finalValue) },
+      { label: 'Dividends Received (A)', value: formatCurrency(dividendsReceived) },
+      { label: 'Time Held (A)', value: `${yearsHeld} year${yearsHeld !== 1 ? 's' : ''}` },
     ];
-    if (resultB) {
-      sections.push({
-        title: 'Investment B',
-        rows: [
-          { label: 'Initial Investment', value: formatCurrency(initialB) },
-          { label: 'Final Value', value: formatCurrency(finalB) },
-          { label: 'Dividends Received', value: formatCurrency(dividendsB) },
-          { label: 'Time Held', value: `${yearsB} year${yearsB !== 1 ? 's' : ''}` },
-          { label: 'Total Return', value: fmtPct(resultB.totalReturn) },
-          { label: 'Annualized Return', value: fmtPct(resultB.annualizedReturn) },
-          { label: 'Total Gain / Loss', value: formatCurrency(resultB.totalGain) },
-        ],
-      });
+    if (showComparison) {
+      inputs.push(
+        { label: 'Initial Investment (B)', value: formatCurrency(initialB) },
+        { label: 'Final Value (B)', value: formatCurrency(finalB) },
+        { label: 'Dividends Received (B)', value: formatCurrency(dividendsB) },
+        { label: 'Time Held (B)', value: `${yearsB} year${yearsB !== 1 ? 's' : ''}` },
+      );
     }
-    return { toolName: 'ROI Calculator', sections };
-  }, [initialInvestment, finalValue, dividendsReceived, yearsHeld, resultA, initialB, finalB, dividendsB, yearsB, resultB]);
+    return inputs;
+  }, [initialInvestment, finalValue, dividendsReceived, yearsHeld, showComparison, initialB, finalB, dividendsB, yearsB]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
@@ -166,7 +153,7 @@ export default function RoiCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           {/* Investment A results */}
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{showComparison ? 'Investment A — ' : ''}Total Return</p>
@@ -236,7 +223,7 @@ export default function RoiCalc() {
           )}
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="ROI Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Comparison chart */}

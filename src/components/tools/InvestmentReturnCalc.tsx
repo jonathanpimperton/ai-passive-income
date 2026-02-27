@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, Fragment } from 'react';
+import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
 import {
   compoundInterest,
   compoundInterestSchedule,
@@ -63,6 +63,7 @@ const DEFAULTS = {
 
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function InvestmentReturnCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<SolveMode>('endAmount');
   const [principal, setPrincipal] = useState(DEFAULTS.principal);
   const [monthly, setMonthly] = useState(DEFAULTS.monthly);
@@ -204,18 +205,32 @@ export default function InvestmentReturnCalc() {
   }, [chartData]);
 
   /* ── PDF Export ──────────────────────────────────────────── */
-  const getPdfData = useCallback(() => ({
-    toolName: 'Investment Return Calculator',
-    sections: [{
-      title: `Results (${result.label})`,
-      rows: [
-        { label: result.label, value: result.formatted },
-        { label: 'Final Balance', value: formatCurrency(summary.finalBalance) },
-        { label: 'Total Invested', value: formatCurrency(summary.totalContributions) },
-        { label: 'Total Earnings', value: formatCurrency(summary.totalEarnings) },
-      ],
-    }],
-  }), [result.label, result.formatted, summary.finalBalance, summary.totalContributions, summary.totalEarnings]);
+  const getInputs = useCallback(() => {
+    const freqLabel = COMPOUND_OPTIONS.find((o) => o.value === frequency)?.label ?? `${frequency}x/yr`;
+    const timingLabel = TIMING_OPTIONS.find((o) => o.value === timing)?.label ?? timing;
+    const modeLabel = TABS.find((t) => t.key === mode)?.label ?? mode;
+    const inputs: { label: string; value: string }[] = [
+      { label: 'Solve For', value: modeLabel },
+    ];
+    if (mode !== 'startingAmount') {
+      inputs.push({ label: 'Starting Amount', value: `$${formatNumber(principal)}` });
+    }
+    if (mode !== 'contribution') {
+      inputs.push({ label: 'Monthly Contribution', value: `$${formatNumber(monthly)}` });
+    }
+    if (mode !== 'returnRate') {
+      inputs.push({ label: 'Expected Annual Return', value: `${rate}%` });
+    }
+    if (mode !== 'time') {
+      inputs.push({ label: 'Time Period', value: `${years} year${years !== 1 ? 's' : ''}` });
+    }
+    if (mode !== 'endAmount') {
+      inputs.push({ label: 'Target Amount', value: `$${formatNumber(target)}` });
+    }
+    inputs.push({ label: 'Compounding Frequency', value: freqLabel });
+    inputs.push({ label: 'Contribution Timing', value: timingLabel });
+    return inputs;
+  }, [mode, principal, monthly, rate, years, target, frequency, timing]);
 
   /* ── Reset ──────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
@@ -449,7 +464,7 @@ export default function InvestmentReturnCalc() {
         </div>
 
         {/* ── Results Panel ─────────────────────────────── */}
-        <div id="ir-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="ir-results" ref={resultsRef} role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           {/* Big Number */}
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{result.label}</p>
@@ -497,7 +512,7 @@ export default function InvestmentReturnCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Investment Return Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Area Chart */}

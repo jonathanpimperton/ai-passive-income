@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, Fragment } from 'react';
+import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
 import {
   compoundInterestSchedule,
   formatCurrency,
@@ -149,6 +149,7 @@ const DEFAULTS = {
 };
 
 export default function CompoundInterestCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [principal, setPrincipal] = useState(DEFAULTS.principal);
   const [monthly, setMonthly] = useState(DEFAULTS.monthlyContribution);
   const [rate, setRate] = useState(DEFAULTS.annualRate);
@@ -191,19 +192,18 @@ export default function CompoundInterestCalc() {
     });
   }, [schedule]);
 
-  const getPdfData = useCallback(() => ({
-    toolName: 'Compound Interest Calculator',
-    sections: [{
-      title: 'Summary',
-      rows: [
-        { label: 'Final Balance', value: formatCurrency(finalBalance) },
-        { label: 'Total Contributions', value: formatCurrency(totalContributions) },
-        { label: 'Total Interest Earned', value: formatCurrency(totalInterest) },
-        { label: 'Growth Rate', value: `${rate}%` },
-        { label: 'Time Period', value: `${years} year${years !== 1 ? 's' : ''}` },
-      ],
-    }],
-  }), [finalBalance, totalContributions, totalInterest, rate, years]);
+  const getInputs = useCallback(() => {
+    const freqLabel = COMPOUND_OPTIONS.find((o) => o.value === frequency)?.label ?? `${frequency}x/yr`;
+    const timingLabel = TIMING_OPTIONS.find((o) => o.value === timing)?.label ?? timing;
+    return [
+      { label: 'Starting Amount', value: `$${formatNumber(principal)}` },
+      { label: 'Monthly Contribution', value: `$${formatNumber(monthly)}` },
+      { label: 'Annual Growth Rate', value: `${rate}%` },
+      { label: 'Time Period', value: `${years} year${years !== 1 ? 's' : ''}` },
+      { label: 'Compounding Frequency', value: freqLabel },
+      { label: 'Contribution Timing', value: timingLabel },
+    ];
+  }, [principal, monthly, rate, years, frequency, timing]);
 
   const handleReset = useCallback(() => {
     setPrincipal(DEFAULTS.principal);
@@ -345,7 +345,7 @@ export default function CompoundInterestCalc() {
         </div>
 
         {/* ── Results Panel ───────────────────────────── */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           {/* Big Number — gradient text + count-up animation */}
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Final Balance</p>
@@ -384,7 +384,7 @@ export default function CompoundInterestCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Compound Interest Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Chart */}

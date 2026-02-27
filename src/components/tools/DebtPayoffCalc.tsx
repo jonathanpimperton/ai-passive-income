@@ -123,6 +123,7 @@ function formatMonths(months: number): string {
 
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function DebtPayoffCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const debtIdCounter = useRef(0);
   const getNextId = useCallback(() => `debt-${++debtIdCounter.current}`, []);
 
@@ -227,21 +228,17 @@ export default function DebtPayoffCalc() {
     setActiveStrategy('avalanche');
   }, [getNextId]);
 
-  const getPdfData = useCallback(() => ({
-    toolName: 'Debt Payoff Calculator',
-    sections: [{
-      title: 'Debt Payoff Summary',
-      rows: [
-        { label: 'Strategy', value: activeStrategy === 'avalanche' ? 'Avalanche (highest rate first)' : 'Snowball (lowest balance first)' },
-        { label: 'Total Debt', value: formatCurrency(totalDebt) },
-        { label: 'Time to Payoff', value: formatMonths(activeResult.months) },
-        { label: 'Total Interest', value: formatCurrency(activeResult.totalInterest) },
-        { label: 'Total Paid', value: formatCurrency(activeResult.totalPaid) },
-        { label: 'Extra Monthly Payment', value: formatCurrency(extraPayment) },
-        { label: 'Total Monthly Payment', value: formatCurrency(totalMinPayments + extraPayment) },
-      ],
-    }],
-  }), [activeStrategy, totalDebt, activeResult.months, activeResult.totalInterest, activeResult.totalPaid, extraPayment, totalMinPayments]);
+  const getInputs = useCallback(() => {
+    const inputs: { label: string; value: string }[] = [];
+    debts.forEach((d) => {
+      inputs.push({ label: `${d.name} Balance`, value: `$${formatNumber(d.balance)}` });
+      inputs.push({ label: `${d.name} APR`, value: `${(d.rate * 100).toFixed(2)}%` });
+      inputs.push({ label: `${d.name} Min Payment`, value: `$${formatNumber(d.minPayment)}` });
+    });
+    inputs.push({ label: 'Strategy', value: activeStrategy === 'avalanche' ? 'Avalanche (highest rate first)' : 'Snowball (lowest balance first)' });
+    inputs.push({ label: 'Extra Monthly Payment', value: `$${formatNumber(extraPayment)}` });
+    return inputs;
+  }, [debts, activeStrategy, extraPayment]);
 
   const animatedMonths = useAnimatedNumber(activeResult.months);
   const hasValidDebts = debts.length > 0;
@@ -389,7 +386,7 @@ export default function DebtPayoffCalc() {
         </div>
 
         {/* ── Results Panel ─────────────────────────────── */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           {!hasValidDebts ? (
             <div className="flex items-center justify-center h-full min-h-[300px]">
               <div className="text-center">
@@ -557,7 +554,7 @@ export default function DebtPayoffCalc() {
               )}
 
               <div className="flex justify-end mb-4">
-                <ExportPdfButton getData={getPdfData} />
+                <ExportPdfButton toolName="Debt Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
               </div>
 
               {/* ── Balance Over Time Chart ───────────── */}

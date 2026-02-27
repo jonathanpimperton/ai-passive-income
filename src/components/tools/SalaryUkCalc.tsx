@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   PieChart,
   Pie,
@@ -247,36 +247,27 @@ export default function SalaryUkCalc() {
   }, [salary, isScottish, studentLoan, pensionPercent, pensionIsSacrifice, taxCodeParsed]);
 
   const animatedNetAnnual = useAnimatedNumber(result.netAnnual);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  const getPdfData = useCallback(() => ({
-    toolName: 'UK Salary Calculator',
-    sections: [
-      {
-        title: 'Pay Summary',
-        rows: [
-          { label: 'Gross Annual', value: formatGBP(result.grossAnnual) },
-          { label: 'Net Annual (Take-Home)', value: formatGBP(result.netAnnual) },
-          { label: 'Net Monthly', value: formatGBP(result.netMonthly) },
-          { label: 'Net Weekly', value: formatGBP(result.netWeekly) },
-          { label: 'Net Daily', value: formatGBP(result.netDaily) },
-          { label: 'Effective Deduction Rate', value: `${(result.effectiveTaxRate * 100).toFixed(1)}%` },
-          { label: 'Marginal Tax Rate', value: `${(result.marginalRate * 100).toFixed(0)}%` },
-        ],
-      },
-      {
-        title: 'Deductions Breakdown',
-        rows: [
-          { label: 'Personal Allowance', value: formatGBP(result.personalAllowance) },
-          { label: 'Income Tax', value: formatGBP(result.incomeTax) },
-          { label: 'National Insurance', value: formatGBP(result.ni) },
-          ...(result.studentLoanRepayment > 0 ? [{ label: 'Student Loan Repayment', value: formatGBP(result.studentLoanRepayment) }] : []),
-          { label: 'Pension Contribution', value: formatGBP(result.pensionAmount) },
-          ...(result.niSaving > 0 ? [{ label: 'NI Saving (Salary Sacrifice)', value: formatGBP(result.niSaving) }] : []),
-          { label: 'Total Deductions', value: formatGBP(result.totalDeductions) },
-        ],
-      },
-    ],
-  }), [result]);
+  const getInputs = useCallback(() => {
+    const inputs = [
+      { label: 'Annual Salary', value: `£${formatNumber(salary)}` },
+    ];
+    if (taxCode.trim()) {
+      inputs.push({ label: 'Tax Code', value: taxCode.trim().toUpperCase() });
+    }
+    if (isScottish) {
+      inputs.push({ label: 'Tax Region', value: 'Scotland' });
+    }
+    if (studentLoan !== 'none') {
+      inputs.push({ label: 'Student Loan', value: STUDENT_LOAN_LABELS[studentLoan] });
+    }
+    inputs.push({ label: 'Pension Contribution', value: `${pensionPercent.toFixed(1)}%` });
+    if (pensionIsSacrifice) {
+      inputs.push({ label: 'Pension Type', value: 'Salary Sacrifice' });
+    }
+    return inputs;
+  }, [salary, taxCode, isScottish, studentLoan, pensionPercent, pensionIsSacrifice]);
 
   const pieData = useMemo(() => [
     { name: 'Take-Home Pay', value: result.netAnnual },
@@ -428,7 +419,7 @@ export default function SalaryUkCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
@@ -510,7 +501,7 @@ export default function SalaryUkCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="UK Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Pie chart */}
