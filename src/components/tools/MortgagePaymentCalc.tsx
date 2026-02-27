@@ -509,6 +509,7 @@ export default function MortgagePaymentCalc() {
           <button
             onClick={() => setShowSchedule(!showSchedule)}
             aria-expanded={showSchedule}
+            data-pdf-hide
             className="flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors duration-150 mb-4"
           >
             <ChevronDown

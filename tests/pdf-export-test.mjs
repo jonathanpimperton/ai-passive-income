@@ -7,7 +7,7 @@
  */
 import { chromium } from 'playwright';
 
-const BASE = 'http://127.0.0.1:4399';
+const BASE = process.env.BASE_URL || 'http://127.0.0.1:4321';
 
 const CALCULATORS = [
   { name: 'Compound Interest', path: '/tools/saving-and-growth/compound-interest/' },
