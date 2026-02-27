@@ -1,7 +1,11 @@
 /**
  * Client-side PDF export for financial calculator results.
- * Uses html2canvas to capture the rendered results panel (charts, tables,
+ * Uses html-to-image to capture the rendered results panel (charts, tables,
  * breakdowns) and jsPDF to compose a branded PDF with inputs + visual results.
+ *
+ * html-to-image uses the browser's own rendering engine (foreignObject SVG),
+ * so it supports all CSS the browser supports — including oklab/oklch colors
+ * from Tailwind CSS v4, which html2canvas cannot parse.
  */
 
 export interface PdfInput {
@@ -16,9 +20,9 @@ export interface PdfExportOptions {
 }
 
 export async function exportToPdf(options: PdfExportOptions): Promise<void> {
-  const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+  const [{ jsPDF }, { toCanvas }] = await Promise.all([
     import('jspdf'),
-    import('html2canvas'),
+    import('html-to-image'),
   ]);
 
   const { toolName, inputs, resultsElement } = options;
@@ -31,69 +35,17 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
     el.style.display = 'none';
   });
 
-  // Pre-rasterize SVG charts to canvas elements. html2canvas 1.x cannot
-  // reliably render complex SVGs (gradients, transforms, recharts output).
-  // We convert them to canvas first, let html2canvas capture those, then restore.
-  const svgReplacements: Array<{ svg: SVGSVGElement; canvas: HTMLCanvasElement }> = [];
-  const svgEls = Array.from(resultsElement.querySelectorAll<SVGSVGElement>('svg'));
-
-  for (const svg of svgEls) {
-    const rect = svg.getBoundingClientRect();
-    // Skip small SVGs (icons) — only rasterize chart-sized SVGs
-    if (rect.width < 100 || rect.height < 50) continue;
-
-    const clone = svg.cloneNode(true) as SVGSVGElement;
-    clone.setAttribute('width', String(rect.width));
-    clone.setAttribute('height', String(rect.height));
-
-    const xml = new XMLSerializer().serializeToString(clone);
-    const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-
-    try {
-      const img = new Image();
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('SVG rasterize failed'));
-        img.src = url;
-      });
-
-      const cvs = document.createElement('canvas');
-      cvs.width = Math.round(rect.width * 2);
-      cvs.height = Math.round(rect.height * 2);
-      cvs.style.width = `${rect.width}px`;
-      cvs.style.height = `${rect.height}px`;
-      const ctx = cvs.getContext('2d');
-      if (ctx && svg.parentNode) {
-        ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
-        svg.parentNode.replaceChild(cvs, svg);
-        svgReplacements.push({ svg, canvas: cvs });
-      }
-    } catch {
-      // If rasterization fails for one SVG, skip it — html2canvas will try its best
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }
-
   let canvas: HTMLCanvasElement;
   try {
-    // Capture the results panel (charts, tables, big numbers — everything)
-    canvas = await html2canvas(resultsElement, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
+    canvas = await toCanvas(resultsElement, {
+      pixelRatio: 2,
       backgroundColor: '#FAFAFA',
     });
   } finally {
-    // Always restore hidden elements, even if html2canvas throws
+    // Always restore hidden elements, even if capture throws
     hiddenEls.forEach((el, i) => {
       el.style.display = prevDisplays[i];
     });
-    // Restore original SVGs
-    for (const { svg, canvas: cvs } of svgReplacements) {
-      cvs.parentNode?.replaceChild(svg, cvs);
-    }
   }
 
   // ── Build PDF ──────────────────────────────────────────
@@ -201,7 +153,6 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
   y += 4;
 
   const imgWidth = cw;
-  const imgHeight = (canvas.height / canvas.width) * imgWidth;
   const pxPerMm = canvas.width / imgWidth;
   const maxContent = ph - footerReserve;
 
