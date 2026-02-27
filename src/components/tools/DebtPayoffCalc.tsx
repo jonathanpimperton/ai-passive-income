@@ -398,7 +398,7 @@ export default function DebtPayoffCalc() {
           ) : (
             <>
               {/* ── Strategy Toggle ────────────────────── */}
-              <div className="mb-6">
+              <div data-pdf-section className="mb-6">
                 <div className="inline-flex rounded-xl bg-neutral-100 p-1" role="radiogroup" aria-label="Debt payoff strategy">
                   <button
                     role="radio"
@@ -447,7 +447,7 @@ export default function DebtPayoffCalc() {
               </div>
 
               {/* ── Big Number: Time to Debt-Free ──────── */}
-              <div className="mb-6">
+              <div data-pdf-section className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">Debt-Free In</p>
                 <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                   {formatMonths(Math.round(animatedMonths))}
@@ -458,7 +458,7 @@ export default function DebtPayoffCalc() {
               </div>
 
               {/* ── Side-by-Side Strategy Comparison ──── */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
+              <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
                 {/* Avalanche Card */}
                 <div
                   className={`rounded-xl border p-4 transition-all duration-200 ${
@@ -542,7 +542,7 @@ export default function DebtPayoffCalc() {
 
               {/* ── Savings Banner ────────────────────── */}
               {savings > 0 && (
-                <div className="mb-6 rounded-xl bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200/60 p-4">
+                <div data-pdf-section className="mb-6 rounded-xl bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200/60 p-4">
                   <p className="text-sm font-medium text-primary-900">
                     <span className="font-bold">{betterStrategy === 'avalanche' ? 'Avalanche' : 'Snowball'}</span> saves you{' '}
                     <span className="font-bold text-accent-600">{formatCurrency(savings)}</span> in interest
@@ -559,7 +559,7 @@ export default function DebtPayoffCalc() {
 
               {/* ── Balance Over Time Chart ───────────── */}
               {chartData.length > 1 && (
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
+                <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
                   <h3 className="text-sm font-medium text-neutral-700 mb-3">
                     Balance Over Time
                   </h3>
@@ -614,7 +614,7 @@ export default function DebtPayoffCalc() {
               )}
 
               {/* ── Payoff Order ──────────────────────── */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Avalanche Order */}
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
                   <div className="flex items-center gap-1.5 mb-3">

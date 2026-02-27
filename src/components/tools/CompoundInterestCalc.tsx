@@ -347,7 +347,7 @@ export default function CompoundInterestCalc() {
         {/* ── Results Panel ───────────────────────────── */}
         <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           {/* Big Number — gradient text + count-up animation */}
-          <div className="mb-6">
+          <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Final Balance</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {formatCurrency(useAnimatedNumber(finalBalance))}
@@ -358,7 +358,7 @@ export default function CompoundInterestCalc() {
           </div>
 
           {/* Breakdown — with icons */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Wallet size={16} aria-hidden="true" />
@@ -388,7 +388,7 @@ export default function CompoundInterestCalc() {
           </div>
 
           {/* Chart */}
-          <div className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
+          <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Growth Over Time</h3>
             <div className="h-56 sm:h-64">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -445,7 +445,7 @@ export default function CompoundInterestCalc() {
           </div>
 
           {/* Schedule Table */}
-          <div>
+          <div data-pdf-section>
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Year-by-Year Breakdown</h3>
             <ScheduleTable data={yearTableData} />
           </div>

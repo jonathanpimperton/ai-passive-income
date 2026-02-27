@@ -255,7 +255,7 @@ export default function LoanAmortizationCalc() {
 
         {/* ── Results ────────────────────────────────── */}
         <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
-          <div className="mb-6">
+          <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Monthly Payment</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {formatCurrency(useAnimatedNumber(monthlyPayment))}
@@ -269,7 +269,7 @@ export default function LoanAmortizationCalc() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-3 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Banknote size={16} aria-hidden="true" />
@@ -304,7 +304,7 @@ export default function LoanAmortizationCalc() {
           </div>
 
           {/* Pie + Area Charts */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
               <h3 className="text-sm font-medium text-neutral-700 mb-2">Principal vs Interest</h3>
               <div className="h-40">
@@ -340,7 +340,7 @@ export default function LoanAmortizationCalc() {
           </div>
 
           {/* Amortization Table */}
-          <div>
+          <div data-pdf-section>
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Amortization Schedule</h3>
             <AmortizationTable yearGroups={yearGroups} />
           </div>

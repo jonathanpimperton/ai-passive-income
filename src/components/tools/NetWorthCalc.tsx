@@ -210,7 +210,7 @@ export default function NetWorthCalc() {
 
         {/* Results */}
         <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
-          <div className="mb-6">
+          <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Your Net Worth</p>
             <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${netWorth >= 0 ? 'result-number' : 'text-red-600'}`}>
               {formatCurrency(animatedNetWorth)}
@@ -220,7 +220,7 @@ export default function NetWorthCalc() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
               <div>
@@ -260,7 +260,7 @@ export default function NetWorthCalc() {
           </div>
 
           {/* Charts side by side */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Assets pie */}
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
               <h3 className="text-sm font-medium text-neutral-700 mb-2">Assets Breakdown</h3>

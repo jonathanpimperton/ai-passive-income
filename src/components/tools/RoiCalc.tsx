@@ -155,7 +155,7 @@ export default function RoiCalc() {
         {/* Results */}
         <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           {/* Investment A results */}
-          <div className="mb-6">
+          <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{showComparison ? 'Investment A — ' : ''}Total Return</p>
             <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${resultA.totalReturn >= 0 ? 'result-number' : 'text-red-600'}`}>
               {animatedTotalReturn.toFixed(2)}%
@@ -165,7 +165,7 @@ export default function RoiCalc() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Calendar size={16} aria-hidden="true" /></div>
               <div>
@@ -188,7 +188,7 @@ export default function RoiCalc() {
 
           {/* Investment B results */}
           {resultB && (
-            <>
+            <div data-pdf-section>
               <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-6" />
               <div className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">Investment B — Total Return</p>
@@ -219,7 +219,7 @@ export default function RoiCalc() {
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           <div className="flex justify-end mb-4">
@@ -227,7 +227,7 @@ export default function RoiCalc() {
           </div>
 
           {/* Comparison chart */}
-          <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+          <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">
               {showComparison ? 'Return Comparison' : 'Return Breakdown'}
             </h3>
