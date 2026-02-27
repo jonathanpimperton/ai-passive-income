@@ -60,10 +60,12 @@ export default function JsonXmlConverter() {
     }
     if (fxpLoading) return;
     fxpLoading = true;
-    import('fast-xml-parser').then((mod) => {
-      fxpModule = mod;
-      setLibReady(true);
-    });
+    import('fast-xml-parser')
+      .then((mod) => {
+        fxpModule = mod;
+        setLibReady(true);
+      })
+      .catch(() => setLibReady(true)); // Degrade gracefully — result memo handles missing lib
   }, []);
 
   const result = useMemo(() => {

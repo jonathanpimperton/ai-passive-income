@@ -29,6 +29,7 @@ export default function PdfMerge() {
     setError('');
     const { PDFDocument } = await import('pdf-lib');
     const entries: PdfEntry[] = [];
+    const failedNames: string[] = [];
     for (const file of files) {
       try {
         const bytes = await file.arrayBuffer();
@@ -39,10 +40,13 @@ export default function PdfMerge() {
           pageCount: doc.getPageCount(),
         });
       } catch {
-        setError(`Could not read "${file.name}" — it may be encrypted or corrupted.`);
+        failedNames.push(file.name);
       }
     }
     if (entries.length > 0) setPdfs((prev) => [...prev, ...entries]);
+    if (failedNames.length > 0) {
+      setError(`Could not read ${failedNames.length === 1 ? `"${failedNames[0]}"` : `${failedNames.length} files: ${failedNames.map(n => `"${n}"`).join(', ')}`} — may be encrypted or corrupted.`);
+    }
   }, []);
 
   const removePdf = (id: string) => setPdfs((prev) => prev.filter((p) => p.id !== id));

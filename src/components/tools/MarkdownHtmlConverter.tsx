@@ -105,7 +105,9 @@ export default function MarkdownHtmlConverter() {
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    Promise.all([loadMarked(), loadTurndown()]).then(() => setReady(true));
+    Promise.all([loadMarked(), loadTurndown()])
+      .then(() => setReady(true))
+      .catch(() => setReady(true)); // Degrade gracefully — converter functions handle missing libs
   }, []);
 
   const result = useMemo(() => {

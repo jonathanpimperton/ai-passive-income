@@ -253,7 +253,21 @@ Every session that writes code MUST run through this checklist before committing
 - [ ] **Favicon/manifest references** point to files that actually exist in `public/`
 - [ ] **No hardcoded URLs** in components — Use helper functions (`getToolPath()`, etc.)
 
-### 7. Code Quality
+### 7. Runtime Error Handling (every component with async operations)
+
+This section exists because a PDF export bug shipped where `html2canvas` failure left the Export PDF button permanently hidden (`display: none`) with no user feedback. The root cause: DOM state was modified before an async operation, but restore code wasn't in a `finally` block. Silent `catch {}` blocks hid the failure from users entirely.
+
+- [ ] **DOM/style mutations before async ops use `try/finally`** — If you set `el.style.display = 'none'` or modify classList before an `await`, the restore MUST be in a `finally` block. Never rely on code after the `await` for cleanup — it won't run if the `await` throws.
+- [ ] **No silent `catch {}` blocks** — Every `catch` must either: (a) set an error state that's shown to the user, or (b) re-throw. `catch { /* silent */ }` is banned. The PDF export bug shipped because the catch swallowed the error and the user saw nothing. If you genuinely want to degrade gracefully, still set state that lets the user know something fell back.
+- [ ] **Dynamic `import()` calls have `.catch()` or are in `try/catch`** — If a lazy import of a library fails (network error, CDN down), the component must show an error, not silently hang with "Loading..." forever. Every `import('lib').then(...)` needs a `.catch(...)`. Every `await import('lib')` needs to be in `try/catch`.
+- [ ] **`Image` elements have `onerror` handlers** — `new Image()` with `onload` but no `onerror` means a corrupt/missing image silently hangs the UI. Always add `img.onerror`.
+- [ ] **`FileReader` elements have `onerror` handlers** — Same pattern. `reader.onload` without `reader.onerror` means a failed read silently hangs.
+- [ ] **Batch operations report ALL errors, not just the last** — If processing N files in a loop and setting `setError(msg)` on each failure, only the last error survives. Collect errors into an array and display a summary (e.g., "3 of 5 files failed").
+- [ ] **`Promise.allSettled` rejections are surfaced** — If you use `Promise.allSettled` and filter to `fulfilled` results, you MUST also check `rejected` results and tell the user which items failed and why.
+- [ ] **Loading/processing state always resets on error** — If `setProcessing(true)` is called, verify that every code path (success, error, early return) calls `setProcessing(false)`. A stuck spinner is as bad as a disappearing button.
+- [ ] **Object URLs are revoked on error paths** — `URL.createObjectURL()` leaks memory if not revoked. Verify revocation happens in both success and error paths.
+
+### 8. Code Quality
 - [ ] **No unused imports** — Remove any imports that aren't referenced
 - [ ] **No `console.log`** — Remove before committing
 - [ ] **No invalid CSS class names** — Verify Tailwind classes exist (e.g., `text-negative-500` is not a valid class — use `text-red-600`)

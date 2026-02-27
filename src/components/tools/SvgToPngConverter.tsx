@@ -93,6 +93,7 @@ export default function SvgToPngConverter() {
           convert(reader.result, scale);
         }
       };
+      reader.onerror = () => setProcessing(false);
       reader.readAsText(f);
     },
     [convert, scale],

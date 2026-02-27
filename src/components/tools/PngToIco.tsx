@@ -41,14 +41,17 @@ export default function PngToIco() {
   const [selectedSizes, setSelectedSizes] = useState<Set<number>>(new Set(DEFAULT_SIZES));
   const [previews, setPreviews] = useState<PreviewImage[]>([]);
   const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   const handleFileUpload = useCallback(async (files: File[]) => {
     const file = files[0];
     if (!file) return;
     setSourceName(file.name);
+    setError('');
 
     const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
     img.onload = async () => {
       setSourceImage(img);
       imgRef.current = img;
@@ -61,7 +64,11 @@ export default function PngToIco() {
       }
       setPreviews(newPreviews);
     };
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      setError('Could not load this image — it may be corrupted or unsupported.');
+    };
+    img.src = objectUrl;
   }, []);
 
   const toggleSize = useCallback((size: number) => {
@@ -116,6 +123,10 @@ export default function PngToIco() {
   return (
     <div className="space-y-6">
       <PrivacyBadge />
+
+      {error && (
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">{error}</div>
+      )}
 
       {/* Upload */}
       {!sourceImage ? (
