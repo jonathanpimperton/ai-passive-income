@@ -138,9 +138,6 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
   const { toolName, inputs, resultsElement } = options;
   const pixelRatio = 2;
 
-  // Collect section break points BEFORE any style changes
-  const breakPoints = collectBreakPoints(resultsElement, pixelRatio);
-
   // Hide elements marked with data-pdf-hide during capture
   const hiddenEls = resultsElement.querySelectorAll<HTMLElement>('[data-pdf-hide]');
   const prevDisplays: string[] = [];
@@ -151,6 +148,11 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
 
   // Neutralise scroll/overflow styles to prevent scrollbar artifacts
   const savedScrollStyles = neutraliseScrollStyles(resultsElement);
+
+  // Collect section break points AFTER style overrides so measurements
+  // match the layout that html-to-image will actually capture.
+  // (Removing overflow/sticky changes element heights and positions.)
+  const breakPoints = collectBreakPoints(resultsElement, pixelRatio);
 
   let canvas: HTMLCanvasElement;
   try {
