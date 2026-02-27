@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, Fragment } from 'react';
+import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
 import {
   loanMonthlyPayment,
   amortizationSchedule,
@@ -97,6 +97,7 @@ const PIE_COLORS = ['#2563EB', '#EF4444'];
 const DEFAULTS = { loanAmount: 300000, annualRate: 6.5, termYears: 30, extraPayment: 0 };
 
 export default function LoanAmortizationCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [loanAmount, setLoanAmount] = useState(DEFAULTS.loanAmount);
   const [rate, setRate] = useState(DEFAULTS.annualRate);
   const [termYears, setTermYears] = useState(DEFAULTS.termYears);
@@ -193,20 +194,17 @@ export default function LoanAmortizationCalc() {
     [yearGroups, loanAmount]
   );
 
-  const getPdfData = useCallback(() => ({
-    toolName: 'Loan Amortization Calculator',
-    sections: [{
-      title: 'Loan Summary',
-      rows: [
-        { label: 'Monthly Payment', value: formatCurrency(monthlyPayment) },
-        { label: 'Total Payment', value: formatCurrency(totalCost) },
-        { label: 'Total Interest', value: formatCurrency(totalInterest) },
-        { label: 'Loan Amount', value: formatCurrency(loanAmount) },
-        { label: 'Interest Rate', value: `${rate}%` },
-        { label: 'Loan Term', value: `${termYears} year${termYears !== 1 ? 's' : ''}` },
-      ],
-    }],
-  }), [monthlyPayment, totalCost, totalInterest, loanAmount, rate, termYears]);
+  const getInputs = useCallback(() => {
+    const inputs = [
+      { label: 'Loan Amount', value: `$${formatNumber(loanAmount)}` },
+      { label: 'Annual Interest Rate', value: `${rate}%` },
+      { label: 'Loan Term', value: `${termYears} year${termYears !== 1 ? 's' : ''}` },
+    ];
+    if (extraPayment > 0) {
+      inputs.push({ label: 'Extra Monthly Payment', value: `$${formatNumber(extraPayment)}` });
+    }
+    return inputs;
+  }, [loanAmount, rate, termYears, extraPayment]);
 
   const handleReset = useCallback(() => {
     setLoanAmount(DEFAULTS.loanAmount);
@@ -256,7 +254,7 @@ export default function LoanAmortizationCalc() {
         </div>
 
         {/* ── Results ────────────────────────────────── */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Monthly Payment</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
@@ -302,7 +300,7 @@ export default function LoanAmortizationCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Loan Amortization Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Pie + Area Charts */}

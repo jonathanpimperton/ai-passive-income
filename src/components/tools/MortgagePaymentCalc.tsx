@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, Fragment } from 'react';
+import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
 import {
   AreaChart,
   Area,
@@ -192,6 +192,7 @@ const DEFAULTS = {
 };
 
 export default function MortgagePaymentCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [homePrice, setHomePrice] = useState(DEFAULTS.homePrice);
   const [downPaymentPercent, setDownPaymentPercent] = useState(DEFAULTS.downPaymentPercent);
   const [interestRate, setInterestRate] = useState(DEFAULTS.interestRate);
@@ -261,23 +262,22 @@ export default function MortgagePaymentCalc() {
 
   const animatedMonthlyPI = useAnimatedNumber(result.monthlyPI);
 
-  const getPdfData = useCallback(() => ({
-    toolName: 'Mortgage Payment Calculator',
-    sections: [{
-      title: 'Mortgage Summary',
-      rows: [
-        { label: 'Monthly Payment (P&I)', value: formatCurrency(result.monthlyPI) },
-        { label: 'Total Monthly (PITI)', value: formatCurrency(result.totalMonthly) },
-        { label: 'Home Price', value: formatCurrency(homePrice) },
-        { label: 'Down Payment', value: `${formatCurrency(result.downPayment)} (${downPaymentPercent}%)` },
-        { label: 'Loan Amount', value: formatCurrency(result.principal) },
-        { label: 'Interest Rate', value: `${interestRate}%` },
-        { label: 'Loan Term', value: `${loanTerm} years` },
-        { label: 'Total Interest', value: formatCurrency(result.totalInterest) },
-        { label: 'Total Paid', value: formatCurrency(result.totalPaid) },
-      ],
-    }],
-  }), [result.monthlyPI, result.totalMonthly, homePrice, result.downPayment, downPaymentPercent, result.principal, interestRate, loanTerm, result.totalInterest, result.totalPaid]);
+  const getInputs = useCallback(() => {
+    const inputs = [
+      { label: 'Home Price', value: formatCurrency(homePrice) },
+      { label: 'Down Payment', value: `${downPaymentPercent}% (${formatCurrency(homePrice * (downPaymentPercent / 100))})` },
+      { label: 'Interest Rate', value: `${interestRate}%` },
+      { label: 'Loan Term', value: `${loanTerm} years` },
+    ];
+    if (extraMonthly > 0) {
+      inputs.push({ label: 'Extra Monthly Payment', value: formatCurrency(extraMonthly) });
+    }
+    if (showAdvanced) {
+      inputs.push({ label: 'Property Tax Rate', value: `${propertyTaxRate}%` });
+      inputs.push({ label: 'Annual Insurance', value: formatCurrency(insuranceAnnual) });
+    }
+    return inputs;
+  }, [homePrice, downPaymentPercent, interestRate, loanTerm, extraMonthly, showAdvanced, propertyTaxRate, insuranceAnnual]);
 
   const pieData = useMemo(
     () => [
@@ -355,7 +355,7 @@ export default function MortgagePaymentCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Monthly Payment (P&I)</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
@@ -407,7 +407,7 @@ export default function MortgagePaymentCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Mortgage Payment Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Extra payment savings */}

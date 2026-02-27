@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   monthlySavingsRequired,
   compoundInterestSchedule,
@@ -40,6 +40,7 @@ const DEFAULTS = {
 
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function SavingsGoalCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<Mode>('monthly');
   const [goalAmount, setGoalAmount] = useState(DEFAULTS.goalAmount);
   const [currentSavings, setCurrentSavings] = useState(DEFAULTS.currentSavings);
@@ -133,40 +134,20 @@ export default function SavingsGoalCalc() {
   const animatedMonthlySavings = useAnimatedNumber(monthlySavings);
   const animatedTimeMonths = useAnimatedNumber(timeToGoalMonths);
 
-  const getPdfData = useCallback(() => {
+  const getInputs = useCallback(() => {
+    const inputs = [
+      { label: 'Mode', value: mode === 'monthly' ? 'Monthly Savings Needed' : 'Time to Goal' },
+      { label: 'Savings Goal', value: formatCurrency(goalAmount) },
+      { label: 'Current Savings', value: formatCurrency(currentSavings) },
+      { label: 'Annual Interest Rate', value: `${annualRate}%` },
+    ];
     if (mode === 'monthly') {
-      return {
-        toolName: 'Savings Goal Calculator',
-        sections: [{
-          title: 'Monthly Savings Needed',
-          rows: [
-            { label: 'Monthly Savings Required', value: formatCurrency(monthlySavings) },
-            { label: 'Savings Goal', value: formatCurrency(goalAmount) },
-            { label: 'Current Savings', value: formatCurrency(currentSavings) },
-            { label: 'Timeframe', value: `${months} month${months !== 1 ? 's' : ''}` },
-            { label: 'Annual Interest Rate', value: `${annualRate}%` },
-            { label: 'Total Contributions', value: formatCurrency(Math.max(0, summaryStats.totalContributions)) },
-            { label: 'Interest Earned', value: formatCurrency(Math.max(0, summaryStats.interestEarned)) },
-          ],
-        }],
-      };
+      inputs.push({ label: 'Timeframe', value: `${months} month${months !== 1 ? 's' : ''}` });
+    } else {
+      inputs.push({ label: 'Monthly Contribution', value: formatCurrency(monthlyContribution) });
     }
-    return {
-      toolName: 'Savings Goal Calculator',
-      sections: [{
-        title: 'Time to Goal',
-        rows: [
-          { label: 'Time to Reach Goal', value: isFinite(timeToGoalMonths) ? formatTimeResult(timeToGoalMonths) : 'Not reachable' },
-          { label: 'Savings Goal', value: formatCurrency(goalAmount) },
-          { label: 'Current Savings', value: formatCurrency(currentSavings) },
-          { label: 'Monthly Contribution', value: formatCurrency(monthlyContribution) },
-          { label: 'Annual Interest Rate', value: `${annualRate}%` },
-          { label: 'Total Contributions', value: formatCurrency(Math.max(0, summaryStats.totalContributions)) },
-          { label: 'Interest Earned', value: formatCurrency(Math.max(0, summaryStats.interestEarned)) },
-        ],
-      }],
-    };
-  }, [mode, monthlySavings, goalAmount, currentSavings, months, annualRate, summaryStats.totalContributions, summaryStats.interestEarned, timeToGoalMonths, monthlyContribution]);
+    return inputs;
+  }, [mode, goalAmount, currentSavings, annualRate, months, monthlyContribution]);
 
   const handleReset = useCallback(() => {
     setGoalAmount(DEFAULTS.goalAmount);
@@ -322,7 +303,7 @@ export default function SavingsGoalCalc() {
         </div>
 
         {/* ── Results Panel ──────────────────────────────── */}
-        <div id="sg-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="sg-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           {/* Big Number Result */}
           <div className="mb-6">
             {mode === 'monthly' ? (
@@ -410,7 +391,7 @@ export default function SavingsGoalCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Savings Goal Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Chart */}

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   compoundInterest,
   compoundInterestSchedule,
@@ -89,6 +89,7 @@ function solveForRetirementAge(
 
 /* ── Main Calculator ───────────────────────────────────────── */
 export default function RetirementSavingsCalc() {
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<SolveMode>('balance');
   const [currentAge, setCurrentAge] = useState(DEFAULTS.currentAge);
   const [retirementAge, setRetirementAge] = useState(DEFAULTS.retirementAge);
@@ -198,24 +199,26 @@ export default function RetirementSavingsCalc() {
   }, [currentAge, results.solvedYears]);
 
   /* ── PDF Export ──────────────────────────────────────────── */
-  const getPdfData = useCallback(() => {
-    const primaryFormatted = mode === 'retirement-age'
-      ? `Age ${Math.round(results.primaryValue)}`
-      : formatCurrency(results.primaryValue);
-    return {
-      toolName: 'Retirement Savings Calculator',
-      sections: [{
-        title: `Results (${results.primaryLabel})`,
-        rows: [
-          { label: results.primaryLabel, value: primaryFormatted },
-          { label: 'Inflation-Adjusted Value', value: formatCurrency(results.realValue) },
-          { label: 'Total Contributions', value: formatCurrency(results.totalContributions) },
-          { label: 'Total Interest Earned', value: formatCurrency(results.totalInterest) },
-          { label: 'Years to Retirement', value: `${Math.round(results.solvedYears)}` },
-        ],
-      }],
-    };
-  }, [mode, results.primaryLabel, results.primaryValue, results.realValue, results.totalContributions, results.totalInterest, results.solvedYears]);
+  const getInputs = useCallback(() => {
+    const modeLabel = TABS.find((t) => t.mode === mode)?.label ?? mode;
+    const inputs: { label: string; value: string }[] = [
+      { label: 'Solve For', value: modeLabel },
+      { label: 'Current Age', value: `${currentAge} years` },
+    ];
+    if (mode !== 'retirement-age') {
+      inputs.push({ label: 'Retirement Age', value: `${retirementAge} years` });
+    }
+    inputs.push({ label: 'Current Savings', value: `$${formatNumber(currentSavings)}` });
+    if (mode !== 'contribution') {
+      inputs.push({ label: 'Monthly Contribution', value: `$${formatNumber(monthlyContribution)}` });
+    }
+    if (mode === 'contribution' || mode === 'retirement-age') {
+      inputs.push({ label: 'Target Balance', value: `$${formatNumber(targetBalance)}` });
+    }
+    inputs.push({ label: 'Expected Annual Return', value: `${annualReturn}%` });
+    inputs.push({ label: 'Expected Inflation Rate', value: `${inflationRate}%` });
+    return inputs;
+  }, [mode, currentAge, retirementAge, currentSavings, monthlyContribution, targetBalance, annualReturn, inflationRate]);
 
   /* ── Reset ───────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
@@ -389,6 +392,7 @@ export default function RetirementSavingsCalc() {
 
         {/* ── Results Panel ─────────────────────────────────── */}
         <div
+          ref={resultsRef}
           className="p-6 lg:p-8 bg-neutral-50/50"
           aria-live="polite"
           id="retirement-results"
@@ -463,7 +467,7 @@ export default function RetirementSavingsCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Retirement Savings Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Inflation Impact Note */}

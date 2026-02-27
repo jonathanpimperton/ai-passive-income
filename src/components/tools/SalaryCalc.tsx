@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   Tooltip,
   ResponsiveContainer,
@@ -168,35 +168,24 @@ export default function SalaryCalc() {
   }, [inputMode, salary, hourlyRate, hoursPerWeek, weeksPerYear, overtimeHours, stateTaxRate, filingStatus, retirement401k]);
 
   const animatedNetAnnual = useAnimatedNumber(result.netAnnual);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  const getPdfData = useCallback(() => ({
-    toolName: 'US Salary Calculator',
-    sections: [
-      {
-        title: 'Pay Summary',
-        rows: [
-          { label: 'Gross Annual', value: formatCurrency(result.grossAnnual) },
-          { label: 'Net Annual (Take-Home)', value: formatCurrency(result.netAnnual) },
-          { label: 'Net Monthly', value: formatCurrency(result.netMonthly) },
-          { label: 'Net Bi-Weekly', value: formatCurrency(result.netBiweekly) },
-          { label: 'Net Weekly', value: formatCurrency(result.netWeekly) },
-          { label: 'Net Hourly', value: formatCurrency(result.netHourly) },
-          { label: 'Effective Deduction Rate', value: `${(result.effectiveTaxRate * 100).toFixed(1)}%` },
-        ],
-      },
-      {
-        title: 'Tax Breakdown',
-        rows: [
-          { label: 'Federal Income Tax', value: formatCurrency(result.federalTax) },
-          { label: 'State Tax', value: formatCurrency(result.stateTax) },
-          { label: 'Social Security', value: formatCurrency(result.fica.ss) },
-          { label: 'Medicare', value: formatCurrency(result.fica.medicare) },
-          ...(result.retirement401kAmount > 0 ? [{ label: '401(k) Contribution', value: formatCurrency(result.retirement401kAmount) }] : []),
-          { label: 'Total Deductions', value: formatCurrency(result.totalDeductions) },
-        ],
-      },
-    ],
-  }), [result]);
+  const getInputs = useCallback(() => {
+    const inputs = [
+      { label: 'Annual Salary', value: inputMode === 'annual' ? `$${formatNumber(salary)}` : `$${hourlyRate.toFixed(2)}/hr` },
+      { label: 'Filing Status', value: FILING_LABELS[filingStatus] },
+      { label: 'State Tax Rate', value: `${stateTaxRate.toFixed(1)}%` },
+      { label: 'Hours / Week', value: `${hoursPerWeek}` },
+      { label: 'Weeks / Year', value: `${weeksPerYear}` },
+    ];
+    if (overtimeHours > 0) {
+      inputs.push({ label: 'Overtime Hours / Week', value: `${overtimeHours} hrs` });
+    }
+    if (retirement401k > 0) {
+      inputs.push({ label: '401(k) Contribution', value: `${retirement401k.toFixed(1)}%` });
+    }
+    return inputs;
+  }, [inputMode, salary, hourlyRate, filingStatus, stateTaxRate, hoursPerWeek, weeksPerYear, overtimeHours, retirement401k]);
 
   const pieData = useMemo(() => [
     { name: 'Take-Home Pay', value: result.netAnnual },
@@ -277,7 +266,7 @@ export default function SalaryCalc() {
         </div>
 
         {/* Results */}
-        <div id="sal-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="sal-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
@@ -359,7 +348,7 @@ export default function SalaryCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="US Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Pie chart */}

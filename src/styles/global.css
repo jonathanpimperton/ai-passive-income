@@ -549,7 +549,7 @@ a {
 }
 
 /* Embed mode — strip chrome for iframe embedding */
-.embed-mode > nav,
+.embed-mode > header,
 .embed-mode > footer,
 .embed-mode > .sr-only,
 .embed-mode #back-to-calc-btn,

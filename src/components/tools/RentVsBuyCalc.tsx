@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   AreaChart,
   Area,
@@ -181,41 +181,24 @@ export default function RentVsBuyCalc() {
   const animatedBuyCost = useAnimatedNumber(analysis.monthlyBuyCost);
   const animatedEquity = useAnimatedNumber(analysis.finalEquity);
   const animatedDownPayment = useAnimatedNumber(analysis.downPayment);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  const getPdfData = useCallback(() => ({
-    toolName: 'Rent vs Buy Calculator',
-    sections: [
-      {
-        title: 'Verdict',
-        rows: [
-          { label: `Over ${timeHorizon} Years`, value: `${analysis.buyWins ? 'Buying' : 'Renting'} saves ${formatCurrency(analysis.savings)}` },
-          { label: 'Break-Even Year', value: analysis.breakEvenYear ? `Year ${analysis.breakEvenYear}` : analysis.buyWins ? 'Buying cheaper from year 1' : 'Renting stays cheaper' },
-        ],
-      },
-      {
-        title: 'Buying Costs',
-        rows: [
-          { label: 'Home Price', value: formatCurrency(homePrice) },
-          { label: 'Down Payment', value: `${downPaymentPct}% (${formatCurrency(analysis.downPayment)})` },
-          { label: 'Mortgage Rate', value: `${mortgageRate.toFixed(3)}%` },
-          { label: 'Loan Term', value: `${loanTermYears} years` },
-          { label: 'Monthly Mortgage', value: formatCurrency(analysis.monthlyMortgage) },
-          { label: 'Total Monthly Buy Cost', value: formatCurrency(analysis.monthlyBuyCost) },
-          { label: `Equity at Year ${timeHorizon}`, value: formatCurrency(analysis.finalEquity) },
-          { label: 'Total Interest Paid', value: formatCurrency(analysis.totalInterestPaid) },
-        ],
-      },
-      {
-        title: 'Renting Costs',
-        rows: [
-          { label: 'Starting Monthly Rent', value: formatCurrency(monthlyRent) },
-          { label: 'Annual Rent Increase', value: `${rentIncrease.toFixed(1)}%` },
-          { label: 'Renter\'s Insurance / Month', value: formatCurrency(rentersInsurance) },
-          { label: 'Investment Return (Renter)', value: `${investmentReturn.toFixed(1)}%` },
-        ],
-      },
-    ],
-  }), [timeHorizon, analysis, homePrice, downPaymentPct, mortgageRate, loanTermYears, monthlyRent, rentIncrease, rentersInsurance, investmentReturn]);
+  const getInputs = useCallback(() => {
+    const inputs = [
+      { label: 'Home Price', value: formatCurrency(homePrice) },
+      { label: 'Down Payment', value: `${downPaymentPct}% ($${formatNumber(Math.round(homePrice * downPaymentPct / 100))})` },
+      { label: 'Mortgage Rate', value: `${mortgageRate.toFixed(3)}%` },
+      { label: 'Loan Term', value: `${loanTermYears} years` },
+      { label: 'Monthly Rent', value: formatCurrency(monthlyRent) },
+      { label: 'Rent Increase', value: `${rentIncrease.toFixed(1)}%/yr` },
+      { label: 'Home Appreciation', value: `${homeAppreciation.toFixed(1)}%/yr` },
+      { label: 'Property Tax Rate', value: `${propertyTaxRate.toFixed(1)}%` },
+      { label: 'Home Insurance', value: `${formatCurrency(homeInsurance)}/yr` },
+      { label: 'Maintenance Rate', value: `${maintenanceRate.toFixed(1)}%` },
+      { label: 'Time Horizon', value: `${timeHorizon} years` },
+    ];
+    return inputs;
+  }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, monthlyRent, rentIncrease, homeAppreciation, propertyTaxRate, homeInsurance, maintenanceRate, timeHorizon]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
@@ -279,7 +262,7 @@ export default function RentVsBuyCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           {/* Verdict */}
           <div className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">
@@ -338,7 +321,7 @@ export default function RentVsBuyCalc() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <ExportPdfButton getData={getPdfData} />
+            <ExportPdfButton toolName="Rent vs Buy Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Chart */}
