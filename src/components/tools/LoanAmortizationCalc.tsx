@@ -21,6 +21,7 @@ import {
 import { ChevronDown, RotateCcw, Banknote, Percent, DollarSign } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Collapsible Year-Group Table ─────────────────────────── */
@@ -192,6 +193,21 @@ export default function LoanAmortizationCalc() {
     [yearGroups, loanAmount]
   );
 
+  const getPdfData = useCallback(() => ({
+    toolName: 'Loan Amortization Calculator',
+    sections: [{
+      title: 'Loan Summary',
+      rows: [
+        { label: 'Monthly Payment', value: formatCurrency(monthlyPayment) },
+        { label: 'Total Payment', value: formatCurrency(totalCost) },
+        { label: 'Total Interest', value: formatCurrency(totalInterest) },
+        { label: 'Loan Amount', value: formatCurrency(loanAmount) },
+        { label: 'Interest Rate', value: `${rate}%` },
+        { label: 'Loan Term', value: `${termYears} year${termYears !== 1 ? 's' : ''}` },
+      ],
+    }],
+  }), [monthlyPayment, totalCost, totalInterest, loanAmount, rate, termYears]);
+
   const handleReset = useCallback(() => {
     setLoanAmount(DEFAULTS.loanAmount);
     setRate(DEFAULTS.annualRate);
@@ -283,6 +299,10 @@ export default function LoanAmortizationCalc() {
                 <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(totalCost)}</p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Pie + Area Charts */}

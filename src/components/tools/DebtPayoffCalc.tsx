@@ -19,6 +19,7 @@ import {
 import { Plus, X, RotateCcw, CreditCard, DollarSign } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Compact text input for debt card fields ─────────────── */
@@ -225,6 +226,22 @@ export default function DebtPayoffCalc() {
     setExtraPayment(DEFAULT_EXTRA);
     setActiveStrategy('avalanche');
   }, [getNextId]);
+
+  const getPdfData = useCallback(() => ({
+    toolName: 'Debt Payoff Calculator',
+    sections: [{
+      title: 'Debt Payoff Summary',
+      rows: [
+        { label: 'Strategy', value: activeStrategy === 'avalanche' ? 'Avalanche (highest rate first)' : 'Snowball (lowest balance first)' },
+        { label: 'Total Debt', value: formatCurrency(totalDebt) },
+        { label: 'Time to Payoff', value: formatMonths(activeResult.months) },
+        { label: 'Total Interest', value: formatCurrency(activeResult.totalInterest) },
+        { label: 'Total Paid', value: formatCurrency(activeResult.totalPaid) },
+        { label: 'Extra Monthly Payment', value: formatCurrency(extraPayment) },
+        { label: 'Total Monthly Payment', value: formatCurrency(totalMinPayments + extraPayment) },
+      ],
+    }],
+  }), [activeStrategy, totalDebt, activeResult.months, activeResult.totalInterest, activeResult.totalPaid, extraPayment, totalMinPayments]);
 
   const animatedMonths = useAnimatedNumber(activeResult.months);
   const hasValidDebts = debts.length > 0;
@@ -538,6 +555,10 @@ export default function DebtPayoffCalc() {
                   </p>
                 </div>
               )}
+
+              <div className="flex justify-end mb-4">
+                <ExportPdfButton getData={getPdfData} />
+              </div>
 
               {/* ── Balance Over Time Chart ───────────── */}
               {chartData.length > 1 && (

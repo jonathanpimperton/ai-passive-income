@@ -10,6 +10,7 @@ import { RotateCcw, Banknote, Globe, Shield, DollarSign, PiggyBank } from 'lucid
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
 type InputMode = 'annual' | 'hourly';
@@ -167,6 +168,35 @@ export default function SalaryCalc() {
   }, [inputMode, salary, hourlyRate, hoursPerWeek, weeksPerYear, overtimeHours, stateTaxRate, filingStatus, retirement401k]);
 
   const animatedNetAnnual = useAnimatedNumber(result.netAnnual);
+
+  const getPdfData = useCallback(() => ({
+    toolName: 'US Salary Calculator',
+    sections: [
+      {
+        title: 'Pay Summary',
+        rows: [
+          { label: 'Gross Annual', value: formatCurrency(result.grossAnnual) },
+          { label: 'Net Annual (Take-Home)', value: formatCurrency(result.netAnnual) },
+          { label: 'Net Monthly', value: formatCurrency(result.netMonthly) },
+          { label: 'Net Bi-Weekly', value: formatCurrency(result.netBiweekly) },
+          { label: 'Net Weekly', value: formatCurrency(result.netWeekly) },
+          { label: 'Net Hourly', value: formatCurrency(result.netHourly) },
+          { label: 'Effective Deduction Rate', value: `${(result.effectiveTaxRate * 100).toFixed(1)}%` },
+        ],
+      },
+      {
+        title: 'Tax Breakdown',
+        rows: [
+          { label: 'Federal Income Tax', value: formatCurrency(result.federalTax) },
+          { label: 'State Tax', value: formatCurrency(result.stateTax) },
+          { label: 'Social Security', value: formatCurrency(result.fica.ss) },
+          { label: 'Medicare', value: formatCurrency(result.fica.medicare) },
+          ...(result.retirement401kAmount > 0 ? [{ label: '401(k) Contribution', value: formatCurrency(result.retirement401kAmount) }] : []),
+          { label: 'Total Deductions', value: formatCurrency(result.totalDeductions) },
+        ],
+      },
+    ],
+  }), [result]);
 
   const pieData = useMemo(() => [
     { name: 'Take-Home Pay', value: result.netAnnual },
@@ -326,6 +356,10 @@ export default function SalaryCalc() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Pie chart */}

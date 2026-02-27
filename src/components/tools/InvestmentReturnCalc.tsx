@@ -22,6 +22,7 @@ import {
 import { ChevronDown, RotateCcw, TrendingUp, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Solve-for-X tab definitions ─────────────────────────── */
@@ -201,6 +202,20 @@ export default function InvestmentReturnCalc() {
     const totalEarnings = finalBalance - totalContributions;
     return { finalBalance, totalContributions, totalEarnings };
   }, [chartData]);
+
+  /* ── PDF Export ──────────────────────────────────────────── */
+  const getPdfData = useCallback(() => ({
+    toolName: 'Investment Return Calculator',
+    sections: [{
+      title: `Results (${result.label})`,
+      rows: [
+        { label: result.label, value: result.formatted },
+        { label: 'Final Balance', value: formatCurrency(summary.finalBalance) },
+        { label: 'Total Invested', value: formatCurrency(summary.totalContributions) },
+        { label: 'Total Earnings', value: formatCurrency(summary.totalEarnings) },
+      ],
+    }],
+  }), [result.label, result.formatted, summary.finalBalance, summary.totalContributions, summary.totalEarnings]);
 
   /* ── Reset ──────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
@@ -479,6 +494,10 @@ export default function InvestmentReturnCalc() {
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Area Chart */}

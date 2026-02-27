@@ -548,6 +548,44 @@ a {
   transform: translateY(-2px);
 }
 
+/* Embed mode — strip chrome for iframe embedding */
+.embed-mode > nav,
+.embed-mode > footer,
+.embed-mode > .sr-only,
+.embed-mode #back-to-calc-btn,
+.embed-mode .scroll-reveal,
+.embed-mode .dot-grid-bg {
+  display: none !important;
+}
+
+.embed-mode {
+  background: white;
+  min-height: auto;
+}
+
+.embed-mode main {
+  flex: none;
+}
+
+.embed-mode [data-calc-section] {
+  background: white;
+  padding-top: 0;
+}
+
+.embed-mode [data-calc-section] > div {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* Powered-by badge shown only in embed mode */
+.embed-badge {
+  display: none;
+}
+
+.embed-mode .embed-badge {
+  display: flex;
+}
+
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   html {

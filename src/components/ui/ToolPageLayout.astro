@@ -89,6 +89,14 @@ const breadcrumbs = [
     <div class="mb-12">
       <slot />
     </div>
+
+    {/* Powered-by badge — visible only in embed mode */}
+    <div class="embed-badge items-center justify-center gap-1.5 pb-4 text-sm text-neutral-400">
+      Powered by
+      <a href={`https://calcrun.com/tools/${category}/${slug}`} target="_blank" rel="noopener" class="font-semibold text-primary-600 hover:text-primary-500 transition-colors duration-150">
+        CalcRun
+      </a>
+    </div>
   </div>
 </div>
 

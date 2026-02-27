@@ -20,6 +20,7 @@ import {
 import { RotateCcw, PiggyBank, Calendar, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Types ─────────────────────────────────────────────────── */
@@ -195,6 +196,26 @@ export default function RetirementSavingsCalc() {
     const maxAge = currentAge + Math.ceil(results.solvedYears);
     return MILESTONES.filter((m) => m.age > currentAge && m.age <= maxAge);
   }, [currentAge, results.solvedYears]);
+
+  /* ── PDF Export ──────────────────────────────────────────── */
+  const getPdfData = useCallback(() => {
+    const primaryFormatted = mode === 'retirement-age'
+      ? `Age ${Math.round(results.primaryValue)}`
+      : formatCurrency(results.primaryValue);
+    return {
+      toolName: 'Retirement Savings Calculator',
+      sections: [{
+        title: `Results (${results.primaryLabel})`,
+        rows: [
+          { label: results.primaryLabel, value: primaryFormatted },
+          { label: 'Inflation-Adjusted Value', value: formatCurrency(results.realValue) },
+          { label: 'Total Contributions', value: formatCurrency(results.totalContributions) },
+          { label: 'Total Interest Earned', value: formatCurrency(results.totalInterest) },
+          { label: 'Years to Retirement', value: `${Math.round(results.solvedYears)}` },
+        ],
+      }],
+    };
+  }, [mode, results.primaryLabel, results.primaryValue, results.realValue, results.totalContributions, results.totalInterest, results.solvedYears]);
 
   /* ── Reset ───────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
@@ -439,6 +460,10 @@ export default function RetirementSavingsCalc() {
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Inflation Impact Note */}

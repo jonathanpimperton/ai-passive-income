@@ -18,6 +18,7 @@ import {
 import { RotateCcw, Target, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Tabs ─────────────────────────────────────────────────── */
@@ -131,6 +132,41 @@ export default function SavingsGoalCalc() {
 
   const animatedMonthlySavings = useAnimatedNumber(monthlySavings);
   const animatedTimeMonths = useAnimatedNumber(timeToGoalMonths);
+
+  const getPdfData = useCallback(() => {
+    if (mode === 'monthly') {
+      return {
+        toolName: 'Savings Goal Calculator',
+        sections: [{
+          title: 'Monthly Savings Needed',
+          rows: [
+            { label: 'Monthly Savings Required', value: formatCurrency(monthlySavings) },
+            { label: 'Savings Goal', value: formatCurrency(goalAmount) },
+            { label: 'Current Savings', value: formatCurrency(currentSavings) },
+            { label: 'Timeframe', value: `${months} month${months !== 1 ? 's' : ''}` },
+            { label: 'Annual Interest Rate', value: `${annualRate}%` },
+            { label: 'Total Contributions', value: formatCurrency(Math.max(0, summaryStats.totalContributions)) },
+            { label: 'Interest Earned', value: formatCurrency(Math.max(0, summaryStats.interestEarned)) },
+          ],
+        }],
+      };
+    }
+    return {
+      toolName: 'Savings Goal Calculator',
+      sections: [{
+        title: 'Time to Goal',
+        rows: [
+          { label: 'Time to Reach Goal', value: isFinite(timeToGoalMonths) ? formatTimeResult(timeToGoalMonths) : 'Not reachable' },
+          { label: 'Savings Goal', value: formatCurrency(goalAmount) },
+          { label: 'Current Savings', value: formatCurrency(currentSavings) },
+          { label: 'Monthly Contribution', value: formatCurrency(monthlyContribution) },
+          { label: 'Annual Interest Rate', value: `${annualRate}%` },
+          { label: 'Total Contributions', value: formatCurrency(Math.max(0, summaryStats.totalContributions)) },
+          { label: 'Interest Earned', value: formatCurrency(Math.max(0, summaryStats.interestEarned)) },
+        ],
+      }],
+    };
+  }, [mode, monthlySavings, goalAmount, currentSavings, months, annualRate, summaryStats.totalContributions, summaryStats.interestEarned, timeToGoalMonths, monthlyContribution]);
 
   const handleReset = useCallback(() => {
     setGoalAmount(DEFAULTS.goalAmount);
@@ -371,6 +407,10 @@ export default function SavingsGoalCalc() {
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Chart */}
