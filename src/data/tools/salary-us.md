@@ -11,6 +11,11 @@ keywords:
   - "US paycheck calculator"
   - "overtime calculator"
   - "net pay calculator"
+affiliateContext: "Maximize your take-home pay with a high-yield savings or investment account"
+affiliatePrograms:
+  - "Betterment"
+  - "SoFi"
+  - "Marcus"
 relatedTools:
   - "salary-uk"
   - "net-worth"

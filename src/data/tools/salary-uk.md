@@ -11,6 +11,11 @@ keywords:
   - "National Insurance calculator"
   - "student loan repayment calculator UK"
   - "salary after tax UK"
+affiliateContext: "Boost your take-home pay with a tax-efficient ISA or pension"
+affiliatePrograms:
+  - "Nutmeg"
+  - "Moneybox"
+  - "InvestEngine"
 relatedTools:
   - "salary-us"
   - "net-worth"
