@@ -520,8 +520,10 @@ export default function MortgagePaymentCalc() {
             {showSchedule ? 'Hide' : 'Show'} Amortization Schedule
           </button>
 
-          {showSchedule && result.yearGroups.length > 0 && (
-            <AmortizationTable yearGroups={result.yearGroups} />
+          {result.yearGroups.length > 0 && (
+            <div data-pdf-force-show style={showSchedule ? undefined : { display: 'none' }}>
+              <AmortizationTable yearGroups={result.yearGroups} />
+            </div>
           )}
           </div>
         </div>
