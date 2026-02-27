@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { RotateCcw, TrendingUp, DollarSign, Percent, Calendar } from 'lucide-react';
+import { RotateCcw, DollarSign, Calendar } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';

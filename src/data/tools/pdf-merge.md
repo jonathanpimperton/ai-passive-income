@@ -14,7 +14,6 @@ relatedTools:
   - "pdf-compress"
   - "pdf-to-image"
   - "images-to-pdf"
-  - "word-to-pdf"
 workedExamples:
   - title: "Combining quarterly reports"
     inputs:

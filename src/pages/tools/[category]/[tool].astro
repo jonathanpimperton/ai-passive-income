@@ -40,7 +40,6 @@ import PdfMerge from '@components/tools/PdfMerge.tsx';
 import PdfSplit from '@components/tools/PdfSplit.tsx';
 import PdfCompress from '@components/tools/PdfCompress.tsx';
 import PdfToImage from '@components/tools/PdfToImage.tsx';
-import WordToPdf from '@components/tools/WordToPdf.tsx';
 import ExcelToPdf from '@components/tools/ExcelToPdf.tsx';
 import Base64EncodeDecode from '@components/tools/Base64EncodeDecode.tsx';
 import UrlEncodeDecode from '@components/tools/UrlEncodeDecode.tsx';
@@ -100,7 +99,6 @@ const CALCULATOR_MAP: Record<string, string> = {
   'pdf-split': 'PdfSplit',
   'pdf-compress': 'PdfCompress',
   'pdf-to-image': 'PdfToImage',
-  'word-to-pdf': 'WordToPdf',
   'excel-to-pdf': 'ExcelToPdf',
   'base64-encode-decode': 'Base64EncodeDecode',
   'url-encode-decode': 'UrlEncodeDecode',
@@ -149,7 +147,6 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'pdf-split' && <PdfSplit client:load />}
     {slug === 'pdf-compress' && <PdfCompress client:load />}
     {slug === 'pdf-to-image' && <PdfToImage client:load />}
-    {slug === 'word-to-pdf' && <WordToPdf client:load />}
     {slug === 'excel-to-pdf' && <ExcelToPdf client:load />}
     {slug === 'base64-encode-decode' && <Base64EncodeDecode client:load />}
     {slug === 'url-encode-decode' && <UrlEncodeDecode client:load />}

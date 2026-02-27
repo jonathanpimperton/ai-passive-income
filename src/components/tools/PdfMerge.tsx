@@ -148,6 +148,8 @@ export default function PdfMerge() {
                 accept=".pdf,application/pdf"
                 multiple
                 className="hidden"
+                aria-hidden="true"
+                tabIndex={-1}
                 onChange={(e) => {
                   const files = e.target.files;
                   if (files && files.length > 0) handleFiles(Array.from(files));

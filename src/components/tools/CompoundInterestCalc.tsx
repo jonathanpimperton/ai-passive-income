@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { ChevronDown, RotateCcw, TrendingUp, Wallet, Sparkles } from 'lucide-react';
+import { ChevronDown, RotateCcw, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';

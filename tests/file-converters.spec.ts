@@ -74,42 +74,6 @@ async function saveDownload(download: Download): Promise<{ path: string; size: n
 }
 
 // ════════════════════════════════════════════════════════════════
-//  WORD TO PDF
-// ════════════════════════════════════════════════════════════════
-
-test.describe('Word to PDF', () => {
-  test('converts DOCX and produces a downloadable PDF', async ({ page }) => {
-    await page.goto('/tools/file-tools/word-to-pdf');
-    await page.waitForLoadState('networkidle');
-
-    await uploadFile(page, path.join(FIXTURES, 'complex.docx'));
-    await waitForProcessing(page, 30000);
-
-    // Preview should show document content
-    await expect(page.getByText('Annual Performance Review').first()).toBeVisible({
-      timeout: 20000,
-    });
-    await expect(page.getByText('Executive Summary').first()).toBeVisible();
-
-    // Should NOT show an error
-    const errors = page.locator('[class*="red-50"]');
-    await expect(errors).toHaveCount(0);
-
-    // Download button should be available
-    const downloadBtn = page.getByRole('button', { name: /download.*pdf/i }).first();
-    await expect(downloadBtn).toBeVisible();
-    await expect(downloadBtn).toBeEnabled();
-
-    // Click download and verify a file is produced
-    const download = await clickAndWaitForDownload(page, downloadBtn);
-    expect(download.suggestedFilename()).toMatch(/\.pdf$/i);
-
-    const { size } = await saveDownload(download);
-    expect(size).toBeGreaterThan(1000); // PDF should be at least 1KB
-  });
-});
-
-// ════════════════════════════════════════════════════════════════
 //  IMAGE TOOLS
 // ════════════════════════════════════════════════════════════════
 

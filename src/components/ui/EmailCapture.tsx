@@ -42,7 +42,7 @@ export default function EmailCapture({ toolSlug: _toolSlug, toolName }: EmailCap
     return (
       <div className="bg-accent-100 border border-accent-500/20 rounded-2xl p-6 text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-500 text-white mb-3">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -58,7 +58,7 @@ export default function EmailCapture({ toolSlug: _toolSlug, toolName }: EmailCap
     <div className="bg-primary-50 border border-primary-200/60 rounded-2xl p-6">
       <div className="flex items-start gap-3 mb-4">
         <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-100 text-primary-600 shrink-0">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
