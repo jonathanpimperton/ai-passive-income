@@ -64,7 +64,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Design system: all color/typography/spacing tokens, self-hosted Inter + JetBrains Mono fonts
 - Content architecture: Zod-validated content collection (glob loader), 31 tool markdown files with full frontmatter
 - Page templates: BaseLayout, ToolPageLayout (breadcrumbs, tool icon, H1, affiliate disclosure, section backgrounds, worked examples, FAQ, related tools)
-- 38 pages: homepage, tools index, 31 tool pages, about, privacy, terms, disclosure, 404
+- 39 pages: homepage, tools index, 31 tool pages, embed, about, privacy, terms, disclosure, 404
 - **Visual polish pass:** Every page upgraded to premium quality:
   - Homepage: animated gradient hero with floating orbs, trust indicators, gradient text, dual CTAs
   - All tool cards: Lucide icons with hover icon-fill animation, gradient bottom accent on hover
@@ -122,9 +122,12 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Cross-promotion links from converter pages to financial calculators
 - NOT a rebrand — financial calculators remain the core identity, homepage hero, and primary revenue driver
 
-**Sprint 6 — Polish & Launch:**
-- PDF export, embeddable widgets, OG images, performance audit
-- Deploy to Cloudflare Pages, submit to Google Search Console
+**Sprint 6 — Polish & Launch (Complete):**
+- OG image generation: Satori + Sharp, build-time PNG for all 37 tools + default (1200×630px, category-colored)
+- PDF export: jsPDF with branded template, ExportPdfButton on all 14 financial calculators (lazy-loaded)
+- Embeddable widgets: `?embed` strips chrome, "Powered by CalcRun" attribution, `/embed` page with code generator
+- Bundle analysis: all heavy deps (heic-to, xlsx, pdf-lib, jsPDF) properly code-split and page-specific
+- Still pending (requires external accounts): Cloudflare Pages deploy, Google Search Console, MailerLite integration, Betterment affiliate application
 
 ## Design Quality Standards (MANDATORY for All Sprints)
 
@@ -187,7 +190,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4. Sprints 1-5 are complete. All 31 tools are fully built: 14 financial calculators + 4 utility tools (18 MVP) + 13 file converters (PDF-to-Word and Word-to-PDF removed — both require server-side processing for acceptable quality). All have SEO content, FAQs, worked examples, and affiliate programs (where applicable — financial tools have geography-relevant affiliates, file converters/utility tools correctly exclude affiliates). Sprint 6 (Polish & Launch) is next.
+3. **Current status:** Stage 4 complete. All 6 sprints done. 31 tools fully built: 14 financial calculators + 4 utility tools (18 MVP) + 13 file converters. All have SEO content, FAQs, worked examples, affiliate programs (geography-relevant), OG images, and PDF export (financial calcs). Embeddable widget system live at `/embed`. Remaining: deploy to Cloudflare Pages, submit to Google Search Console, configure MailerLite, apply to Betterment.
 5. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
