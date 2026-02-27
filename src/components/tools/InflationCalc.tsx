@@ -216,7 +216,7 @@ export default function InflationCalc() {
         <div id="inf-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           {mode === 'historical' && historicalResult && (
             <>
-              <div className="mb-6">
+              <div data-pdf-section className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">{formatCurrency(amount)} in {startYear} equals</p>
                 <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                   {formatCurrency(animatedHistorical)}
@@ -225,7 +225,7 @@ export default function InflationCalc() {
                   in {endYear} dollars ({historicalResult.years} years, {(historicalResult.totalInflation * 100).toFixed(1)}% cumulative inflation)
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3 mb-6">
+              <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Percent size={16} aria-hidden="true" /></div>
                   <div>
@@ -257,7 +257,7 @@ export default function InflationCalc() {
 
           {mode === 'future' && futureResult && (
             <>
-              <div className="mb-6">
+              <div data-pdf-section className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">
                   {formatCurrency(amount)} today will cost
                 </p>
@@ -268,7 +268,7 @@ export default function InflationCalc() {
                   in {futureYears} years at {inflationRate.toFixed(1)}% annual inflation ({(futureResult.totalInflation * 100).toFixed(1)}% total)
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3 mb-6">
+              <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
                   <div>
@@ -300,7 +300,7 @@ export default function InflationCalc() {
           </div>
 
           {/* Chart */}
-          <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+          <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">
               {mode === 'historical' ? 'Value Over Time' : 'Purchasing Power Over Time'}
             </h3>

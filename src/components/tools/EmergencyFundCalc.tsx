@@ -165,7 +165,7 @@ export default function EmergencyFundCalc() {
         <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           <h2 className="text-lg font-semibold text-neutral-900 mb-4">Your Emergency Fund Targets</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             {targets.map((t) => (
               <div
                 key={t.months}
@@ -206,7 +206,7 @@ export default function EmergencyFundCalc() {
           </div>
 
           {/* Summary cards */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Target size={16} aria-hidden="true" /></div>
               <div>
@@ -232,7 +232,7 @@ export default function EmergencyFundCalc() {
           </div>
 
           {/* Chart */}
-          <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+          <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Savings Growth Timeline</h3>
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>

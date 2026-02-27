@@ -399,7 +399,7 @@ export default function RetirementSavingsCalc() {
           role="tabpanel"
         >
           {/* Big Number */}
-          <div className="mb-6">
+          <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{results.primaryLabel}</p>
             <div className="flex items-baseline gap-2 flex-wrap">
               <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
@@ -415,7 +415,7 @@ export default function RetirementSavingsCalc() {
           </div>
 
           {/* Breakdown Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
             {mode === 'balance' && (
               <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
@@ -484,7 +484,7 @@ export default function RetirementSavingsCalc() {
 
           {/* Chart */}
           {chartData.length > 1 && (
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
+            <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
               <h3 className="text-sm font-medium text-neutral-700 mb-3">
                 Retirement Savings Projection
               </h3>
@@ -574,7 +574,7 @@ export default function RetirementSavingsCalc() {
 
           {/* Year-by-Year Snapshot */}
           {chartData.length > 1 && (
-            <div className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
+            <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
               <h3 className="text-sm font-medium text-neutral-700 p-4 pb-0 mb-3">
                 Projection Summary
               </h3>

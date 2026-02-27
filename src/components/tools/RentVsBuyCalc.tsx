@@ -264,7 +264,7 @@ export default function RentVsBuyCalc() {
         {/* Results */}
         <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           {/* Verdict */}
-          <div className="mb-6">
+          <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">
               Over {timeHorizon} years, {analysis.buyWins ? 'buying' : 'renting'} saves you
             </p>
@@ -281,7 +281,7 @@ export default function RentVsBuyCalc() {
           </div>
 
           {/* Summary cards */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Landmark size={16} aria-hidden="true" />
@@ -325,7 +325,7 @@ export default function RentVsBuyCalc() {
           </div>
 
           {/* Chart */}
-          <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+          <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Net Cost Comparison Over Time</h3>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>

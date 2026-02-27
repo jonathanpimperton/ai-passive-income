@@ -305,7 +305,7 @@ export default function SavingsGoalCalc() {
         {/* ── Results Panel ──────────────────────────────── */}
         <div id="sg-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
           {/* Big Number Result */}
-          <div className="mb-6">
+          <div data-pdf-section className="mb-6">
             {mode === 'monthly' ? (
               <>
                 <p className="text-sm text-neutral-500 mb-1">Monthly Savings Needed</p>
@@ -342,7 +342,7 @@ export default function SavingsGoalCalc() {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Wallet size={16} aria-hidden="true" />
@@ -368,7 +368,7 @@ export default function SavingsGoalCalc() {
           </div>
 
           {/* Remaining amount card */}
-          <div className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
+          <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
@@ -396,7 +396,7 @@ export default function SavingsGoalCalc() {
 
           {/* Chart */}
           {chartData.length > 1 && (
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
+            <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
               <h3 className="text-sm font-medium text-neutral-700 mb-3">Savings Growth Projection</h3>
               <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
