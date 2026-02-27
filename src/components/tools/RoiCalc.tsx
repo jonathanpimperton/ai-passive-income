@@ -13,6 +13,7 @@ import { RotateCcw, DollarSign, Calendar } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
 const DEFAULTS = {
@@ -85,6 +86,38 @@ export default function RoiCalc() {
   }, [resultA, resultB]);
 
   const fmtPct = (v: number) => `${(v * 100).toFixed(2)}%`;
+
+  const getPdfData = useCallback(() => {
+    const sections = [
+      {
+        title: 'Investment A',
+        rows: [
+          { label: 'Initial Investment', value: formatCurrency(initialInvestment) },
+          { label: 'Final Value', value: formatCurrency(finalValue) },
+          { label: 'Dividends Received', value: formatCurrency(dividendsReceived) },
+          { label: 'Time Held', value: `${yearsHeld} year${yearsHeld !== 1 ? 's' : ''}` },
+          { label: 'Total Return', value: fmtPct(resultA.totalReturn) },
+          { label: 'Annualized Return', value: fmtPct(resultA.annualizedReturn) },
+          { label: 'Total Gain / Loss', value: formatCurrency(resultA.totalGain) },
+        ],
+      },
+    ];
+    if (resultB) {
+      sections.push({
+        title: 'Investment B',
+        rows: [
+          { label: 'Initial Investment', value: formatCurrency(initialB) },
+          { label: 'Final Value', value: formatCurrency(finalB) },
+          { label: 'Dividends Received', value: formatCurrency(dividendsB) },
+          { label: 'Time Held', value: `${yearsB} year${yearsB !== 1 ? 's' : ''}` },
+          { label: 'Total Return', value: fmtPct(resultB.totalReturn) },
+          { label: 'Annualized Return', value: fmtPct(resultB.annualizedReturn) },
+          { label: 'Total Gain / Loss', value: formatCurrency(resultB.totalGain) },
+        ],
+      });
+    }
+    return { toolName: 'ROI Calculator', sections };
+  }, [initialInvestment, finalValue, dividendsReceived, yearsHeld, resultA, initialB, finalB, dividendsB, yearsB, resultB]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
@@ -201,6 +234,10 @@ export default function RoiCalc() {
               </div>
             </>
           )}
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
+          </div>
 
           {/* Comparison chart */}
           <div className="bg-white rounded-xl border border-neutral-200/80 p-4">

@@ -13,6 +13,7 @@ import {
 import { RotateCcw, ChevronDown, Home, DollarSign, TrendingUp, Landmark } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { formatCurrency, formatNumber, loanMonthlyPayment } from '../../lib/calculator-utils';
 
@@ -181,6 +182,41 @@ export default function RentVsBuyCalc() {
   const animatedEquity = useAnimatedNumber(analysis.finalEquity);
   const animatedDownPayment = useAnimatedNumber(analysis.downPayment);
 
+  const getPdfData = useCallback(() => ({
+    toolName: 'Rent vs Buy Calculator',
+    sections: [
+      {
+        title: 'Verdict',
+        rows: [
+          { label: `Over ${timeHorizon} Years`, value: `${analysis.buyWins ? 'Buying' : 'Renting'} saves ${formatCurrency(analysis.savings)}` },
+          { label: 'Break-Even Year', value: analysis.breakEvenYear ? `Year ${analysis.breakEvenYear}` : analysis.buyWins ? 'Buying cheaper from year 1' : 'Renting stays cheaper' },
+        ],
+      },
+      {
+        title: 'Buying Costs',
+        rows: [
+          { label: 'Home Price', value: formatCurrency(homePrice) },
+          { label: 'Down Payment', value: `${downPaymentPct}% (${formatCurrency(analysis.downPayment)})` },
+          { label: 'Mortgage Rate', value: `${mortgageRate.toFixed(3)}%` },
+          { label: 'Loan Term', value: `${loanTermYears} years` },
+          { label: 'Monthly Mortgage', value: formatCurrency(analysis.monthlyMortgage) },
+          { label: 'Total Monthly Buy Cost', value: formatCurrency(analysis.monthlyBuyCost) },
+          { label: `Equity at Year ${timeHorizon}`, value: formatCurrency(analysis.finalEquity) },
+          { label: 'Total Interest Paid', value: formatCurrency(analysis.totalInterestPaid) },
+        ],
+      },
+      {
+        title: 'Renting Costs',
+        rows: [
+          { label: 'Starting Monthly Rent', value: formatCurrency(monthlyRent) },
+          { label: 'Annual Rent Increase', value: `${rentIncrease.toFixed(1)}%` },
+          { label: 'Renter\'s Insurance / Month', value: formatCurrency(rentersInsurance) },
+          { label: 'Investment Return (Renter)', value: `${investmentReturn.toFixed(1)}%` },
+        ],
+      },
+    ],
+  }), [timeHorizon, analysis, homePrice, downPaymentPct, mortgageRate, loanTermYears, monthlyRent, rentIncrease, rentersInsurance, investmentReturn]);
+
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
@@ -299,6 +335,10 @@ export default function RentVsBuyCalc() {
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(animatedDownPayment)}</p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Chart */}

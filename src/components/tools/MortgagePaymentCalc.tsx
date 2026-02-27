@@ -14,6 +14,7 @@ import {
 import { ChevronDown, RotateCcw, Home, Percent, Banknote, DollarSign } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
@@ -260,6 +261,24 @@ export default function MortgagePaymentCalc() {
 
   const animatedMonthlyPI = useAnimatedNumber(result.monthlyPI);
 
+  const getPdfData = useCallback(() => ({
+    toolName: 'Mortgage Payment Calculator',
+    sections: [{
+      title: 'Mortgage Summary',
+      rows: [
+        { label: 'Monthly Payment (P&I)', value: formatCurrency(result.monthlyPI) },
+        { label: 'Total Monthly (PITI)', value: formatCurrency(result.totalMonthly) },
+        { label: 'Home Price', value: formatCurrency(homePrice) },
+        { label: 'Down Payment', value: `${formatCurrency(result.downPayment)} (${downPaymentPercent}%)` },
+        { label: 'Loan Amount', value: formatCurrency(result.principal) },
+        { label: 'Interest Rate', value: `${interestRate}%` },
+        { label: 'Loan Term', value: `${loanTerm} years` },
+        { label: 'Total Interest', value: formatCurrency(result.totalInterest) },
+        { label: 'Total Paid', value: formatCurrency(result.totalPaid) },
+      ],
+    }],
+  }), [result.monthlyPI, result.totalMonthly, homePrice, result.downPayment, downPaymentPercent, result.principal, interestRate, loanTerm, result.totalInterest, result.totalPaid]);
+
   const pieData = useMemo(
     () => [
       { name: 'Principal', value: Math.round(result.principal) },
@@ -385,6 +404,10 @@ export default function MortgagePaymentCalc() {
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.totalPaid)}</p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Extra payment savings */}

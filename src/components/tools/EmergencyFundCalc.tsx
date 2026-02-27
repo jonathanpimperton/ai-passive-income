@@ -13,6 +13,7 @@ import { RotateCcw, Target, TrendingUp } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
 const DEFAULTS = {
@@ -85,6 +86,42 @@ export default function EmergencyFundCalc() {
   }, [monthlyExpenses, currentSavings, monthlySaving, savingsRate]);
 
   const animatedRecommendedTarget = useAnimatedNumber(monthlyExpenses * 6);
+
+  const getPdfData = useCallback(() => ({
+    toolName: 'Emergency Fund Calculator',
+    sections: [
+      {
+        title: 'Monthly Expenses',
+        rows: [
+          { label: 'Housing / Rent', value: formatCurrency(housing) },
+          { label: 'Food & Groceries', value: formatCurrency(food) },
+          { label: 'Transportation', value: formatCurrency(transportation) },
+          { label: 'Utilities', value: formatCurrency(utilities) },
+          { label: 'Insurance', value: formatCurrency(insurance) },
+          { label: 'Debt Payments', value: formatCurrency(debtPayments) },
+          { label: 'Other Expenses', value: formatCurrency(other) },
+          { label: 'Total Monthly Expenses', value: formatCurrency(monthlyExpenses) },
+        ],
+      },
+      {
+        title: 'Fund Targets',
+        rows: targets.map((t) => ({
+          label: `${t.months}-Month Target`,
+          value: `${formatCurrency(t.target)}${t.pctFunded >= 1 ? ' (Fully funded)' : ` (${formatCurrency(t.remaining)} remaining)`}`,
+        })),
+      },
+      {
+        title: 'Summary',
+        rows: [
+          { label: 'Recommended Target (6 months)', value: formatCurrency(monthlyExpenses * 6) },
+          { label: 'Current Savings', value: formatCurrency(currentSavings) },
+          { label: 'Current Progress', value: monthlyExpenses > 0 ? `${((currentSavings / (monthlyExpenses * 6)) * 100).toFixed(0)}%` : '—' },
+          { label: 'Monthly Contribution', value: formatCurrency(monthlySaving) },
+          { label: 'Savings Account APY', value: `${savingsRate.toFixed(1)}%` },
+        ],
+      },
+    ],
+  }), [housing, food, transportation, utilities, insurance, debtPayments, other, monthlyExpenses, targets, currentSavings, monthlySaving, savingsRate]);
 
   const chartData = useMemo(() => {
     const maxMonths = Math.min(
@@ -209,6 +246,10 @@ export default function EmergencyFundCalc() {
                 <p className="text-xs text-neutral-400">of 6-month target</p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Chart */}

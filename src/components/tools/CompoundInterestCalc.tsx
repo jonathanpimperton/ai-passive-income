@@ -17,6 +17,7 @@ import {
 import { ChevronDown, RotateCcw, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
+import ExportPdfButton from '../ui/ExportPdfButton';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Compounding frequency options ────────────────────────── */
@@ -189,6 +190,20 @@ export default function CompoundInterestCalc() {
       };
     });
   }, [schedule]);
+
+  const getPdfData = useCallback(() => ({
+    toolName: 'Compound Interest Calculator',
+    sections: [{
+      title: 'Summary',
+      rows: [
+        { label: 'Final Balance', value: formatCurrency(finalBalance) },
+        { label: 'Total Contributions', value: formatCurrency(totalContributions) },
+        { label: 'Total Interest Earned', value: formatCurrency(totalInterest) },
+        { label: 'Growth Rate', value: `${rate}%` },
+        { label: 'Time Period', value: `${years} year${years !== 1 ? 's' : ''}` },
+      ],
+    }],
+  }), [finalBalance, totalContributions, totalInterest, rate, years]);
 
   const handleReset = useCallback(() => {
     setPrincipal(DEFAULTS.principal);
@@ -366,6 +381,10 @@ export default function CompoundInterestCalc() {
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <ExportPdfButton getData={getPdfData} />
           </div>
 
           {/* Chart */}
