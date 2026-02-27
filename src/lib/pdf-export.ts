@@ -31,10 +31,11 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
     el.style.display = 'none';
   });
 
-  // Pre-rasterize SVG charts to canvas elements. html2canvas 1.x cannot
-  // reliably render complex SVGs (gradients, transforms, recharts output).
-  // We convert them to canvas first, let html2canvas capture those, then restore.
-  const svgReplacements: Array<{ svg: SVGSVGElement; canvas: HTMLCanvasElement }> = [];
+  // Replace SVG charts with <img> elements before capture. html2canvas 1.x
+  // cannot reliably render complex SVGs (gradients, transforms, recharts).
+  // Using <img src="data:image/svg+xml..."> avoids both SVG rendering issues
+  // AND canvas-taint issues (data URLs are same-origin, Blob URLs can taint).
+  const svgReplacements: Array<{ svg: SVGSVGElement; img: HTMLImageElement }> = [];
   const svgEls = Array.from(resultsElement.querySelectorAll<SVGSVGElement>('svg'));
 
   for (const svg of svgEls) {
@@ -42,37 +43,45 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
     // Skip small SVGs (icons) — only rasterize chart-sized SVGs
     if (rect.width < 100 || rect.height < 50) continue;
 
-    const clone = svg.cloneNode(true) as SVGSVGElement;
-    clone.setAttribute('width', String(rect.width));
-    clone.setAttribute('height', String(rect.height));
-
-    const xml = new XMLSerializer().serializeToString(clone);
-    const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-
     try {
-      const img = new Image();
+      const clone = svg.cloneNode(true) as SVGSVGElement;
+      if (!clone.getAttribute('xmlns')) {
+        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      }
+      clone.setAttribute('width', String(rect.width));
+      clone.setAttribute('height', String(rect.height));
+
+      // Inline computed font styles on text elements — external CSS is lost
+      // when the SVG is loaded as a standalone image
+      const origTexts = svg.querySelectorAll('text, tspan');
+      const cloneTexts = clone.querySelectorAll('text, tspan');
+      for (let i = 0; i < origTexts.length && i < cloneTexts.length; i++) {
+        const cs = getComputedStyle(origTexts[i]);
+        const t = cloneTexts[i] as SVGElement;
+        t.setAttribute('font-family', cs.fontFamily);
+        t.setAttribute('font-size', cs.fontSize);
+        t.setAttribute('font-weight', cs.fontWeight);
+      }
+
+      const xml = new XMLSerializer().serializeToString(clone);
+      const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(xml)}`;
+
+      const img = document.createElement('img');
+      img.style.width = `${rect.width}px`;
+      img.style.height = `${rect.height}px`;
+
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
-        img.onerror = () => reject(new Error('SVG rasterize failed'));
-        img.src = url;
+        img.onerror = () => reject(new Error('SVG image load failed'));
+        img.src = dataUrl;
       });
 
-      const cvs = document.createElement('canvas');
-      cvs.width = Math.round(rect.width * 2);
-      cvs.height = Math.round(rect.height * 2);
-      cvs.style.width = `${rect.width}px`;
-      cvs.style.height = `${rect.height}px`;
-      const ctx = cvs.getContext('2d');
-      if (ctx && svg.parentNode) {
-        ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
-        svg.parentNode.replaceChild(cvs, svg);
-        svgReplacements.push({ svg, canvas: cvs });
+      if (svg.parentNode) {
+        svg.parentNode.replaceChild(img, svg);
+        svgReplacements.push({ svg, img });
       }
     } catch {
       // If rasterization fails for one SVG, skip it — html2canvas will try its best
-    } finally {
-      URL.revokeObjectURL(url);
     }
   }
 
@@ -91,8 +100,8 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
       el.style.display = prevDisplays[i];
     });
     // Restore original SVGs
-    for (const { svg, canvas: cvs } of svgReplacements) {
-      cvs.parentNode?.replaceChild(svg, cvs);
+    for (const { svg, img } of svgReplacements) {
+      img.parentNode?.replaceChild(svg, img);
     }
   }
 

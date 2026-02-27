@@ -23,7 +23,8 @@ export default function ExportPdfButton({ toolName, getInputs, resultsRef }: Exp
         inputs: getInputs(),
         resultsElement: resultsRef.current,
       });
-    } catch {
+    } catch (err) {
+      console.error('PDF export failed:', err);
       setError(true);
     }
     setExporting(false);
