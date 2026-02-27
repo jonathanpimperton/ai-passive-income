@@ -79,14 +79,19 @@ export default function HeicToJpgConverter() {
       setProcessing(true);
       setError('');
       const converted: ConvertedFile[] = [];
+      const errors: string[] = [];
       for (const f of files) {
         try {
           converted.push(await convertHeicToJpg(f, quality));
         } catch (e) {
-          setError(e instanceof Error ? e.message : 'Conversion failed');
+          errors.push(e instanceof Error ? e.message : 'Conversion failed');
         }
       }
       if (converted.length > 0) setResults((prev) => [...prev, ...converted]);
+      if (errors.length > 0) {
+        const unique = [...new Set(errors)];
+        setError(unique.length === 1 ? unique[0] : `${errors.length} files failed: ${unique.join('; ')}`);
+      }
       setProcessing(false);
     },
     [quality],

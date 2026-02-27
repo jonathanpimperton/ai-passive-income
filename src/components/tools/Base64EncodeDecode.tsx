@@ -74,6 +74,7 @@ export default function Base64EncodeDecode() {
     if (!file) return;
     setFileName(file.name);
     const reader = new FileReader();
+    reader.onerror = () => setFileResult('');
 
     if (direction === 'encode') {
       reader.onload = () => {

@@ -88,15 +88,19 @@ export default function ImageFormatConverter() {
   const [quality, setQuality] = useState(90);
   const [results, setResults] = useState<ConvertedFile[]>([]);
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
 
   const handleFiles = useCallback(
     async (files: File[]) => {
       setProcessing(true);
+      setError('');
       const settled = await Promise.allSettled(files.map((f) => convertImage(f, targetFormat, quality)));
       const succeeded = settled
         .filter((r): r is PromiseFulfilledResult<ConvertedFile> => r.status === 'fulfilled')
         .map((r) => r.value);
+      const failedCount = settled.filter((r) => r.status === 'rejected').length;
       if (succeeded.length > 0) setResults((prev) => [...prev, ...succeeded]);
+      if (failedCount > 0) setError(`${failedCount} image${failedCount > 1 ? 's' : ''} failed to convert.`);
       setProcessing(false);
     },
     [targetFormat, quality],
@@ -159,6 +163,9 @@ export default function ImageFormatConverter() {
       </div>
 
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
+        {error && (
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">{error}</div>
+        )}
         {processing && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-primary-50 border border-primary-200">
             <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />

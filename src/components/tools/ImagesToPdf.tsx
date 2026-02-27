@@ -50,6 +50,7 @@ export default function ImagesToPdf() {
   const [fitMode, setFitMode] = useState<FitMode>('fit');
   const [margin, setMargin] = useState(10);
   const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
 
   const handleFiles = useCallback(async (files: File[]) => {
     const entries = await Promise.all(
@@ -148,7 +149,7 @@ export default function ImagesToPdf() {
 
       pdf.save('images.pdf');
     } catch {
-      // PDF generation failed — user sees the button reset from "Generating..." to "Download PDF"
+      setError('PDF generation failed — try removing any corrupted images and retry.');
     }
     setGenerating(false);
   }, [images, pageSize, orientation, fitMode, margin]);
@@ -235,6 +236,9 @@ export default function ImagesToPdf() {
       </div>
 
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
+        {error && (
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">{error}</div>
+        )}
         {images.length > 0 ? (
           <>
             <div className="flex items-center justify-between">

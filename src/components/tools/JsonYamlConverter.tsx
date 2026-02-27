@@ -56,10 +56,12 @@ export default function JsonYamlConverter() {
     }
     if (jsYamlLoading) return;
     jsYamlLoading = true;
-    import('js-yaml').then((mod) => {
-      jsYamlInstance = mod;
-      setYamlReady(true);
-    });
+    import('js-yaml')
+      .then((mod) => {
+        jsYamlInstance = mod;
+        setYamlReady(true);
+      })
+      .catch(() => setYamlReady(true)); // Degrade gracefully — result memo handles missing lib
   }, []);
 
   const result = useMemo(() => {
