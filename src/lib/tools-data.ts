@@ -284,13 +284,6 @@ export const TOOLS: ToolMeta[] = [
     icon: 'image-down',
   },
   {
-    name: 'Word to PDF Converter',
-    slug: 'word-to-pdf',
-    category: 'file-tools',
-    description: 'Convert Word documents (.docx) to PDF in your browser.',
-    icon: 'file-output',
-  },
-  {
     name: 'Excel to PDF Converter',
     slug: 'excel-to-pdf',
     category: 'file-tools',
@@ -338,7 +331,7 @@ export function getToolPath(tool: ToolMeta): string {
 /** Popular tools for homepage — top 6 by Google search volume across all categories */
 export const POPULAR_TOOL_SLUGS = [
   'mortgage-payment',      // ~3.35M monthly searches
-  'word-to-pdf',           // ~500K-1M monthly searches
+  'password-generator',    // ~500K-1M monthly searches
   'image-compressor',      // ~200-500K monthly searches
   'compound-interest',     // ~150-300K monthly searches
   'pdf-merge',             // ~200-500K monthly searches

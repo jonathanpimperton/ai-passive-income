@@ -13,7 +13,7 @@ relatedTools:
   - "pdf-merge"
   - "pdf-compress"
   - "pdf-to-image"
-  - "word-to-pdf"
+  - "images-to-pdf"
 workedExamples:
   - title: "Extracting a chapter from a textbook"
     inputs:

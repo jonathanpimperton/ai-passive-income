@@ -8,7 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { RotateCcw, TrendingUp, Percent, Wallet, ArrowUpDown } from 'lucide-react';
+import { RotateCcw, Percent, Wallet, ArrowUpDown } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';

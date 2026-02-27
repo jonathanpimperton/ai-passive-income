@@ -10,10 +10,10 @@ keywords:
   - "CSV to PDF"
   - "spreadsheet to PDF converter free"
 relatedTools:
-  - "word-to-pdf"
   - "pdf-merge"
   - "csv-json"
   - "pdf-compress"
+  - "images-to-pdf"
 workedExamples:
   - title: "Sharing financial data with a client"
     inputs:
