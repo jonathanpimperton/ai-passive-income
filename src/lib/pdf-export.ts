@@ -31,18 +31,21 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
     el.style.display = 'none';
   });
 
-  // Capture the results panel (charts, tables, big numbers — everything)
-  const canvas = await html2canvas(resultsElement, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: '#FAFAFA',
-  });
-
-  // Restore hidden elements
-  hiddenEls.forEach((el, i) => {
-    el.style.display = prevDisplays[i];
-  });
+  let canvas: HTMLCanvasElement;
+  try {
+    // Capture the results panel (charts, tables, big numbers — everything)
+    canvas = await html2canvas(resultsElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#FAFAFA',
+    });
+  } finally {
+    // Always restore hidden elements, even if html2canvas throws
+    hiddenEls.forEach((el, i) => {
+      el.style.display = prevDisplays[i];
+    });
+  }
 
   // ── Build PDF ──────────────────────────────────────────
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
