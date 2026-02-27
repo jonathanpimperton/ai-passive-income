@@ -148,6 +148,14 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
     el.style.display = 'none';
   });
 
+  // Force-show collapsed sections (e.g. amortization schedule behind toggle)
+  const forceShowEls = resultsElement.querySelectorAll<HTMLElement>('[data-pdf-force-show]');
+  const prevForceShowDisplays: string[] = [];
+  forceShowEls.forEach((el, i) => {
+    prevForceShowDisplays[i] = el.style.display;
+    el.style.display = '';
+  });
+
   // Neutralise scroll/overflow styles to prevent scrollbar artifacts
   const savedScrollStyles = neutraliseScrollStyles(resultsElement);
 
@@ -165,6 +173,9 @@ export async function exportToPdf(options: PdfExportOptions): Promise<void> {
   } finally {
     // Always restore all overrides, even if capture throws
     restoreScrollStyles(savedScrollStyles);
+    forceShowEls.forEach((el, i) => {
+      el.style.display = prevForceShowDisplays[i];
+    });
     hiddenEls.forEach((el, i) => {
       el.style.display = prevDisplays[i];
     });
