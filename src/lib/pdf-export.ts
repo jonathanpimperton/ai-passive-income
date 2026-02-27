@@ -109,19 +109,21 @@ function restoreScrollStyles(saved: SavedStyles[]) {
 // candidate page-break positions.
 
 function collectBreakPoints(root: HTMLElement, pixelRatio: number): number[] {
-  const sections = root.querySelectorAll<HTMLElement>('[data-pdf-section]');
-  if (sections.length === 0) return [];
-
   const containerRect = root.getBoundingClientRect();
   const points: number[] = [];
 
-  sections.forEach((el) => {
+  function addTop(el: Element) {
     const rect = el.getBoundingClientRect();
     const topPx = Math.round((rect.top - containerRect.top) * pixelRatio);
-    if (topPx > 0) {
-      points.push(topPx);
-    }
-  });
+    if (topPx > 0) points.push(topPx);
+  }
+
+  // Section-level breaks (charts, cards, table wrappers)
+  root.querySelectorAll<HTMLElement>('[data-pdf-section]').forEach(addTop);
+
+  // Row-level breaks inside tables — prevents slicing through rows
+  // when a table section is taller than a full page.
+  root.querySelectorAll<HTMLElement>('tbody tr').forEach(addTop);
 
   // Dedupe and sort ascending
   return [...new Set(points)].sort((a, b) => a - b);
