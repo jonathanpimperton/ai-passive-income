@@ -24,7 +24,7 @@ Build a zero-investment online business that generates passive income, built ent
 - **MailerLite** (free tier) — email capture, 500 subscribers, automations included, 12K emails/mo. Upgrade to Growing Business ($10/mo) at 500+ subs.
 - **Google Search Console / Analytics** — SEO tracking (free)
 - **Satori + Sharp** — build-time OG image generation
-- **jsPDF** — client-side PDF export of calculator results
+- **jsPDF + html-to-image** — client-side PDF export of calculator results (html-to-image replaced html2canvas which crashed on Tailwind v4's oklab() colors)
 
 > **Why Astro over Next.js?** This is a static tools site — we use ~10% of Next.js's features. Astro ships zero JS by default (better Core Web Vitals = better SEO), Cloudflare acquired Astro's company (first-class support), and React components work natively as islands.
 
@@ -127,7 +127,29 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - PDF export: jsPDF with branded template, ExportPdfButton on all 14 financial calculators (lazy-loaded)
 - Embeddable widgets: `?embed` strips chrome, "Powered by CalcRun" attribution, `/embed` page with code generator
 - Bundle analysis: all heavy deps (heic-to, xlsx, pdf-lib, jsPDF) properly code-split and page-specific
-- Still pending (requires external accounts): Cloudflare Pages deploy, Google Search Console, MailerLite integration, Betterment affiliate application
+
+**Sprint 7 — PDF Export Fix (Complete):**
+- Replaced html2canvas with html-to-image (html2canvas crashed on Tailwind v4's oklab() colors)
+- Scrollbar artifacts fixed: overflow/sticky styles neutralised before capture, restored in `finally` block
+- Section-aware page breaks: `data-pdf-section` attributes on 59 visual blocks across all 14 calculators; chunking loop breaks at section boundaries instead of raw pixel slicing
+- Row-level break points: `<tbody> <tr>` tops collected as additional candidates — tables never sliced mid-row
+- Mortgage toggle button hidden in PDF via `data-pdf-hide`
+- Amortization schedule always included in PDF via `data-pdf-force-show` (renders in DOM but hidden with inline style when toggle off; force-shown during capture)
+- Break points measured AFTER hiding `data-pdf-hide` elements and neutralising styles so positions match captured canvas
+- Playwright test suite: all 14 calculators verified producing valid multi-page PDFs
+
+**Remaining sprints (see `docs/sprint-plan.md` for full details):**
+- Sprint 8: Email capture + MailerLite integration (wire EmailCapture component into tool pages, connect to MailerLite API, 3-email drip)
+- Sprint 9: Affiliate links + revenue engine (AffiliateLinks component, partner cards, comparison tables)
+- Sprint 10: Deploy to Cloudflare Pages + SEO activation (GSC, GA4, OG verification)
+- Sprint 11: Navigation + UX polish (utility/file tools in nav, search on /tools, embed CTA, homepage enhancements)
+- Sprint 12: Content + growth + launch (programmatic scenario pages, share buttons, Product Hunt / Reddit launch)
+
+**External blockers (require manual action):**
+- MailerLite account creation (free, ~15 min) — needed for Sprint 8
+- Betterment affiliate application (apply early, approval takes days) — needed for Sprint 9
+- Cloudflare Pages GitHub connection — needed for Sprint 10
+- Google Search Console DNS verification — needed for Sprint 10
 
 ## Design Quality Standards (MANDATORY for All Sprints)
 
@@ -190,9 +212,9 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4 complete. All 6 sprints done. 31 tools fully built: 14 financial calculators + 4 utility tools (18 MVP) + 13 file converters. All have SEO content, FAQs, worked examples, affiliate programs (geography-relevant), OG images, and PDF export (financial calcs). Embeddable widget system live at `/embed`. Remaining: deploy to Cloudflare Pages, submit to Google Search Console, configure MailerLite, apply to Betterment.
-5. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
-4. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
+3. **Current status:** Stage 4, Sprint 7 complete. 31 tools fully built: 14 financial calculators + 4 utility tools (18 MVP) + 13 file converters. All have SEO content, FAQs, worked examples, affiliate programs (geography-relevant), OG images, and PDF export (financial calcs). PDF export uses html-to-image with section-aware page breaks and row-level break points. Embeddable widget system live at `/embed`. Next: Sprint 8 (email capture + MailerLite). See `docs/sprint-plan.md` for Sprints 8-12.
+4. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
+5. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
 
 ## Running
 
