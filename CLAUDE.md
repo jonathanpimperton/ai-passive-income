@@ -162,7 +162,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Tracks all page views and events site-wide
 
 **Sprint 12 — Email Capture + MailerLite Integration (Complete):**
-- `functions/api/subscribe.ts` — Cloudflare Pages Function proxying to MailerLite API (server-side API key, CORS, honeypot bot protection)
+- `worker.ts` — Cloudflare Worker entry point: handles `POST /api/subscribe` (MailerLite proxy, CORS, honeypot), delegates all other requests to static assets via `ASSETS` binding
 - `EmailCapture.tsx` rewritten: real `/api/subscribe` POST, honeypot field, `variant` prop (`tool` | `newsletter`), GA4 `email_signup` event, specific error messages
 - EmailCapture rendered on all 14 financial/economic tool pages (saving-and-growth, debt-and-loans, income-and-planning, economic categories) between calculator and affiliate links via `client:visible`
 - Homepage newsletter signup section between Popular Tools and All Tools
@@ -175,7 +175,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 **External blockers (require manual action by owner):**
 - **Affiliate program signups** — Apply to Impact.com + CJ Affiliate (most partners are on these two networks). Apply to each partner individually. Once approved, provide tracking URLs to update `src/lib/affiliate-data.ts`
 - **MailerLite custom field** — Create `calculator_slug` text field in MailerLite: Subscribers → Fields → Add field
-- **Cloudflare env var** — Add `MAILERLITE_API_KEY` in CF Pages: Settings → Environment Variables (both Production and Preview)
+- **Cloudflare env var** — Add `MAILERLITE_API_KEY` as a runtime variable in CF Workers: Settings → Variables and Secrets (will unlock after deploying with `worker.ts`)
 - **Google Search Console** — Set up with sitemap submitted. Indexing requested for top pages. Monitor coverage reports for any issues.
 - **Cloudflare redirect rule** — Add redirect from `calcrun.com/*` to `https://www.calcrun.com/$1` in Cloudflare dashboard
 

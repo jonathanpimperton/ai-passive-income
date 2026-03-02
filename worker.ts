@@ -1,11 +1,12 @@
 /**
- * Cloudflare Pages Function: POST /api/subscribe
+ * Cloudflare Worker entry point.
  *
- * Proxies email subscriptions to MailerLite API.
- * API key stays server-side as a CF Pages env var.
+ * Handles API routes (POST /api/subscribe) and delegates
+ * all other requests to static assets served from dist/.
  */
 
 interface Env {
+  ASSETS: Fetcher;
   MAILERLITE_API_KEY: string;
 }
 
@@ -24,25 +25,17 @@ function corsHeaders(origin: string | null): Record<string, string> {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
   };
-  // Allow localhost in dev, lock to production domain otherwise
   if (origin && (origin === ALLOWED_ORIGIN || origin.startsWith('http://localhost'))) {
     headers['Access-Control-Allow-Origin'] = origin;
   }
   return headers;
 }
 
-// CORS preflight
-export const onRequestOptions: PagesFunction<Env> = async (context) => {
-  const origin = context.request.headers.get('Origin');
-  return new Response(null, { status: 204, headers: corsHeaders(origin) });
-};
-
-// Subscribe endpoint
-export const onRequestPost: PagesFunction<Env> = async (context) => {
-  const origin = context.request.headers.get('Origin');
+async function handleSubscribe(request: Request, env: Env): Promise<Response> {
+  const origin = request.headers.get('Origin');
   const headers = { ...corsHeaders(origin), 'Content-Type': 'application/json' };
 
-  const apiKey = context.env.MAILERLITE_API_KEY;
+  const apiKey = env.MAILERLITE_API_KEY;
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: 'Email service not configured' }),
@@ -52,7 +45,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   let body: SubscribeBody;
   try {
-    body = await context.request.json();
+    body = await request.json();
   } catch {
     return new Response(
       JSON.stringify({ error: 'Invalid request body' }),
@@ -105,4 +98,25 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       { status: 502, headers }
     );
   }
-};
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+
+    // API routes
+    if (url.pathname === '/api/subscribe') {
+      if (request.method === 'OPTIONS') {
+        const origin = request.headers.get('Origin');
+        return new Response(null, { status: 204, headers: corsHeaders(origin) });
+      }
+      if (request.method === 'POST') {
+        return handleSubscribe(request, env);
+      }
+      return new Response('Method not allowed', { status: 405 });
+    }
+
+    // Everything else → static assets
+    return env.ASSETS.fetch(request);
+  },
+} satisfies ExportedHandler<Env>;
