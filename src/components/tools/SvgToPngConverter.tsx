@@ -14,6 +14,20 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+/** Strip dangerous elements and attributes from SVG before rendering */
+function sanitizeSvg(svgText: string): string {
+  const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+  const dangerous = doc.querySelectorAll('script,style,iframe,object,embed,foreignObject,use[href^="data:"]');
+  dangerous.forEach((el) => el.remove());
+  doc.querySelectorAll('*').forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
+      if (attr.value.toLowerCase().includes('javascript:')) el.removeAttribute(attr.name);
+    }
+  });
+  return new XMLSerializer().serializeToString(doc.documentElement);
+}
+
 /** Parse SVG text and return intrinsic width/height */
 function getSvgDimensions(svgText: string): { w: number; h: number } | null {
   const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
@@ -44,7 +58,8 @@ export default function SvgToPngConverter() {
   const prevPngUrlRef = useRef('');
 
   const convert = useCallback((text: string, scaleVal: number) => {
-    const dims = getSvgDimensions(text);
+    const cleanSvg = sanitizeSvg(text);
+    const dims = getSvgDimensions(cleanSvg);
     if (!dims) return;
 
     setProcessing(true);
@@ -53,7 +68,7 @@ export default function SvgToPngConverter() {
     setDimensions({ w: outW, h: outH });
 
     const img = new window.Image();
-    const svgBlob = new Blob([text], { type: 'image/svg+xml' });
+    const svgBlob = new Blob([cleanSvg], { type: 'image/svg+xml' });
     const imgUrl = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
