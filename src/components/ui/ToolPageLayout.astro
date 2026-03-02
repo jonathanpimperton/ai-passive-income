@@ -88,9 +88,14 @@ const breadcrumbs = [
     {affiliateContext && <AffiliateDisclosure />}
 
     {/* Calculator component injected via default slot */}
-    <div class="mb-12">
+    <div class="mb-8">
       <slot />
     </div>
+
+    {/* Contextual affiliate recommendations — directly after calculator for max relevance */}
+    {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (
+      <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={slug} />
+    )}
 
     {/* Powered-by badge — visible only in embed mode */}
     <div class="embed-badge items-center justify-center gap-1.5 pb-4 text-sm text-neutral-400">
@@ -145,11 +150,6 @@ const breadcrumbs = [
 <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 scroll-reveal">
   {/* FAQ section with schema markup */}
   {faq.length > 0 && <FaqSection faqs={faq} />}
-
-  {/* Affiliate partner recommendations */}
-  {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (
-    <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={slug} />
-  )}
 
   {/* Related tools */}
   {relatedTools.length > 0 && <RelatedTools slugs={relatedTools} />}
