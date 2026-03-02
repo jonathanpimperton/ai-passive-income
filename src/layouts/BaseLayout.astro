@@ -76,6 +76,15 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
     {structuredData.map((data) => (
       <script is:inline type="application/ld+json" set:html={data} />
     ))}
+
+    <!-- Google Analytics (GA4) -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-K0ZB3P48QG"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-K0ZB3P48QG');
+    </script>
   </head>
   <body class="min-h-screen flex flex-col bg-neutral-50 text-neutral-900">
     <script is:inline>
