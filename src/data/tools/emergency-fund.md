@@ -14,7 +14,7 @@ relatedTools:
   - "net-worth"
   - "debt-payoff"
   - "compound-interest"
-affiliateContext: "Open a high-yield savings account for your emergency fund"
+affiliateContext: "Start building your safety net with a high-yield savings account"
 affiliatePrograms:
   - "Marcus"
   - "Ally"

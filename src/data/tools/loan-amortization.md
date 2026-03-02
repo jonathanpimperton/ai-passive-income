@@ -15,7 +15,7 @@ relatedTools:
   - "rent-vs-buy"
   - "savings-goal"
   - "roi"
-affiliateContext: "Compare loan rates"
+affiliateContext: "Compare rates and save thousands on your loan"
 affiliatePrograms:
   - "LendingTree"
   - "SoFi"

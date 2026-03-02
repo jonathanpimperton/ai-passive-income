@@ -15,7 +15,7 @@ relatedTools:
   - "inflation"
   - "net-worth"
   - "retirement-savings"
-affiliateContext: "Maximize your returns with a low-fee investment platform"
+affiliateContext: "Maximize your returns with low-fee investing"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"

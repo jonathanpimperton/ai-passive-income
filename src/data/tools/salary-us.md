@@ -11,7 +11,7 @@ keywords:
   - "US paycheck calculator"
   - "overtime calculator"
   - "net pay calculator"
-affiliateContext: "Maximize your take-home pay with a high-yield savings or investment account"
+affiliateContext: "Make your take-home pay work harder"
 affiliatePrograms:
   - "Betterment"
   - "SoFi"

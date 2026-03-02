@@ -15,7 +15,7 @@ relatedTools:
   - "image-resizer"
   - "image-compressor"
   - "images-to-pdf"
-affiliateContext: "Protect your privacy when converting files"
+affiliateContext: "Keep your files and browsing private"
 affiliatePrograms:
   - "NordVPN"
   - "NordPass"

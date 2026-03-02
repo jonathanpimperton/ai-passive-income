@@ -15,7 +15,7 @@ relatedTools:
   - "image-resizer"
   - "svg-to-png"
   - "heic-to-jpg"
-affiliateContext: "Protect your privacy when converting images"
+affiliateContext: "Keep your files and browsing private"
 affiliatePrograms:
   - "NordVPN"
   - "NordPass"

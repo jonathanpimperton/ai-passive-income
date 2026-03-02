@@ -15,7 +15,7 @@ relatedTools:
   - "inflation"
   - "savings-goal"
   - "net-worth"
-affiliateContext: "Open a retirement account"
+affiliateContext: "Start your retirement savings with a free account"
 affiliatePrograms:
   - "Betterment"
   - "Vanguard"

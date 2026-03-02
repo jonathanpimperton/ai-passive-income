@@ -14,7 +14,7 @@ relatedTools:
   - "json-formatter"
   - "savings-goal"
   - "salary-us"
-affiliateContext: "Use a password manager"
+affiliateContext: "Store your passwords securely with a password manager"
 affiliatePrograms:
   - "1Password"
   - "NordPass"

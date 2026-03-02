@@ -15,7 +15,7 @@ relatedTools:
   - "roi"
   - "savings-goal"
   - "inflation"
-affiliateContext: "Start investing"
+affiliateContext: "Ready to start investing? Open a free account"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"

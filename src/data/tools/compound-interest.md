@@ -13,7 +13,7 @@ relatedTools:
   - "savings-goal"
   - "retirement-savings"
   - "inflation"
-affiliateContext: "Open a high-yield savings account"
+affiliateContext: "Ready to grow your savings? Open a high-yield account"
 affiliatePrograms:
   - "Betterment"
   - "Marcus"

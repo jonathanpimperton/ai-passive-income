@@ -15,7 +15,7 @@ relatedTools:
   - "image-format-converter"
   - "svg-to-png"
   - "images-to-pdf"
-affiliateContext: "Protect your privacy online"
+affiliateContext: "Keep your files and browsing private"
 affiliatePrograms:
   - "NordVPN"
   - "NordPass"

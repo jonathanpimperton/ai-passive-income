@@ -11,7 +11,7 @@ keywords:
   - "how much house can I afford"
   - "mortgage amortization"
   - "mortgage interest calculator"
-affiliateContext: "Compare mortgage rates from top lenders"
+affiliateContext: "Compare mortgage rates and find the best deal"
 affiliatePrograms:
   - "LendingTree"
   - "SoFi"

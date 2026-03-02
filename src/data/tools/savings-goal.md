@@ -15,7 +15,7 @@ relatedTools:
   - "investment-return"
   - "retirement-savings"
   - "inflation"
-affiliateContext: "High-yield savings"
+affiliateContext: "Reach your goal faster with a high-yield savings account"
 affiliatePrograms:
   - "Marcus"
   - "Ally"

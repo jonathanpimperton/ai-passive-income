@@ -15,7 +15,7 @@ relatedTools:
   - "compound-interest"
   - "emergency-fund"
   - "net-worth"
-affiliateContext: "Consolidate your debt"
+affiliateContext: "Ready to pay off debt faster? Consolidate with a lower rate"
 affiliatePrograms:
   - "SoFi"
   - "LendingClub"

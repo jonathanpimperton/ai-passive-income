@@ -15,7 +15,7 @@ relatedTools:
   - "investment-return"
   - "savings-goal"
   - "salary-us"
-affiliateContext: "Invest to protect your purchasing power against inflation"
+affiliateContext: "Don't let inflation erode your wealth — start investing"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"

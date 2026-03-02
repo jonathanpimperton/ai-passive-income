@@ -14,7 +14,7 @@ relatedTools:
   - "investment-return"
   - "net-worth"
   - "compound-interest"
-affiliateContext: "Get pre-approved"
+affiliateContext: "Ready to buy? Get pre-approved and compare rates"
 affiliatePrograms:
   - "LendingTree"
 faq:

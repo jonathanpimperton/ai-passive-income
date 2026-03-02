@@ -14,7 +14,7 @@ relatedTools:
   - "savings-goal"
   - "emergency-fund"
   - "investment-return"
-affiliateContext: "Start growing your net worth with a smart investment account"
+affiliateContext: "Grow your net worth with a smart investment account"
 affiliatePrograms:
   - "Betterment"
   - "SoFi"
