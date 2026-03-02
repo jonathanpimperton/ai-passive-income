@@ -22,6 +22,7 @@
 import Breadcrumb from './Breadcrumb.astro';
 import ToolIcon from './ToolIcon.astro';
 import AffiliateDisclosure from './AffiliateDisclosure.astro';
+import AffiliateLinks from './AffiliateLinks.astro';
 import FaqSection from './FaqSection.astro';
 import RelatedTools from './RelatedTools.astro';
 import { CATEGORIES, TOOLS, type CategorySlug } from '@lib/tools-data';
@@ -38,6 +39,7 @@ interface ToolData {
   category: CategorySlug;
   description: string;
   affiliateContext?: string;
+  affiliatePrograms?: string[];
   faq: Array<{ question: string; answer: string }>;
   relatedTools: string[];
   workedExamples?: WorkedExample[];
@@ -50,7 +52,7 @@ interface Props {
 }
 
 const { tool } = Astro.props;
-const { name, slug, category, description, affiliateContext, faq, relatedTools, workedExamples } = tool.data;
+const { name, slug, category, description, affiliateContext, affiliatePrograms, faq, relatedTools, workedExamples } = tool.data;
 const categoryLabel = CATEGORIES[category]?.label ?? category;
 const toolMeta = TOOLS.find((t) => t.slug === slug);
 
@@ -139,10 +141,15 @@ const breadcrumbs = [
   </div>
 </div>
 
-{/* FAQ + Related tools */}
+{/* FAQ + Affiliate links + Related tools */}
 <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 scroll-reveal">
   {/* FAQ section with schema markup */}
   {faq.length > 0 && <FaqSection faqs={faq} />}
+
+  {/* Affiliate partner recommendations */}
+  {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (
+    <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={slug} />
+  )}
 
   {/* Related tools */}
   {relatedTools.length > 0 && <RelatedTools slugs={relatedTools} />}
