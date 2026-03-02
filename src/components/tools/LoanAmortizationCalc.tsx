@@ -308,10 +308,12 @@ export default function LoanAmortizationCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <ShareButton toolSlug="loan-amortization" toolName="Loan Amortization Calculator" />
-            <EmailResultsButton toolSlug="loan-amortization" toolName="Loan Amortization Calculator" getInputs={getInputs} getResults={getResults} />
-            <ExportPdfButton toolName="Loan Amortization Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            <div className="flex flex-wrap gap-2">
+              <EmailResultsButton toolSlug="loan-amortization" toolName="Loan Amortization Calculator" getInputs={getInputs} getResults={getResults} />
+              <ExportPdfButton toolName="Loan Amortization Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            </div>
           </div>
 
           {/* Pie + Area Charts */}

@@ -245,10 +245,12 @@ export default function EmergencyFundCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <ShareButton toolSlug="emergency-fund" toolName="Emergency Fund Calculator" />
-            <EmailResultsButton toolSlug="emergency-fund" toolName="Emergency Fund Calculator" getInputs={getInputs} getResults={getResults} />
-            <ExportPdfButton toolName="Emergency Fund Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            <div className="flex flex-wrap gap-2">
+              <EmailResultsButton toolSlug="emergency-fund" toolName="Emergency Fund Calculator" getInputs={getInputs} getResults={getResults} />
+              <ExportPdfButton toolName="Emergency Fund Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            </div>
           </div>
 
           {/* Chart */}

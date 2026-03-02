@@ -481,10 +481,12 @@ export default function RetirementSavingsCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <ShareButton toolSlug="retirement-savings" toolName="Retirement Savings Calculator" />
-            <EmailResultsButton toolSlug="retirement-savings" toolName="Retirement Savings Calculator" getInputs={getInputs} getResults={getResults} />
-            <ExportPdfButton toolName="Retirement Savings Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            <div className="flex flex-wrap gap-2">
+              <EmailResultsButton toolSlug="retirement-savings" toolName="Retirement Savings Calculator" getInputs={getInputs} getResults={getResults} />
+              <ExportPdfButton toolName="Retirement Savings Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            </div>
           </div>
 
           {/* Inflation Impact Note */}

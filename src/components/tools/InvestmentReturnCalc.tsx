@@ -521,10 +521,12 @@ export default function InvestmentReturnCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <ShareButton toolSlug="investment-return" toolName="Investment Return Calculator" />
-            <EmailResultsButton toolSlug="investment-return" toolName="Investment Return Calculator" getInputs={getInputs} getResults={getResults} />
-            <ExportPdfButton toolName="Investment Return Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            <div className="flex flex-wrap gap-2">
+              <EmailResultsButton toolSlug="investment-return" toolName="Investment Return Calculator" getInputs={getInputs} getResults={getResults} />
+              <ExportPdfButton toolName="Investment Return Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            </div>
           </div>
 
           {/* Area Chart */}

@@ -147,7 +147,7 @@ export default function ShareButton({ toolSlug, toolName }: ShareButtonProps) {
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-52 bg-white border border-neutral-200/80 rounded-xl shadow-lg p-1.5 z-20"
+          className="absolute left-0 top-full mt-2 w-52 bg-white border border-neutral-200/80 rounded-xl shadow-lg p-1.5 z-20"
           role="menu"
           aria-label="Share options"
         >

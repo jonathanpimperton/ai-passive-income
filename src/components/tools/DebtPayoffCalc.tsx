@@ -563,10 +563,12 @@ export default function DebtPayoffCalc() {
                 </div>
               )}
 
-              <div className="flex flex-wrap justify-end gap-2 mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <ShareButton toolSlug="debt-payoff" toolName="Debt Payoff Calculator" />
-                <EmailResultsButton toolSlug="debt-payoff" toolName="Debt Payoff Calculator" getInputs={getInputs} getResults={getResults} />
-                <ExportPdfButton toolName="Debt Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+                <div className="flex flex-wrap gap-2">
+                  <EmailResultsButton toolSlug="debt-payoff" toolName="Debt Payoff Calculator" getInputs={getInputs} getResults={getResults} />
+                  <ExportPdfButton toolName="Debt Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+                </div>
               </div>
 
               {/* ── Balance Over Time Chart ───────────── */}

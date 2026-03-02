@@ -392,10 +392,12 @@ export default function CompoundInterestCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <ShareButton toolSlug="compound-interest" toolName="Compound Interest Calculator" />
-            <EmailResultsButton toolSlug="compound-interest" toolName="Compound Interest Calculator" getInputs={getInputs} getResults={getResults} />
-            <ExportPdfButton toolName="Compound Interest Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            <div className="flex flex-wrap gap-2">
+              <EmailResultsButton toolSlug="compound-interest" toolName="Compound Interest Calculator" getInputs={getInputs} getResults={getResults} />
+              <ExportPdfButton toolName="Compound Interest Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            </div>
           </div>
 
           {/* Chart */}

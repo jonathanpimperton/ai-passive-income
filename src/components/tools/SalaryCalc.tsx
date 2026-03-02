@@ -364,10 +364,12 @@ export default function SalaryCalc() {
             )}
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <ShareButton toolSlug="salary" toolName="US Salary Calculator" />
-            <EmailResultsButton toolSlug="salary" toolName="US Salary Calculator" getInputs={getInputs} getResults={getResults} />
-            <ExportPdfButton toolName="US Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            <div className="flex flex-wrap gap-2">
+              <EmailResultsButton toolSlug="salary" toolName="US Salary Calculator" getInputs={getInputs} getResults={getResults} />
+              <ExportPdfButton toolName="US Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            </div>
           </div>
 
           {/* Pie chart */}

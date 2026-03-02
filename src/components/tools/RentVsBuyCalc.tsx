@@ -330,10 +330,12 @@ export default function RentVsBuyCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <ShareButton toolSlug="rent-vs-buy" toolName="Rent vs Buy Calculator" />
-            <EmailResultsButton toolSlug="rent-vs-buy" toolName="Rent vs Buy Calculator" getInputs={getInputs} getResults={getResults} />
-            <ExportPdfButton toolName="Rent vs Buy Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            <div className="flex flex-wrap gap-2">
+              <EmailResultsButton toolSlug="rent-vs-buy" toolName="Rent vs Buy Calculator" getInputs={getInputs} getResults={getResults} />
+              <ExportPdfButton toolName="Rent vs Buy Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            </div>
           </div>
 
           {/* Chart */}
