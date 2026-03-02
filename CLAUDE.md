@@ -200,7 +200,6 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 
 **External blockers (require manual action by owner):**
 - **Affiliate program signups** — Apply to Impact.com + CJ Affiliate (most partners are on these two networks). Apply to each partner individually. Once approved, provide tracking URLs to update `src/lib/affiliate-data.ts`
-- **MailerSend domain verification** — Verify `calcrun.com` sender domain in MailerSend dashboard (DNS records) for email deliverability
 - **MailerLite drip automation** — Set up 3-email welcome sequence triggered on group join ("Calculator Results"): Day 0 welcome, Day 3 net worth, Day 7 inflation + affiliate CTA
 - **Cloudflare redirect rule** — Add redirect from `calcrun.com/*` to `https://www.calcrun.com/$1` in Cloudflare dashboard
 - **Product Hunt launch** — Use `docs/launch/product-hunt.md` content. Schedule for Tuesday-Thursday morning
@@ -211,6 +210,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - ~~MailerLite custom field~~ — `calculator_slug` created
 - ~~Google Search Console~~ — Indexing requested on top pages
 - ~~Cloudflare env vars~~ — `MAILERLITE_API_KEY` + `MAILERSEND_API_KEY` added
+- ~~MailerSend domain verification~~ — `calcrun.com` sender domain verified (DNS records added)
 
 ## Design Quality Standards (MANDATORY for All Sprints)
 
