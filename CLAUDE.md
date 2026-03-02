@@ -157,16 +157,26 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Mobile menu: added all utility tools (7) and file tools (15) sections
 - All 37 tools now discoverable from navigation
 
+**Sprint 11 — Google Analytics 4 (Complete):**
+- GA4 measurement ID `G-K0ZB3P48QG` integrated in BaseLayout `<head>` via `is:inline` scripts
+- Tracks all page views and events site-wide
+
+**Sprint 12 — Email Capture + MailerLite Integration (Complete):**
+- `functions/api/subscribe.ts` — Cloudflare Pages Function proxying to MailerLite API (server-side API key, CORS, honeypot bot protection)
+- `EmailCapture.tsx` rewritten: real `/api/subscribe` POST, honeypot field, `variant` prop (`tool` | `newsletter`), GA4 `email_signup` event, specific error messages
+- EmailCapture rendered on all 14 financial/economic tool pages (saving-and-growth, debt-and-loans, income-and-planning, economic categories) between calculator and affiliate links via `client:visible`
+- Homepage newsletter signup section between Popular Tools and All Tools
+- MailerLite group ID `180838346043426395` ("Calculator Results"), `calculator_slug` custom field for segmentation
+- `.env.example` documenting `MAILERLITE_API_KEY`
+
 **Remaining sprints:**
-- Sprint 11: Email capture + MailerLite integration (wire EmailCapture component into tool pages, connect to MailerLite API, 3-email drip)
-- Sprint 12: GA4 integration (add measurement ID to track affiliate clicks and conversions)
 - Sprint 13: Content + growth + launch (programmatic scenario pages, share buttons, Product Hunt / Reddit launch)
 
 **External blockers (require manual action by owner):**
 - **Affiliate program signups** — Apply to Impact.com + CJ Affiliate (most partners are on these two networks). Apply to each partner individually. Once approved, provide tracking URLs to update `src/lib/affiliate-data.ts`
-- **MailerLite account** — Sign up (free, ~15 min), create subscriber group, provide API key for Sprint 11
-- **GA4 property** — Create at analytics.google.com, provide Measurement ID (G-XXXXXXXXXX) for Sprint 12
-- **Google Search Console** — Already set up with sitemap submitted. Owner needs to manually Request Indexing for top 5 pages
+- **MailerLite custom field** — Create `calculator_slug` text field in MailerLite: Subscribers → Fields → Add field
+- **Cloudflare env var** — Add `MAILERLITE_API_KEY` in CF Pages: Settings → Environment Variables (both Production and Preview)
+- **Google Search Console** — Set up with sitemap submitted. Indexing requested for top pages. Monitor coverage reports for any issues.
 - **Cloudflare redirect rule** — Add redirect from `calcrun.com/*` to `https://www.calcrun.com/$1` in Cloudflare dashboard
 
 ## Design Quality Standards (MANDATORY for All Sprints)
@@ -230,7 +240,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Site is live at `https://www.calcrun.com`. Sprint 10 complete. 37 tools built (14 financial + 7 utility + 15 file tools + 1 economic). Affiliate links component live on 20 tool pages. Navigation shows all tools. Security headers and SVG sanitization in place. Google Search Console set up with sitemap submitted. Next: Sprint 11 (email capture + MailerLite) — blocked on owner creating MailerLite account.
+3. **Current status:** Site is live at `https://www.calcrun.com`. Sprint 12 complete (email capture + MailerLite). 37 tools built (14 financial + 7 utility + 15 file tools + 1 economic). Email capture on all 14 financial/economic tool pages + homepage. Affiliate links on 20 tool pages. GA4 tracking (G-K0ZB3P48QG) active. Next: Sprint 13 (content + growth + launch).
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.

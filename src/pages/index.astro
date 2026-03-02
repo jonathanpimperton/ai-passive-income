@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
+import EmailCapture from '@components/ui/EmailCapture.tsx';
 import { TOOLS, POPULAR_TOOL_SLUGS, CATEGORIES, getToolPath, type CategorySlug, type ToolMeta } from '@lib/tools-data';
 import { buildWebsiteSchema } from '@lib/seo';
 
@@ -140,6 +141,14 @@ const ctaHooks = [
       <a href="/tools" class="sm:hidden mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600">
         View all tools <ToolIcon name="arrow-right" size={16} />
       </a>
+    </div>
+  </section>
+
+  {/* ===== NEWSLETTER SIGNUP ===== */}
+  <section class="py-12 sm:py-16 bg-primary-50">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-xl sm:text-2xl font-bold text-neutral-900 text-center mb-6">Stay ahead of your finances</h2>
+      <EmailCapture client:visible variant="newsletter" />
     </div>
   </section>
 
