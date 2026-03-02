@@ -31,7 +31,7 @@ Build a zero-investment online business that generates passive income, built ent
 ## Site Identity
 
 - **Name:** CalcRun
-- **Domain:** `calcrun.com` (via Cloudflare Registrar, purchased). `calcrun.pages.dev` redirects to it.
+- **Domain:** `www.calcrun.com` (via Cloudflare Registrar). All canonical URLs use `www.`. `calcrun.pages.dev` redirects to it.
 - **Logo:** SVG wordmark — navy "Calc" + blue "Run" (built in code, no external tools)
 - **Tagline:** "See your numbers instantly — no signup, no ads." (USP; see build-spec.md Value Proposition section)
 
@@ -57,7 +57,7 @@ MVP expanded from 15 to 18 focused tools (14 financial + 4 utility).
 Switched from Next.js to Astro. Dropped simple tools that AI Overviews replace.
 Full design system defined: branding, colors, typography, calculator UI, navigation, accessibility.
 
-### Stage 4: Build, Test & Launch (In Progress)
+### Stage 4: Build, Test & Launch (Complete — Live at www.calcrun.com)
 
 **Sprint 1 — Foundation + Visual Polish (Complete):**
 - Astro 5 + TypeScript + Tailwind CSS v4 + React scaffold
@@ -138,18 +138,36 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Break points measured AFTER hiding `data-pdf-hide` elements and neutralising styles so positions match captured canvas
 - Playwright test suite: all 14 calculators verified producing valid multi-page PDFs
 
-**Remaining sprints (see `docs/sprint-plan.md` for full details):**
-- Sprint 8: Email capture + MailerLite integration (wire EmailCapture component into tool pages, connect to MailerLite API, 3-email drip)
-- Sprint 9: Affiliate links + revenue engine (AffiliateLinks component, partner cards, comparison tables)
-- Sprint 10: Deploy to Cloudflare Pages + SEO activation (GSC, GA4, OG verification)
-- Sprint 11: Navigation + UX polish (utility/file tools in nav, search on /tools, embed CTA, homepage enhancements)
-- Sprint 12: Content + growth + launch (programmatic scenario pages, share buttons, Product Hunt / Reddit launch)
+**Sprint 8 — Security + URL Canonicalization (Complete):**
+- SVG sanitization in SvgToPngConverter (strips script/style/iframe/foreignObject, removes on* attributes and javascript: URLs)
+- Security headers via `public/_headers` (CSP, HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
+- Switched all canonical URLs from `calcrun.com` to `www.calcrun.com` across 8 files (astro.config, robots.txt, BaseLayout, seo.ts, embed, ToolPageLayout, QrCodeGenerator, CLAUDE.md)
+- Fixed mobile hamburger menu (CSS spec: backdrop-filter on header created containing block for position:fixed children)
+- Updated contact email from privacy@calcrun.com to hello@calcrun.com on privacy page
 
-**External blockers (require manual action):**
-- MailerLite account creation (free, ~15 min) — needed for Sprint 8
-- Betterment affiliate application (apply early, approval takes days) — needed for Sprint 9
-- Cloudflare Pages GitHub connection — needed for Sprint 10
-- Google Search Console DNS verification — needed for Sprint 10
+**Sprint 9 — Affiliate Links + Revenue Engine (Complete):**
+- `src/lib/affiliate-data.ts` — 14 affiliate partners with UTM URL builder (Betterment, Marcus, Wealthfront, SoFi, LendingTree, LendingClub, Ally, Vanguard, 1Password, NordPass, NordVPN, Nutmeg, Moneybox, InvestEngine)
+- `src/components/ui/AffiliateLinks.astro` — Partner cards with icon, name, tagline, category badge, "Learn more" CTA. Links use `rel="noopener sponsored"` for FTC compliance
+- Wired into ToolPageLayout directly below calculator (highest-intent placement). Only renders on pages with `affiliatePrograms` in frontmatter (20 of 37 tools)
+- FTC-compliant: AffiliateDisclosure banner above calculator + inline note below cards + full `/disclosure` page
+
+**Sprint 10 — Navigation Polish (Complete):**
+- Desktop dropdown: expanded from 2-column "Calculators" to 3-column "Tools" (740px) with Utility and File Tools sections
+- "View all 37+ tools" link in dropdown
+- Mobile menu: added all utility tools (7) and file tools (15) sections
+- All 37 tools now discoverable from navigation
+
+**Remaining sprints:**
+- Sprint 11: Email capture + MailerLite integration (wire EmailCapture component into tool pages, connect to MailerLite API, 3-email drip)
+- Sprint 12: GA4 integration (add measurement ID to track affiliate clicks and conversions)
+- Sprint 13: Content + growth + launch (programmatic scenario pages, share buttons, Product Hunt / Reddit launch)
+
+**External blockers (require manual action by owner):**
+- **Affiliate program signups** — Apply to Impact.com + CJ Affiliate (most partners are on these two networks). Apply to each partner individually. Once approved, provide tracking URLs to update `src/lib/affiliate-data.ts`
+- **MailerLite account** — Sign up (free, ~15 min), create subscriber group, provide API key for Sprint 11
+- **GA4 property** — Create at analytics.google.com, provide Measurement ID (G-XXXXXXXXXX) for Sprint 12
+- **Google Search Console** — Already set up with sitemap submitted. Owner needs to manually Request Indexing for top 5 pages
+- **Cloudflare redirect rule** — Add redirect from `calcrun.com/*` to `https://www.calcrun.com/$1` in Cloudflare dashboard
 
 ## Design Quality Standards (MANDATORY for All Sprints)
 
@@ -212,9 +230,10 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Stage 4, Sprint 7 complete. 31 tools fully built: 14 financial calculators + 4 utility tools (18 MVP) + 13 file converters. All have SEO content, FAQs, worked examples, affiliate programs (geography-relevant), OG images, and PDF export (financial calcs). PDF export uses html-to-image with section-aware page breaks and row-level break points. Embeddable widget system live at `/embed`. Next: Sprint 8 (email capture + MailerLite). See `docs/sprint-plan.md` for Sprints 8-12.
-4. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
-5. **Before finishing a session:** Always create a PR to merge your `claude/*` branch back into the default branch so the next session inherits all work. Never leave work stranded on a feature branch.
+3. **Current status:** Site is live at `https://www.calcrun.com`. Sprint 10 complete. 37 tools built (14 financial + 7 utility + 15 file tools + 1 economic). Affiliate links component live on 20 tool pages. Navigation shows all tools. Security headers and SVG sanitization in place. Google Search Console set up with sitemap submitted. Next: Sprint 11 (email capture + MailerLite) — blocked on owner creating MailerLite account.
+4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
+5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
+6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 
 ## Running
 
