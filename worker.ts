@@ -29,6 +29,7 @@ interface EmailResultsBody {
   toolName: string;
   inputs: Array<{ label: string; value: string }>;
   results: ResultItem[];
+  subscribe?: boolean;
   honeypot?: string;
 }
 
@@ -53,6 +54,52 @@ const QUICK_TIPS: Record<string, string> = {
   'net-worth': 'Track your net worth monthly — the trend matters more than any single number.',
   'rent-vs-buy': 'The 5% rule: if annual rent is less than 5% of the home price, renting may be the better financial choice.',
   'emergency-fund': 'Keep your emergency fund in a high-yield savings account — accessible but earning interest.',
+};
+
+/* ── Affiliate recommendations per calculator ────────────── */
+const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url: string; category: string }>> = {
+  'compound-interest': [
+    { name: 'Betterment', tagline: 'Automated investing with no minimum balance', url: 'https://www.betterment.com/', category: 'Investing' },
+  ],
+  'loan-amortization': [
+    { name: 'LendingTree', tagline: 'Compare loan rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Loans' },
+  ],
+  'investment-return': [
+    { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing' },
+  ],
+  'retirement-savings': [
+    { name: 'Vanguard', tagline: 'Low-cost index funds for long-term growth', url: 'https://investor.vanguard.com/', category: 'Investing' },
+  ],
+  'debt-payoff': [
+    { name: 'LendingClub', tagline: 'Personal loans to consolidate and pay off debt', url: 'https://www.lendingclub.com/', category: 'Loans' },
+  ],
+  'savings-goal': [
+    { name: 'Marcus by Goldman Sachs', tagline: 'High-yield savings with no fees or minimums', url: 'https://www.marcus.com/', category: 'Savings' },
+  ],
+  'salary': [
+    { name: 'Betterment', tagline: 'Start investing to grow your take-home pay', url: 'https://www.betterment.com/', category: 'Investing' },
+  ],
+  'salary-uk': [
+    { name: 'Nutmeg', tagline: 'UK investing made simple — ISAs, pensions, and more', url: 'https://www.nutmeg.com/', category: 'Investing (UK)' },
+  ],
+  'mortgage-payment': [
+    { name: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Mortgages' },
+  ],
+  'inflation': [
+    { name: 'Marcus by Goldman Sachs', tagline: 'Beat inflation with a high-yield savings account', url: 'https://www.marcus.com/', category: 'Savings' },
+  ],
+  'roi': [
+    { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing' },
+  ],
+  'net-worth': [
+    { name: 'Betterment', tagline: 'Grow your net worth with automated investing', url: 'https://www.betterment.com/', category: 'Investing' },
+  ],
+  'rent-vs-buy': [
+    { name: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Mortgages' },
+  ],
+  'emergency-fund': [
+    { name: 'Ally Bank', tagline: 'Online savings with competitive APY and no fees', url: 'https://www.ally.com/', category: 'Savings' },
+  ],
 };
 
 /* ── CORS ──────────────────────────────────────────────────── */
@@ -196,6 +243,33 @@ function buildResultsEmail(
     </table>`
     : '';
 
+  // Affiliate recommendation section
+  const affiliates = AFFILIATE_RECS[toolSlug] || [];
+  const affiliateSection = affiliates.length > 0
+    ? `
+    <tr>
+      <td style="padding:24px 32px 8px;">
+        <div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Take the Next Step</div>
+        ${affiliates.map((a) => {
+          const affUrl = `${a.url}?utm_source=calcrun&utm_medium=email_results&utm_campaign=${encodeURIComponent(toolSlug)}`;
+          return `
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F9FF;border-radius:8px;border:1px solid #BAE6FD;margin-bottom:8px;">
+          <tr>
+            <td style="padding:14px 16px;">
+              <div style="font-size:10px;font-weight:600;color:#0369A1;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">${escapeHtml(a.category)}</div>
+              <div style="font-size:15px;font-weight:600;color:#0C4A6E;margin-bottom:4px;">${escapeHtml(a.name)} *</div>
+              <div style="font-size:13px;color:#475569;margin-bottom:10px;">${escapeHtml(a.tagline)}</div>
+              <a href="${affUrl}" style="display:inline-block;padding:8px 20px;background-color:#0284C7;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:6px;">
+                Learn more &rarr;
+              </a>
+            </td>
+          </tr>
+        </table>`;
+        }).join('')}
+      </td>
+    </tr>`
+    : '';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,9 +284,9 @@ function buildResultsEmail(
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
           <!-- Header -->
           <tr>
-            <td style="padding:24px 32px;background:linear-gradient(135deg,#0A2540 0%,#1A3A5C 50%,#0A2540 100%);">
+            <td style="padding:24px 32px;background-color:#FFFFFF;border-bottom:1px solid #E5E7EB;">
               <span style="font-size:22px;font-weight:700;letter-spacing:-0.02em;">
-                <span style="color:#FFFFFF;">Calc</span><span style="color:#60A5FA;">Run</span>
+                <span style="color:#0A2540;">Calc</span><span style="color:#3B82F6;">Run</span>
               </span>
             </td>
           </tr>
@@ -251,12 +325,15 @@ function buildResultsEmail(
             <td style="padding:0 32px;">${tipSection}</td>
           </tr>
 
+          <!-- Affiliate Recommendation -->
+          ${affiliateSection}
+
           <!-- CTA -->
           <tr>
             <td style="padding:28px 32px;" align="center">
               <a href="${toolUrl}?utm_source=email&utm_medium=results&utm_campaign=${encodeURIComponent(toolSlug)}"
                 style="display:inline-block;padding:12px 28px;background-color:#2563EB;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
-                Run this calculator again →
+                Run this calculator again &rarr;
               </a>
             </td>
           </tr>
@@ -265,9 +342,12 @@ function buildResultsEmail(
           <tr>
             <td style="padding:20px 32px;background-color:#F9FAFB;border-top:1px solid #E5E7EB;">
               <p style="margin:0;font-size:12px;color:#9CA3AF;line-height:1.6;">
-                <a href="https://www.calcrun.com" style="color:#6B7280;text-decoration:none;font-weight:600;">CalcRun</a> — Free financial calculators<br>
+                <a href="https://www.calcrun.com" style="color:#6B7280;text-decoration:none;font-weight:600;">CalcRun</a> &mdash; Free financial calculators<br>
                 You received this because you emailed yourself calculator results from calcrun.com.<br>
-                This is a one-time email — no further emails will be sent unless you subscribe.
+                This is a one-time transactional email. You will not receive marketing emails unless you opted in.
+              </p>
+              <p style="margin:8px 0 0;font-size:11px;color:#D1D5DB;line-height:1.5;">
+                Links marked with * are affiliate links. CalcRun may earn a commission at no cost to you.
               </p>
             </td>
           </tr>
@@ -357,8 +437,8 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
     );
   }
 
-  // Also subscribe to MailerLite drip (fire-and-forget — don't fail if this errors)
-  if (env.MAILERLITE_API_KEY) {
+  // Subscribe to MailerLite drip only if user opted in (fire-and-forget — don't fail if this errors)
+  if (body.subscribe && env.MAILERLITE_API_KEY) {
     try {
       await subscribeToMailerLite(email, body.toolSlug, env.MAILERLITE_API_KEY);
     } catch (err) {

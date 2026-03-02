@@ -11,5 +11,7 @@ export interface EmailResultsBody {
   toolName: string;
   inputs: Array<{ label: string; value: string }>;
   results: ResultItem[];
+  /** User opted in to newsletter/drip emails */
+  subscribe?: boolean;
   honeypot?: string;
 }

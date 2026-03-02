@@ -18,6 +18,7 @@ export default function EmailResultsButton({
 }: EmailResultsButtonProps) {
   const [expanded, setExpanded] = useState(false);
   const [email, setEmail] = useState('');
+  const [subscribe, setSubscribe] = useState(true);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const honeypotRef = useRef<HTMLInputElement>(null);
@@ -28,7 +29,6 @@ export default function EmailResultsButton({
       setExpanded(true);
       setStatus('idle');
       setErrorMsg('');
-      // Focus email input after expansion
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setExpanded(false);
@@ -52,6 +52,7 @@ export default function EmailResultsButton({
           toolName,
           inputs: getInputs(),
           results: getResults(),
+          subscribe,
           honeypot: honeypotRef.current?.value || '',
         }),
       });
@@ -60,7 +61,6 @@ export default function EmailResultsButton({
 
       if (response.ok && data.success) {
         setStatus('success');
-        // GA4 event
         if ((window as any).gtag) {
           (window as any).gtag('event', 'email_results', {
             event_category: 'engagement',
@@ -104,10 +104,10 @@ export default function EmailResultsButton({
 
       <div
         className={`overflow-hidden transition-all duration-200 ${
-          expanded ? 'max-h-40 opacity-100 mt-2' : 'max-h-0 opacity-0'
+          expanded ? 'max-h-48 opacity-100 mt-2' : 'max-h-0 opacity-0'
         }`}
       >
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="space-y-2">
           {/* Honeypot — hidden from humans */}
           <input
             ref={honeypotRef}
@@ -118,36 +118,47 @@ export default function EmailResultsButton({
             className="absolute opacity-0 h-0 w-0 pointer-events-none"
             aria-hidden="true"
           />
-          <label htmlFor={`email-results-${toolSlug}`} className="sr-only">
-            Email address
+          <div className="flex items-center gap-2">
+            <label htmlFor={`email-results-${toolSlug}`} className="sr-only">
+              Email address
+            </label>
+            <input
+              ref={inputRef}
+              id={`email-results-${toolSlug}`}
+              type="email"
+              required
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={status === 'loading'}
+              className="h-9 px-3 text-sm rounded-lg border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-400
+                focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
+                disabled:opacity-60 w-52"
+            />
+            <button
+              type="submit"
+              disabled={status === 'loading' || !email.trim()}
+              className="inline-flex items-center gap-1.5 h-9 px-3 text-sm font-medium rounded-lg transition-all duration-200
+                text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-60"
+              aria-label="Send results to email"
+            >
+              {status === 'loading' ? (
+                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <Send size={14} aria-hidden="true" />
+              )}
+              Send
+            </button>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={subscribe}
+              onChange={(e) => setSubscribe(e.target.checked)}
+              className="h-3.5 w-3.5 rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20"
+            />
+            <span className="text-xs text-neutral-500">Also send me free financial tips</span>
           </label>
-          <input
-            ref={inputRef}
-            id={`email-results-${toolSlug}`}
-            type="email"
-            required
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={status === 'loading'}
-            className="h-9 px-3 text-sm rounded-lg border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-400
-              focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
-              disabled:opacity-60 w-52"
-          />
-          <button
-            type="submit"
-            disabled={status === 'loading' || !email.trim()}
-            className="inline-flex items-center gap-1.5 h-9 px-3 text-sm font-medium rounded-lg transition-all duration-200
-              text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-60"
-            aria-label="Send results to email"
-          >
-            {status === 'loading' ? (
-              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-            ) : (
-              <Send size={14} aria-hidden="true" />
-            )}
-            Send
-          </button>
         </form>
         {status === 'error' && errorMsg && (
           <p role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
