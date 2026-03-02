@@ -16,6 +16,7 @@ import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
+import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
@@ -416,6 +417,7 @@ export default function MortgagePaymentCalc() {
           </div>
 
           <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <ShareButton toolSlug="mortgage-payment" toolName="Mortgage Payment Calculator" />
             <EmailResultsButton toolSlug="mortgage-payment" toolName="Mortgage Payment Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Mortgage Payment Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>

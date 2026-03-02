@@ -56,49 +56,63 @@ const QUICK_TIPS: Record<string, string> = {
   'emergency-fund': 'Keep your emergency fund in a high-yield savings account — accessible but earning interest.',
 };
 
-/* ── Affiliate recommendations per calculator ────────────── */
-const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url: string; category: string }>> = {
+/* ── Affiliate recommendations per calculator (2 per tool for better conversion) ── */
+const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url: string; category: string; cta: string }>> = {
   'compound-interest': [
-    { name: 'Betterment', tagline: 'Automated investing with no minimum balance', url: 'https://www.betterment.com/', category: 'Investing' },
+    { name: 'Betterment', tagline: 'Automated investing with no minimum balance', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
+    { name: 'Wealthfront', tagline: 'Tax-loss harvesting to maximize your returns', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
   ],
   'loan-amortization': [
-    { name: 'LendingTree', tagline: 'Compare loan rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Loans' },
+    { name: 'LendingTree', tagline: 'Compare loan rates from multiple lenders in minutes', url: 'https://www.lendingtree.com/', category: 'Loans', cta: 'Compare rates now' },
+    { name: 'SoFi', tagline: 'Refinance and save — low rates, no hidden fees', url: 'https://www.sofi.com/', category: 'Loans', cta: 'Check your rate' },
   ],
   'investment-return': [
-    { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing' },
+    { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Start growing your money' },
+    { name: 'Vanguard', tagline: 'Low-cost index funds trusted by millions', url: 'https://investor.vanguard.com/', category: 'Investing', cta: 'Explore funds' },
   ],
   'retirement-savings': [
-    { name: 'Vanguard', tagline: 'Low-cost index funds for long-term growth', url: 'https://investor.vanguard.com/', category: 'Investing' },
+    { name: 'Vanguard', tagline: 'Low-cost index funds for long-term growth', url: 'https://investor.vanguard.com/', category: 'Investing', cta: 'Plan your retirement' },
+    { name: 'Betterment', tagline: 'Automated retirement planning with IRA options', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Open an IRA' },
   ],
   'debt-payoff': [
-    { name: 'LendingClub', tagline: 'Personal loans to consolidate and pay off debt', url: 'https://www.lendingclub.com/', category: 'Loans' },
+    { name: 'LendingClub', tagline: 'Personal loans to consolidate and pay off debt faster', url: 'https://www.lendingclub.com/', category: 'Loans', cta: 'Check your rate' },
+    { name: 'SoFi', tagline: 'Consolidate debt at a lower rate — no fees', url: 'https://www.sofi.com/', category: 'Loans', cta: 'Get pre-qualified' },
   ],
   'savings-goal': [
-    { name: 'Marcus by Goldman Sachs', tagline: 'High-yield savings with no fees or minimums', url: 'https://www.marcus.com/', category: 'Savings' },
+    { name: 'Marcus by Goldman Sachs', tagline: 'High-yield savings with no fees or minimums', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Open savings account' },
+    { name: 'Ally Bank', tagline: 'Competitive APY with no minimum balance', url: 'https://www.ally.com/', category: 'Savings', cta: 'Start saving today' },
   ],
   'salary': [
-    { name: 'Betterment', tagline: 'Start investing to grow your take-home pay', url: 'https://www.betterment.com/', category: 'Investing' },
+    { name: 'Betterment', tagline: 'Start investing to grow your take-home pay', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
+    { name: 'Marcus by Goldman Sachs', tagline: 'Earn more on the money you save', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Open savings account' },
   ],
   'salary-uk': [
-    { name: 'Nutmeg', tagline: 'UK investing made simple — ISAs, pensions, and more', url: 'https://www.nutmeg.com/', category: 'Investing (UK)' },
+    { name: 'Nutmeg', tagline: 'UK investing made simple — ISAs, pensions, and more', url: 'https://www.nutmeg.com/', category: 'Investing (UK)', cta: 'Start investing' },
+    { name: 'Moneybox', tagline: 'Save and invest from just £1 — ISAs and pensions', url: 'https://www.moneyboxapp.com/', category: 'Investing (UK)', cta: 'Get started free' },
   ],
   'mortgage-payment': [
-    { name: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Mortgages' },
+    { name: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Mortgages', cta: 'Compare rates now' },
+    { name: 'SoFi', tagline: 'Competitive mortgage rates with no hidden fees', url: 'https://www.sofi.com/', category: 'Mortgages', cta: 'Get pre-approved' },
   ],
   'inflation': [
-    { name: 'Marcus by Goldman Sachs', tagline: 'Beat inflation with a high-yield savings account', url: 'https://www.marcus.com/', category: 'Savings' },
+    { name: 'Marcus by Goldman Sachs', tagline: 'Beat inflation with a high-yield savings account', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Earn more interest' },
+    { name: 'Wealthfront', tagline: 'Invest to outpace inflation long-term', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Start investing' },
   ],
   'roi': [
-    { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing' },
+    { name: 'Wealthfront', tagline: 'Maximize returns with automated tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
+    { name: 'Betterment', tagline: 'Smart investing with portfolio optimization', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Get started free' },
   ],
   'net-worth': [
-    { name: 'Betterment', tagline: 'Grow your net worth with automated investing', url: 'https://www.betterment.com/', category: 'Investing' },
+    { name: 'Betterment', tagline: 'Grow your net worth with automated investing', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start building wealth' },
+    { name: 'Marcus by Goldman Sachs', tagline: 'High-yield savings to grow your cash position', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Open savings account' },
   ],
   'rent-vs-buy': [
-    { name: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Mortgages' },
+    { name: 'LendingTree', tagline: 'Compare mortgage rates if you decide to buy', url: 'https://www.lendingtree.com/', category: 'Mortgages', cta: 'Compare rates now' },
+    { name: 'Betterment', tagline: 'Invest the difference if you decide to rent', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
   ],
   'emergency-fund': [
-    { name: 'Ally Bank', tagline: 'Online savings with competitive APY and no fees', url: 'https://www.ally.com/', category: 'Savings' },
+    { name: 'Ally Bank', tagline: 'Online savings with competitive APY and no fees', url: 'https://www.ally.com/', category: 'Savings', cta: 'Open savings account' },
+    { name: 'Marcus by Goldman Sachs', tagline: 'High-yield savings — keep your fund earning', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Earn more interest' },
   ],
 };
 
@@ -243,29 +257,51 @@ function buildResultsEmail(
     </table>`
     : '';
 
-  // Affiliate recommendation section
+  // Affiliate recommendation section — prominent with action-oriented CTAs
   const affiliates = AFFILIATE_RECS[toolSlug] || [];
   const affiliateSection = affiliates.length > 0
     ? `
     <tr>
       <td style="padding:24px 32px 8px;">
-        <div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Take the Next Step</div>
-        ${affiliates.map((a) => {
-          const affUrl = `${a.url}?utm_source=calcrun&utm_medium=email_results&utm_campaign=${encodeURIComponent(toolSlug)}`;
-          return `
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F9FF;border-radius:8px;border:1px solid #BAE6FD;margin-bottom:8px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#EFF6FF;border-radius:12px;border:1px solid #BFDBFE;overflow:hidden;">
           <tr>
-            <td style="padding:14px 16px;">
-              <div style="font-size:10px;font-weight:600;color:#0369A1;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">${escapeHtml(a.category)}</div>
-              <div style="font-size:15px;font-weight:600;color:#0C4A6E;margin-bottom:4px;">${escapeHtml(a.name)} *</div>
-              <div style="font-size:13px;color:#475569;margin-bottom:10px;">${escapeHtml(a.tagline)}</div>
-              <a href="${affUrl}" style="display:inline-block;padding:8px 20px;background-color:#0284C7;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:6px;">
-                Learn more &rarr;
-              </a>
+            <td style="padding:20px 20px 8px;">
+              <div style="font-size:16px;font-weight:700;color:#1E3A5F;margin-bottom:4px;">Ready to take the next step?</div>
+              <div style="font-size:13px;color:#64748B;margin-bottom:16px;">Based on your results, these tools can help you take action.</div>
             </td>
           </tr>
-        </table>`;
-        }).join('')}
+          ${affiliates.map((a) => {
+            const affUrl = `${a.url}?utm_source=calcrun&utm_medium=email_results&utm_campaign=${encodeURIComponent(toolSlug)}`;
+            return `
+          <tr>
+            <td style="padding:0 20px 12px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border-radius:8px;border:1px solid #E2E8F0;">
+                <tr>
+                  <td style="padding:16px;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="vertical-align:top;">
+                          <div style="font-size:10px;font-weight:700;color:#0369A1;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${escapeHtml(a.category)}</div>
+                          <div style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:4px;">${escapeHtml(a.name)} *</div>
+                          <div style="font-size:13px;color:#475569;line-height:1.4;margin-bottom:12px;">${escapeHtml(a.tagline)}</div>
+                          <a href="${affUrl}" style="display:inline-block;padding:10px 24px;background-color:#2563EB;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;">
+                            ${escapeHtml(a.cta)} &rarr;
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>`;
+          }).join('')}
+          <tr>
+            <td style="padding:4px 20px 16px;">
+              <div style="font-size:11px;color:#94A3B8;line-height:1.4;">* Affiliate link — CalcRun may earn a commission at no cost to you. <a href="https://www.calcrun.com/disclosure" style="color:#94A3B8;">Full disclosure</a></div>
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>`
     : '';
@@ -285,9 +321,18 @@ function buildResultsEmail(
           <!-- Header -->
           <tr>
             <td style="padding:24px 32px;background-color:#FFFFFF;border-bottom:1px solid #E5E7EB;">
-              <span style="font-size:22px;font-weight:700;letter-spacing:-0.02em;">
-                <span style="color:#0A2540;">Calc</span><span style="color:#3B82F6;">Run</span>
-              </span>
+              <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                <tr>
+                  <td style="padding-right:10px;vertical-align:middle;">
+                    <img src="https://www.calcrun.com/icon-192.png" alt="CalcRun" width="36" height="36" style="display:block;border-radius:8px;" />
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <span style="font-size:22px;font-weight:700;letter-spacing:-0.02em;">
+                      <span style="color:#0A2540;">Calc</span><span style="color:#3B82F6;">Run</span>
+                    </span>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 

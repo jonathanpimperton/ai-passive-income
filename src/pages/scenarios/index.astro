@@ -1,0 +1,92 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
+import { getCollection } from 'astro:content';
+import { TOOLS, type ToolMeta } from '@lib/tools-data';
+
+const scenarios = await getCollection('scenarios');
+
+// Group scenarios by parent tool
+const groupedByTool = new Map<string, { tool: ToolMeta | undefined; scenarios: typeof scenarios }>();
+for (const scenario of scenarios) {
+  const key = scenario.data.toolSlug;
+  if (!groupedByTool.has(key)) {
+    groupedByTool.set(key, {
+      tool: TOOLS.find((t) => t.slug === key),
+      scenarios: [],
+    });
+  }
+  groupedByTool.get(key)!.scenarios.push(scenario);
+}
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Scenarios', url: '/scenarios' },
+];
+---
+
+<BaseLayout
+  title="Financial Scenarios — Pre-Calculated Examples"
+  description="Explore pre-calculated financial scenarios with real numbers. Mortgages, investments, salaries, debt payoff strategies, and more."
+>
+  {/* Dark gradient header */}
+  <div class="bg-[linear-gradient(135deg,#0A2540_0%,#1A3A5C_50%,#0A2540_100%)] text-white">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <Breadcrumb items={breadcrumbs} />
+      <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mt-4 mb-3">Financial Scenarios</h1>
+      <p class="text-lg text-white/70 max-w-2xl leading-relaxed">
+        Pre-calculated examples with real numbers and expert analysis. Find a scenario close to yours, then use the calculator to fine-tune the results.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div class="space-y-12">
+      {[...groupedByTool.entries()].map(([toolSlug, { tool, scenarios: toolScenarios }]) => (
+        <section>
+          {/* Tool group header */}
+          <div class="flex items-center gap-3 mb-5">
+            {tool && (
+              <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 text-primary-600 shrink-0">
+                <ToolIcon name={tool.icon} size={18} />
+              </div>
+            )}
+            <h2 class="text-xl font-bold text-neutral-900">
+              {tool ? tool.name : toolSlug}
+            </h2>
+          </div>
+
+          {/* Scenario cards */}
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {toolScenarios.map((scenario) => (
+              <a
+                href={`/scenarios/${scenario.data.slug}`}
+                class="group bg-white border border-neutral-200/80 rounded-xl p-5 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+              >
+                <h3 class="text-sm font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200 mb-2 leading-snug">
+                  {scenario.data.title}
+                </h3>
+                <p class="text-xl font-bold text-primary-600 tabular-nums mb-2">
+                  {scenario.data.resultSummary}
+                </p>
+                <div class="flex flex-wrap gap-1.5 mt-auto">
+                  {Object.entries(scenario.data.inputs).slice(0, 3).map(([key, value]) => (
+                    <span class="text-[10px] font-medium text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                      {key}: {value}
+                    </span>
+                  ))}
+                </div>
+                {/* Bottom accent */}
+                <div class="absolute bottom-0 left-3 right-3 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              </a>
+            ))}
+          </div>
+
+          {/* Gradient divider */}
+          <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mt-10"></div>
+        </section>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

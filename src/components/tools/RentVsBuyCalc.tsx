@@ -15,6 +15,7 @@ import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
+import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { formatCurrency, formatNumber, loanMonthlyPayment } from '../../lib/calculator-utils';
@@ -330,6 +331,7 @@ export default function RentVsBuyCalc() {
           </div>
 
           <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <ShareButton toolSlug="rent-vs-buy" toolName="Rent vs Buy Calculator" />
             <EmailResultsButton toolSlug="rent-vs-buy" toolName="Rent vs Buy Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Rent vs Buy Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>

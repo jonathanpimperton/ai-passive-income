@@ -1,6 +1,20 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
+const scenarios = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/data/scenarios' }),
+  schema: z.object({
+    title: z.string(),
+    slug: z.string(),
+    description: z.string(),
+    keywords: z.array(z.string()),
+    toolSlug: z.string(),
+    toolCategory: z.string(),
+    inputs: z.record(z.string(), z.union([z.string(), z.number()])),
+    resultSummary: z.string(),
+  }),
+});
+
 const tools = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/data/tools' }),
   schema: z.object({
@@ -37,4 +51,4 @@ const tools = defineCollection({
   }),
 });
 
-export const collections = { tools };
+export const collections = { tools, scenarios };

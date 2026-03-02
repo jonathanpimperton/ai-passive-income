@@ -21,6 +21,7 @@ import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
+import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
@@ -563,6 +564,7 @@ export default function DebtPayoffCalc() {
               )}
 
               <div className="flex flex-wrap justify-end gap-2 mb-4">
+                <ShareButton toolSlug="debt-payoff" toolName="Debt Payoff Calculator" />
                 <EmailResultsButton toolSlug="debt-payoff" toolName="Debt Payoff Calculator" getInputs={getInputs} getResults={getResults} />
                 <ExportPdfButton toolName="Debt Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
               </div>

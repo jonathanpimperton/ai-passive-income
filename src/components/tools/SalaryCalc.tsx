@@ -12,6 +12,7 @@ import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
+import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
@@ -364,6 +365,7 @@ export default function SalaryCalc() {
           </div>
 
           <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <ShareButton toolSlug="salary" toolName="US Salary Calculator" />
             <EmailResultsButton toolSlug="salary" toolName="US Salary Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="US Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
