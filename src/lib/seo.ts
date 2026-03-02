@@ -13,7 +13,7 @@ export interface FaqItem {
   answer: string;
 }
 
-const SITE_URL = 'https://calcrun.com';
+const SITE_URL = 'https://www.calcrun.com';
 
 export function buildBreadcrumbSchema(items: BreadcrumbItem[]): string {
   const schema = {

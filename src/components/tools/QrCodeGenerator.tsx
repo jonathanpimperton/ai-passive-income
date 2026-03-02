@@ -21,7 +21,7 @@ type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H';
 
 /* ── Main Component ───────────────────────────────────────── */
 export default function QrCodeGenerator() {
-  const [text, setText] = useState('https://calcrun.com');
+  const [text, setText] = useState('https://www.calcrun.com');
   const [size, setSize] = useState(256);
   const [errorCorrection, setErrorCorrection] = useState<ErrorCorrectionLevel>('M');
   const [dataUrl, setDataUrl] = useState<string>('');
@@ -107,7 +107,7 @@ export default function QrCodeGenerator() {
 
   /* ── Reset ───────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
-    setText('https://calcrun.com');
+    setText('https://www.calcrun.com');
     setSize(256);
     setErrorCorrection('M');
   }, []);

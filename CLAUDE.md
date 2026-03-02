@@ -271,7 +271,7 @@ Every session that writes code MUST run through this checklist before committing
 - [ ] **Every color used in a utility class MUST be defined in `@theme`** in `src/styles/global.css`. Tailwind v4 only generates utilities for explicitly defined tokens. If you use `bg-neutral-400` but `--color-neutral-400` isn't in `@theme`, it silently fails. This has broken styling before.
 
 ### 6. Assets & Meta
-- [ ] **OG image URLs are absolute** — Must start with `https://calcrun.com/`, not relative paths
+- [ ] **OG image URLs are absolute** — Must start with `https://www.calcrun.com/`, not relative paths
 - [ ] **Favicon/manifest references** point to files that actually exist in `public/`
 - [ ] **No hardcoded URLs** in components — Use helper functions (`getToolPath()`, etc.)
 
