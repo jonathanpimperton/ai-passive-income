@@ -23,6 +23,8 @@ import { ChevronDown, RotateCcw, TrendingUp, Wallet, Sparkles } from 'lucide-rea
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Solve-for-X tab definitions ─────────────────────────── */
@@ -231,6 +233,13 @@ export default function InvestmentReturnCalc() {
     inputs.push({ label: 'Contribution Timing', value: timingLabel });
     return inputs;
   }, [mode, principal, monthly, rate, years, target, frequency, timing]);
+
+  const getResults = useCallback((): ResultItem[] => [
+    { label: result.label, value: result.formatted, highlight: true },
+    { label: 'Final Balance', value: formatCurrency(summary.finalBalance) },
+    { label: 'Total Contributions', value: formatCurrency(summary.totalContributions) },
+    { label: 'Total Earnings', value: formatCurrency(summary.totalEarnings) },
+  ], [result, summary]);
 
   /* ── Reset ──────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
@@ -511,7 +520,8 @@ export default function InvestmentReturnCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="investment-return" toolName="Investment Return Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Investment Return Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

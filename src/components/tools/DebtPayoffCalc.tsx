@@ -20,6 +20,8 @@ import { Plus, X, RotateCcw, CreditCard, DollarSign } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Compact text input for debt card fields ─────────────── */
@@ -239,6 +241,13 @@ export default function DebtPayoffCalc() {
     inputs.push({ label: 'Extra Monthly Payment', value: `$${formatNumber(extraPayment)}` });
     return inputs;
   }, [debts, activeStrategy, extraPayment]);
+
+  const getResults = useCallback((): ResultItem[] => [
+    { label: 'Debt-Free In', value: formatMonths(activeResult.months), highlight: true },
+    { label: 'Total Interest', value: formatCurrency(activeResult.totalInterest) },
+    { label: 'Total Amount Paid', value: formatCurrency(activeResult.totalPaid) },
+    { label: 'Total Debt', value: formatCurrency(totalDebt) },
+  ], [activeResult, totalDebt]);
 
   const animatedMonths = useAnimatedNumber(activeResult.months);
   const hasValidDebts = debts.length > 0;
@@ -553,7 +562,8 @@ export default function DebtPayoffCalc() {
                 </div>
               )}
 
-              <div className="flex justify-end mb-4">
+              <div className="flex flex-wrap justify-end gap-2 mb-4">
+                <EmailResultsButton toolSlug="debt-payoff" toolName="Debt Payoff Calculator" getInputs={getInputs} getResults={getResults} />
                 <ExportPdfButton toolName="Debt Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
               </div>
 

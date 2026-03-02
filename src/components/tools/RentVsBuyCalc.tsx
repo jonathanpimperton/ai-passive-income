@@ -14,6 +14,8 @@ import { RotateCcw, ChevronDown, Home, DollarSign, TrendingUp, Landmark } from '
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { formatCurrency, formatNumber, loanMonthlyPayment } from '../../lib/calculator-utils';
 
@@ -200,6 +202,13 @@ export default function RentVsBuyCalc() {
     return inputs;
   }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, monthlyRent, rentIncrease, homeAppreciation, propertyTaxRate, homeInsurance, maintenanceRate, timeHorizon]);
 
+  const getResults = useCallback((): ResultItem[] => [
+    { label: `Over ${timeHorizon} years, ${analysis.buyWins ? 'buying' : 'renting'} saves you`, value: formatCurrency(analysis.savings), highlight: true },
+    { label: 'Monthly Mortgage', value: formatCurrency(analysis.monthlyMortgage) },
+    { label: 'Monthly Buy Cost (Total)', value: formatCurrency(analysis.monthlyBuyCost) },
+    { label: 'Equity Built', value: formatCurrency(analysis.finalEquity) },
+  ], [timeHorizon, analysis]);
+
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
@@ -320,7 +329,8 @@ export default function RentVsBuyCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="rent-vs-buy" toolName="Rent vs Buy Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Rent vs Buy Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

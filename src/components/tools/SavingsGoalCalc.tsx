@@ -19,6 +19,8 @@ import { RotateCcw, Target, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Tabs ─────────────────────────────────────────────────── */
@@ -148,6 +150,28 @@ export default function SavingsGoalCalc() {
     }
     return inputs;
   }, [mode, goalAmount, currentSavings, annualRate, months, monthlyContribution]);
+
+  const getResults = useCallback((): ResultItem[] => {
+    if (mode === 'monthly') {
+      return [
+        { label: 'Monthly Savings Needed', value: formatCurrency(monthlySavings), highlight: true },
+        { label: 'Total Contributions', value: formatCurrency(Math.max(0, summaryStats.totalContributions)) },
+        { label: 'Interest Earned', value: formatCurrency(Math.max(0, summaryStats.interestEarned)) },
+      ];
+    }
+    const totalMonths = timeToGoalMonths;
+    const years = Math.floor(totalMonths / 12);
+    const rem = totalMonths % 12;
+    const timeStr = !isFinite(totalMonths) ? 'Not reachable' :
+      years === 0 ? `${rem} month${rem !== 1 ? 's' : ''}` :
+      rem === 0 ? `${years} year${years !== 1 ? 's' : ''}` :
+      `${years} yr${years !== 1 ? 's' : ''} ${rem} mo`;
+    return [
+      { label: 'Time to Reach Goal', value: timeStr, highlight: true },
+      { label: 'Total Contributions', value: formatCurrency(Math.max(0, summaryStats.totalContributions)) },
+      { label: 'Interest Earned', value: formatCurrency(Math.max(0, summaryStats.interestEarned)) },
+    ];
+  }, [mode, monthlySavings, timeToGoalMonths, summaryStats]);
 
   const handleReset = useCallback(() => {
     setGoalAmount(DEFAULTS.goalAmount);
@@ -390,7 +414,8 @@ export default function SavingsGoalCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="savings-goal" toolName="Savings Goal Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Savings Goal Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

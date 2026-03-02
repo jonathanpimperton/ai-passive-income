@@ -22,6 +22,8 @@ import { ChevronDown, RotateCcw, Banknote, Percent, DollarSign } from 'lucide-re
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Collapsible Year-Group Table ─────────────────────────── */
@@ -206,6 +208,12 @@ export default function LoanAmortizationCalc() {
     return inputs;
   }, [loanAmount, rate, termYears, extraPayment]);
 
+  const getResults = useCallback((): ResultItem[] => [
+    { label: 'Monthly Payment', value: formatCurrency(monthlyPayment), highlight: true },
+    { label: 'Total Interest', value: formatCurrency(totalInterest) },
+    { label: 'Total Cost', value: formatCurrency(totalCost) },
+  ], [monthlyPayment, totalInterest, totalCost]);
+
   const handleReset = useCallback(() => {
     setLoanAmount(DEFAULTS.loanAmount);
     setRate(DEFAULTS.annualRate);
@@ -299,7 +307,8 @@ export default function LoanAmortizationCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="loan-amortization" toolName="Loan Amortization Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Loan Amortization Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

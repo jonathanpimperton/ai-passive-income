@@ -21,6 +21,8 @@ import { RotateCcw, PiggyBank, Calendar, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Types ─────────────────────────────────────────────────── */
@@ -219,6 +221,18 @@ export default function RetirementSavingsCalc() {
     inputs.push({ label: 'Expected Inflation Rate', value: `${inflationRate}%` });
     return inputs;
   }, [mode, currentAge, retirementAge, currentSavings, monthlyContribution, targetBalance, annualReturn, inflationRate]);
+
+  const getResults = useCallback((): ResultItem[] => {
+    const primary = mode === 'retirement-age'
+      ? `Age ${Math.round(results.primaryValue)}`
+      : formatCurrency(results.primaryValue);
+    return [
+      { label: results.primaryLabel, value: primary, highlight: true },
+      { label: 'Inflation-Adjusted Value', value: formatCurrency(results.realValue) },
+      { label: 'Total Contributions', value: formatCurrency(results.totalContributions) },
+      { label: 'Total Interest', value: formatCurrency(results.totalInterest) },
+    ];
+  }, [mode, results]);
 
   /* ── Reset ───────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
@@ -466,7 +480,8 @@ export default function RetirementSavingsCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="retirement-savings" toolName="Retirement Savings Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Retirement Savings Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

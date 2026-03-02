@@ -14,6 +14,8 @@ import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
 const DEFAULTS = {
@@ -101,6 +103,21 @@ export default function EmergencyFundCalc() {
     { label: 'Monthly Savings Contribution', value: formatCurrency(monthlySaving) },
     { label: 'Savings Account APY', value: `${savingsRate.toFixed(1)}%` },
   ], [housing, food, transportation, utilities, insurance, debtPayments, other, monthlyExpenses, currentSavings, monthlySaving, savingsRate]);
+
+  const getResults = useCallback((): ResultItem[] => {
+    const sixMonthTarget = targets.find((t) => t.months === 6);
+    const items: ResultItem[] = [
+      { label: 'Recommended Target (6 months)', value: formatCurrency(monthlyExpenses * 6), highlight: true },
+      { label: 'Monthly Savings Needed', value: formatCurrency(monthlySaving) },
+    ];
+    if (sixMonthTarget && isFinite(sixMonthTarget.monthsToReach)) {
+      const y = Math.floor(sixMonthTarget.monthsToReach / 12);
+      const m = sixMonthTarget.monthsToReach % 12;
+      const timeStr = y > 0 ? `${y} yr${y !== 1 ? 's' : ''} ${m} mo` : `${m} month${m !== 1 ? 's' : ''}`;
+      items.push({ label: 'Time to Reach Goal', value: sixMonthTarget.monthsToReach === 0 ? 'Already funded!' : timeStr });
+    }
+    return items;
+  }, [monthlyExpenses, monthlySaving, targets]);
 
   const chartData = useMemo(() => {
     const maxMonths = Math.min(
@@ -227,7 +244,8 @@ export default function EmergencyFundCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="emergency-fund" toolName="Emergency Fund Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Emergency Fund Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

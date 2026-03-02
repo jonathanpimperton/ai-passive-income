@@ -10,6 +10,8 @@ import { RotateCcw, Plus, X, TrendingUp, CreditCard, Scale, Percent } from 'luci
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
 interface Item {
@@ -135,6 +137,12 @@ export default function NetWorthCalc() {
     { label: 'Number of Liabilities', value: `${liabilities.filter((l) => l.name || l.value > 0).length}` },
   ], [assets, liabilities, totalAssets, totalLiabilities]);
 
+  const getResults = useCallback((): ResultItem[] => [
+    { label: 'Net Worth', value: formatCurrency(netWorth), highlight: true },
+    { label: 'Total Assets', value: formatCurrency(totalAssets) },
+    { label: 'Total Liabilities', value: formatCurrency(totalLiabilities) },
+  ], [netWorth, totalAssets, totalLiabilities]);
+
   const assetPieData = useMemo(
     () => assets.filter((a) => a.value > 0).map((a) => ({ name: a.name, value: a.value })),
     [assets]
@@ -255,7 +263,8 @@ export default function NetWorthCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="net-worth" toolName="Net Worth Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Net Worth Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

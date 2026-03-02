@@ -14,6 +14,8 @@ import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
 const DEFAULTS = {
@@ -105,6 +107,12 @@ export default function RoiCalc() {
     }
     return inputs;
   }, [initialInvestment, finalValue, dividendsReceived, yearsHeld, showComparison, initialB, finalB, dividendsB, yearsB]);
+
+  const getResults = useCallback((): ResultItem[] => [
+    { label: 'Total Return', value: `${(resultA.totalReturn * 100).toFixed(2)}%`, highlight: true },
+    { label: 'Annualized Return', value: `${(resultA.annualizedReturn * 100).toFixed(2)}%` },
+    { label: 'Net Profit', value: formatCurrency(resultA.totalGain) },
+  ], [resultA]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
@@ -222,7 +230,8 @@ export default function RoiCalc() {
             </div>
           )}
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="roi" toolName="ROI Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="ROI Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

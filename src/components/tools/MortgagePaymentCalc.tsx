@@ -15,6 +15,8 @@ import { ChevronDown, RotateCcw, Home, Percent, Banknote, DollarSign } from 'luc
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
@@ -279,6 +281,13 @@ export default function MortgagePaymentCalc() {
     return inputs;
   }, [homePrice, downPaymentPercent, interestRate, loanTerm, extraMonthly, showAdvanced, propertyTaxRate, insuranceAnnual]);
 
+  const getResults = useCallback((): ResultItem[] => [
+    { label: 'Monthly Payment (P&I)', value: formatCurrency(result.monthlyPI), highlight: true },
+    { label: 'Total Interest', value: formatCurrency(result.totalInterest) },
+    { label: 'Total Cost', value: formatCurrency(result.totalPaid) },
+    { label: 'Down Payment', value: formatCurrency(result.downPayment) },
+  ], [result]);
+
   const pieData = useMemo(
     () => [
       { name: 'Principal', value: Math.round(result.principal) },
@@ -406,7 +415,8 @@ export default function MortgagePaymentCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="mortgage-payment" toolName="Mortgage Payment Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Mortgage Payment Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

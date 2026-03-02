@@ -13,6 +13,8 @@ import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
 /**
@@ -122,6 +124,23 @@ export default function InflationCalc() {
     }
     return inputs;
   }, [mode, amount, startYear, endYear, futureYears, inflationRate]);
+
+  const getResults = useCallback((): ResultItem[] => {
+    if (mode === 'historical' && historicalResult) {
+      return [
+        { label: `${formatCurrency(amount)} in ${startYear} equals`, value: formatCurrency(historicalResult.adjustedValue), highlight: true },
+        { label: 'Average Annual Inflation', value: `${(historicalResult.avgAnnualRate * 100).toFixed(2)}%` },
+        { label: 'Purchasing Power Today', value: formatCurrency(historicalResult.purchasingPower) },
+      ];
+    }
+    if (mode === 'future' && futureResult) {
+      return [
+        { label: `${formatCurrency(amount)} today will cost`, value: formatCurrency(futureResult.futureValue), highlight: true },
+        { label: 'Purchasing Power Lost', value: formatCurrency(amount - futureResult.purchasingPower) },
+      ];
+    }
+    return [{ label: 'Result', value: 'Adjust inputs to see results', highlight: true }];
+  }, [mode, amount, startYear, historicalResult, futureResult]);
 
   const chartData = useMemo(() => {
     if (mode === 'historical') {
@@ -295,7 +314,8 @@ export default function InflationCalc() {
             </>
           )}
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="inflation" toolName="Inflation Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Inflation Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

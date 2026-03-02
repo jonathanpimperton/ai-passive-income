@@ -169,13 +169,25 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - MailerLite group ID `180838346043426395` ("Calculator Results"), `calculator_slug` custom field for segmentation
 - `.env.example` documenting `MAILERLITE_API_KEY`
 
+**Sprint 12b — Email My Results + MailerSend (Complete):**
+- `EmailResultsButton.tsx` — inline "Email my results" button with expandable email form, honeypot, GA4 `email_results` event, `data-pdf-hide`
+- `src/lib/email-types.ts` — shared `ResultItem` + `EmailResultsBody` interfaces
+- `worker.ts` — added `/api/email-results` POST route: validates input, builds branded HTML email via `buildResultsEmail()`, sends via MailerSend API, also subscribes user to MailerLite drip
+- Branded HTML email template: CalcRun header, inputs summary, highlighted results, quick tip per calculator, CTA button
+- `getResults()` callback added to all 14 financial calculators, returning key computed values as `ResultItem[]`
+- `EmailResultsButton` rendered next to `ExportPdfButton` on all 14 financial calculators
+- MailerSend free tier: 500 emails/month (adequate for early stage)
+- Quick tips map: 14 calculator-specific financial tips included in results emails
+
 **Remaining sprints:**
 - Sprint 13: Content + growth + launch (programmatic scenario pages, share buttons, Product Hunt / Reddit launch)
 
 **External blockers (require manual action by owner):**
 - **Affiliate program signups** — Apply to Impact.com + CJ Affiliate (most partners are on these two networks). Apply to each partner individually. Once approved, provide tracking URLs to update `src/lib/affiliate-data.ts`
 - **MailerLite custom field** — Create `calculator_slug` text field in MailerLite: Subscribers → Fields → Add field
-- **Cloudflare env var** — Add `MAILERLITE_API_KEY` as a runtime variable in CF Workers: Settings → Variables and Secrets (will unlock after deploying with `worker.ts`)
+- **Cloudflare env vars** — Add `MAILERLITE_API_KEY` and `MAILERSEND_API_KEY` as runtime variables in CF Workers: Settings → Variables and Secrets
+- **MailerSend domain verification** — Verify `calcrun.com` sender domain in MailerSend dashboard (DNS records) for email deliverability
+- **MailerLite drip automation** — Set up 3-email welcome sequence triggered on group join ("Calculator Results"): Day 0 welcome, Day 3 net worth, Day 7 inflation + affiliate CTA
 - **Google Search Console** — Set up with sitemap submitted. Indexing requested for top pages. Monitor coverage reports for any issues.
 - **Cloudflare redirect rule** — Add redirect from `calcrun.com/*` to `https://www.calcrun.com/$1` in Cloudflare dashboard
 
@@ -240,7 +252,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Site is live at `https://www.calcrun.com`. Sprint 12 complete (email capture + MailerLite). 37 tools built (14 financial + 7 utility + 15 file tools + 1 economic). Email capture on all 14 financial/economic tool pages + homepage. Affiliate links on 20 tool pages. GA4 tracking (G-K0ZB3P48QG) active. Next: Sprint 13 (content + growth + launch).
+3. **Current status:** Site is live at `https://www.calcrun.com`. Sprint 12b complete (email results via MailerSend + MailerLite drip). 37 tools built (14 financial + 7 utility + 15 file tools + 1 economic). "Email my results" button on all 14 financial calculator pages. Email capture on all 14 financial/economic tool pages + homepage. Affiliate links on 20 tool pages. GA4 tracking (G-K0ZB3P48QG) active. Next: Sprint 13 (content + growth + launch).
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.

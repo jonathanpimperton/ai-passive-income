@@ -18,6 +18,8 @@ import { ChevronDown, RotateCcw, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
 /* ── Compounding frequency options ────────────────────────── */
@@ -205,6 +207,12 @@ export default function CompoundInterestCalc() {
     ];
   }, [principal, monthly, rate, years, frequency, timing]);
 
+  const getResults = useCallback((): ResultItem[] => [
+    { label: 'Final Balance', value: formatCurrency(finalBalance), highlight: true },
+    { label: 'Total Contributions', value: formatCurrency(totalContributions) },
+    { label: 'Interest Earned', value: formatCurrency(totalInterest) },
+  ], [finalBalance, totalContributions, totalInterest]);
+
   const handleReset = useCallback(() => {
     setPrincipal(DEFAULTS.principal);
     setMonthly(DEFAULTS.monthlyContribution);
@@ -383,7 +391,8 @@ export default function CompoundInterestCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="compound-interest" toolName="Compound Interest Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="Compound Interest Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

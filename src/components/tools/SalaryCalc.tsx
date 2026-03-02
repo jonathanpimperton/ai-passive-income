@@ -11,6 +11,8 @@ import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
 type InputMode = 'annual' | 'hourly';
@@ -187,6 +189,20 @@ export default function SalaryCalc() {
     return inputs;
   }, [inputMode, salary, hourlyRate, filingStatus, stateTaxRate, hoursPerWeek, weeksPerYear, overtimeHours, retirement401k]);
 
+  const getResults = useCallback((): ResultItem[] => {
+    const items: ResultItem[] = [
+      { label: 'Annual Take-Home Pay', value: formatCurrency(result.netAnnual), highlight: true },
+      { label: 'Federal Tax', value: formatCurrency(result.federalTax) },
+      { label: 'State Tax', value: formatCurrency(result.stateTax) },
+      { label: 'Social Security', value: formatCurrency(result.fica.ss) },
+      { label: 'Medicare', value: formatCurrency(result.fica.medicare) },
+    ];
+    if (result.retirement401kAmount > 0) {
+      items.push({ label: '401(k) Contribution', value: formatCurrency(result.retirement401kAmount) });
+    }
+    return items;
+  }, [result]);
+
   const pieData = useMemo(() => [
     { name: 'Take-Home Pay', value: result.netAnnual },
     { name: 'Federal Tax', value: result.federalTax },
@@ -347,7 +363,8 @@ export default function SalaryCalc() {
             )}
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="salary" toolName="US Salary Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="US Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 

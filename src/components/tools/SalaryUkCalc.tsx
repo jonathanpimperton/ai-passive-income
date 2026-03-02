@@ -11,6 +11,8 @@ import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
+import EmailResultsButton from '../ui/EmailResultsButton';
+import type { ResultItem } from '../../lib/email-types';
 import { formatNumber } from '../../lib/calculator-utils';
 
 /* ── UK Tax Constants (2025/26 Tax Year) ───────────────────── */
@@ -269,6 +271,21 @@ export default function SalaryUkCalc() {
     return inputs;
   }, [salary, taxCode, isScottish, studentLoan, pensionPercent, pensionIsSacrifice]);
 
+  const getResults = useCallback((): ResultItem[] => {
+    const items: ResultItem[] = [
+      { label: 'Annual Take-Home Pay', value: formatGBP(result.netAnnual), highlight: true },
+      { label: 'Income Tax', value: formatGBP(result.incomeTax) },
+      { label: 'National Insurance', value: formatGBP(result.ni) },
+    ];
+    if (result.studentLoanRepayment > 0) {
+      items.push({ label: 'Student Loan', value: formatGBP(result.studentLoanRepayment) });
+    }
+    if (result.pensionAmount > 0) {
+      items.push({ label: 'Pension', value: formatGBP(result.pensionAmount) });
+    }
+    return items;
+  }, [result]);
+
   const pieData = useMemo(() => [
     { name: 'Take-Home Pay', value: result.netAnnual },
     { name: 'Income Tax', value: result.incomeTax },
@@ -500,7 +517,8 @@ export default function SalaryUkCalc() {
             </div>
           </div>
 
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            <EmailResultsButton toolSlug="salary-uk" toolName="UK Salary Calculator" getInputs={getInputs} getResults={getResults} />
             <ExportPdfButton toolName="UK Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
