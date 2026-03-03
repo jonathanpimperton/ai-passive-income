@@ -16,7 +16,7 @@ relatedTools:
   - "compound-interest"
 affiliateContext: "Start building your safety net with a high-yield savings account"
 affiliatePrograms:
-  - "Marcus"
+  - "Betterment"
   - "Ally"
   - "Wealthfront"
 faq:

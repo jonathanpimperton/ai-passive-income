@@ -15,7 +15,7 @@ affiliateContext: "Make your take-home pay work harder"
 affiliatePrograms:
   - "Betterment"
   - "SoFi"
-  - "Marcus"
+  - "Ally"
 relatedTools:
   - "salary-uk"
   - "net-worth"

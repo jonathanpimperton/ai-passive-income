@@ -15,10 +15,7 @@ relatedTools:
   - "image-format-converter"
   - "svg-to-png"
   - "images-to-pdf"
-affiliateContext: "Keep your files and browsing private"
-affiliatePrograms:
-  - "NordVPN"
-  - "NordPass"
+affiliatePrograms: []
 workedExamples:
   - title: "Instagram-ready profile photo"
     inputs:

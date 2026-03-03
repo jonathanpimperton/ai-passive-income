@@ -68,34 +68,34 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
   ],
   'investment-return': [
     { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Start growing your money' },
-    { name: 'Vanguard', tagline: 'Low-cost index funds trusted by millions', url: 'https://investor.vanguard.com/', category: 'Investing', cta: 'Explore funds' },
+    { name: 'Betterment', tagline: 'Automated investing with no minimum balance', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
   ],
   'retirement-savings': [
-    { name: 'Vanguard', tagline: 'Low-cost index funds for long-term growth', url: 'https://investor.vanguard.com/', category: 'Investing', cta: 'Plan your retirement' },
     { name: 'Betterment', tagline: 'Automated retirement planning with IRA options', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Open an IRA' },
+    { name: 'Wealthfront', tagline: 'Tax-loss harvesting to maximize your returns', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Plan your retirement' },
   ],
   'debt-payoff': [
     { name: 'LendingClub', tagline: 'Personal loans to consolidate and pay off debt faster', url: 'https://www.lendingclub.com/', category: 'Loans', cta: 'Check your rate' },
     { name: 'SoFi', tagline: 'Consolidate debt at a lower rate — no fees', url: 'https://www.sofi.com/', category: 'Loans', cta: 'Get pre-qualified' },
   ],
   'savings-goal': [
-    { name: 'Marcus by Goldman Sachs', tagline: 'High-yield savings with no fees or minimums', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Open savings account' },
+    { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
     { name: 'Ally Bank', tagline: 'Competitive APY with no minimum balance', url: 'https://www.ally.com/', category: 'Savings', cta: 'Start saving today' },
   ],
   'salary': [
     { name: 'Betterment', tagline: 'Start investing to grow your take-home pay', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
-    { name: 'Marcus by Goldman Sachs', tagline: 'Earn more on the money you save', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Open savings account' },
+    { name: 'Ally Bank', tagline: 'Online savings with competitive APY and no fees', url: 'https://www.ally.com/', category: 'Savings', cta: 'Open savings account' },
   ],
   'salary-uk': [
     { name: 'Nutmeg', tagline: 'UK investing made simple — ISAs, pensions, and more', url: 'https://www.nutmeg.com/', category: 'Investing (UK)', cta: 'Start investing' },
-    { name: 'Moneybox', tagline: 'Save and invest from just £1 — ISAs and pensions', url: 'https://www.moneyboxapp.com/', category: 'Investing (UK)', cta: 'Get started free' },
+    { name: 'InvestEngine', tagline: 'Commission-free ETF investing in the UK', url: 'https://investengine.com/', category: 'Investing (UK)', cta: 'Get started free' },
   ],
   'mortgage-payment': [
     { name: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Mortgages', cta: 'Compare rates now' },
     { name: 'SoFi', tagline: 'Competitive mortgage rates with no hidden fees', url: 'https://www.sofi.com/', category: 'Mortgages', cta: 'Get pre-approved' },
   ],
   'inflation': [
-    { name: 'Marcus by Goldman Sachs', tagline: 'Beat inflation with a high-yield savings account', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Earn more interest' },
+    { name: 'Betterment', tagline: 'Outpace inflation with automated investing', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
     { name: 'Wealthfront', tagline: 'Invest to outpace inflation long-term', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Start investing' },
   ],
   'roi': [
@@ -104,7 +104,7 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
   ],
   'net-worth': [
     { name: 'Betterment', tagline: 'Grow your net worth with automated investing', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start building wealth' },
-    { name: 'Marcus by Goldman Sachs', tagline: 'High-yield savings to grow your cash position', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Open savings account' },
+    { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
   ],
   'rent-vs-buy': [
     { name: 'LendingTree', tagline: 'Compare mortgage rates if you decide to buy', url: 'https://www.lendingtree.com/', category: 'Mortgages', cta: 'Compare rates now' },
@@ -112,7 +112,7 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
   ],
   'emergency-fund': [
     { name: 'Ally Bank', tagline: 'Online savings with competitive APY and no fees', url: 'https://www.ally.com/', category: 'Savings', cta: 'Open savings account' },
-    { name: 'Marcus by Goldman Sachs', tagline: 'High-yield savings — keep your fund earning', url: 'https://www.marcus.com/', category: 'Savings', cta: 'Earn more interest' },
+    { name: 'Betterment', tagline: 'High-yield cash account with no minimums', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start saving' },
   ],
 };
 

@@ -16,7 +16,6 @@ relatedTools:
   - "salary-us"
 affiliateContext: "Store your passwords securely with a password manager"
 affiliatePrograms:
-  - "1Password"
   - "NordPass"
 faq:
   - question: "What makes a strong password?"

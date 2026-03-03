@@ -15,10 +15,7 @@ relatedTools:
   - "image-format-converter"
   - "image-resizer"
   - "images-to-pdf"
-affiliateContext: "Keep your files and browsing private"
-affiliatePrograms:
-  - "NordVPN"
-  - "NordPass"
+affiliatePrograms: []
 workedExamples:
   - title: "Vacation photos for Windows laptop"
     inputs:

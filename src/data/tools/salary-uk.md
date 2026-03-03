@@ -14,7 +14,6 @@ keywords:
 affiliateContext: "Boost your take-home pay with tax-efficient saving"
 affiliatePrograms:
   - "Nutmeg"
-  - "Moneybox"
   - "InvestEngine"
 relatedTools:
   - "salary-us"

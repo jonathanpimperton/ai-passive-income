@@ -16,7 +16,7 @@ relatedTools:
 affiliateContext: "Ready to grow your savings? Open a high-yield account"
 affiliatePrograms:
   - "Betterment"
-  - "Marcus"
+  - "Ally"
   - "Wealthfront"
 faq:
   - question: "What is compound interest?"

@@ -1,10 +1,9 @@
 /**
- * Affiliate partner metadata and UTM URL builder.
- * Each partner has a base URL (landing page or signup link) and descriptive copy.
- * Actual affiliate tracking parameters will be added once partnership agreements are live.
+ * Affiliate partner metadata and URL builder.
  *
- * For now, all URLs point to the partner's public landing pages with UTM parameters
- * so we can track click-through from CalcRun in Google Analytics.
+ * Partners with live CJ tracking links use their tracked URLs directly.
+ * Partners pending approval still use public landing pages with UTM parameters.
+ * The buildAffiliateUrl() function only appends UTM params to non-tracked URLs.
  */
 
 export interface AffiliatePartner {
@@ -14,12 +13,14 @@ export interface AffiliatePartner {
   name: string;
   /** One-line value proposition */
   tagline: string;
-  /** Base URL (partner landing page) */
+  /** Base URL — tracked affiliate link or partner landing page */
   url: string;
   /** Short category label */
   category: string;
   /** Lucide icon name */
   icon: string;
+  /** Whether this URL is already a tracked affiliate link (skip UTM append) */
+  tracked?: boolean;
 }
 
 export const AFFILIATE_PARTNERS: Record<string, AffiliatePartner> = {
@@ -30,14 +31,6 @@ export const AFFILIATE_PARTNERS: Record<string, AffiliatePartner> = {
     url: 'https://www.betterment.com/',
     category: 'Investing',
     icon: 'trending-up',
-  },
-  Marcus: {
-    id: 'Marcus',
-    name: 'Marcus by Goldman Sachs',
-    tagline: 'High-yield savings with no fees or minimums',
-    url: 'https://www.marcus.com/',
-    category: 'Savings',
-    icon: 'piggy-bank',
   },
   Wealthfront: {
     id: 'Wealthfront',
@@ -63,14 +56,6 @@ export const AFFILIATE_PARTNERS: Record<string, AffiliatePartner> = {
     category: 'Mortgages',
     icon: 'landmark',
   },
-  LendingClub: {
-    id: 'LendingClub',
-    name: 'LendingClub',
-    tagline: 'Personal loans to consolidate and pay off debt',
-    url: 'https://www.lendingclub.com/',
-    category: 'Loans',
-    icon: 'credit-card',
-  },
   Ally: {
     id: 'Ally',
     name: 'Ally Bank',
@@ -79,37 +64,23 @@ export const AFFILIATE_PARTNERS: Record<string, AffiliatePartner> = {
     category: 'Savings',
     icon: 'shield-check',
   },
-  Vanguard: {
-    id: 'Vanguard',
-    name: 'Vanguard',
-    tagline: 'Low-cost index funds for long-term growth',
-    url: 'https://investor.vanguard.com/',
-    category: 'Investing',
-    icon: 'bar-chart-3',
-  },
-  '1Password': {
-    id: '1Password',
-    name: '1Password',
-    tagline: 'Secure password manager for every device',
-    url: 'https://1password.com/',
-    category: 'Security',
-    icon: 'key-round',
-  },
   NordPass: {
     id: 'NordPass',
     name: 'NordPass',
     tagline: 'Simple, secure password management',
-    url: 'https://nordpass.com/',
+    url: 'https://go.nordpass.io/aff_c?offer_id=490&aff_id=34741&url_id=25686',
     category: 'Security',
     icon: 'lock',
+    tracked: true,
   },
   NordVPN: {
     id: 'NordVPN',
     name: 'NordVPN',
     tagline: 'Protect your privacy online with a trusted VPN',
-    url: 'https://nordvpn.com/',
+    url: 'https://go.nordvpn.net/aff_c?aff_id=2495&offer_id=312&url_id=2584',
     category: 'Privacy',
     icon: 'shield',
+    tracked: true,
   },
   Nutmeg: {
     id: 'Nutmeg',
@@ -118,14 +89,6 @@ export const AFFILIATE_PARTNERS: Record<string, AffiliatePartner> = {
     url: 'https://www.nutmeg.com/',
     category: 'Investing (UK)',
     icon: 'trending-up',
-  },
-  Moneybox: {
-    id: 'Moneybox',
-    name: 'Moneybox',
-    tagline: 'Save and invest for your future, starting from £1',
-    url: 'https://www.moneyboxapp.com/',
-    category: 'Savings (UK)',
-    icon: 'coins',
   },
   InvestEngine: {
     id: 'InvestEngine',
@@ -138,13 +101,15 @@ export const AFFILIATE_PARTNERS: Record<string, AffiliatePartner> = {
 };
 
 /**
- * Build a UTM-tagged URL for an affiliate partner link.
- * Once real affiliate tracking IDs are set up, this function
- * will append the correct tracking parameters.
+ * Build a URL for an affiliate partner link.
+ * Tracked links (from CJ/Impact) are returned as-is.
+ * Untracked links get UTM parameters appended for GA4 attribution.
  */
 export function buildAffiliateUrl(partnerId: string, toolSlug: string): string {
   const partner = AFFILIATE_PARTNERS[partnerId];
   if (!partner) return '#';
+
+  if (partner.tracked) return partner.url;
 
   const base = partner.url;
   const separator = base.includes('?') ? '&' : '?';

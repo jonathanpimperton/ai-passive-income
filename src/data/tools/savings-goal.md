@@ -17,7 +17,7 @@ relatedTools:
   - "inflation"
 affiliateContext: "Reach your goal faster with a high-yield savings account"
 affiliatePrograms:
-  - "Marcus"
+  - "Wealthfront"
   - "Ally"
 faq:
   - question: "How much should I save each month?"

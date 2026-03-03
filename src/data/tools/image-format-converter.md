@@ -15,10 +15,7 @@ relatedTools:
   - "image-resizer"
   - "svg-to-png"
   - "heic-to-jpg"
-affiliateContext: "Keep your files and browsing private"
-affiliatePrograms:
-  - "NordVPN"
-  - "NordPass"
+affiliatePrograms: []
 workedExamples:
   - title: "PNG screenshots to JPG for email"
     inputs:

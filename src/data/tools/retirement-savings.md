@@ -18,7 +18,7 @@ relatedTools:
 affiliateContext: "Start your retirement savings with a free account"
 affiliatePrograms:
   - "Betterment"
-  - "Vanguard"
+  - "Wealthfront"
 faq:
   - question: "How much do I need to save for retirement?"
     answer: "A common rule of thumb is to have 25 times your annual expenses saved by retirement (the 4% rule). If you spend $50,000 per year, you'd target $1.25 million. However, this varies based on your lifestyle, healthcare costs, Social Security income, and retirement age."

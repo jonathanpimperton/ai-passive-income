@@ -15,10 +15,7 @@ relatedTools:
   - "image-resizer"
   - "image-compressor"
   - "images-to-pdf"
-affiliateContext: "Keep your files and browsing private"
-affiliatePrograms:
-  - "NordVPN"
-  - "NordPass"
+affiliatePrograms: []
 workedExamples:
   - title: "Company logo for social media"
     inputs:
