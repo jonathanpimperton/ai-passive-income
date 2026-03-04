@@ -833,6 +833,14 @@ input[type="range"] {
   background-color: #0A1018;
 }
 
+/* Footer logo "a" hole — must match footer bg in both themes */
+.footer-logo-hole {
+  fill: #0F1B2D;
+}
+[data-theme="dark"] .footer-logo-hole {
+  fill: #0A1018;
+}
+
 /* --- Dark mode: hover states --- */
 [data-theme="dark"] .hover\:bg-neutral-50:hover {
   background-color: var(--color-neutral-50);
