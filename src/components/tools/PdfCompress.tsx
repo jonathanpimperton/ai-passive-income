@@ -262,7 +262,7 @@ export default function PdfCompress() {
           acceptLabel="Supports: PDF files"
           onFiles={handleFiles}
         />
-        <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5 space-y-4">
+        <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-5 space-y-4">
           <SliderInput
             label="Image Quality"
             id="pdf-quality"
@@ -305,7 +305,7 @@ export default function PdfCompress() {
         )}
 
         {file && !result && !processing && (
-          <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-6 text-center">
+          <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 text-center">
             <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center mx-auto mb-3">
               <FileText size={20} className="text-red-500" aria-hidden="true" />
             </div>
@@ -325,7 +325,7 @@ export default function PdfCompress() {
         )}
 
         {result && file && (
-          <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-6 text-center">
+          <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 text-center">
             <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center mx-auto mb-3">
               <Minimize2 size={24} className="text-accent-600" aria-hidden="true" />
             </div>

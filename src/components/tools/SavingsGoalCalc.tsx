@@ -196,7 +196,7 @@ export default function SavingsGoalCalc() {
   };
 
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="px-6 pt-6 lg:px-8 lg:pt-8">
         <CurrencySelector value={currency} onChange={setCurrency} />
       </div>
@@ -242,7 +242,7 @@ export default function SavingsGoalCalc() {
               id="sg-goal"
               value={goalAmount}
               min={1000}
-              max={5000000}
+              max={50000000}
               step={5000}
               onChange={setGoalAmount}
               prefix="$"
@@ -293,7 +293,7 @@ export default function SavingsGoalCalc() {
                 id="sg-monthly"
                 value={monthlyContribution}
                 min={0}
-                max={25000}
+                max={50000}
                 step={50}
                 onChange={setMonthlyContribution}
                 prefix="$"

@@ -214,7 +214,7 @@ export default function SalaryCalc() {
   ].filter((d) => d.value > 0), [result]);
 
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       {/* Mode tabs */}
       <div className="flex border-b border-neutral-200/80" role="tablist" aria-label="Salary input mode">
         {(['annual', 'hourly'] as const).map((m) => (
@@ -251,7 +251,7 @@ export default function SalaryCalc() {
           </div>
           <div className="space-y-5">
             {inputMode === 'annual' ? (
-              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={2000000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
+              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={1000000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
             ) : (
               <SliderInput label="Hourly Rate" id="sal-hourly" value={hourlyRate} min={7.25} max={200} step={0.25} onChange={setHourlyRate} prefix="$" formatDisplay={(v) => v.toFixed(2)} hint="Your pay per hour before taxes" />
             )}

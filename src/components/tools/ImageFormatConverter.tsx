@@ -130,7 +130,7 @@ export default function ImageFormatConverter() {
           multiple
           onFiles={handleFiles}
         />
-        <div className="bg-white rounded-2xl border border-neutral-200/80 p-5 space-y-4">
+        <div className="bg-white rounded-lg border border-neutral-200/80 p-5 space-y-4">
           <div>
             <label htmlFor="target-format" className="block text-sm font-medium text-neutral-700 mb-1">Convert to</label>
             <select

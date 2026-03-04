@@ -104,7 +104,7 @@ export default function ImageResizer() {
         />
 
         {file && (
-          <div className="bg-white rounded-2xl border border-neutral-200/80 p-5 space-y-4">
+          <div className="bg-white rounded-lg border border-neutral-200/80 p-5 space-y-4">
             <p className="text-xs text-neutral-500">
               Original: {origW} × {origH}px ({formatSize(file.size)})
             </p>
@@ -179,7 +179,7 @@ export default function ImageResizer() {
       <div className="lg:col-span-3 space-y-4" aria-live="polite">
         {preview && file ? (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-neutral-200/80 p-4 overflow-hidden">
+            <div className="bg-white rounded-lg border border-neutral-200/80 p-4 overflow-hidden">
               <img
                 src={preview}
                 alt={`Resized preview of ${file.name}`}

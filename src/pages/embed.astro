@@ -30,7 +30,7 @@ const embeddableTools = TOOLS.filter((t) => embeddableCategories.includes(t.cate
 
   <div class="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
     {/* How it works */}
-    <div class="bg-white border border-neutral-200/80 rounded-2xl shadow-card p-6 sm:p-8 mb-10">
+    <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card p-6 sm:p-8 mb-10">
       <div class="flex items-start gap-4 mb-6">
         <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-100 text-primary-600 shrink-0">
           <ToolIcon name="code" size={20} />
@@ -66,7 +66,7 @@ const embeddableTools = TOOLS.filter((t) => embeddableCategories.includes(t.cate
         const url = `https://www.calcrun.com/tools/${tool.category}/${tool.slug}?embed`;
         const code = `<iframe src="${url}" width="100%" height="700" style="border:none;border-radius:12px;" loading="lazy" title="${tool.name}"></iframe>`;
         return (
-          <div class="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden embed-card">
+          <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden embed-card">
             <button
               class="w-full flex items-center gap-3 p-4 sm:p-5 text-left hover:bg-neutral-50/50 transition-colors duration-150 embed-toggle"
               aria-expanded="false"
@@ -111,7 +111,7 @@ const embeddableTools = TOOLS.filter((t) => embeddableCategories.includes(t.cate
     </div>
 
     {/* Terms */}
-    <div class="mt-10 bg-neutral-50 border border-neutral-200/60 rounded-2xl p-6">
+    <div class="mt-10 bg-neutral-50 border border-neutral-200/60 rounded-lg p-6">
       <h3 class="text-base font-semibold text-neutral-900 mb-2">Embed Terms</h3>
       <ul class="text-sm text-neutral-600 space-y-1.5 leading-relaxed">
         <li>Embeds are free for personal and commercial use.</li>

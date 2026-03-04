@@ -262,7 +262,7 @@ export default function RetirementSavingsCalc() {
       : '';
 
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="px-6 pt-6 lg:px-8 lg:pt-8">
         <CurrencySelector value={currency} onChange={setCurrency} />
       </div>
@@ -373,7 +373,7 @@ export default function RetirementSavingsCalc() {
                 id="ret-target"
                 value={targetBalance}
                 min={50000}
-                max={20000000}
+                max={50000000}
                 step={25000}
                 onChange={setTargetBalance}
                 prefix="$"

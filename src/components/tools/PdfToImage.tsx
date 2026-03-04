@@ -132,7 +132,7 @@ export default function PdfToImage() {
           onFiles={handleFiles}
         />
         {file && (
-          <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5 space-y-4">
+          <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-5 space-y-4">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
                 <FileText size={20} className="text-red-500" aria-hidden="true" />

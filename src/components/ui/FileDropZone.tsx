@@ -55,7 +55,7 @@ export default function FileDropZone({
       role="button"
       tabIndex={0}
       aria-label={`Upload files. ${acceptLabel}`}
-      className={`relative flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-200
+      className={`relative flex flex-col items-center justify-center gap-3 p-8 rounded-lg border-2 border-dashed cursor-pointer transition-all duration-200
         ${dragActive ? 'border-primary-500 bg-primary-50 scale-[1.01]' : 'border-neutral-300 bg-neutral-50 hover:border-neutral-400 hover:bg-white'}`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}

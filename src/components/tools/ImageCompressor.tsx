@@ -149,7 +149,7 @@ export default function ImageCompressor() {
           multiple
           onFiles={handleFiles}
         />
-        <div className="space-y-4 bg-white rounded-2xl border border-neutral-200/80 p-5">
+        <div className="space-y-4 bg-white rounded-lg border border-neutral-200/80 p-5">
           <SliderInput
             label="Quality"
             id="quality"

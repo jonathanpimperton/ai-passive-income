@@ -10,8 +10,8 @@ import path from 'node:path';
 
 export const GET: APIRoute = async () => {
   const fontDir = path.resolve('public/fonts');
-  const interBold = fs.readFileSync(path.join(fontDir, 'Inter-Bold.ttf'));
-  const interRegular = fs.readFileSync(path.join(fontDir, 'Inter-Regular.ttf'));
+  const baskBold = fs.readFileSync(path.join(fontDir, 'LibreBaskerville-Bold.ttf'));
+  const dmSans = fs.readFileSync(path.join(fontDir, 'DMSans-Regular.ttf'));
 
   const svg = await satori(
     {
@@ -25,7 +25,7 @@ export const GET: APIRoute = async () => {
           justifyContent: 'center',
           alignItems: 'center',
           background: 'linear-gradient(135deg, #0F1B2D 0%, #0A5555 50%, #0F1B2D 100%)',
-          fontFamily: 'Inter',
+          fontFamily: 'Libre Baskerville, DM Sans',
           gap: '24px',
         },
         children: [
@@ -159,8 +159,8 @@ export const GET: APIRoute = async () => {
       width: 1200,
       height: 630,
       fonts: [
-        { name: 'Inter', data: interBold, weight: 700, style: 'normal' },
-        { name: 'Inter', data: interRegular, weight: 400, style: 'normal' },
+        { name: 'Libre Baskerville', data: baskBold, weight: 700, style: 'normal' },
+        { name: 'DM Sans', data: dmSans, weight: 400, style: 'normal' },
       ],
     },
   );

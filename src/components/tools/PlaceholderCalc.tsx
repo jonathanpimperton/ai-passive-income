@@ -9,7 +9,7 @@ interface PlaceholderCalcProps {
 
 export default function PlaceholderCalc({ name }: PlaceholderCalcProps) {
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       {/* Two-column skeleton layout matching real calculator dimensions */}
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
         {/* Left: Input skeleton */}

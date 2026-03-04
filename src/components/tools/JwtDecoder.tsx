@@ -158,7 +158,7 @@ export default function JwtDecoder() {
       {!decoded.error && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" aria-live="polite">
           {/* Header */}
-          <div className="rounded-2xl border border-neutral-200/80 shadow-sm bg-white overflow-hidden">
+          <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 bg-primary-50 border-b border-primary-100">
               <div className="flex items-center gap-2">
                 <Shield size={16} className="text-primary-600" aria-hidden="true" />
@@ -181,7 +181,7 @@ export default function JwtDecoder() {
           </div>
 
           {/* Payload */}
-          <div className="rounded-2xl border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-1">
+          <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-1">
             <div className="flex items-center justify-between px-4 py-3 bg-accent-50 border-b border-accent-100">
               <div className="flex items-center gap-2">
                 <Key size={16} className="text-accent-700" aria-hidden="true" />
@@ -204,7 +204,7 @@ export default function JwtDecoder() {
           </div>
 
           {/* Signature */}
-          <div className="rounded-2xl border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-2">
+          <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-2">
             <div className="flex items-center justify-between px-4 py-3 bg-neutral-50 border-b border-neutral-100">
               <div className="flex items-center gap-2">
                 <Clock size={16} className="text-neutral-600" aria-hidden="true" />

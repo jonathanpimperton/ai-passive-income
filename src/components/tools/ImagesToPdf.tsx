@@ -164,7 +164,7 @@ export default function ImagesToPdf() {
           multiple
           onFiles={handleFiles}
         />
-        <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5 space-y-4">
+        <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-5 space-y-4">
           <div>
             <label htmlFor="pdf-page-size" className="block text-sm font-medium text-neutral-700 mb-1">Page size</label>
             <select

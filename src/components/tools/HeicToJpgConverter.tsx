@@ -122,7 +122,7 @@ export default function HeicToJpgConverter() {
           multiple
           onFiles={handleFiles}
         />
-        <div className="bg-white rounded-2xl border border-neutral-200/80 p-5">
+        <div className="bg-white rounded-lg border border-neutral-200/80 p-5">
           <SliderInput
             label="JPG Quality"
             id="heic-quality"

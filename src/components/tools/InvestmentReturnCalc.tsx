@@ -360,7 +360,7 @@ export default function InvestmentReturnCalc() {
   };
 
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="px-6 pt-6 lg:px-8 lg:pt-8">
         <CurrencySelector value={currency} onChange={setCurrency} />
       </div>

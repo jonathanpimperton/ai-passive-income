@@ -129,7 +129,7 @@ export default function PdfSplit() {
         />
 
         {file && (
-          <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5 space-y-4">
+          <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-5 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
                 <FileText size={20} className="text-red-500" aria-hidden="true" />
@@ -186,7 +186,7 @@ export default function PdfSplit() {
 
         {file ? (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-6 text-center">
+            <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 text-center">
               <Scissors size={40} className="text-primary-400 mx-auto mb-3" aria-hidden="true" />
               <p className="text-sm text-neutral-700 font-medium mb-1">
                 {mode === 'range'

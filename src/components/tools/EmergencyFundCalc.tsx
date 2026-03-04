@@ -145,7 +145,7 @@ export default function EmergencyFundCalc() {
   }, [currentSavings, monthlySaving, savingsRate, targets]);
 
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
         {/* Inputs */}
         <div className="p-6 lg:p-8 lg:border-r border-neutral-100">
@@ -178,7 +178,7 @@ export default function EmergencyFundCalc() {
             </div>
 
             <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={500000} step={1000} onChange={setCurrentSavings} prefix="$" formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
-            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={25000} step={50} onChange={setMonthlySaving} prefix="$" formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
+            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={50000} step={50} onChange={setMonthlySaving} prefix="$" formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
             <SliderInput label="Savings Account APY" id="ef-rate" value={savingsRate} min={0} max={10} step={0.1} onChange={setSavingsRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Interest rate on your savings account — high-yield accounts offer ~4-5%" />
           </div>
         </div>

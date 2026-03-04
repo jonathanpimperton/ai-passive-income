@@ -42,8 +42,8 @@ export const GET: APIRoute = async ({ props }) => {
 
   // Load fonts
   const fontDir = path.resolve('public/fonts');
-  const interBold = fs.readFileSync(path.join(fontDir, 'Inter-Bold.ttf'));
-  const interRegular = fs.readFileSync(path.join(fontDir, 'Inter-Regular.ttf'));
+  const baskBold = fs.readFileSync(path.join(fontDir, 'LibreBaskerville-Bold.ttf'));
+  const dmSans = fs.readFileSync(path.join(fontDir, 'DMSans-Regular.ttf'));
 
   // Truncate description to ~120 chars for OG image readability
   const shortDesc =
@@ -63,7 +63,7 @@ export const GET: APIRoute = async ({ props }) => {
           justifyContent: 'space-between',
           padding: '60px',
           backgroundColor: '#FFFFFF',
-          fontFamily: 'Inter',
+          fontFamily: 'Libre Baskerville, DM Sans',
         },
         children: [
           // Top accent bar
@@ -211,8 +211,8 @@ export const GET: APIRoute = async ({ props }) => {
       width: 1200,
       height: 630,
       fonts: [
-        { name: 'Inter', data: interBold, weight: 700, style: 'normal' },
-        { name: 'Inter', data: interRegular, weight: 400, style: 'normal' },
+        { name: 'Libre Baskerville', data: baskBold, weight: 700, style: 'normal' },
+        { name: 'DM Sans', data: dmSans, weight: 400, style: 'normal' },
       ],
     },
   );

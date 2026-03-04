@@ -32,7 +32,7 @@ export default function CookieConsent() {
 
   return (
     <div
-      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:max-w-[420px] z-50 bg-white border border-neutral-200/80 rounded-2xl shadow-card-hover p-5"
+      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:max-w-[420px] z-50 bg-white border border-neutral-200/80 rounded-lg shadow-card-hover p-5"
       role="alert"
       aria-label="Cookie consent"
     >

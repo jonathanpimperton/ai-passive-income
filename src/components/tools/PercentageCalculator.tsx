@@ -139,7 +139,7 @@ export default function PercentageCalculator() {
   const animatedResult = useAnimatedNumber(result.rawValue);
 
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       {/* Mode tabs */}
       <div className="flex border-b border-neutral-200/80 overflow-x-auto" role="tablist" aria-label="Percentage calculation mode">
         {MODES.map((m) => (

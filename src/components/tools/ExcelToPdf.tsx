@@ -241,7 +241,7 @@ export default function ExcelToPdf() {
         />
 
         {file && sheets.length > 0 && (
-          <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card p-5 space-y-3">
+          <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-5 space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-accent-50 flex items-center justify-center">
                 <Table size={20} className="text-accent-600" aria-hidden="true" />
@@ -306,7 +306,7 @@ export default function ExcelToPdf() {
             <p className="text-sm font-medium text-neutral-700">
               Preview: {sheet.name} ({sheet.rows.length} rows, {sheet.headers.length} columns)
             </p>
-            <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-card overflow-hidden">
+            <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card overflow-hidden">
               <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-neutral-50 sticky top-0">

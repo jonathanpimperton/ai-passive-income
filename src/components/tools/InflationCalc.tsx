@@ -173,7 +173,7 @@ export default function InflationCalc() {
   }, [mode, amount, startYear, endYear, futureYears, inflationRate, historicalResult]);
 
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       {/* Tabs */}
       <div className="flex border-b border-neutral-200/80" role="tablist" aria-label="Inflation calculation mode">
         {TABS.map((tab) => (

@@ -290,7 +290,7 @@ export default function PasswordGenerator() {
   const StrengthIcon = entropy < 36 ? ShieldAlert : entropy < 60 ? Shield : ShieldCheck;
 
   return (
-    <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
 
         {/* ── Options Panel ──────────────────────────────── */}
