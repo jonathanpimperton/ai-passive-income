@@ -313,12 +313,12 @@ export default function PdfCompress() {
             <p className="text-xs text-neutral-500 mt-1">{pageCount} page{pageCount !== 1 ? 's' : ''} — {formatSize(file.size)}</p>
             <button
               onClick={compress}
-              className="inline-flex items-center gap-2 px-5 py-2.5 mt-4 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors duration-150"
+              className="inline-flex items-center gap-2 px-5 py-2.5 mt-4 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors duration-150"
             >
               <Minimize2 size={16} aria-hidden="true" />
               Compress PDF
             </button>
-            <p className="text-xs text-neutral-400 mt-3">
+            <p className="text-xs text-neutral-500 mt-3">
               Recompresses embedded images while preserving all text, links, and vector graphics.
             </p>
           </div>
@@ -348,7 +348,7 @@ export default function PdfCompress() {
             )}
             <button
               onClick={download}
-              className="inline-flex items-center gap-2 px-5 py-2.5 mt-4 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors duration-150"
+              className="inline-flex items-center gap-2 px-5 py-2.5 mt-4 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors duration-150"
             >
               <Download size={16} aria-hidden="true" />
               Download Compressed PDF
@@ -360,7 +360,7 @@ export default function PdfCompress() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
             <p className="text-sm text-neutral-500">Upload a PDF to compress it</p>
-            <p className="text-xs text-neutral-400 mt-1">Reduces file size by recompressing embedded images — text stays sharp</p>
+            <p className="text-xs text-neutral-500 mt-1">Reduces file size by recompressing embedded images — text stays sharp</p>
           </div>
         )}
       </div>

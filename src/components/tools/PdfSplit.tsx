@@ -165,7 +165,7 @@ export default function PdfSplit() {
                   placeholder="e.g. 1-3, 5, 8-10"
                   className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
                 />
-                <p className="text-xs text-neutral-400 mt-1">Pages 1 to {pageCount}. Use commas and dashes.</p>
+                <p className="text-xs text-neutral-500 mt-1">Pages 1 to {pageCount}. Use commas and dashes.</p>
               </div>
             )}
           </div>
@@ -201,7 +201,7 @@ export default function PdfSplit() {
               <button
                 onClick={handleSplit}
                 disabled={processing}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg transition-colors duration-150"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg transition-colors duration-150"
               >
                 <Download size={16} aria-hidden="true" />
                 {mode === 'range' ? 'Extract & Download' : 'Split & Download All'}
@@ -212,7 +212,7 @@ export default function PdfSplit() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
             <p className="text-sm text-neutral-500">Upload a PDF to extract pages from it</p>
-            <p className="text-xs text-neutral-400 mt-1">Split by range or into individual pages</p>
+            <p className="text-xs text-neutral-500 mt-1">Split by range or into individual pages</p>
           </div>
         )}
       </div>

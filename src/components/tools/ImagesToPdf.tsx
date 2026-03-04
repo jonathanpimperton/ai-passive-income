@@ -228,7 +228,7 @@ export default function ImagesToPdf() {
               onChange={(e) => setMargin(Number(e.target.value))}
               className="w-full h-2 rounded-full appearance-none cursor-pointer bg-neutral-200 accent-primary-500
                 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full
-                [&::-webkit-slider-thumb]:bg-primary-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md"
+                [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md"
               aria-label="Margin slider"
             />
           </div>
@@ -257,7 +257,7 @@ export default function ImagesToPdf() {
                     <button
                       onClick={() => moveImage(i, -1)}
                       disabled={i === 0}
-                      className="text-neutral-400 hover:text-neutral-600 disabled:opacity-30 transition-colors"
+                      className="text-neutral-500 hover:text-neutral-600 disabled:opacity-30 transition-colors"
                       aria-label="Move up"
                     >
                       <ChevronUp size={14} aria-hidden="true" />
@@ -265,7 +265,7 @@ export default function ImagesToPdf() {
                     <button
                       onClick={() => moveImage(i, 1)}
                       disabled={i === images.length - 1}
-                      className="text-neutral-400 hover:text-neutral-600 disabled:opacity-30 transition-colors"
+                      className="text-neutral-500 hover:text-neutral-600 disabled:opacity-30 transition-colors"
                       aria-label="Move down"
                     >
                       <ChevronDown size={14} aria-hidden="true" />
@@ -278,7 +278,7 @@ export default function ImagesToPdf() {
                   </div>
                   <button
                     onClick={() => removeImage(img.id)}
-                    className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors duration-150"
+                    className="p-1.5 text-neutral-500 hover:text-red-500 transition-colors duration-150"
                     aria-label={`Remove ${img.file.name}`}
                   >
                     <Trash2 size={16} aria-hidden="true" />
@@ -311,7 +311,7 @@ export default function ImagesToPdf() {
               <button
                 onClick={generatePdf}
                 disabled={generating}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg transition-colors duration-150"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg transition-colors duration-150"
               >
                 {generating ? (
                   <>
@@ -331,7 +331,7 @@ export default function ImagesToPdf() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
             <p className="text-sm text-neutral-500">Upload images to combine into a PDF</p>
-            <p className="text-xs text-neutral-400 mt-1">One image per page, reorder by dragging</p>
+            <p className="text-xs text-neutral-500 mt-1">One image per page, reorder by dragging</p>
           </div>
         )}
       </div>

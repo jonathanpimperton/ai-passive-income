@@ -145,7 +145,7 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="px-5 py-3 sm:py-2.5 text-base sm:text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-500 shadow-md shadow-accent-600/20 disabled:opacity-60 transition-all duration-200 whitespace-nowrap"
+          className="px-5 py-3 sm:py-2.5 text-base sm:text-sm font-semibold text-white bg-accent-700 rounded-xl hover:bg-accent-500 shadow-md shadow-accent-600/20 disabled:opacity-60 transition-all duration-200 whitespace-nowrap"
         >
           {status === 'loading' ? 'Subscribing...' : isNewsletter ? 'Subscribe' : 'Get free tips'}
         </button>

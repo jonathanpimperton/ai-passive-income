@@ -48,7 +48,7 @@ function DebtField({ label, id, value, onChange, prefix, suffix, type = 'number'
       </label>
       <div className="relative">
         {prefix && (
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs pointer-events-none">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500 text-xs pointer-events-none">
             {prefix}
           </span>
         )}
@@ -64,7 +64,7 @@ function DebtField({ label, id, value, onChange, prefix, suffix, type = 'number'
             ${prefix ? 'pl-6' : 'pl-2.5'} ${suffix ? 'pr-6' : 'pr-2.5'}`}
         />
         {suffix && (
-          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs pointer-events-none">
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 text-xs pointer-events-none">
             {suffix}
           </span>
         )}
@@ -271,7 +271,7 @@ export default function DebtPayoffCalc() {
             </h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -292,7 +292,7 @@ export default function DebtPayoffCalc() {
                 {debtInputs.length > 1 && (
                   <button
                     onClick={() => removeDebt(debt.id)}
-                    className="absolute top-2.5 right-2.5 p-1 rounded-lg text-neutral-400 hover:text-negative-600 hover:bg-negative-50 transition-all duration-150"
+                    className="absolute top-2.5 right-2.5 p-1 rounded-lg text-neutral-500 hover:text-negative-600 hover:bg-negative-50 transition-all duration-150"
                     aria-label={`Remove ${debt.name || `debt ${index + 1}`}`}
                   >
                     <X size={14} aria-hidden="true" />
@@ -367,7 +367,7 @@ export default function DebtPayoffCalc() {
               formatDisplay={(v) => formatNumber(v)}
               hint="Amount above your minimum payments — goes toward paying off debt faster"
             />
-            <p className="text-xs text-neutral-400 mt-1.5 leading-relaxed">
+            <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
               Amount above your minimum payments to accelerate payoff
             </p>
           </div>
@@ -409,7 +409,7 @@ export default function DebtPayoffCalc() {
           {!hasValidDebts ? (
             <div className="flex items-center justify-center h-full min-h-[300px]">
               <div className="text-center">
-                <p className="text-neutral-400 text-sm">
+                <p className="text-neutral-500 text-sm">
                   Add at least one debt with a balance and minimum payment to see results.
                 </p>
               </div>
@@ -458,7 +458,7 @@ export default function DebtPayoffCalc() {
                     </span>
                   </button>
                 </div>
-                <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+                <p className="text-xs text-neutral-500 mt-2 leading-relaxed">
                   {activeStrategy === 'avalanche'
                     ? 'Pays highest interest rate first — saves the most money.'
                     : 'Pays smallest balance first — quick wins for motivation.'}
@@ -498,19 +498,19 @@ export default function DebtPayoffCalc() {
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <p className="text-xs text-neutral-400">Time to Payoff</p>
+                      <p className="text-xs text-neutral-500">Time to Payoff</p>
                       <p className="text-sm font-semibold text-neutral-900 tabular-nums">
                         {formatMonths(avalancheResult.months)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-400">Total Interest</p>
+                      <p className="text-xs text-neutral-500">Total Interest</p>
                       <p className="text-sm font-semibold text-negative-600 tabular-nums">
                         {fmt(avalancheResult.totalInterest)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-400">Total Paid</p>
+                      <p className="text-xs text-neutral-500">Total Paid</p>
                       <p className="text-sm font-semibold text-neutral-900 tabular-nums">
                         {fmt(avalancheResult.totalPaid)}
                       </p>
@@ -538,19 +538,19 @@ export default function DebtPayoffCalc() {
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <p className="text-xs text-neutral-400">Time to Payoff</p>
+                      <p className="text-xs text-neutral-500">Time to Payoff</p>
                       <p className="text-sm font-semibold text-neutral-900 tabular-nums">
                         {formatMonths(snowballResult.months)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-400">Total Interest</p>
+                      <p className="text-xs text-neutral-500">Total Interest</p>
                       <p className="text-sm font-semibold text-negative-600 tabular-nums">
                         {fmt(snowballResult.totalInterest)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-400">Total Paid</p>
+                      <p className="text-xs text-neutral-500">Total Paid</p>
                       <p className="text-sm font-semibold text-neutral-900 tabular-nums">
                         {fmt(snowballResult.totalPaid)}
                       </p>
@@ -658,7 +658,7 @@ export default function DebtPayoffCalc() {
                       </li>
                     ))}
                   </ol>
-                  <p className="text-xs text-neutral-400 mt-3 leading-relaxed">
+                  <p className="text-xs text-neutral-500 mt-3 leading-relaxed">
                     Highest interest rate paid first
                   </p>
                 </div>
@@ -685,7 +685,7 @@ export default function DebtPayoffCalc() {
                       </li>
                     ))}
                   </ol>
-                  <p className="text-xs text-neutral-400 mt-3 leading-relaxed">
+                  <p className="text-xs text-neutral-500 mt-3 leading-relaxed">
                     Smallest balance paid first
                   </p>
                 </div>

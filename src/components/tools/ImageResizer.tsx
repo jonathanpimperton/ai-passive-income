@@ -128,7 +128,7 @@ export default function ImageResizer() {
                 className={`mb-0.5 p-2 rounded-lg border transition-colors duration-150 ${
                   keepAspect
                     ? 'border-primary-300 bg-primary-50 text-primary-600'
-                    : 'border-neutral-200 bg-white text-neutral-400 hover:text-neutral-600'
+                    : 'border-neutral-200 bg-white text-neutral-500 hover:text-neutral-600'
                 }`}
                 aria-label={keepAspect ? 'Aspect ratio locked' : 'Aspect ratio unlocked'}
                 aria-pressed={keepAspect}
@@ -189,12 +189,12 @@ export default function ImageResizer() {
             <div className="flex items-center justify-between">
               <p className="text-sm text-neutral-600">
                 {width} × {height}px
-                {resizedSize > 0 && <span className="ml-2 text-neutral-400">({formatSize(resizedSize)})</span>}
+                {resizedSize > 0 && <span className="ml-2 text-neutral-500">({formatSize(resizedSize)})</span>}
               </p>
               <button
                 onClick={download}
                 disabled={!resizedBlob}
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg transition-colors duration-150"
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg transition-colors duration-150"
               >
                 <Download size={16} aria-hidden="true" />
                 Download PNG
@@ -205,7 +205,7 @@ export default function ImageResizer() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ImageIcon size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
             <p className="text-sm text-neutral-500">Upload an image to resize it</p>
-            <p className="text-xs text-neutral-400 mt-1">Preview appears here instantly</p>
+            <p className="text-xs text-neutral-500 mt-1">Preview appears here instantly</p>
           </div>
         )}
       </div>

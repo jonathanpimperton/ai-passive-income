@@ -151,7 +151,7 @@ export default function JsonXmlConverter() {
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={toggleMode}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500 text-white font-medium text-sm hover:bg-primary-600 transition-colors duration-150"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white font-medium text-sm hover:bg-primary-700 transition-colors duration-150"
           aria-label={`Switch to ${mode === 'json-to-xml' ? 'XML to JSON' : 'JSON to XML'} mode`}
         >
           <ArrowLeftRight size={16} aria-hidden="true" />
@@ -193,7 +193,7 @@ export default function JsonXmlConverter() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={mode === 'json-to-xml' ? 'Paste JSON here...' : 'Paste XML here...'}
-            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y"
+            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y"
             spellCheck={false}
           />
         </div>
@@ -232,7 +232,7 @@ export default function JsonXmlConverter() {
             readOnly
             value={result.error ? '' : result.output}
             placeholder="Output will appear here..."
-            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-neutral-50 font-mono text-sm text-neutral-900 placeholder:text-neutral-400 resize-y"
+            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-neutral-50 font-mono text-sm text-neutral-900 placeholder:text-neutral-500 resize-y"
             aria-live="polite"
           />
           {result.error && (

@@ -143,11 +143,11 @@ function ToggleSwitch({ id, label, description, checked, onChange, disabled = fa
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex-1 min-w-0">
-        <label htmlFor={id} className={`block text-sm font-medium ${disabled ? 'text-neutral-400' : 'text-neutral-700'}`}>
+        <label htmlFor={id} className={`block text-sm font-medium ${disabled ? 'text-neutral-500' : 'text-neutral-700'}`}>
           {label}
         </label>
         {description && (
-          <p className={`text-xs mt-0.5 leading-relaxed ${disabled ? 'text-neutral-300' : 'text-neutral-400'}`}>
+          <p className={`text-xs mt-0.5 leading-relaxed ${disabled ? 'text-neutral-300' : 'text-neutral-500'}`}>
             {description}
           </p>
         )}
@@ -163,7 +163,7 @@ function ToggleSwitch({ id, label, description, checked, onChange, disabled = fa
           transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2
           focus-visible:ring-primary-500/40 focus-visible:ring-offset-2
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-          ${checked ? 'bg-primary-500' : 'bg-neutral-300'}`}
+          ${checked ? 'bg-primary-600' : 'bg-neutral-300'}`}
       >
         <span
           className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-md
@@ -299,7 +299,7 @@ export default function PasswordGenerator() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Options</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -324,7 +324,7 @@ export default function PasswordGenerator() {
                     focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
                     pl-3 pr-16"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs pointer-events-none tabular-nums">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-xs pointer-events-none tabular-nums">
                   characters
                 </span>
               </div>
@@ -338,14 +338,14 @@ export default function PasswordGenerator() {
                 className="w-full h-2 mt-2.5 rounded-full appearance-none cursor-pointer
                   bg-neutral-200 accent-primary-500
                   [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full
-                  [&::-webkit-slider-thumb]:bg-primary-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
+                  [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
                   [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full
-                  [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
+                  [&::-moz-range-thumb]:bg-primary-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
                 aria-label="Password length slider"
               />
               <div className="flex justify-between mt-1">
-                <span className="text-xs text-neutral-400 tabular-nums">8</span>
-                <span className="text-xs text-neutral-400 tabular-nums">128</span>
+                <span className="text-xs text-neutral-500 tabular-nums">8</span>
+                <span className="text-xs text-neutral-500 tabular-nums">128</span>
               </div>
             </div>
 
@@ -405,7 +405,7 @@ export default function PasswordGenerator() {
                   aria-label="Generated password"
                 >
                   {!hasAnyCharset ? (
-                    <span className="text-neutral-400 font-sans text-base">Select at least one character type</span>
+                    <span className="text-neutral-500 font-sans text-base">Select at least one character type</span>
                   ) : showPassword ? (
                     password
                   ) : (
@@ -414,7 +414,7 @@ export default function PasswordGenerator() {
                 </p>
                 <button
                   onClick={() => setShowPassword(!showPassword)}
-                  className="flex-shrink-0 p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100
+                  className="flex-shrink-0 p-1.5 rounded-lg text-neutral-500 hover:text-neutral-600 hover:bg-neutral-100
                     transition-all duration-150"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -437,7 +437,7 @@ export default function PasswordGenerator() {
                   {hasAnyCharset ? strength.label : 'None'}
                 </span>
               </div>
-              <span className="text-xs text-neutral-400 tabular-nums">
+              <span className="text-xs text-neutral-500 tabular-nums">
                 {hasAnyCharset ? `${Math.round(entropy)} bits of entropy` : '0 bits'}
               </span>
             </div>
@@ -452,7 +452,7 @@ export default function PasswordGenerator() {
                 aria-label="Password strength"
               />
             </div>
-            <p className="text-xs text-neutral-400 mt-1.5 leading-relaxed">
+            <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
               {entropy < 28 && hasAnyCharset && 'Easily cracked — increase length or add more character types.'}
               {entropy >= 28 && entropy < 36 && 'Vulnerable to targeted attacks. Consider a longer password.'}
               {entropy >= 36 && entropy < 60 && 'Reasonable for most accounts. Longer is always better.'}
@@ -470,10 +470,10 @@ export default function PasswordGenerator() {
               className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-lg font-medium text-sm
                 transition-all duration-150
                 ${copied
-                  ? 'bg-accent-600 text-white'
-                  : 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-800'
+                  ? 'bg-accent-700 text-white'
+                  : 'bg-accent-700 text-white hover:bg-accent-800 active:bg-accent-800'
                 }
-                disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed`}
+                disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed`}
             >
               {copied ? (
                 <>
@@ -493,7 +493,7 @@ export default function PasswordGenerator() {
               className="flex-1 flex items-center justify-center gap-2 h-11 rounded-lg font-medium text-sm
                 transition-all duration-150
                 border border-primary-500 text-primary-600 hover:bg-primary-50 active:bg-primary-100
-                disabled:border-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                disabled:border-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed"
             >
               <RefreshCw size={16} aria-hidden="true" />
               Generate New
@@ -534,7 +534,7 @@ export default function PasswordGenerator() {
                     return size;
                   })()}
                 </p>
-                <p className="text-xs text-neutral-400">unique characters</p>
+                <p className="text-xs text-neutral-500">unique characters</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
@@ -552,7 +552,7 @@ export default function PasswordGenerator() {
                     )
                   ) : '0'}
                 </p>
-                <p className="text-xs text-neutral-400">possible passwords</p>
+                <p className="text-xs text-neutral-500">possible passwords</p>
               </div>
             </div>
           </div>

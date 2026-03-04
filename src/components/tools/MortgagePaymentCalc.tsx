@@ -148,7 +148,7 @@ function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: st
                     <span className="flex items-center gap-2">
                       <ChevronDown
                         size={14}
-                        className={`text-neutral-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                        className={`text-neutral-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                         aria-hidden="true"
                       />
                       Year {row.year}
@@ -314,7 +314,7 @@ export default function MortgagePaymentCalc() {
             <h2 className="text-lg font-semibold text-neutral-900">Mortgage Details</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -340,7 +340,7 @@ export default function MortgagePaymentCalc() {
                     aria-pressed={loanTerm === term}
                     className={`py-2.5 rounded-lg text-sm font-medium transition-all duration-150 border ${
                       loanTerm === term
-                        ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
+                        ? 'bg-primary-600 text-white border-primary-500 shadow-sm'
                         : 'bg-white text-neutral-600 border-neutral-200 hover:border-primary-300 hover:bg-primary-50'
                     }`}
                   >

@@ -205,7 +205,7 @@ export default function InflationCalc() {
             </h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -264,7 +264,7 @@ export default function InflationCalc() {
                     <p className="text-lg font-semibold text-accent-600 tabular-nums">
                       {formatCurrency(historicalResult.purchasingPower)}
                     </p>
-                    <p className="text-xs text-neutral-400">of original {formatCurrency(amount)}</p>
+                    <p className="text-xs text-neutral-500">of original {formatCurrency(amount)}</p>
                   </div>
                 </div>
               </div>
@@ -298,7 +298,7 @@ export default function InflationCalc() {
                     <p className="text-lg font-semibold text-accent-600 tabular-nums">
                       {formatCurrency(futureResult.purchasingPower)}
                     </p>
-                    <p className="text-xs text-neutral-400">worth of today's goods</p>
+                    <p className="text-xs text-neutral-500">worth of today's goods</p>
                   </div>
                 </div>
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
@@ -308,7 +308,7 @@ export default function InflationCalc() {
                     <p className="text-lg font-semibold text-red-600 tabular-nums">
                       {formatCurrency(amount - futureResult.purchasingPower)}
                     </p>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-neutral-500">
                       {((1 - futureResult.purchasingPower / amount) * 100).toFixed(1)}% decrease
                     </p>
                   </div>

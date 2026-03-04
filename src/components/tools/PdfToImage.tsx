@@ -165,7 +165,7 @@ export default function PdfToImage() {
             <button
               onClick={convert}
               disabled={processing}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg transition-colors duration-150"
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg transition-colors duration-150"
             >
               {processing ? (
                 <>
@@ -210,9 +210,9 @@ export default function PdfToImage() {
                   <div className="p-2.5 flex items-center justify-between">
                     <div>
                       <p className="text-xs font-medium text-neutral-900">Page {img.pageNum}</p>
-                      <p className="text-xs text-neutral-400">{formatSize(img.blob.size)}</p>
+                      <p className="text-xs text-neutral-500">{formatSize(img.blob.size)}</p>
                     </div>
-                    <button onClick={() => downloadImage(img)} className="p-1.5 text-neutral-400 hover:text-primary-600 transition-colors" aria-label={`Download page ${img.pageNum}`}>
+                    <button onClick={() => downloadImage(img)} className="p-1.5 text-neutral-500 hover:text-primary-600 transition-colors" aria-label={`Download page ${img.pageNum}`}>
                       <Download size={16} aria-hidden="true" />
                     </button>
                   </div>
@@ -226,7 +226,7 @@ export default function PdfToImage() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
             <p className="text-sm text-neutral-500">Upload a PDF to convert pages to images</p>
-            <p className="text-xs text-neutral-400 mt-1">Each page becomes a separate JPG or PNG</p>
+            <p className="text-xs text-neutral-500 mt-1">Each page becomes a separate JPG or PNG</p>
           </div>
         )}
       </div>

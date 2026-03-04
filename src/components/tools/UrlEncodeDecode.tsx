@@ -78,7 +78,7 @@ export default function UrlEncodeDecode() {
         {/* Direction toggle */}
         <button
           onClick={toggleDirection}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500 text-white font-medium text-sm hover:bg-primary-600 transition-colors duration-150"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white font-medium text-sm hover:bg-primary-700 transition-colors duration-150"
           aria-label={`Switch to ${direction === 'encode' ? 'decode' : 'encode'} mode`}
         >
           <ArrowLeftRight size={16} aria-hidden="true" />
@@ -132,7 +132,7 @@ export default function UrlEncodeDecode() {
                 ? 'Type or paste text to URL-encode...\ne.g. hello world, a=1&b=2, café'
                 : 'Paste URL-encoded text...\ne.g. hello%20world, a%3D1%26b%3D2'
             }
-            className="w-full h-64 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y"
+            className="w-full h-64 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y"
             spellCheck={false}
           />
         </div>
@@ -159,7 +159,7 @@ export default function UrlEncodeDecode() {
             readOnly
             value={result.error ? '' : result.output}
             placeholder="Output will appear here..."
-            className="w-full h-64 p-4 rounded-xl border border-neutral-200 bg-neutral-50 font-mono text-sm text-neutral-900 placeholder:text-neutral-400 resize-y"
+            className="w-full h-64 p-4 rounded-xl border border-neutral-200 bg-neutral-50 font-mono text-sm text-neutral-900 placeholder:text-neutral-500 resize-y"
             aria-live="polite"
           />
           {result.error && (

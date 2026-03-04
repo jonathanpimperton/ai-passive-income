@@ -218,7 +218,7 @@ export default function PngToIco() {
             <button
               onClick={handleGenerate}
               disabled={generating || selectedSizes.size === 0}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
               aria-label="Generate and download ICO file"
             >
               <Download size={18} aria-hidden="true" />

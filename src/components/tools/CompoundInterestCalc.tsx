@@ -86,7 +86,7 @@ function ScheduleTable({ data, cc }: { data: YearRowData[]; cc: string }) {
                     <span className="flex items-center gap-1.5">
                       <ChevronDown
                         size={14}
-                        className={`text-neutral-400 transition-transform duration-200 ${
+                        className={`text-neutral-500 transition-transform duration-200 ${
                           isExpanded ? 'rotate-180' : ''
                         }`}
                         aria-hidden="true"
@@ -240,7 +240,7 @@ export default function CompoundInterestCalc() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />

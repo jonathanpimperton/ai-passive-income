@@ -298,14 +298,14 @@ export default function RetirementSavingsCalc() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
               Reset
             </button>
           </div>
-          <p className="text-xs text-neutral-400 mb-6 leading-relaxed">
+          <p className="text-xs text-neutral-500 mb-6 leading-relaxed">
             {TABS.find((t) => t.mode === mode)?.description}
           </p>
 

@@ -126,7 +126,7 @@ export default function QrCodeGenerator() {
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Input</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -158,13 +158,13 @@ export default function QrCodeGenerator() {
                   {isUrl ? (
                     <Link size={12} className="text-primary-600" aria-hidden="true" />
                   ) : (
-                    <Type size={12} className="text-neutral-400" aria-hidden="true" />
+                    <Type size={12} className="text-neutral-500" aria-hidden="true" />
                   )}
-                  <span className="text-xs text-neutral-400">
+                  <span className="text-xs text-neutral-500">
                     {isUrl ? 'URL detected' : 'Plain text'}
                   </span>
                 </div>
-                <span className="text-xs text-neutral-400 tabular-nums">
+                <span className="text-xs text-neutral-500 tabular-nums">
                   {charCount.toLocaleString()} / 2,953
                 </span>
               </div>
@@ -212,7 +212,7 @@ export default function QrCodeGenerator() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-neutral-400 mt-1.5 leading-relaxed">
+              <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
                 Higher correction allows the code to be read even if partially damaged or obscured.
               </p>
             </div>
@@ -260,7 +260,7 @@ export default function QrCodeGenerator() {
                   <div className="w-16 h-16 rounded-xl bg-neutral-100 flex items-center justify-center">
                     <Image size={28} className="text-neutral-300" aria-hidden="true" />
                   </div>
-                  <p className="text-sm text-neutral-400">Your QR code will appear here</p>
+                  <p className="text-sm text-neutral-500">Your QR code will appear here</p>
                 </div>
               )}
             </div>
@@ -273,8 +273,8 @@ export default function QrCodeGenerator() {
               disabled={!dataUrl}
               className="flex-1 flex items-center justify-center gap-2 h-11 rounded-lg font-medium text-sm
                 transition-all duration-150
-                bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700
-                disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-700
+                disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed"
             >
               <Download size={16} aria-hidden="true" />
               Download PNG
@@ -285,7 +285,7 @@ export default function QrCodeGenerator() {
               className="flex-1 flex items-center justify-center gap-2 h-11 rounded-lg font-medium text-sm
                 transition-all duration-150
                 border border-primary-500 text-primary-600 hover:bg-primary-50 active:bg-primary-100
-                disabled:border-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                disabled:border-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed"
             >
               <FileCode size={16} aria-hidden="true" />
               Download SVG

@@ -48,11 +48,11 @@ const utilityTools = TOOLS.filter((t) => t.category === 'utility');
         </p>
         {/* Trust badges */}
         <div class="flex items-center gap-4 mt-4">
-          <div class="flex items-center gap-1.5 text-xs text-white/35">
+          <div class="flex items-center gap-1.5 text-xs text-white/60">
             <ToolIcon name="lock" size={13} />
             <span>Private</span>
           </div>
-          <div class="flex items-center gap-1.5 text-xs text-white/35">
+          <div class="flex items-center gap-1.5 text-xs text-white/60">
             <ToolIcon name="zap" size={13} />
             <span>Instant</span>
           </div>
@@ -67,7 +67,7 @@ const utilityTools = TOOLS.filter((t) => t.category === 'utility');
             <li><a href={getToolPath(tool)} class="text-white/50 hover:text-white transition-colors duration-150">{tool.name.replace(' Calculator', '')}</a></li>
           ))}
           <li>
-            <a href="/tools" class="inline-flex items-center gap-1 text-primary-400 hover:text-primary-300 font-medium transition-colors duration-150">
+            <a href="/tools" class="inline-flex items-center gap-1 text-primary-400 dark:text-primary-500 hover:text-primary-300 font-medium transition-colors duration-150">
               View all tools
               <ToolIcon name="arrow-right" size={14} />
             </a>
@@ -102,10 +102,10 @@ const utilityTools = TOOLS.filter((t) => t.category === 'utility');
     <div class="h-px bg-white/10 mb-6"></div>
 
     <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p class="text-xs text-white/30">
+      <p class="text-xs text-white/50">
         &copy; {currentYear} CalcRun. All rights reserved.
       </p>
-      <p class="text-xs text-white/30">
+      <p class="text-xs text-white/50">
         CalcRun provides educational tools, not financial advice.
       </p>
     </div>

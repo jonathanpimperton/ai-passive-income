@@ -91,7 +91,7 @@ export default function JsonFormatter() {
             <h2 className="text-lg font-semibold text-neutral-900">Input</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset input"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -193,7 +193,7 @@ export default function JsonFormatter() {
                   font-mono leading-relaxed p-4 overflow-auto text-neutral-800"
                 aria-live="polite"
               >
-                {result.formatted || <span className="text-neutral-400">Formatted JSON will appear here...</span>}
+                {result.formatted || <span className="text-neutral-500">Formatted JSON will appear here...</span>}
               </pre>
             </div>
           )}

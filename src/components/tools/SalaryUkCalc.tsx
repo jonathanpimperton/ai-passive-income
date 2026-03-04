@@ -289,7 +289,7 @@ export default function SalaryUkCalc() {
             <h2 className="text-lg font-semibold text-neutral-900">Salary Details</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -313,7 +313,7 @@ export default function SalaryUkCalc() {
             {/* Tax code — optional */}
             <div>
               <label htmlFor="uk-tax-code" className="block text-sm font-medium text-neutral-700 mb-1.5">
-                Tax Code <span className="text-neutral-400 font-normal">(optional)</span>
+                Tax Code <span className="text-neutral-500 font-normal">(optional)</span>
               </label>
               <input
                 type="text"
@@ -325,7 +325,7 @@ export default function SalaryUkCalc() {
                 className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3 uppercase
                   focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
               />
-              <p className="text-xs text-neutral-400 mt-1">
+              <p className="text-xs text-neutral-500 mt-1">
                 {taxCodeParsed
                   ? taxCodeParsed.flatRate !== null && taxCodeParsed.flatRate !== undefined
                     ? `Flat rate: ${(taxCodeParsed.flatRate * 100).toFixed(0)}% on all income`
@@ -349,7 +349,7 @@ export default function SalaryUkCalc() {
                 aria-checked={isScottish}
                 onClick={() => setIsScottish(!isScottish)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                  isScottish ? 'bg-primary-500' : 'bg-neutral-300'
+                  isScottish ? 'bg-primary-600' : 'bg-neutral-300'
                 }`}
               >
                 <span
@@ -403,7 +403,7 @@ export default function SalaryUkCalc() {
                 aria-checked={pensionIsSacrifice}
                 onClick={() => setPensionIsSacrifice(!pensionIsSacrifice)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                  pensionIsSacrifice ? 'bg-primary-500' : 'bg-neutral-300'
+                  pensionIsSacrifice ? 'bg-primary-600' : 'bg-neutral-300'
                 }`}
               >
                 <span
@@ -474,7 +474,7 @@ export default function SalaryUkCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Income Tax</p>
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatGBP(result.incomeTax)}</p>
-                <p className="text-xs text-neutral-400 mt-0.5">PA: {formatGBP(result.personalAllowance)}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">PA: {formatGBP(result.personalAllowance)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">

@@ -271,7 +271,7 @@ export default function ExcelToPdf() {
             <button
               onClick={convertToPdf}
               disabled={converting}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg transition-colors duration-150"
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg transition-colors duration-150"
             >
               {converting ? (
                 <>
@@ -332,7 +332,7 @@ export default function ExcelToPdf() {
                 </table>
               </div>
               {sheet.rows.length > 50 && (
-                <p className="text-xs text-neutral-400 text-center py-2 bg-neutral-50 border-t border-neutral-200">
+                <p className="text-xs text-neutral-500 text-center py-2 bg-neutral-50 border-t border-neutral-200">
                   Showing first 50 of {sheet.rows.length} rows
                 </p>
               )}
@@ -342,7 +342,7 @@ export default function ExcelToPdf() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <FileText size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
             <p className="text-sm text-neutral-500">Upload an Excel or CSV file to convert it to PDF</p>
-            <p className="text-xs text-neutral-400 mt-1">Preview your data, then download as PDF</p>
+            <p className="text-xs text-neutral-500 mt-1">Preview your data, then download as PDF</p>
           </div>
         )}
       </div>

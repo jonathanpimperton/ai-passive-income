@@ -61,7 +61,7 @@ function ItemRow({ item, onChange, onRemove }: {
         aria-label="Item name"
       />
       <div className="relative w-32 shrink-0">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-sm pointer-events-none">$</span>
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">$</span>
         <input
           type="text"
           inputMode="decimal"
@@ -78,7 +78,7 @@ function ItemRow({ item, onChange, onRemove }: {
       </div>
       <button
         onClick={() => onRemove(item.id)}
-        className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 shrink-0"
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-500 hover:text-red-500 hover:bg-red-50 transition-all duration-150 shrink-0"
         aria-label={`Remove ${item.name}`}
       >
         <X size={16} aria-hidden="true" />
@@ -167,7 +167,7 @@ export default function NetWorthCalc() {
             <h2 className="text-lg font-semibold text-neutral-900">Your Finances</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -308,7 +308,7 @@ export default function NetWorthCalc() {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-neutral-400 py-8 text-center">No assets added</p>
+                <p className="text-sm text-neutral-500 py-8 text-center">No assets added</p>
               )}
             </div>
 
@@ -339,7 +339,7 @@ export default function NetWorthCalc() {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-neutral-400 py-8 text-center">No liabilities added</p>
+                <p className="text-sm text-neutral-500 py-8 text-center">No liabilities added</p>
               )}
             </div>
           </div>

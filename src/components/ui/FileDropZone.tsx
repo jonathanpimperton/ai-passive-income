@@ -71,7 +71,7 @@ export default function FileDropZone({
     >
       <UploadCloud
         size={48}
-        className={`transition-colors duration-200 ${dragActive ? 'text-primary-500' : 'text-neutral-400'}`}
+        className={`transition-colors duration-200 ${dragActive ? 'text-primary-500' : 'text-neutral-500'}`}
         aria-hidden="true"
       />
       <div className="text-center">
@@ -79,7 +79,7 @@ export default function FileDropZone({
           Drop {multiple ? 'files' : 'a file'} here or click to browse
         </p>
         <p className="text-xs text-neutral-500 mt-1">{acceptLabel}</p>
-        <p className="text-xs text-neutral-400 mt-0.5">Max {maxSizeMB}MB per file</p>
+        <p className="text-xs text-neutral-500 mt-0.5">Max {maxSizeMB}MB per file</p>
       </div>
       <input
         ref={inputRef}

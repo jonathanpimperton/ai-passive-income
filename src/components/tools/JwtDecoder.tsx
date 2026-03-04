@@ -141,7 +141,7 @@ export default function JwtDecoder() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Paste your JWT token here..."
-          className="w-full h-32 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y break-all"
+          className="w-full h-32 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y break-all"
           spellCheck={false}
         />
       </div>

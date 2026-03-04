@@ -36,7 +36,7 @@ function NumberInput({ label, id, value, onChange, suffix, prefix, hint }: Numbe
       </label>
       <div className="relative">
         {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 pointer-events-none">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500 pointer-events-none">
             {prefix}
           </span>
         )}
@@ -51,12 +51,12 @@ function NumberInput({ label, id, value, onChange, suffix, prefix, hint }: Numbe
           inputMode="decimal"
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 pointer-events-none">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500 pointer-events-none">
             {suffix}
           </span>
         )}
       </div>
-      {hint && <p className="text-xs text-neutral-400 mt-1">{hint}</p>}
+      {hint && <p className="text-xs text-neutral-500 mt-1">{hint}</p>}
     </div>
   );
 }
@@ -175,7 +175,7 @@ export default function PercentageCalculator() {
             <h2 className="text-lg font-semibold text-neutral-900">Enter Values</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -348,7 +348,7 @@ export default function PercentageCalculator() {
               ].map((row) => (
                 <div key={row.pct} className="bg-neutral-50 rounded-lg p-2 text-center">
                   <p className="font-medium text-neutral-800">{row.pct}</p>
-                  <p className="text-neutral-400">{row.frac} = {row.dec}</p>
+                  <p className="text-neutral-500">{row.frac} = {row.dec}</p>
                 </div>
               ))}
             </div>

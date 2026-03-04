@@ -95,11 +95,11 @@ export default function SliderInput({
       <label htmlFor={id} className="block text-sm font-medium text-neutral-700 mb-0.5">
         {label}
       </label>
-      {hint && <p className="text-xs text-neutral-400 mb-1.5 leading-relaxed">{hint}</p>}
+      {hint && <p className="text-xs text-neutral-500 mb-1.5 leading-relaxed">{hint}</p>}
       {!hint && <div className="mb-1" />}
       <div className="relative">
         {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm pointer-events-none">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">
             {prefix}
           </span>
         )}
@@ -117,7 +117,7 @@ export default function SliderInput({
             ${prefix ? 'pl-7' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm pointer-events-none">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">
             {suffix}
           </span>
         )}
@@ -132,9 +132,9 @@ export default function SliderInput({
         className="w-full h-2 mt-2.5 rounded-full appearance-none cursor-pointer
           bg-neutral-200 accent-primary-500
           [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full
-          [&::-webkit-slider-thumb]:bg-primary-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
+          [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
           [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full
-          [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
+          [&::-moz-range-thumb]:bg-primary-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
         aria-label={`${label} slider`}
         aria-valuemin={min}
         aria-valuemax={max}
@@ -142,8 +142,8 @@ export default function SliderInput({
       />
       {(minLabel || maxLabel) && (
         <div className="flex justify-between mt-1">
-          <span className="text-xs text-neutral-400 tabular-nums">{minLabel}</span>
-          <span className="text-xs text-neutral-400 tabular-nums">{maxLabel}</span>
+          <span className="text-xs text-neutral-500 tabular-nums">{minLabel}</span>
+          <span className="text-xs text-neutral-500 tabular-nums">{maxLabel}</span>
         </div>
       )}
       {error && (

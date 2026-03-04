@@ -33,7 +33,7 @@ const breadcrumbs = [
   {/* Dark header */}
   <div class="bg-[#0F1B2D] text-white">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-      <Breadcrumb items={breadcrumbs} />
+      <Breadcrumb items={breadcrumbs} variant="dark" />
       <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mt-4 mb-3">Financial Scenarios</h1>
       <p class="text-lg text-white/70 max-w-2xl leading-relaxed">
         Pre-calculated examples with real numbers and expert analysis. Find a scenario close to yours, then use the calculator to fine-tune the results.
@@ -72,7 +72,7 @@ const breadcrumbs = [
                 </p>
                 <div class="flex flex-wrap gap-1.5 mt-auto">
                   {Object.entries(scenario.data.inputs).slice(0, 3).map(([key, value]) => (
-                    <span class="text-xs font-medium text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                    <span class="text-xs font-medium text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-full">
                       {key}: {value}
                     </span>
                   ))}

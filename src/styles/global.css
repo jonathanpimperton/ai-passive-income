@@ -57,7 +57,7 @@
   /* Accent (warm coral — CTA/interactive only) */
   --color-accent-800: #9C2E1F;
   --color-accent-700: #C0392B;
-  --color-accent-600: #D4493F;
+  --color-accent-600: #C84335;
   --color-accent-500: #E8604C;
   --color-accent-400: #EF8070;
   --color-accent-300: #F5A99E;
@@ -651,7 +651,7 @@ input[type="range"] {
   --color-neutral-800: #D1D5DB;
   --color-neutral-700: #B0B4BC;
   --color-neutral-600: #9CA3AF;
-  --color-neutral-500: #7E8694;
+  --color-neutral-500: #8B93A1;
   --color-neutral-400: #5A6270;
   --color-neutral-300: #3D4451;
   --color-neutral-200: #2D333E;
@@ -669,7 +669,7 @@ input[type="range"] {
   --color-primary-100: #0D3333;
   --color-primary-50: #0A2222;
 
-  --color-accent-700: #D4493F;
+  --color-accent-700: #C0392B;
   --color-accent-600: #F0756A;
   --color-accent-500: #F0756A;
   --color-accent-400: #F8968E;
@@ -853,6 +853,15 @@ input[type="range"] {
 /* --- Dark mode: hover states --- */
 [data-theme="dark"] .hover\:bg-neutral-50:hover {
   background-color: var(--color-neutral-50);
+}
+
+/* --- Dark mode: primary buttons retain dark teal for white-text contrast --- */
+[data-theme="dark"] .bg-primary-600 {
+  background-color: #0B6E6E;
+}
+[data-theme="dark"] .hover\:bg-primary-700:hover,
+[data-theme="dark"] .group-hover\:bg-primary-700:where(:hover *) {
+  background-color: #0A5555;
 }
 
 /* --- Dark mode: shadow-card on dark bg --- */

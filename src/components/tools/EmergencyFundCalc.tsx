@@ -157,7 +157,7 @@ export default function EmergencyFundCalc() {
             <h2 className="text-lg font-semibold text-neutral-900">Monthly Expenses</h2>
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset all inputs"
             >
               <RotateCcw size={13} aria-hidden="true" />
@@ -215,14 +215,14 @@ export default function EmergencyFundCalc() {
                     <p className="text-xs text-neutral-500 mt-1.5 tabular-nums">
                       {fmt(t.remaining)} remaining
                       {isFinite(t.monthsToReach) && t.monthsToReach > 0 && (
-                        <span className="text-neutral-400">
+                        <span className="text-neutral-500">
                           {' '}· {t.monthsToReach < 12
                             ? `${t.monthsToReach} mo`
                             : `${Math.floor(t.monthsToReach / 12)}y ${t.monthsToReach % 12}mo`}
                         </span>
                       )}
                       {!isFinite(t.monthsToReach) && (
-                        <span className="text-neutral-400"> · Start saving to reach this</span>
+                        <span className="text-neutral-500"> · Start saving to reach this</span>
                       )}
                     </p>
                   </>
@@ -238,7 +238,7 @@ export default function EmergencyFundCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Recommended Target</p>
                 <p className="text-lg font-semibold result-number tabular-nums">{fmt(animatedRecommendedTarget)}</p>
-                <p className="text-xs text-neutral-400">6 months of expenses</p>
+                <p className="text-xs text-neutral-500">6 months of expenses</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
@@ -248,7 +248,7 @@ export default function EmergencyFundCalc() {
                 <p className="text-lg font-semibold text-accent-600 tabular-nums">
                   {monthlyExpenses > 0 ? `${((currentSavings / (monthlyExpenses * 6)) * 100).toFixed(0)}%` : '—'}
                 </p>
-                <p className="text-xs text-neutral-400">of 6-month target</p>
+                <p className="text-xs text-neutral-500">of 6-month target</p>
               </div>
             </div>
           </div>

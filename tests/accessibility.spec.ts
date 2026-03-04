@@ -7,31 +7,15 @@
  *  - Scenarios index
  *  - Dark mode variant
  *
- * Known issues excluded:
- *  - color-contrast: Several elements use text-neutral-400 (2.96:1 ratio)
- *    and bg-accent-600/bg-primary-500 with white text (4.35-4.45:1 ratio).
- *    These need fixing but are tracked separately.
+ * All WCAG AA rules are enabled, including color-contrast.
  */
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 /**
- * Run axe on the current page and return violations.
- * Excludes color-contrast (known issues tracked separately) and iframes.
+ * Run axe on the current page and return violations (all WCAG AA rules including color-contrast).
  */
 async function runAxe(page: import('@playwright/test').Page) {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa'])
-    .disableRules(['color-contrast'])
-    .exclude('iframe')
-    .analyze();
-  return results.violations;
-}
-
-/**
- * Run axe including color-contrast to report (but not fail on) contrast issues.
- */
-async function runAxeWithContrast(page: import('@playwright/test').Page) {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa'])
     .exclude('iframe')
@@ -56,26 +40,12 @@ function formatViolations(violations: import('axe-core').Result[]) {
 // ════════════════════════════════════════════════════════════════
 
 test.describe('Accessibility — Homepage', () => {
-  test('passes WCAG AA checks (excluding color-contrast)', async ({ page }) => {
+  test('passes WCAG AA checks including color-contrast', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
     const violations = await runAxe(page);
     expect(violations, formatViolations(violations)).toHaveLength(0);
-  });
-
-  test('color-contrast audit (informational)', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    const violations = await runAxeWithContrast(page);
-    const contrastIssues = violations.filter((v) => v.id === 'color-contrast');
-    if (contrastIssues.length > 0) {
-      console.warn(
-        `⚠ Homepage has ${contrastIssues[0].nodes.length} color-contrast violations:\n${formatViolations(contrastIssues)}`
-      );
-    }
-    // Informational — does not fail
   });
 });
 
@@ -91,7 +61,7 @@ const calculatorPages = [
 
 for (const calc of calculatorPages) {
   test.describe(`Accessibility — ${calc.name}`, () => {
-    test('passes WCAG AA checks (excluding color-contrast)', async ({ page }) => {
+    test('passes WCAG AA checks', async ({ page }) => {
       await page.goto(calc.url);
       await page.waitForLoadState('networkidle');
       // Wait for React hydration
@@ -108,7 +78,7 @@ for (const calc of calculatorPages) {
 // ════════════════════════════════════════════════════════════════
 
 test.describe('Accessibility — Scenarios Index', () => {
-  test('passes WCAG AA checks (excluding color-contrast)', async ({ page }) => {
+  test('passes WCAG AA checks', async ({ page }) => {
     await page.goto('/scenarios');
     await page.waitForLoadState('networkidle');
 
@@ -122,7 +92,7 @@ test.describe('Accessibility — Scenarios Index', () => {
 // ════════════════════════════════════════════════════════════════
 
 test.describe('Accessibility — Dark Mode', () => {
-  test('homepage in dark mode passes WCAG AA checks (excluding color-contrast)', async ({ page }) => {
+  test('homepage in dark mode passes WCAG AA checks', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -141,7 +111,7 @@ test.describe('Accessibility — Dark Mode', () => {
     expect(violations, formatViolations(violations)).toHaveLength(0);
   });
 
-  test('calculator in dark mode passes WCAG AA checks (excluding color-contrast)', async ({ page }) => {
+  test('calculator in dark mode passes WCAG AA checks', async ({ page }) => {
     await page.goto('/tools/saving-and-growth/compound-interest');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);

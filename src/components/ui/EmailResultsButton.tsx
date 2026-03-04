@@ -218,7 +218,7 @@ export default function EmailResultsButton({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={status === 'loading'}
-              className="h-10 sm:h-9 px-3 text-base sm:text-sm rounded-lg border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-400
+              className="h-10 sm:h-9 px-3 text-base sm:text-sm rounded-lg border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-500
                 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
                 disabled:opacity-60 w-52"
             />
