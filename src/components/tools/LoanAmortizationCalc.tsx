@@ -252,7 +252,7 @@ export default function LoanAmortizationCalc() {
               min={0.1} max={20} step={0.1} onChange={setRate}
               suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Your loan's interest rate (check your loan terms)" />
             <SliderInput label="Loan Term (Years)" id="la-term" value={termYears}
-              min={1} max={40} step={1} onChange={setTermYears} hint="How long you have to pay it back" />
+              min={1} max={50} step={1} onChange={setTermYears} hint="How long you have to pay it back" />
           </div>
 
           <div className="mt-6 pt-5">

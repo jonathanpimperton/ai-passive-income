@@ -358,8 +358,8 @@ export default function DebtPayoffCalc() {
               id="dp-extra"
               value={extraPayment}
               min={0}
-              max={2000}
-              step={25}
+              max={5000}
+              step={50}
               onChange={setExtraPayment}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}

@@ -206,10 +206,10 @@ export default function SalaryUkCalc() {
     let marginalRate = 0.20;
     if (taxCodeParsed?.flatRate !== null && taxCodeParsed?.flatRate !== undefined) {
       marginalRate = taxCodeParsed.flatRate;
-    } else if (taxableIncome > personalAllowance + (isScottish ? 62430 : 112570)) {
-      marginalRate = isScottish ? 0.48 : 0.45;
-    } else if (taxableIncome > personalAllowance + (isScottish ? 31092 : 37700)) {
-      marginalRate = isScottish ? 0.42 : 0.40;
+    } else if (taxableIncome > personalAllowance + (isScottish ? SCOTTISH_BANDS[4][0] : UK_BANDS[2][0])) {
+      marginalRate = isScottish ? SCOTTISH_BANDS[5][1] : UK_BANDS[2][1];
+    } else if (taxableIncome > personalAllowance + (isScottish ? SCOTTISH_BANDS[3][0] : UK_BANDS[1][0])) {
+      marginalRate = isScottish ? SCOTTISH_BANDS[3][1] : UK_BANDS[1][1];
     }
     // 60% trap detection (only when using standard allowance, not custom tax code)
     const isIn60Trap = !taxCodeParsed && salary > PA_TAPER_THRESHOLD && salary < PA_TAPER_LIMIT;

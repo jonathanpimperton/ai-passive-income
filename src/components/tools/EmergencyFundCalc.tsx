@@ -164,13 +164,13 @@ export default function EmergencyFundCalc() {
           </div>
           <CurrencySelector value={currency} onChange={setCurrency} />
           <div className="space-y-5">
-            <SliderInput label="Housing / Rent" id="ef-housing" value={housing} min={0} max={8000} step={50} onChange={setHousing} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Food & Groceries" id="ef-food" value={food} min={0} max={2000} step={25} onChange={setFood} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Transportation" id="ef-transport" value={transportation} min={0} max={2000} step={25} onChange={setTransportation} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Utilities" id="ef-utilities" value={utilities} min={0} max={1000} step={10} onChange={setUtilities} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Insurance" id="ef-insurance" value={insurance} min={0} max={3000} step={25} onChange={setInsurance} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Debt Payments" id="ef-debt" value={debtPayments} min={0} max={3000} step={25} onChange={setDebtPayments} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Other Expenses" id="ef-other" value={other} min={0} max={3000} step={25} onChange={setOther} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Housing / Rent" id="ef-housing" value={housing} min={0} max={15000} step={100} onChange={setHousing} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Food & Groceries" id="ef-food" value={food} min={0} max={5000} step={50} onChange={setFood} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Transportation" id="ef-transport" value={transportation} min={0} max={5000} step={50} onChange={setTransportation} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Utilities" id="ef-utilities" value={utilities} min={0} max={3000} step={25} onChange={setUtilities} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Insurance" id="ef-insurance" value={insurance} min={0} max={5000} step={50} onChange={setInsurance} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Debt Payments" id="ef-debt" value={debtPayments} min={0} max={10000} step={50} onChange={setDebtPayments} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Other Expenses" id="ef-other" value={other} min={0} max={5000} step={50} onChange={setOther} prefix="$" formatDisplay={formatNumber} />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
 

@@ -227,7 +227,7 @@ export default function InflationCalc() {
               </>
             ) : (
               <>
-                <SliderInput label="Years Into Future" id="inf-future" value={futureYears} min={1} max={50} step={1} onChange={setFutureYears} />
+                <SliderInput label="Years Into Future" id="inf-future" value={futureYears} min={1} max={100} step={1} onChange={setFutureYears} />
                 <SliderInput label="Assumed Annual Inflation Rate" id="inf-rate" value={inflationRate} min={0} max={15} step={0.1} onChange={setInflationRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="How fast prices rise each year — ~3% is the US long-term average" />
               </>
             )}
