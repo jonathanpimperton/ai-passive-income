@@ -237,6 +237,16 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - **19A Dark mode:** Full dark theme via `[data-theme="dark"]` CSS custom property overrides in global.css. `ThemeToggle.astro` sun/moon button in header (desktop + mobile). FOUC prevention via inline `<script>` in `<head>` reading localStorage before paint. Respects `prefers-color-scheme`. Persists in `calcrun.theme` localStorage key. Dark tokens: bg #121418, surface #1E2128, surface-alt #282C34, lifted teal primary, same coral family for accent.
 - **19B Accessibility:** Focus ring upgraded to 3px coral via `color-mix()`. `scroll-padding-top: 80px` for sticky header focus occlusion (WCAG 2.4.11). Dark mode overrides for all text/border/input/card elements maintain WCAG AA contrast.
 
+**Sprint 20 — QA Automation (Complete):**
+- 53 new Playwright E2E tests across 3 files:
+  - `tests/calculators.spec.ts` (16 tests): All 14 financial calculator interaction tests + currency selector + share/email/export buttons
+  - `tests/pages.spec.ts` (29 tests): Homepage, tools index, 14 calculator SEO (h1, JSON-LD, meta desc, og:image), 3 scenarios, static pages, navigation dropdown, dark mode toggle + persistence
+  - `tests/accessibility.spec.ts` (8 tests): axe-core WCAG AA on homepage, 3 calculator pages, scenarios index, dark mode (homepage + calculator)
+- `@axe-core/playwright` dev dependency added
+- `playwright.config.ts` updated with `webServer` config to auto-start dev server
+- Known issues found: Rent vs Buy page missing JSON-LD structured data, 14 color-contrast violations on homepage (text-neutral-400, bg-accent-600, bg-primary-500 with white text all below 4.5:1)
+- Total test count: 215 unit (vitest) + 70 E2E (playwright) = 285 tests
+
 **Affiliate network accounts:**
 - **CJ Affiliate** — Active. NordPass approved, NordVPN approved, 1Password declined, Ally declined. Pending: LendingTree, Barclays US Online Savings, Experian, Axos Bank, BMO Harris Bank
 - **Impact.com** — Marketplace application DECLINED (low traffic, new site). Can apply directly to brands via their Impact signup pages. Reapply to marketplace once traffic grows.
@@ -342,7 +352,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 15-19 complete (security hardening, SliderInput UX fix, mobile fixes, raised limits, typography rebrand to Libre Baskerville + DM Sans, teal/coral color palette, central UK rates module, currency selector, content de-AI-ification, card design refinement, sticky results, dark mode, accessibility improvements). Sprint 14 remaining: scale scenarios to 50+, comparison articles, A/B test affiliates, growth monitoring. Sprint 20 remaining: performance optimization, QA automation, final testing. 61 pages total. NordPass + NordVPN live with tracked CJ links. 7 other partners pending approval across CJ, Awin, Pro Affiliate Partner. See affiliate partner status table in Sprint 14 section above.
+3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 15-20 complete (security hardening, SliderInput UX fix, mobile fixes, raised limits, typography rebrand to Libre Baskerville + DM Sans, teal/coral color palette, central UK rates module, currency selector, content de-AI-ification, card design refinement, sticky results, dark mode, accessibility improvements, QA automation with 285 total tests). Sprint 14 remaining: scale scenarios to 50+, comparison articles, A/B test affiliates, growth monitoring. Sprint 20 remaining: performance optimization, fix color-contrast violations. 61 pages total. NordPass + NordVPN live with tracked CJ links. 7 other partners pending approval across CJ, Awin, Pro Affiliate Partner. See affiliate partner status table in Sprint 14 section above.
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
@@ -359,8 +369,17 @@ npm run dev
 # Build
 npm run build
 
-# Run tests
+# Run unit tests (vitest — 215 tests)
 npm test
+
+# Run E2E tests (playwright — 70 tests, auto-starts dev server)
+npx playwright test
+
+# Run specific E2E test suites
+npx playwright test calculators   # 16 calculator interaction tests
+npx playwright test pages         # 29 page load/SEO/nav/dark mode tests
+npx playwright test accessibility # 8 axe-core WCAG AA tests
+npx playwright test file-converters # 17 file converter tests
 ```
 
 ## Pre-Commit QA Checklist (MANDATORY)

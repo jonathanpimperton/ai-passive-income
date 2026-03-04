@@ -14,7 +14,12 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
-  /* Dev server started manually before tests */
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:4321',
+    reuseExistingServer: true,
+    timeout: 30000,
+  },
   projects: [
     {
       name: 'chromium',
