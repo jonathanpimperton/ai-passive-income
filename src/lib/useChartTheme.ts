@@ -36,7 +36,7 @@ export function useChartTheme(): ChartTheme {
     check();
 
     const observer = new MutationObserver(check);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
     return () => observer.disconnect();
   }, []);
 

@@ -248,7 +248,7 @@ export default function EmailResultsButton({
           </label>
         </form>
         {status === 'error' && errorMsg && (
-          <p ref={errorRef} tabIndex={-1} role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600 outline-none">
+          <p ref={errorRef} tabIndex={-1} role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600 focus:outline-none">
             <AlertCircle size={12} aria-hidden="true" />
             {errorMsg}
           </p>
