@@ -2,7 +2,7 @@
 name: "PDF Merge"
 slug: "pdf-merge"
 category: "file-tools"
-description: "Combine multiple PDF files into one document in your browser. Free, private — no upload to any server."
+description: "Combine multiple PDF files into one document. Files stay in your browser."
 keywords:
   - "merge PDF online"
   - "combine PDF files"

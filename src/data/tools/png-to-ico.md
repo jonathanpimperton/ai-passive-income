@@ -2,7 +2,7 @@
 name: "PNG to ICO Converter"
 slug: "png-to-ico"
 category: "file-tools"
-description: "Convert PNG images to ICO favicon files with multiple sizes. Free, private — files never leave your device."
+description: "Convert PNG images to ICO favicon files with multiple sizes."
 keywords:
   - "PNG to ICO converter"
   - "favicon generator"

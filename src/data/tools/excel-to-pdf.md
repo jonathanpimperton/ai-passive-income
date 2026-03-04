@@ -2,7 +2,7 @@
 name: "Excel to PDF Converter"
 slug: "excel-to-pdf"
 category: "file-tools"
-description: "Convert Excel spreadsheets and CSV files to PDF in your browser. Free, private — no server upload."
+description: "Convert Excel spreadsheets and CSV files to PDF."
 keywords:
   - "Excel to PDF"
   - "XLSX to PDF"

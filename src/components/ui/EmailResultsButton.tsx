@@ -244,7 +244,7 @@ export default function EmailResultsButton({
               onChange={(e) => setSubscribe(e.target.checked)}
               className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20"
             />
-            <span className="text-xs text-neutral-500">Also send me free financial tips</span>
+            <span className="text-xs text-neutral-500">Also send me financial tips</span>
           </label>
         </form>
         {status === 'error' && errorMsg && (

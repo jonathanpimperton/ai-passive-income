@@ -48,9 +48,9 @@ export const UK_STATE_PENSION = {
 
 /* ── Student Loans ───────────────────────────────────────── */
 export const UK_STUDENT_LOANS = {
-  plan1: { threshold: 24_990, rate: 0.09 },
-  plan2: { threshold: 27_295, rate: 0.09 },
-  plan4: { threshold: 31_395, rate: 0.09 },
+  plan1: { threshold: 26_065, rate: 0.09 },
+  plan2: { threshold: 28_470, rate: 0.09 },
+  plan4: { threshold: 32_745, rate: 0.09 },
   plan5: { threshold: 25_000, rate: 0.09 },
   postgrad: { threshold: 21_000, rate: 0.06 },
 };

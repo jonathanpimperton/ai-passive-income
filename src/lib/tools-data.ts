@@ -153,7 +153,7 @@ export const TOOLS: ToolMeta[] = [
     name: 'QR Code Generator',
     slug: 'qr-code',
     category: 'utility',
-    description: 'Create free QR codes for URLs, text, and more.',
+    description: 'Create QR codes for URLs, text, Wi-Fi, and more.',
     icon: 'qr-code',
   },
   {
@@ -181,7 +181,7 @@ export const TOOLS: ToolMeta[] = [
     name: 'Base64 Encode/Decode',
     slug: 'base64-encode-decode',
     category: 'utility',
-    description: 'Encode text or files to Base64 and decode Base64 back — free, instant, private.',
+    description: 'Encode text or files to Base64 and decode Base64 back instantly.',
     icon: 'binary',
   },
   {
@@ -195,7 +195,7 @@ export const TOOLS: ToolMeta[] = [
     name: 'JWT Decoder',
     slug: 'jwt-decoder',
     category: 'utility',
-    description: 'Decode JWT tokens to inspect header, payload, and expiration — no signup, no server.',
+    description: 'Decode JWT tokens to inspect header, payload, and expiration.',
     icon: 'key-round',
   },
   // File Tools
@@ -203,7 +203,7 @@ export const TOOLS: ToolMeta[] = [
     name: 'Image Compressor',
     slug: 'image-compressor',
     category: 'file-tools',
-    description: 'Compress JPG, PNG, and WebP images in your browser. No upload, no signup.',
+    description: 'Compress JPG, PNG, and WebP images while keeping quality. Files stay in your browser.',
     icon: 'minimize-2',
   },
   {
@@ -231,7 +231,7 @@ export const TOOLS: ToolMeta[] = [
     name: 'HEIC to JPG Converter',
     slug: 'heic-to-jpg',
     category: 'file-tools',
-    description: 'Convert iPhone HEIC photos to JPG. Private — files never leave your device.',
+    description: 'Convert iPhone HEIC photos to JPG. Files stay in your browser.',
     icon: 'smartphone',
   },
   {
@@ -259,7 +259,7 @@ export const TOOLS: ToolMeta[] = [
     name: 'PDF Merge',
     slug: 'pdf-merge',
     category: 'file-tools',
-    description: 'Combine multiple PDF files into one document. Free, private — no upload.',
+    description: 'Combine multiple PDF files into one document. Files stay in your browser.',
     icon: 'file-plus',
   },
   {
@@ -294,21 +294,21 @@ export const TOOLS: ToolMeta[] = [
     name: 'JSON ↔ YAML Converter',
     slug: 'json-yaml',
     category: 'file-tools',
-    description: 'Convert between JSON and YAML formats instantly — free, private, no signup.',
+    description: 'Convert between JSON and YAML formats instantly.',
     icon: 'file-json',
   },
   {
     name: 'JSON ↔ XML Converter',
     slug: 'json-xml',
     category: 'file-tools',
-    description: 'Convert between JSON and XML formats with attribute support — free and private.',
+    description: 'Convert between JSON and XML formats with attribute support.',
     icon: 'file-code-2',
   },
   {
     name: 'PNG to ICO Converter',
     slug: 'png-to-ico',
     category: 'file-tools',
-    description: 'Convert PNG images to ICO favicon files with multiple sizes — free, no upload.',
+    description: 'Convert PNG images to ICO favicon files with multiple sizes.',
     icon: 'app-window',
   },
 ];

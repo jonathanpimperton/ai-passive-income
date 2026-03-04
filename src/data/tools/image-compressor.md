@@ -2,7 +2,7 @@
 name: "Image Compressor"
 slug: "image-compressor"
 category: "file-tools"
-description: "Compress JPG, PNG, and WebP images in your browser — no upload, no signup. Reduce file size while keeping quality."
+description: "Compress JPG, PNG, and WebP images while keeping quality. Files stay in your browser."
 keywords:
   - "compress image online"
   - "image compressor"

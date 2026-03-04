@@ -42,7 +42,7 @@ faq:
   - question: "How much National Insurance will I pay?"
     answer: "For the 2025/26 tax year, employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270 per year, and 2% on earnings above £50,270. Your employer also pays 13.8% on your earnings above £9,100 (this doesn't come out of your pay). NI contributions count toward your State Pension entitlement — you need 35 qualifying years for the full State Pension."
   - question: "How do student loan repayments work in the UK?"
-    answer: "Student loan repayments are deducted from your salary once you earn above the threshold for your plan. Plan 1 (pre-2012 England/Wales, Scotland, NI): 9% above £24,990/year. Plan 2 (post-2012 England/Wales): 9% above £27,295/year. Plan 4 (Scotland post-2012): 9% above £31,395/year. Plan 5 (from 2023): 9% above £25,000/year. Postgraduate Loan: 6% above £21,000/year. You can have both a Plan and Postgraduate Loan deducted simultaneously."
+    answer: "Student loan repayments are deducted from your salary once you earn above the threshold for your plan. Plan 1 (pre-2012 England/Wales, Scotland, NI): 9% above £26,065/year. Plan 2 (post-2012 England/Wales): 9% above £28,470/year. Plan 4 (Scotland post-2012): 9% above £32,745/year. Plan 5 (from 2023): 9% above £25,000/year. Postgraduate Loan: 6% above £21,000/year. You can have both a Plan and Postgraduate Loan deducted simultaneously."
   - question: "What is salary sacrifice and how does it affect my take-home pay?"
     answer: "Salary sacrifice is an arrangement where you give up part of your gross salary in exchange for a non-cash benefit, most commonly pension contributions. The benefit is that both you and your employer save on National Insurance — 8% and 13.8% respectively. For example, sacrificing £5,000 from a £50,000 salary saves you approximately £400 in NI and your employer saves £690, which good employers add to your pension. The trade-off is lower gross salary, which can affect mortgage applications and some benefits."
   - question: "Do I pay Scottish Income Tax rates?"
@@ -61,7 +61,7 @@ workedExamples:
       taxCode: "1257L"
       studentLoan: "plan2"
       pensionContribution: 5
-    description: "A £55,000 salary with Plan 2 student loan and 5% pension. Income Tax: £8,486/year (£7,540 at 20% + £946 at 40%). National Insurance: £3,108/year (£3,016 at 8% + £92 at 2%). Student loan: £2,493/year (9% above £27,295). Pension: £2,750. Total deductions: £16,837. Monthly take-home: approximately £3,180."
+    description: "A £55,000 salary with Plan 2 student loan and 5% pension. Income Tax: £8,486/year (£7,540 at 20% + £946 at 40%). National Insurance: £3,108/year (£3,016 at 8% + £92 at 2%). Student loan: £2,388/year (9% above £28,470). Pension: £2,750. Total deductions: £16,732. Monthly take-home: approximately £3,189."
   - title: "The 60% tax trap at £110,000"
     inputs:
       annualSalary: 110000
@@ -100,7 +100,7 @@ The most common strategy to avoid this trap is salary sacrifice into a pension. 
 
 Employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270, then 2% on earnings above £50,270. Your employer also pays 13.8% on your earnings above £9,100 — this doesn't come out of your pay, but it's a significant cost to your employer.
 
-NI contributions count toward your State Pension entitlement. You need 35 qualifying years for the full new State Pension (currently £221.20 per week). If you have gaps, you can make voluntary Class 3 contributions to fill them.
+NI contributions count toward your State Pension entitlement. You need 35 qualifying years for the full new State Pension (currently £230.25 per week). If you have gaps, you can make voluntary Class 3 contributions to fill them.
 
 | Salary Band | Employee NI Rate | Employer NI Rate |
 |---|---|---|
@@ -120,15 +120,15 @@ Student loan repayments are deducted from your pay once you earn above the thres
 
 | Plan | Applies To | Threshold | Rate |
 |---|---|---|---|
-| Plan 1 | Pre-2012 (England/Wales, Scotland, NI) | £24,990/year | 9% |
-| Plan 2 | Post-2012 (England/Wales) | £27,295/year | 9% |
-| Plan 4 | Post-2012 (Scotland) | £31,395/year | 9% |
+| Plan 1 | Pre-2012 (England/Wales, Scotland, NI) | £26,065/year | 9% |
+| Plan 2 | Post-2012 (England/Wales) | £28,470/year | 9% |
+| Plan 4 | Post-2012 (Scotland) | £32,745/year | 9% |
 | Plan 5 | From 2023 onwards | £25,000/year | 9% |
 | Postgraduate | Postgraduate loans | £21,000/year | 6% |
 
 You can hold both a Plan (1, 2, 4, or 5) and a Postgraduate Loan simultaneously, meaning up to 15% of income above the thresholds could go to student loan repayments.
 
-> **Example:** On a £35,000 salary with a Plan 2 loan, you'd repay 9% of income above £27,295 — that's £694/year or about £58/month deducted from your pay.
+> **Example:** On a £35,000 salary with a Plan 2 loan, you'd repay 9% of income above £28,470 — that's £588/year or about £49/month deducted from your pay.
 
 ## Common Mistakes
 

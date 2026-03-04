@@ -2,7 +2,7 @@
 name: "JSON ↔ YAML Converter"
 slug: "json-yaml"
 category: "file-tools"
-description: "Convert between JSON and YAML formats instantly. Bidirectional, real-time — free, private, no signup required."
+description: "Convert between JSON and YAML formats instantly."
 keywords:
   - "JSON to YAML converter"
   - "YAML to JSON converter"

@@ -2,7 +2,7 @@
 name: "Base64 Encode/Decode"
 slug: "base64-encode-decode"
 category: "utility"
-description: "Encode text or files to Base64 and decode Base64 back to text — free, instant, private. Handles Unicode and emoji."
+description: "Encode text or files to Base64 and decode Base64 back instantly."
 keywords:
   - "Base64 encoder"
   - "Base64 decoder"

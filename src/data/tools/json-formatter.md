@@ -2,7 +2,7 @@
 name: "JSON Formatter & Validator"
 slug: "json-formatter"
 category: "utility"
-description: "Format, validate, and beautify JSON data with syntax highlighting. Paste messy JSON and get clean, readable output instantly — free, no signup, no ads."
+description: "Format, validate, and beautify JSON with syntax highlighting."
 keywords:
   - "JSON formatter"
   - "JSON beautifier"

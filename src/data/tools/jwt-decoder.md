@@ -2,7 +2,7 @@
 name: "JWT Decoder"
 slug: "jwt-decoder"
 category: "utility"
-description: "Decode JWT tokens to inspect header, payload, claims, and expiration — free, instant, private. No server needed."
+description: "Decode JWT tokens to inspect header, payload, and expiration."
 keywords:
   - "JWT decoder"
   - "JWT parser"

@@ -2,7 +2,7 @@
 name: "PDF Split"
 slug: "pdf-split"
 category: "file-tools"
-description: "Extract pages from a PDF or split it into individual pages. Free, private — files never leave your device."
+description: "Extract pages from a PDF or split into individual pages."
 keywords:
   - "split PDF online"
   - "extract pages from PDF"

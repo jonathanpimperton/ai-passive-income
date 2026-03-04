@@ -2,7 +2,7 @@
 name: "Percentage Calculator"
 slug: "percentage-calculator"
 category: "utility"
-description: "Calculate percentages instantly — what is X% of Y, percentage change, percentage difference, and more. Free, no signup, no ads."
+description: "Calculate percentages, percentage change, and more instantly."
 keywords:
   - "percentage calculator"
   - "what is X percent of Y"

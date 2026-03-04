@@ -2,7 +2,7 @@
 name: "Image Resizer"
 slug: "image-resizer"
 category: "file-tools"
-description: "Resize images by pixels or percentage — free, private, no upload. Maintain aspect ratio or set custom dimensions."
+description: "Resize images by pixels or percentage. Maintains aspect ratio."
 keywords:
   - "resize image online"
   - "image resizer"

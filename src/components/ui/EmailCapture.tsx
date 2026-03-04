@@ -108,11 +108,11 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
           <p className="text-base font-semibold text-neutral-900">
             {isNewsletter
               ? 'Get smarter with your money'
-              : 'Get free financial tips'}
+              : 'Get financial tips'}
           </p>
           <p className="text-sm text-neutral-500 mt-0.5">
             {isNewsletter
-              ? 'Free tips, calculators, and insights — delivered weekly.'
+              ? 'Tips, calculators, and insights — delivered weekly.'
               : 'Strategies and insights to help you make better financial decisions — no spam.'}
           </p>
         </div>
@@ -147,7 +147,7 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
           disabled={status === 'loading'}
           className="px-5 py-3 sm:py-2.5 text-base sm:text-sm font-semibold text-white bg-accent-700 rounded-xl hover:bg-accent-500 shadow-md shadow-accent-600/20 disabled:opacity-60 transition-all duration-200 whitespace-nowrap"
         >
-          {status === 'loading' ? 'Subscribing...' : isNewsletter ? 'Subscribe' : 'Get free tips'}
+          {status === 'loading' ? 'Subscribing...' : isNewsletter ? 'Subscribe' : 'Get tips'}
         </button>
       </form>
 

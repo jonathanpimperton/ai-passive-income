@@ -51,7 +51,7 @@ In London, housing costs can absorb 40–50% of take-home pay at this salary lev
 ## What changes your take-home
 
 - **Pension contributions:** If your employer auto-enrols you at 5% (£2,000/year), your taxable income drops to £38,000. You save £400 in tax, and your take-home falls by £1,600 — but you gain £2,000 in your pension (plus employer contributions).
-- **Student loan Plan 2:** You repay 9% of earnings above £27,295. On £40,000, that is £1,143/year (£95/month), reducing take-home to £31,177.
+- **Student loan Plan 2:** You repay 9% of earnings above £28,470. On £40,000, that is £1,038/year (£87/month), reducing take-home to £31,282.
 - **Scottish taxpayer:** Scotland has different income tax bands. The intermediate rate of 21% applies from £14,733 to £25,688, and the higher rate of 42% starts at £43,663. On £40,000, a Scottish taxpayer pays slightly more — roughly £350 extra per year.
 - **Marriage allowance:** If your spouse or partner earns under £12,570, they can transfer £1,260 of their personal allowance to you, saving £252 in tax.
 

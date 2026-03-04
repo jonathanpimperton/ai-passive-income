@@ -24,15 +24,15 @@ const quickLinks = [
 
 /** Specific CTA hooks for the bottom section */
 const ctaHooks = [
-  { text: 'Wondering if you can retire at 55?', link: '/tools/income-and-planning/retirement-savings', label: 'Try the retirement calculator' },
-  { text: 'Evaluating a job offer?', link: '/tools/income-and-planning/salary-us', label: 'See your real take-home pay' },
-  { text: 'Buying your first home?', link: '/tools/debt-and-loans/mortgage-payment', label: 'Calculate your monthly payment' },
+  { text: 'Wondering if you can retire at 55?', description: 'Model different retirement ages and contribution levels.', link: '/tools/income-and-planning/retirement-savings', label: 'Try the retirement calculator' },
+  { text: 'Evaluating a job offer?', description: 'See exactly what you keep after federal and state taxes.', link: '/tools/income-and-planning/salary-us', label: 'See your real take-home pay' },
+  { text: 'Buying your first home?', description: 'Calculate your monthly payment with taxes and insurance.', link: '/tools/debt-and-loans/mortgage-payment', label: 'Calculate your monthly payment' },
 ];
 ---
 
 <BaseLayout
-  title="Free Financial Calculators Online | CalcRun"
-  description="Free financial calculators with interactive charts and plain-English explanations. Mortgage, salary, compound interest, retirement — no signup, no ads."
+  title="Financial Calculators & Tools | CalcRun"
+  description="Financial calculators with interactive charts and plain-English explanations. Mortgage, salary, compound interest, retirement — no signup, no ads."
   structuredData={[websiteSchema]}
 >
   {/* ===== HERO ===== */}
@@ -84,12 +84,12 @@ const ctaHooks = [
       <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-10 lg:gap-14 text-sm text-neutral-600">
         <div class="flex items-center gap-2">
           <svg class="w-4.5 h-4.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-          <span class="font-medium">37+ free calculators</span>
+          <span class="font-medium">37+ calculators & tools</span>
         </div>
         <div class="hidden sm:block w-px h-5 bg-neutral-200" aria-hidden="true"></div>
         <div class="flex items-center gap-2">
           <svg class="w-4.5 h-4.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span class="font-medium">Updated for 2025/26 tax year</span>
+          <span class="font-medium">Tax rates verified for 2025/26</span>
         </div>
         <div class="hidden sm:block w-px h-5 bg-neutral-200" aria-hidden="true"></div>
         <div class="flex items-center gap-2">
@@ -133,7 +133,7 @@ const ctaHooks = [
                   <p class={`text-neutral-500 leading-relaxed ${isFeature ? 'text-sm sm:text-base' : 'text-sm'}`}>{tool.description}</p>
                   {isFeature && (
                     <span class="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
-                      Try it free
+                      Try this calculator
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                     </span>
                   )}
@@ -150,83 +150,7 @@ const ctaHooks = [
     </div>
   </section>
 
-  {/* ===== NEWSLETTER SIGNUP ===== */}
-  <section class="py-10 sm:py-14 border-t border-neutral-100">
-    <div class="max-w-[600px] mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-lg sm:text-xl font-bold text-neutral-900 mb-1">Get financial tips in your inbox</h2>
-      <p class="text-sm text-neutral-500 mb-5">Short, practical guides. No spam, unsubscribe any time.</p>
-      <EmailCapture client:visible variant="newsletter" />
-    </div>
-  </section>
-
-  {/* ===== SPACER ===== */}
-  <div class="h-4 sm:h-6"></div>
-
-  {/* ===== ALL TOOLS ===== */}
-  <section class="py-16 sm:py-20 lg:py-24 bg-neutral-50">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">All Tools</h2>
-      <p class="text-neutral-500 mb-8">Browse by category or filter to find the right tool.</p>
-
-      {/* Category filter pills */}
-      <div class="flex flex-wrap gap-2 mb-10" role="tablist" aria-label="Filter tools by category">
-        <button
-          data-category="all"
-          class="category-pill active px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
-          role="tab"
-          aria-selected="true"
-        >
-          All
-        </button>
-        {categoryEntries.map(([slug, cat]) => (
-          <button
-            data-category={slug}
-            class="category-pill px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
-            role="tab"
-            aria-selected="false"
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tool grid — popular tools get larger cards for visual hierarchy */}
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="tools-grid">
-        {TOOLS.map((tool) => {
-          const isPopular = POPULAR_TOOL_SLUGS.includes(tool.slug);
-          return (
-            <a
-              href={getToolPath(tool)}
-              data-tool-category={tool.category}
-              class={`tool-card group bg-white border border-neutral-200/80 rounded-lg shadow-card hover:shadow-card-hover hover:border-primary-500/40 transition-all duration-200 hover:-translate-y-0.5 ${isPopular ? 'sm:col-span-2 lg:col-span-1 xl:col-span-1 p-6' : 'p-5'}`}
-            >
-              <div class={`flex items-start ${isPopular ? 'gap-4' : 'gap-3.5'}`}>
-                <div class={`inline-flex items-center justify-center rounded-lg bg-primary-50 text-primary-600 group-hover:bg-primary-700 group-hover:text-white transition-all duration-200 shrink-0 ${isPopular ? 'w-12 h-12' : 'w-10 h-10'}`}>
-                  <ToolIcon name={tool.icon} size={isPopular ? 24 : 20} />
-                </div>
-                <div class="min-w-0">
-                  <div class="flex items-center gap-2 mb-1">
-                    <h3 class={`font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 ${isPopular ? 'text-lg' : 'text-base'}`}>
-                      {tool.name}
-                    </h3>
-                    {isPopular && (
-                      <span class="inline-block text-xs font-semibold text-white bg-accent-700 px-2 py-0.5 rounded-full leading-none">Popular</span>
-                    )}
-                  </div>
-                  <p class="text-sm text-neutral-500 leading-relaxed">{tool.description}</p>
-                  <span class="inline-block mt-2.5 text-xs font-medium text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full">
-                    {CATEGORIES[tool.category].label}
-                  </span>
-                </div>
-              </div>
-            </a>
-          );
-        })}
-      </div>
-    </div>
-  </section>
-
-  {/* ===== BOTTOM CTA ===== */}
+  {/* ===== QUESTIONS CTA ===== */}
   <section class="bg-[#0F1B2D] py-16 sm:py-20">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-[900px]">
@@ -235,25 +159,13 @@ const ctaHooks = [
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[900px] mb-10">
-        {/* Featured card — larger */}
-        <a
-          href={ctaHooks[0].link}
-          class="group sm:col-span-2 lg:col-span-1 bg-white/[0.07] border border-white/10 rounded-lg p-6 hover:bg-white/[0.12] hover:border-white/20 transition-all duration-200 text-left"
-        >
-          <p class="text-white font-semibold text-lg mb-2">{ctaHooks[0].text}</p>
-          <p class="text-white/50 text-sm mb-3">Model different retirement ages and contribution levels.</p>
-          <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-400 group-hover:text-accent-300 transition-colors duration-150">
-            {ctaHooks[0].label}
-            <ToolIcon name="arrow-right" size={14} />
-          </span>
-        </a>
-        {/* Secondary cards */}
-        {ctaHooks.slice(1).map((hook) => (
+        {ctaHooks.map((hook) => (
           <a
             href={hook.link}
-            class="group bg-white/[0.04] border border-white/10 rounded-lg p-5 hover:bg-white/[0.08] hover:border-white/15 transition-all duration-200 text-left"
+            class="group bg-white/[0.07] border border-white/10 rounded-lg p-6 hover:bg-white/[0.12] hover:border-white/20 transition-all duration-200 text-left"
           >
-            <p class="text-white font-medium mb-2">{hook.text}</p>
+            <p class="text-white font-semibold text-lg mb-2">{hook.text}</p>
+            <p class="text-white/50 text-sm mb-3">{hook.description}</p>
             <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-400 group-hover:text-accent-300 transition-colors duration-150">
               {hook.label}
               <ToolIcon name="arrow-right" size={14} />
@@ -271,42 +183,97 @@ const ctaHooks = [
       </a>
     </div>
   </section>
+
+  {/* ===== ALL TOOLS (grouped by category) ===== */}
+  <section class="py-16 sm:py-20 lg:py-24 bg-neutral-50">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">All Tools</h2>
+      <p class="text-neutral-500 mb-10">Browse by category — {TOOLS.length} tools across {categoryEntries.length} categories.</p>
+
+      <div id="tools-grid">
+        {categoryEntries.map(([catSlug, cat], catIndex) => {
+          const categoryTools = TOOLS.filter((t) => t.category === catSlug);
+          if (categoryTools.length === 0) return null;
+          const featured = categoryTools.find((t) => POPULAR_TOOL_SLUGS.includes(t.slug)) || categoryTools[0];
+          const rest = categoryTools.filter((t) => t.slug !== featured.slug);
+          return (
+            <>
+              {catIndex > 0 && (
+                <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent my-10"></div>
+              )}
+              <div class="mb-2">
+                <div class="flex items-center gap-3 mb-5">
+                  <h3 class="font-serif text-lg font-bold text-neutral-900">{cat.label}</h3>
+                  <span class="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-0.5 rounded-full">{categoryTools.length}</span>
+                </div>
+
+                {/* Featured tool — full card */}
+                <a
+                  href={getToolPath(featured)}
+                  data-tool-category={featured.category}
+                  data-tool-name={featured.name}
+                  data-tool-desc={featured.description}
+                  class="tool-card group bg-white border border-neutral-200/80 rounded-lg shadow-card hover:shadow-card-hover hover:border-primary-500/40 transition-all duration-200 hover:-translate-y-0.5 p-5 mb-4 block"
+                >
+                  <div class="flex items-start gap-4">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary-50 text-primary-600 group-hover:bg-primary-700 group-hover:text-white transition-all duration-200 shrink-0">
+                      <ToolIcon name={featured.icon} size={24} />
+                    </div>
+                    <div class="min-w-0">
+                      <h4 class="font-semibold text-lg text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-1">{featured.name}</h4>
+                      <p class="text-sm text-neutral-500 leading-relaxed">{featured.description}</p>
+                    </div>
+                  </div>
+                </a>
+
+                {/* Remaining tools — compact list */}
+                {rest.length > 0 && (
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1">
+                    {rest.map((tool) => (
+                      <a
+                        href={getToolPath(tool)}
+                        data-tool-category={tool.category}
+                        data-tool-name={tool.name}
+                        data-tool-desc={tool.description}
+                        class="tool-card group flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-white transition-colors duration-150"
+                      >
+                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary-50 text-primary-600 group-hover:bg-primary-700 group-hover:text-white transition-all duration-200 shrink-0">
+                          <ToolIcon name={tool.icon} size={16} />
+                        </div>
+                        <span class="text-sm font-medium text-neutral-700 group-hover:text-primary-600 transition-colors duration-150">{tool.name}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          );
+        })}
+      </div>
+
+      <div class="mt-10 text-center">
+        <a href="/tools" class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
+          View all tools with full descriptions
+          <ToolIcon name="arrow-right" size={16} />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* ===== NEWSLETTER SIGNUP ===== */}
+  <section class="py-10 sm:py-14 border-t border-neutral-100">
+    <div class="max-w-[600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-lg sm:text-xl font-bold text-neutral-900 mb-1">Get financial tips in your inbox</h2>
+      <p class="text-sm text-neutral-500 mb-5">Short, practical guides. No spam, unsubscribe any time.</p>
+      <EmailCapture client:visible variant="newsletter" />
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
   /* ===== HERO ===== */
   .hero-bg {
     background: linear-gradient(135deg, #0F1B2D 0%, #0A4444 50%, #0F1B2D 100%);
-  }
-
-  /* ===== CATEGORY PILLS ===== */
-  .category-pill {
-    background-color: var(--color-neutral-100);
-    color: var(--color-neutral-700);
-  }
-  .category-pill:hover {
-    background-color: var(--color-neutral-200);
-  }
-  .category-pill.active {
-    background-color: var(--color-primary-600);
-    color: white;
-    box-shadow: 0 2px 8px rgba(11, 110, 110, 0.25);
-  }
-  :global([data-theme="dark"]) .category-pill.active {
-    background-color: #0B6E6E;
-  }
-
-  /* ===== FILTER TRANSITIONS ===== */
-  .tool-card {
-    transition: all 0.2s ease, opacity 0.25s ease, transform 0.25s ease;
-  }
-  .tool-card.hiding {
-    opacity: 0;
-    transform: scale(0.95) translateY(4px);
-    pointer-events: none;
-  }
-  .tool-card.card-hidden {
-    display: none;
   }
 
   /* ===== SEARCH RESULTS ===== */
@@ -339,11 +306,6 @@ const ctaHooks = [
     background-color: var(--color-primary-600);
     color: white;
   }
-
-  /* ===== REDUCED MOTION ===== */
-  @media (prefers-reduced-motion: reduce) {
-    .tool-card { transition-duration: 0.01ms; }
-  }
 </style>
 
 <script>
@@ -356,12 +318,12 @@ const ctaHooks = [
     path: string;
   }
 
-  // Build search index from DOM (all tool cards in the grid)
+  // Build search index from DOM (all tool links in the grouped grid)
   const searchTools: SearchTool[] = [];
-  document.querySelectorAll('#tools-grid .tool-card').forEach((card) => {
+  document.querySelectorAll('#tools-grid a[data-tool-name]').forEach((card) => {
     const el = card as HTMLAnchorElement;
-    const name = el.querySelector('h3')?.textContent?.trim() || '';
-    const desc = el.querySelector('p')?.textContent?.trim() || '';
+    const name = el.dataset.toolName || '';
+    const desc = el.dataset.toolDesc || '';
     const category = el.dataset.toolCategory || '';
     searchTools.push({
       name,
@@ -451,42 +413,4 @@ const ctaHooks = [
     }
   });
 
-  // ===== Category filter logic =====
-  const pills = document.querySelectorAll('.category-pill');
-  const cards = document.querySelectorAll('.tool-card');
-
-  function filterByCategory(category: string) {
-    pills.forEach((p) => {
-      const pillCat = (p as HTMLElement).dataset.category;
-      if (pillCat === category || (category === 'all' && pillCat === 'all')) {
-        p.classList.add('active');
-        p.setAttribute('aria-selected', 'true');
-      } else {
-        p.classList.remove('active');
-        p.setAttribute('aria-selected', 'false');
-      }
-    });
-
-    cards.forEach((card) => {
-      const cardCategory = (card as HTMLElement).dataset.toolCategory;
-      const shouldShow = category === 'all' || cardCategory === category;
-      const el = card as HTMLElement;
-
-      if (!shouldShow) {
-        el.classList.add('hiding');
-        setTimeout(() => { el.classList.add('card-hidden'); }, 200);
-      } else {
-        el.classList.remove('card-hidden');
-        void el.offsetHeight;
-        el.classList.remove('hiding');
-      }
-    });
-  }
-
-  pills.forEach((pill) => {
-    pill.addEventListener('click', () => {
-      const category = (pill as HTMLElement).dataset.category || 'all';
-      filterByCategory(category);
-    });
-  });
 </script>
