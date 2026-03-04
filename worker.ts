@@ -393,10 +393,10 @@ function buildResultsEmail(
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td style="vertical-align:top;">
-                          <div style="font-size:10px;font-weight:700;color:#0369A1;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${escapeHtml(a.category)}</div>
+                          <div style="font-size:10px;font-weight:700;color:#0A5555;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${escapeHtml(a.category)}</div>
                           <div style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:4px;">${escapeHtml(a.name)} *</div>
                           <div style="font-size:13px;color:#475569;line-height:1.4;margin-bottom:12px;">${escapeHtml(a.tagline)}</div>
-                          <a href="${affUrl}" style="display:inline-block;padding:10px 24px;background-color:#2563EB;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;">
+                          <a href="${affUrl}" style="display:inline-block;padding:10px 24px;background-color:#0E8585;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;">
                             ${escapeHtml(a.cta)} &rarr;
                           </a>
                         </td>
@@ -440,7 +440,7 @@ function buildResultsEmail(
                   </td>
                   <td style="vertical-align:middle;">
                     <span style="font-size:22px;font-weight:700;letter-spacing:-0.02em;">
-                      <span style="color:#0A2540;">Calc</span><span style="color:#3B82F6;">Run</span>
+                      <span style="color:#0F1B2D;">Calc</span><span style="color:#0B6E6E;">Run</span>
                     </span>
                   </td>
                 </tr>
@@ -489,7 +489,7 @@ function buildResultsEmail(
           <tr>
             <td style="padding:28px 32px;" align="center">
               <a href="${toolUrl}?utm_source=email&utm_medium=results&utm_campaign=${encodeURIComponent(toolSlug)}"
-                style="display:inline-block;padding:12px 28px;background-color:#2563EB;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
+                style="display:inline-block;padding:12px 28px;background-color:#0E8585;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
                 Run this calculator again &rarr;
               </a>
             </td>

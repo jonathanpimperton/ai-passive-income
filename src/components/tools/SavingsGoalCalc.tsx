@@ -318,7 +318,7 @@ export default function SavingsGoalCalc() {
                   width: `${progressPercent}%`,
                   background: progressPercent >= 100
                     ? '#22A06B'
-                    : 'linear-gradient(90deg, #0B6E6E, #3B82F6)',
+                    : 'linear-gradient(90deg, #0B6E6E, #2AADAD)',
                 }}
               />
             </div>
