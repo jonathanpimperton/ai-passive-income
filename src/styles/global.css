@@ -776,7 +776,7 @@ input[type="range"] {
 }
 
 [data-theme="dark"] .prose .stat-text {
-  color: var(--color-neutral-300);
+  color: var(--color-neutral-700);
 }
 
 [data-theme="dark"] .prose thead {
