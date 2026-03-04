@@ -32,7 +32,7 @@ export function useChartTheme(): ChartTheme {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    const check = () => setIsDark(document.documentElement.classList.contains('dark'));
+    const check = () => setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
     check();
 
     const observer = new MutationObserver(check);

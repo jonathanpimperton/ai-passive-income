@@ -686,6 +686,10 @@ input[type="range"] {
   background-color: var(--color-surface-alt);
 }
 
+[data-theme="dark"] .bg-primary-50 {
+  background-color: var(--color-primary-50);
+}
+
 [data-theme="dark"] .border-neutral-200\/80,
 [data-theme="dark"] .border-neutral-200,
 [data-theme="dark"] .border-neutral-100 {
@@ -706,6 +710,10 @@ input[type="range"] {
 
 [data-theme="dark"] .text-neutral-400 {
   color: var(--color-neutral-400);
+}
+
+[data-theme="dark"] .text-neutral-600 {
+  color: var(--color-neutral-600);
 }
 
 [data-theme="dark"] input,
@@ -760,6 +768,63 @@ input[type="range"] {
 [data-theme="dark"] ::selection {
   background-color: var(--color-primary-300);
   color: white;
+}
+
+/* --- Dark mode: SVG logo --- */
+[data-theme="dark"] svg path[fill="#0F1B2D"] {
+  fill: #E5E7EB;
+}
+
+/* --- Dark mode: header & nav --- */
+[data-theme="dark"] header {
+  background-color: rgba(30, 33, 40, 0.95);
+  border-bottom-color: var(--color-neutral-200);
+}
+
+[data-theme="dark"] .nav-dropdown > div,
+[data-theme="dark"] #header-search-dropdown {
+  background-color: var(--color-surface);
+  border-color: var(--color-neutral-200);
+}
+
+[data-theme="dark"] #header-search-input {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-neutral-200);
+  color: var(--color-neutral-900);
+}
+
+/* --- Dark mode: mobile menu --- */
+[data-theme="dark"] .mobile-panel {
+  background-color: var(--color-surface);
+}
+
+[data-theme="dark"] .bg-neutral-100 {
+  background-color: var(--color-neutral-100);
+}
+
+/* --- Dark mode: footer --- */
+[data-theme="dark"] footer {
+  background-color: var(--color-bg);
+  border-top-color: var(--color-neutral-200);
+}
+
+/* --- Dark mode: hover states --- */
+[data-theme="dark"] .hover\:bg-neutral-50:hover {
+  background-color: var(--color-neutral-50);
+}
+
+/* --- Dark mode: shadow-card on dark bg --- */
+[data-theme="dark"] .shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="dark"] .shadow-card-hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* --- Dark mode: gradient dividers --- */
+[data-theme="dark"] .via-neutral-200 {
+  --tw-gradient-via: var(--color-neutral-200);
 }
 
 /* Reduced motion preferences */
