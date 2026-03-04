@@ -770,6 +770,15 @@ input[type="range"] {
   border-left-color: var(--color-primary-400);
 }
 
+[data-theme="dark"] .prose .stat-highlight {
+  background: linear-gradient(135deg, var(--color-primary-50), var(--color-surface));
+  border-color: var(--color-primary-200);
+}
+
+[data-theme="dark"] .prose .stat-text {
+  color: var(--color-neutral-300);
+}
+
 [data-theme="dark"] .prose thead {
   background-color: var(--color-neutral-100);
 }

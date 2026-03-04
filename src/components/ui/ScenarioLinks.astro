@@ -22,7 +22,7 @@ if (scenarios.length === 0) return;
   {/* Gradient divider */}
   <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-14" aria-hidden="true"></div>
 
-  <div class="bg-gradient-to-br from-neutral-50 to-white rounded-lg p-6 sm:p-8 border border-neutral-200/60">
+  <div class="bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 rounded-lg p-6 sm:p-8 border border-neutral-200/60 dark:border-neutral-700/60">
     <div class="flex items-center gap-3 mb-1">
       <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary-100 text-primary-600 shrink-0">
         <ToolIcon name="calculator" size={18} />
@@ -40,7 +40,7 @@ if (scenarios.length === 0) return;
       {scenarios.map((scenario) => (
         <a
           href={`/scenarios/${scenario.data.slug}`}
-          class="group bg-white border border-neutral-200/80 rounded-xl p-4 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
+          class="group bg-white dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700 rounded-xl p-4 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
         >
           <h3 class="text-sm font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200 mb-1.5 leading-snug">
             {scenario.data.title}
