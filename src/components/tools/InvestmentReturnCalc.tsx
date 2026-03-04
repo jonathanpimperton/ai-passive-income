@@ -26,6 +26,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
@@ -70,6 +71,7 @@ const DEFAULTS = {
 export default function InvestmentReturnCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [mode, setMode] = useState<SolveMode>('endAmount');
   const [principal, setPrincipal] = useState(DEFAULTS.principal);
@@ -282,7 +284,7 @@ export default function InvestmentReturnCalc() {
           max={10000000}
           step={5000}
           onChange={setPrincipal}
-          prefix="$"
+          prefix={currencySymbol}
           formatDisplay={(v) => formatNumber(v)}
         />
       );
@@ -300,7 +302,7 @@ export default function InvestmentReturnCalc() {
           max={50000}
           step={100}
           onChange={setMonthly}
-          prefix="$"
+          prefix={currencySymbol}
           formatDisplay={(v) => formatNumber(v)}
         />
       );
@@ -352,7 +354,7 @@ export default function InvestmentReturnCalc() {
           max={10000000}
           step={5000}
           onChange={setTarget}
-          prefix="$"
+          prefix={currencySymbol}
           formatDisplay={(v) => formatNumber(v)}
         />
       );
@@ -529,7 +531,7 @@ export default function InvestmentReturnCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <ShareButton toolSlug="investment-return" toolName="Investment Return Calculator" />
             <div className="flex flex-wrap gap-2">
               <EmailResultsButton toolSlug="investment-return" toolName="Investment Return Calculator" getInputs={getInputs} getResults={getResults} />

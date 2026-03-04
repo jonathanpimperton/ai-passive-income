@@ -13,6 +13,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
@@ -88,6 +89,7 @@ function ItemRow({ item, onChange, onRemove }: {
 
 export default function NetWorthCalc() {
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [assets, setAssets] = useState<Item[]>(DEFAULT_ASSETS);
   const [liabilities, setLiabilities] = useState<Item[]>(DEFAULT_LIABILITIES);
@@ -235,21 +237,21 @@ export default function NetWorthCalc() {
           </div>
 
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Assets</p>
                 <p className="text-lg font-semibold text-accent-600 tabular-nums">{fmt(totalAssets)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5"><CreditCard size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Liabilities</p>
                 <p className="text-lg font-semibold text-red-600 tabular-nums">{fmt(totalLiabilities)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Percent size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Debt-to-Asset Ratio</p>
@@ -258,7 +260,7 @@ export default function NetWorthCalc() {
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Scale size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Assets Owned Free</p>
@@ -269,7 +271,7 @@ export default function NetWorthCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <ShareButton toolSlug="net-worth" toolName="Net Worth Calculator" />
             <div className="flex flex-wrap gap-2">
               <EmailResultsButton toolSlug="net-worth" toolName="Net Worth Calculator" getInputs={getInputs} getResults={getResults} />

@@ -25,6 +25,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
@@ -105,6 +106,7 @@ const DEFAULTS = { loanAmount: 300000, annualRate: 6.5, termYears: 30, extraPaym
 export default function LoanAmortizationCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [loanAmount, setLoanAmount] = useState(DEFAULTS.loanAmount);
   const [rate, setRate] = useState(DEFAULTS.annualRate);
@@ -247,7 +249,7 @@ export default function LoanAmortizationCalc() {
           <div className="space-y-5">
             <SliderInput label="Loan Amount" id="la-amount" value={loanAmount}
               min={1000} max={10000000} step={10000} onChange={setLoanAmount}
-              prefix="$" formatDisplay={(v) => formatNumber(v)} hint="Total amount you're borrowing" />
+              prefix={currencySymbol} formatDisplay={(v) => formatNumber(v)} hint="Total amount you're borrowing" />
             <SliderInput label="Annual Interest Rate" id="la-rate" value={rate}
               min={0.1} max={20} step={0.1} onChange={setRate}
               suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Your loan's interest rate (check your loan terms)" />
@@ -266,7 +268,7 @@ export default function LoanAmortizationCalc() {
             <div className={`overflow-hidden transition-all duration-200 ${showAdvanced ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
               <SliderInput label="Extra Monthly Payment" id="la-extra" value={extraPayment}
                 min={0} max={5000} step={50} onChange={setExtraPayment}
-                prefix="$" formatDisplay={(v) => formatNumber(v)} hint="Any extra amount above your minimum — saves interest" />
+                prefix={currencySymbol} formatDisplay={(v) => formatNumber(v)} hint="Any extra amount above your minimum — saves interest" />
             </div>
           </div>
         </div>
@@ -317,7 +319,7 @@ export default function LoanAmortizationCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <ShareButton toolSlug="loan-amortization" toolName="Loan Amortization Calculator" />
             <div className="flex flex-wrap gap-2">
               <EmailResultsButton toolSlug="loan-amortization" toolName="Loan Amortization Calculator" getInputs={getInputs} getResults={getResults} />

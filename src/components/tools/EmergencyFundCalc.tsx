@@ -17,6 +17,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useChartTheme } from '../../lib/useChartTheme';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
@@ -42,6 +43,7 @@ export default function EmergencyFundCalc() {
   const ct = useChartTheme();
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [housing, setHousing] = useState(DEFAULTS.housing);
   const [food, setFood] = useState(DEFAULTS.food);
@@ -164,13 +166,13 @@ export default function EmergencyFundCalc() {
           </div>
           <CurrencySelector value={currency} onChange={setCurrency} />
           <div className="space-y-5">
-            <SliderInput label="Housing / Rent" id="ef-housing" value={housing} min={0} max={15000} step={100} onChange={setHousing} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Food & Groceries" id="ef-food" value={food} min={0} max={5000} step={50} onChange={setFood} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Transportation" id="ef-transport" value={transportation} min={0} max={5000} step={50} onChange={setTransportation} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Utilities" id="ef-utilities" value={utilities} min={0} max={3000} step={25} onChange={setUtilities} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Insurance" id="ef-insurance" value={insurance} min={0} max={5000} step={50} onChange={setInsurance} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Debt Payments" id="ef-debt" value={debtPayments} min={0} max={10000} step={50} onChange={setDebtPayments} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Other Expenses" id="ef-other" value={other} min={0} max={5000} step={50} onChange={setOther} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Housing / Rent" id="ef-housing" value={housing} min={0} max={15000} step={100} onChange={setHousing} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Food & Groceries" id="ef-food" value={food} min={0} max={5000} step={50} onChange={setFood} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Transportation" id="ef-transport" value={transportation} min={0} max={5000} step={50} onChange={setTransportation} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Utilities" id="ef-utilities" value={utilities} min={0} max={3000} step={25} onChange={setUtilities} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Insurance" id="ef-insurance" value={insurance} min={0} max={5000} step={50} onChange={setInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Debt Payments" id="ef-debt" value={debtPayments} min={0} max={10000} step={50} onChange={setDebtPayments} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Other Expenses" id="ef-other" value={other} min={0} max={5000} step={50} onChange={setOther} prefix={currencySymbol} formatDisplay={formatNumber} />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
 
@@ -179,8 +181,8 @@ export default function EmergencyFundCalc() {
               <p className="text-xl font-bold text-primary-900 tabular-nums">{fmt(monthlyExpenses)}</p>
             </div>
 
-            <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={500000} step={1000} onChange={setCurrentSavings} prefix="$" formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
-            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={50000} step={50} onChange={setMonthlySaving} prefix="$" formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
+            <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={500000} step={1000} onChange={setCurrentSavings} prefix={currencySymbol} formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
+            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={50000} step={50} onChange={setMonthlySaving} prefix={currencySymbol} formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
             <SliderInput label="Savings Account APY" id="ef-rate" value={savingsRate} min={0} max={10} step={0.1} onChange={setSavingsRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Interest rate on your savings account — high-yield accounts offer ~4-5%" />
           </div>
         </div>
@@ -231,7 +233,7 @@ export default function EmergencyFundCalc() {
 
           {/* Summary cards */}
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Target size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Recommended Target</p>
@@ -239,7 +241,7 @@ export default function EmergencyFundCalc() {
                 <p className="text-xs text-neutral-400">6 months of expenses</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Current Progress</p>
@@ -251,7 +253,7 @@ export default function EmergencyFundCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <ShareButton toolSlug="emergency-fund" toolName="Emergency Fund Calculator" />
             <div className="flex flex-wrap gap-2">
               <EmailResultsButton toolSlug="emergency-fund" toolName="Emergency Fund Calculator" getInputs={getInputs} getResults={getResults} />

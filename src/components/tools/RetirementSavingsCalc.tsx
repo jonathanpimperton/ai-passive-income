@@ -24,6 +24,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
@@ -96,6 +97,7 @@ function solveForRetirementAge(
 export default function RetirementSavingsCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [mode, setMode] = useState<SolveMode>('balance');
   const [currentAge, setCurrentAge] = useState(DEFAULTS.currentAge);
@@ -347,7 +349,7 @@ export default function RetirementSavingsCalc() {
               max={10000000}
               step={5000}
               onChange={setCurrentSavings}
-              prefix="$"
+              prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}
             />
 
@@ -362,7 +364,7 @@ export default function RetirementSavingsCalc() {
                 max={50000}
                 step={100}
                 onChange={setMonthlyContribution}
-                prefix="$"
+                prefix={currencySymbol}
                 formatDisplay={(v) => formatNumber(v)}
               />
             )}
@@ -378,7 +380,7 @@ export default function RetirementSavingsCalc() {
                 max={50000000}
                 step={25000}
                 onChange={setTargetBalance}
-                prefix="$"
+                prefix={currencySymbol}
                 formatDisplay={(v) => formatNumber(v)}
               />
             )}
@@ -440,7 +442,7 @@ export default function RetirementSavingsCalc() {
           {/* Breakdown Cards */}
           <div data-pdf-section className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
             {mode === 'balance' && (
-              <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
                 <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                   <PiggyBank size={16} aria-hidden="true" />
                 </div>
@@ -452,7 +454,7 @@ export default function RetirementSavingsCalc() {
                 </div>
               </div>
             )}
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Calendar size={16} aria-hidden="true" />
               </div>
@@ -465,7 +467,7 @@ export default function RetirementSavingsCalc() {
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Wallet size={16} aria-hidden="true" />
               </div>
@@ -476,7 +478,7 @@ export default function RetirementSavingsCalc() {
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Sparkles size={16} aria-hidden="true" />
               </div>
@@ -489,7 +491,7 @@ export default function RetirementSavingsCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <ShareButton toolSlug="retirement-savings" toolName="Retirement Savings Calculator" />
             <div className="flex flex-wrap gap-2">
               <EmailResultsButton toolSlug="retirement-savings" toolName="Retirement Savings Calculator" getInputs={getInputs} getResults={getResults} />

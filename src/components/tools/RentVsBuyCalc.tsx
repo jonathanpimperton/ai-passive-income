@@ -17,6 +17,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
@@ -43,6 +44,7 @@ const DEFAULTS = {
 export default function RentVsBuyCalc() {
   const ct = useChartTheme();
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [homePrice, setHomePrice] = useState(DEFAULTS.homePrice);
   const [downPaymentPct, setDownPaymentPct] = useState(DEFAULTS.downPaymentPct);
@@ -237,7 +239,7 @@ export default function RentVsBuyCalc() {
           <div className="space-y-5">
             {/* Buy section */}
             <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Buying</p>
-            <SliderInput label="Home Price" id="rvb-price" value={homePrice} min={50000} max={10000000} step={10000} onChange={setHomePrice} prefix="$" formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
+            <SliderInput label="Home Price" id="rvb-price" value={homePrice} min={50000} max={10000000} step={10000} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
             <SliderInput label="Down Payment" id="rvb-down" value={downPaymentPct} min={0} max={100} step={1} onChange={setDownPaymentPct} suffix="%" formatDisplay={(v) => `${v.toFixed(0)} (${fmt(homePrice * v / 100)})`} hint="Percentage of the price you'll pay upfront — shown in dollars below" />
             <SliderInput label="Mortgage Rate" id="rvb-rate" value={mortgageRate} min={2} max={12} step={0.125} onChange={setMortgageRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} hint="Current mortgage interest rates — check bankrate.com" />
             <SliderInput label="Loan Term (Years)" id="rvb-term" value={loanTermYears} min={10} max={30} step={1} onChange={setLoanTermYears} />
@@ -246,7 +248,7 @@ export default function RentVsBuyCalc() {
 
             {/* Rent section */}
             <p className="text-xs font-semibold text-accent-600 uppercase tracking-wide">Renting</p>
-            <SliderInput label="Monthly Rent" id="rvb-rent" value={monthlyRent} min={500} max={15000} step={50} onChange={setMonthlyRent} prefix="$" formatDisplay={formatNumber} hint="What you'd pay monthly to rent a comparable home" />
+            <SliderInput label="Monthly Rent" id="rvb-rent" value={monthlyRent} min={500} max={15000} step={50} onChange={setMonthlyRent} prefix={currencySymbol} formatDisplay={formatNumber} hint="What you'd pay monthly to rent a comparable home" />
             <SliderInput label="Annual Rent Increase" id="rvb-rent-inc" value={rentIncrease} min={0} max={10} step={0.5} onChange={setRentIncrease} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="How much rent goes up each year — ~3% is typical" />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
@@ -266,11 +268,11 @@ export default function RentVsBuyCalc() {
             {showAdvanced && (
               <div className="space-y-5 pt-1">
                 <SliderInput label="Property Tax Rate" id="rvb-ptax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Annual tax as % of home value — check your county assessor's site" />
-                <SliderInput label="Home Insurance (Annual)" id="rvb-hins" value={homeInsurance} min={0} max={10000} step={100} onChange={setHomeInsurance} prefix="$" formatDisplay={formatNumber} />
-                <SliderInput label="HOA / Month" id="rvb-hoa" value={hoaMonthly} min={0} max={2000} step={25} onChange={setHoaMonthly} prefix="$" formatDisplay={formatNumber} />
+                <SliderInput label="Home Insurance (Annual)" id="rvb-hins" value={homeInsurance} min={0} max={10000} step={100} onChange={setHomeInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="HOA / Month" id="rvb-hoa" value={hoaMonthly} min={0} max={2000} step={25} onChange={setHoaMonthly} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Maintenance Rate" id="rvb-maint" value={maintenanceRate} min={0} max={3} step={0.1} onChange={setMaintenanceRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Rule of thumb: 1% of home value per year for upkeep" />
                 <SliderInput label="Home Appreciation" id="rvb-appr" value={homeAppreciation} min={-5} max={10} step={0.5} onChange={setHomeAppreciation} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
-                <SliderInput label="Renter's Insurance / Month" id="rvb-rins" value={rentersInsurance} min={0} max={100} step={5} onChange={setRentersInsurance} prefix="$" formatDisplay={formatNumber} />
+                <SliderInput label="Renter's Insurance / Month" id="rvb-rins" value={rentersInsurance} min={0} max={100} step={5} onChange={setRentersInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Investment Return (Renter)" id="rvb-inv" value={investmentReturn} min={0} max={15} step={0.5} onChange={setInvestmentReturn} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="If renting, what return you'd earn investing the difference — ~7% for index funds" />
                 <SliderInput label="Marginal Tax Rate" id="rvb-tax" value={marginalTaxRate} min={0} max={55} step={1} onChange={setMarginalTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint="Your highest combined federal + state tax bracket — 22% is common for middle incomes" />
               </div>
@@ -299,7 +301,7 @@ export default function RentVsBuyCalc() {
 
           {/* Summary cards */}
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Landmark size={16} aria-hidden="true" />
               </div>
@@ -308,7 +310,7 @@ export default function RentVsBuyCalc() {
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(animatedMortgage)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <DollarSign size={16} aria-hidden="true" />
               </div>
@@ -317,7 +319,7 @@ export default function RentVsBuyCalc() {
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(animatedBuyCost)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
                 <TrendingUp size={16} aria-hidden="true" />
               </div>
@@ -326,7 +328,7 @@ export default function RentVsBuyCalc() {
                 <p className="text-lg font-semibold text-accent-600 tabular-nums">{fmt(animatedEquity)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Home size={16} aria-hidden="true" />
               </div>
@@ -337,7 +339,7 @@ export default function RentVsBuyCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <ShareButton toolSlug="rent-vs-buy" toolName="Rent vs Buy Calculator" />
             <div className="flex flex-wrap gap-2">
               <EmailResultsButton toolSlug="rent-vs-buy" toolName="Rent vs Buy Calculator" getInputs={getInputs} getResults={getResults} />

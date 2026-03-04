@@ -17,6 +17,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useChartTheme } from '../../lib/useChartTheme';
@@ -43,6 +44,7 @@ function annualizedROI(totalReturn: number, years: number): number {
 export default function RoiCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [initialInvestment, setInitialInvestment] = useState(DEFAULTS.initialInvestment);
   const [finalValue, setFinalValue] = useState(DEFAULTS.finalValue);
@@ -141,9 +143,9 @@ export default function RoiCalc() {
 
           <div className="space-y-5">
             <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Investment A</p>
-            <SliderInput label="Initial Investment" id="roi-initial" value={initialInvestment} min={100} max={10000000} step={1000} onChange={setInitialInvestment} prefix="$" formatDisplay={formatNumber} hint="How much you originally put in" />
-            <SliderInput label="Final Value" id="roi-final" value={finalValue} min={0} max={20000000} step={1000} onChange={setFinalValue} prefix="$" formatDisplay={formatNumber} hint="What your investment is worth now (or when you sold)" />
-            <SliderInput label="Dividends / Income Received" id="roi-div" value={dividendsReceived} min={0} max={100000} step={50} onChange={setDividendsReceived} prefix="$" formatDisplay={formatNumber} hint="Total cash payments received over the holding period" />
+            <SliderInput label="Initial Investment" id="roi-initial" value={initialInvestment} min={100} max={10000000} step={1000} onChange={setInitialInvestment} prefix={currencySymbol} formatDisplay={formatNumber} hint="How much you originally put in" />
+            <SliderInput label="Final Value" id="roi-final" value={finalValue} min={0} max={20000000} step={1000} onChange={setFinalValue} prefix={currencySymbol} formatDisplay={formatNumber} hint="What your investment is worth now (or when you sold)" />
+            <SliderInput label="Dividends / Income Received" id="roi-div" value={dividendsReceived} min={0} max={100000} step={50} onChange={setDividendsReceived} prefix={currencySymbol} formatDisplay={formatNumber} hint="Total cash payments received over the holding period" />
             <SliderInput label="Time Held (Years)" id="roi-years" value={yearsHeld} min={0.25} max={100} step={0.25} onChange={setYearsHeld} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} hint="How long you held the investment — use 0.5 for 6 months" />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
@@ -159,9 +161,9 @@ export default function RoiCalc() {
             {showComparison && (
               <div className="space-y-5 pt-2">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Investment B</p>
-                <SliderInput label="Initial Investment" id="roi-initial-b" value={initialB} min={100} max={10000000} step={1000} onChange={setInitialB} prefix="$" formatDisplay={formatNumber} />
-                <SliderInput label="Final Value" id="roi-final-b" value={finalB} min={0} max={20000000} step={1000} onChange={setFinalB} prefix="$" formatDisplay={formatNumber} />
-                <SliderInput label="Dividends / Income Received" id="roi-div-b" value={dividendsB} min={0} max={100000} step={50} onChange={setDividendsB} prefix="$" formatDisplay={formatNumber} />
+                <SliderInput label="Initial Investment" id="roi-initial-b" value={initialB} min={100} max={10000000} step={1000} onChange={setInitialB} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="Final Value" id="roi-final-b" value={finalB} min={0} max={20000000} step={1000} onChange={setFinalB} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="Dividends / Income Received" id="roi-div-b" value={dividendsB} min={0} max={100000} step={50} onChange={setDividendsB} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Time Held (Years)" id="roi-years-b" value={yearsB} min={0.25} max={100} step={0.25} onChange={setYearsB} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} />
               </div>
             )}
@@ -182,7 +184,7 @@ export default function RoiCalc() {
           </div>
 
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Calendar size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Annualized Return</p>
@@ -191,7 +193,7 @@ export default function RoiCalc() {
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultA.totalGain >= 0 ? 'bg-accent-50 text-accent-600' : 'bg-red-50 text-red-600'}`}><DollarSign size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
@@ -216,7 +218,7 @@ export default function RoiCalc() {
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
                   <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Calendar size={16} aria-hidden="true" /></div>
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Annualized Return</p>
@@ -225,7 +227,7 @@ export default function RoiCalc() {
                     </p>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+                <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultB.totalGain >= 0 ? 'bg-accent-50 text-accent-600' : 'bg-red-50 text-red-600'}`}><DollarSign size={16} aria-hidden="true" /></div>
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
@@ -238,7 +240,7 @@ export default function RoiCalc() {
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <ShareButton toolSlug="roi" toolName="ROI Calculator" />
             <div className="flex flex-wrap gap-2">
               <EmailResultsButton toolSlug="roi" toolName="ROI Calculator" getInputs={getInputs} getResults={getResults} />

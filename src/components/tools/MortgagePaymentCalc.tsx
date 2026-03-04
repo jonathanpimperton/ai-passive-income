@@ -18,6 +18,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
@@ -200,6 +201,7 @@ const DEFAULTS = {
 export default function MortgagePaymentCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [homePrice, setHomePrice] = useState(DEFAULTS.homePrice);
   const [downPaymentPercent, setDownPaymentPercent] = useState(DEFAULTS.downPaymentPercent);
@@ -323,7 +325,7 @@ export default function MortgagePaymentCalc() {
           <CurrencySelector value={currency} onChange={setCurrency} />
 
           <div className="space-y-5">
-            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={10000000} step={10000} onChange={setHomePrice} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={10000000} step={10000} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} />
             <SliderInput label="Down Payment" id="mort-down" value={downPaymentPercent} min={0} max={90} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${fmt(homePrice * (downPaymentPercent / 100))} down`} />
             <SliderInput label="Interest Rate" id="mort-rate" value={interestRate} min={1} max={15} step={0.125} onChange={setInterestRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} />
 
@@ -348,7 +350,7 @@ export default function MortgagePaymentCalc() {
               </div>
             </div>
 
-            <SliderInput label="Extra Monthly Payment" id="mort-extra" value={extraMonthly} min={0} max={5000} step={25} onChange={setExtraMonthly} prefix="$" formatDisplay={formatNumber} hint="Additional principal paid each month" />
+            <SliderInput label="Extra Monthly Payment" id="mort-extra" value={extraMonthly} min={0} max={5000} step={25} onChange={setExtraMonthly} prefix={currencySymbol} formatDisplay={formatNumber} hint="Additional principal paid each month" />
 
             {/* Advanced toggle */}
             <button
@@ -367,7 +369,7 @@ export default function MortgagePaymentCalc() {
             {showAdvanced && (
               <div className="space-y-5 pt-1">
                 <SliderInput label="Property Tax Rate" id="mort-tax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
-                <SliderInput label="Annual Insurance" id="mort-ins" value={insuranceAnnual} min={0} max={10000} step={100} onChange={setInsuranceAnnual} prefix="$" formatDisplay={formatNumber} />
+                <SliderInput label="Annual Insurance" id="mort-ins" value={insuranceAnnual} min={0} max={10000} step={100} onChange={setInsuranceAnnual} prefix={currencySymbol} formatDisplay={formatNumber} />
               </div>
             )}
           </div>
@@ -387,7 +389,7 @@ export default function MortgagePaymentCalc() {
 
           {/* Payment breakdown cards */}
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Home size={16} aria-hidden="true" />
               </div>
@@ -396,7 +398,7 @@ export default function MortgagePaymentCalc() {
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.principal)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Percent size={16} aria-hidden="true" />
               </div>
@@ -405,7 +407,7 @@ export default function MortgagePaymentCalc() {
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.totalInterest)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Banknote size={16} aria-hidden="true" />
               </div>
@@ -414,7 +416,7 @@ export default function MortgagePaymentCalc() {
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.downPayment)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <DollarSign size={16} aria-hidden="true" />
               </div>
@@ -425,7 +427,7 @@ export default function MortgagePaymentCalc() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <ShareButton toolSlug="mortgage-payment" toolName="Mortgage Payment Calculator" />
             <div className="flex flex-wrap gap-2">
               <EmailResultsButton toolSlug="mortgage-payment" toolName="Mortgage Payment Calculator" getInputs={getInputs} getResults={getResults} />

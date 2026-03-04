@@ -23,6 +23,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
@@ -130,6 +131,7 @@ function formatMonths(months: number): string {
 export default function DebtPayoffCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
+  const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const debtIdCounter = useRef(0);
   const getNextId = useCallback(() => `debt-${++debtIdCounter.current}`, []);
@@ -316,7 +318,7 @@ export default function DebtPayoffCalc() {
                     id={`${debt.id}-balance`}
                     value={debt.balance}
                     onChange={(v) => updateDebt(debt.id, 'balance', v.replace(/[^0-9.]/g, ''))}
-                    prefix="$"
+                    prefix={currencySymbol}
                   />
                   <DebtField
                     label="Rate (APR)"
@@ -330,7 +332,7 @@ export default function DebtPayoffCalc() {
                     id={`${debt.id}-min`}
                     value={debt.minPayment}
                     onChange={(v) => updateDebt(debt.id, 'minPayment', v.replace(/[^0-9.]/g, ''))}
-                    prefix="$"
+                    prefix={currencySymbol}
                   />
                 </div>
               </div>
@@ -361,7 +363,7 @@ export default function DebtPayoffCalc() {
               max={5000}
               step={50}
               onChange={setExtraPayment}
-              prefix="$"
+              prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}
               hint="Amount above your minimum payments — goes toward paying off debt faster"
             />
@@ -375,7 +377,7 @@ export default function DebtPayoffCalc() {
             <div className="mt-5 pt-5">
               <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white rounded-lg border border-neutral-200/80 p-3 flex items-start gap-3">
+                <div className="bg-white rounded-lg border border-neutral-200/80 p-3 flex items-start gap-3 min-w-0 overflow-hidden">
                   <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                     <CreditCard size={16} aria-hidden="true" />
                   </div>
@@ -386,7 +388,7 @@ export default function DebtPayoffCalc() {
                     </p>
                   </div>
                 </div>
-                <div className="bg-white rounded-lg border border-neutral-200/80 p-3 flex items-start gap-3">
+                <div className="bg-white rounded-lg border border-neutral-200/80 p-3 flex items-start gap-3 min-w-0 overflow-hidden">
                   <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                     <DollarSign size={16} aria-hidden="true" />
                   </div>
@@ -570,7 +572,7 @@ export default function DebtPayoffCalc() {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <ShareButton toolSlug="debt-payoff" toolName="Debt Payoff Calculator" />
                 <div className="flex flex-wrap gap-2">
                   <EmailResultsButton toolSlug="debt-payoff" toolName="Debt Payoff Calculator" getInputs={getInputs} getResults={getResults} />
