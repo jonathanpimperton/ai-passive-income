@@ -42,8 +42,8 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
   ogImage={`/og/${toolSlug}.png`}
   structuredData={[breadcrumbSchema]}
 >
-  {/* Dark gradient header */}
-  <div class="bg-[linear-gradient(135deg,#0F1B2D_0%,#0A5555_50%,#0F1B2D_100%)] text-white">
+  {/* Dark header */}
+  <div class="bg-[#0F1B2D] text-white">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
       <Breadcrumb items={breadcrumbs} />
 
@@ -93,7 +93,7 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
         </div>
 
         {/* Bottom CTA */}
-        <div class="mt-10 bg-gradient-to-br from-primary-50 to-accent-50 border border-primary-200/60 rounded-lg p-6 sm:p-8">
+        <div class="mt-10 bg-neutral-50 border border-neutral-200/80 rounded-lg p-6 sm:p-8">
           <h2 class="text-xl font-bold text-neutral-900 mb-2">Ready to run your own numbers?</h2>
           <p class="text-sm text-neutral-600 mb-4 leading-relaxed">
             This scenario uses specific inputs. Your situation is unique — adjust the numbers to see what applies to you.

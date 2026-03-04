@@ -829,9 +829,8 @@ input[type="range"] {
 }
 
 /* --- Dark mode: footer --- */
-[data-theme="dark"] footer {
-  background-color: var(--color-bg);
-  border-top-color: var(--color-neutral-200);
+[data-theme="dark"] .footer-dark {
+  background-color: #0A1018;
 }
 
 /* --- Dark mode: hover states --- */
@@ -857,11 +856,6 @@ input[type="range"] {
 [data-theme="dark"] .trust-strip {
   background-color: var(--color-surface);
   border-bottom-color: var(--color-neutral-200);
-}
-
-/* --- Dark mode: separator badge --- */
-[data-theme="dark"] .bg-white.rounded-full {
-  background-color: var(--color-surface);
 }
 
 /* --- Dark mode: category filter pills --- */

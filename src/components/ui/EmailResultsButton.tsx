@@ -218,14 +218,14 @@ export default function EmailResultsButton({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={status === 'loading'}
-              className="h-9 px-3 text-sm rounded-lg border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-400
+              className="h-10 sm:h-9 px-3 text-base sm:text-sm rounded-lg border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-400
                 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
                 disabled:opacity-60 w-52"
             />
             <button
               type="submit"
               disabled={status === 'loading' || !email.trim()}
-              className="inline-flex items-center gap-1.5 h-9 px-3 text-sm font-medium rounded-lg transition-all duration-200
+              className="inline-flex items-center gap-1.5 h-10 sm:h-9 px-3 text-sm font-medium rounded-lg transition-all duration-200
                 text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-60"
               aria-label="Send results to email"
             >
@@ -242,7 +242,7 @@ export default function EmailResultsButton({
               type="checkbox"
               checked={subscribe}
               onChange={(e) => setSubscribe(e.target.checked)}
-              className="h-3.5 w-3.5 rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20"
+              className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20"
             />
             <span className="text-xs text-neutral-500">Also send me free financial tips</span>
           </label>

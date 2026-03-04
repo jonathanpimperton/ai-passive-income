@@ -30,8 +30,8 @@ const breadcrumbs = [
   title="Financial Scenarios — Pre-Calculated Examples"
   description="Explore pre-calculated financial scenarios with real numbers. Mortgages, investments, salaries, debt payoff strategies, and more."
 >
-  {/* Dark gradient header */}
-  <div class="bg-[linear-gradient(135deg,#0F1B2D_0%,#0A5555_50%,#0F1B2D_100%)] text-white">
+  {/* Dark header */}
+  <div class="bg-[#0F1B2D] text-white">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mt-4 mb-3">Financial Scenarios</h1>
@@ -72,7 +72,7 @@ const breadcrumbs = [
                 </p>
                 <div class="flex flex-wrap gap-1.5 mt-auto">
                   {Object.entries(scenario.data.inputs).slice(0, 3).map(([key, value]) => (
-                    <span class="text-[10px] font-medium text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                    <span class="text-xs font-medium text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
                       {key}: {value}
                     </span>
                   ))}

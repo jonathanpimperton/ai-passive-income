@@ -140,12 +140,12 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
           required
           maxLength={254}
           disabled={status === 'loading'}
-          className="flex-1 px-4 py-2.5 text-sm border border-neutral-200/80 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-60 transition-all duration-200"
+          className="flex-1 px-4 py-3 sm:py-2.5 text-base sm:text-sm border border-neutral-200/80 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-60 transition-all duration-200"
         />
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="px-5 py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-500 shadow-md shadow-accent-600/20 disabled:opacity-60 transition-all duration-200 whitespace-nowrap"
+          className="px-5 py-3 sm:py-2.5 text-base sm:text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-500 shadow-md shadow-accent-600/20 disabled:opacity-60 transition-all duration-200 whitespace-nowrap"
         >
           {status === 'loading' ? 'Subscribing...' : isNewsletter ? 'Subscribe' : 'Get free tips'}
         </button>
