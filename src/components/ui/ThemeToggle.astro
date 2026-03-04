@@ -31,45 +31,49 @@
 
 <script is:inline>
   (function() {
-    // Handle ALL theme toggle buttons (desktop + mobile instances)
-    var buttons = document.querySelectorAll('.theme-toggle');
-    var allSunIcons = document.querySelectorAll('.theme-icon-sun');
-    var allMoonIcons = document.querySelectorAll('.theme-icon-moon');
+    // Guard: this component is rendered twice (desktop + mobile nav).
+    // Without this guard, the second script attaches a duplicate handler
+    // to the first button, causing clicks to toggle twice (net zero).
+    if (window.__themeToggleInit) return;
+    window.__themeToggleInit = true;
 
-    function setTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      if (theme === 'dark') { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); }
-      localStorage.setItem('calcrun.theme', theme);
-      // Update ALL toggle instances
-      allSunIcons.forEach(function(icon) {
-        if (theme === 'dark') {
-          icon.classList.remove('hidden');
-        } else {
-          icon.classList.add('hidden');
-        }
-      });
-      allMoonIcons.forEach(function(icon) {
-        if (theme === 'dark') {
-          icon.classList.add('hidden');
-        } else {
-          icon.classList.remove('hidden');
-        }
+    function init() {
+      var buttons = document.querySelectorAll('.theme-toggle');
+      var allSunIcons = document.querySelectorAll('.theme-icon-sun');
+      var allMoonIcons = document.querySelectorAll('.theme-icon-moon');
+
+      function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('calcrun.theme', theme);
+        allSunIcons.forEach(function(icon) {
+          if (theme === 'dark') { icon.classList.remove('hidden'); } else { icon.classList.add('hidden'); }
+        });
+        allMoonIcons.forEach(function(icon) {
+          if (theme === 'dark') { icon.classList.add('hidden'); } else { icon.classList.remove('hidden'); }
+        });
+      }
+
+      // Set initial icon state
+      var current = document.documentElement.getAttribute('data-theme') || 'light';
+      if (current === 'dark') {
+        allSunIcons.forEach(function(icon) { icon.classList.remove('hidden'); });
+        allMoonIcons.forEach(function(icon) { icon.classList.add('hidden'); });
+      }
+
+      // Attach click handler to ALL toggle buttons
+      buttons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+          setTheme(next);
+        });
       });
     }
 
-    // Set initial icon state based on current theme
-    var current = document.documentElement.getAttribute('data-theme') || 'light';
-    if (current === 'dark') {
-      allSunIcons.forEach(function(icon) { icon.classList.remove('hidden'); });
-      allMoonIcons.forEach(function(icon) { icon.classList.add('hidden'); });
+    // Defer to ensure ALL buttons are in the DOM (component rendered twice)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
     }
-
-    // Attach click handler to ALL toggle buttons
-    buttons.forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        setTheme(next);
-      });
-    });
   })();
 </script>

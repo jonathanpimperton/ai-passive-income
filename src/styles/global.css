@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Tell Tailwind v4 to use our data-theme attribute for dark: variants
+   instead of the default @media (prefers-color-scheme: dark) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ── Fonts ─────────────────────────────────────────────────── */
 
 /* DM Sans — body/UI text (variable weight) */
@@ -655,6 +659,7 @@ input[type="range"] {
   --color-neutral-50: #1A1F26;
 
   --color-primary-900: #D1EFEF;
+  --color-primary-800: #A3DEDE;
   --color-primary-700: #6EC7C7;
   --color-primary-600: #38AEAE;
   --color-primary-500: #14B8A6;
@@ -664,8 +669,13 @@ input[type="range"] {
   --color-primary-100: #0D3333;
   --color-primary-50: #0A2222;
 
+  --color-accent-700: #D4493F;
   --color-accent-600: #F0756A;
   --color-accent-500: #F0756A;
+  --color-accent-400: #F8968E;
+  --color-accent-300: #3D2420;
+  --color-accent-200: #331D1A;
+  --color-accent-100: #2D1A17;
   --color-accent-50: #2A1A18;
 
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.35);
@@ -688,6 +698,18 @@ input[type="range"] {
 
 [data-theme="dark"] .bg-primary-50 {
   background-color: var(--color-primary-50);
+}
+
+[data-theme="dark"] .bg-primary-100 {
+  background-color: var(--color-primary-100);
+}
+
+[data-theme="dark"] .bg-accent-100 {
+  background-color: var(--color-accent-100);
+}
+
+[data-theme="dark"] .hover\:bg-neutral-200:hover {
+  background-color: var(--color-neutral-200);
 }
 
 [data-theme="dark"] .border-neutral-200\/80,
@@ -774,6 +796,10 @@ input[type="range"] {
 [data-theme="dark"] svg path[fill="#0F1B2D"] {
   fill: #E5E7EB;
 }
+/* Logo "a" inner cutout: white → dark bg so it blends */
+[data-theme="dark"] svg path[fill="#FFFFFF"] {
+  fill: var(--color-bg);
+}
 
 /* --- Dark mode: header & nav --- */
 [data-theme="dark"] header {
@@ -825,6 +851,69 @@ input[type="range"] {
 /* --- Dark mode: gradient dividers --- */
 [data-theme="dark"] .via-neutral-200 {
   --tw-gradient-via: var(--color-neutral-200);
+}
+
+/* --- Dark mode: homepage trust strip --- */
+[data-theme="dark"] .trust-strip {
+  background-color: var(--color-surface);
+  border-bottom-color: var(--color-neutral-200);
+}
+
+/* --- Dark mode: separator badge --- */
+[data-theme="dark"] .bg-white.rounded-full {
+  background-color: var(--color-surface);
+}
+
+/* --- Dark mode: category filter pills --- */
+[data-theme="dark"] .category-pill {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+}
+[data-theme="dark"] .category-pill:hover {
+  background-color: var(--color-neutral-200);
+}
+
+/* --- Dark mode: hero search & results --- */
+[data-theme="dark"] #hero-search {
+  background-color: var(--color-surface);
+  color: var(--color-neutral-900);
+}
+[data-theme="dark"] #hero-search::placeholder {
+  color: var(--color-neutral-400);
+}
+[data-theme="dark"] #hero-search-results {
+  background-color: var(--color-surface);
+  border-color: var(--color-neutral-200);
+}
+[data-theme="dark"] .search-result-item:hover,
+[data-theme="dark"] .search-result-item.active {
+  background-color: var(--color-neutral-100);
+}
+[data-theme="dark"] .search-result-item .result-icon {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+[data-theme="dark"] .search-result-item:hover .result-icon,
+[data-theme="dark"] .search-result-item.active .result-icon {
+  background-color: var(--color-primary-500);
+  color: white;
+}
+[data-theme="dark"] .search-result-item .text-neutral-900 {
+  color: var(--color-neutral-900);
+}
+
+/* --- Dark mode: teal logo mark --- */
+[data-theme="dark"] svg path[fill="#0B6E6E"] {
+  fill: #14B8A6;
+}
+
+/* --- Dark mode: theme toggle button visibility --- */
+[data-theme="dark"] .theme-toggle {
+  color: var(--color-neutral-500);
+}
+[data-theme="dark"] .theme-toggle:hover {
+  color: var(--color-neutral-900);
+  background-color: var(--color-neutral-100);
 }
 
 /* Reduced motion preferences */

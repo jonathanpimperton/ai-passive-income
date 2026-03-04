@@ -53,7 +53,7 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
 
     <!-- Dark mode: prevent FOUC by setting theme before paint -->
     <script is:inline>
-      (function(){var t=localStorage.getItem('calcrun.theme');if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);if(t==='dark'){document.documentElement.classList.add('dark');}})();
+      (function(){var t=localStorage.getItem('calcrun.theme');if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();
     </script>
 
     <!-- Font preloads for LCP -->
