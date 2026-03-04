@@ -5,16 +5,9 @@ import ToolIcon from '@components/ui/ToolIcon.astro';
 
 <BaseLayout title="Page Not Found | CalcRun" description="The page you're looking for doesn't exist." noindex={true}>
   <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
-    {/* Decorative illustration */}
-    <div class="relative inline-block mb-8">
-      <div class="w-28 h-28 rounded-full bg-primary-50 flex items-center justify-center mx-auto">
-        <div class="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center">
-          <ToolIcon name="search" class="text-primary-600" size={36} />
-        </div>
-      </div>
-      {/* Floating accent dots */}
-      <div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent-500/20" aria-hidden="true"></div>
-      <div class="absolute -bottom-2 -left-3 w-6 h-6 rounded-full bg-primary-200/40" aria-hidden="true"></div>
+    {/* Icon */}
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary-50 text-primary-600 mb-8 mx-auto">
+      <ToolIcon name="search" size={32} />
     </div>
 
     <p class="text-sm font-semibold text-primary-600 uppercase tracking-wider mb-2">Error 404</p>

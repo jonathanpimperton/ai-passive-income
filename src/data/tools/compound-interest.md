@@ -2,7 +2,7 @@
 name: "Compound Interest Calculator"
 slug: "compound-interest"
 category: "saving-and-growth"
-description: "Calculate how your money grows with compound interest. See interactive charts, compare scenarios, and understand the power of compounding — free."
+description: "See growth over time — monthly contributions, compounding frequency, and a year-by-year table."
 keywords:
   - "compound interest calculator"
   - "how to calculate compound interest"
@@ -18,6 +18,7 @@ affiliatePrograms:
   - "Betterment"
   - "Ally"
   - "Wealthfront"
+calculationMethod: "Uses standard compound interest formula: A = P(1 + r/n)^(nt)"
 faq:
   - question: "What is compound interest?"
     answer: "Compound interest is interest calculated on both the initial principal and the accumulated interest from previous periods. Unlike simple interest (calculated only on the principal), compound interest grows exponentially over time."

@@ -2,7 +2,7 @@
 name: "Retirement Savings Calculator"
 slug: "retirement-savings"
 category: "income-and-planning"
-description: "See if you're on track for retirement. Calculate how much to save, project your balance, and visualize age-based milestones — free, no signup."
+description: "Estimate how much you need to retire. Adjust contributions, returns, and withdrawal rate."
 keywords:
   - "retirement calculator"
   - "retirement savings calculator"
@@ -19,6 +19,7 @@ affiliateContext: "Start your retirement savings with a free account"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
+calculationMethod: "Uses future value of annuity formula with inflation adjustment"
 faq:
   - question: "How much do I need to save for retirement?"
     answer: "A common rule of thumb is to have 25 times your annual expenses saved by retirement (the 4% rule). If you spend $50,000 per year, you'd target $1.25 million. However, this varies based on your lifestyle, healthcare costs, Social Security income, and retirement age."

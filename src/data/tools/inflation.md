@@ -2,7 +2,7 @@
 name: "Inflation Calculator"
 slug: "inflation"
 category: "economic"
-description: "See how inflation affects your purchasing power. Calculate what past dollars are worth today and project future costs with CPI data — free, no signup."
+description: "See how inflation erodes purchasing power over time using historical CPI data."
 keywords:
   - "inflation calculator"
   - "CPI calculator"
@@ -20,6 +20,10 @@ affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
   - "SoFi"
+lastUpdated: "2026-03-04"
+dataSources:
+  - name: "Bureau of Labor Statistics CPI data"
+    url: "https://www.bls.gov/cpi/"
 faq:
   - question: "What is inflation and how does it work?"
     answer: "Inflation is the gradual increase in prices over time, which reduces the purchasing power of money. If inflation is 3% per year, something that costs $100 today would cost about $103 next year. It's measured by the Consumer Price Index (CPI), which tracks the average price change of a basket of goods and services."

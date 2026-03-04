@@ -16,6 +16,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
@@ -33,11 +34,13 @@ const DEFAULTS = {
 };
 
 const TARGETS = [3, 6, 12] as const;
-const TARGET_COLORS: Record<number, string> = { 3: '#F59E0B', 6: '#2563EB', 12: '#7C3AED' };
+const TARGET_COLORS: Record<number, string> = { 3: '#F59E0B', 6: '#0B6E6E', 12: '#7C3AED' };
 const TARGET_LABELS: Record<number, string> = { 3: '3 Months', 6: '6 Months', 12: '12 Months' };
 
 export default function EmergencyFundCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const [housing, setHousing] = useState(DEFAULTS.housing);
   const [food, setFood] = useState(DEFAULTS.food);
   const [transportation, setTransportation] = useState(DEFAULTS.transportation);
@@ -92,24 +95,24 @@ export default function EmergencyFundCalc() {
   const animatedRecommendedTarget = useAnimatedNumber(monthlyExpenses * 6);
 
   const getInputs = useCallback(() => [
-    { label: 'Housing / Rent', value: formatCurrency(housing) },
-    { label: 'Food & Groceries', value: formatCurrency(food) },
-    { label: 'Transportation', value: formatCurrency(transportation) },
-    { label: 'Utilities', value: formatCurrency(utilities) },
-    { label: 'Insurance', value: formatCurrency(insurance) },
-    { label: 'Debt Payments', value: formatCurrency(debtPayments) },
-    { label: 'Other Expenses', value: formatCurrency(other) },
-    { label: 'Total Monthly Expenses', value: formatCurrency(monthlyExpenses) },
-    { label: 'Current Emergency Savings', value: formatCurrency(currentSavings) },
-    { label: 'Monthly Savings Contribution', value: formatCurrency(monthlySaving) },
+    { label: 'Housing / Rent', value: fmt(housing) },
+    { label: 'Food & Groceries', value: fmt(food) },
+    { label: 'Transportation', value: fmt(transportation) },
+    { label: 'Utilities', value: fmt(utilities) },
+    { label: 'Insurance', value: fmt(insurance) },
+    { label: 'Debt Payments', value: fmt(debtPayments) },
+    { label: 'Other Expenses', value: fmt(other) },
+    { label: 'Total Monthly Expenses', value: fmt(monthlyExpenses) },
+    { label: 'Current Emergency Savings', value: fmt(currentSavings) },
+    { label: 'Monthly Savings Contribution', value: fmt(monthlySaving) },
     { label: 'Savings Account APY', value: `${savingsRate.toFixed(1)}%` },
-  ], [housing, food, transportation, utilities, insurance, debtPayments, other, monthlyExpenses, currentSavings, monthlySaving, savingsRate]);
+  ], [housing, food, transportation, utilities, insurance, debtPayments, other, monthlyExpenses, currentSavings, monthlySaving, savingsRate, currency]);
 
   const getResults = useCallback((): ResultItem[] => {
     const sixMonthTarget = targets.find((t) => t.months === 6);
     const items: ResultItem[] = [
-      { label: 'Recommended Target (6 months)', value: formatCurrency(monthlyExpenses * 6), highlight: true },
-      { label: 'Monthly Savings Needed', value: formatCurrency(monthlySaving) },
+      { label: 'Recommended Target (6 months)', value: fmt(monthlyExpenses * 6), highlight: true },
+      { label: 'Monthly Savings Needed', value: fmt(monthlySaving) },
     ];
     if (sixMonthTarget && isFinite(sixMonthTarget.monthsToReach)) {
       const y = Math.floor(sixMonthTarget.monthsToReach / 12);
@@ -118,7 +121,7 @@ export default function EmergencyFundCalc() {
       items.push({ label: 'Time to Reach Goal', value: sixMonthTarget.monthsToReach === 0 ? 'Already funded!' : timeStr });
     }
     return items;
-  }, [monthlyExpenses, monthlySaving, targets]);
+  }, [monthlyExpenses, monthlySaving, targets, currency]);
 
   const chartData = useMemo(() => {
     const maxMonths = Math.min(
@@ -157,6 +160,7 @@ export default function EmergencyFundCalc() {
               Reset
             </button>
           </div>
+          <CurrencySelector value={currency} onChange={setCurrency} />
           <div className="space-y-5">
             <SliderInput label="Housing / Rent" id="ef-housing" value={housing} min={0} max={8000} step={50} onChange={setHousing} prefix="$" formatDisplay={formatNumber} />
             <SliderInput label="Food & Groceries" id="ef-food" value={food} min={0} max={2000} step={25} onChange={setFood} prefix="$" formatDisplay={formatNumber} />
@@ -170,17 +174,17 @@ export default function EmergencyFundCalc() {
 
             <div className="bg-primary-50/60 rounded-xl p-4 border border-primary-100/60">
               <p className="text-xs text-neutral-500 mb-0.5">Total Monthly Expenses</p>
-              <p className="text-xl font-bold text-primary-900 tabular-nums">{formatCurrency(monthlyExpenses)}</p>
+              <p className="text-xl font-bold text-primary-900 tabular-nums">{fmt(monthlyExpenses)}</p>
             </div>
 
-            <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={100000} step={500} onChange={setCurrentSavings} prefix="$" formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
-            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={5000} step={25} onChange={setMonthlySaving} prefix="$" formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
+            <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={500000} step={1000} onChange={setCurrentSavings} prefix="$" formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
+            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={25000} step={50} onChange={setMonthlySaving} prefix="$" formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
             <SliderInput label="Savings Account APY" id="ef-rate" value={savingsRate} min={0} max={10} step={0.1} onChange={setSavingsRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Interest rate on your savings account — high-yield accounts offer ~4-5%" />
           </div>
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <h2 className="text-lg font-semibold text-neutral-900 mb-4">Your Emergency Fund Targets</h2>
 
           <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
@@ -193,7 +197,7 @@ export default function EmergencyFundCalc() {
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: TARGET_COLORS[t.months] }} />
                   <p className="text-xs font-medium text-neutral-500">{TARGET_LABELS[t.months]}</p>
                 </div>
-                <p className="text-xl font-bold text-neutral-900 tabular-nums">{formatCurrency(t.target)}</p>
+                <p className="text-xl font-bold text-neutral-900 tabular-nums">{fmt(t.target)}</p>
                 {t.pctFunded >= 1 ? (
                   <p className="text-xs text-accent-600 font-medium mt-1">Fully funded</p>
                 ) : (
@@ -205,7 +209,7 @@ export default function EmergencyFundCalc() {
                       />
                     </div>
                     <p className="text-xs text-neutral-500 mt-1.5 tabular-nums">
-                      {formatCurrency(t.remaining)} remaining
+                      {fmt(t.remaining)} remaining
                       {isFinite(t.monthsToReach) && t.monthsToReach > 0 && (
                         <span className="text-neutral-400">
                           {' '}· {t.monthsToReach < 12
@@ -229,7 +233,7 @@ export default function EmergencyFundCalc() {
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Target size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Recommended Target</p>
-                <p className="text-lg font-semibold result-number tabular-nums">{formatCurrency(animatedRecommendedTarget)}</p>
+                <p className="text-lg font-semibold result-number tabular-nums">{fmt(animatedRecommendedTarget)}</p>
                 <p className="text-xs text-neutral-400">6 months of expenses</p>
               </div>
             </div>
@@ -261,8 +265,8 @@ export default function EmergencyFundCalc() {
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <defs>
                     <linearGradient id="efColorSavings" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -274,15 +278,16 @@ export default function EmergencyFundCalc() {
                     label={{ value: 'Month', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: '#9CA3AF' }}
                   />
                   <YAxis
-                    tickFormatter={(v: number) =>
-                      `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`
-                    }
+                    tickFormatter={(v: number) => {
+                      const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$';
+                      return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`;
+                    }}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
-                  <Tooltip content={<ChartTooltip labelPrefix="Month" />} />
+                  <Tooltip content={<ChartTooltip labelPrefix="Month" formatValue={fmt} />} />
                   {TARGETS.map((m) => (
                     <ReferenceLine
                       key={m}
@@ -302,7 +307,7 @@ export default function EmergencyFundCalc() {
                   <Area
                     type="monotone"
                     dataKey="Savings"
-                    stroke="#2563EB"
+                    stroke="#0B6E6E"
                     strokeWidth={2}
                     fill="url(#efColorSavings)"
                     animationDuration={600}

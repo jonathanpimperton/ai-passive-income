@@ -2,7 +2,7 @@
 name: "Emergency Fund Calculator"
 slug: "emergency-fund"
 category: "income-and-planning"
-description: "Calculate how much you need in your emergency fund. See 3, 6, and 12-month targets and a savings plan to get there — free, instant, no signup."
+description: "See how much emergency savings you need based on your monthly expenses and savings rate."
 keywords:
   - "emergency fund calculator"
   - "how much emergency fund"
@@ -19,6 +19,7 @@ affiliatePrograms:
   - "Betterment"
   - "Ally"
   - "Wealthfront"
+calculationMethod: "Calculates months of essential expenses coverage needed"
 faq:
   - question: "How much should I have in my emergency fund?"
     answer: "Most financial experts recommend 3-6 months of essential expenses. If you have a stable job with predictable income, 3 months may be enough. If you're self-employed, have variable income, or are the sole earner, aim for 6-12 months. Essential expenses include housing, food, insurance, transportation, and minimum debt payments — not discretionary spending."

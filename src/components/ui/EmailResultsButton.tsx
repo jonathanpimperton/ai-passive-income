@@ -1,7 +1,14 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Mail, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import type { ResultItem } from '../../lib/email-types';
 import type { PdfInput } from '../../lib/pdf-export';
+
+/**
+ * Cloudflare Turnstile site key (public — safe to embed in client code).
+ * Set to empty string to disable Turnstile on the client side (server
+ * will also skip verification if TURNSTILE_SECRET_KEY is not set).
+ */
+const TURNSTILE_SITE_KEY = '0x4AAAAAABfYLWPO3BO0k8ji';
 
 interface EmailResultsButtonProps {
   toolSlug: string;
@@ -23,6 +30,49 @@ export default function EmailResultsButton({
   const [errorMsg, setErrorMsg] = useState('');
   const honeypotRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const turnstileTokenRef = useRef<string>('');
+  const turnstileWidgetRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+
+  // Load Turnstile script once
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
+    if (document.querySelector('script[src*="turnstile"]')) return;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
+
+  // Render invisible Turnstile widget when expanded
+  useEffect(() => {
+    if (!expanded || !TURNSTILE_SITE_KEY || !turnstileWidgetRef.current) return;
+    if (turnstileWidgetIdRef.current !== null) return;
+
+    const tryRender = () => {
+      const turnstile = (window as any).turnstile;
+      if (!turnstile) {
+        setTimeout(tryRender, 200);
+        return;
+      }
+      turnstileWidgetIdRef.current = turnstile.render(turnstileWidgetRef.current, {
+        sitekey: TURNSTILE_SITE_KEY,
+        size: 'invisible',
+        callback: (token: string) => {
+          turnstileTokenRef.current = token;
+        },
+      });
+    };
+    tryRender();
+
+    return () => {
+      const turnstile = (window as any).turnstile;
+      if (turnstile && turnstileWidgetIdRef.current !== null) {
+        turnstile.remove(turnstileWidgetIdRef.current);
+        turnstileWidgetIdRef.current = null;
+      }
+    };
+  }, [expanded]);
 
   function handleToggle() {
     if (!expanded) {
@@ -35,6 +85,23 @@ export default function EmailResultsButton({
     }
   }
 
+  const getTurnstileToken = useCallback(async (): Promise<string> => {
+    if (!TURNSTILE_SITE_KEY) return '';
+    // If we already have a token, use it
+    if (turnstileTokenRef.current) return turnstileTokenRef.current;
+    // Otherwise trigger explicit execution
+    const turnstile = (window as any).turnstile;
+    if (turnstile && turnstileWidgetIdRef.current !== null) {
+      turnstile.execute(turnstileWidgetIdRef.current);
+      // Wait up to 5s for token
+      for (let i = 0; i < 25; i++) {
+        await new Promise(r => setTimeout(r, 200));
+        if (turnstileTokenRef.current) return turnstileTokenRef.current;
+      }
+    }
+    return '';
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
@@ -43,6 +110,8 @@ export default function EmailResultsButton({
     setErrorMsg('');
 
     try {
+      const turnstileToken = await getTurnstileToken();
+
       const response = await fetch('/api/email-results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,6 +123,7 @@ export default function EmailResultsButton({
           results: getResults(),
           subscribe,
           honeypot: honeypotRef.current?.value || '',
+          turnstileToken,
         }),
       });
 
@@ -70,6 +140,12 @@ export default function EmailResultsButton({
       } else {
         setStatus('error');
         setErrorMsg(data.error || 'Failed to send. Please try again.');
+        // Reset Turnstile for retry
+        const turnstile = (window as any).turnstile;
+        if (turnstile && turnstileWidgetIdRef.current !== null) {
+          turnstile.reset(turnstileWidgetIdRef.current);
+          turnstileTokenRef.current = '';
+        }
       }
     } catch {
       setStatus('error');
@@ -118,6 +194,8 @@ export default function EmailResultsButton({
             className="absolute opacity-0 h-0 w-0 pointer-events-none"
             aria-hidden="true"
           />
+          {/* Turnstile invisible widget container */}
+          <div ref={turnstileWidgetRef} />
           <div className="flex items-center gap-2">
             <label htmlFor={`email-results-${toolSlug}`} className="sr-only">
               Email address
@@ -127,6 +205,7 @@ export default function EmailResultsButton({
               id={`email-results-${toolSlug}`}
               type="email"
               required
+              maxLength={254}
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

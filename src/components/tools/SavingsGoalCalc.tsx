@@ -21,6 +21,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
@@ -44,6 +45,8 @@ const DEFAULTS = {
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function SavingsGoalCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const [mode, setMode] = useState<Mode>('monthly');
   const [goalAmount, setGoalAmount] = useState(DEFAULTS.goalAmount);
   const [currentSavings, setCurrentSavings] = useState(DEFAULTS.currentSavings);
@@ -140,24 +143,24 @@ export default function SavingsGoalCalc() {
   const getInputs = useCallback(() => {
     const inputs = [
       { label: 'Mode', value: mode === 'monthly' ? 'Monthly Savings Needed' : 'Time to Goal' },
-      { label: 'Savings Goal', value: formatCurrency(goalAmount) },
-      { label: 'Current Savings', value: formatCurrency(currentSavings) },
+      { label: 'Savings Goal', value: fmt(goalAmount) },
+      { label: 'Current Savings', value: fmt(currentSavings) },
       { label: 'Annual Interest Rate', value: `${annualRate}%` },
     ];
     if (mode === 'monthly') {
       inputs.push({ label: 'Timeframe', value: `${months} month${months !== 1 ? 's' : ''}` });
     } else {
-      inputs.push({ label: 'Monthly Contribution', value: formatCurrency(monthlyContribution) });
+      inputs.push({ label: 'Monthly Contribution', value: fmt(monthlyContribution) });
     }
     return inputs;
-  }, [mode, goalAmount, currentSavings, annualRate, months, monthlyContribution]);
+  }, [mode, goalAmount, currentSavings, annualRate, months, monthlyContribution, currency]);
 
   const getResults = useCallback((): ResultItem[] => {
     if (mode === 'monthly') {
       return [
-        { label: 'Monthly Savings Needed', value: formatCurrency(monthlySavings), highlight: true },
-        { label: 'Total Contributions', value: formatCurrency(Math.max(0, summaryStats.totalContributions)) },
-        { label: 'Interest Earned', value: formatCurrency(Math.max(0, summaryStats.interestEarned)) },
+        { label: 'Monthly Savings Needed', value: fmt(monthlySavings), highlight: true },
+        { label: 'Total Contributions', value: fmt(Math.max(0, summaryStats.totalContributions)) },
+        { label: 'Interest Earned', value: fmt(Math.max(0, summaryStats.interestEarned)) },
       ];
     }
     const totalMonths = timeToGoalMonths;
@@ -169,10 +172,10 @@ export default function SavingsGoalCalc() {
       `${years} yr${years !== 1 ? 's' : ''} ${rem} mo`;
     return [
       { label: 'Time to Reach Goal', value: timeStr, highlight: true },
-      { label: 'Total Contributions', value: formatCurrency(Math.max(0, summaryStats.totalContributions)) },
-      { label: 'Interest Earned', value: formatCurrency(Math.max(0, summaryStats.interestEarned)) },
+      { label: 'Total Contributions', value: fmt(Math.max(0, summaryStats.totalContributions)) },
+      { label: 'Interest Earned', value: fmt(Math.max(0, summaryStats.interestEarned)) },
     ];
-  }, [mode, monthlySavings, timeToGoalMonths, summaryStats]);
+  }, [mode, monthlySavings, timeToGoalMonths, summaryStats, currency]);
 
   const handleReset = useCallback(() => {
     setGoalAmount(DEFAULTS.goalAmount);
@@ -194,6 +197,9 @@ export default function SavingsGoalCalc() {
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+      <div className="px-6 pt-6 lg:px-8 lg:pt-8">
+        <CurrencySelector value={currency} onChange={setCurrency} />
+      </div>
       {/* ── Tab Bar ──────────────────────────────────────── */}
       <div className="flex overflow-x-auto border-b border-neutral-200/80" role="tablist" aria-label="Savings goal mode">
         {TABS.map((tab) => (
@@ -236,8 +242,8 @@ export default function SavingsGoalCalc() {
               id="sg-goal"
               value={goalAmount}
               min={1000}
-              max={500000}
-              step={500}
+              max={5000000}
+              step={5000}
               onChange={setGoalAmount}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}
@@ -248,8 +254,8 @@ export default function SavingsGoalCalc() {
               id="sg-current"
               value={currentSavings}
               min={0}
-              max={200000}
-              step={500}
+              max={2000000}
+              step={1000}
               onChange={setCurrentSavings}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}
@@ -287,8 +293,8 @@ export default function SavingsGoalCalc() {
                 id="sg-monthly"
                 value={monthlyContribution}
                 min={0}
-                max={5000}
-                step={25}
+                max={25000}
+                step={50}
                 onChange={setMonthlyContribution}
                 prefix="$"
                 formatDisplay={(v) => formatNumber(v)}
@@ -311,36 +317,36 @@ export default function SavingsGoalCalc() {
                 style={{
                   width: `${progressPercent}%`,
                   background: progressPercent >= 100
-                    ? '#10B981'
-                    : 'linear-gradient(90deg, #2563EB, #3B82F6)',
+                    ? '#22A06B'
+                    : 'linear-gradient(90deg, #0B6E6E, #3B82F6)',
                 }}
               />
             </div>
             <div className="flex items-center justify-between mt-1.5">
               <span className="text-xs text-neutral-500 tabular-nums">
-                {formatCurrency(currentSavings)} saved
+                {fmt(currentSavings)} saved
               </span>
               <span className="text-xs text-neutral-500 tabular-nums">
-                {formatCurrency(goalAmount)} goal
+                {fmt(goalAmount)} goal
               </span>
             </div>
           </div>
         </div>
 
         {/* ── Results Panel ──────────────────────────────── */}
-        <div id="sg-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div id="sg-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           {/* Big Number Result */}
           <div data-pdf-section className="mb-6">
             {mode === 'monthly' ? (
               <>
                 <p className="text-sm text-neutral-500 mb-1">Monthly Savings Needed</p>
                 <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-                  {formatCurrency(animatedMonthlySavings)}
+                  {fmt(animatedMonthlySavings)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-                  Save {formatCurrency(monthlySavings)}/month for {months} month{months !== 1 ? 's' : ''}{' '}
+                  Save {fmt(monthlySavings)}/month for {months} month{months !== 1 ? 's' : ''}{' '}
                   ({(months / 12).toFixed(1)} yr{months !== 12 ? 's' : ''}) to reach your{' '}
-                  {formatCurrency(goalAmount)} goal at {annualRate}% annual return
+                  {fmt(goalAmount)} goal at {annualRate}% annual return
                 </p>
               </>
             ) : (
@@ -359,8 +365,8 @@ export default function SavingsGoalCalc() {
                   {!isFinite(timeToGoalMonths)
                     ? 'Increase your monthly contribution or expected return rate to reach your goal.'
                     : goalAmount <= currentSavings
-                      ? `Your current savings of ${formatCurrency(currentSavings)} already exceed your ${formatCurrency(goalAmount)} goal.`
-                      : `Contributing ${formatCurrency(monthlyContribution)}/month at ${annualRate}% annual return to reach ${formatCurrency(goalAmount)}`}
+                      ? `Your current savings of ${fmt(currentSavings)} already exceed your ${fmt(goalAmount)} goal.`
+                      : `Contributing ${fmt(monthlyContribution)}/month at ${annualRate}% annual return to reach ${fmt(goalAmount)}`}
                 </p>
               </>
             )}
@@ -375,7 +381,7 @@ export default function SavingsGoalCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {formatCurrency(Math.max(0, summaryStats.totalContributions))}
+                  {fmt(Math.max(0, summaryStats.totalContributions))}
                 </p>
               </div>
             </div>
@@ -386,7 +392,7 @@ export default function SavingsGoalCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Interest Earned</p>
                 <p className="text-lg font-semibold text-accent-600 tabular-nums">
-                  {formatCurrency(Math.max(0, summaryStats.interestEarned))}
+                  {fmt(Math.max(0, summaryStats.interestEarned))}
                 </p>
               </div>
             </div>
@@ -402,14 +408,14 @@ export default function SavingsGoalCalc() {
                 <div>
                   <p className="text-xs text-neutral-500 mb-0.5">Remaining to Save</p>
                   <p className="text-lg font-semibold text-primary-700 tabular-nums">
-                    {formatCurrency(Math.max(0, goalAmount - currentSavings))}
+                    {fmt(Math.max(0, goalAmount - currentSavings))}
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-xs text-neutral-500 mb-0.5">Goal Amount</p>
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {formatCurrency(goalAmount)}
+                  {fmt(goalAmount)}
                 </p>
               </div>
             </div>
@@ -432,12 +438,12 @@ export default function SavingsGoalCalc() {
                   <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                     <defs>
                       <linearGradient id="sgColorBalance" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="sgColorContrib" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -449,20 +455,18 @@ export default function SavingsGoalCalc() {
                       label={{ value: 'Year', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: '#9CA3AF' }}
                     />
                     <YAxis
-                      tickFormatter={(v: number) =>
-                        `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`
-                      }
+                      tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
                       tick={{ fontSize: 12, fill: '#6B7280' }}
                       tickLine={false}
                       axisLine={false}
                       width={60}
                     />
-                    <Tooltip content={<ChartTooltip />} />
+                    <Tooltip content={<ChartTooltip formatValue={fmt} />} />
                     {/* Goal line reference */}
                     <Area
                       type="monotone"
                       dataKey="Projected Balance"
-                      stroke="#2563EB"
+                      stroke="#0B6E6E"
                       strokeWidth={2}
                       fill="url(#sgColorBalance)"
                       animationDuration={600}
@@ -470,7 +474,7 @@ export default function SavingsGoalCalc() {
                     <Area
                       type="monotone"
                       dataKey="Contributions"
-                      stroke="#10B981"
+                      stroke="#22A06B"
                       strokeWidth={2}
                       fill="url(#sgColorContrib)"
                       animationDuration={600}
@@ -481,11 +485,11 @@ export default function SavingsGoalCalc() {
               {/* Goal reference line label */}
               <div className="flex items-center justify-end gap-4 mt-2 text-xs text-neutral-500">
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-0.5 bg-[#2563EB] rounded-full" />
+                  <span className="inline-block w-3 h-0.5 bg-[#0B6E6E] rounded-full" />
                   Projected Balance
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-0.5 bg-[#10B981] rounded-full" />
+                  <span className="inline-block w-3 h-0.5 bg-[#22A06B] rounded-full" />
                   Contributions
                 </span>
               </div>

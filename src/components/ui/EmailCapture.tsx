@@ -138,6 +138,7 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
+          maxLength={254}
           disabled={status === 'loading'}
           className="flex-1 px-4 py-2.5 text-sm border border-neutral-200/80 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-60 transition-all duration-200"
         />

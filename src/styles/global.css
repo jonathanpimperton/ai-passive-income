@@ -1,15 +1,34 @@
 @import "tailwindcss";
 
-/* Self-hosted Inter variable font */
+/* ── Fonts ─────────────────────────────────────────────────── */
+
+/* DM Sans — body/UI text (variable weight) */
 @font-face {
-  font-family: 'Inter';
+  font-family: 'DM Sans';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/Inter-VariableFont.woff2') format('woff2');
+  src: url('/fonts/DMSans-Variable.woff2') format('woff2');
 }
 
-/* JetBrains Mono for JSON formatter */
+/* Libre Baskerville — editorial serif headings */
+@font-face {
+  font-family: 'Libre Baskerville';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/LibreBaskerville-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Libre Baskerville';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/LibreBaskerville-Bold.woff2') format('woff2');
+}
+
+/* JetBrains Mono for JSON formatter + code */
 @font-face {
   font-family: 'JetBrains Mono';
   font-style: normal;
@@ -18,32 +37,36 @@
   src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
 }
 
-/* Design tokens — from design-system.md Section 15 */
+/* ── Design tokens ─────────────────────────────────────────── */
 @theme {
-  /* Primary (blue — trust) */
-  --color-primary-900: #0A2540;
-  --color-primary-700: #1A3A5C;
-  --color-primary-600: #1D4ED8;
-  --color-primary-500: #2563EB;
-  --color-primary-400: #60A5FA;
-  --color-primary-300: #93C5FD;
-  --color-primary-200: #BFDBFE;
-  --color-primary-100: #DBEAFE;
-  --color-primary-50: #EFF6FF;
+  /* Primary (deep teal — trust, differentiated from generic blue) */
+  --color-primary-900: #0F1B2D;
+  --color-primary-700: #0A5555;
+  --color-primary-600: #0B6E6E;
+  --color-primary-500: #0E8585;
+  --color-primary-400: #38AEAE;
+  --color-primary-300: #6EC7C7;
+  --color-primary-200: #A3DEDE;
+  --color-primary-100: #D1EFEF;
+  --color-primary-50: #EDFAFA;
 
-  /* Accent (green — growth/positive) */
-  --color-accent-800: #065F46;
-  --color-accent-700: #047857;
-  --color-accent-600: #059669;
-  --color-accent-500: #10B981;
-  --color-accent-400: #34D399;
-  --color-accent-300: #6EE7B7;
-  --color-accent-200: #A7F3D0;
-  --color-accent-100: #D1FAE5;
-  --color-accent-50: #ECFDF5;
+  /* Accent (warm coral — CTA/interactive only) */
+  --color-accent-800: #9C2E1F;
+  --color-accent-700: #C0392B;
+  --color-accent-600: #D4493F;
+  --color-accent-500: #E8604C;
+  --color-accent-400: #EF8070;
+  --color-accent-300: #F5A99E;
+  --color-accent-200: #FACBC5;
+  --color-accent-100: #FDE8E5;
+  --color-accent-50: #FEF5F3;
+
+  /* Success (green — positive results, gains) */
+  --color-success-600: #22A06B;
+  --color-success-500: #36B37E;
 
   /* Negative (red — errors/losses) */
-  --color-negative-600: #DC2626;
+  --color-negative-600: #DE350B;
   --color-negative-500: #EF4444;
   --color-negative-100: #FEE2E2;
   --color-negative-50: #FEF2F2;
@@ -67,8 +90,9 @@
   --color-emerald-200: #A7F3D0;
   --color-emerald-100: #D1FAE5;
 
-  /* Blue (alias for primary shades used in components) */
+  /* Blue (kept for backward compat — email template hardcodes, chart colors) */
   --color-blue-700: #1D4ED8;
+  --color-blue-600: #2563EB;
   --color-blue-300: #93C5FD;
   --color-blue-200: #BFDBFE;
   --color-blue-100: #DBEAFE;
@@ -82,20 +106,26 @@
   --color-red-100: #FEE2E2;
   --color-red-50: #FEF2F2;
 
-  /* Neutrals */
-  --color-neutral-900: #111827;
-  --color-neutral-800: #1F2937;
-  --color-neutral-700: #374151;
-  --color-neutral-600: #4B5563;
-  --color-neutral-500: #6B7280;
-  --color-neutral-400: #9CA3AF;
-  --color-neutral-300: #D1D5DB;
-  --color-neutral-200: #E5E7EB;
-  --color-neutral-100: #F3F4F6;
-  --color-neutral-50: #F9FAFB;
+  /* Neutrals — navy-tinted for sophistication */
+  --color-neutral-900: #1A1A2E;
+  --color-neutral-800: #252542;
+  --color-neutral-700: #3D3D5C;
+  --color-neutral-600: #555573;
+  --color-neutral-500: #6E6E8A;
+  --color-neutral-400: #9494AB;
+  --color-neutral-300: #C4C4D4;
+  --color-neutral-200: #DDDDE8;
+  --color-neutral-100: #EEEFF4;
+  --color-neutral-50: #F5F5F9;
+
+  /* Semantic surface colors */
+  --color-bg: #FAFAF8;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F0F2F5;
 
   /* Typography */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: 'Libre Baskerville', Georgia, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Border radius */
@@ -118,23 +148,30 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+  scroll-padding-top: 80px;
 }
 
 body {
   font-family: var(--font-sans);
   color: var(--color-neutral-900);
-  background-color: var(--color-neutral-50);
+  background-color: var(--color-bg);
   line-height: 1.6;
 }
 
 /* Tabular numerals for financial data */
 .tabular-nums {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* Heading tighter tracking */
+/* Heading typography — serif for H1/H2, tighter tracking */
 h1, h2 {
+  font-family: var(--font-serif);
   letter-spacing: -0.02em;
+}
+
+/* H3+ stays sans-serif */
+h3, h4, h5, h6 {
+  font-family: var(--font-sans);
 }
 
 /* Elegant link underlines */
@@ -145,7 +182,7 @@ a {
 
 /* Focus ring — consistent visible focus for keyboard navigation */
 :focus-visible {
-  outline: 2px solid var(--color-primary-500);
+  outline: 3px solid color-mix(in srgb, var(--color-accent-500) 85%, white 15%);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -435,13 +472,23 @@ a {
   background-size: 24px 24px;
 }
 
+/* --- Prevent slider horizontal scroll on mobile --- */
+input[type="range"] {
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
+  max-width: 100%;
+}
+
 /* --- Gradient text for result numbers --- */
 
 .result-number {
-  background: linear-gradient(135deg, #0A2540, #1D4ED8);
+  background: linear-gradient(135deg, #0F1B2D, #0B6E6E);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* --- Stat highlight cards in prose --- */
@@ -584,6 +631,134 @@ a {
 
 .embed-mode .embed-badge {
   display: flex;
+}
+
+/* =============================================
+   Dark Mode
+   ============================================= */
+
+[data-theme="dark"] {
+  --color-bg: #121418;
+  --color-surface: #1E2128;
+  --color-surface-alt: #282C34;
+
+  --color-neutral-900: #E5E7EB;
+  --color-neutral-800: #D1D5DB;
+  --color-neutral-700: #B0B4BC;
+  --color-neutral-600: #9CA3AF;
+  --color-neutral-500: #7E8694;
+  --color-neutral-400: #5A6270;
+  --color-neutral-300: #3D4451;
+  --color-neutral-200: #2D333E;
+  --color-neutral-100: #232830;
+  --color-neutral-50: #1A1F26;
+
+  --color-primary-900: #D1EFEF;
+  --color-primary-700: #6EC7C7;
+  --color-primary-600: #38AEAE;
+  --color-primary-500: #14B8A6;
+  --color-primary-400: #0E8585;
+  --color-primary-300: #0B6E6E;
+  --color-primary-200: #0A5555;
+  --color-primary-100: #0D3333;
+  --color-primary-50: #0A2222;
+
+  --color-accent-600: #F0756A;
+  --color-accent-500: #F0756A;
+  --color-accent-50: #2A1A18;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 10px 28px rgba(0, 0, 0, 0.40);
+}
+
+[data-theme="dark"] body {
+  color: var(--color-neutral-900);
+  background-color: var(--color-bg);
+}
+
+[data-theme="dark"] .bg-white {
+  background-color: var(--color-surface);
+}
+
+[data-theme="dark"] .bg-neutral-50,
+[data-theme="dark"] .bg-neutral-50\/50 {
+  background-color: var(--color-surface-alt);
+}
+
+[data-theme="dark"] .border-neutral-200\/80,
+[data-theme="dark"] .border-neutral-200,
+[data-theme="dark"] .border-neutral-100 {
+  border-color: var(--color-neutral-200);
+}
+
+[data-theme="dark"] .text-neutral-900 {
+  color: var(--color-neutral-900);
+}
+
+[data-theme="dark"] .text-neutral-700 {
+  color: var(--color-neutral-700);
+}
+
+[data-theme="dark"] .text-neutral-500 {
+  color: var(--color-neutral-500);
+}
+
+[data-theme="dark"] .text-neutral-400 {
+  color: var(--color-neutral-400);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select {
+  background-color: var(--color-surface);
+  border-color: var(--color-neutral-200);
+  color: var(--color-neutral-900);
+}
+
+[data-theme="dark"] .result-number {
+  background: linear-gradient(135deg, #A3DEDE, #14B8A6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-theme="dark"] .prose {
+  color: var(--color-neutral-700);
+}
+
+[data-theme="dark"] .prose strong {
+  color: var(--color-neutral-900);
+}
+
+[data-theme="dark"] .prose code {
+  background-color: var(--color-neutral-100);
+  color: var(--color-primary-600);
+}
+
+[data-theme="dark"] .prose blockquote {
+  background: linear-gradient(135deg, var(--color-primary-50), var(--color-surface));
+  border-left-color: var(--color-primary-400);
+}
+
+[data-theme="dark"] .prose thead {
+  background-color: var(--color-neutral-100);
+}
+
+[data-theme="dark"] .prose td {
+  border-bottom-color: var(--color-neutral-200);
+  color: var(--color-neutral-700);
+}
+
+[data-theme="dark"] .prose tbody tr:nth-child(even) {
+  background-color: var(--color-neutral-50);
+}
+
+[data-theme="dark"] .prose tbody tr:hover {
+  background-color: var(--color-primary-50);
+}
+
+[data-theme="dark"] ::selection {
+  background-color: var(--color-primary-300);
+  color: white;
 }
 
 /* Reduced motion preferences */

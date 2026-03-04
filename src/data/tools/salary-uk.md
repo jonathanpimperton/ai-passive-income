@@ -2,7 +2,7 @@
 name: "UK Salary & Take-Home Calculator"
 slug: "salary-uk"
 category: "income-and-planning"
-description: "Calculate UK take-home pay after Income Tax, National Insurance, student loans, and pension. See your net salary breakdown — free, no signup, no ads."
+description: "2025/26 income tax, National Insurance, student loans, and pension — gross to net breakdown."
 keywords:
   - "UK salary calculator"
   - "UK take-home pay calculator"
@@ -22,6 +22,18 @@ relatedTools:
   - "savings-goal"
   - "emergency-fund"
   - "inflation"
+lastUpdated: "2026-03-04"
+dataSources:
+  - name: "HMRC Income Tax rates 2025/26"
+    url: "https://www.gov.uk/income-tax-rates"
+  - name: "National Insurance rates and categories"
+    url: "https://www.gov.uk/national-insurance-rates-letters"
+  - name: "Student loan repayment thresholds"
+    url: "https://www.gov.uk/repaying-your-student-loan/what-you-pay"
+  - name: "Scottish Income Tax rates 2025/26"
+    url: "https://www.gov.scot/publications/scottish-income-tax-2025-2026/"
+  - name: "State Pension rates"
+    url: "https://www.gov.uk/new-state-pension/what-youll-get"
 faq:
   - question: "How much tax will I pay on my UK salary?"
     answer: "UK Income Tax uses a progressive band system for the 2025/26 tax year: you pay 0% on the first £12,570 (Personal Allowance), 20% on £12,571–£50,270 (Basic Rate), 40% on £50,271–£125,140 (Higher Rate), and 45% above £125,140 (Additional Rate). Scotland has its own rates ranging from 19% to 48%. Your total deductions also include National Insurance at 8% on earnings between £12,570 and £50,270, then 2% above that."

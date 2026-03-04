@@ -24,7 +24,7 @@ export const GET: APIRoute = async () => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          background: 'linear-gradient(135deg, #0A2540 0%, #1A3A5C 50%, #0A2540 100%)',
+          background: 'linear-gradient(135deg, #0F1B2D 0%, #0A5555 50%, #0F1B2D 100%)',
           fontFamily: 'Inter',
           gap: '24px',
         },
@@ -56,7 +56,7 @@ export const GET: APIRoute = async () => {
                     style: {
                       fontSize: '72px',
                       fontWeight: 700,
-                      color: '#60A5FA',
+                      color: '#2AADAD',
                     },
                     children: 'Run',
                   },
@@ -99,7 +99,7 @@ export const GET: APIRoute = async () => {
                       {
                         type: 'div',
                         props: {
-                          style: { fontSize: '48px', fontWeight: 700, color: '#60A5FA' },
+                          style: { fontSize: '48px', fontWeight: 700, color: '#2AADAD' },
                           children: '37',
                         },
                       },
@@ -135,7 +135,7 @@ export const GET: APIRoute = async () => {
                       {
                         type: 'div',
                         props: {
-                          style: { fontSize: '48px', fontWeight: 700, color: '#60A5FA' },
+                          style: { fontSize: '48px', fontWeight: 700, color: '#2AADAD' },
                           children: '100%',
                         },
                       },

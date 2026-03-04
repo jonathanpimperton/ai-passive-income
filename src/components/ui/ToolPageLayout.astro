@@ -38,6 +38,11 @@ interface WorkedExample {
   description: string;
 }
 
+interface DataSource {
+  name: string;
+  url: string;
+}
+
 interface ToolData {
   name: string;
   slug: string;
@@ -48,6 +53,9 @@ interface ToolData {
   faq: Array<{ question: string; answer: string }>;
   relatedTools: string[];
   workedExamples?: WorkedExample[];
+  lastUpdated?: string;
+  dataSources?: DataSource[];
+  calculationMethod?: string;
 }
 
 interface Props {
@@ -57,11 +65,17 @@ interface Props {
 }
 
 const { tool } = Astro.props;
-const { name, slug, category, description, affiliateContext, affiliatePrograms, faq, relatedTools, workedExamples } = tool.data;
+const { name, slug, category, description, affiliateContext, affiliatePrograms, faq, relatedTools, workedExamples, lastUpdated, dataSources, calculationMethod } = tool.data;
 const categoryLabel = CATEGORIES[category]?.label ?? category;
 const toolMeta = TOOLS.find((t) => t.slug === slug);
 
 const showEmailCapture = FINANCIAL_CATEGORIES.has(category);
+
+/** Rate-dependent categories show tax year + last checked; formula-only show method */
+const isRateDependentCategory = FINANCIAL_CATEGORIES.has(category);
+const formattedDate = lastUpdated
+  ? new Date(lastUpdated + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  : null;
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },
@@ -72,7 +86,7 @@ const breadcrumbs = [
 ---
 
 {/* Calculator section — subtle gradient header */}
-<div class="bg-gradient-to-b from-primary-50/40 to-white" data-calc-section>
+<div class="bg-gradient-to-b from-primary-50/40 to-white overflow-x-hidden" data-calc-section>
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <Breadcrumb items={breadcrumbs} />
 
@@ -87,6 +101,21 @@ const breadcrumbs = [
         <div>
           <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900">{name}</h1>
           <p class="text-lg text-neutral-500 mt-1">{description}</p>
+          {/* Trust badge — data freshness signal */}
+          <div class="mt-2 flex flex-wrap items-center gap-2">
+            {isRateDependentCategory && formattedDate && (
+              <span class="inline-flex items-center gap-1.5 text-xs font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Updated for 2025/26 tax year · Last checked {formattedDate}
+              </span>
+            )}
+            {!isRateDependentCategory && calculationMethod && (
+              <span class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded-full">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                {calculationMethod}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -157,6 +186,26 @@ const breadcrumbs = [
     <div class="prose max-w-[768px]">
       <slot name="content" />
     </div>
+
+    {/* Data sources — builds trust with citations */}
+    {dataSources && dataSources.length > 0 && (
+      <div class="mt-10 max-w-[768px]">
+        <h3 class="text-sm font-semibold text-neutral-700 uppercase tracking-wide mb-3">Data Sources</h3>
+        <ul class="space-y-1.5">
+          {dataSources.map((source) => (
+            <li class="flex items-start gap-2 text-sm text-neutral-600">
+              <svg class="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-1.102-4.243a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.1-1.1" /></svg>
+              <a href={source.url} target="_blank" rel="noopener noreferrer" class="hover:text-primary-600 transition-colors duration-150 underline underline-offset-2 decoration-neutral-300 hover:decoration-primary-400">
+                {source.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+        {formattedDate && (
+          <p class="text-xs text-neutral-400 mt-3">Last verified: {formattedDate}</p>
+        )}
+      </div>
+    )}
   </div>
 </div>
 

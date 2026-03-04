@@ -211,7 +211,7 @@ export default function InflationCalc() {
             </button>
           </div>
           <div className="space-y-5">
-            <SliderInput label="Dollar Amount" id="inf-amount" value={amount} min={1} max={1000000} step={100} onChange={setAmount} prefix="$" formatDisplay={formatNumber} hint="The amount you want to check" />
+            <SliderInput label="Dollar Amount" id="inf-amount" value={amount} min={1} max={10000000} step={1000} onChange={setAmount} prefix="$" formatDisplay={formatNumber} hint="The amount you want to check" />
 
             {mode === 'historical' ? (
               <>
@@ -233,7 +233,7 @@ export default function InflationCalc() {
         </div>
 
         {/* Results */}
-        <div id="inf-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div id="inf-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           {mode === 'historical' && historicalResult && (
             <>
               <div data-pdf-section className="mb-6">
@@ -333,12 +333,12 @@ export default function InflationCalc() {
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <defs>
                     <linearGradient id="infColor1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="infColor2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -360,13 +360,13 @@ export default function InflationCalc() {
                   <Tooltip content={<ChartTooltip labelPrefix="" />} />
                   {mode === 'historical' ? (
                     <>
-                      <Area type="monotone" dataKey="Equivalent Value" stroke="#2563EB" strokeWidth={2} fill="url(#infColor1)" animationDuration={600} />
+                      <Area type="monotone" dataKey="Equivalent Value" stroke="#0B6E6E" strokeWidth={2} fill="url(#infColor1)" animationDuration={600} />
                       <Area type="monotone" dataKey="Original Amount" stroke="#9CA3AF" strokeWidth={1.5} strokeDasharray="4 3" fill="none" animationDuration={600} />
                     </>
                   ) : (
                     <>
-                      <Area type="monotone" dataKey="Cost in Future Dollars" stroke="#2563EB" strokeWidth={2} fill="url(#infColor1)" animationDuration={600} />
-                      <Area type="monotone" dataKey="Purchasing Power" stroke="#10B981" strokeWidth={2} fill="url(#infColor2)" animationDuration={600} />
+                      <Area type="monotone" dataKey="Cost in Future Dollars" stroke="#0B6E6E" strokeWidth={2} fill="url(#infColor1)" animationDuration={600} />
+                      <Area type="monotone" dataKey="Purchasing Power" stroke="#22A06B" strokeWidth={2} fill="url(#infColor2)" animationDuration={600} />
                     </>
                   )}
                 </AreaChart>

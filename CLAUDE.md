@@ -20,6 +20,8 @@ Build a zero-investment online business that generates passive income, built ent
 - **React** — interactive calculator components (via Astro islands with `client:load`)
 - **recharts** — interactive chart visualization in calculator results
 - **Lucide React** — consistent icon language across the site
+- **Zod** — schema validation for email API endpoint (worker.ts)
+- **Cloudflare Turnstile** — bot prevention on email endpoint (invisible CAPTCHA)
 - **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
 - **MailerLite** (free tier) — email capture, 500 subscribers, automations included, 12K emails/mo. Upgrade to Growing Business ($10/mo) at 500+ subs.
 - **Google Search Console / Analytics** — SEO tracking (free)
@@ -105,7 +107,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Educational content: 500-1000 words per tool, comparison tables, key terms
 - 5+ FAQ items per tool with substantive answers
 - 3 worked examples per tool with realistic scenarios
-- Affiliate programs on all financial tools — geography-relevant (US: Betterment, SoFi, Marcus; UK: Nutmeg, Moneybox, InvestEngine; plus Wealthfront, Vanguard, LendingTree, etc.)
+- Affiliate programs on financial tools — geography-relevant (US: Betterment, SoFi, Wealthfront, LendingTree, Ally; UK: Nutmeg, InvestEngine; Security: NordPass, NordVPN). See Sprint 14 for current partner status.
 - Utility tools correctly exclude affiliates (no forced product fits)
 - Slider QA: fixed min/max ranges across 9 calculators (17 sliders)
 - Accessibility: aria-label/aria-controls/role attributes on all interactive elements
@@ -146,9 +148,9 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Updated contact email from privacy@calcrun.com to hello@calcrun.com on privacy page
 
 **Sprint 9 — Affiliate Links + Revenue Engine (Complete):**
-- `src/lib/affiliate-data.ts` — 14 affiliate partners with UTM URL builder (Betterment, Marcus, Wealthfront, SoFi, LendingTree, LendingClub, Ally, Vanguard, 1Password, NordPass, NordVPN, Nutmeg, Moneybox, InvestEngine)
+- `src/lib/affiliate-data.ts` — 9 affiliate partners with UTM URL builder + tracked CJ links (Betterment, Wealthfront, SoFi, LendingTree, Ally, NordPass, NordVPN, Nutmeg, InvestEngine). Removed dead partners (Marcus, Vanguard, Moneybox, 1Password, LendingClub — no affiliate programs or declined)
 - `src/components/ui/AffiliateLinks.astro` — Partner cards with icon, name, tagline, category badge, "Learn more" CTA. Links use `rel="noopener sponsored"` for FTC compliance
-- Wired into ToolPageLayout directly below calculator (highest-intent placement). Only renders on pages with `affiliatePrograms` in frontmatter (20 of 37 tools)
+- Wired into ToolPageLayout directly below calculator (highest-intent placement). Only renders on pages with `affiliatePrograms` in frontmatter (15 of 37 tools — removed forced affiliates from 5 image tools)
 - FTC-compliant: AffiliateDisclosure banner above calculator + inline note below cards + full `/disclosure` page
 
 **Sprint 10 — Navigation Polish (Complete):**
@@ -195,11 +197,73 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Launch prep docs: `docs/launch/product-hunt.md`, `docs/launch/reddit-posts.md`, `docs/launch/devto-article.md`
 - 61 pages total (37 tools + 15 scenarios + 9 static pages)
 
-**Remaining sprints:**
-- Sprint 14: Growth monitoring, scale to 50+ scenarios, comparison articles, A/B test affiliate placements
+**Sprint 14 — Affiliate Registration + Partner Cleanup (In Progress):**
+- Researched all 14 original affiliate partners — found Marcus, Vanguard, Moneybox have NO affiliate programs
+- Removed 5 dead partners from `affiliate-data.ts`: Marcus, Vanguard, Moneybox, 1Password (CJ declined), LendingClub (not on CJ)
+- Removed forced NordPass/NordVPN affiliates from 5 image tool pages (no natural product fit)
+- Added `tracked?: boolean` flag to `AffiliatePartner` interface — tracked links skip UTM param appending
+- NordPass LIVE: CJ tracking link `https://go.nordpass.io/aff_c?offer_id=490&aff_id=34741&url_id=25686`
+- NordVPN LIVE: CJ tracking link `https://go.nordvpn.net/aff_c?aff_id=2495&offer_id=312&url_id=2584`
+- Updated all 10 affected tool markdown frontmatter files with replacement partners
+- Updated `worker.ts` email affiliate recommendations (replaced all dead partner references)
+- Updated `disclosure.astro` partner list
+- Added Impact.com site verification meta tag to `BaseLayout.astro`
+- CJ publisher ID: NordPass=34741, NordVPN=2495
+
+**Remaining Sprint 14 work:**
+- Scale scenarios from 15 → 50+, comparison articles, A/B test affiliate placements, growth monitoring
+
+**Sprint 15 — Security Hardening + Critical UX Bugs (Complete):**
+- **15A Security:** Cloudflare Turnstile bot prevention on `/api/email-results` (front-end invisible widget + server-side token verification). Zod schema validation for all email request fields (email, toolSlug, inputs, results, turnstileToken). Request size cap (20KB) before JSON parse. Server-side tool name derivation from `TOOL_REGISTRY` (client `toolName` ignored). `sanitizeText()` strips non-printable chars, CRLF, collapses whitespace, HTML-escapes. Honeypot field. `maxLength` attributes on client-side email inputs.
+- **15B SliderInput fix:** Added `isEditing`/`editingValue` local state pattern. During focus, shows raw user input (no formatting). On blur, parses, clamps to min/max, formats. Supports pasted values with commas/currency symbols. Enter key commits. No more backspace bug, no reformatting during typing.
+- **15C Mobile fixes:** `touch-action: pan-y` on range inputs prevents horizontal scroll. `overflow-x: hidden` on calculator containers. Result numbers use `clamp()` font sizing. Stat cards responsive grid. Input `text-base` (16px) prevents iOS zoom-on-focus.
+- **15D Raised input limits:** Principal 1M→10M, monthly contribution 10K→50K, time 50→100yr, salary caps raised to 1M across all 14 calculators.
+
+**Sprint 16 — Trust, Typography, Color & Currency (Complete):**
+- **16A Typography:** Libre Baskerville (serif, headings H1-H2) + DM Sans (sans, body/UI). Self-hosted woff2 in `public/fonts/`, preloaded in BaseLayout. `font-display: swap`. Inter removed. `tabular-nums lining-nums` on financial figures. All inputs 16px minimum.
+- **16B Color palette:** Deep teal primary (#0B6E6E), warm coral accent (#E8604C), off-white background (#FAFAF8), navy-tinted text (#1A1A2E). Full `@theme` token system in global.css with semantic tokens (bg, surface, surface-alt). Chart colors updated from blue/green to teal/green across all calculators.
+- **16D Trust signals:** `src/lib/uk-rates.ts` central rates module (2025/26 tax year — income tax, NI, state pension 230.25/week, student loans, Scottish tax). UK Salary calculator imports from central module. "Updated for 2025/26" badge on calculator pages. "How this is calculated" expandable section. Source links to GOV.UK.
+- **16E Currency selector:** `useCurrency()` hook + `CurrencySelector` component (USD/GBP/EUR pill selector). `formatCurrency()` accepts currency code. Persists in localStorage. Locked to GBP on UK Salary, USD on US Salary. Applied to all 11 generic financial calculators.
+
+**Sprint 17 — Content De-AI-ification (Complete):**
+- **17C:** All 14 financial calculator descriptions rewritten — specific, under 160 chars, no AI-slop phrases ("delve", "seamless", "game-changer" etc.). Example: compound-interest.md → "See growth over time — monthly contributions, compounding frequency, and a year-by-year table."
+
+**Sprint 18 — Card Design & Layout (Complete):**
+- **18A Card refinement:** `rounded-2xl` → `rounded-lg` on major cards. `hover:-translate-y-1` → `hover:-translate-y-0.5`. Removed gradient bottom accent lines from tool cards. Sparkles icon → arrow-up-right on affiliate cards.
+- **18B Sticky results:** `lg:sticky lg:top-20 lg:self-start` on results panels across all 14 financial calculators.
+- **18D Anti-AI signals removed:** Simplified 404 illustration (removed concentric circles/accent dots). Gradient accent lines removed from card hovers.
+
+**Sprint 19 — Dark Mode + Accessibility (Complete):**
+- **19A Dark mode:** Full dark theme via `[data-theme="dark"]` CSS custom property overrides in global.css. `ThemeToggle.astro` sun/moon button in header (desktop + mobile). FOUC prevention via inline `<script>` in `<head>` reading localStorage before paint. Respects `prefers-color-scheme`. Persists in `calcrun.theme` localStorage key. Dark tokens: bg #121418, surface #1E2128, surface-alt #282C34, lifted teal primary, same coral family for accent.
+- **19B Accessibility:** Focus ring upgraded to 3px coral via `color-mix()`. `scroll-padding-top: 80px` for sticky header focus occlusion (WCAG 2.4.11). Dark mode overrides for all text/border/input/card elements maintain WCAG AA contrast.
+
+**Affiliate network accounts:**
+- **CJ Affiliate** — Active. NordPass approved, NordVPN approved, 1Password declined, Ally declined. Pending: LendingTree, Barclays US Online Savings, Experian, Axos Bank, BMO Harris Bank
+- **Impact.com** — Marketplace application DECLINED (low traffic, new site). Can apply directly to brands via their Impact signup pages. Reapply to marketplace once traffic grows.
+- **Awin** — Application submitted, pending review. Once approved, apply to Nutmeg (advertiser ID 15889) for UK investing pages.
+- **Pro Affiliate Partner** — Signed up (manages Betterment's affiliate program). Pending review.
+
+**Current affiliate partner status in `affiliate-data.ts` (9 partners):**
+| Partner | Status | Network | Tracked Link |
+|---------|--------|---------|-------------|
+| Betterment | Pending | Pro Affiliate Partner | No |
+| Wealthfront | Not yet applied | Unknown (try Impact direct) | No |
+| SoFi | Not yet applied | Impact.com (direct) | No |
+| LendingTree | Pending approval | CJ Affiliate | No |
+| Ally | Declined (CJ) | Reapply later | No |
+| NordPass | **LIVE** | CJ Affiliate | Yes |
+| NordVPN | **LIVE** | CJ Affiliate | Yes |
+| Nutmeg | Pending Awin approval | Awin (advertiser 15889) | No |
+| InvestEngine | Not yet applied | Direct (investengine.com/affiliate) | No |
 
 **External blockers (require manual action by owner):**
-- **Affiliate program signups** — Apply to Impact.com + CJ Affiliate (most partners are on these two networks). Apply to each partner individually. Once approved, provide tracking URLs to update `src/lib/affiliate-data.ts`
+- **Awin → Nutmeg** — Once Awin approves, search for Nutmeg (advertiser ID 15889) and apply
+- **InvestEngine** — Apply directly at investengine.com/affiliate
+- **Wealthfront** — Find affiliate program (try Impact.com direct signup or contact partnerships)
+- **SoFi** — Apply via Impact.com direct (not marketplace)
+- **CJ pending approvals** — Wait for LendingTree, Barclays, Experian, Axos, BMO decisions
+- **Pro Affiliate Partner → Betterment** — Awaiting review
+- **Update `affiliate-data.ts`** — As each partner approves, add their tracked URL and set `tracked: true`
 - **MailerLite drip automation** — Set up 3-email welcome sequence triggered on group join ("Calculator Results"): Day 0 welcome, Day 3 net worth, Day 7 inflation + affiliate CTA
 - **Cloudflare redirect rule** — Add redirect from `calcrun.com/*` to `https://www.calcrun.com/$1` in Cloudflare dashboard
 - **Product Hunt launch** — Use `docs/launch/product-hunt.md` content. Schedule for Tuesday-Thursday morning
@@ -211,6 +275,10 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - ~~Google Search Console~~ — Indexing requested on top pages
 - ~~Cloudflare env vars~~ — `MAILERLITE_API_KEY` + `MAILERSEND_API_KEY` added
 - ~~MailerSend domain verification~~ — `calcrun.com` sender domain verified (DNS records added)
+- ~~Affiliate partner research~~ — All 14 original partners researched, dead ones removed, replacements decided
+- ~~CJ Affiliate account~~ — Active, NordPass + NordVPN approved and live
+- ~~Impact.com site verification~~ — Meta tag added to BaseLayout.astro
+- ~~Affiliate code cleanup~~ — Dead partners removed, tracked links added, tool pages updated
 
 ## Design Quality Standards (MANDATORY for All Sprints)
 
@@ -218,7 +286,7 @@ Every new component, page, or feature MUST meet these standards. This is not opt
 
 ### Visual Richness
 - **Every card** must have a Lucide icon (use `ToolIcon.astro` for Astro, `lucide-react` for React). Never ship a text-only card.
-- **Card hover effects**: lift (`hover:-translate-y-0.5` or `hover:-translate-y-1`), shadow deepening, icon color inversion (`bg-primary-50 text-primary-500` → `bg-primary-500 text-white`), gradient bottom accent line.
+- **Card hover effects**: lift (`hover:-translate-y-0.5`), shadow deepening, icon color inversion (`bg-primary-50 text-primary-500` → `bg-primary-500 text-white`).
 - **Section dividers**: use gradient lines (`bg-gradient-to-r from-transparent via-primary-300/30 to-transparent`) not plain borders.
 - **Page headers** for non-tool pages: dark gradient background (`bg-[linear-gradient(135deg,#0A2540_0%,#1A3A5C_50%,#0A2540_100%)]`) with white text.
 - **Section backgrounds** alternate: white for primary content, `neutral-50` for secondary, `primary-50` for CTAs/related sections.
@@ -236,7 +304,8 @@ Every new component, page, or feature MUST meet these standards. This is not opt
 - Skeleton shimmer (`.shimmer-line` class) while React islands hydrate.
 
 ### Typography & Spacing
-- `rounded-2xl` on major cards, `rounded-xl` on smaller elements, `rounded-lg` on inputs/buttons.
+- **Fonts:** Libre Baskerville (serif) for H1-H2 headings, DM Sans (sans) for body/UI, JetBrains Mono for code.
+- `rounded-lg` on major cards, `rounded-xl` on smaller elements, `rounded-lg` on inputs/buttons.
 - Generous padding: `p-6` minimum on cards, `py-16 sm:py-20` on sections.
 - Body text never below 16px. Descriptions use `leading-relaxed`.
 - Headings use `tracking-[-0.02em]`. Financial numbers use `tabular-nums`.
@@ -273,7 +342,7 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Site is live at `https://www.calcrun.com`. Sprint 13 complete (share buttons, 15 scenario pages, launch prep docs, affiliate improvements). 61 pages total (37 tools + 15 scenarios + 9 static pages). ShareButton on all 14 financial calculators. Email capture + affiliate links + "Email my results" all active. GA4 tracking (G-K0ZB3P48QG) active. Next: Sprint 14 (growth monitoring, scale scenarios, comparison articles).
+3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 15-19 complete (security hardening, SliderInput UX fix, mobile fixes, raised limits, typography rebrand to Libre Baskerville + DM Sans, teal/coral color palette, central UK rates module, currency selector, content de-AI-ification, card design refinement, sticky results, dark mode, accessibility improvements). Sprint 14 remaining: scale scenarios to 50+, comparison articles, A/B test affiliates, growth monitoring. Sprint 20 remaining: performance optimization, QA automation, final testing. 61 pages total. NordPass + NordVPN live with tracked CJ links. 7 other partners pending approval across CJ, Awin, Pro Affiliate Partner. See affiliate partner status table in Sprint 14 section above.
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.

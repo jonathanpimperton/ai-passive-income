@@ -12,6 +12,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
@@ -21,7 +22,7 @@ interface Item {
   value: number;
 }
 
-const ASSET_COLORS = ['#2563EB', '#3B82F6', '#60A5FA', '#10B981', '#F59E0B', '#8B5CF6'];
+const ASSET_COLORS = ['#0B6E6E', '#0E8585', '#38AEAE', '#22A06B', '#F59E0B', '#8B5CF6'];
 const LIABILITY_COLORS = ['#EF4444', '#F97316', '#F59E0B', '#EC4899', '#6366F1'];
 
 let idCounter = 0;
@@ -86,6 +87,8 @@ function ItemRow({ item, onChange, onRemove }: {
 }
 
 export default function NetWorthCalc() {
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const [assets, setAssets] = useState<Item[]>(DEFAULT_ASSETS);
   const [liabilities, setLiabilities] = useState<Item[]>(DEFAULT_LIABILITIES);
 
@@ -132,17 +135,17 @@ export default function NetWorthCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const getInputs = useCallback(() => [
-    { label: 'Total Assets', value: formatCurrency(totalAssets) },
-    { label: 'Total Liabilities', value: formatCurrency(totalLiabilities) },
+    { label: 'Total Assets', value: fmt(totalAssets) },
+    { label: 'Total Liabilities', value: fmt(totalLiabilities) },
     { label: 'Number of Assets', value: `${assets.filter((a) => a.name || a.value > 0).length}` },
     { label: 'Number of Liabilities', value: `${liabilities.filter((l) => l.name || l.value > 0).length}` },
-  ], [assets, liabilities, totalAssets, totalLiabilities]);
+  ], [assets, liabilities, totalAssets, totalLiabilities, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
-    { label: 'Net Worth', value: formatCurrency(netWorth), highlight: true },
-    { label: 'Total Assets', value: formatCurrency(totalAssets) },
-    { label: 'Total Liabilities', value: formatCurrency(totalLiabilities) },
-  ], [netWorth, totalAssets, totalLiabilities]);
+    { label: 'Net Worth', value: fmt(netWorth), highlight: true },
+    { label: 'Total Assets', value: fmt(totalAssets) },
+    { label: 'Total Liabilities', value: fmt(totalLiabilities) },
+  ], [netWorth, totalAssets, totalLiabilities, currency]);
 
   const assetPieData = useMemo(
     () => assets.filter((a) => a.value > 0).map((a) => ({ name: a.name, value: a.value })),
@@ -169,6 +172,8 @@ export default function NetWorthCalc() {
               Reset
             </button>
           </div>
+
+          <CurrencySelector value={currency} onChange={setCurrency} />
 
           {/* Assets */}
           <div className="mb-6">
@@ -218,14 +223,14 @@ export default function NetWorthCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Your Net Worth</p>
             <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${netWorth >= 0 ? 'result-number' : 'text-red-600'}`}>
-              {formatCurrency(animatedNetWorth)}
+              {fmt(animatedNetWorth)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              {formatCurrency(totalAssets)} in assets − {formatCurrency(totalLiabilities)} in liabilities
+              {fmt(totalAssets)} in assets − {fmt(totalLiabilities)} in liabilities
             </p>
           </div>
 
@@ -234,14 +239,14 @@ export default function NetWorthCalc() {
               <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Assets</p>
-                <p className="text-lg font-semibold text-accent-600 tabular-nums">{formatCurrency(totalAssets)}</p>
+                <p className="text-lg font-semibold text-accent-600 tabular-nums">{fmt(totalAssets)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5"><CreditCard size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Liabilities</p>
-                <p className="text-lg font-semibold text-red-600 tabular-nums">{formatCurrency(totalLiabilities)}</p>
+                <p className="text-lg font-semibold text-red-600 tabular-nums">{fmt(totalLiabilities)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">

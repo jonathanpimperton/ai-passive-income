@@ -1,7 +1,12 @@
 /**
  * Shared slider + text input hybrid used across all calculator components.
  * Every numeric input gets both a text field and range slider, synced together.
+ *
+ * Key UX: During focus, users type freely (no formatting/clamping). On blur,
+ * the value is parsed, validated, clamped to [min, max], and formatted.
+ * This fixes: can't backspace, can't type decimals, intermediate states reformatted.
  */
+import { useState } from 'react';
 
 interface SliderInputProps {
   label: string;
@@ -36,13 +41,45 @@ export default function SliderInput({
   maxLabel,
   hint,
 }: SliderInputProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingValue, setEditingValue] = useState('');
+
   const displayValue = formatDisplay ? formatDisplay(value) : String(value);
 
-  const handleText = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9.]/g, '');
-    const parsed = parseFloat(raw);
-    if (!isNaN(parsed)) onChange(Math.min(max, Math.max(min, parsed)));
+  const handleFocus = () => {
+    setIsEditing(true);
+    setEditingValue(String(value));
   };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    // Strip currency symbols, commas, spaces — support pasted "£10,000" or "10 000"
+    let cleaned = editingValue.replace(/[^0-9.,\-]/g, '');
+    // If no dot present but has comma, treat comma as decimal (UK format: 7,5 → 7.5)
+    if (!cleaned.includes('.') && cleaned.includes(',') && cleaned.indexOf(',') === cleaned.lastIndexOf(',')) {
+      cleaned = cleaned.replace(',', '.');
+    } else {
+      // Otherwise strip commas (thousands separators)
+      cleaned = cleaned.replace(/,/g, '');
+    }
+    const parsed = parseFloat(cleaned);
+    if (!isNaN(parsed)) {
+      onChange(Math.min(max, Math.max(min, parsed)));
+    }
+    // If NaN (empty/invalid), revert silently to current value
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditingValue(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  const shown = isEditing ? editingValue : displayValue;
 
   return (
     <div>
@@ -61,9 +98,12 @@ export default function SliderInput({
           id={id}
           type="text"
           inputMode="decimal"
-          value={displayValue}
-          onChange={handleText}
-          className={`w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm
+          value={shown}
+          onChange={handleTextChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className={`w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base
             focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
             ${prefix ? 'pl-7' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
         />
@@ -87,6 +127,9 @@ export default function SliderInput({
           [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full
           [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
         aria-label={`${label} slider`}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
       />
       {(minLabel || maxLabel) && (
         <div className="flex justify-between mt-1">

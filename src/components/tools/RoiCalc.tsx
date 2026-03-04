@@ -16,6 +16,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 
@@ -40,6 +41,8 @@ function annualizedROI(totalReturn: number, years: number): number {
 
 export default function RoiCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const [initialInvestment, setInitialInvestment] = useState(DEFAULTS.initialInvestment);
   const [finalValue, setFinalValue] = useState(DEFAULTS.finalValue);
   const [yearsHeld, setYearsHeld] = useState(DEFAULTS.yearsHeld);
@@ -93,27 +96,27 @@ export default function RoiCalc() {
 
   const getInputs = useCallback(() => {
     const inputs = [
-      { label: 'Initial Investment (A)', value: formatCurrency(initialInvestment) },
-      { label: 'Final Value (A)', value: formatCurrency(finalValue) },
-      { label: 'Dividends Received (A)', value: formatCurrency(dividendsReceived) },
+      { label: 'Initial Investment (A)', value: fmt(initialInvestment) },
+      { label: 'Final Value (A)', value: fmt(finalValue) },
+      { label: 'Dividends Received (A)', value: fmt(dividendsReceived) },
       { label: 'Time Held (A)', value: `${yearsHeld} year${yearsHeld !== 1 ? 's' : ''}` },
     ];
     if (showComparison) {
       inputs.push(
-        { label: 'Initial Investment (B)', value: formatCurrency(initialB) },
-        { label: 'Final Value (B)', value: formatCurrency(finalB) },
-        { label: 'Dividends Received (B)', value: formatCurrency(dividendsB) },
+        { label: 'Initial Investment (B)', value: fmt(initialB) },
+        { label: 'Final Value (B)', value: fmt(finalB) },
+        { label: 'Dividends Received (B)', value: fmt(dividendsB) },
         { label: 'Time Held (B)', value: `${yearsB} year${yearsB !== 1 ? 's' : ''}` },
       );
     }
     return inputs;
-  }, [initialInvestment, finalValue, dividendsReceived, yearsHeld, showComparison, initialB, finalB, dividendsB, yearsB]);
+  }, [initialInvestment, finalValue, dividendsReceived, yearsHeld, showComparison, initialB, finalB, dividendsB, yearsB, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
     { label: 'Total Return', value: `${(resultA.totalReturn * 100).toFixed(2)}%`, highlight: true },
     { label: 'Annualized Return', value: `${(resultA.annualizedReturn * 100).toFixed(2)}%` },
-    { label: 'Net Profit', value: formatCurrency(resultA.totalGain) },
-  ], [resultA]);
+    { label: 'Net Profit', value: fmt(resultA.totalGain) },
+  ], [resultA, currency]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
@@ -132,10 +135,12 @@ export default function RoiCalc() {
             </button>
           </div>
 
+          <CurrencySelector value={currency} onChange={setCurrency} />
+
           <div className="space-y-5">
             <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Investment A</p>
-            <SliderInput label="Initial Investment" id="roi-initial" value={initialInvestment} min={100} max={1000000} step={100} onChange={setInitialInvestment} prefix="$" formatDisplay={formatNumber} hint="How much you originally put in" />
-            <SliderInput label="Final Value" id="roi-final" value={finalValue} min={0} max={2000000} step={100} onChange={setFinalValue} prefix="$" formatDisplay={formatNumber} hint="What your investment is worth now (or when you sold)" />
+            <SliderInput label="Initial Investment" id="roi-initial" value={initialInvestment} min={100} max={10000000} step={1000} onChange={setInitialInvestment} prefix="$" formatDisplay={formatNumber} hint="How much you originally put in" />
+            <SliderInput label="Final Value" id="roi-final" value={finalValue} min={0} max={20000000} step={1000} onChange={setFinalValue} prefix="$" formatDisplay={formatNumber} hint="What your investment is worth now (or when you sold)" />
             <SliderInput label="Dividends / Income Received" id="roi-div" value={dividendsReceived} min={0} max={100000} step={50} onChange={setDividendsReceived} prefix="$" formatDisplay={formatNumber} hint="Total cash payments received over the holding period" />
             <SliderInput label="Time Held (Years)" id="roi-years" value={yearsHeld} min={0.25} max={50} step={0.25} onChange={setYearsHeld} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} hint="How long you held the investment — use 0.5 for 6 months" />
 
@@ -152,8 +157,8 @@ export default function RoiCalc() {
             {showComparison && (
               <div className="space-y-5 pt-2">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Investment B</p>
-                <SliderInput label="Initial Investment" id="roi-initial-b" value={initialB} min={100} max={1000000} step={100} onChange={setInitialB} prefix="$" formatDisplay={formatNumber} />
-                <SliderInput label="Final Value" id="roi-final-b" value={finalB} min={0} max={2000000} step={100} onChange={setFinalB} prefix="$" formatDisplay={formatNumber} />
+                <SliderInput label="Initial Investment" id="roi-initial-b" value={initialB} min={100} max={10000000} step={1000} onChange={setInitialB} prefix="$" formatDisplay={formatNumber} />
+                <SliderInput label="Final Value" id="roi-final-b" value={finalB} min={0} max={20000000} step={1000} onChange={setFinalB} prefix="$" formatDisplay={formatNumber} />
                 <SliderInput label="Dividends / Income Received" id="roi-div-b" value={dividendsB} min={0} max={100000} step={50} onChange={setDividendsB} prefix="$" formatDisplay={formatNumber} />
                 <SliderInput label="Time Held (Years)" id="roi-years-b" value={yearsB} min={0.25} max={50} step={0.25} onChange={setYearsB} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} />
               </div>
@@ -162,7 +167,7 @@ export default function RoiCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           {/* Investment A results */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{showComparison ? 'Investment A — ' : ''}Total Return</p>
@@ -170,7 +175,7 @@ export default function RoiCalc() {
               {animatedTotalReturn.toFixed(2)}%
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              {resultA.totalGain >= 0 ? 'Gained' : 'Lost'} {formatCurrency(Math.abs(resultA.totalGain))} over {yearsHeld} year{yearsHeld !== 1 ? 's' : ''}
+              {resultA.totalGain >= 0 ? 'Gained' : 'Lost'} {fmt(Math.abs(resultA.totalGain))} over {yearsHeld} year{yearsHeld !== 1 ? 's' : ''}
             </p>
           </div>
 
@@ -189,7 +194,7 @@ export default function RoiCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
                 <p className={`text-lg font-semibold tabular-nums ${resultA.totalGain >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
-                  {formatCurrency(resultA.totalGain)}
+                  {fmt(resultA.totalGain)}
                 </p>
               </div>
             </div>
@@ -205,7 +210,7 @@ export default function RoiCalc() {
                   {fmtPct(resultB.totalReturn)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1 leading-relaxed">
-                  {resultB.totalGain >= 0 ? 'Gained' : 'Lost'} {formatCurrency(Math.abs(resultB.totalGain))} over {yearsB} year{yearsB !== 1 ? 's' : ''}
+                  {resultB.totalGain >= 0 ? 'Gained' : 'Lost'} {fmt(Math.abs(resultB.totalGain))} over {yearsB} year{yearsB !== 1 ? 's' : ''}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-6">
@@ -223,7 +228,7 @@ export default function RoiCalc() {
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
                     <p className={`text-lg font-semibold tabular-nums ${resultB.totalGain >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
-                      {formatCurrency(resultB.totalGain)}
+                      {fmt(resultB.totalGain)}
                     </p>
                   </div>
                 </div>
@@ -266,7 +271,7 @@ export default function RoiCalc() {
                   />
                   <Bar dataKey="Total Return" radius={[6, 6, 0, 0]} maxBarSize={60}>
                     {chartData.map((_, i) => (
-                      <Cell key={i} fill={i === 0 ? '#2563EB' : '#7C3AED'} />
+                      <Cell key={i} fill={i === 0 ? '#0B6E6E' : '#7C3AED'} />
                     ))}
                   </Bar>
                   <Bar dataKey="Annualized" radius={[6, 6, 0, 0]} maxBarSize={60}>

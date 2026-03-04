@@ -5,114 +5,123 @@ import ToolIcon from '@components/ui/ToolIcon.astro';
 
 <BaseLayout
   title="About CalcRun"
-  description="CalcRun offers free financial calculators, file converters, and utility tools. Clear explanations, interactive charts. No signup, no ads."
+  description="CalcRun builds free financial calculators with cited sources, current tax rates, and no signup. Learn how our tools work and how we're funded."
 >
   {/* Page header */}
-  <section class="bg-[linear-gradient(135deg,#0A2540_0%,#1A3A5C_50%,#0A2540_100%)] py-12 sm:py-16">
+  <section class="bg-[linear-gradient(135deg,#0F1B2D_0%,#0A4444_50%,#0F1B2D_100%)] py-12 sm:py-16">
     <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3">About CalcRun</h1>
       <p class="text-lg text-primary-200/90">
-        Free tools that help you see your numbers clearly.
+        Financial calculators that show their working.
       </p>
     </div>
   </section>
 
   <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    {/* Mission card — hero treatment */}
-    <div class="bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-2xl p-6 sm:p-8 mb-12">
-      <div class="flex items-start gap-4">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-500 text-white shrink-0">
-          <ToolIcon name="target" size={24} />
-        </div>
-        <div>
-          <h2 class="text-xl font-bold text-neutral-900 mb-2">Our Mission</h2>
-          <p class="text-neutral-700 leading-relaxed">
-            CalcRun exists to make financial math simple. Every calculator is free, instant, and
-            private — we never ask for your data or bury results behind signup forms.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    {/* Feature cards grid */}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-12">
-      <div class="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card">
-        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-accent-600 mb-4">
-          <ToolIcon name="zap" size={20} />
-        </div>
-        <h3 class="text-base font-bold text-neutral-900 mb-2">Instant Results</h3>
-        <p class="text-sm text-neutral-600 leading-relaxed">
-          All calculations run client-side in your browser. Results update in real-time as you type — no waiting, no loading screens.
-        </p>
-      </div>
-
-      <div class="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card">
-        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-accent-600 mb-4">
-          <ToolIcon name="lock" size={20} />
-        </div>
-        <h3 class="text-base font-bold text-neutral-900 mb-2">Fully Private</h3>
-        <p class="text-sm text-neutral-600 leading-relaxed">
-          Your financial data never leaves your device. We never see, store, or transmit the numbers you enter into our calculators.
-        </p>
-      </div>
-
-      <div class="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card">
-        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-accent-600 mb-4">
-          <ToolIcon name="ban" size={20} />
-        </div>
-        <h3 class="text-base font-bold text-neutral-900 mb-2">No Ads or Clutter</h3>
-        <p class="text-sm text-neutral-600 leading-relaxed">
-          Other financial sites gate results behind account forms or sell your information. We don't. Clean tools, clear results.
-        </p>
-      </div>
-
-      <div class="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card">
-        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-accent-600 mb-4">
-          <ToolIcon name="heart-handshake" size={20} />
-        </div>
-        <h3 class="text-base font-bold text-neutral-900 mb-2">Honest Recommendations</h3>
-        <p class="text-sm text-neutral-600 leading-relaxed">
-          We earn commissions from affiliate links — this costs you nothing and keeps our tools free. The math is the math.
-        </p>
-      </div>
-    </div>
+    {/* What we build */}
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-neutral-900 mb-4">What we build</h2>
+      <p class="text-neutral-700 leading-relaxed mb-4">
+        CalcRun offers 37 free tools across six categories: savings and growth calculators,
+        debt and loan tools, income and tax planning, economic indicators, developer utilities,
+        and file converters. Every financial calculator includes interactive charts, a year-by-year
+        breakdown table, and educational content explaining the underlying formulas.
+      </p>
+      <p class="text-neutral-700 leading-relaxed">
+        UK tax calculators use 2025/26 HMRC rates. US tax calculators use 2025 IRS brackets.
+        Rate-dependent tools display their data sources and the date we last verified them.
+      </p>
+    </section>
 
     {/* Gradient divider */}
     <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-12"></div>
 
-    {/* How We Make Money — transparency builds trust */}
+    {/* How privacy works */}
+    <section class="mb-12">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-50 text-primary-600 shrink-0">
+          <ToolIcon name="lock" size={20} />
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-neutral-900 mb-2">How privacy works</h2>
+          <p class="text-neutral-700 leading-relaxed">
+            All calculations run client-side in your browser. The numbers you type into a calculator
+            never leave your device — we cannot see them. We use Google Analytics for aggregate
+            traffic data (page views, country). We do not sell data or run tracking pixels for ad networks.
+            Read our <a href="/privacy" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">privacy policy</a> for full details.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {/* How it's funded */}
     <section class="mb-12">
       <div class="flex items-start gap-4 mb-4">
         <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-100 text-neutral-600 shrink-0">
           <ToolIcon name="scale" size={20} />
         </div>
         <div>
-          <h2 class="text-xl font-bold text-neutral-900 mb-2">How We Make Money</h2>
+          <h2 class="text-xl font-bold text-neutral-900 mb-2">How it's funded</h2>
           <p class="text-neutral-700 leading-relaxed">
-            We earn commissions when you click affiliate links to financial products. This costs you
-            nothing extra and helps keep our tools free. We never recommend a product just to earn a
-            commission. See our
+            Some calculator pages include affiliate links to financial products. If you click through
+            and open an account, we may earn a commission at no extra cost to you. Calculator results
+            are never affected by affiliate partnerships — the same formula runs regardless of which
+            links appear on the page. See our
             <a href="/disclosure" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">
-              full affiliate disclosure
+              affiliate disclosure
             </a>
-            for details.
+            for the full list of partners.
           </p>
         </div>
       </div>
     </section>
 
-    {/* What We Don't Do */}
+    {/* Gradient divider */}
+    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-12"></div>
+
+    {/* Editorial standards */}
+    <section class="bg-neutral-50 border border-neutral-200/80 rounded-2xl p-6 sm:p-8 mb-12">
+      <div class="flex items-start gap-4">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-100 text-primary-700 shrink-0">
+          <ToolIcon name="book-open" size={20} />
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-neutral-900 mb-3">Editorial standards</h2>
+          <ul class="space-y-2.5 text-neutral-700 text-sm leading-relaxed">
+            <li class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" /></svg>
+              <span><strong>Cited sources.</strong> Tax rates, thresholds, and pension figures link to the official government source (GOV.UK, IRS, SSA).</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" /></svg>
+              <span><strong>Last-checked dates.</strong> Every rate-dependent calculator shows when we last verified its data against official sources.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" /></svg>
+              <span><strong>Formula transparency.</strong> Each calculator identifies its calculation method so you can verify the maths independently.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" /></svg>
+              <span><strong>Corrections.</strong> If you find an error, email <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline">hello@calcrun.com</a> and we'll fix it within 24 hours.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    {/* Disclaimer */}
     <section class="bg-neutral-50 border border-neutral-200/80 rounded-2xl p-6 sm:p-8">
       <div class="flex items-start gap-4">
         <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-200 text-neutral-600 shrink-0">
           <ToolIcon name="info" size={20} />
         </div>
         <div>
-          <h2 class="text-xl font-bold text-neutral-900 mb-2">What We Don't Do</h2>
+          <h2 class="text-xl font-bold text-neutral-900 mb-2">Not financial advice</h2>
           <p class="text-neutral-700 leading-relaxed">
-            We don't provide personalized financial advice. We build tools that help you understand
-            the math behind financial decisions. For advice tailored to your specific situation,
-            consult a qualified financial advisor.
+            CalcRun provides educational tools, not personalised financial advice. Calculators use
+            general formulas and published tax rates — they cannot account for your complete financial
+            situation. For decisions about investing, tax planning, or pensions, consult a qualified
+            financial adviser.
           </p>
         </div>
       </div>

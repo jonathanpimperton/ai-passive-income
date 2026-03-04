@@ -16,6 +16,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { formatCurrency, formatNumber, loanMonthlyPayment } from '../../lib/calculator-utils';
@@ -39,6 +40,8 @@ const DEFAULTS = {
 };
 
 export default function RentVsBuyCalc() {
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const [homePrice, setHomePrice] = useState(DEFAULTS.homePrice);
   const [downPaymentPct, setDownPaymentPct] = useState(DEFAULTS.downPaymentPct);
   const [mortgageRate, setMortgageRate] = useState(DEFAULTS.mortgageRate);
@@ -188,27 +191,27 @@ export default function RentVsBuyCalc() {
 
   const getInputs = useCallback(() => {
     const inputs = [
-      { label: 'Home Price', value: formatCurrency(homePrice) },
-      { label: 'Down Payment', value: `${downPaymentPct}% ($${formatNumber(Math.round(homePrice * downPaymentPct / 100))})` },
+      { label: 'Home Price', value: fmt(homePrice) },
+      { label: 'Down Payment', value: `${downPaymentPct}% (${fmt(Math.round(homePrice * downPaymentPct / 100))})` },
       { label: 'Mortgage Rate', value: `${mortgageRate.toFixed(3)}%` },
       { label: 'Loan Term', value: `${loanTermYears} years` },
-      { label: 'Monthly Rent', value: formatCurrency(monthlyRent) },
+      { label: 'Monthly Rent', value: fmt(monthlyRent) },
       { label: 'Rent Increase', value: `${rentIncrease.toFixed(1)}%/yr` },
       { label: 'Home Appreciation', value: `${homeAppreciation.toFixed(1)}%/yr` },
       { label: 'Property Tax Rate', value: `${propertyTaxRate.toFixed(1)}%` },
-      { label: 'Home Insurance', value: `${formatCurrency(homeInsurance)}/yr` },
+      { label: 'Home Insurance', value: `${fmt(homeInsurance)}/yr` },
       { label: 'Maintenance Rate', value: `${maintenanceRate.toFixed(1)}%` },
       { label: 'Time Horizon', value: `${timeHorizon} years` },
     ];
     return inputs;
-  }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, monthlyRent, rentIncrease, homeAppreciation, propertyTaxRate, homeInsurance, maintenanceRate, timeHorizon]);
+  }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, monthlyRent, rentIncrease, homeAppreciation, propertyTaxRate, homeInsurance, maintenanceRate, timeHorizon, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
-    { label: `Over ${timeHorizon} years, ${analysis.buyWins ? 'buying' : 'renting'} saves you`, value: formatCurrency(analysis.savings), highlight: true },
-    { label: 'Monthly Mortgage', value: formatCurrency(analysis.monthlyMortgage) },
-    { label: 'Monthly Buy Cost (Total)', value: formatCurrency(analysis.monthlyBuyCost) },
-    { label: 'Equity Built', value: formatCurrency(analysis.finalEquity) },
-  ], [timeHorizon, analysis]);
+    { label: `Over ${timeHorizon} years, ${analysis.buyWins ? 'buying' : 'renting'} saves you`, value: fmt(analysis.savings), highlight: true },
+    { label: 'Monthly Mortgage', value: fmt(analysis.monthlyMortgage) },
+    { label: 'Monthly Buy Cost (Total)', value: fmt(analysis.monthlyBuyCost) },
+    { label: 'Equity Built', value: fmt(analysis.finalEquity) },
+  ], [timeHorizon, analysis, currency]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
@@ -227,11 +230,13 @@ export default function RentVsBuyCalc() {
             </button>
           </div>
 
+          <CurrencySelector value={currency} onChange={setCurrency} />
+
           <div className="space-y-5">
             {/* Buy section */}
             <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Buying</p>
-            <SliderInput label="Home Price" id="rvb-price" value={homePrice} min={50000} max={3000000} step={5000} onChange={setHomePrice} prefix="$" formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
-            <SliderInput label="Down Payment" id="rvb-down" value={downPaymentPct} min={0} max={100} step={1} onChange={setDownPaymentPct} suffix="%" formatDisplay={(v) => `${v.toFixed(0)} (${formatCurrency(homePrice * v / 100)})`} hint="Percentage of the price you'll pay upfront — shown in dollars below" />
+            <SliderInput label="Home Price" id="rvb-price" value={homePrice} min={50000} max={10000000} step={10000} onChange={setHomePrice} prefix="$" formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
+            <SliderInput label="Down Payment" id="rvb-down" value={downPaymentPct} min={0} max={100} step={1} onChange={setDownPaymentPct} suffix="%" formatDisplay={(v) => `${v.toFixed(0)} (${fmt(homePrice * v / 100)})`} hint="Percentage of the price you'll pay upfront — shown in dollars below" />
             <SliderInput label="Mortgage Rate" id="rvb-rate" value={mortgageRate} min={2} max={12} step={0.125} onChange={setMortgageRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} hint="Current mortgage interest rates — check bankrate.com" />
             <SliderInput label="Loan Term (Years)" id="rvb-term" value={loanTermYears} min={10} max={30} step={1} onChange={setLoanTermYears} />
 
@@ -239,7 +244,7 @@ export default function RentVsBuyCalc() {
 
             {/* Rent section */}
             <p className="text-xs font-semibold text-accent-600 uppercase tracking-wide">Renting</p>
-            <SliderInput label="Monthly Rent" id="rvb-rent" value={monthlyRent} min={500} max={8000} step={50} onChange={setMonthlyRent} prefix="$" formatDisplay={formatNumber} hint="What you'd pay monthly to rent a comparable home" />
+            <SliderInput label="Monthly Rent" id="rvb-rent" value={monthlyRent} min={500} max={15000} step={50} onChange={setMonthlyRent} prefix="$" formatDisplay={formatNumber} hint="What you'd pay monthly to rent a comparable home" />
             <SliderInput label="Annual Rent Increase" id="rvb-rent-inc" value={rentIncrease} min={0} max={10} step={0.5} onChange={setRentIncrease} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="How much rent goes up each year — ~3% is typical" />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
@@ -272,14 +277,14 @@ export default function RentVsBuyCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           {/* Verdict */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">
               Over {timeHorizon} years, {analysis.buyWins ? 'buying' : 'renting'} saves you
             </p>
             <p className={`text-3xl sm:text-4xl font-bold tabular-nums result-number`}>
-              {formatCurrency(animatedSavings)}
+              {fmt(animatedSavings)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               {analysis.breakEvenYear
@@ -298,7 +303,7 @@ export default function RentVsBuyCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Monthly Mortgage</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(animatedMortgage)}</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(animatedMortgage)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
@@ -307,7 +312,7 @@ export default function RentVsBuyCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Monthly Buy Cost</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(animatedBuyCost)}</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(animatedBuyCost)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
@@ -316,7 +321,7 @@ export default function RentVsBuyCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Equity at Year {timeHorizon}</p>
-                <p className="text-lg font-semibold text-accent-600 tabular-nums">{formatCurrency(animatedEquity)}</p>
+                <p className="text-lg font-semibold text-accent-600 tabular-nums">{fmt(animatedEquity)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
@@ -325,7 +330,7 @@ export default function RentVsBuyCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Down Payment</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(animatedDownPayment)}</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(animatedDownPayment)}</p>
               </div>
             </div>
           </div>
@@ -346,12 +351,12 @@ export default function RentVsBuyCalc() {
                 <AreaChart data={analysis.yearData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <defs>
                     <linearGradient id="rvbBuy" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.12} />
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.12} />
+                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="rvbRent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.12} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.12} />
+                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -363,15 +368,13 @@ export default function RentVsBuyCalc() {
                     label={{ value: 'Year', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: '#9CA3AF' }}
                   />
                   <YAxis
-                    tickFormatter={(v: number) =>
-                      `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`
-                    }
+                    tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip content={<ChartTooltip formatValue={fmt} />} />
                   <Legend verticalAlign="top" height={30} />
                   {analysis.breakEvenYear && (
                     <ReferenceLine
@@ -382,8 +385,8 @@ export default function RentVsBuyCalc() {
                       label={{ value: 'Break-even', position: 'top', fill: '#F59E0B', fontSize: 11, fontWeight: 600 }}
                     />
                   )}
-                  <Area type="monotone" dataKey="totalCostBuy" name="Buy (Net Cost)" stroke="#2563EB" strokeWidth={2} fill="url(#rvbBuy)" animationDuration={600} />
-                  <Area type="monotone" dataKey="totalCostRent" name="Rent (Net Cost)" stroke="#10B981" strokeWidth={2} fill="url(#rvbRent)" animationDuration={600} />
+                  <Area type="monotone" dataKey="totalCostBuy" name="Buy (Net Cost)" stroke="#0B6E6E" strokeWidth={2} fill="url(#rvbBuy)" animationDuration={600} />
+                  <Area type="monotone" dataKey="totalCostRent" name="Rent (Net Cost)" stroke="#22A06B" strokeWidth={2} fill="url(#rvbRent)" animationDuration={600} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

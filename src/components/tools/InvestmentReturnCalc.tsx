@@ -25,6 +25,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
@@ -67,6 +68,8 @@ const DEFAULTS = {
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function InvestmentReturnCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const [mode, setMode] = useState<SolveMode>('endAmount');
   const [principal, setPrincipal] = useState(DEFAULTS.principal);
   const [monthly, setMonthly] = useState(DEFAULTS.monthly);
@@ -86,8 +89,8 @@ export default function InvestmentReturnCalc() {
           return {
             label: 'End Amount',
             value: endAmount,
-            formatted: formatCurrency(endAmount),
-            context: `After investing ${formatCurrency(monthly)}/mo for ${years} year${years !== 1 ? 's' : ''} at ${rate}% return`,
+            formatted: fmt(endAmount),
+            context: `After investing ${fmt(monthly)}/mo for ${years} year${years !== 1 ? 's' : ''} at ${rate}% return`,
             chartYears: years,
           };
         }
@@ -97,8 +100,8 @@ export default function InvestmentReturnCalc() {
           return {
             label: 'Monthly Contribution',
             value: clamped,
-            formatted: formatCurrency(clamped),
-            context: `To reach ${formatCurrency(target)} in ${years} year${years !== 1 ? 's' : ''} starting from ${formatCurrency(principal)} at ${rate}%`,
+            formatted: fmt(clamped),
+            context: `To reach ${fmt(target)} in ${years} year${years !== 1 ? 's' : ''} starting from ${fmt(principal)} at ${rate}%`,
             chartYears: years,
           };
         }
@@ -113,7 +116,7 @@ export default function InvestmentReturnCalc() {
             value: pct,
             formatted: reachable ? `${pct.toFixed(2)}%` : 'Not achievable',
             context: reachable
-              ? `To grow ${formatCurrency(principal)} + ${formatCurrency(monthly)}/mo to ${formatCurrency(target)} in ${years} year${years !== 1 ? 's' : ''}`
+              ? `To grow ${fmt(principal)} + ${fmt(monthly)}/mo to ${fmt(target)} in ${years} year${years !== 1 ? 's' : ''}`
               : `Target requires a return rate exceeding 100% annually`,
             chartYears: years,
           };
@@ -124,8 +127,8 @@ export default function InvestmentReturnCalc() {
           return {
             label: 'Starting Amount',
             value: clamped,
-            formatted: formatCurrency(clamped),
-            context: `To reach ${formatCurrency(target)} in ${years} year${years !== 1 ? 's' : ''} with ${formatCurrency(monthly)}/mo at ${rate}%`,
+            formatted: fmt(clamped),
+            context: `To reach ${fmt(target)} in ${years} year${years !== 1 ? 's' : ''} with ${fmt(monthly)}/mo at ${rate}%`,
             chartYears: years,
           };
         }
@@ -136,7 +139,7 @@ export default function InvestmentReturnCalc() {
               label: 'Time Required',
               value: Infinity,
               formatted: 'Not reachable',
-              context: `Target of ${formatCurrency(target)} is not reachable with current inputs`,
+              context: `Target of ${fmt(target)} is not reachable with current inputs`,
               chartYears: 1,
             };
           }
@@ -150,7 +153,7 @@ export default function InvestmentReturnCalc() {
               remainderMonths > 0
                 ? `${wholeYears} yr${wholeYears !== 1 ? 's' : ''} ${remainderMonths} mo`
                 : `${wholeYears} year${wholeYears !== 1 ? 's' : ''}`,
-            context: `To grow ${formatCurrency(principal)} + ${formatCurrency(monthly)}/mo to ${formatCurrency(target)} at ${rate}%`,
+            context: `To grow ${fmt(principal)} + ${fmt(monthly)}/mo to ${fmt(target)} at ${rate}%`,
             chartYears: Math.ceil(clamped) || 1,
           };
         }
@@ -216,10 +219,10 @@ export default function InvestmentReturnCalc() {
       { label: 'Solve For', value: modeLabel },
     ];
     if (mode !== 'startingAmount') {
-      inputs.push({ label: 'Starting Amount', value: `$${formatNumber(principal)}` });
+      inputs.push({ label: 'Starting Amount', value: fmt(principal) });
     }
     if (mode !== 'contribution') {
-      inputs.push({ label: 'Monthly Contribution', value: `$${formatNumber(monthly)}` });
+      inputs.push({ label: 'Monthly Contribution', value: fmt(monthly) });
     }
     if (mode !== 'returnRate') {
       inputs.push({ label: 'Expected Annual Return', value: `${rate}%` });
@@ -228,19 +231,19 @@ export default function InvestmentReturnCalc() {
       inputs.push({ label: 'Time Period', value: `${years} year${years !== 1 ? 's' : ''}` });
     }
     if (mode !== 'endAmount') {
-      inputs.push({ label: 'Target Amount', value: `$${formatNumber(target)}` });
+      inputs.push({ label: 'Target Amount', value: fmt(target) });
     }
     inputs.push({ label: 'Compounding Frequency', value: freqLabel });
     inputs.push({ label: 'Contribution Timing', value: timingLabel });
     return inputs;
-  }, [mode, principal, monthly, rate, years, target, frequency, timing]);
+  }, [mode, principal, monthly, rate, years, target, frequency, timing, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
     { label: result.label, value: result.formatted, highlight: true },
-    { label: 'Final Balance', value: formatCurrency(summary.finalBalance) },
-    { label: 'Total Contributions', value: formatCurrency(summary.totalContributions) },
-    { label: 'Total Earnings', value: formatCurrency(summary.totalEarnings) },
-  ], [result, summary]);
+    { label: 'Final Balance', value: fmt(summary.finalBalance) },
+    { label: 'Total Contributions', value: fmt(summary.totalContributions) },
+    { label: 'Total Earnings', value: fmt(summary.totalEarnings) },
+  ], [result, summary, currency]);
 
   /* ── Reset ──────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
@@ -257,7 +260,7 @@ export default function InvestmentReturnCalc() {
   const animatedValue = useAnimatedNumber(result.value);
   const animatedFormatted = (() => {
     const isCurrency = mode === 'endAmount' || mode === 'contribution' || mode === 'startingAmount';
-    if (isCurrency) return formatCurrency(animatedValue);
+    if (isCurrency) return fmt(animatedValue);
     return result.formatted;
   })();
 
@@ -274,8 +277,8 @@ export default function InvestmentReturnCalc() {
           id="ir-principal"
           value={principal}
           min={0}
-          max={1000000}
-          step={500}
+          max={10000000}
+          step={5000}
           onChange={setPrincipal}
           prefix="$"
           formatDisplay={(v) => formatNumber(v)}
@@ -292,8 +295,8 @@ export default function InvestmentReturnCalc() {
           id="ir-monthly"
           value={monthly}
           min={0}
-          max={10000}
-          step={50}
+          max={50000}
+          step={100}
           onChange={setMonthly}
           prefix="$"
           formatDisplay={(v) => formatNumber(v)}
@@ -328,7 +331,7 @@ export default function InvestmentReturnCalc() {
           id="ir-years"
           value={years}
           min={1}
-          max={50}
+          max={100}
           step={1}
           onChange={setYears}
         />
@@ -344,8 +347,8 @@ export default function InvestmentReturnCalc() {
           id="ir-target"
           value={target}
           min={1000}
-          max={2000000}
-          step={1000}
+          max={10000000}
+          step={5000}
           onChange={setTarget}
           prefix="$"
           formatDisplay={(v) => formatNumber(v)}
@@ -358,6 +361,9 @@ export default function InvestmentReturnCalc() {
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-2xl shadow-card overflow-hidden">
+      <div className="px-6 pt-6 lg:px-8 lg:pt-8">
+        <CurrencySelector value={currency} onChange={setCurrency} />
+      </div>
       {/* ── Tab Bar ─────────────────────────────────────── */}
       <div className="border-b border-neutral-200/80">
         <div className="flex overflow-x-auto" role="tablist" aria-label="Solve for variable">
@@ -474,7 +480,7 @@ export default function InvestmentReturnCalc() {
         </div>
 
         {/* ── Results Panel ─────────────────────────────── */}
-        <div id="ir-results" ref={resultsRef} role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="ir-results" ref={resultsRef} role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite">
           {/* Big Number */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{result.label}</p>
@@ -485,7 +491,7 @@ export default function InvestmentReturnCalc() {
           </div>
 
           {/* Summary Breakdown */}
-          <div data-pdf-section className="grid grid-cols-3 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <TrendingUp size={16} aria-hidden="true" />
@@ -493,7 +499,7 @@ export default function InvestmentReturnCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Final Balance</p>
                 <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">
-                  {formatCurrency(summary.finalBalance)}
+                  {fmt(summary.finalBalance)}
                 </p>
               </div>
             </div>
@@ -504,7 +510,7 @@ export default function InvestmentReturnCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Invested</p>
                 <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">
-                  {formatCurrency(summary.totalContributions)}
+                  {fmt(summary.totalContributions)}
                 </p>
               </div>
             </div>
@@ -515,7 +521,7 @@ export default function InvestmentReturnCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Earnings</p>
                 <p className="text-base sm:text-lg font-semibold text-accent-600 tabular-nums">
-                  {formatCurrency(summary.totalEarnings)}
+                  {fmt(summary.totalEarnings)}
                 </p>
               </div>
             </div>
@@ -537,12 +543,12 @@ export default function InvestmentReturnCalc() {
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <defs>
                     <linearGradient id="irColorBalance" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="irColorContrib" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -553,26 +559,18 @@ export default function InvestmentReturnCalc() {
                     axisLine={{ stroke: '#E5E7EB' }}
                   />
                   <YAxis
-                    tickFormatter={(v: number) =>
-                      `$${
-                        v >= 1000000
-                          ? `${(v / 1000000).toFixed(1)}M`
-                          : v >= 1000
-                            ? `${(v / 1000).toFixed(0)}K`
-                            : v
-                      }`
-                    }
+                    tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip content={<ChartTooltip formatValue={fmt} />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
                   <Area
                     type="monotone"
                     dataKey="Total Balance"
-                    stroke="#2563EB"
+                    stroke="#0B6E6E"
                     strokeWidth={2}
                     fill="url(#irColorBalance)"
                     animationDuration={600}
@@ -580,7 +578,7 @@ export default function InvestmentReturnCalc() {
                   <Area
                     type="monotone"
                     dataKey="Contributions"
-                    stroke="#10B981"
+                    stroke="#22A06B"
                     strokeWidth={2}
                     fill="url(#irColorContrib)"
                     animationDuration={600}
@@ -593,7 +591,7 @@ export default function InvestmentReturnCalc() {
           {/* Year-by-Year Table */}
           <div data-pdf-section>
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Year-by-Year Breakdown</h3>
-            <ScheduleTable chartData={chartData} />
+            <ScheduleTable chartData={chartData} cc={currency} />
           </div>
         </div>
       </div>
@@ -604,10 +602,13 @@ export default function InvestmentReturnCalc() {
 /* ── Schedule Table ───────────────────────────────────────── */
 function ScheduleTable({
   chartData,
+  cc,
 }: {
   chartData: Array<{ year: number; 'Total Balance': number; Contributions: number }>;
+  cc: string;
 }) {
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
+  const fmt = (v: number) => formatCurrency(v, cc);
 
   // Skip year 0 (starting point)
   const rows = chartData.filter((row) => row.year > 0);
@@ -669,13 +670,13 @@ function ScheduleTable({
                     </span>
                   </td>
                   <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">
-                    {formatCurrency(row['Total Balance'])}
+                    {fmt(row['Total Balance'])}
                   </td>
                   <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
-                    {formatCurrency(row.Contributions)}
+                    {fmt(row.Contributions)}
                   </td>
                   <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums hidden sm:table-cell">
-                    {formatCurrency(earnings)}
+                    {fmt(earnings)}
                   </td>
                 </tr>
                 {isExpanded && (
@@ -685,25 +686,25 @@ function ScheduleTable({
                         <div>
                           <p className="text-neutral-500 mb-0.5">Starting Balance</p>
                           <p className="font-semibold text-neutral-900 tabular-nums">
-                            {formatCurrency(startBalance)}
+                            {fmt(startBalance)}
                           </p>
                         </div>
                         <div>
                           <p className="text-neutral-500 mb-0.5">Year Contributions</p>
                           <p className="font-semibold text-neutral-900 tabular-nums">
-                            +{formatCurrency(yearContributions)}
+                            +{fmt(yearContributions)}
                           </p>
                         </div>
                         <div>
                           <p className="text-neutral-500 mb-0.5">Year Earnings</p>
                           <p className="font-semibold text-accent-600 tabular-nums">
-                            +{formatCurrency(yearEarnings)}
+                            +{fmt(yearEarnings)}
                           </p>
                         </div>
                         <div>
                           <p className="text-neutral-500 mb-0.5">Ending Balance</p>
                           <p className="font-semibold text-primary-700 tabular-nums">
-                            {formatCurrency(row['Total Balance'])}
+                            {fmt(row['Total Balance'])}
                           </p>
                         </div>
                       </div>

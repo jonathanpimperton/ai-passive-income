@@ -48,7 +48,7 @@ export default function QrCodeGenerator() {
         margin: 2,
         width: qrSize,
         color: {
-          dark: '#0A2540',
+          dark: '#0F1B2D',
           light: '#FFFFFF',
         },
       };

@@ -2,7 +2,7 @@
 name: "Debt Payoff Calculator"
 slug: "debt-payoff"
 category: "debt-and-loans"
-description: "Find out when you'll be debt-free. Compare snowball vs avalanche methods, see total interest saved, and get a personalized payoff plan — free, no signup."
+description: "Compare snowball vs avalanche payoff strategies. See total interest saved and payoff timeline."
 keywords:
   - "debt payoff calculator"
   - "debt repayment calculator"
@@ -19,6 +19,7 @@ affiliateContext: "Ready to pay off debt faster? Consolidate with a lower rate"
 affiliatePrograms:
   - "SoFi"
   - "LendingClub"
+calculationMethod: "Compares avalanche (highest rate first) and snowball (lowest balance first) strategies"
 faq:
   - question: "What is the snowball vs avalanche method?"
     answer: "The snowball method pays off your smallest balance first for quick psychological wins. The avalanche method pays off your highest interest rate first to minimize total interest paid. Mathematically, avalanche saves more money. Behaviorally, snowball has a higher completion rate because the early wins keep you motivated."

@@ -48,6 +48,16 @@ const tools = defineCollection({
         })
       )
       .optional(),
+    lastUpdated: z.string().optional(),
+    dataSources: z
+      .array(
+        z.object({
+          name: z.string(),
+          url: z.string(),
+        })
+      )
+      .optional(),
+    calculationMethod: z.string().optional(),
   }),
 });
 

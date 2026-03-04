@@ -2,7 +2,7 @@
 name: "Mortgage Payment Calculator"
 slug: "mortgage-payment"
 category: "debt-and-loans"
-description: "Calculate your monthly mortgage payment, total interest paid, and full amortization schedule. See how extra payments save you thousands — free, no signup."
+description: "Enter loan amount, rate, and term to see monthly repayments, total interest, and amortization."
 keywords:
   - "mortgage calculator"
   - "mortgage payment calculator"
@@ -21,6 +21,10 @@ relatedTools:
   - "savings-goal"
   - "compound-interest"
   - "salary-us"
+lastUpdated: "2026-03-04"
+dataSources:
+  - name: "Standard mortgage amortization formula"
+    url: "https://www.investopedia.com/terms/a/amortization.asp"
 faq:
   - question: "How is a monthly mortgage payment calculated?"
     answer: "The standard formula is M = P[r(1+r)^n]/[(1+r)^n – 1], where P is the loan principal, r is the monthly interest rate (annual rate ÷ 12), and n is the total number of payments (years × 12). On a $300,000 loan at 7% for 30 years, the monthly principal and interest payment is $1,996. This doesn't include property taxes, homeowners insurance, or PMI, which can add $300-$800/month."

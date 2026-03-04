@@ -2,7 +2,7 @@
 name: "Savings Goal Calculator"
 slug: "savings-goal"
 category: "saving-and-growth"
-description: "Calculate how much to save per month to reach your goal. Set a target amount and date, see your savings timeline with interest — free, no signup."
+description: "Calculate how much to save each month to hit a target amount by a specific date."
 keywords:
   - "savings calculator"
   - "savings goal calculator"
@@ -19,6 +19,7 @@ affiliateContext: "Reach your goal faster with a high-yield savings account"
 affiliatePrograms:
   - "Wealthfront"
   - "Ally"
+calculationMethod: "Uses present value formula to calculate required savings"
 faq:
   - question: "How much should I save each month?"
     answer: "The 50/30/20 rule suggests putting 20% of your after-tax income toward savings and debt repayment. But the right amount depends on your specific goal, timeline, and current savings. Our calculator works backward from your goal to tell you exactly how much you need each month."

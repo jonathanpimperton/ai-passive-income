@@ -24,6 +24,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
@@ -38,8 +39,9 @@ interface YearGroup {
   months: Array<{ month: number; payment: number; principal: number; interest: number; balance: number }>;
 }
 
-function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
+function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string }) {
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
+  const fmt = (v: number) => formatCurrency(v, cc);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-neutral-200/80">
@@ -73,16 +75,16 @@ function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
                     {group.year}
                   </span>
                 </td>
-                <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums">{formatCurrency(group.totalPrincipal)}</td>
-                <td className="py-2.5 px-4 text-right text-negative-600 tabular-nums">{formatCurrency(group.totalInterest)}</td>
-                <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums hidden sm:table-cell">{formatCurrency(group.endBalance)}</td>
+                <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums">{fmt(group.totalPrincipal)}</td>
+                <td className="py-2.5 px-4 text-right text-negative-600 tabular-nums">{fmt(group.totalInterest)}</td>
+                <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums hidden sm:table-cell">{fmt(group.endBalance)}</td>
               </tr>
               {expandedYear === group.year && group.months.map((m) => (
                 <tr key={`month-${m.month}`} className="bg-primary-50/30 border-b border-primary-100/50">
                   <td className="py-1.5 px-4 pl-10 text-xs text-neutral-500 tabular-nums">Month {m.month}</td>
-                  <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums">{formatCurrency(m.principal)}</td>
-                  <td className="py-1.5 px-4 text-right text-xs text-negative-600 tabular-nums">{formatCurrency(m.interest)}</td>
-                  <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums hidden sm:table-cell">{formatCurrency(m.balance)}</td>
+                  <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums">{fmt(m.principal)}</td>
+                  <td className="py-1.5 px-4 text-right text-xs text-negative-600 tabular-nums">{fmt(m.interest)}</td>
+                  <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums hidden sm:table-cell">{fmt(m.balance)}</td>
                 </tr>
               ))}
             </Fragment>
@@ -94,13 +96,15 @@ function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
 }
 
 /* ── Pie chart colors ─────────────────────────────────────── */
-const PIE_COLORS = ['#2563EB', '#EF4444'];
+const PIE_COLORS = ['#0B6E6E', '#EF4444'];
 
 /* ── Main Calculator ──────────────────────────────────────── */
 const DEFAULTS = { loanAmount: 300000, annualRate: 6.5, termYears: 30, extraPayment: 0 };
 
 export default function LoanAmortizationCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const [loanAmount, setLoanAmount] = useState(DEFAULTS.loanAmount);
   const [rate, setRate] = useState(DEFAULTS.annualRate);
   const [termYears, setTermYears] = useState(DEFAULTS.termYears);
@@ -199,21 +203,21 @@ export default function LoanAmortizationCalc() {
 
   const getInputs = useCallback(() => {
     const inputs = [
-      { label: 'Loan Amount', value: `$${formatNumber(loanAmount)}` },
+      { label: 'Loan Amount', value: fmt(loanAmount) },
       { label: 'Annual Interest Rate', value: `${rate}%` },
       { label: 'Loan Term', value: `${termYears} year${termYears !== 1 ? 's' : ''}` },
     ];
     if (extraPayment > 0) {
-      inputs.push({ label: 'Extra Monthly Payment', value: `$${formatNumber(extraPayment)}` });
+      inputs.push({ label: 'Extra Monthly Payment', value: fmt(extraPayment) });
     }
     return inputs;
-  }, [loanAmount, rate, termYears, extraPayment]);
+  }, [loanAmount, rate, termYears, extraPayment, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
-    { label: 'Monthly Payment', value: formatCurrency(monthlyPayment), highlight: true },
-    { label: 'Total Interest', value: formatCurrency(totalInterest) },
-    { label: 'Total Cost', value: formatCurrency(totalCost) },
-  ], [monthlyPayment, totalInterest, totalCost]);
+    { label: 'Monthly Payment', value: fmt(monthlyPayment), highlight: true },
+    { label: 'Total Interest', value: fmt(totalInterest) },
+    { label: 'Total Cost', value: fmt(totalCost) },
+  ], [monthlyPayment, totalInterest, totalCost, currency]);
 
   const handleReset = useCallback(() => {
     setLoanAmount(DEFAULTS.loanAmount);
@@ -235,9 +239,12 @@ export default function LoanAmortizationCalc() {
               <RotateCcw size={12} aria-hidden="true" /> Reset
             </button>
           </div>
+
+          <CurrencySelector value={currency} onChange={setCurrency} />
+
           <div className="space-y-5">
             <SliderInput label="Loan Amount" id="la-amount" value={loanAmount}
-              min={1000} max={2000000} step={5000} onChange={setLoanAmount}
+              min={1000} max={10000000} step={10000} onChange={setLoanAmount}
               prefix="$" formatDisplay={(v) => formatNumber(v)} hint="Total amount you're borrowing" />
             <SliderInput label="Annual Interest Rate" id="la-rate" value={rate}
               min={0.1} max={20} step={0.1} onChange={setRate}
@@ -263,29 +270,29 @@ export default function LoanAmortizationCalc() {
         </div>
 
         {/* ── Results ────────────────────────────────── */}
-        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite">
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Monthly Payment</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {formatCurrency(useAnimatedNumber(monthlyPayment))}
+              {fmt(useAnimatedNumber(monthlyPayment))}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               {extraPayment > 0 ? (
-                <>Paying {formatCurrency(extraPayment)} extra/mo saves {formatCurrency(interestSaved)} in interest and {monthsSaved} month{monthsSaved !== 1 ? 's' : ''}</>
+                <>Paying {fmt(extraPayment)} extra/mo saves {fmt(interestSaved)} in interest and {monthsSaved} month{monthsSaved !== 1 ? 's' : ''}</>
               ) : (
-                <>You&apos;ll pay {formatCurrency(totalInterest)} in total interest over {termYears} years</>
+                <>You&apos;ll pay {fmt(totalInterest)} in total interest over {termYears} years</>
               )}
             </p>
           </div>
 
-          <div data-pdf-section className="grid grid-cols-3 gap-3 mb-6">
+          <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Banknote size={16} aria-hidden="true" />
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Principal</p>
-                <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(loanAmount)}</p>
+                <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{fmt(loanAmount)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
@@ -294,7 +301,7 @@ export default function LoanAmortizationCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Interest</p>
-                <p className="text-base sm:text-lg font-semibold text-negative-600 tabular-nums">{formatCurrency(totalInterest)}</p>
+                <p className="text-base sm:text-lg font-semibold text-negative-600 tabular-nums">{fmt(totalInterest)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
@@ -303,7 +310,7 @@ export default function LoanAmortizationCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Cost</p>
-                <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(totalCost)}</p>
+                <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{fmt(totalCost)}</p>
               </div>
             </div>
           </div>
@@ -329,7 +336,7 @@ export default function LoanAmortizationCalc() {
                         <Cell key={idx} fill={PIE_COLORS[idx]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                    <Tooltip formatter={(v: number) => fmt(v)} />
                     <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" iconSize={8} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -342,10 +349,10 @@ export default function LoanAmortizationCalc() {
                   <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                     <XAxis dataKey="year" tick={{ fontSize: 10, fill: '#6B7280' }} tickLine={false} />
-                    <YAxis tickFormatter={(v: number) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`}
+                    <YAxis tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
                       tick={{ fontSize: 10, fill: '#6B7280' }} tickLine={false} axisLine={false} width={45} />
-                    <Tooltip content={<ChartTooltip />} />
-                    <Area type="monotone" dataKey="Remaining Balance" stroke="#2563EB" strokeWidth={2} fill="#2563EB" fillOpacity={0.1} animationDuration={600} />
+                    <Tooltip content={<ChartTooltip formatValue={fmt} />} />
+                    <Area type="monotone" dataKey="Remaining Balance" stroke="#0B6E6E" strokeWidth={2} fill="#0B6E6E" fillOpacity={0.1} animationDuration={600} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -355,7 +362,7 @@ export default function LoanAmortizationCalc() {
           {/* Amortization Table */}
           <div data-pdf-section>
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Amortization Schedule</h3>
-            <AmortizationTable yearGroups={yearGroups} />
+            <AmortizationTable yearGroups={yearGroups} cc={currency} />
           </div>
         </div>
       </div>

@@ -20,6 +20,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
@@ -47,8 +48,9 @@ interface YearRowData {
   yearInterest: number;
 }
 
-function ScheduleTable({ data }: { data: YearRowData[] }) {
+function ScheduleTable({ data, cc }: { data: YearRowData[]; cc: string }) {
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
+  const fmt = (v: number) => formatCurrency(v, cc);
 
   if (data.length === 0) return null;
 
@@ -91,13 +93,13 @@ function ScheduleTable({ data }: { data: YearRowData[] }) {
                     </span>
                   </td>
                   <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">
-                    {formatCurrency(row.balance)}
+                    {fmt(row.balance)}
                   </td>
                   <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
-                    {formatCurrency(row.totalContributions)}
+                    {fmt(row.totalContributions)}
                   </td>
                   <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums hidden sm:table-cell">
-                    {formatCurrency(row.totalInterest)}
+                    {fmt(row.totalInterest)}
                   </td>
                 </tr>
                 {isExpanded && (
@@ -107,25 +109,25 @@ function ScheduleTable({ data }: { data: YearRowData[] }) {
                         <div>
                           <p className="text-neutral-500 mb-0.5">Starting Balance</p>
                           <p className="font-semibold text-neutral-900 tabular-nums">
-                            {formatCurrency(row.balance - row.yearContributions - row.yearInterest)}
+                            {fmt(row.balance - row.yearContributions - row.yearInterest)}
                           </p>
                         </div>
                         <div>
                           <p className="text-neutral-500 mb-0.5">Year Contributions</p>
                           <p className="font-semibold text-neutral-900 tabular-nums">
-                            +{formatCurrency(row.yearContributions)}
+                            +{fmt(row.yearContributions)}
                           </p>
                         </div>
                         <div>
                           <p className="text-neutral-500 mb-0.5">Year Interest</p>
                           <p className="font-semibold text-accent-600 tabular-nums">
-                            +{formatCurrency(row.yearInterest)}
+                            +{fmt(row.yearInterest)}
                           </p>
                         </div>
                         <div>
                           <p className="text-neutral-500 mb-0.5">Ending Balance</p>
                           <p className="font-semibold text-primary-700 tabular-nums">
-                            {formatCurrency(row.balance)}
+                            {fmt(row.balance)}
                           </p>
                         </div>
                       </div>
@@ -153,6 +155,7 @@ const DEFAULTS = {
 
 export default function CompoundInterestCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency } = useCurrency();
   const [principal, setPrincipal] = useState(DEFAULTS.principal);
   const [monthly, setMonthly] = useState(DEFAULTS.monthlyContribution);
   const [rate, setRate] = useState(DEFAULTS.annualRate);
@@ -160,6 +163,7 @@ export default function CompoundInterestCalc() {
   const [frequency, setFrequency] = useState(DEFAULTS.compoundingFrequency);
   const [timing, setTiming] = useState(DEFAULTS.contributionTiming);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const fmt = (v: number) => formatCurrency(v, currency);
 
   const schedule = useMemo(
     () => compoundInterestSchedule(principal, monthly, rate / 100, years, frequency, timing as 'end' | 'beginning'),
@@ -199,20 +203,20 @@ export default function CompoundInterestCalc() {
     const freqLabel = COMPOUND_OPTIONS.find((o) => o.value === frequency)?.label ?? `${frequency}x/yr`;
     const timingLabel = TIMING_OPTIONS.find((o) => o.value === timing)?.label ?? timing;
     return [
-      { label: 'Starting Amount', value: `$${formatNumber(principal)}` },
-      { label: 'Monthly Contribution', value: `$${formatNumber(monthly)}` },
+      { label: 'Starting Amount', value: fmt(principal) },
+      { label: 'Monthly Contribution', value: fmt(monthly) },
       { label: 'Annual Growth Rate', value: `${rate}%` },
       { label: 'Time Period', value: `${years} year${years !== 1 ? 's' : ''}` },
       { label: 'Compounding Frequency', value: freqLabel },
       { label: 'Contribution Timing', value: timingLabel },
     ];
-  }, [principal, monthly, rate, years, frequency, timing]);
+  }, [principal, monthly, rate, years, frequency, timing, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
-    { label: 'Final Balance', value: formatCurrency(finalBalance), highlight: true },
-    { label: 'Total Contributions', value: formatCurrency(totalContributions) },
-    { label: 'Interest Earned', value: formatCurrency(totalInterest) },
-  ], [finalBalance, totalContributions, totalInterest]);
+    { label: 'Final Balance', value: fmt(finalBalance), highlight: true },
+    { label: 'Total Contributions', value: fmt(totalContributions) },
+    { label: 'Interest Earned', value: fmt(totalInterest) },
+  ], [finalBalance, totalContributions, totalInterest, currency]);
 
   const handleReset = useCallback(() => {
     setPrincipal(DEFAULTS.principal);
@@ -240,6 +244,8 @@ export default function CompoundInterestCalc() {
             </button>
           </div>
 
+          <CurrencySelector value={currency} onChange={setCurrency} />
+
           <div className="space-y-5">
             <SliderInput
               label="Starting Amount"
@@ -247,8 +253,8 @@ export default function CompoundInterestCalc() {
               id="ci-principal"
               value={principal}
               min={0}
-              max={1000000}
-              step={500}
+              max={10000000}
+              step={5000}
               onChange={setPrincipal}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}
@@ -259,8 +265,8 @@ export default function CompoundInterestCalc() {
               id="ci-monthly"
               value={monthly}
               min={0}
-              max={10000}
-              step={50}
+              max={50000}
+              step={100}
               onChange={setMonthly}
               prefix="$"
               formatDisplay={(v) => formatNumber(v)}
@@ -283,7 +289,7 @@ export default function CompoundInterestCalc() {
               id="ci-years"
               value={years}
               min={1}
-              max={50}
+              max={100}
               step={1}
               onChange={setYears}
             />
@@ -354,12 +360,12 @@ export default function CompoundInterestCalc() {
         </div>
 
         {/* ── Results Panel ───────────────────────────── */}
-        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite">
           {/* Big Number — gradient text + count-up animation */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Final Balance</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {formatCurrency(useAnimatedNumber(finalBalance))}
+              {fmt(useAnimatedNumber(finalBalance))}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               After {years} year{years !== 1 ? 's' : ''} of compounding at {rate}% annually
@@ -375,7 +381,7 @@ export default function CompoundInterestCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {formatCurrency(totalContributions)}
+                  {fmt(totalContributions)}
                 </p>
               </div>
             </div>
@@ -386,7 +392,7 @@ export default function CompoundInterestCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Interest Earned</p>
                 <p className="text-lg font-semibold text-accent-600 tabular-nums">
-                  {formatCurrency(totalInterest)}
+                  {fmt(totalInterest)}
                 </p>
               </div>
             </div>
@@ -408,12 +414,12 @@ export default function CompoundInterestCalc() {
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <defs>
                     <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorContrib" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -424,13 +430,13 @@ export default function CompoundInterestCalc() {
                     axisLine={{ stroke: '#E5E7EB' }}
                   />
                   <YAxis
-                    tickFormatter={(v: number) => `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`}
+                    tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip content={<ChartTooltip formatValue={fmt} />} />
                   <Legend
                     wrapperStyle={{ fontSize: 12 }}
                     iconType="circle"
@@ -439,7 +445,7 @@ export default function CompoundInterestCalc() {
                   <Area
                     type="monotone"
                     dataKey="Total Balance"
-                    stroke="#2563EB"
+                    stroke="#0B6E6E"
                     strokeWidth={2}
                     fill="url(#colorBalance)"
                     animationDuration={600}
@@ -447,7 +453,7 @@ export default function CompoundInterestCalc() {
                   <Area
                     type="monotone"
                     dataKey="Contributions"
-                    stroke="#10B981"
+                    stroke="#22A06B"
                     strokeWidth={2}
                     fill="url(#colorContrib)"
                     animationDuration={600}
@@ -460,7 +466,7 @@ export default function CompoundInterestCalc() {
           {/* Schedule Table */}
           <div data-pdf-section>
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Year-by-Year Breakdown</h3>
-            <ScheduleTable data={yearTableData} />
+            <ScheduleTable data={yearTableData} cc={currency} />
           </div>
         </div>
       </div>

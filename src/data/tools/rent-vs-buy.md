@@ -2,7 +2,7 @@
 name: "Rent vs Buy Calculator"
 slug: "rent-vs-buy"
 category: "debt-and-loans"
-description: "Compare the total cost of renting vs buying a home. See your break-even point, equity projections, and make a smarter housing decision — free, no signup."
+description: "Compare the true cost of renting vs buying over time, including equity, taxes, and appreciation."
 keywords:
   - "rent vs buy calculator"
   - "should I rent or buy"
@@ -17,6 +17,7 @@ relatedTools:
 affiliateContext: "Ready to buy? Get pre-approved and compare rates"
 affiliatePrograms:
   - "LendingTree"
+calculationMethod: "Compares total cost of renting vs buying including opportunity cost of down payment"
 faq:
   - question: "Is it cheaper to rent or buy a home?"
     answer: "It depends on your location, how long you'll stay, local rent-to-price ratios, interest rates, and what you'd do with the money you don't spend on a down payment. In general, buying becomes cheaper than renting after 5-7 years due to equity building. But in expensive markets with high price-to-rent ratios, renting and investing the difference can sometimes win."

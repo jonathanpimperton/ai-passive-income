@@ -22,6 +22,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
@@ -73,8 +74,8 @@ function DebtField({ label, id, value, onChange, prefix, suffix, type = 'number'
 /* ── Strategy type and colors ────────────────────────────── */
 type Strategy = 'snowball' | 'avalanche';
 const STRATEGY_COLORS = {
-  snowball: '#2563EB',
-  avalanche: '#10B981',
+  snowball: '#0B6E6E',
+  avalanche: '#22A06B',
 } as const;
 
 /* ── Default debts ───────────────────────────────────────── */
@@ -127,6 +128,8 @@ function formatMonths(months: number): string {
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function DebtPayoffCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const debtIdCounter = useRef(0);
   const getNextId = useCallback(() => `debt-${++debtIdCounter.current}`, []);
 
@@ -234,21 +237,21 @@ export default function DebtPayoffCalc() {
   const getInputs = useCallback(() => {
     const inputs: { label: string; value: string }[] = [];
     debts.forEach((d) => {
-      inputs.push({ label: `${d.name} Balance`, value: `$${formatNumber(d.balance)}` });
+      inputs.push({ label: `${d.name} Balance`, value: fmt(d.balance) });
       inputs.push({ label: `${d.name} APR`, value: `${(d.rate * 100).toFixed(2)}%` });
-      inputs.push({ label: `${d.name} Min Payment`, value: `$${formatNumber(d.minPayment)}` });
+      inputs.push({ label: `${d.name} Min Payment`, value: fmt(d.minPayment) });
     });
     inputs.push({ label: 'Strategy', value: activeStrategy === 'avalanche' ? 'Avalanche (highest rate first)' : 'Snowball (lowest balance first)' });
-    inputs.push({ label: 'Extra Monthly Payment', value: `$${formatNumber(extraPayment)}` });
+    inputs.push({ label: 'Extra Monthly Payment', value: fmt(extraPayment) });
     return inputs;
-  }, [debts, activeStrategy, extraPayment]);
+  }, [debts, activeStrategy, extraPayment, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
     { label: 'Debt-Free In', value: formatMonths(activeResult.months), highlight: true },
-    { label: 'Total Interest', value: formatCurrency(activeResult.totalInterest) },
-    { label: 'Total Amount Paid', value: formatCurrency(activeResult.totalPaid) },
-    { label: 'Total Debt', value: formatCurrency(totalDebt) },
-  ], [activeResult, totalDebt]);
+    { label: 'Total Interest', value: fmt(activeResult.totalInterest) },
+    { label: 'Total Amount Paid', value: fmt(activeResult.totalPaid) },
+    { label: 'Total Debt', value: fmt(totalDebt) },
+  ], [activeResult, totalDebt, currency]);
 
   const animatedMonths = useAnimatedNumber(activeResult.months);
   const hasValidDebts = debts.length > 0;
@@ -271,6 +274,8 @@ export default function DebtPayoffCalc() {
               Reset
             </button>
           </div>
+
+          <CurrencySelector value={currency} onChange={setCurrency} />
 
           {/* ── Debt Cards ────────────────────────────── */}
           <div className="space-y-4 mb-5">
@@ -375,7 +380,7 @@ export default function DebtPayoffCalc() {
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Total Debt</p>
                     <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                      {formatCurrency(totalDebt)}
+                      {fmt(totalDebt)}
                     </p>
                   </div>
                 </div>
@@ -386,7 +391,7 @@ export default function DebtPayoffCalc() {
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Total Min. Payments</p>
                     <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                      {formatCurrency(totalMinPayments)}/mo
+                      {fmt(totalMinPayments)}/mo
                     </p>
                   </div>
                 </div>
@@ -396,7 +401,7 @@ export default function DebtPayoffCalc() {
         </div>
 
         {/* ── Results Panel ─────────────────────────────── */}
-        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite">
           {!hasValidDebts ? (
             <div className="flex items-center justify-center h-full min-h-[300px]">
               <div className="text-center">
@@ -463,7 +468,7 @@ export default function DebtPayoffCalc() {
                   {formatMonths(Math.round(animatedMonths))}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-                  Paying {formatCurrency(totalMinPayments + extraPayment)}/mo total ({formatCurrency(extraPayment)} extra)
+                  Paying {fmt(totalMinPayments + extraPayment)}/mo total ({fmt(extraPayment)} extra)
                 </p>
               </div>
 
@@ -497,13 +502,13 @@ export default function DebtPayoffCalc() {
                     <div>
                       <p className="text-xs text-neutral-400">Total Interest</p>
                       <p className="text-sm font-semibold text-negative-600 tabular-nums">
-                        {formatCurrency(avalancheResult.totalInterest)}
+                        {fmt(avalancheResult.totalInterest)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-neutral-400">Total Paid</p>
                       <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                        {formatCurrency(avalancheResult.totalPaid)}
+                        {fmt(avalancheResult.totalPaid)}
                       </p>
                     </div>
                   </div>
@@ -537,13 +542,13 @@ export default function DebtPayoffCalc() {
                     <div>
                       <p className="text-xs text-neutral-400">Total Interest</p>
                       <p className="text-sm font-semibold text-negative-600 tabular-nums">
-                        {formatCurrency(snowballResult.totalInterest)}
+                        {fmt(snowballResult.totalInterest)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-neutral-400">Total Paid</p>
                       <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                        {formatCurrency(snowballResult.totalPaid)}
+                        {fmt(snowballResult.totalPaid)}
                       </p>
                     </div>
                   </div>
@@ -555,7 +560,7 @@ export default function DebtPayoffCalc() {
                 <div data-pdf-section className="mb-6 rounded-xl bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200/60 p-4">
                   <p className="text-sm font-medium text-primary-900">
                     <span className="font-bold">{betterStrategy === 'avalanche' ? 'Avalanche' : 'Snowball'}</span> saves you{' '}
-                    <span className="font-bold text-accent-600">{formatCurrency(savings)}</span> in interest
+                    <span className="font-bold text-accent-600">{fmt(savings)}</span> in interest
                     {monthsDiff > 0 && (
                       <> and pays off <span className="font-bold">{monthsDiff} month{monthsDiff !== 1 ? 's' : ''}</span> sooner</>
                     )}
@@ -589,15 +594,13 @@ export default function DebtPayoffCalc() {
                           label={{ value: 'Months', position: 'insideBottomRight', offset: -5, style: { fontSize: 11, fill: '#9CA3AF' } }}
                         />
                         <YAxis
-                          tickFormatter={(v: number) =>
-                            `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`
-                          }
+                          tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
                           tick={{ fontSize: 12, fill: '#6B7280' }}
                           tickLine={false}
                           axisLine={false}
                           width={60}
                         />
-                        <Tooltip content={<ChartTooltip labelPrefix="Month" />} />
+                        <Tooltip content={<ChartTooltip labelPrefix="Month" formatValue={fmt} />} />
                         <Legend
                           wrapperStyle={{ fontSize: 12 }}
                           iconType="circle"

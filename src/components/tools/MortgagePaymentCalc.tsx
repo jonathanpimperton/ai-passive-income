@@ -17,6 +17,7 @@ import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
+import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
@@ -104,10 +105,11 @@ function buildAmortization(
   return { yearGroups, totalInterest, totalPaid, payoffMonths };
 }
 
-const PIE_COLORS = ['#2563EB', '#F59E0B'];
+const PIE_COLORS = ['#0B6E6E', '#F59E0B'];
 
-function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
+function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string }) {
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
+  const fmtCell = (v: number) => formatCurrency(v, cc);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-neutral-200/80">
@@ -151,13 +153,13 @@ function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
                     </span>
                   </td>
                   <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums font-medium">
-                    {formatCurrency(row.totalPrincipal)}
+                    {fmtCell(row.totalPrincipal)}
                   </td>
                   <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">
-                    {formatCurrency(row.totalInterest)}
+                    {fmtCell(row.totalInterest)}
                   </td>
                   <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
-                    {formatCurrency(row.endBalance)}
+                    {fmtCell(row.endBalance)}
                   </td>
                 </tr>
                 {isExpanded &&
@@ -165,13 +167,13 @@ function AmortizationTable({ yearGroups }: { yearGroups: YearGroup[] }) {
                     <tr key={mo.month} className="bg-primary-50/20 border-b border-neutral-100/60 text-xs">
                       <td className="py-2 px-4 pl-10 text-neutral-500">Month {mo.month}</td>
                       <td className="py-2 px-4 text-right text-accent-600 tabular-nums">
-                        {formatCurrency(mo.principal)}
+                        {fmtCell(mo.principal)}
                       </td>
                       <td className="py-2 px-4 text-right text-neutral-500 tabular-nums">
-                        {formatCurrency(mo.interest)}
+                        {fmtCell(mo.interest)}
                       </td>
                       <td className="py-2 px-4 text-right text-neutral-500 tabular-nums hidden sm:table-cell">
-                        {formatCurrency(mo.balance)}
+                        {fmtCell(mo.balance)}
                       </td>
                     </tr>
                   ))}
@@ -196,6 +198,8 @@ const DEFAULTS = {
 
 export default function MortgagePaymentCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency } = useCurrency();
+  const fmt = (v: number) => formatCurrency(v, currency);
   const [homePrice, setHomePrice] = useState(DEFAULTS.homePrice);
   const [downPaymentPercent, setDownPaymentPercent] = useState(DEFAULTS.downPaymentPercent);
   const [interestRate, setInterestRate] = useState(DEFAULTS.interestRate);
@@ -267,27 +271,27 @@ export default function MortgagePaymentCalc() {
 
   const getInputs = useCallback(() => {
     const inputs = [
-      { label: 'Home Price', value: formatCurrency(homePrice) },
-      { label: 'Down Payment', value: `${downPaymentPercent}% (${formatCurrency(homePrice * (downPaymentPercent / 100))})` },
+      { label: 'Home Price', value: fmt(homePrice) },
+      { label: 'Down Payment', value: `${downPaymentPercent}% (${fmt(homePrice * (downPaymentPercent / 100))})` },
       { label: 'Interest Rate', value: `${interestRate}%` },
       { label: 'Loan Term', value: `${loanTerm} years` },
     ];
     if (extraMonthly > 0) {
-      inputs.push({ label: 'Extra Monthly Payment', value: formatCurrency(extraMonthly) });
+      inputs.push({ label: 'Extra Monthly Payment', value: fmt(extraMonthly) });
     }
     if (showAdvanced) {
       inputs.push({ label: 'Property Tax Rate', value: `${propertyTaxRate}%` });
-      inputs.push({ label: 'Annual Insurance', value: formatCurrency(insuranceAnnual) });
+      inputs.push({ label: 'Annual Insurance', value: fmt(insuranceAnnual) });
     }
     return inputs;
-  }, [homePrice, downPaymentPercent, interestRate, loanTerm, extraMonthly, showAdvanced, propertyTaxRate, insuranceAnnual]);
+  }, [homePrice, downPaymentPercent, interestRate, loanTerm, extraMonthly, showAdvanced, propertyTaxRate, insuranceAnnual, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
-    { label: 'Monthly Payment (P&I)', value: formatCurrency(result.monthlyPI), highlight: true },
-    { label: 'Total Interest', value: formatCurrency(result.totalInterest) },
-    { label: 'Total Cost', value: formatCurrency(result.totalPaid) },
-    { label: 'Down Payment', value: formatCurrency(result.downPayment) },
-  ], [result]);
+    { label: 'Monthly Payment (P&I)', value: fmt(result.monthlyPI), highlight: true },
+    { label: 'Total Interest', value: fmt(result.totalInterest) },
+    { label: 'Total Cost', value: fmt(result.totalPaid) },
+    { label: 'Down Payment', value: fmt(result.downPayment) },
+  ], [result, currency]);
 
   const pieData = useMemo(
     () => [
@@ -313,9 +317,12 @@ export default function MortgagePaymentCalc() {
               Reset
             </button>
           </div>
+
+          <CurrencySelector value={currency} onChange={setCurrency} />
+
           <div className="space-y-5">
-            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={3000000} step={5000} onChange={setHomePrice} prefix="$" formatDisplay={formatNumber} />
-            <SliderInput label="Down Payment" id="mort-down" value={downPaymentPercent} min={0} max={90} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${formatCurrency(homePrice * (downPaymentPercent / 100))} down`} />
+            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={10000000} step={10000} onChange={setHomePrice} prefix="$" formatDisplay={formatNumber} />
+            <SliderInput label="Down Payment" id="mort-down" value={downPaymentPercent} min={0} max={90} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${fmt(homePrice * (downPaymentPercent / 100))} down`} />
             <SliderInput label="Interest Rate" id="mort-rate" value={interestRate} min={1} max={15} step={0.125} onChange={setInterestRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} />
 
             {/* Loan term selection */}
@@ -365,14 +372,14 @@ export default function MortgagePaymentCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Monthly Payment (P&I)</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {formatCurrency(animatedMonthlyPI)}
+              {fmt(animatedMonthlyPI)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              Total monthly (PITI{result.needsPMI ? '+PMI' : ''}): {formatCurrency(result.totalMonthly)}
+              Total monthly (PITI{result.needsPMI ? '+PMI' : ''}): {fmt(result.totalMonthly)}
             </p>
           </div>
 
@@ -384,7 +391,7 @@ export default function MortgagePaymentCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Loan Amount</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.principal)}</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.principal)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
@@ -393,7 +400,7 @@ export default function MortgagePaymentCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Interest</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.totalInterest)}</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.totalInterest)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
@@ -402,7 +409,7 @@ export default function MortgagePaymentCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Down Payment</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.downPayment)}</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.downPayment)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
@@ -411,7 +418,7 @@ export default function MortgagePaymentCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Paid</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.totalPaid)}</p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.totalPaid)}</p>
               </div>
             </div>
           </div>
@@ -428,7 +435,7 @@ export default function MortgagePaymentCalc() {
           {extraMonthly > 0 && result.interestSaved > 0 && (
             <div data-pdf-section className="mb-6 p-4 rounded-xl border border-accent-200 bg-accent-50/50">
               <p className="text-sm font-medium text-accent-700">
-                Extra {formatCurrency(extraMonthly)}/month saves {formatCurrency(result.interestSaved)} in interest
+                Extra {fmt(extraMonthly)}/month saves {fmt(result.interestSaved)} in interest
               </p>
               <p className="text-xs text-accent-600 mt-1">
                 Loan paid off {Math.floor(result.monthsSaved / 12)} years and {result.monthsSaved % 12} months earlier
@@ -439,7 +446,7 @@ export default function MortgagePaymentCalc() {
           {/* PMI warning */}
           {result.needsPMI && (
             <div className="mb-6 p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800 leading-relaxed">
-              <strong>PMI required:</strong> With less than 20% down, expect ~{formatCurrency(result.monthlyPMI)}/month in Private Mortgage Insurance until you reach 20% equity.
+              <strong>PMI required:</strong> With less than 20% down, expect ~{fmt(result.monthlyPMI)}/month in Private Mortgage Insurance until you reach 20% equity.
             </div>
           )}
 
@@ -463,12 +470,12 @@ export default function MortgagePaymentCalc() {
                   ].map((row, i) => (
                     <tr key={row.label} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
                       <td className="py-2.5 px-4 font-medium text-neutral-700">{row.label}</td>
-                      <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">{formatCurrency(row.value)}</td>
+                      <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">{fmt(row.value)}</td>
                     </tr>
                   ))}
                   <tr className="bg-neutral-50 font-semibold">
                     <td className="py-2.5 px-4 text-neutral-900">Total Monthly</td>
-                    <td className="py-2.5 px-4 text-right text-primary-700 tabular-nums">{formatCurrency(result.totalMonthly + extraMonthly)}</td>
+                    <td className="py-2.5 px-4 text-right text-primary-700 tabular-nums">{fmt(result.totalMonthly + extraMonthly)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -486,7 +493,7 @@ export default function MortgagePaymentCalc() {
                       <Cell key={i} fill={PIE_COLORS[i]} />
                     ))}
                   </Pie>
-                  <Tooltip content={<ChartTooltip labelPrefix="" />} />
+                  <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -494,7 +501,7 @@ export default function MortgagePaymentCalc() {
               {pieData.map((d, i) => (
                 <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i] }} />
-                  {d.name}: {formatCurrency(d.value)}
+                  {d.name}: {fmt(d.value)}
                 </div>
               ))}
             </div>
@@ -509,9 +516,9 @@ export default function MortgagePaymentCalc() {
                   <AreaChart data={result.chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 6" stroke="#e5e7eb" />
                     <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#6b7280' }} interval={Math.max(0, Math.floor(result.chartData.length / 8) - 1)} />
-                    <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} width={55} />
-                    <Tooltip content={<ChartTooltip />} />
-                    <Area type="monotone" dataKey="balance" name="Remaining Balance" stroke="#2563EB" fill="#DBEAFE" strokeWidth={2} animationDuration={800} />
+                    <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${(v / 1000).toFixed(0)}k`; }} width={55} />
+                    <Tooltip content={<ChartTooltip formatValue={fmt} />} />
+                    <Area type="monotone" dataKey="balance" name="Remaining Balance" stroke="#0B6E6E" fill="#D1F0F0" strokeWidth={2} animationDuration={800} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -536,7 +543,7 @@ export default function MortgagePaymentCalc() {
 
           {result.yearGroups.length > 0 && (
             <div data-pdf-force-show style={showSchedule ? undefined : { display: 'none' }}>
-              <AmortizationTable yearGroups={result.yearGroups} />
+              <AmortizationTable yearGroups={result.yearGroups} cc={currency} />
             </div>
           )}
           </div>

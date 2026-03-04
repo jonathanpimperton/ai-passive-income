@@ -2,7 +2,7 @@
 name: "Investment Return Calculator"
 slug: "investment-return"
 category: "saving-and-growth"
-description: "Calculate investment returns with dividend reinvestment, compare scenarios, and see portfolio growth over time. Free interactive charts — no signup."
+description: "Project returns with different rates, contributions and timelines. Solve for any variable."
 keywords:
   - "investment calculator"
   - "investment return calculator"
@@ -19,6 +19,7 @@ affiliateContext: "Ready to start investing? Open a free account"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
+calculationMethod: "Uses standard compound growth formula with periodic contributions"
 faq:
   - question: "What is a good annual return on investments?"
     answer: "The S&P 500 has historically returned about 10% per year before inflation (roughly 7% after inflation) over long periods. However, individual years vary wildly — from -37% (2008) to +31% (2019). A 'good' return depends on your risk tolerance, timeline, and investment mix."

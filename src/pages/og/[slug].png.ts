@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const CATEGORY_COLORS: Record<string, { bg: string; accent: string }> = {
-  'saving-and-growth': { bg: '#EFF6FF', accent: '#2563EB' },
+  'saving-and-growth': { bg: '#EFF6FF', accent: '#0E8585' },
   'debt-and-loans': { bg: '#FEF2F2', accent: '#DC2626' },
   'income-and-planning': { bg: '#F0FDF4', accent: '#16A34A' },
   economic: { bg: '#FFFBEB', accent: '#D97706' },
@@ -123,7 +123,7 @@ export const GET: APIRoute = async ({ props }) => {
                     style: {
                       fontSize: '52px',
                       fontWeight: 700,
-                      color: '#0A2540',
+                      color: '#0F1B2D',
                       lineHeight: 1.15,
                       letterSpacing: '-0.02em',
                     },
@@ -171,7 +171,7 @@ export const GET: APIRoute = async ({ props }) => {
                           style: {
                             fontSize: '32px',
                             fontWeight: 700,
-                            color: '#0A2540',
+                            color: '#0F1B2D',
                           },
                           children: 'Calc',
                         },
@@ -182,7 +182,7 @@ export const GET: APIRoute = async ({ props }) => {
                           style: {
                             fontSize: '32px',
                             fontWeight: 700,
-                            color: '#2563EB',
+                            color: '#0E8585',
                           },
                           children: 'Run',
                         },

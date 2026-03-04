@@ -391,12 +391,14 @@ export function debtPayoff(
 }
 
 /**
- * Format a number as USD currency string.
+ * Format a number as a currency string.
+ * Defaults to USD for backward compatibility; pass a currency code for others.
  */
-export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
+export function formatCurrency(value: number, currencyCode: string = 'USD'): string {
+  const locale = currencyCode === 'GBP' ? 'en-GB' : currencyCode === 'EUR' ? 'de-DE' : 'en-US';
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'USD',
+    currency: currencyCode,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);

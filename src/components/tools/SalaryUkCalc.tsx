@@ -15,46 +15,31 @@ import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatNumber } from '../../lib/calculator-utils';
+import {
+  UK_INCOME_TAX,
+  UK_NI,
+  UK_STUDENT_LOANS,
+  UK_SCOTTISH_TAX,
+} from '../../lib/uk-rates';
 
-/* ── UK Tax Constants (2025/26 Tax Year) ───────────────────── */
+/* ── Constants derived from central rates module ──────────── */
 
-const PERSONAL_ALLOWANCE = 12570;
-const PA_TAPER_THRESHOLD = 100000;
-const PA_TAPER_LIMIT = 125140; // PA fully withdrawn
+const PERSONAL_ALLOWANCE = UK_INCOME_TAX.personalAllowance;
+const PA_TAPER_THRESHOLD = UK_INCOME_TAX.paTaperThreshold;
+const PA_TAPER_LIMIT = UK_INCOME_TAX.paTaperLimit;
 
-/** Rest-of-UK Income Tax bands (2025/26) */
-const UK_BANDS: [number, number][] = [
-  [0, 0.20],       // Basic rate
-  [37700, 0.40],   // Higher rate (applied to taxable income above PA)
-  [112570, 0.45],  // Additional rate
-];
+const UK_BANDS: [number, number][] = UK_INCOME_TAX.bands.map(b => [b.from, b.rate]);
 
-/** Scottish Income Tax bands (2025/26) */
-const SCOTTISH_BANDS: [number, number][] = [
-  [0, 0.19],       // Starter
-  [2306, 0.20],    // Basic
-  [13991, 0.21],   // Intermediate
-  [31092, 0.42],   // Higher
-  [62430, 0.45],   // Advanced
-  [112570, 0.48],  // Top
-];
+const SCOTTISH_BANDS: [number, number][] = UK_SCOTTISH_TAX.bands.map(b => [b.from, b.rate]);
 
-/** Employee NI thresholds and rates (2025/26) */
-const NI_PRIMARY_THRESHOLD = 12570; // per year
-const NI_UPPER_EARNINGS_LIMIT = 50270;
-const NI_MAIN_RATE = 0.08;
-const NI_UPPER_RATE = 0.02;
+const NI_PRIMARY_THRESHOLD = UK_NI.primaryThreshold;
+const NI_UPPER_EARNINGS_LIMIT = UK_NI.upperEarningsLimit;
+const NI_MAIN_RATE = UK_NI.mainRate;
+const NI_UPPER_RATE = UK_NI.upperRate;
 
-/** Student loan plans */
 type StudentLoanPlan = 'none' | 'plan1' | 'plan2' | 'plan4' | 'plan5' | 'postgrad';
 
-const STUDENT_LOAN_THRESHOLDS: Record<Exclude<StudentLoanPlan, 'none'>, { threshold: number; rate: number }> = {
-  plan1: { threshold: 24990, rate: 0.09 },
-  plan2: { threshold: 27295, rate: 0.09 },
-  plan4: { threshold: 31395, rate: 0.09 },
-  plan5: { threshold: 25000, rate: 0.09 },
-  postgrad: { threshold: 21000, rate: 0.06 },
-};
+const STUDENT_LOAN_THRESHOLDS: Record<Exclude<StudentLoanPlan, 'none'>, { threshold: number; rate: number }> = UK_STUDENT_LOANS;
 
 const STUDENT_LOAN_LABELS: Record<StudentLoanPlan, string> = {
   none: 'No Student Loan',
@@ -65,7 +50,7 @@ const STUDENT_LOAN_LABELS: Record<StudentLoanPlan, string> = {
   postgrad: 'Postgraduate Loan',
 };
 
-const PIE_COLORS = ['#2563EB', '#F59E0B', '#10B981', '#7C3AED', '#EF4444', '#EC4899'];
+const PIE_COLORS = ['#0B6E6E', '#F59E0B', '#22A06B', '#7C3AED', '#E8604C', '#EC4899'];
 
 function formatGBP(value: number): string {
   return '£' + formatNumber(Math.round(value));
@@ -317,8 +302,8 @@ export default function SalaryUkCalc() {
               id="uk-salary"
               value={salary}
               min={10000}
-              max={500000}
-              step={500}
+              max={1000000}
+              step={1000}
               onChange={setSalary}
               prefix="£"
               formatDisplay={formatNumber}
@@ -437,7 +422,7 @@ export default function SalaryUkCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">

@@ -2,7 +2,7 @@
 name: "Net Worth Calculator"
 slug: "net-worth"
 category: "income-and-planning"
-description: "Calculate your personal net worth by adding up your assets and liabilities. See a visual breakdown of where you stand financially — free, instant, no signup."
+description: "Add up your assets and liabilities to calculate total net worth with a visual breakdown."
 keywords:
   - "net worth calculator"
   - "how to calculate net worth"
@@ -19,6 +19,7 @@ affiliatePrograms:
   - "Betterment"
   - "SoFi"
   - "Wealthfront"
+calculationMethod: "Simple calculation: Total Assets - Total Liabilities"
 faq:
   - question: "What is net worth and how do you calculate it?"
     answer: "Net worth is the total value of everything you own (assets) minus everything you owe (liabilities). Assets include cash, investments, property, and retirement accounts. Liabilities include mortgages, student loans, credit card debt, and car loans. Net worth = assets - liabilities."

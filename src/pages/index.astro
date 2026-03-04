@@ -12,91 +12,89 @@ const popularTools = POPULAR_TOOL_SLUGS
 const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][];
 const websiteSchema = buildWebsiteSchema();
 
+/** Quick-link pills for hero — most-searched categories */
+const quickLinks = [
+  { label: 'Mortgage', slug: 'mortgage-payment', category: 'debt-and-loans' },
+  { label: 'UK Salary', slug: 'salary-uk', category: 'income-and-planning' },
+  { label: 'Compound Interest', slug: 'compound-interest', category: 'saving-and-growth' },
+  { label: 'Retirement', slug: 'retirement-savings', category: 'income-and-planning' },
+  { label: 'Debt Payoff', slug: 'debt-payoff', category: 'debt-and-loans' },
+  { label: 'Loan Amortization', slug: 'loan-amortization', category: 'debt-and-loans' },
+];
+
 /** Specific CTA hooks for the bottom section */
 const ctaHooks = [
   { text: 'Wondering if you can retire at 55?', link: '/tools/income-and-planning/retirement-savings', label: 'Try the retirement calculator' },
   { text: 'Evaluating a job offer?', link: '/tools/income-and-planning/salary-us', label: 'See your real take-home pay' },
   { text: 'Buying your first home?', link: '/tools/debt-and-loans/mortgage-payment', label: 'Calculate your monthly payment' },
 ];
-
-/** Words to cycle through in the hero */
 ---
 
 <BaseLayout
   title="Free Financial Calculators Online | CalcRun"
-  description="Free financial calculators, file converters, and utility tools — no signup, no ads. Interactive charts, instant results, plain-English explanations."
+  description="Free financial calculators with interactive charts and plain-English explanations. Mortgage, salary, compound interest, retirement — no signup, no ads."
   structuredData={[websiteSchema]}
 >
   {/* ===== HERO ===== */}
-  <section class="hero-gradient relative overflow-hidden py-20 sm:py-28 lg:py-32">
-    <div class="hero-dots absolute inset-0" aria-hidden="true"></div>
-    <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
-    <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
-
+  <section class="hero-bg relative overflow-hidden py-16 sm:py-20 lg:py-24">
     <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <div class="hero-badge-wrapper inline-block mb-6">
-        <div class="hero-badge inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5">
-          <ToolIcon name="sparkles" class="text-primary-300" size={16} />
-          <span class="text-sm font-medium text-primary-200">100% free, no signup required</span>
+      <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em] max-w-[700px] mx-auto">
+        Clear calculators for real financial decisions
+      </h1>
+      <p class="mt-4 text-lg sm:text-xl text-primary-200/90 max-w-[600px] mx-auto leading-relaxed">
+        Mortgage repayments, salary breakdowns, compound interest — calculated properly, explained clearly.
+      </p>
+
+      {/* Search bar */}
+      <div class="mt-8 max-w-[520px] mx-auto relative">
+        <div class="relative">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="search"
+            id="hero-search"
+            placeholder="Search 37+ financial calculators..."
+            class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-neutral-900 placeholder-neutral-400 text-base shadow-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary-400"
+            autocomplete="off"
+          />
+        </div>
+        {/* Search results dropdown */}
+        <div id="hero-search-results" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200/80 overflow-hidden z-50 hidden">
         </div>
       </div>
 
-      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em] max-w-[700px] mx-auto">
-        Financial Calculators That
-        <span class="text-transparent bg-clip-text bg-[linear-gradient(135deg,#93C5FD,#10B981)]">Respect Your Time</span>
-      </h1>
-      <p class="mt-5 text-lg sm:text-xl text-primary-200/90 max-w-[560px] mx-auto leading-relaxed">
-        Get answers in seconds — no signup, no ads, no nonsense.
-      </p>
-
-      <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-        <a
-          href="/tools"
-          class="inline-flex items-center justify-center gap-2 bg-accent-600 text-white font-semibold px-7 py-3.5 rounded-xl hover:bg-accent-500 shadow-lg shadow-accent-600/25 hover:shadow-accent-500/30 transition-all duration-200 hover:-translate-y-0.5"
-        >
-          Browse Calculators
-          <ToolIcon name="arrow-right" size={18} />
-        </a>
-        <a
-          href="#popular"
-          class="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white font-semibold px-7 py-3.5 rounded-xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-200"
-        >
-          See Popular Tools
-          <ToolIcon name="chevron-down" size={18} />
-        </a>
+      {/* Quick-link pills */}
+      <div class="mt-6 flex flex-wrap justify-center gap-2">
+        {quickLinks.map((link) => (
+          <a
+            href={`/tools/${link.category}/${link.slug}`}
+            class="inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium bg-white/10 text-white/90 border border-white/15 hover:bg-white/20 hover:border-white/25 transition-all duration-150"
+          >
+            {link.label}
+          </a>
+        ))}
       </div>
-
     </div>
   </section>
 
-  {/* ===== STATS BAR ===== */}
-  <section class="py-10 sm:py-12 bg-white border-b border-neutral-100">
+  {/* ===== TRUST STRIP ===== */}
+  <section class="py-6 sm:py-8 bg-white border-b border-neutral-100">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-16 lg:gap-20">
-        <div class="stat-counter text-center" data-target="37">
-          <div class="text-3xl sm:text-4xl font-bold text-primary-600 tabular-nums">
-            <span class="stat-number">0</span>
-          </div>
-          <div class="text-sm text-neutral-500 mt-1 font-medium">Free Tools</div>
+      <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-10 lg:gap-14 text-sm text-neutral-600">
+        <div class="flex items-center gap-2">
+          <svg class="w-4.5 h-4.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+          <span class="font-medium">37+ free calculators</span>
         </div>
-        <div class="hidden sm:block w-px h-10 bg-gradient-to-b from-transparent via-neutral-200 to-transparent" aria-hidden="true"></div>
-        <div class="stat-counter text-center" data-target="6">
-          <div class="text-3xl sm:text-4xl font-bold text-primary-600 tabular-nums">
-            <span class="stat-number">0</span>
-          </div>
-          <div class="text-sm text-neutral-500 mt-1 font-medium">Categories</div>
+        <div class="hidden sm:block w-px h-5 bg-neutral-200" aria-hidden="true"></div>
+        <div class="flex items-center gap-2">
+          <svg class="w-4.5 h-4.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <span class="font-medium">Updated for 2025/26 tax year</span>
         </div>
-        <div class="hidden sm:block w-px h-10 bg-gradient-to-b from-transparent via-neutral-200 to-transparent" aria-hidden="true"></div>
-        <div class="stat-counter text-center" data-target="0">
-          <div class="text-3xl sm:text-4xl font-bold text-accent-600 tabular-nums">
-            <span class="stat-number">0</span>
-          </div>
-          <div class="text-sm text-neutral-500 mt-1 font-medium">Ads</div>
-        </div>
-        <div class="hidden sm:block w-px h-10 bg-gradient-to-b from-transparent via-neutral-200 to-transparent" aria-hidden="true"></div>
-        <div class="text-center">
-          <div class="text-3xl sm:text-4xl font-bold text-accent-600 tabular-nums">$0</div>
-          <div class="text-sm text-neutral-500 mt-1 font-medium">Forever</div>
+        <div class="hidden sm:block w-px h-5 bg-neutral-200" aria-hidden="true"></div>
+        <div class="flex items-center gap-2">
+          <svg class="w-4.5 h-4.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          <span class="font-medium">Calculations run in your browser</span>
         </div>
       </div>
     </div>
@@ -120,7 +118,7 @@ const ctaHooks = [
         {popularTools.map((tool) => (
           <a
             href={getToolPath(tool)}
-            class="tool-card-popular group relative bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-1"
+            class="tool-card-popular group relative bg-white border border-neutral-200/80 rounded-lg p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
           >
             <div class="flex items-start gap-4">
               <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 shrink-0">
@@ -133,7 +131,6 @@ const ctaHooks = [
                 <p class="text-sm text-neutral-500 leading-relaxed">{tool.description}</p>
               </div>
             </div>
-            <div class="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
           </a>
         ))}
       </div>
@@ -200,7 +197,7 @@ const ctaHooks = [
           <a
             href={getToolPath(tool)}
             data-tool-category={tool.category}
-            class="tool-card group bg-white border border-neutral-200/80 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
+            class="tool-card group bg-white border border-neutral-200/80 rounded-lg p-5 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5"
           >
             <div class="flex items-start gap-3.5">
               <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200 shrink-0">
@@ -224,7 +221,6 @@ const ctaHooks = [
 
   {/* ===== BOTTOM CTA ===== */}
   <section class="cta-gradient relative overflow-hidden py-16 sm:py-20">
-    <div class="cta-orb" aria-hidden="true"></div>
     <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 class="text-2xl sm:text-3xl font-bold text-white mb-8">Start with a question that matters to you</h2>
 
@@ -248,7 +244,7 @@ const ctaHooks = [
         href="/tools"
         class="inline-flex items-center justify-center gap-2 bg-accent-600 text-white font-semibold px-8 py-4 rounded-xl hover:bg-accent-500 shadow-lg shadow-accent-600/25 hover:shadow-accent-500/30 transition-all duration-200 hover:-translate-y-0.5"
       >
-        Explore All Tools
+        Browse all tools
         <ToolIcon name="arrow-right" size={18} />
       </a>
     </div>
@@ -257,59 +253,8 @@ const ctaHooks = [
 
 <style>
   /* ===== HERO ===== */
-  .hero-gradient {
-    background: linear-gradient(135deg, #0A2540 0%, #112D4E 30%, #1A3A5C 50%, #0F2847 70%, #0A2540 100%);
-    background-size: 400% 400%;
-    animation: gradientShift 12s ease-in-out infinite;
-  }
-
-  @keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  .hero-dots {
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
-
-  .hero-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.12;
-  }
-  .hero-orb-1 {
-    width: 400px;
-    height: 400px;
-    background: #2563EB;
-    top: -100px;
-    right: -50px;
-    animation: orbFloat1 8s ease-in-out infinite;
-  }
-  .hero-orb-2 {
-    width: 300px;
-    height: 300px;
-    background: #10B981;
-    bottom: -80px;
-    left: -30px;
-    animation: orbFloat2 10s ease-in-out infinite;
-  }
-
-  @keyframes orbFloat1 {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(-30px, 20px); }
-  }
-  @keyframes orbFloat2 {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(20px, -25px); }
-  }
-
-  .hero-badge-wrapper {
-    position: relative;
-    padding: 1px;
-    border-radius: 9999px;
-    background: conic-gradient(from 135deg, #93C5FD, #10B981, #2563EB, #93C5FD);
+  .hero-bg {
+    background: linear-gradient(135deg, #0F1B2D 0%, #0A4444 50%, #0F1B2D 100%);
   }
 
   /* ===== CATEGORY PILLS ===== */
@@ -323,7 +268,7 @@ const ctaHooks = [
   .category-pill.active {
     background-color: var(--color-primary-500);
     color: white;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 2px 8px rgba(11, 110, 110, 0.25);
   }
 
   /* ===== FILTER TRANSITIONS ===== */
@@ -341,32 +286,151 @@ const ctaHooks = [
 
   /* ===== CTA SECTION ===== */
   .cta-gradient {
-    background: linear-gradient(135deg, #0A2540 0%, #1A3A5C 50%, #0A2540 100%);
+    background: linear-gradient(135deg, #0F1B2D 0%, #0A4444 50%, #0F1B2D 100%);
   }
-  .cta-orb {
-    position: absolute;
-    width: 350px;
-    height: 350px;
-    border-radius: 50%;
-    background: #2563EB;
-    filter: blur(100px);
-    opacity: 0.08;
-    top: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    animation: orbFloat1 10s ease-in-out infinite;
+
+  /* ===== SEARCH RESULTS ===== */
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    transition: background-color 0.1s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+  .search-result-item:hover,
+  .search-result-item.active {
+    background-color: var(--color-primary-50);
+  }
+  .search-result-item .result-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .search-result-item:hover .result-icon,
+  .search-result-item.active .result-icon {
+    background-color: var(--color-primary-500);
+    color: white;
   }
 
   /* ===== REDUCED MOTION ===== */
   @media (prefers-reduced-motion: reduce) {
-    .hero-gradient { animation: none; }
-    .hero-orb { animation: none; opacity: 0; }
-    .cta-orb { animation: none; }
     .tool-card { transition-duration: 0.01ms; }
   }
 </style>
 
 <script>
+  // ===== Tool search data (embedded at build) =====
+  interface SearchTool {
+    name: string;
+    slug: string;
+    category: string;
+    description: string;
+    path: string;
+  }
+
+  // Build search index from DOM (all tool cards in the grid)
+  const searchTools: SearchTool[] = [];
+  document.querySelectorAll('#tools-grid .tool-card').forEach((card) => {
+    const el = card as HTMLAnchorElement;
+    const name = el.querySelector('h3')?.textContent?.trim() || '';
+    const desc = el.querySelector('p')?.textContent?.trim() || '';
+    const category = el.dataset.toolCategory || '';
+    searchTools.push({
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, '-'),
+      category,
+      description: desc,
+      path: el.href,
+    });
+  });
+
+  const heroSearch = document.getElementById('hero-search') as HTMLInputElement;
+  const heroResults = document.getElementById('hero-search-results') as HTMLDivElement;
+  let activeIndex = -1;
+
+  function renderSearchResults(query: string) {
+    if (!query.trim()) {
+      heroResults.classList.add('hidden');
+      heroResults.innerHTML = '';
+      activeIndex = -1;
+      return;
+    }
+
+    const q = query.toLowerCase();
+    const matches = searchTools.filter((t) =>
+      t.name.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q)
+    ).slice(0, 6);
+
+    if (matches.length === 0) {
+      heroResults.innerHTML = '<div class="px-4 py-3 text-sm text-neutral-500">No tools found</div>';
+      heroResults.classList.remove('hidden');
+      activeIndex = -1;
+      return;
+    }
+
+    heroResults.innerHTML = matches.map((tool, i) =>
+      `<a href="${tool.path}" class="search-result-item${i === activeIndex ? ' active' : ''}" data-index="${i}">
+        <div class="result-icon">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+        </div>
+        <div>
+          <div class="text-sm font-medium text-neutral-900">${tool.name}</div>
+          <div class="text-xs text-neutral-500 truncate max-w-[340px]">${tool.description}</div>
+        </div>
+      </a>`
+    ).join('');
+    heroResults.classList.remove('hidden');
+    activeIndex = -1;
+  }
+
+  heroSearch?.addEventListener('input', (e) => {
+    renderSearchResults((e.target as HTMLInputElement).value);
+  });
+
+  heroSearch?.addEventListener('keydown', (e) => {
+    const items = heroResults.querySelectorAll('.search-result-item');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, items.length - 1);
+      items.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+      items.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault();
+      (items[activeIndex] as HTMLAnchorElement).click();
+    } else if (e.key === 'Escape') {
+      heroResults.classList.add('hidden');
+      heroSearch.blur();
+    }
+  });
+
+  // Close search results on outside click
+  document.addEventListener('click', (e) => {
+    if (!heroSearch?.contains(e.target as Node) && !heroResults?.contains(e.target as Node)) {
+      heroResults?.classList.add('hidden');
+    }
+  });
+
+  // Re-show results on focus if there's a query
+  heroSearch?.addEventListener('focus', () => {
+    if (heroSearch.value.trim()) {
+      renderSearchResults(heroSearch.value);
+    }
+  });
+
   // ===== Category filter logic =====
   const pills = document.querySelectorAll('.category-pill');
   const cards = document.querySelectorAll('.tool-card');
@@ -405,53 +469,4 @@ const ctaHooks = [
       filterByCategory(category);
     });
   });
-
-  // ===== Animated stat counters =====
-  const statCounters = document.querySelectorAll('.stat-counter');
-  let statsAnimated = false;
-
-  function animateCounter(el: Element) {
-    const numberEl = el.querySelector('.stat-number') as HTMLElement;
-    const suffixEl = el.querySelector('.stat-suffix') as HTMLElement;
-    const target = parseInt((el as HTMLElement).dataset.target || '0', 10);
-    const suffix = (el as HTMLElement).dataset.suffix || '';
-
-    if (suffixEl && suffix) {
-      suffixEl.textContent = suffix;
-    }
-
-    if (target === 0) {
-      numberEl.textContent = '0';
-      return;
-    }
-
-    const duration = 1200;
-    const startTime = performance.now();
-
-    function update(currentTime: number) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(eased * target);
-      numberEl.textContent = current.toString();
-
-      if (progress < 1) {
-        requestAnimationFrame(update);
-      }
-    }
-
-    requestAnimationFrame(update);
-  }
-
-  const statsObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting && !statsAnimated) {
-        statsAnimated = true;
-        statCounters.forEach((counter) => animateCounter(counter));
-      }
-    });
-  }, { threshold: 0.5 });
-
-  statCounters.forEach((counter) => statsObserver.observe(counter));
-
 </script>

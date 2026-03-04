@@ -2,7 +2,7 @@
 name: "Loan Amortization Calculator"
 slug: "loan-amortization"
 category: "debt-and-loans"
-description: "Calculate loan payments and see a full amortization schedule. View principal vs interest breakdown, total cost, and payment table — free, no signup."
+description: "See your monthly payment, total interest, and a full payment schedule for any fixed-rate loan."
 keywords:
   - "loan amortization calculator"
   - "amortization schedule calculator"
@@ -19,6 +19,7 @@ affiliateContext: "Compare rates and save thousands on your loan"
 affiliatePrograms:
   - "LendingTree"
   - "SoFi"
+calculationMethod: "Uses standard amortization formula: M = P[r(1+r)^n]/[(1+r)^n-1]"
 faq:
   - question: "What is loan amortization?"
     answer: "Loan amortization is the process of paying off a loan through regular, scheduled payments over time. Each payment is split between principal (reducing what you owe) and interest (the cost of borrowing). Early payments are mostly interest; later payments are mostly principal."

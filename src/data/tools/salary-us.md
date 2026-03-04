@@ -2,7 +2,7 @@
 name: "US Salary & Take-Home Calculator"
 slug: "salary-us"
 category: "income-and-planning"
-description: "Calculate your US take-home pay after federal and state taxes, FICA, and 401(k). Convert salary to hourly rate and compare job offers — free, no signup."
+description: "2025 federal tax, state tax, FICA, and 401(k) — full breakdown from gross to net pay."
 keywords:
   - "salary to hourly calculator"
   - "hourly to salary"
@@ -23,6 +23,14 @@ relatedTools:
   - "savings-goal"
   - "emergency-fund"
   - "inflation"
+lastUpdated: "2026-03-04"
+dataSources:
+  - name: "IRS Tax Brackets 2025"
+    url: "https://www.irs.gov/newsroom/irs-provides-tax-inflation-adjustments-for-tax-year-2025"
+  - name: "Social Security wage base 2025"
+    url: "https://www.ssa.gov/oact/cola/cbb.html"
+  - name: "401(k) contribution limits 2025"
+    url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits"
 faq:
   - question: "How do I convert my salary to an hourly rate?"
     answer: "Divide your annual salary by the number of working hours in a year. For a standard full-time schedule (40 hours/week, 52 weeks/year), that's 2,080 hours. So a $60,000 salary equals approximately $28.85 per hour. If you get paid time off, the actual hourly rate is effectively higher."

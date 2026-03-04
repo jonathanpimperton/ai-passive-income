@@ -3,35 +3,36 @@
  *
  * Handles API routes (POST /api/subscribe, POST /api/email-results)
  * and delegates all other requests to static assets served from dist/.
+ *
+ * Security: Turnstile bot prevention, Zod schema validation, server-side
+ * tool name derivation (never trust client toolName), input sanitization,
+ * 20KB request size cap.
  */
 
 interface Env {
   ASSETS: Fetcher;
   MAILERLITE_API_KEY: string;
   MAILERSEND_API_KEY: string;
+  TURNSTILE_SECRET_KEY: string;
 }
 
-interface SubscribeBody {
-  email: string;
-  toolSlug?: string;
-  honeypot?: string;
-}
-
-interface ResultItem {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}
-
-interface EmailResultsBody {
-  email: string;
-  toolSlug: string;
-  toolName: string;
-  inputs: Array<{ label: string; value: string }>;
-  results: ResultItem[];
-  subscribe?: boolean;
-  honeypot?: string;
-}
+/* ── Tool registry — server-side source of truth for valid slugs + display names ── */
+const TOOL_REGISTRY: Record<string, string> = {
+  'compound-interest': 'Compound Interest Calculator',
+  'loan-amortization': 'Loan Amortization Calculator',
+  'investment-return': 'Investment Return Calculator',
+  'retirement-savings': 'Retirement Savings Calculator',
+  'debt-payoff': 'Debt Payoff Calculator',
+  'savings-goal': 'Savings Goal Calculator',
+  'salary': 'US Salary Calculator',
+  'salary-uk': 'UK Salary Calculator',
+  'mortgage-payment': 'Mortgage Payment Calculator',
+  'inflation': 'Inflation Calculator',
+  'roi': 'ROI Calculator',
+  'net-worth': 'Net Worth Calculator',
+  'rent-vs-buy': 'Rent vs Buy Calculator',
+  'emergency-fund': 'Emergency Fund Calculator',
+};
 
 const MAILERLITE_GROUP_ID = '180838346043426395';
 const ALLOWED_ORIGIN = 'https://www.calcrun.com';
@@ -75,16 +76,16 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
     { name: 'Wealthfront', tagline: 'Tax-loss harvesting to maximize your returns', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Plan your retirement' },
   ],
   'debt-payoff': [
-    { name: 'LendingClub', tagline: 'Personal loans to consolidate and pay off debt faster', url: 'https://www.lendingclub.com/', category: 'Loans', cta: 'Check your rate' },
+    { name: 'LendingTree', tagline: 'Compare debt consolidation options from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Loans', cta: 'Compare options now' },
     { name: 'SoFi', tagline: 'Consolidate debt at a lower rate — no fees', url: 'https://www.sofi.com/', category: 'Loans', cta: 'Get pre-qualified' },
   ],
   'savings-goal': [
     { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
-    { name: 'Ally Bank', tagline: 'Competitive APY with no minimum balance', url: 'https://www.ally.com/', category: 'Savings', cta: 'Start saving today' },
+    { name: 'Betterment', tagline: 'High-yield cash account with no minimums', url: 'https://www.betterment.com/', category: 'Savings', cta: 'Start saving today' },
   ],
   'salary': [
     { name: 'Betterment', tagline: 'Start investing to grow your take-home pay', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
-    { name: 'Ally Bank', tagline: 'Online savings with competitive APY and no fees', url: 'https://www.ally.com/', category: 'Savings', cta: 'Open savings account' },
+    { name: 'SoFi', tagline: 'Checking and savings with competitive APY', url: 'https://www.sofi.com/', category: 'Banking', cta: 'Open free account' },
   ],
   'salary-uk': [
     { name: 'Nutmeg', tagline: 'UK investing made simple — ISAs, pensions, and more', url: 'https://www.nutmeg.com/', category: 'Investing (UK)', cta: 'Start investing' },
@@ -111,10 +112,121 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
     { name: 'Betterment', tagline: 'Invest the difference if you decide to rent', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
   ],
   'emergency-fund': [
-    { name: 'Ally Bank', tagline: 'Online savings with competitive APY and no fees', url: 'https://www.ally.com/', category: 'Savings', cta: 'Open savings account' },
+    { name: 'Wealthfront', tagline: 'High-yield cash account — competitive APY, FDIC insured', url: 'https://www.wealthfront.com/', category: 'Savings', cta: 'Open cash account' },
     { name: 'Betterment', tagline: 'High-yield cash account with no minimums', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start saving' },
   ],
 };
+
+/* ── Request size cap ─────────────────────────────────────── */
+const MAX_REQUEST_SIZE = 20_480; // 20KB
+
+/* ── Input sanitization ──────────────────────────────────── */
+function sanitizeText(str: string): string {
+  return escapeHtml(
+    str
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // non-printable
+      .replace(/[\r\n]/g, '')                               // prevent CRLF injection
+      .replace(/\s+/g, ' ')                                 // collapse whitespace
+      .trim()
+  );
+}
+
+/* ── Turnstile verification ──────────────────────────────── */
+async function verifyTurnstile(token: string, secretKey: string): Promise<boolean> {
+  try {
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret: secretKey, response: token }),
+    });
+    const data = await res.json() as { success: boolean };
+    return data.success === true;
+  } catch {
+    return false;
+  }
+}
+
+/* ── Schema validation (inline — worker can't import from src/) ── */
+function validateEmailResultsBody(raw: unknown): {
+  ok: true;
+  data: {
+    email: string;
+    toolSlug: string;
+    inputs: Array<{ label: string; value: string }>;
+    results: Array<{ label: string; value: string; highlight?: boolean }>;
+    subscribe: boolean;
+    honeypot: string;
+    turnstileToken: string;
+  };
+} | { ok: false; error: string } {
+  if (typeof raw !== 'object' || raw === null) {
+    return { ok: false, error: 'Invalid request body' };
+  }
+  const body = raw as Record<string, unknown>;
+
+  // Honeypot
+  const honeypot = typeof body.honeypot === 'string' ? body.honeypot : '';
+
+  // Turnstile token
+  const turnstileToken = typeof body.turnstileToken === 'string' ? body.turnstileToken.trim() : '';
+
+  // Email — trim, lowercase, max 254 chars
+  const rawEmail = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  if (!rawEmail || rawEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+    return { ok: false, error: 'Please enter a valid email address' };
+  }
+
+  // Tool slug — must exist in registry
+  const rawSlug = typeof body.toolSlug === 'string' ? body.toolSlug.trim() : '';
+  if (!rawSlug || rawSlug.length > 50 || !(rawSlug in TOOL_REGISTRY)) {
+    return { ok: false, error: 'Invalid calculator' };
+  }
+
+  // Inputs — array of {label, value}, max 20 items, max 200 chars each
+  const rawInputs = Array.isArray(body.inputs) ? body.inputs : [];
+  if (rawInputs.length > 20) {
+    return { ok: false, error: 'Too many input fields' };
+  }
+  const inputs: Array<{ label: string; value: string }> = [];
+  for (const inp of rawInputs) {
+    if (typeof inp !== 'object' || inp === null) continue;
+    const label = typeof (inp as Record<string, unknown>).label === 'string'
+      ? String((inp as Record<string, unknown>).label).slice(0, 200).replace(/[\r\n]/g, '')
+      : '';
+    const value = typeof (inp as Record<string, unknown>).value === 'string'
+      ? String((inp as Record<string, unknown>).value).slice(0, 200).replace(/[\r\n]/g, '')
+      : '';
+    if (label && value) inputs.push({ label, value });
+  }
+
+  // Results — array of {label, value, highlight?}, 1-20 items
+  const rawResults = Array.isArray(body.results) ? body.results : [];
+  if (rawResults.length === 0 || rawResults.length > 20) {
+    return { ok: false, error: 'Missing calculator results' };
+  }
+  const results: Array<{ label: string; value: string; highlight?: boolean }> = [];
+  for (const res of rawResults) {
+    if (typeof res !== 'object' || res === null) continue;
+    const label = typeof (res as Record<string, unknown>).label === 'string'
+      ? String((res as Record<string, unknown>).label).slice(0, 200).replace(/[\r\n]/g, '')
+      : '';
+    const value = typeof (res as Record<string, unknown>).value === 'string'
+      ? String((res as Record<string, unknown>).value).slice(0, 200).replace(/[\r\n]/g, '')
+      : '';
+    const highlight = (res as Record<string, unknown>).highlight === true;
+    if (label && value) results.push({ label, value, highlight });
+  }
+  if (results.length === 0) {
+    return { ok: false, error: 'Missing calculator results' };
+  }
+
+  const subscribe = body.subscribe === true;
+
+  return {
+    ok: true,
+    data: { email: rawEmail, toolSlug: rawSlug, inputs, results, subscribe, honeypot, turnstileToken },
+  };
+}
 
 /* ── CORS ──────────────────────────────────────────────────── */
 function corsHeaders(origin: string | null): Record<string, string> {
@@ -211,17 +323,17 @@ function buildResultsEmail(
   toolName: string,
   toolSlug: string,
   inputs: Array<{ label: string; value: string }>,
-  results: ResultItem[],
+  results: Array<{ label: string; value: string; highlight?: boolean }>,
 ): string {
   const tip = QUICK_TIPS[toolSlug] || '';
-  const toolUrl = `https://www.calcrun.com/tools/${toolSlug}`;
+  const toolUrl = `https://www.calcrun.com/tools/${encodeURIComponent(toolSlug)}`;
 
   const inputRows = inputs
     .map(
       (inp) => `
       <tr>
-        <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${escapeHtml(inp.label)}</td>
-        <td style="padding:8px 12px;font-size:14px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${escapeHtml(inp.value)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${sanitizeText(inp.label)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${sanitizeText(inp.value)}</td>
       </tr>`
     )
     .join('');
@@ -232,15 +344,15 @@ function buildResultsEmail(
         return `
         <tr>
           <td colspan="2" style="padding:16px 12px;background-color:#EFF6FF;border-bottom:1px solid #DBEAFE;border-radius:8px;">
-            <div style="font-size:13px;color:#1E40AF;margin-bottom:4px;">${escapeHtml(res.label)}</div>
-            <div style="font-size:28px;font-weight:700;color:#1D4ED8;font-variant-numeric:tabular-nums;">${escapeHtml(res.value)}</div>
+            <div style="font-size:13px;color:#1E40AF;margin-bottom:4px;">${sanitizeText(res.label)}</div>
+            <div style="font-size:28px;font-weight:700;color:#1D4ED8;font-variant-numeric:tabular-nums;">${sanitizeText(res.value)}</div>
           </td>
         </tr>`;
       }
       return `
       <tr>
-        <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${escapeHtml(res.label)}</td>
-        <td style="padding:8px 12px;font-size:14px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${escapeHtml(res.value)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${sanitizeText(res.label)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${sanitizeText(res.value)}</td>
       </tr>`;
     })
     .join('');
@@ -409,6 +521,15 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
   const origin = request.headers.get('Origin');
   const headers = { ...corsHeaders(origin), 'Content-Type': 'application/json' };
 
+  // 1. Hard cap request size before parsing
+  const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
+  if (contentLength > MAX_REQUEST_SIZE) {
+    return new Response(
+      JSON.stringify({ error: 'Request too large' }),
+      { status: 413, headers }
+    );
+  }
+
   const mailerSendKey = env.MAILERSEND_API_KEY;
   if (!mailerSendKey) {
     return new Response(
@@ -417,40 +538,72 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
     );
   }
 
-  let body: EmailResultsBody;
+  // 2. Parse JSON with size guard (read as text first to verify size)
+  let rawText: string;
   try {
-    body = await request.json();
+    rawText = await request.text();
   } catch {
     return new Response(
       JSON.stringify({ error: 'Invalid request body' }),
       { status: 400, headers }
     );
   }
+  if (rawText.length > MAX_REQUEST_SIZE) {
+    return new Response(
+      JSON.stringify({ error: 'Request too large' }),
+      { status: 413, headers }
+    );
+  }
 
-  // Honeypot
+  let rawBody: unknown;
+  try {
+    rawBody = JSON.parse(rawText);
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'Invalid JSON' }),
+      { status: 400, headers }
+    );
+  }
+
+  // 3. Validate with strict schema
+  const validation = validateEmailResultsBody(rawBody);
+  if (!validation.ok) {
+    return new Response(
+      JSON.stringify({ error: validation.error }),
+      { status: 400, headers }
+    );
+  }
+  const body = validation.data;
+
+  // 4. Honeypot — silently succeed for bots
   if (body.honeypot) {
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
   }
 
-  const email = body.email?.trim().toLowerCase();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return new Response(
-      JSON.stringify({ error: 'Please enter a valid email address' }),
-      { status: 400, headers }
-    );
+  // 5. Verify Turnstile token (skip if secret key not configured — allows gradual rollout)
+  if (env.TURNSTILE_SECRET_KEY) {
+    if (!body.turnstileToken) {
+      return new Response(
+        JSON.stringify({ error: 'Verification required' }),
+        { status: 403, headers }
+      );
+    }
+    const turnstileOk = await verifyTurnstile(body.turnstileToken, env.TURNSTILE_SECRET_KEY);
+    if (!turnstileOk) {
+      return new Response(
+        JSON.stringify({ error: 'Verification failed. Please try again.' }),
+        { status: 403, headers }
+      );
+    }
   }
 
-  if (!body.toolSlug || !body.toolName || !Array.isArray(body.results) || body.results.length === 0) {
-    return new Response(
-      JSON.stringify({ error: 'Missing calculator results' }),
-      { status: 400, headers }
-    );
-  }
+  // 6. Derive tool display name from server-side registry (NEVER use client toolName)
+  const toolDisplayName = TOOL_REGISTRY[body.toolSlug] || 'Calculator';
 
-  // Build the email HTML
-  const htmlContent = buildResultsEmail(body.toolName, body.toolSlug, body.inputs || [], body.results);
+  // 7. Build the email HTML with sanitized data
+  const htmlContent = buildResultsEmail(toolDisplayName, body.toolSlug, body.inputs, body.results);
 
-  // Send via MailerSend
+  // 8. Send via MailerSend — subject uses server-derived name
   try {
     const msResponse = await fetch('https://api.mailersend.com/v1/email', {
       method: 'POST',
@@ -460,8 +613,8 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
       },
       body: JSON.stringify({
         from: { email: MAILERSEND_FROM_EMAIL, name: MAILERSEND_FROM_NAME },
-        to: [{ email }],
-        subject: `Your ${body.toolName} Results — CalcRun`,
+        to: [{ email: body.email }],
+        subject: `Your ${toolDisplayName} Results — CalcRun`,
         html: htmlContent,
       }),
     });
@@ -482,10 +635,10 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
     );
   }
 
-  // Subscribe to MailerLite drip only if user opted in (fire-and-forget — don't fail if this errors)
+  // 9. Subscribe to MailerLite drip only if user opted in (fire-and-forget)
   if (body.subscribe && env.MAILERLITE_API_KEY) {
     try {
-      await subscribeToMailerLite(email, body.toolSlug, env.MAILERLITE_API_KEY);
+      await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY);
     } catch (err) {
       console.error('MailerLite subscribe (from email-results) failed:', err);
     }

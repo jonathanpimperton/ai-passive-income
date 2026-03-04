@@ -81,7 +81,7 @@ function calcFICA(grossIncome: number, filingStatus: FilingStatus) {
   return { ss, medicare: medicareBase + medicareAdditional, total: ss + medicareBase + medicareAdditional };
 }
 
-const PIE_COLORS = ['#2563EB', '#F59E0B', '#10B981', '#7C3AED', '#EF4444', '#EC4899'];
+const PIE_COLORS = ['#0B6E6E', '#F59E0B', '#22A06B', '#7C3AED', '#EF4444', '#EC4899'];
 
 const DEFAULTS = {
   salary: 75000,
@@ -251,7 +251,7 @@ export default function SalaryCalc() {
           </div>
           <div className="space-y-5">
             {inputMode === 'annual' ? (
-              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={1000000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
+              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={2000000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
             ) : (
               <SliderInput label="Hourly Rate" id="sal-hourly" value={hourlyRate} min={7.25} max={200} step={0.25} onChange={setHourlyRate} prefix="$" formatDisplay={(v) => v.toFixed(2)} hint="Your pay per hour before taxes" />
             )}
@@ -283,7 +283,7 @@ export default function SalaryCalc() {
         </div>
 
         {/* Results */}
-        <div id="sal-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite" ref={resultsRef}>
+        <div id="sal-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
