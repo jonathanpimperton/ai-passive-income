@@ -25,6 +25,7 @@ import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
+import { useChartTheme } from '../../lib/useChartTheme';
 
 /* ── Compact text input for debt card fields ─────────────── */
 interface DebtFieldProps {
@@ -138,6 +139,7 @@ export default function DebtPayoffCalc() {
   );
   const [extraPayment, setExtraPayment] = useState(DEFAULT_EXTRA);
   const [activeStrategy, setActiveStrategy] = useState<Strategy>('avalanche');
+  const ct = useChartTheme();
 
   /* ── Parsed debts ─────────────────────────────────────── */
   const debts = useMemo(() => parseDebts(debtInputs), [debtInputs]);
@@ -585,17 +587,17 @@ export default function DebtPayoffCalc() {
                   <div className="h-56 sm:h-64">
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                        <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
                         <XAxis
                           dataKey="month"
-                          tick={{ fontSize: 12, fill: '#6B7280' }}
+                          tick={{ fontSize: 12, fill: ct.axisText }}
                           tickLine={false}
-                          axisLine={{ stroke: '#E5E7EB' }}
+                          axisLine={{ stroke: ct.axis }}
                           label={{ value: 'Months', position: 'insideBottomRight', offset: -5, style: { fontSize: 11, fill: '#9CA3AF' } }}
                         />
                         <YAxis
                           tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                          tick={{ fontSize: 12, fill: '#6B7280' }}
+                          tick={{ fontSize: 12, fill: ct.axisText }}
                           tickLine={false}
                           axisLine={false}
                           width={60}

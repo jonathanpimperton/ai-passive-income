@@ -19,6 +19,7 @@ import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
+import { useChartTheme } from '../../lib/useChartTheme';
 
 const DEFAULTS = {
   initialInvestment: 10000,
@@ -47,6 +48,7 @@ export default function RoiCalc() {
   const [finalValue, setFinalValue] = useState(DEFAULTS.finalValue);
   const [yearsHeld, setYearsHeld] = useState(DEFAULTS.yearsHeld);
   const [dividendsReceived, setDividendsReceived] = useState(DEFAULTS.dividendsReceived);
+  const ct = useChartTheme();
 
   // Comparison mode
   const [showComparison, setShowComparison] = useState(false);
@@ -252,16 +254,16 @@ export default function RoiCalc() {
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }} barGap={8}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
+                    tick={{ fontSize: 12, fill: ct.axisText }}
                     tickLine={false}
-                    axisLine={{ stroke: '#E5E7EB' }}
+                    axisLine={{ stroke: ct.axis }}
                   />
                   <YAxis
                     tickFormatter={(v: number) => `${v.toFixed(0)}%`}
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
+                    tick={{ fontSize: 12, fill: ct.axisText }}
                     tickLine={false}
                     axisLine={false}
                     width={50}

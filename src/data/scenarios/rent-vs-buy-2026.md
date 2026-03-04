@@ -14,11 +14,11 @@ inputs:
 resultSummary: "Renting saves ~$45,000 over 7 years in this scenario"
 ---
 
-## The Short Answer
+## At 7% mortgage rates, renting saves roughly $45,000 over 7 years
 
 **At a 7% mortgage rate, buying a $400,000 home with 10% down costs approximately $45,000 more than renting at $2,000/month over a 7-year period.** When you factor in PMI, property taxes, insurance, maintenance, closing costs, and the opportunity cost of your down payment, renting comes out ahead in this scenario. The break-even point where buying starts to win is roughly 9 to 10 years.
 
-## Breaking Down the Numbers
+## The full cost of buying vs. renting a $400,000 home
 
 The sticker price of a home is just the beginning. Here is what buying a $400,000 home actually costs over 7 years:
 
@@ -47,7 +47,7 @@ Now compare that to renting:
 
 The gap is approximately $45,000 in favor of renting.
 
-## What This Means for You
+## Why "renting is throwing money away" does not hold at 7%
 
 The conventional wisdom that "renting is throwing money away" does not hold up when mortgage rates are at 7%. Here is why:
 
@@ -57,13 +57,11 @@ The conventional wisdom that "renting is throwing money away" does not hold up w
 
 **Transaction costs destroy short-term ownership.** The $38,400 in combined buying and selling costs represents nearly 10% of the home price. You need several years of appreciation just to break even on those costs, which is why the 7-year timeline tips toward renting.
 
-## What If...
+## When buying wins: lower rates, longer timelines, higher rents
 
 - **Mortgage rates drop to 5%:** Monthly P&I falls to ~$1,932, cutting $463/month from ownership costs. At 5%, the break-even point shifts to about 5 to 6 years, and buying becomes the clear winner over a 7-year horizon.
 - **You put 20% down ($80,000):** PMI disappears entirely, saving ~$150/month. But you also lose the investment returns on that extra $40,000. The net effect is roughly neutral — the PMI savings and the lost investment gains largely cancel each other out.
 - **You plan to stay for 12 years instead of 7:** Buying wins decisively. More years to amortize transaction costs, more equity buildup, and more appreciation. The longer you stay, the more ownership favors you.
 - **Rent is $2,500/month instead of $2,000:** The renting advantage shrinks significantly. At $2,500/month rent with 3% annual increases, the 7-year comparison is nearly a toss-up. In high-rent markets, buying becomes more competitive even at elevated mortgage rates.
-
-## Next Steps
 
 The rent-vs-buy decision depends heavily on your local market, how long you plan to stay, and current mortgage rates. Use the [Rent vs. Buy Calculator](/tools/income-and-planning/rent-vs-buy) to plug in your actual rent, home prices, and down payment amount — the calculator accounts for all the hidden costs on both sides and shows you exactly where the break-even point falls for your situation.

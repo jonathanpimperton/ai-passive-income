@@ -13,11 +13,11 @@ inputs:
 resultSummary: "$3,326.51/month"
 ---
 
-## The Short Answer
+## Expect to pay $3,326.51 per month
 
 **A $500,000 mortgage at 7% interest over 30 years carries a monthly principal and interest payment of approximately $3,326.51.** By the time you make your final payment, you'll have paid roughly $697,544 in interest alone — nearly 140% of the original loan amount.
 
-## Breaking Down the Numbers
+## $697,544 in interest: the true cost of half a million at 7%
 
 Half a million dollars borrowed at 7% for 30 years produces sobering totals. Here's the full cost picture:
 
@@ -29,7 +29,7 @@ In the early years, the vast majority of each payment services interest. Your fi
 
 By month 60 (year 5), you've made $199,591 in payments but have only reduced your principal by about $26,800. That slow start is the defining characteristic of a long-term, high-balance mortgage.
 
-## What This Means for You
+## What income do you need to qualify?
 
 A $3,326.51 payment demands serious income. Most lenders use two key ratios to decide whether you qualify:
 
@@ -44,14 +44,12 @@ Beyond the base payment, budget for these additional costs:
 
 Your realistic all-in housing cost could range from $4,000 to $5,000 per month.
 
-## What If...
+## Saving six figures with the right term and rate
 
 - **You go with a 15-year term:** Payments jump to approximately $4,494/month, but total interest plummets to $308,931 — saving you $388,613. That's nearly $400,000 kept in your pocket.
 - **You secure a 6.5% rate instead of 7%:** Monthly payments drop to $3,160.34, saving $166/month or about $59,821 over the loan's life. At this loan size, every tenth of a percent matters.
 - **You put 20% down on a $625,000 home:** Your loan stays at $500,000 and you eliminate PMI immediately, saving $200–$400/month from day one.
 - **You make biweekly half-payments:** Instead of 12 monthly payments, you make 26 half-payments per year (equivalent to 13 full payments). This can cut 4–5 years off your term and save over $130,000 in interest.
 - **You buy discount points at closing:** Paying 1 point (1% of the loan, or $5,000) typically reduces your rate by 0.25%. On a $500,000 loan, that point could save $30,000+ over 30 years.
-
-## Next Steps
 
 At a half-million-dollar loan, the difference between a good rate and a great rate is worth six figures. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to experiment with your actual rate, term, and down payment — and see exactly how extra payments or a shorter term would change your total cost.

@@ -13,11 +13,11 @@ inputs:
 resultSummary: "Avalanche saves $2,180 vs. snowball"
 ---
 
-## The Short Answer
+## Avalanche saves $2,180 and finishes 4 months sooner
 
 **Using the avalanche method (highest interest rate first) on $50,000 of debt with $1,200/month saves approximately $2,180 in total interest compared to the snowball method (smallest balance first).** Both approaches work, but they optimize for different things — the avalanche saves money while the snowball delivers faster psychological wins.
 
-## Breaking Down the Numbers
+## Three debts, two strategies, side by side
 
 You have three debts totaling $50,000:
 
@@ -49,7 +49,7 @@ You attack the debts in order of balance size: credit card ($8k) first, then car
 
 The avalanche method saves $2,180 and finishes 4 months earlier. The difference comes entirely from the order you tackle the car loan and student loan — by paying the 6% car loan before the 5% student loan, the snowball lets the larger student loan accrue interest at a slightly lower rate for longer, but the larger balance more than offsets the rate difference.
 
-## What This Means for You
+## Math vs. motivation: picking the right method
 
 The math always favors the avalanche method, but personal finance is not purely math — it is also behavior.
 
@@ -59,13 +59,11 @@ The math always favors the avalanche method, but personal finance is not purely 
 
 **The real enemy is neither method — it is paying only the minimums.** If you paid just the minimum payments on all three debts, you would spend approximately $19,800 in interest over 10 or more years. Both snowball and avalanche crush that outcome by more than half.
 
-## What If...
+## Higher payments, lower rates, and lump-sum bonuses
 
 - **You increase payments to $1,500/month:** Avalanche payoff drops to about 39 months with ~$6,100 in interest. The extra $300/month saves you $2,320 and 13 months compared to the $1,200 avalanche plan.
 - **The credit card rate is 15% instead of 22%:** The gap between methods narrows to about $1,400. When interest rates are closer together, the method matters less — consistency matters more.
 - **You consolidate the credit card to a 10% personal loan:** Total avalanche interest drops to about $7,200, saving $1,220 from the rate reduction alone. Consolidation and avalanche together are the optimal mathematical play.
 - **You get a $3,000 bonus and apply it to debt:** In the avalanche method, throwing $3,000 at the credit card in month 1 eliminates it by month 9 instead of 15, saving roughly $800 in interest. Lump-sum payments have the biggest impact when directed at the highest-rate balance.
-
-## Next Steps
 
 The best strategy is the one you will actually follow through on. Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff) to enter your real debts and compare both methods side by side — see exactly how much each approach costs and how long it takes, then pick the one that matches your personality.

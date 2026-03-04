@@ -24,6 +24,7 @@ import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
+import { useChartTheme } from '../../lib/useChartTheme';
 
 /* ── Tabs ─────────────────────────────────────────────────── */
 type Mode = 'monthly' | 'time';
@@ -44,6 +45,7 @@ const DEFAULTS = {
 
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function SavingsGoalCalc() {
+  const ct = useChartTheme();
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const fmt = (v: number) => formatCurrency(v, currency);
@@ -446,17 +448,17 @@ export default function SavingsGoalCalc() {
                         <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
                     <XAxis
                       dataKey="year"
-                      tick={{ fontSize: 12, fill: '#6B7280' }}
+                      tick={{ fontSize: 12, fill: ct.axisText }}
                       tickLine={false}
-                      axisLine={{ stroke: '#E5E7EB' }}
-                      label={{ value: 'Year', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: '#9CA3AF' }}
+                      axisLine={{ stroke: ct.axis }}
+                      label={{ value: 'Year', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: ct.axisText }}
                     />
                     <YAxis
                       tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 12, fill: '#6B7280' }}
+                      tick={{ fontSize: 12, fill: ct.axisText }}
                       tickLine={false}
                       axisLine={false}
                       width={60}

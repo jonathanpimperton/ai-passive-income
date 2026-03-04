@@ -30,6 +30,7 @@ export default function EmailResultsButton({
   const [errorMsg, setErrorMsg] = useState('');
   const honeypotRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
   const turnstileTokenRef = useRef<string>('');
   const turnstileWidgetRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
@@ -73,6 +74,13 @@ export default function EmailResultsButton({
       }
     };
   }, [expanded]);
+
+  // Focus error message when it appears for screen reader users
+  useEffect(() => {
+    if (status === 'error' && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [status, errorMsg]);
 
   function handleToggle() {
     if (!expanded) {
@@ -240,7 +248,7 @@ export default function EmailResultsButton({
           </label>
         </form>
         {status === 'error' && errorMsg && (
-          <p role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
+          <p ref={errorRef} tabIndex={-1} role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600 outline-none">
             <AlertCircle size={12} aria-hidden="true" />
             {errorMsg}
           </p>

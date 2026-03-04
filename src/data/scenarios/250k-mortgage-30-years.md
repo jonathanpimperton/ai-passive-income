@@ -13,11 +13,11 @@ inputs:
 resultSummary: "$1,628.87/month"
 ---
 
-## The Short Answer
+## You would pay $1,628.87 per month
 
 **On a $250,000 mortgage at 6.8% interest over 30 years, your monthly payment would be approximately $1,628.87 for principal and interest.** Over the full term, you'd pay a total of roughly $336,393 in interest — more than the original amount you borrowed.
 
-## Breaking Down the Numbers
+## How $336,393 in interest accumulates
 
 Your $1,628.87 monthly payment is split between interest and principal, and that split changes dramatically over time. In the very first month, approximately $1,417 goes straight to interest while only $212 chips away at your balance. The crossover point — where more of your payment goes to principal than interest — doesn't arrive until around year 19.
 
@@ -30,7 +30,7 @@ Here's the lifetime picture at a glance:
 
 You end up paying $1.35 in interest for every dollar you borrowed. That's the true cost of a 6.8% rate stretched over three decades.
 
-## What This Means for You
+## The real monthly cost beyond principal and interest
 
 To comfortably afford a $1,628.87 housing payment, lenders typically want your mortgage to stay at or below 28% of your gross monthly income. Working backward, that means you'd need a gross monthly income of about $5,817, or an annual salary of roughly $69,810.
 
@@ -42,14 +42,12 @@ Keep in mind that $1,628.87 covers only principal and interest. In practice, you
 
 A realistic all-in budget for a $250,000 mortgage often lands between $2,000 and $2,450 per month.
 
-## What If...
+## Shorter terms, lower rates, and extra payments
 
 - **You choose a 15-year term instead:** Monthly payments rise to approximately $2,221, but total interest drops to about $149,780 — saving you $186,613 over the life of the loan.
 - **Rates fall to 6%:** Your 30-year payment drops to $1,498.88, saving $130/month or roughly $46,800 over the full term.
 - **You make one extra payment per year:** Applying one additional monthly payment annually could shave 5–6 years off your mortgage and save over $65,000 in interest.
 - **You put 20% down on a $312,500 home:** Your loan stays at $250,000 and you skip PMI entirely, freeing up $100–$175/month for other priorities.
 - **You refinance after 5 years at a lower rate:** Even a 0.5% rate reduction at that point could save you $30,000+ in remaining interest.
-
-## Next Steps
 
 Small changes to your rate, term, or extra payment strategy can shift your total cost by tens of thousands of dollars. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to plug in your exact numbers and see how different scenarios play out side by side.

@@ -17,6 +17,7 @@ import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
+import { useChartTheme } from '../../lib/useChartTheme';
 
 /**
  * Average annual CPI-U inflation rates by year (BLS data).
@@ -70,6 +71,7 @@ export default function InflationCalc() {
   const [endYear, setEndYear] = useState(DEFAULTS.endYear);
   const [futureYears, setFutureYears] = useState(DEFAULTS.futureYears);
   const [inflationRate, setInflationRate] = useState(DEFAULTS.inflationRate);
+  const ct = useChartTheme();
 
   const handleReset = useCallback(() => {
     setAmount(DEFAULTS.amount);
@@ -341,18 +343,18 @@ export default function InflationCalc() {
                       <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
                   <XAxis
                     dataKey="year"
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
+                    tick={{ fontSize: 12, fill: ct.axisText }}
                     tickLine={false}
-                    axisLine={{ stroke: '#E5E7EB' }}
+                    axisLine={{ stroke: ct.axis }}
                   />
                   <YAxis
                     tickFormatter={(v: number) =>
                       `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`
                     }
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
+                    tick={{ fontSize: 12, fill: ct.axisText }}
                     tickLine={false}
                     axisLine={false}
                     width={60}

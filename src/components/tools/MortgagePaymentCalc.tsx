@@ -21,6 +21,7 @@ import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
+import { useChartTheme } from '../../lib/useChartTheme';
 
 /* ── Mortgage calculation helpers ─────────────────────────── */
 
@@ -209,6 +210,7 @@ export default function MortgagePaymentCalc() {
   const [propertyTaxRate, setPropertyTaxRate] = useState(DEFAULTS.propertyTaxRate);
   const [insuranceAnnual, setInsuranceAnnual] = useState(DEFAULTS.insuranceAnnual);
   const [showSchedule, setShowSchedule] = useState(false);
+  const ct = useChartTheme();
 
   const handleReset = useCallback(() => {
     setHomePrice(DEFAULTS.homePrice);
@@ -514,9 +516,9 @@ export default function MortgagePaymentCalc() {
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={result.chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 6" stroke="#e5e7eb" />
-                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#6b7280' }} interval={Math.max(0, Math.floor(result.chartData.length / 8) - 1)} />
-                    <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${(v / 1000).toFixed(0)}k`; }} width={55} />
+                    <CartesianGrid strokeDasharray="3 6" stroke={ct.grid} />
+                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: ct.axisText }} interval={Math.max(0, Math.floor(result.chartData.length / 8) - 1)} />
+                    <YAxis tick={{ fontSize: 11, fill: ct.axisText }} tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${(v / 1000).toFixed(0)}k`; }} width={55} />
                     <Tooltip content={<ChartTooltip formatValue={fmt} />} />
                     <Area type="monotone" dataKey="balance" name="Remaining Balance" stroke="#0B6E6E" fill="#D1F0F0" strokeWidth={2} animationDuration={800} />
                   </AreaChart>

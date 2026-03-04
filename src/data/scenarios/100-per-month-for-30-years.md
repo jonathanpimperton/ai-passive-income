@@ -14,11 +14,11 @@ inputs:
 resultSummary: "$121,997.10"
 ---
 
-## The Short Answer
+## $36,000 in, $121,997 out
 
 **Investing $100 per month at 7% annual interest compounded monthly grows to approximately $121,997.10 after 30 years.** You only contribute $36,000 of your own money over that period — the remaining $85,997 is pure investment growth. Compound interest earns you more than twice what you put in.
 
-## Breaking Down the Numbers
+## The tipping point where interest overtakes contributions
 
 The magic here is not any single month's contribution. It is the relentless consistency of 360 deposits, each one earning its own compounding returns from the moment it hits the account. Your earliest contributions work the hardest because they have the most time to grow.
 
@@ -35,7 +35,7 @@ Notice the tipping point: somewhere around year 17, the cumulative interest earn
 
 This is why starting early dominates every other financial decision. Each year of delay does not just cost you $1,200 in missed contributions — it costs you the decades of compounding those contributions would have generated.
 
-## What This Means for You
+## Turning $100/month into a six-figure portfolio
 
 One hundred dollars a month is achievable for most working adults. It is roughly the cost of two streaming subscriptions and a few takeout meals. Yet over a career-length timeline, it builds a six-figure portfolio.
 
@@ -43,13 +43,11 @@ The most practical way to invest $100 per month is through a low-cost index fund
 
 The 7% rate used here reflects the historical inflation-adjusted average of the U.S. stock market. Your actual returns will vary year to year, but the principle holds: consistent contributions into broadly diversified investments, left alone for decades, have historically rewarded patient investors.
 
-## What If...
+## Doubling the contribution, halving the timeline, and other variations
 
 - **You invest $200 per month instead of $100:** Your ending balance doubles to approximately $243,994. Since the interest rate and time are the same, doubling the contribution exactly doubles the result — a useful mental shortcut.
 - **You invest $500 per month instead of $100:** You end up with roughly $609,985. At this level, you are approaching a retirement-grade portfolio from modest monthly savings alone.
 - **You wait 10 years and invest for only 20 years:** Your balance drops to about $52,093 — less than half of the 30-year result, despite contributing $24,000 of the $36,000 total. Those first 10 years of compounding are worth nearly $70,000 in lost growth.
 - **At 5% instead of 7%:** Your $100 per month grows to about $83,226 over 30 years — still more than double your contributions, but $38,771 less than at 7%. The rate matters, but consistency matters more than chasing a higher return.
 
-## Next Steps
-
-The best time to start investing was years ago. The second-best time is today. Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model your own monthly contribution — try $100, $200, or whatever fits your budget — and see exactly how 30 years of consistency can transform small deposits into serious wealth.
+The best time to start investing was years ago. The second-best time is today. Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model your own monthly contribution -- try $100, $200, or whatever fits your budget -- and see exactly how 30 years of consistency can transform small deposits into serious wealth.

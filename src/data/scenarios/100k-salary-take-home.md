@@ -12,11 +12,11 @@ inputs:
 resultSummary: "~$73,450/year ($6,121/month)"
 ---
 
-## The Short Answer
+## $73,450 after taxes in California
 
 **A $100,000 salary in California as a single filer leaves you with approximately $73,450 per year, or about $6,121 per month after all taxes.** Nearly $26,550 — more than a quarter of your gross pay — goes to federal income tax, state income tax, and FICA payroll taxes before you see a dollar.
 
-## Breaking Down the Numbers
+## Federal, state, and FICA: where $26,550 goes
 
 Here is where each piece of your $100,000 goes:
 
@@ -28,19 +28,17 @@ Add those together and approximately $26,550 is withheld, leaving $73,450 in net
 
 It is worth noting that this calculation assumes the standard deduction ($14,600 for single filers in 2024) and no additional pre-tax deductions like health insurance premiums or retirement contributions. Your actual withholding may differ based on your W-4 elections.
 
-## What This Means for You
+## Budget from $6,121/month, not $8,333
 
 Earning six figures sounds like a financial milestone, and it is. But in a high-cost-of-living state like California, the gap between gross and net income can be a rude surprise. After taxes, your $100,000 salary gives you the same spending power as someone earning about $78,000 in a state with no income tax.
 
 This is why financial planning should always start from net income, not gross. Your budget, savings rate, and investment contributions should all be built around the $6,121 per month that actually hits your bank account — not the $8,333 gross figure on your offer letter.
 
-## What If...
+## Filing status, state, and 401(k): how each changes the math
 
 - **You file as Married Filing Jointly (sole earner):** Your federal tax drops to roughly $8,600 thanks to the larger standard deduction and wider brackets, bringing take-home closer to $79,100 per year.
 - **You live in Texas or Florida (no state income tax):** Your take-home jumps to approximately $78,090 — about $4,640 more per year. That is an extra $387 per month simply from the state you live in.
 - **You contribute 6% to a 401(k):** A $6,000 pre-tax contribution reduces your taxable income to $94,000. Your federal tax drops by roughly $1,320, so the $6,000 contribution only costs you about $4,680 in reduced take-home. You get a dollar of retirement savings for roughly 78 cents of spending money.
 - **You earn $100,000 in New York City:** Between New York state tax (~$4,800) and NYC local tax (~$2,700), your take-home falls to around $70,500 — nearly $3,000 less than California.
-
-## Next Steps
 
 Your actual take-home depends on your filing status, state, deductions, and retirement contributions. Use the [US Salary Calculator](/tools/income-and-planning/salary-us) to enter your exact situation — adjust the state, filing status, and 401(k) contribution to see precisely how much of your salary you keep.

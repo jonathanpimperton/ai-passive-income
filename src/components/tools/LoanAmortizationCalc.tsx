@@ -27,6 +27,7 @@ import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
+import { useChartTheme } from '../../lib/useChartTheme';
 
 /* ── Collapsible Year-Group Table ─────────────────────────── */
 interface YearGroup {
@@ -110,6 +111,7 @@ export default function LoanAmortizationCalc() {
   const [termYears, setTermYears] = useState(DEFAULTS.termYears);
   const [extraPayment, setExtraPayment] = useState(DEFAULTS.extraPayment);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const ct = useChartTheme();
 
   const termMonths = termYears * 12;
 
@@ -347,10 +349,10 @@ export default function LoanAmortizationCalc() {
               <div className="h-40">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis dataKey="year" tick={{ fontSize: 10, fill: '#6B7280' }} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                    <XAxis dataKey="year" tick={{ fontSize: 10, fill: ct.axisText }} tickLine={false} />
                     <YAxis tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 10, fill: '#6B7280' }} tickLine={false} axisLine={false} width={45} />
+                      tick={{ fontSize: 10, fill: ct.axisText }} tickLine={false} axisLine={false} width={45} />
                     <Tooltip content={<ChartTooltip formatValue={fmt} />} />
                     <Area type="monotone" dataKey="Remaining Balance" stroke="#0B6E6E" strokeWidth={2} fill="#0B6E6E" fillOpacity={0.1} animationDuration={600} />
                   </AreaChart>

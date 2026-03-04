@@ -6,7 +6,7 @@
  * the value is parsed, validated, clamped to [min, max], and formatted.
  * This fixes: can't backspace, can't type decimals, intermediate states reformatted.
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 interface SliderInputProps {
   label: string;
@@ -43,12 +43,14 @@ export default function SliderInput({
 }: SliderInputProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingValue, setEditingValue] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const displayValue = formatDisplay ? formatDisplay(value) : String(value);
 
   const handleFocus = () => {
     setIsEditing(true);
     setEditingValue(String(value));
+    setError(null);
   };
 
   const handleBlur = () => {
@@ -64,9 +66,16 @@ export default function SliderInput({
     }
     const parsed = parseFloat(cleaned);
     if (!isNaN(parsed)) {
+      if (parsed < min || parsed > max) {
+        setError(`Value must be between ${min.toLocaleString()} and ${max.toLocaleString()}`);
+      } else {
+        setError(null);
+      }
       onChange(Math.min(max, Math.max(min, parsed)));
+    } else if (editingValue.trim() !== '') {
+      setError('Please enter a valid number');
     }
-    // If NaN (empty/invalid), revert silently to current value
+    // If empty, revert silently to current value
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,6 +145,9 @@ export default function SliderInput({
           <span className="text-xs text-neutral-400 tabular-nums">{minLabel}</span>
           <span className="text-xs text-neutral-400 tabular-nums">{maxLabel}</span>
         </div>
+      )}
+      {error && (
+        <p className="text-xs text-red-600 mt-1" role="alert">{error}</p>
       )}
     </div>
   );

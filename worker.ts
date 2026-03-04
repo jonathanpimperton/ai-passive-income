@@ -7,6 +7,12 @@
  * Security: Turnstile bot prevention, Zod schema validation, server-side
  * tool name derivation (never trust client toolName), input sanitization,
  * 20KB request size cap.
+ *
+ * Rate limiting: Cloudflare WAF should be configured with:
+ *   - Rule: POST /api/email-results → 5 requests per IP per minute, burst 10
+ *   - Action: Block with 429 Too Many Requests
+ *   - This is set in the Cloudflare dashboard (Security > WAF > Rate limiting rules)
+ *   - The 429 is returned by Cloudflare BEFORE the worker runs, so no in-worker handling needed.
  */
 
 interface Env {

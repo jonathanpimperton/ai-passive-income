@@ -30,8 +30,8 @@ export default function ChartTooltip({
 }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-neutral-200 rounded-lg shadow-md p-3 text-sm">
-      <p className="font-medium text-neutral-900 mb-1">
+    <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-lg shadow-md p-3 text-sm">
+      <p className="font-medium text-neutral-900 dark:text-neutral-100 mb-1">
         {labelPrefix} {label}
       </p>
       {payload.map((entry) => (
