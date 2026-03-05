@@ -8,26 +8,38 @@ export const CATEGORIES = {
   'saving-and-growth': {
     label: 'Saving & Growth',
     slug: 'saving-and-growth',
+    tagline: 'Watch your money compound over time.',
+    color: '#047857',
   },
   'debt-and-loans': {
     label: 'Debt & Loans',
     slug: 'debt-and-loans',
+    tagline: 'Understand every payment before you sign.',
+    color: '#D97706',
   },
   'income-and-planning': {
     label: 'Income & Planning',
     slug: 'income-and-planning',
+    tagline: 'Know exactly what you keep and what you need.',
+    color: '#2563EB',
   },
   economic: {
     label: 'Economic',
     slug: 'economic',
+    tagline: 'Track the forces that affect every pound and dollar.',
+    color: '#0B6E6E',
   },
   utility: {
     label: 'Utility Tools',
     slug: 'utility',
+    tagline: 'Quick tools for everyday tasks.',
+    color: '#555573',
   },
   'file-tools': {
     label: 'File Tools',
     slug: 'file-tools',
+    tagline: 'Convert and compress — everything stays in your browser.',
+    color: '#C84335',
   },
 } as const;
 

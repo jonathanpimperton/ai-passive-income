@@ -893,6 +893,11 @@ input[type="range"] {
   background-color: var(--color-neutral-200);
 }
 
+/* --- Dark mode: scenario box --- */
+[data-theme="dark"] .scenario-box {
+  border-color: var(--color-neutral-200);
+}
+
 /* --- Dark mode: hero search & results --- */
 [data-theme="dark"] #hero-search {
   background-color: var(--color-surface);
