@@ -22,6 +22,7 @@ export default function ScrollEmailBar({ toolSlug }: ScrollEmailBarProps) {
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
   const honeypotRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -29,7 +30,9 @@ export default function ScrollEmailBar({ toolSlug }: ScrollEmailBarProps) {
     if (localStorage.getItem(LS_KEY)) return;
 
     function onScroll() {
-      const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollableHeight <= 0) return;
+      const scrollPercent = window.scrollY / scrollableHeight;
       if (scrollPercent > 0.6) {
         setVisible(true);
         window.removeEventListener('scroll', onScroll);
@@ -50,6 +53,7 @@ export default function ScrollEmailBar({ toolSlug }: ScrollEmailBarProps) {
     if (!email) return;
 
     setStatus('loading');
+    setErrorMsg('');
 
     try {
       const response = await fetch('/api/subscribe', {
@@ -67,6 +71,7 @@ export default function ScrollEmailBar({ toolSlug }: ScrollEmailBarProps) {
         data = await response.json();
       } catch {
         setStatus('error');
+        setErrorMsg('Something went wrong.');
         return;
       }
 
@@ -82,9 +87,11 @@ export default function ScrollEmailBar({ toolSlug }: ScrollEmailBarProps) {
         setTimeout(dismiss, 3000);
       } else {
         setStatus('error');
+        setErrorMsg(data.error || 'Something went wrong.');
       }
     } catch {
       setStatus('error');
+      setErrorMsg('Network error. Please try again.');
     }
   }
 
@@ -137,6 +144,9 @@ export default function ScrollEmailBar({ toolSlug }: ScrollEmailBarProps) {
                 {status === 'loading' ? '...' : 'Subscribe'}
               </button>
             </form>
+            {status === 'error' && errorMsg && (
+              <p className="text-xs text-red-600 hidden sm:block shrink-0" role="alert">{errorMsg}</p>
+            )}
           </>
         )}
 
