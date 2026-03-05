@@ -215,6 +215,13 @@ a {
   100% { background-position: -200% 0; }
 }
 
+/* Slide-up animation for scroll-triggered email bar */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-slide-up { animation: slide-up 0.3s ease-out; }
+
 /* Scrollbar hide utility */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

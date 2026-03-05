@@ -22,6 +22,7 @@ import ToolIcon from './ToolIcon.astro';
 import AffiliateDisclosure from './AffiliateDisclosure.astro';
 import AffiliateLinks from './AffiliateLinks.astro';
 import EmailCapture from './EmailCapture.tsx';
+import ScrollEmailBar from './ScrollEmailBar.tsx';
 import FaqSection from './FaqSection.astro';
 import ScenarioLinks from './ScenarioLinks.astro';
 import RelatedTools from './RelatedTools.astro';
@@ -317,6 +318,11 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
   <ScenarioLinks toolSlug={slug} />
   {relatedTools.length > 0 && <RelatedTools slugs={relatedTools} />}
 </div>
+
+{/* Scroll-triggered email bar on financial calculator pages */}
+{showEmailCapture && (
+  <ScrollEmailBar client:idle toolSlug={slug} />
+)}
 
 {/* Back-to-calculator floating action button */}
 <button
