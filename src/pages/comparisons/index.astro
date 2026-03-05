@@ -1,0 +1,58 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
+import { getCollection } from 'astro:content';
+
+const comparisons = await getCollection('comparisons');
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Comparisons', url: '/comparisons' },
+];
+---
+
+<BaseLayout
+  title="Financial Comparisons — Side-by-Side Analysis"
+  description="Compare financial options side by side. ISA vs general account, 15 vs 30-year mortgage, snowball vs avalanche, and more."
+>
+  {/* Dark header */}
+  <div class="bg-[#0F1B2D] text-white">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <Breadcrumb items={breadcrumbs} variant="dark" />
+      <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mt-4 mb-3">Financial Comparisons</h1>
+      <p class="text-lg text-white/70 max-w-2xl leading-relaxed">
+        Side-by-side breakdowns of common financial decisions. Data tables, expert analysis, and links to calculators so you can run the numbers yourself.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {comparisons.map((comparison) => {
+        const shortTitle = comparison.data.title.split(':')[0];
+        return (
+          <a
+            href={`/comparisons/${comparison.data.slug}`}
+            class="group bg-white border border-neutral-200/80 rounded-lg p-6 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+          >
+            <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-600 shrink-0 mb-4 group-hover:bg-primary-700 group-hover:text-white transition-colors duration-200">
+              <ToolIcon name="scale" size={20} />
+            </div>
+            <h2 class="text-base font-bold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200 mb-2 leading-snug">
+              {shortTitle}
+            </h2>
+            <p class="text-sm text-neutral-600 leading-relaxed mb-4 line-clamp-2">
+              {comparison.data.description}
+            </p>
+            <div class="mt-auto pt-3 border-t border-neutral-100">
+              <p class="text-xs text-neutral-500 leading-relaxed line-clamp-2">
+                <span class="font-semibold text-primary-600">Verdict:</span> {comparison.data.verdict}
+              </p>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</BaseLayout>

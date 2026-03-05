@@ -1,0 +1,182 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
+import { getCollection, render } from 'astro:content';
+import { buildBreadcrumbSchema } from '@lib/seo';
+import { TOOLS, getToolPath } from '@lib/tools-data';
+
+export async function getStaticPaths() {
+  const comparisons = await getCollection('comparisons');
+  return comparisons.map((comparison) => ({
+    params: { comparison: comparison.data.slug },
+    props: { comparison },
+  }));
+}
+
+const { comparison } = Astro.props;
+const { title, slug, description, keywords, relatedTools, verdict, comparisonTable } = comparison.data;
+const { Content } = await render(comparison);
+
+// Resolve related tools to actual tool metadata
+const resolvedTools = relatedTools
+  .map((toolSlug) => TOOLS.find((t) => t.slug === toolSlug))
+  .filter(Boolean);
+
+// Get other comparisons for sidebar (excluding current)
+const allComparisons = await getCollection('comparisons');
+const otherComparisons = allComparisons
+  .filter((c) => c.data.slug !== slug)
+  .slice(0, 5);
+
+// Extract the two option names from the title (before the colon)
+const titleParts = title.split(':')[0];
+const vsMatch = titleParts.match(/(.+?)\s+vs\s+(.+)/i);
+const option1Label = vsMatch ? vsMatch[1].trim() : 'Option A';
+const option2Label = vsMatch ? vsMatch[2].trim() : 'Option B';
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Comparisons', url: '/comparisons' },
+  { name: titleParts, url: `/comparisons/${slug}` },
+];
+
+const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  structuredData={[breadcrumbSchema]}
+>
+  {/* Dark header */}
+  <div class="bg-[#0F1B2D] text-white">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+      <Breadcrumb items={breadcrumbs} variant="dark" />
+
+      <div class="flex items-start gap-4 mt-4 mb-6">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 text-white shrink-0 backdrop-blur-sm">
+          <ToolIcon name="scale" size={24} />
+        </div>
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">{title}</h1>
+          <p class="text-white/60 text-sm mt-2 max-w-2xl leading-relaxed">{description}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
+      {/* Main content */}
+      <div>
+        {/* Verdict card */}
+        <div class="bg-white border border-neutral-200/80 rounded-lg p-6 sm:p-8 shadow-card mb-8">
+          <p class="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-3">The Verdict</p>
+          <p class="text-lg font-medium text-neutral-900 leading-relaxed">{verdict}</p>
+        </div>
+
+        {/* Comparison table */}
+        <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card mb-8 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-neutral-50 border-b border-neutral-200/80">
+                  <th class="text-left px-5 py-3.5 font-semibold text-neutral-700 w-[30%]">Feature</th>
+                  <th class="text-left px-5 py-3.5 font-semibold text-primary-700 w-[35%]">{option1Label}</th>
+                  <th class="text-left px-5 py-3.5 font-semibold text-primary-700 w-[35%]">{option2Label}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonTable.map((row, i) => (
+                  <tr class:list={[
+                    "border-b border-neutral-100 last:border-b-0",
+                    i % 2 === 1 ? "bg-neutral-50/50" : "",
+                  ]}>
+                    <td class="px-5 py-3.5 font-medium text-neutral-700">{row.feature}</td>
+                    <td class="px-5 py-3.5 text-neutral-600">{row.option1}</td>
+                    <td class="px-5 py-3.5 text-neutral-600">{row.option2}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Educational content */}
+        <div class="prose max-w-none">
+          <Content />
+        </div>
+
+        {/* Bottom CTA */}
+        {resolvedTools.length > 0 && (
+          <div class="mt-10 bg-neutral-50 border border-neutral-200/80 rounded-lg p-6 sm:p-8">
+            <h2 class="text-xl font-bold text-neutral-900 mb-2">Run the numbers yourself</h2>
+            <p class="text-sm text-neutral-600 mb-4 leading-relaxed">
+              Use our calculators to see how these options compare with your specific numbers.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              {resolvedTools.slice(0, 3).map((tool) => (
+                <a
+                  href={getToolPath(tool!)}
+                  class="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-all duration-200 shadow-sm shadow-primary-600/20"
+                >
+                  <ToolIcon name={tool!.icon} size={16} />
+                  {tool!.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sidebar */}
+      <aside class="space-y-6">
+        {/* Related calculators */}
+        {resolvedTools.length > 0 && (
+          <div class="bg-white border border-neutral-200/80 rounded-xl p-5 shadow-card">
+            <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Related Calculators</p>
+            <ul class="space-y-3">
+              {resolvedTools.map((tool) => (
+                <li>
+                  <a href={getToolPath(tool!)} class="group flex items-start gap-3">
+                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-600 shrink-0 group-hover:bg-primary-700 group-hover:text-white transition-colors duration-200">
+                      <ToolIcon name={tool!.icon} size={20} />
+                    </div>
+                    <div>
+                      <span class="text-sm font-bold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200">
+                        {tool!.name}
+                      </span>
+                      <p class="text-xs text-neutral-500 mt-0.5">{tool!.description}</p>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Other comparisons */}
+        {otherComparisons.length > 0 && (
+          <div class="bg-white border border-neutral-200/80 rounded-xl p-5 shadow-card">
+            <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">More Comparisons</p>
+            <ul class="space-y-3">
+              {otherComparisons.map((other) => (
+                <li>
+                  <a
+                    href={`/comparisons/${other.data.slug}`}
+                    class="group block"
+                  >
+                    <span class="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-200">
+                      {other.data.title.split(':')[0]}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </aside>
+    </div>
+  </div>
+</BaseLayout>

@@ -61,4 +61,23 @@ const tools = defineCollection({
   }),
 });
 
-export const collections = { tools, scenarios };
+const comparisons = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/data/comparisons' }),
+  schema: z.object({
+    title: z.string(),
+    slug: z.string(),
+    description: z.string(),
+    keywords: z.array(z.string()),
+    relatedTools: z.array(z.string()),
+    verdict: z.string(),
+    comparisonTable: z.array(
+      z.object({
+        feature: z.string(),
+        option1: z.string(),
+        option2: z.string(),
+      })
+    ),
+  }),
+});
+
+export const collections = { tools, scenarios, comparisons };

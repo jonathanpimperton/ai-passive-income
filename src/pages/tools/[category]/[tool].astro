@@ -118,44 +118,44 @@ const hasCalculator = slug in CALCULATOR_MAP;
   structuredData={structuredData}
 >
   <ToolPageLayout tool={{ data: tool.data }}>
-    {slug === 'compound-interest' && <CompoundInterestCalc client:load />}
-    {slug === 'loan-amortization' && <LoanAmortizationCalc client:load />}
-    {slug === 'investment-return' && <InvestmentReturnCalc client:load />}
-    {slug === 'retirement-savings' && <RetirementSavingsCalc client:load />}
-    {slug === 'debt-payoff' && <DebtPayoffCalc client:load />}
-    {slug === 'savings-goal' && <SavingsGoalCalc client:load />}
-    {slug === 'qr-code' && <QrCodeGenerator client:load />}
-    {slug === 'password-generator' && <PasswordGenerator client:load />}
-    {slug === 'emergency-fund' && <EmergencyFundCalc client:load />}
-    {slug === 'roi' && <RoiCalc client:load />}
-    {slug === 'inflation' && <InflationCalc client:load />}
-    {slug === 'salary-us' && <SalaryCalc client:load />}
-    {slug === 'salary-uk' && <SalaryUkCalc client:load />}
-    {slug === 'net-worth' && <NetWorthCalc client:load />}
-    {slug === 'rent-vs-buy' && <RentVsBuyCalc client:load />}
-    {slug === 'mortgage-payment' && <MortgagePaymentCalc client:load />}
-    {slug === 'percentage-calculator' && <PercentageCalculator client:load />}
-    {slug === 'json-formatter' && <JsonFormatter client:load />}
-    {slug === 'image-compressor' && <ImageCompressor client:load />}
-    {slug === 'image-resizer' && <ImageResizer client:load />}
-    {slug === 'image-format-converter' && <ImageFormatConverter client:load />}
-    {slug === 'svg-to-png' && <SvgToPngConverter client:load />}
-    {slug === 'heic-to-jpg' && <HeicToJpgConverter client:load />}
-    {slug === 'csv-json' && <CsvJsonConverter client:load />}
-    {slug === 'markdown-html' && <MarkdownHtmlConverter client:load />}
-    {slug === 'images-to-pdf' && <ImagesToPdf client:load />}
-    {slug === 'pdf-merge' && <PdfMerge client:load />}
-    {slug === 'pdf-split' && <PdfSplit client:load />}
-    {slug === 'pdf-compress' && <PdfCompress client:load />}
-    {slug === 'pdf-to-image' && <PdfToImage client:load />}
-    {slug === 'excel-to-pdf' && <ExcelToPdf client:load />}
-    {slug === 'base64-encode-decode' && <Base64EncodeDecode client:load />}
-    {slug === 'url-encode-decode' && <UrlEncodeDecode client:load />}
-    {slug === 'jwt-decoder' && <JwtDecoder client:load />}
-    {slug === 'json-yaml' && <JsonYamlConverter client:load />}
-    {slug === 'json-xml' && <JsonXmlConverter client:load />}
-    {slug === 'png-to-ico' && <PngToIco client:load />}
-    {!hasCalculator && <PlaceholderCalc name={name} client:load />}
+    {slug === 'compound-interest' && <CompoundInterestCalc client:idle />}
+    {slug === 'loan-amortization' && <LoanAmortizationCalc client:idle />}
+    {slug === 'investment-return' && <InvestmentReturnCalc client:idle />}
+    {slug === 'retirement-savings' && <RetirementSavingsCalc client:idle />}
+    {slug === 'debt-payoff' && <DebtPayoffCalc client:idle />}
+    {slug === 'savings-goal' && <SavingsGoalCalc client:idle />}
+    {slug === 'qr-code' && <QrCodeGenerator client:idle />}
+    {slug === 'password-generator' && <PasswordGenerator client:idle />}
+    {slug === 'emergency-fund' && <EmergencyFundCalc client:idle />}
+    {slug === 'roi' && <RoiCalc client:idle />}
+    {slug === 'inflation' && <InflationCalc client:idle />}
+    {slug === 'salary-us' && <SalaryCalc client:idle />}
+    {slug === 'salary-uk' && <SalaryUkCalc client:idle />}
+    {slug === 'net-worth' && <NetWorthCalc client:idle />}
+    {slug === 'rent-vs-buy' && <RentVsBuyCalc client:idle />}
+    {slug === 'mortgage-payment' && <MortgagePaymentCalc client:idle />}
+    {slug === 'percentage-calculator' && <PercentageCalculator client:idle />}
+    {slug === 'json-formatter' && <JsonFormatter client:idle />}
+    {slug === 'image-compressor' && <ImageCompressor client:idle />}
+    {slug === 'image-resizer' && <ImageResizer client:idle />}
+    {slug === 'image-format-converter' && <ImageFormatConverter client:idle />}
+    {slug === 'svg-to-png' && <SvgToPngConverter client:idle />}
+    {slug === 'heic-to-jpg' && <HeicToJpgConverter client:idle />}
+    {slug === 'csv-json' && <CsvJsonConverter client:idle />}
+    {slug === 'markdown-html' && <MarkdownHtmlConverter client:idle />}
+    {slug === 'images-to-pdf' && <ImagesToPdf client:idle />}
+    {slug === 'pdf-merge' && <PdfMerge client:idle />}
+    {slug === 'pdf-split' && <PdfSplit client:idle />}
+    {slug === 'pdf-compress' && <PdfCompress client:idle />}
+    {slug === 'pdf-to-image' && <PdfToImage client:idle />}
+    {slug === 'excel-to-pdf' && <ExcelToPdf client:idle />}
+    {slug === 'base64-encode-decode' && <Base64EncodeDecode client:idle />}
+    {slug === 'url-encode-decode' && <UrlEncodeDecode client:idle />}
+    {slug === 'jwt-decoder' && <JwtDecoder client:idle />}
+    {slug === 'json-yaml' && <JsonYamlConverter client:idle />}
+    {slug === 'json-xml' && <JsonXmlConverter client:idle />}
+    {slug === 'png-to-ico' && <PngToIco client:idle />}
+    {!hasCalculator && <PlaceholderCalc name={name} client:idle />}
     <Fragment slot="content">
       <Content />
     </Fragment>
