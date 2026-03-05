@@ -4,6 +4,7 @@ import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection, render } from 'astro:content';
 import { buildBreadcrumbSchema } from '@lib/seo';
+import AffiliateLinks from '@components/ui/AffiliateLinks.astro';
 import { TOOLS, getToolPath } from '@lib/tools-data';
 
 export async function getStaticPaths() {
@@ -15,7 +16,7 @@ export async function getStaticPaths() {
 }
 
 const { comparison } = Astro.props;
-const { title, slug, description, keywords, relatedTools, verdict, comparisonTable } = comparison.data;
+const { title, slug, description, keywords, relatedTools, verdict, comparisonTable, affiliateContext, affiliatePrograms } = comparison.data;
 const { Content } = await render(comparison);
 
 // Resolve related tools to actual tool metadata
@@ -107,6 +108,11 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
         <div class="prose max-w-none">
           <Content />
         </div>
+
+        {/* Affiliate section */}
+        {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (
+          <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={slug} />
+        )}
 
         {/* Bottom CTA */}
         {resolvedTools.length > 0 && (

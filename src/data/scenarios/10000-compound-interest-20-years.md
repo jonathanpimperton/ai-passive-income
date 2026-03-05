@@ -11,6 +11,10 @@ inputs:
   Time Period: "20 years"
   Compounding Frequency: "Monthly"
 resultSummary: "$40,387.39"
+affiliateContext: "Start investing today"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## From $10,000 to $40,387 without adding a dollar

@@ -12,6 +12,9 @@ inputs:
   Monthly Contribution: "$1,500"
   Expected Return: "7%"
 resultSummary: "$1,214,400 by age 55"
+affiliateContext: "Open a retirement account"
+affiliatePrograms:
+  - "Betterment"
 ---
 
 ## $1,214,400 by age 55 -- but is it enough?

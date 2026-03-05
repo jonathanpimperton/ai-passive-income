@@ -10,6 +10,10 @@ inputs:
   Interest Rate: "5%"
   Loan Term: "15 years"
 resultSummary: "$1,582/month ($84,686 total interest)"
+affiliateContext: "Compare loan rates"
+affiliatePrograms:
+  - "LendingTree"
+  - "SoFi"
 ---
 
 ## $1,582 per month — and $84,686 goes to interest

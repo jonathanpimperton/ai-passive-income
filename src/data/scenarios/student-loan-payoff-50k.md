@@ -10,6 +10,9 @@ inputs:
   Average APR: "5.5%"
   Monthly Payment: "$600"
 resultSummary: "8 years 9 months, ~$13,060 in interest"
+affiliateContext: "Consolidate your debt at a lower rate"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## 8 years 9 months at $600/month — with $13,060 in interest

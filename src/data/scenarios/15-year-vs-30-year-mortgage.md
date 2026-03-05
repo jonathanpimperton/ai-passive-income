@@ -10,6 +10,9 @@ inputs:
   15-Year Rate: "5.75%"
   30-Year Rate: "6.25%"
 resultSummary: "15-year saves $267,000 in interest but costs $1,058/month more"
+affiliateContext: "Compare mortgage rates from multiple lenders"
+affiliatePrograms:
+  - "LendingTree"
 ---
 
 ## The 15-year saves $267,000 — but costs $1,058 more every month

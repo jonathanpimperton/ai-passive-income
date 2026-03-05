@@ -10,6 +10,9 @@ inputs:
   Total Assets: "$120,000"
   Total Liabilities: "$45,000"
 resultSummary: "$76,300 average, $13,900 median (US under-35)"
+affiliateContext: "Grow your net worth faster"
+affiliatePrograms:
+  - "Betterment"
 ---
 
 ## The average is $76,300 — but the median is only $13,900

@@ -31,6 +31,9 @@ comparisonTable:
   - feature: "Tax benefit"
     option1: "None"
     option2: "Mortgage interest deduction (if you itemise)"
+affiliateContext: "Get pre-approved for a mortgage"
+affiliatePrograms:
+  - "LendingTree"
 ---
 
 ## The 2026 landscape

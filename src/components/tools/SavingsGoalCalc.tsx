@@ -26,6 +26,7 @@ import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
+import ResultAffiliate from '../ui/ResultAffiliate';
 
 /* ── Tabs ─────────────────────────────────────────────────── */
 type Mode = 'monthly' | 'time';
@@ -432,6 +433,8 @@ export default function SavingsGoalCalc() {
               <ExportPdfButton toolName="Savings Goal Calculator" getInputs={getInputs} resultsRef={resultsRef} />
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="savings-goal" />
 
           {/* Chart */}
           {chartData.length > 1 && (

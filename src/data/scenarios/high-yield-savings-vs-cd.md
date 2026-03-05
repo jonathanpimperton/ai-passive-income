@@ -11,6 +11,9 @@ inputs:
   CD Rate: "4.8%"
   Term: "12 months"
 resultSummary: "CD earns $150 more per year — but locks your money"
+affiliateContext: "Earn more on your savings"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## The CD earns $150 more on $50,000 — is the lock-up worth it?

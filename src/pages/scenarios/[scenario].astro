@@ -4,6 +4,7 @@ import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection, render } from 'astro:content';
 import { buildBreadcrumbSchema } from '@lib/seo';
+import AffiliateLinks from '@components/ui/AffiliateLinks.astro';
 import { TOOLS, getToolPath, type ToolMeta } from '@lib/tools-data';
 
 export async function getStaticPaths() {
@@ -15,7 +16,7 @@ export async function getStaticPaths() {
 }
 
 const { scenario } = Astro.props;
-const { title, slug, description, keywords, toolSlug, toolCategory, inputs, resultSummary } = scenario.data;
+const { title, slug, description, keywords, toolSlug, toolCategory, inputs, resultSummary, affiliateContext, affiliatePrograms } = scenario.data;
 const { Content } = await render(scenario);
 
 const toolMeta = TOOLS.find((t) => t.slug === toolSlug);
@@ -91,6 +92,11 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
         <div class="prose max-w-none">
           <Content />
         </div>
+
+        {/* Affiliate section */}
+        {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (
+          <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={toolSlug} />
+        )}
 
         {/* Bottom CTA */}
         <div class="mt-10 bg-neutral-50 border border-neutral-200/80 rounded-lg p-6 sm:p-8">

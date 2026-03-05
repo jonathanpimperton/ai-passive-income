@@ -11,6 +11,9 @@ inputs:
   Time Frame: "1 year"
   Expected Return: "4.5%"
 resultSummary: "~$774/month (starting with $500)"
+affiliateContext: "Earn more on your savings"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## You need to save about $774 per month — roughly $178 per week

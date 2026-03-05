@@ -12,6 +12,9 @@ inputs:
   Monthly Contribution: "$1,781"
   Expected Return: "7%"
 resultSummary: "~$1,781/month from age 25 (targeting $1.5M)"
+affiliateContext: "Open a retirement account"
+affiliatePrograms:
+  - "Betterment"
 ---
 
 ## You need roughly $1,781/month from age 25 to retire at 50

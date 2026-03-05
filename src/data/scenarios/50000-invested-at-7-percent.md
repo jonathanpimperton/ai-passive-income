@@ -12,6 +12,10 @@ inputs:
   Monthly Contribution: "$0"
   Compounding Frequency: "Monthly"
 resultSummary: "$100,305.64"
+affiliateContext: "Start investing today"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## Your $50,000 doubles to $100,305

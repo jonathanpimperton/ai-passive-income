@@ -11,6 +11,10 @@ inputs:
   Annual Return: "7%"
   Time Period: "25 years"
 resultSummary: "$405,070 (from $150,000 contributed)"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## $500/month becomes $405,070 — you contributed $150,000

@@ -184,15 +184,67 @@ Only build these if earlier sprints show traction (traffic or email signups). Ea
 
 ---
 
-## Sprint 28 — Engagement: Scroll-Triggered Email + Seasonal Content (P2-P3)
+## Sprint 28 — MailerLite Drip Email Automation (P1)
 
-### 28A. Scroll-Triggered Email Capture
+**Goal:** Every "Email my results" subscriber gets a 2-email follow-up sequence (results email is already sent by MailerSend). The drip turns passive subscribers into affiliate revenue.
+
+### 28A. Day 3 — Educational Email
+
+Subject line varies by calculator slug. Pure value, no affiliate links. Builds trust.
+
+| Calculator Slug | Subject | Content Theme |
+|----------------|---------|---------------|
+| compound-interest | "The one number that changes everything" | How compounding frequency affects results |
+| mortgage-payment | "What your lender won't tell you" | Extra payments and their impact |
+| debt-payoff | "The fastest path out of debt" | Snowball vs avalanche comparison |
+| investment-return | "What 1% in fees really costs you" | Fee drag on long-term returns |
+| retirement-savings | "The retirement number most people get wrong" | Inflation-adjusted planning |
+| savings-goal | "Why your savings target might be too low" | Emergency fund sizing |
+| salary-uk | "3 things most people miss on their payslip" | Tax codes, pension, student loan |
+| salary-us | "Your 401(k) is costing you (or saving you)" | Pre-tax contribution math |
+| loan-amortization | "Month 1 vs Month 120: Where your money goes" | How amortization shifts over time |
+| roi | "ROI without this adjustment is meaningless" | Inflation-adjusted returns |
+| net-worth | "What your net worth should be at your age" | Age-based benchmarks |
+| rent-vs-buy | "The hidden costs that tip the scales" | Maintenance, opportunity cost |
+| emergency-fund | "3 months or 6 months? Here's how to decide" | Job stability, dependents |
+| inflation | "Your money lost X% of its value since 2020" | Concrete purchasing power examples |
+
+### 28B. Day 7 — Soft Affiliate Recommendation
+
+Subject: "One thing that could help with [topic]." Includes 1-2 partner recommendations per calculator slug with affiliate links and FTC disclosure.
+
+| Calculator Slug | Recommended Partners | CTA |
+|----------------|---------------------|-----|
+| compound-interest, investment-return, roi | Betterment, InvestEngine | "Start investing with low fees" |
+| mortgage-payment, loan-amortization, rent-vs-buy | LendingTree | "Compare rates from multiple lenders" |
+| debt-payoff | SoFi | "See if you can consolidate at a lower rate" |
+| retirement-savings | Betterment | "Open a retirement account" |
+| savings-goal, emergency-fund | SoFi | "Earn more on your savings" |
+| salary-uk | InvestEngine, Nutmeg | "Start investing tax-efficiently" |
+| salary-us | Betterment, Wealthfront | "Put your money to work" |
+| net-worth | Betterment | "Grow your net worth faster" |
+| inflation | SoFi | "Beat inflation with high-yield savings" |
+
+### 28C. Implementation
+
+Use MailerLite API to:
+1. Create an automation workflow triggered on joining group `180838346043426395` ("Calculator Results")
+2. Wait 3 days → send Day 3 email (conditional content by `calculator_slug` field)
+3. Wait 4 more days → send Day 7 email (conditional content with affiliate links)
+
+Email HTML uses the same table-based branded template as the existing results email in `worker.ts`.
+
+---
+
+## Sprint 29 — Engagement: Scroll-Triggered Email + Seasonal Content (P2-P3)
+
+### 29A. Scroll-Triggered Email Capture
 
 Currently email capture is static on the page. Add a subtle slide-in bar when users scroll past the calculator results: "Want these results in your inbox? Enter your email."
 
 Not a modal popup. A fixed bottom bar that appears after 60% scroll depth, dismissible, respects "already subscribed" state in localStorage.
 
-### 28B. Seasonal Content Pages
+### 29B. Seasonal Content Pages
 
 | Season | Article | When to Publish |
 |--------|---------|-----------------|
@@ -203,7 +255,7 @@ Not a modal popup. A fixed bottom bar that appears after 60% scroll depth, dismi
 
 These are standalone article pages, not tools. Similar template to comparison articles but without the comparison table.
 
-### 28C. Pinterest Infographics (Build-Time SVG)
+### 29C. Pinterest Infographics (Build-Time SVG)
 
 Generate shareable SVG infographics from comparison article data using Satori at build time:
 - "15-Year vs 30-Year Mortgage: Where Your Money Goes" (two stacked bars)
@@ -223,7 +275,8 @@ Add a "Share image" button on comparison pages that downloads the infographic.
 | **25** | Scale scenarios to 100+ | 40-60 | **P1** | Nothing |
 | **26** | Smart OG images + methodology pages | 14 | **P1-P2** | Nothing |
 | **27** | 2-3 new calculators | 2-3 | **P2** | Traffic signals |
-| **28** | Scroll email capture, seasonal content, Pinterest images | 4-6 | **P2-P3** | Traffic exists |
+| **28** | MailerLite drip automation (Day 3 + Day 7 emails) | 0 | **P1** | MailerLite API key |
+| **29** | Scroll email capture, seasonal content, Pinterest images | 4-6 | **P2-P3** | Traffic exists |
 
 **Sprint 23 should be done next.** It's zero new pages, low effort, and directly increases revenue per visitor on 64+ existing pages.
 
@@ -237,21 +290,7 @@ Everything below requires a human with real accounts. Cannot be done by Claude C
 
 ## Immediate (This Week)
 
-### 1. MailerLite Drip Automation
-
-**This is the single highest-ROI task.** Every "Email my results" subscriber is a warm lead sitting in the list with zero follow-up.
-
-**What to do:**
-1. Log into MailerLite dashboard
-2. Create an automation workflow triggered on joining the "Calculator Results" group
-3. Add 2 emails after the initial results email (which is already sent via MailerSend):
-   - **Day 3:** Educational email related to the `calculator_slug` custom field. Subject: "What most people get wrong about [topic]." Pure value, no affiliate links.
-   - **Day 7:** Soft affiliate recommendation. Subject: "One thing that could help." Include 1-2 partner recommendations with affiliate links and clear disclosure.
-4. Content for each calculator slug is already designed in `docs/build-spec.md` (search for "Email Drip Sequence Detail").
-
-**Revenue potential:** At 5% email opt-in and 2% affiliate click-through on drip, 1,000 monthly visitors = 50 subscribers = ~1 affiliate click/month = ~$75/month. Compounds as the list grows.
-
-### 2. Reddit — Answer Real Questions
+### 1. Reddit — Answer Real Questions
 
 Don't self-promote. Find unanswered questions that your calculators solve, write helpful answers, and include a calculator link as a source.
 
@@ -267,31 +306,42 @@ Don't self-promote. Find unanswered questions that your calculators solve, write
 
 **Cadence:** 2-3 genuine answers per week. Never more than 1 per sub per week. Build karma first on new accounts.
 
-### 3. Product Hunt Launch
+### 2. Product Hunt Launch
 
-Content is prepped in `docs/launch/product-hunt.md`.
-- Schedule Tuesday-Thursday, 12:01 AM PT
-- Have 5+ supporters ready to upvote + comment in the first hour
-- Be active in comments all day
-- The maker comment is critical — genuine, not salesy
+**What is Product Hunt?** A website (producthunt.com) where people share new tech products. Every day, products get upvoted and the top products get thousands of visitors. Makers (that's you) post their product and engage with the community. A top-5 finish on a given day can bring 2,000-5,000 visitors in 24 hours plus lasting backlinks. It's free to post.
 
-### 4. Hacker News — Show HN
+**How to do it:**
+1. Create an account at producthunt.com
+2. Click "Post" and submit CalcRun with the content from `docs/launch/product-hunt.md`
+3. Schedule for Tuesday, Wednesday, or Thursday — 12:01 AM Pacific Time (that's when the daily cycle resets and you get maximum exposure time)
+4. Tell anyone who'd support you to visit the page and upvote + leave a comment in the first hour (momentum matters)
+5. Be active in the comments section all day — answer questions genuinely, not with marketing-speak
+6. The "maker comment" (your first comment on your own product) should explain why you built it — "I was frustrated that every calculator online was covered in ads and required signups, so I built something better" is the right tone
 
-Post: "Show HN: Financial calculators with real-time results, no signup, no ads"
+### 3. Hacker News — Show HN
 
-HN loves minimalist tools, technical quality, privacy-first design. The Astro + React islands architecture is genuinely interesting. Client-side file processing appeals to privacy-conscious users.
+**What is Hacker News (HN)?** A tech news aggregator at news.ycombinator.com run by Y Combinator. "Show HN" is a format where makers share something they built. The audience is developers, engineers, and tech founders. A front-page Show HN gets 10,000-50,000 visitors. It's free — you just post a link with a title.
 
-Be ready to respond to comments about tech stack, design choices, and comparisons to competitors.
+**How to do it:**
+1. Create an account at news.ycombinator.com
+2. Click "submit" at the top
+3. Title: "Show HN: Financial calculators with real-time results, no signup, no ads"
+4. URL: https://www.calcrun.com
+5. In the text box (optional), write 2-3 sentences about the tech stack — HN loves technical details. Mention: Astro + React islands, zero JS by default, all file processing runs client-side (nothing uploaded), Cloudflare Pages hosting, built entirely by AI.
+6. Post at around 8-10 AM US Eastern time (peak HN traffic)
+7. Monitor the comments page — respond to every comment, especially technical questions about the stack, design decisions, or how it compares to competitors. Be honest about what's good and what's not — HN rewards authenticity and punishes marketing-speak.
+
+**Important HN culture notes:** Don't ask people to upvote (against the rules). Don't use corporate language. Be direct and technical. If someone criticizes something, agree and say how you'd improve it — that earns respect.
 
 ---
 
 ## Short-Term (Month 1-2)
 
-### 5. Dev.to Article
+### 4. Dev.to Article
 
 Outline is in `docs/launch/devto-article.md`. "How I Built a Financial Calculator Site with Astro and React Islands." Gets developer backlinks and embed widget users.
 
-### 6. Affiliate Account Follow-Ups
+### 5. Affiliate Account Follow-Ups
 
 | Action | Where |
 |--------|-------|
@@ -304,7 +354,7 @@ Outline is in `docs/launch/devto-article.md`. "How I Built a Financial Calculato
 
 **As each partner approves:** Tell Claude Code to update `affiliate-data.ts` with the tracked URL and set `tracked: true`.
 
-### 7. Cloudflare Configuration
+### 6. Cloudflare Configuration
 
 | Action | Where |
 |--------|-------|
@@ -316,7 +366,7 @@ Outline is in `docs/launch/devto-article.md`. "How I Built a Financial Calculato
 
 ## Medium-Term (Month 2-6)
 
-### 8. Embeddable Widget Outreach
+### 7. Embeddable Widget Outreach
 
 The embed system works (`?embed` mode). Actively pitch it to personal finance bloggers.
 
@@ -326,7 +376,7 @@ The embed system works (`?embed` mode). Actively pitch it to personal finance bl
 
 **How to find targets:** Search Google for `"compound interest calculator" inurl:blog` or `"mortgage calculator" site:wordpress.com`. Look for blogs linking to Calculator.net or Bankrate calculators.
 
-### 9. Quora Answers
+### 8. Quora Answers
 
 Answer financial calculation questions on Quora. Write the answer directly, then link to the scenario page as a source.
 
@@ -335,7 +385,7 @@ Target questions like:
 - "What's the monthly payment on a $300,000 mortgage?"
 - "Should I use the debt snowball or avalanche method?"
 
-### 10. Finance Forum Participation
+### 9. Finance Forum Participation
 
 | Forum | Audience | Approach |
 |-------|----------|----------|
@@ -345,7 +395,7 @@ Target questions like:
 
 Same approach as Reddit: answer questions, cite calculators/scenarios as sources.
 
-### 11. Pinterest
+### 10. Pinterest
 
 Create a Pinterest business account. Pin infographics from comparison articles (Claude Code can generate these as build-time SVGs). Financial pins have 3-4 month lifespans and compound.
 
@@ -353,18 +403,18 @@ Create a Pinterest business account. Pin infographics from comparison articles (
 
 ## Long-Term (Month 6+)
 
-### 12. Google Search Console Monitoring
+### 11. Google Search Console Monitoring
 
 **Weekly:** Check impressions, clicks, top queries, and indexing status. Look for:
 - New queries appearing (expand content around them)
 - Queries where you rank position 5-20 (optimize those pages)
 - Pages not indexed (investigate and fix)
 
-### 13. Consider Display Ads
+### 12. Consider Display Ads
 
 Only after 50+ daily visitors consistently. Ezoic is the easiest to start. Put ads on file converter pages only (low affiliate value) — keep financial calculator pages clean.
 
-### 14. Seasonal Content Timing
+### 13. Seasonal Content Timing
 
 | When | Action |
 |------|--------|
@@ -379,10 +429,10 @@ Only after 50+ daily visitors consistently. Ezoic is the easiest to start. Put a
 
 | Priority | Action | Time Required | When |
 |----------|--------|---------------|------|
-| **P0** | MailerLite drip automation | 2-3 hours one-time | This week |
 | **P0** | Reddit: answer 2-3 questions | 30 min/week ongoing | This week |
-| **P0** | Product Hunt launch | 1 day | This week |
-| **P0** | Hacker News Show HN | 30 min + monitor comments | This week |
+| **P0** | Product Hunt launch (see section 2 for how) | 1 day | This week |
+| **P0** | Hacker News Show HN (see section 3 for how) | 30 min + monitor comments | This week |
+| **P0** | Provide MailerLite API key to Claude Code | 5 min | This week |
 | **P1** | Affiliate account follow-ups | 1 hour | This week |
 | **P1** | Cloudflare redirect + Turnstile + WAF | 30 min | This week |
 | **P1** | Dev.to article | 2-3 hours | Month 1 |

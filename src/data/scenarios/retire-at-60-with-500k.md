@@ -11,6 +11,9 @@ inputs:
   Monthly Withdrawal: "$1,667"
   Expected Return: "5%"
 resultSummary: "$20,000/year (4% rule) + Social Security at 62"
+affiliateContext: "Open a retirement account"
+affiliatePrograms:
+  - "Betterment"
 ---
 
 ## $500K supports $20,000/year — tight but possible with a plan

@@ -11,6 +11,10 @@ inputs:
   Annual Return: "7%"
   Time Period: "20 years"
 resultSummary: "$403,870 (from $100,000 invested)"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## $100,000 becomes $403,870 with dividends reinvested

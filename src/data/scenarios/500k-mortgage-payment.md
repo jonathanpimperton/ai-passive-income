@@ -11,6 +11,9 @@ inputs:
   Loan Term: "30 years"
   Down Payment: "$0 (calculating loan amount only)"
 resultSummary: "$3,326.51/month"
+affiliateContext: "Compare mortgage rates from multiple lenders"
+affiliatePrograms:
+  - "LendingTree"
 ---
 
 ## Expect to pay $3,326.51 per month

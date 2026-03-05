@@ -12,6 +12,10 @@ inputs:
   Time Period: "10 years"
   Compounding: "Monthly"
 resultSummary: "$1,004,850 — your money doubled"
+affiliateContext: "Start investing today"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## $500,000 becomes $1,004,850 — you cross the million-dollar mark

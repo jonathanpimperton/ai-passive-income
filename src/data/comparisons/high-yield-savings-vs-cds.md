@@ -30,6 +30,10 @@ comparisonTable:
   - feature: "Minimum deposit"
     option1: "Usually $0"
     option2: "Often $500–$1,000"
+affiliateContext: "Top high-yield savings accounts"
+affiliatePrograms:
+  - "SoFi"
+  - "Ally"
 ---
 
 ## The rate gap is smaller than you think

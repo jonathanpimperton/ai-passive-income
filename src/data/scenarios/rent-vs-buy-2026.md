@@ -12,6 +12,9 @@ inputs:
   Monthly Rent: "$2,000"
   Years to Stay: "7"
 resultSummary: "Renting saves ~$45,000 over 7 years in this scenario"
+affiliateContext: "Get pre-approved for a mortgage"
+affiliatePrograms:
+  - "LendingTree"
 ---
 
 ## At 7% mortgage rates, renting saves roughly $45,000 over 7 years

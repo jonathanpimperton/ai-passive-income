@@ -31,6 +31,10 @@ comparisonTable:
   - feature: "Inheritance"
     option1: "APS allows spouse to inherit ISA benefits"
     option2: "Subject to inheritance tax"
+affiliateContext: "Where to open a Stocks & Shares ISA"
+affiliatePrograms:
+  - "InvestEngine"
+  - "Nutmeg"
 ---
 
 ## Why the ISA is a no-brainer

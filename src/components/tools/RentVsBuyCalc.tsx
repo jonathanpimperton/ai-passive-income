@@ -22,6 +22,7 @@ import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
 import { formatCurrency, formatNumber, loanMonthlyPayment } from '../../lib/calculator-utils';
+import ResultAffiliate from '../ui/ResultAffiliate';
 
 const DEFAULTS = {
   homePrice: 350000,
@@ -346,6 +347,8 @@ export default function RentVsBuyCalc() {
               <ExportPdfButton toolName="Rent vs Buy Calculator" getInputs={getInputs} resultsRef={resultsRef} />
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="rent-vs-buy" />
 
           {/* Chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">

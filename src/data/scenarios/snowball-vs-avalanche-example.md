@@ -11,6 +11,9 @@ inputs:
   Student Loan: "$27,000 at 5%"
   Monthly Budget: "$1,200"
 resultSummary: "Avalanche saves $2,180 vs. snowball"
+affiliateContext: "Consolidate your debt at a lower rate"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## Avalanche saves $2,180 and finishes 4 months sooner

@@ -10,6 +10,9 @@ inputs:
   Debt APR: "7%"
   Investment Return: "7%"
 resultSummary: "Pay off debt above 5-6% — invest when debt is below"
+affiliateContext: "Consolidate your debt at a lower rate"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## Pay off debt above 5–6% APR — invest when debt costs less

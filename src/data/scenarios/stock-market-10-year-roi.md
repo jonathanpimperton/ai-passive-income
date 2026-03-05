@@ -10,6 +10,10 @@ inputs:
   Annual Return: "10%"
   Time Period: "10 years"
 resultSummary: "$25,937 at 10% average annual return"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## $10,000 becomes $25,937 at the historical average

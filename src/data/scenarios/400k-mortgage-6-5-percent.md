@@ -10,6 +10,9 @@ inputs:
   Interest Rate: "6.5%"
   Loan Term: "30 years"
 resultSummary: "$2,528.27/month"
+affiliateContext: "Compare mortgage rates from multiple lenders"
+affiliatePrograms:
+  - "LendingTree"
 ---
 
 ## Monthly payment: $2,528.27

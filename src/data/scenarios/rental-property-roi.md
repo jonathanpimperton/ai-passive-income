@@ -11,6 +11,10 @@ inputs:
   Annual Expenses: "£3,600"
   Appreciation: "2.5%/year"
 resultSummary: "~5.8% annual total return"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## Expect roughly 5.8% annual total return — 3.3% yield plus 2.5% appreciation

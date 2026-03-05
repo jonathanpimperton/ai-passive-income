@@ -10,6 +10,10 @@ inputs:
   Interest Rate: "6%"
   Loan Term: "30 years"
 resultSummary: "$2,098/month ($405,435 total interest)"
+affiliateContext: "Compare loan rates"
+affiliatePrograms:
+  - "LendingTree"
+  - "SoFi"
 ---
 
 ## $2,098 per month — and you pay more in interest than you borrowed

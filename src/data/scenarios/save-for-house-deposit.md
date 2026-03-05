@@ -11,6 +11,9 @@ inputs:
   Time Frame: "3 years"
   Expected Return: "4%"
 resultSummary: "~$1,423/month (starting with $5,000)"
+affiliateContext: "Earn more on your savings"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## You need to save about $1,423 per month for 3 years

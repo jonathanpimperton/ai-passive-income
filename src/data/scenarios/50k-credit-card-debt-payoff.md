@@ -10,6 +10,9 @@ inputs:
   Average APR: "22%"
   Monthly Payment: "$1,200"
 resultSummary: "6 years 7 months, ~$45,280 in interest"
+affiliateContext: "Consolidate your debt at a lower rate"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## 6 years 7 months at $1,200/month — and you pay $45,280 in interest

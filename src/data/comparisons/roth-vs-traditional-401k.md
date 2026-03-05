@@ -31,6 +31,10 @@ comparisonTable:
   - feature: "Immediate tax benefit"
     option1: "None"
     option2: "Reduces taxable income today"
+affiliateContext: "Open a retirement account"
+affiliatePrograms:
+  - "Betterment"
+  - "Wealthfront"
 ---
 
 ## The real question: where will your tax rate be?

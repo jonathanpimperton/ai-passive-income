@@ -9,6 +9,9 @@ inputs:
   Monthly Expenses: "$4,500"
   Months of Coverage: "6"
 resultSummary: "$27,000 target"
+affiliateContext: "Earn more on your savings"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## You need $27,000 for a 6-month emergency fund

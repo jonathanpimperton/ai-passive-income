@@ -27,6 +27,7 @@ import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
+import ResultAffiliate from '../ui/ResultAffiliate';
 
 /* ── Compact text input for debt card fields ─────────────── */
 interface DebtFieldProps {
@@ -579,6 +580,8 @@ export default function DebtPayoffCalc() {
                   <ExportPdfButton toolName="Debt Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
                 </div>
               </div>
+
+              <ResultAffiliate toolSlug="debt-payoff" />
 
               {/* ── Balance Over Time Chart ───────────── */}
               {chartData.length > 1 && (

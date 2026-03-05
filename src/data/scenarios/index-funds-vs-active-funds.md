@@ -12,6 +12,10 @@ inputs:
   Index Fund Fee: "0.03%"
   Active Fund Fee: "1.0%"
 resultSummary: "Index fund: $839K vs Active fund: $651K — fees cost $188,000"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## The 1% fee difference costs you $188,000 over 30 years

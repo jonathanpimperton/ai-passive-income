@@ -30,6 +30,9 @@ comparisonTable:
   - feature: "Monthly cash flow"
     option1: "Tight — higher payment"
     option2: "Flexible — lower payment"
+affiliateContext: "Compare mortgage rates"
+affiliatePrograms:
+  - "LendingTree"
 ---
 
 ## The core trade-off

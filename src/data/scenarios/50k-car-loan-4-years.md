@@ -10,6 +10,10 @@ inputs:
   Interest Rate: "7%"
   Loan Term: "4 years"
 resultSummary: "$1,197/month ($7,441 total interest)"
+affiliateContext: "Compare loan rates"
+affiliatePrograms:
+  - "LendingTree"
+  - "SoFi"
 ---
 
 ## $1,197 per month for 48 months — $7,441 in interest

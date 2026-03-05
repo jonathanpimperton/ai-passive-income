@@ -30,6 +30,7 @@ import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
+import ResultAffiliate from '../ui/ResultAffiliate';
 
 /* ── Solve-for-X tab definitions ─────────────────────────── */
 type SolveMode = 'endAmount' | 'contribution' | 'returnRate' | 'startingAmount' | 'time';
@@ -538,6 +539,8 @@ export default function InvestmentReturnCalc() {
               <ExportPdfButton toolName="Investment Return Calculator" getInputs={getInputs} resultsRef={resultsRef} />
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="investment-return" />
 
           {/* Area Chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">

@@ -12,6 +12,8 @@ const scenarios = defineCollection({
     toolCategory: z.string(),
     inputs: z.record(z.string(), z.union([z.string(), z.number()])),
     resultSummary: z.string(),
+    affiliateContext: z.string().optional(),
+    affiliatePrograms: z.array(z.string()).optional(),
   }),
 });
 
@@ -77,6 +79,8 @@ const comparisons = defineCollection({
         option2: z.string(),
       })
     ),
+    affiliateContext: z.string().optional(),
+    affiliatePrograms: z.array(z.string()).optional(),
   }),
 });
 

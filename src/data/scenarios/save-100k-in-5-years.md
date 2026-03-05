@@ -11,6 +11,9 @@ inputs:
   Time Frame: "5 years"
   Expected Return: "5%"
 resultSummary: "$1,393/month needed"
+affiliateContext: "Earn more on your savings"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## You need $1,393 per month

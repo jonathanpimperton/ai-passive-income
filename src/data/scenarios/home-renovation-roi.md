@@ -10,6 +10,10 @@ inputs:
   Value Gained: "$37,500"
   Time Period: "At sale"
 resultSummary: "75% cost recovery (−$12,500 net)"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## You recover about 75 cents on the dollar — a net loss of $12,500

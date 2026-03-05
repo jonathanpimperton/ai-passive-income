@@ -12,6 +12,9 @@ inputs:
   Target: "$1,000,000"
   Expected Return: "7%"
 resultSummary: "$555/month from age 30 at 7% returns"
+affiliateContext: "Open a retirement account"
+affiliatePrograms:
+  - "Betterment"
 ---
 
 ## You need $555 per month — and the earlier you start, the less it costs

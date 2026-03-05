@@ -11,6 +11,9 @@ inputs:
   Starting Net Worth: "$10,000"
   Target Net Worth: "$1,000,000"
 resultSummary: "~$3,056/month at 7% returns for 15 years"
+affiliateContext: "Grow your net worth faster"
+affiliatePrograms:
+  - "Betterment"
 ---
 
 ## You need to invest roughly $3,056 per month from age 25

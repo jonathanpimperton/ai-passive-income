@@ -12,6 +12,10 @@ inputs:
   Time Period: "20 years"
   Compounding: "Monthly"
 resultSummary: "$520,927 (from $240,000 contributed)"
+affiliateContext: "Start investing today"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## $1,000/month becomes $520,927 in 20 years

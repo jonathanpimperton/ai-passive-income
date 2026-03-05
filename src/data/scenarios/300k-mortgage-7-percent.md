@@ -11,6 +11,9 @@ inputs:
   Loan Term: "30 years"
   Down Payment: "$0 (calculating loan amount only)"
 resultSummary: "$1,995.91/month"
+affiliateContext: "Compare mortgage rates from multiple lenders"
+affiliatePrograms:
+  - "LendingTree"
 ---
 
 ## $1,995.91 per month at 7%

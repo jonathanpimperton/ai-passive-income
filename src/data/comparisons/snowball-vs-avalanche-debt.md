@@ -30,6 +30,9 @@ comparisonTable:
   - feature: "Completion rate"
     option1: "Higher (research-backed)"
     option2: "Lower dropout rate"
+affiliateContext: "Consolidate at a lower rate"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## How each method works

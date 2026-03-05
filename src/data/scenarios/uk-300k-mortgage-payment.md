@@ -10,6 +10,9 @@ inputs:
   Interest Rate: "5.5%"
   Loan Term: "25 years"
 resultSummary: "£1,842/month (£252,600 total interest)"
+affiliateContext: "Compare mortgage rates from multiple lenders"
+affiliatePrograms:
+  - "LendingTree"
 ---
 
 ## Your monthly payment is £1,842 — and you pay £252,600 in interest

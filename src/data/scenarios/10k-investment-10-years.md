@@ -11,6 +11,10 @@ inputs:
   Annual Return: "7%"
   Time Period: "10 years"
 resultSummary: "$20,097 (doubled in 10 years)"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## $10,000 becomes $20,097 — your money doubles

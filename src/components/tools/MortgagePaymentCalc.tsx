@@ -23,6 +23,7 @@ import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
+import ResultAffiliate from '../ui/ResultAffiliate';
 
 /* ── Mortgage calculation helpers ─────────────────────────── */
 
@@ -434,6 +435,8 @@ export default function MortgagePaymentCalc() {
               <ExportPdfButton toolName="Mortgage Payment Calculator" getInputs={getInputs} resultsRef={resultsRef} />
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="mortgage-payment" />
 
           {/* Extra payment savings */}
           {extraMonthly > 0 && result.interestSaved > 0 && (

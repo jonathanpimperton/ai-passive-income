@@ -11,6 +11,10 @@ inputs:
   Time Period: "10 years"
   Compounding Comparison: "Daily vs Monthly"
 resultSummary: "$172 difference on $100K over 10 years at 5%"
+affiliateContext: "Start investing today"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## The difference is $172 on $100,000 — barely noticeable

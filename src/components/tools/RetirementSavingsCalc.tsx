@@ -28,6 +28,7 @@ import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
+import ResultAffiliate from '../ui/ResultAffiliate';
 
 /* ── Types ─────────────────────────────────────────────────── */
 type SolveMode = 'balance' | 'contribution' | 'retirement-age';
@@ -498,6 +499,8 @@ export default function RetirementSavingsCalc() {
               <ExportPdfButton toolName="Retirement Savings Calculator" getInputs={getInputs} resultsRef={resultsRef} />
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="retirement-savings" />
 
           {/* Inflation Impact Note */}
           {inflationRate > 0 && mode === 'balance' && (

@@ -11,6 +11,10 @@ inputs:
   Annual Return: "7%"
   Time Horizon: "10 years"
 resultSummary: "Lump sum wins ~68% of the time historically"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## Lump sum wins about two-thirds of the time — but DCA wins on sleep quality

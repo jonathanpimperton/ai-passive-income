@@ -29,6 +29,7 @@ import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
+import ResultAffiliate from '../ui/ResultAffiliate';
 
 /* ── Collapsible Year-Group Table ─────────────────────────── */
 interface YearGroup {
@@ -326,6 +327,8 @@ export default function LoanAmortizationCalc() {
               <ExportPdfButton toolName="Loan Amortization Calculator" getInputs={getInputs} resultsRef={resultsRef} />
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="loan-amortization" />
 
           {/* Pie + Area Charts */}
           <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">

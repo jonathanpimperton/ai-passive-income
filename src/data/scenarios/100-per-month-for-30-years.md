@@ -12,6 +12,10 @@ inputs:
   Time Period: "30 years"
   Compounding Frequency: "Monthly"
 resultSummary: "$121,997.10"
+affiliateContext: "Start investing today"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## $36,000 in, $121,997 out

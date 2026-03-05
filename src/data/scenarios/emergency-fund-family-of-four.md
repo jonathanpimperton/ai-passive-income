@@ -9,6 +9,9 @@ inputs:
   Monthly Expenses: "$6,500"
   Months of Coverage: "6"
 resultSummary: "$39,000 for 6 months of family expenses"
+affiliateContext: "Earn more on your savings"
+affiliatePrograms:
+  - "SoFi"
 ---
 
 ## A family of four needs about $39,000 for 6 months

@@ -31,6 +31,10 @@ comparisonTable:
   - feature: "Minimum investment"
     option1: "Often $0 (via ETFs)"
     option2: "Often $1,000–$25,000"
+affiliateContext: "Start investing with low fees"
+affiliatePrograms:
+  - "Betterment"
+  - "InvestEngine"
 ---
 
 ## The fee gap is the entire story
