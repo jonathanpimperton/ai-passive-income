@@ -17,7 +17,7 @@ Build a zero-investment online business that generates passive income, built ent
 
 - **Astro** + **TypeScript** — static site generation, zero JS by default, React islands for interactive tools
 - **Tailwind CSS v4** — rapid UI development (CSS-based `@theme` config, NOT `tailwind.config.ts`)
-- **React** — interactive calculator components (via Astro islands with `client:load`)
+- **React** — interactive calculator components (via Astro islands with `client:idle`)
 - **recharts** — interactive chart visualization in calculator results
 - **Lucide React** — consistent icon language across the site
 - **Zod** — schema validation for email API endpoint (worker.ts)
@@ -211,7 +211,9 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - CJ publisher ID: NordPass=34741, NordVPN=2495
 
 **Remaining Sprint 14 work:**
-- Scale scenarios from 15 → 50+, comparison articles, A/B test affiliate placements, growth monitoring
+- ~~Scale scenarios from 15 → 50+~~ DONE (57 scenarios)
+- ~~Comparison articles~~ DONE (7 articles, Sprint 22)
+- A/B test affiliate placements, growth monitoring
 
 **Sprint 15 — Security Hardening + Critical UX Bugs (Complete):**
 - **15A Security:** Cloudflare Turnstile bot prevention on `/api/email-results` (front-end invisible widget + server-side token verification). Zod schema validation for all email request fields (email, toolSlug, inputs, results, turnstileToken). Request size cap (20KB) before JSON parse. Server-side tool name derivation from `TOOL_REGISTRY` (client `toolName` ignored). `sanitizeText()` strips non-printable chars, CRLF, collapses whitespace, HTML-escapes. Honeypot field. `maxLength` attributes on client-side email inputs.
@@ -254,6 +256,14 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - **21D "Free" Language Removal (~28 files):** Removed "free", "no signup", "no upload", "private" suffixes from: meta titles (`index.astro`, `tools/index.astro`), trust strip, `BaseLayout.astro` default description, `seo.ts` site description, `about.astro`, 23 tool `.md` description fields, `tools-data.ts` entries.
 - **21E Footer + Email Copy:** Footer tagline simplified, removed "Private"/"Instant" trust badges. `EmailCapture.tsx`: "Get free financial tips" → "Get financial tips", "Get free tips" → "Get tips". `EmailResultsButton.tsx`: "Also send me free financial tips" → "Also send me financial tips".
 
+**Sprint 22 — Curated Directory + Comparison Articles + Performance (Complete):**
+- **22A Directory redesign:** Homepage and tools index rebuilt with two-column category layout (info left, card grid right). Uniform medium-sized cards for all tools. Progressive disclosure for File Tools (show 8, toggle rest). Staggered entrance animations via IntersectionObserver. Category taglines and accent colors in `tools-data.ts`.
+- **22B Dark mode fix:** ScenarioLinks box gradient `to-white` didn't dark-mode override — replaced with solid `bg-neutral-50` class that has proper global override. Added `.scenario-box` border override in global.css.
+- **22C Comparison articles:** 7 articles with content collection schema, dynamic route `[comparison].astro`, index page. Articles: 15yr vs 30yr mortgage, Roth vs 401k, snowball vs avalanche, rent vs buy 2026, index vs active funds, HYSA vs CDs, ISA vs general investment. Each has comparison table, verdict card, ~500-800 words educational content, related calculator sidebar, cross-links to other comparisons.
+- **22D Performance:** All 37 tool components switched from `client:load` to `client:idle` — defers React hydration until browser idle for better Core Web Vitals.
+- **22E Navigation:** Comparisons link added to desktop dropdown and mobile menu.
+- 111 pages total. 215 unit tests + 69 E2E = 284 tests (1 known flaky HEIC test).
+
 **Affiliate network accounts:**
 - **CJ Affiliate** — Active. NordPass approved, NordVPN approved, 1Password declined, Ally declined. Pending: LendingTree, Barclays US Online Savings, Experian, Axos Bank, BMO Harris Bank
 - **Impact.com** — Marketplace application DECLINED (low traffic, new site). Can apply directly to brands via their Impact signup pages. Reapply to marketplace once traffic grows.
@@ -284,8 +294,11 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - **MailerLite drip automation** — Set up 3-email welcome sequence triggered on group join ("Calculator Results"): Day 0 welcome, Day 3 net worth, Day 7 inflation + affiliate CTA
 - **Cloudflare redirect rule** — Add redirect from `calcrun.com/*` to `https://www.calcrun.com/$1` in Cloudflare dashboard
 - **Product Hunt launch** — Use `docs/launch/product-hunt.md` content. Schedule for Tuesday-Thursday morning
-- **Reddit posts** — Use `docs/launch/reddit-posts.md` content. Post to r/personalfinance, r/financialindependence, r/sideproject
+- **Reddit posts** — Use `docs/launch/reddit-posts.md` content. Post to r/personalfinance, r/financialindependence, r/sideproject. Also: r/UKPersonalFinance, r/FIREUK, r/povertyfinance, r/firsttimehomebuyer, r/StudentLoans (answer existing questions with calculator as source, don't just self-promote)
 - **Dev.to article** — Write full article from `docs/launch/devto-article.md` outline
+- **Hacker News** — "Show HN: Financial calculators with real-time results, no signup"
+- **Quora** — Answer financial calculation questions, link to scenario pages
+- **Pinterest** — Create shareable infographics from comparison articles
 
 **Resolved blockers:**
 - ~~MailerLite custom field~~ — `calculator_slug` created
@@ -359,10 +372,65 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 15-21 complete. Sprint 21: homepage redesign (grouped All Tools, reordered sections), UK student loan thresholds fixed to 2025/26, trust badge system fixed (tax year badge only on salary-uk/salary-us/inflation), "free" language stripped from ~28 files. 103 pages total. 215 unit tests + 70 E2E = 285 tests. NordPass + NordVPN live with tracked CJ links. Sprint 14 remaining: scale scenarios to 50+, comparison articles, A/B test affiliates. Sprint 20 remaining: performance optimization (lazy-load recharts). See affiliate partner status table in Sprint 14 section above.
+3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 15-22 complete. Sprint 22: curated two-column directory, 7 comparison articles, `client:idle` performance switch, dark mode scenario box fix. 111 pages total (37 tools + 57 scenarios + 7 comparisons + 1 comparison index + 9 static). 215 unit tests + 69 E2E = 284 tests. NordPass + NordVPN live with tracked CJ links. All tool components use `client:idle` for deferred hydration. See Sprint 23 Growth Roadmap below for next priorities.
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
+
+## Sprint 23+ Growth Roadmap
+
+The site is feature-complete. The priority is now traffic acquisition and revenue optimization.
+
+### Traffic Acquisition (owner-driven, manual)
+
+**Immediate (week 1-2):**
+- **Reddit** — Answer existing questions on r/personalfinance, r/UKPersonalFinance, r/financialindependence, r/FIREUK, r/povertyfinance, r/firsttimehomebuyer, r/StudentLoans with calculator links as sources. Don't just self-promote — provide the answer, then link.
+- **Product Hunt** — Use `docs/launch/product-hunt.md`. Schedule Tuesday-Thursday morning.
+- **Dev.to / Hashnode** — Use `docs/launch/devto-article.md` outline. "How I built financial calculators with Astro + React Islands."
+- **Hacker News** — "Show HN: Financial calculators with real-time results, no signup" — HN loves minimalist tools.
+
+**Medium-term (month 1-3):**
+- **Quora** — Answer "how much will $X be worth in Y years" questions, link to scenarios.
+- **Embeddable widgets** — Pitch to personal finance bloggers. Each embed = a backlink.
+- **Pinterest** — Create shareable infographics from comparison articles (ISA vs General Account, Snowball vs Avalanche). Financial pins have long shelf life.
+- **YouTube creators** — Offer custom scenario pages for mid-tier finance YouTubers' content.
+
+**Long-term (month 3-12):**
+- **Programmatic scenario scaling** — Target specific salary searches ("£45,000 salary UK take home"), every mortgage amount by £50K increments, city-specific rent vs buy.
+- **Digital PR** — When rates/taxes change, update calculators and pitch: "New tool shows exactly how the rate cut affects your mortgage."
+- **Google Discover** — Fresh comparison articles on trending topics.
+
+### Revenue Optimization (buildable by Claude Code)
+
+**High-impact, ready to build:**
+- **Affiliate sections in comparison articles** — Add "Where to open an ISA" / "Compare mortgage rates" sections with 2-3 provider cards + affiliate links on the 7 comparison pages. These are the highest-intent pages.
+- **"Next step" CTAs on scenario pages** — After the answer, add "Take the next step" with relevant affiliate partner cards. E.g., mortgage scenario → LendingTree; investment scenario → Betterment/InvestEngine.
+- **Calculator-result affiliate integration** — After calculating mortgage payment, show "Compare rates from multiple lenders" inline. After retirement savings, show "Open a retirement account" card.
+- **Smart OG images for scenarios** — Generate OG images showing the actual result number ("$300K mortgage at 7% = $1,996/mo") instead of generic site branding. Drives click-through from social shares.
+
+**New tools that drive affiliate revenue:**
+- **Mortgage affordability calculator** — "How much house can I afford?" — very high search volume, natural LendingTree fit.
+- **Credit card payoff calculator** — Focused on minimum payments vs extra payments. Balance transfer card affiliate opportunity.
+- **Investment fee calculator** — "How much are your fund fees costing you?" — leads to low-fee platform affiliates.
+- **Savings rate calculator (FIRE)** — "What savings rate to retire in X years?" — appeals to highly engaged FIRE community.
+
+**Content expansion:**
+- **More comparison articles** — Pay off debt vs invest, lump sum vs DCA, fixed vs variable mortgage, LISA vs regular ISA, pension vs ISA.
+- **Seasonal content** — Tax season articles (Jan-April), new tax year explainers (April UK), Black Friday NordPass/NordVPN promotions.
+- **Methodology pages** — `/how-we-calculate/[tool]` explaining exact formulas + source links. Strong E-E-A-T signal for Google.
+
+### Images & Visuals (buildable by Claude Code)
+
+No stock photos needed. The calculators ARE the visuals. But these add value:
+- **SVG infographics in comparison articles** — Simple diagrams (e.g., two stacked bars showing where mortgage money goes). Can be generated at build time with Satori.
+- **Result-specific OG images** — Scenario pages should show the answer in the social card.
+- **Mini explanatory diagrams** — Compound interest hockey stick, amortization principal/interest split, debt snowball waterfall. SVG, not decorative.
+
+### Trust Building (buildable by Claude Code)
+
+- **Accuracy guarantee page** — "Our calculations are verified against [sources]. Found an error? Email hello@calcrun.com."
+- **Expand data source attribution** — Every calculator should show "Rates from GOV.UK / IRS.gov / Federal Reserve" with clickable links (started with uk-rates.ts, expand to all).
+- **Methodology transparency** — Expandable "How this is calculated" sections with the actual formulas (started on UK Salary, expand to all 14).
 
 ## Running
 
@@ -379,7 +447,7 @@ npm run build
 # Run unit tests (vitest — 215 tests)
 npm test
 
-# Run E2E tests (playwright — 70 tests, auto-starts dev server)
+# Run E2E tests (playwright — 69 tests, auto-starts dev server)
 npx playwright test
 
 # Run specific E2E test suites
