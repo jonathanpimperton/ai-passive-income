@@ -59,6 +59,14 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       url: 'https://www.betterment.com/',
     }],
   },
+  'investment-fee': {
+    cta: 'Switch to a low-fee investment platform',
+    partners: [{
+      name: 'Betterment',
+      tagline: 'Automated investing — 0.25% annual fee, no trade commissions',
+      url: 'https://www.betterment.com/',
+    }],
+  },
   'savings-goal': {
     cta: 'Earn more on your savings',
     partners: [{
@@ -81,6 +89,22 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'LendingTree',
       tagline: 'Compare mortgage rates from multiple lenders',
       url: 'https://www.lendingtree.com/',
+    }],
+  },
+  'mortgage-affordability': {
+    cta: 'Get pre-approved and see your rate',
+    partners: [{
+      name: 'LendingTree',
+      tagline: 'Compare mortgage rates from multiple lenders',
+      url: 'https://www.lendingtree.com/',
+    }],
+  },
+  'credit-card-payoff': {
+    cta: 'Pay off your card faster with a lower rate',
+    partners: [{
+      name: 'SoFi',
+      tagline: 'Consolidate credit card debt — low rates, no hidden fees',
+      url: 'https://www.sofi.com/',
     }],
   },
 };

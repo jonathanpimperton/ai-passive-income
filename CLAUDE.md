@@ -265,6 +265,41 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - **22E Navigation:** Comparisons link added to desktop dropdown and mobile menu.
 - 111 pages total. 215 unit tests + 69 E2E = 284 tests (1 known flaky HEIC test).
 
+**Sprint 23 — Affiliate Placement Expansion (Complete):**
+- **23A:** Affiliate sections added to all 7 comparison articles (AffiliateLinks.astro component, geography-relevant partners per article)
+- **23B:** "Take the Next Step" affiliate CTAs on 57 scenario pages (contextual partner recommendations by scenario type)
+- **23C:** `ResultAffiliate.tsx` — inline affiliate cards in 8 calculator result panels, shown after user interaction. Config maps tool slugs to partner cards with contextual CTAs.
+
+**Sprint 24 — More Comparison Articles (Complete):**
+- 8 new comparison articles (total 15): Pay Off Debt vs Invest, Fixed vs Variable Rate Mortgage, Lump Sum vs DCA, LISA vs Regular ISA, Pension vs ISA (UK), Cash ISA vs Savings Account, Emergency Fund Savings vs Money Market, Roth IRA vs Roth 401(k)
+- Each with comparison table, verdict card, affiliate section, 500-800 words
+
+**Sprint 25 — Scale Scenario Pages to 100+ (Complete):**
+- 45 new scenario pages (total 102): UK salary every £5K (£20K-£95K), US salary every $10K ($40K-$200K), mortgage amounts $150K-$750K at 6.5%, investment growth at common amounts/timeframes
+- All with calculated results, input pills, educational content, affiliate CTAs where relevant
+
+**Sprint 26 — Smart OG Images + Methodology Pages (Complete):**
+- **26A:** Custom OG images for all scenario and comparison pages (Satori + Sharp, build-time). Tool OG images updated: removed "Free" tagline, replaced with "calcrun.com".
+- **26B:** 14 methodology/"How We Calculate" pages at `/how-we-calculate/[tool]`. Content collection with Zod schema (formula, variables, assumptions, limitations, dataSources). 3-column layout, monospace formula card, variable pills, sidebar with CTA + data sources.
+
+**Sprint 28 — MailerLite Drip Automation (Partially Complete):**
+- `worker.ts` updated: `subscribeToMailerLite()` accepts `signupSource` param ('newsletter' | 'results') for conditional automation branching
+- `scripts/setup-mailerlite-drip.ts` — one-command setup: creates custom fields, automation drafts, verifies group
+- `docs/mailerlite-drip-setup.md` — full guide with branded HTML templates for 10-email sequence
+- MailerLite API limitation: cannot add email steps/delays programmatically — draft creation + manual email paste in UI required
+
+**Sprint 29A — Scroll Email Capture (Complete):**
+- `ScrollEmailBar.tsx` — fixed bottom bar on financial calculator pages, appears after 60% scroll depth
+- Dismissible, localStorage persistence, honeypot spam protection, GA4 tracking
+- QA fixes: error message display, division-by-zero guard, z-index conflict with back-to-calc button resolved
+
+**Sprint 27 — New High-Value Calculators (Complete):**
+- 3 new financial calculators: Mortgage Affordability ("How much house can I afford?"), Credit Card Payoff (minimum payment trap), Investment Fee (expense ratio drag)
+- All follow full calculator pattern: SliderInput, real-time results, recharts charts, currency selector, PDF export, email results, share button, ResultAffiliate inline cards
+- 3 new methodology pages: `/how-we-calculate/mortgage-affordability`, `/how-we-calculate/credit-card-payoff`, `/how-we-calculate/investment-fee`
+- Wired into all integration points: [tool].astro, tools-data.ts, ResultAffiliate.tsx, worker.ts (TOOL_REGISTRY, QUICK_TIPS, AFFILIATE_RECS)
+- 184 pages total (40 tools, 17 financial calculators)
+
 **Affiliate network accounts:**
 - **CJ Affiliate** — Active. NordPass approved, NordVPN approved, 1Password declined, Ally declined. Pending: LendingTree, Barclays US Online Savings, Experian, Axos Bank, BMO Harris Bank
 - **Impact.com** — Marketplace application DECLINED (low traffic, new site). Can apply directly to brands via their Impact signup pages. Reapply to marketplace once traffic grows.
@@ -292,7 +327,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - **CJ pending approvals** — Wait for LendingTree, Barclays, Experian, Axos, BMO decisions
 - **Pro Affiliate Partner → Betterment** — Awaiting review
 - **Update `affiliate-data.ts`** — As each partner approves, add their tracked URL and set `tracked: true`
-- **MailerLite drip automation** — Set up 3-email welcome sequence triggered on group join ("Calculator Results"): Day 0 welcome, Day 3 net worth, Day 7 inflation + affiliate CTA
+- **MailerLite drip automation** — Run `scripts/setup-mailerlite-drip.ts` to create drafts, then paste HTML from `docs/mailerlite-drip-setup.md` in MailerLite UI (API cannot add email steps)
 - **Cloudflare redirect rule** — Add redirect from `calcrun.com/*` to `https://www.calcrun.com/$1` in Cloudflare dashboard
 - **Product Hunt launch** — Use `docs/launch/product-hunt.md` content. Schedule for Tuesday-Thursday morning
 - **Reddit posts** — Use `docs/launch/reddit-posts.md` content. Post to r/personalfinance, r/financialindependence, r/sideproject. Also: r/UKPersonalFinance, r/FIREUK, r/povertyfinance, r/firsttimehomebuyer, r/StudentLoans (answer existing questions with calculator as source, don't just self-promote)
@@ -373,18 +408,18 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then `docs/growth-plan.md` (active roadmap), then `docs/build-spec.md` and `docs/design-system.md` as needed.
-3. **Current status:** Site is live at `https://www.calcrun.com`. All build sprints (1-22) complete. 111 pages (37 tools + 57 scenarios + 7 comparisons + 1 comparison index + 9 static). 215 unit + 69 E2E = 284 tests. NordPass + NordVPN live via CJ. **The bottleneck is traffic, not product.** See `docs/growth-plan.md` Part A for the Claude Code sprint queue — next up is Sprint 23 (affiliate placements on comparisons, scenarios, and calculator results).
+3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 1-29A complete (including Sprint 27). 184 pages (40 tools + 102 scenarios + 15 comparisons + 17 methodology + 1 comparison index + 9 static). 215 unit + 69 E2E = 284 tests. NordPass + NordVPN live via CJ. Inline affiliate cards on 11 calculators, affiliate sections on all comparisons + relevant scenarios. Scroll email capture bar on all financial calculators. **The bottleneck is traffic, not product.** See `docs/growth-plan.md` for full roadmap.
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 
-## Sprint 23+ — Growth Roadmap
+## Growth Roadmap
 
 See **`docs/growth-plan.md`** for the full plan, split into:
-- **Part A (Claude Code sprints):** Sprint 23 affiliate placements → Sprint 24 more comparisons → Sprint 25 scale scenarios → Sprint 26 OG images + methodology pages → Sprint 27 new calculators → Sprint 28 engagement features
-- **Part B (Human actions):** MailerLite drip, Reddit answers, Product Hunt, HN, affiliate follow-ups, Cloudflare config, widget outreach, Quora, forums, Pinterest
+- **Part A (Claude Code sprints):** Sprints 23-29A ALL COMPLETE. 40 tools (17 financial calculators), 102 scenarios, 15 comparisons, 17 methodology pages. Sprint 29B (seasonal content) and 29C (Pinterest infographics) are future.
+- **Part B (Human actions):** MailerLite drip (run setup script + paste HTML), Reddit answers, Product Hunt, HN, affiliate follow-ups, Cloudflare config, widget outreach, Quora, forums, Pinterest
 
-**Next Claude Code sprint:** Sprint 23 — add affiliate sections to 7 comparison articles, affiliate CTAs to 57 scenario pages, and inline affiliate cards in calculator results. Zero new pages, directly increases revenue per visitor.
+**Next steps:** All planned Claude Code sprints complete. Focus shifts to human actions (Part B) for traffic acquisition. Sprint 29B/C are available if more content is needed.
 
 ## Running
 

@@ -81,6 +81,13 @@ export const TOOLS: ToolMeta[] = [
     icon: 'target',
   },
   {
+    name: 'Investment Fee Calculator',
+    slug: 'investment-fee',
+    category: 'saving-and-growth',
+    description: 'See how fund fees eat into your returns over time.',
+    icon: 'scale',
+  },
+  {
     name: 'ROI Calculator',
     slug: 'roi',
     category: 'saving-and-growth',
@@ -103,11 +110,25 @@ export const TOOLS: ToolMeta[] = [
     icon: 'landmark',
   },
   {
+    name: 'Mortgage Affordability Calculator',
+    slug: 'mortgage-affordability',
+    category: 'debt-and-loans',
+    description: 'Find out how much house you can afford based on your income and debts.',
+    icon: 'circle-dollar-sign',
+  },
+  {
     name: 'Debt Payoff Calculator',
     slug: 'debt-payoff',
     category: 'debt-and-loans',
     description: 'Compare snowball vs avalanche strategies to pay off debt faster.',
     icon: 'credit-card',
+  },
+  {
+    name: 'Credit Card Payoff Calculator',
+    slug: 'credit-card-payoff',
+    category: 'debt-and-loans',
+    description: 'See how long to pay off your credit card and how extra payments save thousands.',
+    icon: 'receipt',
   },
   {
     name: 'Rent vs. Buy Calculator',

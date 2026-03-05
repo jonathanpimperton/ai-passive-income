@@ -13,6 +13,7 @@ import PlaceholderCalc from '@components/tools/PlaceholderCalc.tsx';
 import CompoundInterestCalc from '@components/tools/CompoundInterestCalc.tsx';
 import LoanAmortizationCalc from '@components/tools/LoanAmortizationCalc.tsx';
 import InvestmentReturnCalc from '@components/tools/InvestmentReturnCalc.tsx';
+import InvestmentFeeCalc from '@components/tools/InvestmentFeeCalc.tsx';
 import RetirementSavingsCalc from '@components/tools/RetirementSavingsCalc.tsx';
 import DebtPayoffCalc from '@components/tools/DebtPayoffCalc.tsx';
 import SavingsGoalCalc from '@components/tools/SavingsGoalCalc.tsx';
@@ -26,6 +27,7 @@ import SalaryUkCalc from '@components/tools/SalaryUkCalc.tsx';
 import NetWorthCalc from '@components/tools/NetWorthCalc.tsx';
 import RentVsBuyCalc from '@components/tools/RentVsBuyCalc.tsx';
 import MortgagePaymentCalc from '@components/tools/MortgagePaymentCalc.tsx';
+import MortgageAffordabilityCalc from '@components/tools/MortgageAffordabilityCalc.tsx';
 import PercentageCalculator from '@components/tools/PercentageCalculator.tsx';
 import JsonFormatter from '@components/tools/JsonFormatter.tsx';
 import ImageCompressor from '@components/tools/ImageCompressor.tsx';
@@ -47,6 +49,7 @@ import JwtDecoder from '@components/tools/JwtDecoder.tsx';
 import JsonYamlConverter from '@components/tools/JsonYamlConverter.tsx';
 import JsonXmlConverter from '@components/tools/JsonXmlConverter.tsx';
 import PngToIco from '@components/tools/PngToIco.tsx';
+import CreditCardPayoffCalc from '@components/tools/CreditCardPayoffCalc.tsx';
 
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
@@ -72,6 +75,7 @@ const CALCULATOR_MAP: Record<string, string> = {
   'compound-interest': 'CompoundInterestCalc',
   'loan-amortization': 'LoanAmortizationCalc',
   'investment-return': 'InvestmentReturnCalc',
+  'investment-fee': 'InvestmentFeeCalc',
   'retirement-savings': 'RetirementSavingsCalc',
   'debt-payoff': 'DebtPayoffCalc',
   'savings-goal': 'SavingsGoalCalc',
@@ -85,6 +89,7 @@ const CALCULATOR_MAP: Record<string, string> = {
   'net-worth': 'NetWorthCalc',
   'rent-vs-buy': 'RentVsBuyCalc',
   'mortgage-payment': 'MortgagePaymentCalc',
+  'mortgage-affordability': 'MortgageAffordabilityCalc',
   'percentage-calculator': 'PercentageCalculator',
   'json-formatter': 'JsonFormatter',
   'image-compressor': 'ImageCompressor',
@@ -106,6 +111,7 @@ const CALCULATOR_MAP: Record<string, string> = {
   'json-yaml': 'JsonYamlConverter',
   'json-xml': 'JsonXmlConverter',
   'png-to-ico': 'PngToIco',
+  'credit-card-payoff': 'CreditCardPayoffCalc',
 };
 
 const hasCalculator = slug in CALCULATOR_MAP;
@@ -121,6 +127,7 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'compound-interest' && <CompoundInterestCalc client:idle />}
     {slug === 'loan-amortization' && <LoanAmortizationCalc client:idle />}
     {slug === 'investment-return' && <InvestmentReturnCalc client:idle />}
+    {slug === 'investment-fee' && <InvestmentFeeCalc client:idle />}
     {slug === 'retirement-savings' && <RetirementSavingsCalc client:idle />}
     {slug === 'debt-payoff' && <DebtPayoffCalc client:idle />}
     {slug === 'savings-goal' && <SavingsGoalCalc client:idle />}
@@ -134,6 +141,7 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'net-worth' && <NetWorthCalc client:idle />}
     {slug === 'rent-vs-buy' && <RentVsBuyCalc client:idle />}
     {slug === 'mortgage-payment' && <MortgagePaymentCalc client:idle />}
+    {slug === 'mortgage-affordability' && <MortgageAffordabilityCalc client:idle />}
     {slug === 'percentage-calculator' && <PercentageCalculator client:idle />}
     {slug === 'json-formatter' && <JsonFormatter client:idle />}
     {slug === 'image-compressor' && <ImageCompressor client:idle />}
@@ -155,6 +163,7 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'json-yaml' && <JsonYamlConverter client:idle />}
     {slug === 'json-xml' && <JsonXmlConverter client:idle />}
     {slug === 'png-to-ico' && <PngToIco client:idle />}
+    {slug === 'credit-card-payoff' && <CreditCardPayoffCalc client:idle />}
     {!hasCalculator && <PlaceholderCalc name={name} client:idle />}
     <Fragment slot="content">
       <Content />

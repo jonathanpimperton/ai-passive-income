@@ -38,6 +38,9 @@ const TOOL_REGISTRY: Record<string, string> = {
   'net-worth': 'Net Worth Calculator',
   'rent-vs-buy': 'Rent vs Buy Calculator',
   'emergency-fund': 'Emergency Fund Calculator',
+  'investment-fee': 'Investment Fee Calculator',
+  'mortgage-affordability': 'Mortgage Affordability Calculator',
+  'credit-card-payoff': 'Credit Card Payoff Calculator',
 };
 
 const MAILERLITE_GROUP_ID = '180838346043426395';
@@ -61,6 +64,9 @@ const QUICK_TIPS: Record<string, string> = {
   'net-worth': 'Track your net worth monthly — the trend matters more than any single number.',
   'rent-vs-buy': 'The 5% rule: if annual rent is less than 5% of the home price, renting may be the better financial choice.',
   'emergency-fund': 'Keep your emergency fund in a high-yield savings account — accessible but earning interest.',
+  'investment-fee': 'A 1% fee sounds small, but over 30 years it can cost more than your total contributions. Index funds often charge under 0.10%.',
+  'mortgage-affordability': 'Lenders look at your debt-to-income ratio — keep total monthly debts below 36% of gross income for the best rates.',
+  'credit-card-payoff': 'Even $50/month extra on a credit card can save thousands in interest and cut years off the payoff time.',
 };
 
 /* ── Affiliate recommendations per calculator (2 per tool for better conversion) ── */
@@ -120,6 +126,18 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
   'emergency-fund': [
     { name: 'Wealthfront', tagline: 'High-yield cash account — competitive APY, FDIC insured', url: 'https://www.wealthfront.com/', category: 'Savings', cta: 'Open cash account' },
     { name: 'Betterment', tagline: 'High-yield cash account with no minimums', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start saving' },
+  ],
+  'investment-fee': [
+    { name: 'Betterment', tagline: 'Automated investing — 0.25% annual fee, no trade commissions', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Switch to low fees' },
+    { name: 'Wealthfront', tagline: 'Low-cost automated investing with tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
+  ],
+  'mortgage-affordability': [
+    { name: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Mortgages', cta: 'Get pre-approved' },
+    { name: 'SoFi', tagline: 'Competitive mortgage rates with no hidden fees', url: 'https://www.sofi.com/', category: 'Mortgages', cta: 'Check your rate' },
+  ],
+  'credit-card-payoff': [
+    { name: 'LendingTree', tagline: 'Compare balance transfer and consolidation options', url: 'https://www.lendingtree.com/', category: 'Loans', cta: 'Compare options now' },
+    { name: 'SoFi', tagline: 'Consolidate credit card debt at a lower rate', url: 'https://www.sofi.com/', category: 'Loans', cta: 'Get pre-qualified' },
   ],
 };
 

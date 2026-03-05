@@ -1,18 +1,18 @@
 # CalcRun Growth Plan — March 2026
 
 > This replaces the original build-spec sprint roadmap (Sprints 1-7) which is fully complete.
-> The site is live at www.calcrun.com with 111 pages. The challenge is no longer "build it" — it's "get people to find it and make money from it."
+> The site is live at www.calcrun.com with 184 pages. The challenge is no longer "build it" — it's "get people to find it and make money from it."
 
 ---
 
 ## Where We Are Today
 
 ### What's built
-- 37 tools (14 financial calculators, 7 utility, 15 file converters, 1 economic)
+- 40 tools (17 financial calculators, 7 utility, 15 file converters, 1 economic)
 - 102 scenario pages targeting long-tail searches (UK/US salary, mortgage, investment, debt)
 - 15 comparison articles with data tables and educational content
-- 14 methodology/"How We Calculate" pages (one per financial calculator)
-- Inline affiliate cards in 8 calculator result panels (ResultAffiliate component)
+- 17 methodology/"How We Calculate" pages (one per financial calculator)
+- Inline affiliate cards in 11 calculator result panels (ResultAffiliate component)
 - Affiliate sections on all comparison articles and relevant scenario pages
 - Scroll-triggered email capture bar on all financial calculator pages
 - Email capture on all financial calculators (MailerLite + MailerSend)
@@ -20,7 +20,7 @@
 - PDF export, share buttons, embeddable widgets
 - Dark mode, currency selector, WCAG AA accessible
 - 215 unit tests + 69 E2E tests
-- 178 pages total, deployed on Cloudflare Pages, GA4 tracking live
+- 184 pages total, deployed on Cloudflare Pages, GA4 tracking live
 
 ### What's earning money
 - NordPass + NordVPN: live tracked CJ links (security tools only)
@@ -166,9 +166,9 @@ Tool OG images updated: removed "Free · No signup · No ads" tagline, replaced 
 
 ---
 
-## Sprint 27 — New High-Value Calculators (P2)
+## Sprint 27 — New High-Value Calculators (P2) — COMPLETE
 
-Only build these if earlier sprints show traction (traffic or email signups). Each targets a high-search-volume keyword with clear affiliate fit.
+3 new financial calculators built, each with full calculator pattern (SliderInput, charts, PDF export, email results, share, ResultAffiliate), methodology pages, and all integration points wired.
 
 | Calculator | Why | Affiliate Fit | Build Effort |
 |------------|-----|---------------|--------------|
@@ -266,13 +266,13 @@ Add a "Share image" button on comparison pages that downloads the infographic.
 | **24** | 8 more comparison articles | 8 | **P1** | **COMPLETE** |
 | **25** | Scale scenarios to 100+ | 45 | **P1** | **COMPLETE** |
 | **26** | Smart OG images + methodology pages | 14 | **P1-P2** | **COMPLETE** |
-| **27** | 2-3 new calculators | 2-3 | **P2** | Gated on traffic |
+| **27** | 3 new calculators (mortgage affordability, credit card payoff, investment fee) + 3 methodology pages | 6 | **P2** | **COMPLETE** |
 | **28** | MailerLite drip automation (10-email sequence) | 0 | **P1** | Guide ready, API implementation needed |
 | **29A** | Scroll email capture | 0 | **P2** | **COMPLETE** |
 | **29B** | Seasonal content pages | 4 | **P3** | Gated on traffic |
 | **29C** | Pinterest infographics | 0 | **P3** | Gated on traffic |
 
-**Next Claude Code sprint:** Sprint 28 — implement MailerLite drip automation via API (setup guide at `docs/mailerlite-drip-setup.md`). Then Sprint 27 if traffic signals warrant new calculators.
+**All planned Claude Code sprints complete.** Sprint 28 drip automation guide is ready (`docs/mailerlite-drip-setup.md`), needs manual HTML paste in MailerLite UI. Sprint 29B (seasonal content) and 29C (Pinterest infographics) are future options.
 
 ---
 
