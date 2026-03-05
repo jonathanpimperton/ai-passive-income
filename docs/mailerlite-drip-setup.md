@@ -1,26 +1,39 @@
 # MailerLite Drip Automation — Setup Guide
 
-Pre-written branded email templates + step-by-step guide for the evergreen drip sequence.
+Pre-written branded email templates + setup script for the 10-email evergreen drip.
+
+## Automated Setup
+
+Run the setup script to create custom fields and automation drafts:
+
+```bash
+MAILERLITE_API_KEY=ml_xxx npx tsx scripts/setup-mailerlite-drip.ts
+```
+
+This creates:
+- `signup_source` custom field (tracks "newsletter" vs "results" subscribers)
+- `calculator_slug` custom field (tracks which calculator they used)
+- Two draft automations in your MailerLite account
 
 ## How Subscribers Enter the Drip
 
-Two paths, same MailerLite group ("Calculator Results"):
+Two paths, same MailerLite group ("Calculator Results"), differentiated by `signup_source` field:
 
-1. **Newsletter subscribe form** (homepage + tool pages) — gets the welcome email + full drip sequence
-2. **"Email my results"** button — already gets their results via MailerSend, so they skip the welcome email and enter the drip at Email 2 (Day 3). Only if they have "Also send me financial tips" checked (default: on).
+1. **Newsletter subscribe form** (homepage, tool pages, scroll bar) → `signup_source = "newsletter"` → gets welcome email + full drip
+2. **"Email my results"** button → `signup_source = "results"` → skips welcome (results email IS their welcome), starts at Email 2 (Day 3). Only if "Also send me financial tips" is checked.
 
-## Setting Up Two Automations
+The worker.ts code tags each subscriber automatically. No manual tagging needed.
 
-Because "email results" people shouldn't get the welcome email (their results email IS their welcome), you need two automations:
+## Two Automations (Branching by signup_source)
 
-### Automation 1: "Newsletter Subscribers" (Welcome + Full Drip)
+### Automation 1: "CalcRun Drip: Newsletter Subscribers"
 - **Trigger:** When subscriber joins group → Calculator Results
-- **Condition:** Custom field `calculator_slug` is empty (these are newsletter subscribers, not results emailers)
+- **Condition:** Custom field `signup_source` equals `newsletter`
 - **Flow:** Welcome email → 3d delay → Email 2 → 4d delay → Email 3 → ... → Email 10
 
-### Automation 2: "Results Subscribers" (Skip Welcome, Start at Email 2)
+### Automation 2: "CalcRun Drip: Results Subscribers"
 - **Trigger:** When subscriber joins group → Calculator Results
-- **Condition:** Custom field `calculator_slug` is NOT empty (these used "email my results")
+- **Condition:** Custom field `signup_source` equals `results`
 - **Flow:** 3d delay → Email 2 → 4d delay → Email 3 → ... → Email 10
 
 **If conditional triggers aren't available on the free tier**, just use one automation with the welcome email — results people will get both the results email AND the welcome, which is fine (the welcome is short and useful).
@@ -42,29 +55,25 @@ Because "email results" people shouldn't get the welcome email (their results em
 
 Every email includes at least one affiliate CTA. The sequence spans 4 months then stops (subscriber stays on list for future broadcast campaigns).
 
-## Setup Steps
+## Manual Steps (After Running Script)
 
-### 1. Create the Automation
-- Log into **app.mailerlite.com**
-- Click **Automations** in the left sidebar
-- Click **Create automation**
+### 1. Open each automation in MailerLite
+- Go to **app.mailerlite.com** → **Automations**
+- Open each draft automation created by the script
 
-### 2. Set the Trigger
-- Choose **"When subscriber joins a group"**
-- Select: **Calculator Results**
-- Click **Save trigger**
+### 2. Set the Trigger + Condition
+- Trigger: **"When subscriber joins a group"** → **Calculator Results**
+- Add condition on `signup_source` field (see above)
 
-### 3. Build the Sequence
-For each email below:
-- Click **+** below the previous step
-- Add **Delay** (see timing column — no delay for Email 1)
-- Click **+** again → **Email**
-- Set subject, preview text, sender: `CalcRun <hello@calcrun.com>`
-- Click **Design email** → **HTML editor** → paste the HTML
+### 3. Build the Email Sequence
+For each email:
+- Click **+** → **Delay** (see timing column — no delay for Email 1)
+- Click **+** → **Email**
+- Set subject, preview text (from templates below), sender: `CalcRun <hello@calcrun.com>`
+- Click **Design email** → **HTML editor** → paste the HTML from below
 
 ### 4. Activate
-- Review the full flow
-- Click **Activate** (top right)
+- Review the full flow → click **Activate**
 
 ## Free Tier Limits
 - 1,000 subscribers, 12,000 emails/month

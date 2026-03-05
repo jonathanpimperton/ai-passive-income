@@ -248,7 +248,15 @@ function corsHeaders(origin: string | null): Record<string, string> {
 }
 
 /* ── Subscribe to MailerLite ───────────────────────────────── */
-async function subscribeToMailerLite(email: string, toolSlug: string | undefined, apiKey: string): Promise<void> {
+async function subscribeToMailerLite(
+  email: string,
+  toolSlug: string | undefined,
+  apiKey: string,
+  signupSource: 'newsletter' | 'results' = 'newsletter',
+): Promise<void> {
+  const fields: Record<string, string> = { signup_source: signupSource };
+  if (toolSlug) fields.calculator_slug = toolSlug;
+
   const mlResponse = await fetch('https://connect.mailerlite.com/api/subscribers', {
     method: 'POST',
     headers: {
@@ -258,7 +266,7 @@ async function subscribeToMailerLite(email: string, toolSlug: string | undefined
     body: JSON.stringify({
       email,
       groups: [MAILERLITE_GROUP_ID],
-      fields: toolSlug ? { calculator_slug: toolSlug } : undefined,
+      fields,
     }),
   });
 
@@ -305,7 +313,7 @@ async function handleSubscribe(request: Request, env: Env): Promise<Response> {
   }
 
   try {
-    await subscribeToMailerLite(email, body.toolSlug, apiKey);
+    await subscribeToMailerLite(email, body.toolSlug, apiKey, 'newsletter');
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
   } catch (err) {
     console.error('MailerLite request failed:', err);
@@ -644,7 +652,7 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
   // 9. Subscribe to MailerLite drip only if user opted in (fire-and-forget)
   if (body.subscribe && env.MAILERLITE_API_KEY) {
     try {
-      await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY);
+      await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY, 'results');
     } catch (err) {
       console.error('MailerLite subscribe (from email-results) failed:', err);
     }

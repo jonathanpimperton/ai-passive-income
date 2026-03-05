@@ -9,13 +9,18 @@
 
 ### What's built
 - 37 tools (14 financial calculators, 7 utility, 15 file converters, 1 economic)
-- 57 pre-calculated scenario pages targeting long-tail searches
-- 7 comparison articles with data tables and educational content
+- 102 scenario pages targeting long-tail searches (UK/US salary, mortgage, investment, debt)
+- 15 comparison articles with data tables and educational content
+- 14 methodology/"How We Calculate" pages (one per financial calculator)
+- Inline affiliate cards in 8 calculator result panels (ResultAffiliate component)
+- Affiliate sections on all comparison articles and relevant scenario pages
+- Scroll-triggered email capture bar on all financial calculator pages
 - Email capture on all financial calculators (MailerLite + MailerSend)
+- Custom OG images for all scenarios and comparisons (build-time Satori generation)
 - PDF export, share buttons, embeddable widgets
 - Dark mode, currency selector, WCAG AA accessible
 - 215 unit tests + 69 E2E tests
-- Deployed on Cloudflare Pages, GA4 tracking live
+- 178 pages total, deployed on Cloudflare Pages, GA4 tracking live
 
 ### What's earning money
 - NordPass + NordVPN: live tracked CJ links (security tools only)
@@ -26,7 +31,7 @@
 - No email subscribers (no traffic = no signups)
 - No affiliate revenue from financial products (the high-value ones)
 - No external backlinks beyond initial submissions
-- MailerLite drip automation not configured
+- MailerLite drip automation not configured (setup guide ready at docs/mailerlite-drip-setup.md)
 - No outreach or content marketing has happened
 
 ### Honest assessment
@@ -55,7 +60,7 @@ Everything below can be built autonomously by Claude Code. Ordered by priority.
 
 ---
 
-## Sprint 23 — Monetization: Affiliate Placement Expansion (P0)
+## Sprint 23 — Monetization: Affiliate Placement Expansion (P0) — COMPLETE
 
 **Goal:** Every high-intent page should have a natural path to affiliate revenue. Currently, comparison articles (7 pages) and scenario pages (57 pages) have zero affiliate links. That's 64 pages of high-intent content with no revenue path.
 
@@ -110,7 +115,7 @@ After someone calculates their mortgage payment, they're ready to act. Show a co
 
 ---
 
-## Sprint 24 — Content: More Comparison Articles (P1)
+## Sprint 24 — Content: More Comparison Articles (P1) — COMPLETE
 
 **Goal:** Expand the comparison article library from 7 to 15. Each targets a commercial-intent search query and includes an affiliate section.
 
@@ -129,7 +134,7 @@ Same content collection schema, same page template. Each gets 500-800 words + co
 
 ---
 
-## Sprint 25 — Content: Scale Scenario Pages to 100+ (P1)
+## Sprint 25 — Content: Scale Scenario Pages to 100+ (P1) — COMPLETE
 
 **Goal:** Target ultra-specific long-tail searches that big sites don't bother with.
 
@@ -147,28 +152,17 @@ Common amounts ($5K, $10K, $25K, $50K, $100K) at common timeframes (5, 10, 20, 3
 
 ---
 
-## Sprint 26 — SEO & Trust: Smart OG Images + Methodology Pages (P1-P2)
+## Sprint 26 — SEO & Trust: Smart OG Images + Methodology Pages (P1-P2) — COMPLETE
 
-### 26A. Smart OG Images for Scenario Pages
+### 26A. Smart OG Images for Scenario Pages — DONE
 
-Currently all scenario pages use the parent tool's generic OG image. When shared on social media, "Compound Interest Calculator" tells you nothing. An OG image showing "£10,000 invested for 20 years at 7% = £38,697" drives clicks.
+Custom OG images for all scenario pages showing resultSummary as large text, title, and input pills. Category-colored backgrounds. Comparison articles also get custom OG images with verdict snippet.
 
-**What to build:** Extend the Satori OG generation to render `resultSummary` + 2-3 key inputs on scenario OG images. Different background color per category.
+Tool OG images updated: removed "Free · No signup · No ads" tagline, replaced with "calcrun.com".
 
-### 26B. Methodology / "How We Calculate" Pages
+### 26B. Methodology / "How We Calculate" Pages — DONE
 
-One page per financial calculator explaining the exact formula, assumptions, data sources, and edge cases. Strong E-E-A-T signal for Google.
-
-**What to build:** New content collection `methodologies` with fields for formula, variables, assumptions, sources. Dynamic route at `/how-we-calculate/[tool]`. Link from each calculator page's "How this is calculated" section.
-
-Example for compound interest:
-- The formula: A = P(1 + r/n)^(nt) + PMT * [((1 + r/n)^(nt) - 1) / (r/n)]
-- What each variable means
-- How we handle beginning vs end-of-period contributions
-- Data sources for default rates
-- Limitations and assumptions
-
-Build for all 14 financial calculators = 14 new pages.
+14 methodology pages built at `/how-we-calculate/[tool]`. Content collection with Zod schema (formula, variables, assumptions, limitations, dataSources). Dynamic route with 3-column layout, monospace formula card, variable pills, prose content, sidebar with CTA + data sources. All 14 files QA-verified (valid slugs, real formulas, authoritative sources, no AI-slop).
 
 ---
 
@@ -184,9 +178,9 @@ Only build these if earlier sprints show traction (traffic or email signups). Ea
 
 ---
 
-## Sprint 28 — MailerLite Drip Email Automation (P1)
+## Sprint 28 — MailerLite Drip Email Automation (P1) — GUIDE READY, NEEDS API IMPLEMENTATION
 
-**Goal:** Every "Email my results" subscriber gets a 2-email follow-up sequence (results email is already sent by MailerSend). The drip turns passive subscribers into affiliate revenue.
+**Goal:** 10-email evergreen drip sequence for all subscribers. Setup guide at `docs/mailerlite-drip-setup.md` with branded HTML templates. Two paths: newsletter subscribers get welcome + full drip; results subscribers skip welcome (results email is their welcome), start at Email 2. Every email includes affiliate CTA.
 
 ### 28A. Day 3 — Educational Email
 
@@ -238,11 +232,9 @@ Email HTML uses the same table-based branded template as the existing results em
 
 ## Sprint 29 — Engagement: Scroll-Triggered Email + Seasonal Content (P2-P3)
 
-### 29A. Scroll-Triggered Email Capture
+### 29A. Scroll-Triggered Email Capture — COMPLETE
 
-Currently email capture is static on the page. Add a subtle slide-in bar when users scroll past the calculator results: "Want these results in your inbox? Enter your email."
-
-Not a modal popup. A fixed bottom bar that appears after 60% scroll depth, dismissible, respects "already subscribed" state in localStorage.
+ScrollEmailBar component built and integrated on all financial calculator pages. Fixed bottom bar appears after 60% scroll depth, dismissible, persists in localStorage. Honeypot spam protection, GA4 tracking, error display. QA-verified: division-by-zero guard, error message state, z-index conflict with back-to-calc button resolved.
 
 ### 29B. Seasonal Content Pages
 
@@ -268,17 +260,19 @@ Add a "Share image" button on comparison pages that downloads the infographic.
 
 ## Claude Code Sprint Priority Summary
 
-| Sprint | What | Pages Added | Priority | Depends On |
-|--------|------|-------------|----------|------------|
-| **23** | Affiliate placements on comparisons, scenarios, calculator results | 0 (enhances 64+ existing) | **P0** | Nothing |
-| **24** | 8 more comparison articles | 8 | **P1** | Sprint 23 (schema) |
-| **25** | Scale scenarios to 100+ | 40-60 | **P1** | Nothing |
-| **26** | Smart OG images + methodology pages | 14 | **P1-P2** | Nothing |
-| **27** | 2-3 new calculators | 2-3 | **P2** | Traffic signals |
-| **28** | MailerLite drip automation (Day 3 + Day 7 emails) | 0 | **P1** | MailerLite API key |
-| **29** | Scroll email capture, seasonal content, Pinterest images | 4-6 | **P2-P3** | Traffic exists |
+| Sprint | What | Pages Added | Priority | Status |
+|--------|------|-------------|----------|--------|
+| **23** | Affiliate placements on comparisons, scenarios, calculator results | 0 (enhances 100+ existing) | **P0** | **COMPLETE** |
+| **24** | 8 more comparison articles | 8 | **P1** | **COMPLETE** |
+| **25** | Scale scenarios to 100+ | 45 | **P1** | **COMPLETE** |
+| **26** | Smart OG images + methodology pages | 14 | **P1-P2** | **COMPLETE** |
+| **27** | 2-3 new calculators | 2-3 | **P2** | Gated on traffic |
+| **28** | MailerLite drip automation (10-email sequence) | 0 | **P1** | Guide ready, API implementation needed |
+| **29A** | Scroll email capture | 0 | **P2** | **COMPLETE** |
+| **29B** | Seasonal content pages | 4 | **P3** | Gated on traffic |
+| **29C** | Pinterest infographics | 0 | **P3** | Gated on traffic |
 
-**Sprint 23 should be done next.** It's zero new pages, low effort, and directly increases revenue per visitor on 64+ existing pages.
+**Next Claude Code sprint:** Sprint 28 — implement MailerLite drip automation via API (setup guide at `docs/mailerlite-drip-setup.md`). Then Sprint 27 if traffic signals warrant new calculators.
 
 ---
 
