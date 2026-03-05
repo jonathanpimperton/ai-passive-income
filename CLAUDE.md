@@ -198,7 +198,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Launch prep docs: `docs/launch/product-hunt.md`, `docs/launch/reddit-posts.md`, `docs/launch/devto-article.md`
 - 61 pages total (37 tools + 15 scenarios + 9 static pages)
 
-**Sprint 14 — Affiliate Registration + Partner Cleanup (In Progress):**
+**Sprint 14 — Affiliate Registration + Partner Cleanup (Complete):**
 - Researched all 14 original affiliate partners — found Marcus, Vanguard, Moneybox have NO affiliate programs
 - Removed 5 dead partners from `affiliate-data.ts`: Marcus, Vanguard, Moneybox, 1Password (CJ declined), LendingClub (not on CJ)
 - Removed forced NordPass/NordVPN affiliates from 5 image tool pages (no natural product fit)
@@ -211,10 +211,7 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Added Impact.com site verification meta tag to `BaseLayout.astro`
 - CJ publisher ID: NordPass=34741, NordVPN=2495
 
-**Remaining Sprint 14 work:**
-- ~~Scale scenarios from 15 → 50+~~ DONE (57 scenarios)
-- ~~Comparison articles~~ DONE (7 articles, Sprint 22)
-- A/B test affiliate placements, growth monitoring
+**Remaining Sprint 14 work:** All complete. Scenarios scaled to 102 (Sprint 25). Comparisons expanded to 15 (Sprint 24). Affiliate placements expanded (Sprint 23).
 
 **Sprint 15 — Security Hardening + Critical UX Bugs (Complete):**
 - **15A Security:** Cloudflare Turnstile bot prevention on `/api/email-results` (front-end invisible widget + server-side token verification). Zod schema validation for all email request fields (email, toolSlug, inputs, results, turnstileToken). Request size cap (20KB) before JSON parse. Server-side tool name derivation from `TOOL_REGISTRY` (client `toolName` ignored). `sanitizeText()` strips non-printable chars, CRLF, collapses whitespace, HTML-escapes. Honeypot field. `maxLength` attributes on client-side email inputs.
