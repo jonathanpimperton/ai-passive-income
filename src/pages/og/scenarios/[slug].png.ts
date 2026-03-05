@@ -1,7 +1,7 @@
 /**
- * Build-time OG image generation for every tool page.
- * Uses Satori to render a React-like JSX tree to SVG, then Sharp to convert to PNG.
- * Output: /og/{slug}.png (1200×630) — standard OG image size.
+ * Build-time OG image generation for scenario pages.
+ * Shows the result summary prominently + key inputs as pills.
+ * Output: /og/scenarios/{slug}.png (1200x630)
  */
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
@@ -15,41 +15,39 @@ const CATEGORY_COLORS: Record<string, { bg: string; accent: string }> = {
   'debt-and-loans': { bg: '#FEF2F2', accent: '#DC2626' },
   'income-and-planning': { bg: '#F0FDF4', accent: '#16A34A' },
   economic: { bg: '#FFFBEB', accent: '#D97706' },
-  utility: { bg: '#F5F3FF', accent: '#7C3AED' },
-  'file-tools': { bg: '#FFF1F2', accent: '#E11D48' },
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const tools = await getCollection('tools');
-  return tools.map((tool) => ({
-    params: { slug: tool.data.slug },
+  const scenarios = await getCollection('scenarios');
+  return scenarios.map((s) => ({
+    params: { slug: s.data.slug },
     props: {
-      name: tool.data.name,
-      description: tool.data.description,
-      category: tool.data.category,
+      title: s.data.title,
+      resultSummary: s.data.resultSummary,
+      inputs: s.data.inputs,
+      toolCategory: s.data.toolCategory,
     },
   }));
 };
 
 export const GET: APIRoute = async ({ props }) => {
-  const { name, description, category } = props as {
-    name: string;
-    description: string;
-    category: string;
+  const { title, resultSummary, inputs, toolCategory } = props as {
+    title: string;
+    resultSummary: string;
+    inputs: Record<string, string | number>;
+    toolCategory: string;
   };
 
-  const colors = CATEGORY_COLORS[category] || CATEGORY_COLORS['utility'];
+  const colors = CATEGORY_COLORS[toolCategory] || CATEGORY_COLORS['saving-and-growth'];
 
-  // Load fonts
   const fontDir = path.resolve('public/fonts');
   const baskBold = fs.readFileSync(path.join(fontDir, 'LibreBaskerville-Bold.ttf'));
   const dmSans = fs.readFileSync(path.join(fontDir, 'DMSans-Regular.ttf'));
 
-  // Truncate description to ~120 chars for OG image readability
-  const shortDesc =
-    description.length > 120
-      ? description.slice(0, 117) + '...'
-      : description;
+  // Take first 3 inputs for pills
+  const inputEntries = Object.entries(inputs).slice(0, 3);
+
+  const shortTitle = title.length > 70 ? title.slice(0, 67) + '...' : title;
 
   const svg = await satori(
     {
@@ -87,65 +85,68 @@ export const GET: APIRoute = async ({ props }) => {
               style: {
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '20px',
+                gap: '16px',
                 flex: 1,
               },
               children: [
-                // Category pill
+                // Scenario title
+                {
+                  type: 'div',
+                  props: {
+                    style: {
+                      fontSize: '36px',
+                      fontWeight: 700,
+                      color: '#0F1B2D',
+                      lineHeight: 1.2,
+                      letterSpacing: '-0.02em',
+                    },
+                    children: shortTitle,
+                  },
+                },
+                // Result summary (big number)
+                {
+                  type: 'div',
+                  props: {
+                    style: {
+                      fontSize: '64px',
+                      fontWeight: 700,
+                      color: colors.accent,
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em',
+                      marginTop: '8px',
+                    },
+                    children: resultSummary,
+                  },
+                },
+                // Input pills
                 {
                   type: 'div',
                   props: {
                     style: {
                       display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '10px',
+                      marginTop: '12px',
                     },
-                    children: [
-                      {
-                        type: 'div',
-                        props: {
-                          style: {
-                            backgroundColor: colors.bg,
-                            color: colors.accent,
-                            fontSize: '20px',
-                            fontWeight: 700,
-                            padding: '8px 20px',
-                            borderRadius: '100px',
-                          },
-                          children: getCategoryLabel(category),
+                    children: inputEntries.map(([key, val]) => ({
+                      type: 'div',
+                      props: {
+                        style: {
+                          backgroundColor: colors.bg,
+                          color: '#4A4A5A',
+                          fontSize: '18px',
+                          padding: '8px 16px',
+                          borderRadius: '8px',
                         },
+                        children: `${key}: ${val}`,
                       },
-                    ],
-                  },
-                },
-                // Tool name
-                {
-                  type: 'div',
-                  props: {
-                    style: {
-                      fontSize: '52px',
-                      fontWeight: 700,
-                      color: '#0F1B2D',
-                      lineHeight: 1.15,
-                      letterSpacing: '-0.02em',
-                    },
-                    children: name,
-                  },
-                },
-                // Description
-                {
-                  type: 'div',
-                  props: {
-                    style: {
-                      fontSize: '24px',
-                      color: '#64748B',
-                      lineHeight: 1.5,
-                    },
-                    children: shortDesc,
+                    })),
                   },
                 },
               ],
             },
           },
-          // Footer with branding
+          // Footer
           {
             type: 'div',
             props: {
@@ -155,49 +156,32 @@ export const GET: APIRoute = async ({ props }) => {
                 alignItems: 'center',
               },
               children: [
-                // CalcRun logo text
                 {
                   type: 'div',
                   props: {
-                    style: {
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    },
+                    style: { display: 'flex', alignItems: 'center', gap: '4px' },
                     children: [
                       {
                         type: 'span',
                         props: {
-                          style: {
-                            fontSize: '32px',
-                            fontWeight: 700,
-                            color: '#0F1B2D',
-                          },
+                          style: { fontSize: '32px', fontWeight: 700, color: '#0F1B2D' },
                           children: 'Calc',
                         },
                       },
                       {
                         type: 'span',
                         props: {
-                          style: {
-                            fontSize: '32px',
-                            fontWeight: 700,
-                            color: '#0E8585',
-                          },
+                          style: { fontSize: '32px', fontWeight: 700, color: '#0E8585' },
                           children: 'Run',
                         },
                       },
                     ],
                   },
                 },
-                // Tagline
                 {
                   type: 'div',
                   props: {
-                    style: {
-                      fontSize: '18px',
-                      color: '#94A3B8',
-                    },
+                    style: { fontSize: '18px', color: '#94A3B8' },
                     children: 'calcrun.com',
                   },
                 },
@@ -226,15 +210,3 @@ export const GET: APIRoute = async ({ props }) => {
     },
   });
 };
-
-function getCategoryLabel(category: string): string {
-  const labels: Record<string, string> = {
-    'saving-and-growth': 'Saving & Growth',
-    'debt-and-loans': 'Debt & Loans',
-    'income-and-planning': 'Income & Planning',
-    economic: 'Economic',
-    utility: 'Utility Tools',
-    'file-tools': 'File Tools',
-  };
-  return labels[category] || 'Tool';
-}

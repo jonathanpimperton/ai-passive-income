@@ -340,12 +340,12 @@ export function getToolPath(tool: ToolMeta): string {
   return `/tools/${tool.category}/${tool.slug}`;
 }
 
-/** Popular tools for homepage — top 6 by Google search volume across all categories */
+/** Popular tools for homepage — high search volume + affiliate revenue potential */
 export const POPULAR_TOOL_SLUGS = [
-  'mortgage-payment',      // ~3.35M monthly searches
-  'password-generator',    // ~500K-1M monthly searches
-  'image-compressor',      // ~200-500K monthly searches
-  'compound-interest',     // ~150-300K monthly searches
-  'pdf-merge',             // ~200-500K monthly searches
-  'salary-us',             // ~250K monthly searches
+  'mortgage-payment',      // ~3.35M monthly searches — LendingTree affiliate
+  'compound-interest',     // ~150-300K monthly searches — Betterment affiliate
+  'loan-amortization',     // ~100K monthly searches — LendingTree affiliate
+  'retirement-savings',    // ~100K monthly searches — Betterment affiliate
+  'salary-uk',             // ~250K monthly searches — Nutmeg/InvestEngine affiliate
+  'debt-payoff',           // ~50K monthly searches — SoFi affiliate
 ];

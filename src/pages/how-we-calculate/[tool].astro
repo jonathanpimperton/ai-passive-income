@@ -1,0 +1,160 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import ToolIcon from '@components/ui/ToolIcon.astro';
+import { getCollection, render } from 'astro:content';
+import { buildBreadcrumbSchema } from '@lib/seo';
+import { TOOLS, getToolPath } from '@lib/tools-data';
+
+export async function getStaticPaths() {
+  const methodologies = await getCollection('methodologies');
+  return methodologies.map((m) => ({
+    params: { tool: m.data.slug },
+    props: { methodology: m },
+  }));
+}
+
+const { methodology } = Astro.props;
+const { title, slug, toolSlug, formula, variables, assumptions, limitations, dataSources } = methodology.data;
+const { Content } = await render(methodology);
+
+const toolMeta = TOOLS.find((t) => t.slug === toolSlug);
+const toolPath = toolMeta ? getToolPath(toolMeta) : '#';
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Tools', url: '/tools' },
+  { name: toolMeta?.name || slug, url: toolPath },
+  { name: 'How We Calculate', url: `/how-we-calculate/${slug}` },
+];
+
+const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
+---
+
+<BaseLayout
+  title={title}
+  description={`Methodology and formulas behind the ${toolMeta?.name || slug} calculator on CalcRun. See the exact formula, variables, assumptions, and data sources.`}
+  ogImage={`/og/${toolSlug}.png`}
+  structuredData={[breadcrumbSchema]}
+>
+  <!-- Dark header -->
+  <div class="bg-[#0F1B2D] text-white">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+      <Breadcrumb items={breadcrumbs} variant="dark" />
+
+      <div class="flex items-start gap-4 mt-4 mb-6">
+        {toolMeta && (
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 text-white shrink-0 backdrop-blur-sm">
+            <ToolIcon name={toolMeta.icon} size={24} />
+          </div>
+        )}
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">{title}</h1>
+          <p class="text-white/60 mt-2">Exact formulas, variables, and assumptions</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main-content" class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+      <!-- Main content -->
+      <div class="lg:col-span-2">
+
+        <!-- Formula card -->
+        <div class="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 mb-8">
+          <h2 class="text-lg font-bold text-neutral-900 mb-3">Formula</h2>
+          <div class="bg-neutral-50 rounded-lg p-4 font-mono text-sm text-neutral-800 overflow-x-auto">
+            {formula}
+          </div>
+        </div>
+
+        <!-- Variables -->
+        <div class="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 mb-8">
+          <h2 class="text-lg font-bold text-neutral-900 mb-4">Variables</h2>
+          <div class="space-y-3">
+            {variables.map((v) => (
+              <div class="flex gap-3 items-baseline">
+                <span class="font-mono text-sm font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded shrink-0">{v.name}</span>
+                <span class="text-sm text-neutral-700">{v.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Prose content (educational explanation) -->
+        <div class="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 mb-8">
+          <div class="prose prose-neutral max-w-none prose-headings:font-serif prose-headings:tracking-tight prose-a:text-primary-600">
+            <Content />
+          </div>
+        </div>
+
+        <!-- Assumptions -->
+        <div class="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 mb-8">
+          <h2 class="text-lg font-bold text-neutral-900 mb-4">Assumptions</h2>
+          <ul class="space-y-2">
+            {assumptions.map((a) => (
+              <li class="flex gap-2 text-sm text-neutral-700">
+                <span class="text-primary-600 shrink-0 mt-0.5">&#10003;</span>
+                {a}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Limitations -->
+        <div class="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 mb-8">
+          <h2 class="text-lg font-bold text-neutral-900 mb-4">Limitations</h2>
+          <ul class="space-y-2">
+            {limitations.map((l) => (
+              <li class="flex gap-2 text-sm text-neutral-700">
+                <span class="text-accent-600 shrink-0 mt-0.5">&#9888;</span>
+                {l}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="lg:col-span-1">
+        <div class="lg:sticky lg:top-20 space-y-6">
+
+          <!-- Try the calculator CTA -->
+          <div class="bg-primary-50 rounded-lg border border-primary-200/60 p-6">
+            <h3 class="text-base font-bold text-neutral-900 mb-2">Try the calculator</h3>
+            <p class="text-sm text-neutral-600 mb-4">Run your own numbers with the {toolMeta?.name || slug}.</p>
+            <a
+              href={toolPath}
+              class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200"
+            >
+              Open calculator &rarr;
+            </a>
+          </div>
+
+          <!-- Data Sources -->
+          {dataSources && dataSources.length > 0 && (
+            <div class="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6">
+              <h3 class="text-base font-bold text-neutral-900 mb-3">Data Sources</h3>
+              <ul class="space-y-2">
+                {dataSources.map((source) => (
+                  <li>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-sm text-primary-600 hover:text-primary-700 underline"
+                    >
+                      {source.name} &nearr;
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

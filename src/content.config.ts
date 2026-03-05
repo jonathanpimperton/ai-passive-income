@@ -84,4 +84,30 @@ const comparisons = defineCollection({
   }),
 });
 
-export const collections = { tools, scenarios, comparisons };
+const methodologies = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/data/methodologies' }),
+  schema: z.object({
+    title: z.string(),
+    slug: z.string(),
+    toolSlug: z.string(),
+    formula: z.string(),
+    variables: z.array(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+      })
+    ),
+    assumptions: z.array(z.string()),
+    limitations: z.array(z.string()),
+    dataSources: z
+      .array(
+        z.object({
+          name: z.string(),
+          url: z.string(),
+        })
+      )
+      .optional(),
+  }),
+});
+
+export const collections = { tools, scenarios, comparisons, methodologies };
