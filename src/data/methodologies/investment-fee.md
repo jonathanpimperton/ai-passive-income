@@ -64,12 +64,12 @@ Consider a $100,000 portfolio growing at 7% gross over 30 years with $500/month 
 
 | Annual Fee | Net Return | Final Value | Fee Cost |
 |---|---|---|---|
-| 0.03% | 6.97% | ~$1,095,000 | — |
-| 0.50% | 6.50% | ~$1,005,000 | ~$90,000 |
-| 1.00% | 6.00% | ~$922,000 | ~$173,000 |
-| 1.50% | 5.50% | ~$846,000 | ~$249,000 |
+| 0.03% | 6.97% | ~$1,336,000 | — |
+| 0.50% | 6.50% | ~$1,195,000 | ~$141,000 |
+| 1.00% | 6.00% | ~$1,062,000 | ~$275,000 |
+| 1.50% | 5.50% | ~$944,000 | ~$392,000 |
 
-The 1% fee doesn't cost $1,000/year. It costs $173,000 over 30 years because every dollar taken in fees is a dollar that can no longer compound.
+The 1% fee doesn't cost $1,000/year. It costs $275,000 over 30 years because every dollar taken in fees is a dollar that can no longer compound.
 
 ## How Each Variable Affects the Result
 

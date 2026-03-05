@@ -48,7 +48,7 @@ workedExamples:
       downPayment: 50000
       interestRate: 6.75
       loanTerm: 30
-    description: "Gross monthly income is $8,333. At a 36% DTI limit, maximum total debt payments are $3,000/month. Subtracting $600 in existing debts leaves $2,400 for housing. After accounting for estimated taxes ($327/month at 1.2%), insurance ($125/month), and no PMI (down payment is 18.3% so PMI applies — roughly $114/month), the available P&I budget is about $1,834. That supports a loan of approximately $281,000, putting the maximum home price at roughly $331,000."
+    description: "Gross monthly income is $8,333. At a 36% DTI limit, maximum total debt payments are $3,000/month. Subtracting $600 in existing debts leaves $2,400 for housing. After accounting for estimated taxes ($332/month at 1.2%), insurance ($125/month), and PMI ($117/month — down payment is 15.1%), the available P&I budget is about $1,826. That supports a loan of approximately $282,000, putting the maximum home price at roughly $332,000."
   - title: "Single earner with $80K salary and no debt"
     inputs:
       annualIncome: 80000
@@ -56,7 +56,7 @@ workedExamples:
       downPayment: 40000
       interestRate: 6.75
       loanTerm: 30
-    description: "With $80,000 income and zero existing debt, the full 36% DTI allocation ($2,400/month) goes toward housing. After property tax (~$280/month), insurance ($125/month), and possible PMI, approximately $1,895 is available for P&I. This supports a loan of around $292,000, giving a max home price of about $332,000 with the $40,000 down payment. No debt is a significant advantage — it adds roughly $50,000-$70,000 in buying power compared to having $500/month in debts."
+    description: "With $80,000 income and zero existing debt, the full 36% DTI allocation ($2,400/month) goes toward housing. After property tax (~$323/month), insurance ($125/month), and PMI ($118/month — down payment is 12.4% of the home price), approximately $1,834 is available for P&I. This supports a loan of around $283,000, giving a max home price of about $323,000 with the $40,000 down payment. No debt is a significant advantage — compare this to the default scenario where $500/month in debts reduces buying power by over $60,000."
   - title: "High income couple, 15-year mortgage"
     inputs:
       annualIncome: 200000
@@ -64,7 +64,7 @@ workedExamples:
       downPayment: 100000
       interestRate: 6.0
       loanTerm: 15
-    description: "At $200,000 combined income, gross monthly is $16,667. A 36% DTI allows $6,000/month total, minus $800 existing debt leaves $5,200 for housing. With a 15-year term, the higher monthly payment means a smaller max loan than a 30-year — but you build equity much faster and pay far less interest. The available P&I budget of about $4,600 supports a loan near $545,000, giving a max home price around $645,000. The 15-year term saves roughly $200,000+ in total interest compared to 30 years."
+    description: "At $200,000 combined income, gross monthly is $16,667. A 36% DTI allows $6,000/month total, minus $800 existing debt leaves $5,200 for housing. After taxes ($605/month), insurance ($125/month), and PMI ($210/month — down payment is 16.5%), the available P&I budget is about $4,260. On a 15-year term this supports a loan near $505,000, giving a max home price around $605,000. The 15-year term saves roughly $200,000+ in total interest compared to 30 years."
 ---
 
 ## How Much House Can I Afford?

@@ -32,7 +32,7 @@ faq:
   - question: "How do I find my fund's expense ratio?"
     answer: "Check the fund's fact sheet or prospectus, available on the fund provider's website. On most brokerage platforms, the expense ratio is listed on the fund detail page under 'Fees' or 'Costs.' You can also search for any fund on Morningstar.com, which lists the expense ratio prominently."
   - question: "Why do small fee differences matter so much over time?"
-    answer: "Because fees compound in reverse. A 1% fee doesn't just take 1% of your money each year — it takes 1% of your money and all the future growth that money would have generated. Over 30 years, a 1% annual fee on a $100,000 portfolio growing at 7% costs roughly $230,000 in lost growth. The fee itself totals only about $50,000 — the rest is the compounding you missed."
+    answer: "Because fees compound in reverse. A 1% fee doesn't just take 1% of your money each year — it takes 1% of your money and all the future growth that money would have generated. Over 30 years, a 1% annual fee on a $100,000 portfolio growing at 7% (no additional contributions) costs roughly $187,000 in lost growth. The fee takes a percentage of an ever-growing balance, and the compounding you miss accelerates over time."
   - question: "Are index funds always cheaper than actively managed funds?"
     answer: "Almost always. The average index fund charges 0.05-0.20%, while the average actively managed fund charges 0.50-1.50%. Some actively managed funds have delivered returns that justify higher fees, but research from S&P (SPIVA scorecard) shows that over 15-year periods, roughly 90% of actively managed large-cap funds underperform the S&P 500 index."
   - question: "Do robo-advisors have lower fees than traditional financial advisors?"
@@ -46,7 +46,7 @@ workedExamples:
       years: 30
       yourFee: 0.03
       comparisonFee: 1.00
-    description: "Comparing a Vanguard S&P 500 index fund (0.03% expense ratio) against an actively managed large-cap fund (1.00%). Both earn 7% gross. After 30 years, the index fund grows to about $604,000 while the actively managed fund reaches only $476,000. That 0.97% fee gap costs $128,000 — more than double the total amount contributed."
+    description: "Comparing a Vanguard S&P 500 index fund (0.03% expense ratio) against an actively managed large-cap fund (1.00%). Both earn 7% gross. After 30 years with $500/month contributions, the index fund grows to about $959,000 while the actively managed fund reaches $774,000. That 0.97% fee gap costs $185,000 — nearly as much as the $230,000 total contributed."
   - title: "Robo-advisor vs. traditional financial advisor"
     inputs:
       initialInvestment: 100000
@@ -55,7 +55,7 @@ workedExamples:
       years: 25
       yourFee: 0.25
       comparisonFee: 1.50
-    description: "A robo-advisor charging 0.25% versus a traditional advisor charging 1.50%, both investing at 8% gross return. Over 25 years: the robo-advisor portfolio reaches about $1,050,000 while the traditional advisor portfolio hits $830,000. The 1.25% fee difference costs $220,000 — enough to fund several extra years of retirement."
+    description: "A robo-advisor charging 0.25% versus a traditional advisor charging 1.50%, both investing at 8% gross return. Over 25 years with $1,000/month contributions: the robo-advisor portfolio reaches about $1,522,000 while the traditional advisor portfolio hits $1,210,000. The 1.25% fee difference costs $312,000 — enough to fund several extra years of retirement."
   - title: "Two similar ETFs with different fees"
     inputs:
       initialInvestment: 25000
@@ -64,7 +64,7 @@ workedExamples:
       years: 20
       yourFee: 0.07
       comparisonFee: 0.50
-    description: "Two total-market ETFs tracking similar indices — one at 0.07%, the other at 0.50%. With $25,000 starting and $300/month over 20 years at 7% gross, the cheaper ETF reaches about $192,000 versus $180,000 for the pricier one. A $12,000 difference from just 0.43% in fees. Small numbers, real money."
+    description: "Two total-market ETFs tracking similar indices — one at 0.07%, the other at 0.50%. With $25,000 starting and $300/month over 20 years at 7% gross, the cheaper ETF reaches about $247,000 versus $232,000 for the pricier one. A $15,000 difference from just 0.43% in fees. Small numbers, real money."
 ---
 
 ## How Investment Fees Eat Your Returns

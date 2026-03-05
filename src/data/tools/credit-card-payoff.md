@@ -24,13 +24,13 @@ affiliatePrograms:
 calculationMethod: "Month-by-month simulation applying interest, then minimum payment plus any extra payment, until balance reaches zero"
 faq:
   - question: "Why does it take so long to pay off a credit card with minimum payments?"
-    answer: "Credit card minimum payments are typically 1-3% of your balance or a fixed amount like $25-$35. At 22% APR, most of your payment goes to interest, not principal. A $5,000 balance with a $100 minimum payment costs over $4,300 in interest and takes 9+ years. Card issuers set minimums low because they earn more interest the longer you carry a balance."
+    answer: "Credit card minimum payments are typically 1-3% of your balance or a fixed amount like $25-$35. At 22.99% APR, most of your payment goes to interest, not principal. A $5,000 balance with $100 fixed monthly payments costs over $11,600 in interest and takes nearly 14 years. Card issuers set minimums low because they earn more interest the longer you carry a balance."
   - question: "What is a balance transfer and does it help?"
     answer: "A balance transfer moves your debt to a new card with a 0% introductory APR, usually lasting 12-21 months. This gives you a window to pay down principal with zero interest accruing. Watch for the transfer fee (typically 3-5% of the balance) and make sure you can pay off the full amount before the intro rate expires, because the regular APR kicks in on whatever remains."
   - question: "How is credit card interest calculated?"
     answer: "Credit card interest compounds daily, but for payoff calculations the monthly rate (APR / 12) is the standard approximation. Each month, the issuer charges interest on your average daily balance. If your APR is 22.99%, the monthly rate is about 1.916%. On a $5,000 balance, that means roughly $96 in interest the first month alone."
   - question: "Should I pay more than the minimum?"
-    answer: "Almost always, yes. The minimum payment is designed to maximize interest revenue for the card issuer, not to get you out of debt. Even an extra $50/month on a $5,000 balance at 22.99% APR saves over $2,000 in interest and cuts 5+ years off the payoff time. The earlier you start paying extra, the more you save because there's less principal accruing interest."
+    answer: "Almost always, yes. The minimum payment is designed to maximize interest revenue for the card issuer, not to get you out of debt. Even an extra $50/month on a $5,000 balance at 22.99% APR saves over $8,600 in interest and cuts 9+ years off the payoff time. The earlier you start paying extra, the more you save because there's less principal accruing interest."
   - question: "Which credit card should I pay off first?"
     answer: "Pay the card with the highest APR first (avalanche method). This minimizes total interest paid. If you have multiple cards, make minimum payments on all of them and put every extra dollar toward the highest-rate card. Once it's paid off, roll that payment into the next highest rate. If you need motivation from quick wins, the snowball method (smallest balance first) works too."
   - question: "Does closing a paid-off credit card help?"
@@ -42,21 +42,21 @@ workedExamples:
       apr: 19.99
       minimumPayment: "$50/month fixed"
       extraPayment: 0
-    description: "A $2,000 credit card balance at 19.99% APR with $50/month minimum payments takes 4 years, 8 months to pay off. Total interest paid: $795. Adding $25/month extra ($75 total) cuts payoff to 2 years, 8 months and saves $372 in interest."
+    description: "A $2,000 credit card balance at 19.99% APR with $50/month minimum payments takes 5 years, 7 months to pay off. Total interest paid: $1,322. Adding $25/month extra ($75 total) cuts payoff to 3 years and saves $655 in interest."
   - title: "$5,000 balance at 22.99% APR"
     inputs:
       balance: 5000
       apr: 22.99
       minimumPayment: "$100/month fixed"
       extraPayment: "$50 extra"
-    description: "A $5,000 balance at 22.99% with $100 minimum payments costs $4,311 in interest over 7 years, 9 months. Adding $50/month extra ($150 total) drops it to 3 years, 7 months with $1,876 in interest — saving $2,435 and 4 years of payments."
+    description: "A $5,000 balance at 22.99% with $100 minimum payments costs $11,694 in interest over 13 years, 11 months. Adding $50/month extra ($150 total) drops it to 4 years, 6 months with $3,045 in interest — saving $8,649 and over 9 years of payments."
   - title: "$15,000 balance at 24.99% APR"
     inputs:
       balance: 15000
       apr: 24.99
       minimumPayment: "2% of balance, $25 floor"
       extraPayment: "$200 extra"
-    description: "A $15,000 balance at 24.99% with 2% minimum payments (starting at $300, shrinking as balance drops) takes over 30 years and costs $27,000+ in interest with minimums alone. Adding $200/month extra cuts payoff to about 4 years, 4 months with $7,800 in interest — saving nearly $20,000."
+    description: "A $15,000 balance at 24.99% with 2% minimum payments (starting at $300, shrinking as balance drops) never pays off with minimums alone — the payment eventually can't cover interest. Adding $200/month extra cuts payoff to 6 years, 6 months with $12,380 in interest."
 ---
 
 ## What Is a Credit Card Payoff Calculator?
@@ -72,8 +72,8 @@ Credit card companies set minimum payments just high enough to prevent your bala
 This is by design. The longer you carry a balance, the more interest the issuer collects.
 
 <div class="stat-highlight">
-  <span class="stat-number">$4,311</span>
-  <span class="stat-text">in interest on a $5,000 credit card balance at 22.99% APR with $100/month minimum payments. That's 86% of the original balance paid in interest alone.</span>
+  <span class="stat-number">$11,694</span>
+  <span class="stat-text">in interest on a $5,000 credit card balance at 22.99% APR with $100/month fixed payments. That's more than double the original balance paid in interest alone.</span>
 </div>
 
 ## How Extra Payments Change Everything
@@ -84,12 +84,12 @@ On a $5,000 balance at 22.99%:
 
 | Monthly Payment | Time to Payoff | Total Interest | Interest Saved |
 |---|---|---|---|
-| $100 (minimum) | 7 years, 9 months | $4,311 | — |
-| $150 (+$50 extra) | 3 years, 7 months | $1,876 | $2,435 |
-| $200 (+$100 extra) | 2 years, 5 months | $1,180 | $3,131 |
-| $300 (+$200 extra) | 1 year, 7 months | $729 | $3,582 |
+| $100 (minimum) | 13 years, 11 months | $11,694 | — |
+| $150 (+$50 extra) | 4 years, 6 months | $3,045 | $8,649 |
+| $200 (+$100 extra) | 2 years, 11 months | $1,871 | $9,823 |
+| $300 (+$200 extra) | 1 year, 9 months | $1,081 | $10,613 |
 
-Even $50/month extra — the cost of a few takeout meals — saves over $2,400 and cuts 4+ years off the payoff time.
+Even $50/month extra — the cost of a few takeout meals — saves over $8,600 and cuts 9+ years off the payoff time.
 
 ## Strategies to Pay Off Credit Card Debt Faster
 
