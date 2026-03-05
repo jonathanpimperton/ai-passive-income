@@ -2,12 +2,13 @@
 
 ## Read Order
 
-Before building anything, read these two files in order:
+Before building anything, read these files in order:
 
-1. **`docs/build-spec.md`** — What to build and why: target audience, personas, value proposition, competitive positioning, customer journey, tools list, build order, file structure, content schema, SEO, keyword targets, monetization, revenue targets, KPIs, post-launch operations, content marketing roadmap, legal pages, "done" checklist
-2. **`docs/design-system.md`** — How it looks: branding (name, logo, favicon, OG images), colors, typography, calculator UI patterns, navigation, mobile, accessibility, visual polish
+1. **`docs/growth-plan.md`** — **START HERE.** Current status, what to build next, priority matrix, revenue projections. This is the active roadmap.
+2. **`docs/build-spec.md`** — Original spec: target audience, personas, value proposition, competitive positioning, customer journey, tools list, file structure, content schema, SEO, keyword targets, monetization, revenue targets, KPIs, post-launch operations. The sprint roadmap (Sprints 1-7) is complete — see growth-plan.md for what's next.
+3. **`docs/design-system.md`** — How it looks: branding, colors, typography, calculator UI patterns, navigation, mobile, accessibility, visual polish.
 
-Historical docs (exploration, market research, financial model, original strategy/plan-optimization) are archived in `docs/archive/` for reference only. They are **not needed for building** — everything was consolidated into the two files above.
+Historical docs (exploration, market research, financial model, original strategy/plan-optimization) are archived in `docs/archive/` for reference only.
 
 ## Mission
 
@@ -371,8 +372,8 @@ Every new component, page, or feature MUST meet these standards. This is not opt
 When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
-2. **Read this file first**, then follow the Read Order above (`docs/build-spec.md` → `docs/design-system.md`).
-3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 15-22 complete. Sprint 22: curated two-column directory, 7 comparison articles, `client:idle` performance switch, dark mode scenario box fix. 111 pages total (37 tools + 57 scenarios + 7 comparisons + 1 comparison index + 9 static). 215 unit tests + 69 E2E = 284 tests. NordPass + NordVPN live with tracked CJ links. All tool components use `client:idle` for deferred hydration. See Sprint 23 Growth Roadmap below for next priorities.
+2. **Read this file first**, then `docs/growth-plan.md` (active roadmap), then `docs/build-spec.md` and `docs/design-system.md` as needed.
+3. **Current status:** Site is live at `https://www.calcrun.com`. All build sprints (1-22) complete. 111 pages (37 tools + 57 scenarios + 7 comparisons + 1 comparison index + 9 static). 215 unit + 69 E2E = 284 tests. NordPass + NordVPN live via CJ. **The bottleneck is traffic, not product.** See `docs/growth-plan.md` for the active roadmap — next Claude Code priorities are: affiliate sections in comparisons (Phase 2A), scenario page affiliate CTAs (Phase 2B), smart OG images (Phase 2D), more comparison articles (Phase 3A).
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
