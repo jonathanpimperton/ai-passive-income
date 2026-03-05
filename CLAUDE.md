@@ -373,65 +373,18 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then `docs/growth-plan.md` (active roadmap), then `docs/build-spec.md` and `docs/design-system.md` as needed.
-3. **Current status:** Site is live at `https://www.calcrun.com`. All build sprints (1-22) complete. 111 pages (37 tools + 57 scenarios + 7 comparisons + 1 comparison index + 9 static). 215 unit + 69 E2E = 284 tests. NordPass + NordVPN live via CJ. **The bottleneck is traffic, not product.** See `docs/growth-plan.md` for the active roadmap — next Claude Code priorities are: affiliate sections in comparisons (Phase 2A), scenario page affiliate CTAs (Phase 2B), smart OG images (Phase 2D), more comparison articles (Phase 3A).
+3. **Current status:** Site is live at `https://www.calcrun.com`. All build sprints (1-22) complete. 111 pages (37 tools + 57 scenarios + 7 comparisons + 1 comparison index + 9 static). 215 unit + 69 E2E = 284 tests. NordPass + NordVPN live via CJ. **The bottleneck is traffic, not product.** See `docs/growth-plan.md` Part A for the Claude Code sprint queue — next up is Sprint 23 (affiliate placements on comparisons, scenarios, and calculator results).
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 
-## Sprint 23+ Growth Roadmap
+## Sprint 23+ — Growth Roadmap
 
-The site is feature-complete. The priority is now traffic acquisition and revenue optimization.
+See **`docs/growth-plan.md`** for the full plan, split into:
+- **Part A (Claude Code sprints):** Sprint 23 affiliate placements → Sprint 24 more comparisons → Sprint 25 scale scenarios → Sprint 26 OG images + methodology pages → Sprint 27 new calculators → Sprint 28 engagement features
+- **Part B (Human actions):** MailerLite drip, Reddit answers, Product Hunt, HN, affiliate follow-ups, Cloudflare config, widget outreach, Quora, forums, Pinterest
 
-### Traffic Acquisition (owner-driven, manual)
-
-**Immediate (week 1-2):**
-- **Reddit** — Answer existing questions on r/personalfinance, r/UKPersonalFinance, r/financialindependence, r/FIREUK, r/povertyfinance, r/firsttimehomebuyer, r/StudentLoans with calculator links as sources. Don't just self-promote — provide the answer, then link.
-- **Product Hunt** — Use `docs/launch/product-hunt.md`. Schedule Tuesday-Thursday morning.
-- **Dev.to / Hashnode** — Use `docs/launch/devto-article.md` outline. "How I built financial calculators with Astro + React Islands."
-- **Hacker News** — "Show HN: Financial calculators with real-time results, no signup" — HN loves minimalist tools.
-
-**Medium-term (month 1-3):**
-- **Quora** — Answer "how much will $X be worth in Y years" questions, link to scenarios.
-- **Embeddable widgets** — Pitch to personal finance bloggers. Each embed = a backlink.
-- **Pinterest** — Create shareable infographics from comparison articles (ISA vs General Account, Snowball vs Avalanche). Financial pins have long shelf life.
-- **YouTube creators** — Offer custom scenario pages for mid-tier finance YouTubers' content.
-
-**Long-term (month 3-12):**
-- **Programmatic scenario scaling** — Target specific salary searches ("£45,000 salary UK take home"), every mortgage amount by £50K increments, city-specific rent vs buy.
-- **Digital PR** — When rates/taxes change, update calculators and pitch: "New tool shows exactly how the rate cut affects your mortgage."
-- **Google Discover** — Fresh comparison articles on trending topics.
-
-### Revenue Optimization (buildable by Claude Code)
-
-**High-impact, ready to build:**
-- **Affiliate sections in comparison articles** — Add "Where to open an ISA" / "Compare mortgage rates" sections with 2-3 provider cards + affiliate links on the 7 comparison pages. These are the highest-intent pages.
-- **"Next step" CTAs on scenario pages** — After the answer, add "Take the next step" with relevant affiliate partner cards. E.g., mortgage scenario → LendingTree; investment scenario → Betterment/InvestEngine.
-- **Calculator-result affiliate integration** — After calculating mortgage payment, show "Compare rates from multiple lenders" inline. After retirement savings, show "Open a retirement account" card.
-- **Smart OG images for scenarios** — Generate OG images showing the actual result number ("$300K mortgage at 7% = $1,996/mo") instead of generic site branding. Drives click-through from social shares.
-
-**New tools that drive affiliate revenue:**
-- **Mortgage affordability calculator** — "How much house can I afford?" — very high search volume, natural LendingTree fit.
-- **Credit card payoff calculator** — Focused on minimum payments vs extra payments. Balance transfer card affiliate opportunity.
-- **Investment fee calculator** — "How much are your fund fees costing you?" — leads to low-fee platform affiliates.
-- **Savings rate calculator (FIRE)** — "What savings rate to retire in X years?" — appeals to highly engaged FIRE community.
-
-**Content expansion:**
-- **More comparison articles** — Pay off debt vs invest, lump sum vs DCA, fixed vs variable mortgage, LISA vs regular ISA, pension vs ISA.
-- **Seasonal content** — Tax season articles (Jan-April), new tax year explainers (April UK), Black Friday NordPass/NordVPN promotions.
-- **Methodology pages** — `/how-we-calculate/[tool]` explaining exact formulas + source links. Strong E-E-A-T signal for Google.
-
-### Images & Visuals (buildable by Claude Code)
-
-No stock photos needed. The calculators ARE the visuals. But these add value:
-- **SVG infographics in comparison articles** — Simple diagrams (e.g., two stacked bars showing where mortgage money goes). Can be generated at build time with Satori.
-- **Result-specific OG images** — Scenario pages should show the answer in the social card.
-- **Mini explanatory diagrams** — Compound interest hockey stick, amortization principal/interest split, debt snowball waterfall. SVG, not decorative.
-
-### Trust Building (buildable by Claude Code)
-
-- **Accuracy guarantee page** — "Our calculations are verified against [sources]. Found an error? Email hello@calcrun.com."
-- **Expand data source attribution** — Every calculator should show "Rates from GOV.UK / IRS.gov / Federal Reserve" with clickable links (started with uk-rates.ts, expand to all).
-- **Methodology transparency** — Expandable "How this is calculated" sections with the actual formulas (started on UK Salary, expand to all 14).
+**Next Claude Code sprint:** Sprint 23 — add affiliate sections to 7 comparison articles, affiliate CTAs to 57 scenario pages, and inline affiliate cards in calculator results. Zero new pages, directly increases revenue per visitor.
 
 ## Running
 
