@@ -8,7 +8,7 @@ import type { PdfInput } from '../../lib/pdf-export';
  * Set to empty string to disable Turnstile on the client side (server
  * will also skip verification if TURNSTILE_SECRET_KEY is not set).
  */
-const TURNSTILE_SITE_KEY = '0x4AAAAAABfYLWPO3BO0k8ji';
+const TURNSTILE_SITE_KEY = '0x4AAAAAACnZPz-6NCP1yfgb';
 
 interface EmailResultsButtonProps {
   toolSlug: string;
