@@ -155,7 +155,7 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
 
     {/* Contextual affiliate recommendations — directly after calculator for max relevance */}
     {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (
-      <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={slug} />
+      <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={slug} category={category} />
     )}
 
     {/* Powered-by badge — visible only in embed mode */}

@@ -23,8 +23,12 @@ relatedTools:
   - "salary-us"
 lastUpdated: "2026-03-04"
 dataSources:
-  - name: "Standard mortgage amortization formula"
+  - name: "Mortgage amortization formula — Investopedia"
     url: "https://www.investopedia.com/terms/a/amortization.asp"
+  - name: "CFPB — Understand loan options"
+    url: "https://www.consumerfinance.gov/owning-a-home/loan-options/"
+  - name: "Freddie Mac — Primary Mortgage Market Survey"
+    url: "https://www.freddiemac.com/pmms"
 faq:
   - question: "How is a monthly mortgage payment calculated?"
     answer: "The standard formula is M = P[r(1+r)^n]/[(1+r)^n – 1], where P is the loan principal, r is the monthly interest rate (annual rate ÷ 12), and n is the total number of payments (years × 12). On a $300,000 loan at 7% for 30 years, the monthly principal and interest payment is $1,996. This doesn't include property taxes, homeowners insurance, or PMI, which can add $300-$800/month."

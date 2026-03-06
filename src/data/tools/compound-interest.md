@@ -18,6 +18,12 @@ affiliatePrograms:
   - "Betterment"
   - "Ally"
   - "Wealthfront"
+lastUpdated: "2026-03-06"
+dataSources:
+  - name: "Compound interest formula — SEC Investor.gov"
+    url: "https://www.investor.gov/financial-tools-calculators/calculators/compound-interest-calculator"
+  - name: "How compounding works — Investopedia"
+    url: "https://www.investopedia.com/terms/c/compoundinterest.asp"
 calculationMethod: "Uses standard compound interest formula: A = P(1 + r/n)^(nt)"
 faq:
   - question: "What is compound interest?"

@@ -95,7 +95,7 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
 
         {/* Affiliate section */}
         {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (
-          <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={toolSlug} />
+          <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={toolSlug} category={toolCategory} />
         )}
 
         {/* Bottom CTA */}

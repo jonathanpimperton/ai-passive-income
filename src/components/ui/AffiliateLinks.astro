@@ -15,12 +15,26 @@ interface Props {
   context: string;
   programIds: string[];
   toolSlug: string;
+  category?: string;
 }
 
-const { context, programIds, toolSlug } = Astro.props;
+const { context, programIds, toolSlug, category } = Astro.props;
 const partners = resolvePartners(programIds);
 
 if (partners.length === 0) return;
+
+/* Contextual disclosure text based on page type */
+const INVESTMENT_SLUGS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'savings-goal', 'roi']);
+const LOAN_SLUGS = new Set(['mortgage-payment', 'mortgage-affordability', 'loan-amortization', 'rent-vs-buy']);
+
+let disclosureText: string;
+if (LOAN_SLUGS.has(toolSlug) || category === 'debt-and-loans') {
+  disclosureText = 'We may earn a commission if you apply through these links. Your home may be repossessed if you do not keep up repayments on your mortgage.';
+} else if (INVESTMENT_SLUGS.has(toolSlug) || category === 'saving-and-growth') {
+  disclosureText = 'We may earn a commission if you open an account through these links. Capital at risk — the value of investments can go down as well as up.';
+} else {
+  disclosureText = 'We may earn a commission at no extra cost to you.';
+}
 ---
 
 <div class="mt-10 mb-6 rounded-lg bg-primary-50 border border-primary-200/60 p-6 sm:p-8 relative overflow-hidden">
@@ -75,7 +89,8 @@ if (partners.length === 0) return;
   </div>
 
   <p class="relative text-xs text-neutral-500 mt-4 leading-relaxed">
-    Affiliate link — we may earn a commission at no extra cost to you.
+    {disclosureText}{' '}
+    We recommend partners based on relevance to the calculator you're using, not on commission rates.{' '}
     <a href="/disclosure" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-200">
       Full disclosure
     </a>

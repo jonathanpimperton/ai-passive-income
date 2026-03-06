@@ -126,6 +126,18 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
   const partner = config.partners[0];
   if (!partner) return null;
 
+  const LOAN_TOOLS = new Set(['mortgage-payment', 'mortgage-affordability', 'loan-amortization', 'rent-vs-buy', 'credit-card-payoff', 'debt-payoff']);
+  const INVEST_TOOLS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'savings-goal']);
+
+  let disclosure: string;
+  if (LOAN_TOOLS.has(toolSlug)) {
+    disclosure = 'We may earn a commission. Your home may be repossessed if you do not keep up repayments on your mortgage.';
+  } else if (INVEST_TOOLS.has(toolSlug)) {
+    disclosure = 'We may earn a commission. Capital at risk — the value of investments can go down as well as up.';
+  } else {
+    disclosure = 'Affiliate link — we may earn a commission at no extra cost to you.';
+  }
+
   return (
     <div data-pdf-hide className="mt-6 mb-6 rounded-lg border border-primary-200/60 bg-primary-50/50 p-4">
       <p className="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-2">
@@ -150,7 +162,7 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
         />
       </a>
       <p className="text-[10px] text-neutral-500 mt-2 leading-relaxed">
-        Affiliate link — we may earn a commission at no extra cost to you.{' '}
+        {disclosure}{' '}
         <a href="/disclosure" className="text-primary-600 hover:text-primary-700 underline">
           Disclosure
         </a>

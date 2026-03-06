@@ -18,6 +18,31 @@ import ToolIcon from '@components/ui/ToolIcon.astro';
   </section>
 
   <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    {/* Who built this */}
+    <section class="mb-12">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-100 text-primary-700 shrink-0">
+          <ToolIcon name="user" size={20} />
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-neutral-900 mb-2">Who built this</h2>
+          <p class="text-neutral-700 leading-relaxed mb-3">
+            CalcRun is built by Jonathan, an ACA-qualified accountant with experience across
+            UK, US, and Australian tax systems. The site exists because most online calculators
+            are either ad-heavy, outdated, or won't show their working. This one does.
+          </p>
+          <p class="text-neutral-700 leading-relaxed">
+            Every formula is documented, every tax rate is sourced from official data (HMRC, IRS, SSA),
+            and every calculation runs in your browser — nothing is sent to a server.
+            If you find an error, <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">email me</a> and I'll fix it.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {/* Gradient divider */}
+    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-12"></div>
+
     {/* What we build */}
     <section class="mb-12">
       <h2 class="text-xl font-bold text-neutral-900 mb-4">What we build</h2>
