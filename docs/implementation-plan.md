@@ -35,21 +35,22 @@ These are the pages that matter most in month 1. All Phase 1-2 work targets thes
 
 Capture these numbers before touching layouts or affiliate placements. Without baselines, improvements are unprovable.
 
-- [ ] Google Search Console: indexed page count, top pages by clicks, top pages by impressions
-- [ ] GA4: pageviews by page, top landing pages, device split, geo split (US vs UK)
-- [ ] Affiliate dashboards: clicks, conversions, EPC by partner (CJ for NordPass/NordVPN)
-- [ ] Email capture: current subscriber count, capture rate estimate
-- [ ] Outbound clicks: rough count of affiliate link clicks (add tracking first if none exists)
+- [x] Google Search Console: indexed page count, top pages by clicks, top pages by impressions
+  - **Snapshot (3 Mar 2026):** 3 pages indexed, 37 discovered not indexed, 3 crawled not indexed, 4 redirect errors (bare domain). Near-zero impressions.
+- [ ] GA4: pageviews by page, top landing pages, device split, geo split (US vs UK) — **check GA4 realtime/reports**
+- [ ] Affiliate dashboards: clicks, conversions, EPC by partner (CJ for NordPass/NordVPN) — **check CJ dashboard**
+- [ ] Email capture: current subscriber count, capture rate estimate — **check MailerLite**
+- [x] Outbound clicks: affiliate click tracking added in Sprint 36 (GA4 `affiliate_click` event)
 
 Save this snapshot. Compare at 30 and 90 days.
 
 ---
 
-## Phase 1 — Immediate (Week 1-2)
+## Phase 1 — Immediate (Week 1-2) ✅ CODE COMPLETE
 
 Run all four tracks in parallel. They touch different files.
 
-### Sprint 30: Data Accuracy (CRITICAL)
+### Sprint 30: Data Accuracy (CRITICAL) ✅ COMPLETE
 
 Wrong numbers on money pages kill trust and conversions. Fix before anything else.
 
@@ -90,7 +91,7 @@ Add visible "Tax year: 2025/26" (UK) / "Tax year: 2025" (US) badge in calculator
 
 ---
 
-### Sprint 31: Trust Layer
+### Sprint 31: Trust Layer ✅ COMPLETE
 
 **31A: About Page — Human Authority**
 
@@ -125,13 +126,13 @@ File: `src/components/ui/AffiliateLinks.astro`
 - Add 1-line "How we choose partners" adjacent to affiliate cards
 
 **Done when:**
-- [ ] About page has real name, credentials, personal voice — one clean trust claim
-- [ ] Shortlist pages have strong source sections
-- [ ] Affiliate disclosure is contextual with risk disclaimers where relevant
+- [x] About page has real name, credentials, personal voice — one clean trust claim
+- [x] Shortlist pages have strong source sections
+- [x] Affiliate disclosure is contextual with risk disclaimers where relevant
 
 ---
 
-### Sprint 36: Measurement (Parallel)
+### Sprint 36: Measurement (Parallel) ✅ CODE COMPLETE — owner needs to verify events in GA4
 
 **Must run alongside Sprints 31-32, not after.** You need baselines before changing affiliate layouts.
 
@@ -157,9 +158,9 @@ Keep it lean. 6 events, not 15. Add more only when these prove useful.
 - This enables EPC calculation by page once affiliate dashboards have data
 
 **Done when:**
-- [ ] All 6 events firing in GA4 real-time
-- [ ] Affiliate clicks tracked with partner + placement
-- [ ] No financial input values logged
+- [x] All 6 events firing in GA4 real-time — code deployed, needs owner to verify in GA4 dashboard
+- [x] Affiliate clicks tracked with partner + placement
+- [x] No financial input values logged
 
 ---
 
@@ -167,11 +168,11 @@ Keep it lean. 6 events, not 15. Add more only when these prove useful.
 
 These are not side notes. They directly affect growth, tracking, and compliance.
 
-1. **Google Search Console** — Verify sitemap.xml processed. Request indexing on top 15 money pages via URL Inspection tool.
-2. **Cloudflare redirect** — Add redirect rule: `calcrun.com/*` -> `https://www.calcrun.com/$1`
-3. **Affiliate follow-ups** — Chase pending programs. See partner status table below.
-4. **Cookie consent review** — If GA4 sets cookies for UK visitors, PECR may require consent mechanism. Evaluate whether a lightweight consent banner is needed. Do not ignore this.
-5. **Turnstile secret key** — Create and add `TURNSTILE_SECRET_KEY` to Cloudflare Pages env if not done.
+1. [x] **Google Search Console** — Set up, sitemap submitted. 3 pages indexed as of 3 Mar 2026. Request indexing on money pages via URL Inspection tool.
+2. [ ] **Cloudflare redirect** — **NOT DONE — DO THIS NOW.** Add redirect rule: `calcrun.com/*` -> `https://www.calcrun.com/$1`. The 4 GSC redirect errors are caused by this. Instructions: Cloudflare dashboard → Rules → Redirect Rules → Hostname equals `calcrun.com` → Dynamic redirect to `concat("https://www.calcrun.com", http.request.uri.path)` → 301.
+3. [ ] **Affiliate follow-ups** — Chase pending programs. Check CJ, Awin, Pro Affiliate Partner dashboards.
+4. [ ] **Cookie consent review** — Deferred until measurable UK traffic. Revisit when GA4 shows UK visitors.
+5. [ ] **Turnstile secret key** — Create and add `TURNSTILE_SECRET_KEY` to Cloudflare Pages env. Instructions: Cloudflare dashboard → Turnstile → click existing widget → copy Secret Key → Workers & Pages → CalcRun → Settings → Environment variables → add `TURNSTILE_SECRET_KEY`.
 
 **Affiliate Partner Status (for planning — do not hardcode assumptions):**
 
@@ -191,11 +192,11 @@ Frame affiliate strategy around roles (preferred / pending / fallback), not spec
 
 ---
 
-## Phase 2 — Monetisation Improvement (Week 3-4)
+## Phase 2 — Monetisation Improvement (Week 3-4) ✅ CODE COMPLETE
 
 Only start after Phase 1 measurement is live. Changes should be trackable.
 
-### Sprint 32: Affiliate Flow
+### Sprint 32: Affiliate Flow ✅ COMPLETE
 
 **32A: Scenario Page Layout — CTA Before Affiliate**
 
@@ -242,14 +243,14 @@ Add `affiliateContext` + `affiliatePrograms` to UK comparisons that currently ha
 Only add where the product genuinely fits the comparison topic.
 
 **Done when:**
-- [ ] Scenario pages: affiliate below content, not between CTAs
-- [ ] Each money page has one clear primary recommendation with "best for" label
-- [ ] UK comparisons with natural fit have affiliate offers
-- [ ] All changes trackable via Sprint 36 events
+- [x] Scenario pages: affiliate below content, not between CTAs
+- [x] Each money page has one clear primary recommendation with "best for" label
+- [x] UK comparisons with natural fit have affiliate offers
+- [x] All changes trackable via Sprint 36 events
 
 ---
 
-### Sprint 33: Homepage & Nav Coherence
+### Sprint 33: Homepage & Nav Coherence ✅ COMPLETE
 
 **33A: UK Prompts on Homepage**
 
@@ -268,8 +269,8 @@ In the homepage "All Tools" grid, add clearer visual separation for Utility and 
 Do NOT move to `/dev/` or `/utilities/` yet. Test visual separation first. Only migrate URLs if data shows the current approach hurts financial page performance.
 
 **Done when:**
-- [ ] Homepage has UK prompts
-- [ ] Finance tools visually lead, utility/file tools clearly secondary
+- [x] Homepage has UK prompts
+- [x] Finance tools visually lead, utility/file tools clearly secondary
 
 ---
 
@@ -393,13 +394,13 @@ Review GA4 events, GSC data, and affiliate dashboards. Then decide:
 
 ## Execution Summary
 
-| Phase | Sprints | Timeline | Focus |
-|-------|---------|----------|-------|
-| **1 - Immediate** | 30 + 31 + 36 + Manual | Week 1-2 | Fix data, add trust, start tracking, unblock indexing |
-| **2 - Monetise** | 32 + 33 | Week 3-4 | Improve affiliate flow, homepage, measure impact |
-| **Gate** | Review data | End of Week 4 | Verify tracking, baselines, indexing progress |
-| **3 - Expand** | 34 + 35 (scoped down) | Week 5-8 | 5-8 scenarios + 2 calculators |
-| **4 - Data-driven** | Decide based on metrics | Week 9+ | Scale what converts, cut what doesn't |
+| Phase | Sprints | Timeline | Focus | Status |
+|-------|---------|----------|-------|--------|
+| **1 - Immediate** | 30 + 31 + 36 + Manual | Week 1-2 | Fix data, add trust, start tracking, unblock indexing | ✅ Code done. Manual items 2/5 remain |
+| **2 - Monetise** | 32 + 33 | Week 3-4 | Improve affiliate flow, homepage, measure impact | ✅ Code done |
+| **Gate** | Review data | End of Week 4 | Verify tracking, baselines, indexing progress | ⏳ BLOCKED — need redirect + GA4 check + affiliate status |
+| **3 - Expand** | 34 + 35 (scoped down) | Week 5-8 | 5-8 scenarios + 2 calculators | Not started |
+| **4 - Data-driven** | Decide based on metrics | Week 9+ | Scale what converts, cut what doesn't | Not started |
 
 Total new calculator builds: **2** (not 6).
 Total new scenarios: **5-8** (not 20+).

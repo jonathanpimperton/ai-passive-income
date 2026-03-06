@@ -442,12 +442,15 @@ When starting a new session on this project:
 ## Growth Roadmap
 
 See **`docs/implementation-plan.md`** for the active roadmap, split into 4 phases:
-- **Phase 1 (COMPLETE):** Sprint 30 (data accuracy — UK/US tax rates), Sprint 31 (trust layer — about page, sources, contextual disclosures), Sprint 36 (GA4 event taxonomy + affiliate click attribution)
-- **Phase 2 (COMPLETE):** Sprint 32 (affiliate flow — best-for labels, UK comparison monetisation, scenario reorder), Sprint 33 (homepage UK prompts + visual separation for non-finance tools)
-- **Phase 3 (NEXT):** Sprint 34 (reframe top scenario titles + 5-8 new high-intent scenarios), Sprint 35 (salary sacrifice calculator + debt-vs-invest calculator)
+- **Phase 1 (CODE COMPLETE):** Sprint 30 (data accuracy), Sprint 31 (trust layer), Sprint 36 (GA4 events). Manual items still needed: Cloudflare redirect, Turnstile secret key, affiliate follow-ups.
+- **Phase 2 (CODE COMPLETE):** Sprint 32 (affiliate flow), Sprint 33 (homepage UK prompts + non-finance separation).
+- **Decision Gate (CURRENT BLOCKER):** Phase 3 requires: (1) Cloudflare redirect set up, (2) GA4 events verified working, (3) affiliate partner status checked. Owner must complete these manual items before Phase 3 begins.
+- **Phase 3 (BLOCKED):** Sprint 34 (reframe top scenario titles + 5-8 new high-intent scenarios), Sprint 35 (salary sacrifice calculator + debt-vs-invest calculator)
 - **Phase 4:** Data-driven decisions based on GA4/GSC metrics
 
-**Next steps:** Phase 3 — Sprint 34 (selective scenario work) then Sprint 35 (two new calculators). See `docs/implementation-plan.md` for full details and decision gates.
+**GSC status (3 Mar 2026):** 3 pages indexed, 37 discovered not indexed, 4 redirect errors (bare domain — no www redirect). Near-zero impressions.
+
+**Next steps:** Owner must complete manual items (Cloudflare redirect is #1 priority — causing indexing errors). Then pass decision gate → Phase 3.
 
 ## Running
 
