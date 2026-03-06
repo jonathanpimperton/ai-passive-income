@@ -169,10 +169,10 @@ Keep it lean. 6 events, not 15. Add more only when these prove useful.
 These are not side notes. They directly affect growth, tracking, and compliance.
 
 1. [x] **Google Search Console** — Set up, sitemap submitted. 3 pages indexed as of 3 Mar 2026. Request indexing on money pages via URL Inspection tool.
-2. [ ] **Cloudflare redirect** — **NOT DONE — DO THIS NOW.** Add redirect rule: `calcrun.com/*` -> `https://www.calcrun.com/$1`. The 4 GSC redirect errors are caused by this. Instructions: Cloudflare dashboard → Rules → Redirect Rules → Hostname equals `calcrun.com` → Dynamic redirect to `concat("https://www.calcrun.com", http.request.uri.path)` → 301.
+2. [x] **Cloudflare redirect** — DONE (6 Mar 2026). A record for root domain + wildcard redirect rule deployed. Verified working externally. 4 GSC redirect errors should clear on next crawl.
 3. [ ] **Affiliate follow-ups** — Chase pending programs. Check CJ, Awin, Pro Affiliate Partner dashboards.
 4. [ ] **Cookie consent review** — Deferred until measurable UK traffic. Revisit when GA4 shows UK visitors.
-5. [ ] **Turnstile secret key** — Create and add `TURNSTILE_SECRET_KEY` to Cloudflare Pages env. Instructions: Cloudflare dashboard → Turnstile → click existing widget → copy Secret Key → Workers & Pages → CalcRun → Settings → Environment variables → add `TURNSTILE_SECRET_KEY`.
+5. [x] **Turnstile secret key** — DONE (6 Mar 2026). New Turnstile widget created (invisible mode, www.calcrun.com). Site key updated in code. Secret key added to Cloudflare Pages env vars.
 
 **Affiliate Partner Status (for planning — do not hardcode assumptions):**
 
@@ -398,7 +398,7 @@ Review GA4 events, GSC data, and affiliate dashboards. Then decide:
 |-------|---------|----------|-------|--------|
 | **1 - Immediate** | 30 + 31 + 36 + Manual | Week 1-2 | Fix data, add trust, start tracking, unblock indexing | ✅ Code done. Manual items 2/5 remain |
 | **2 - Monetise** | 32 + 33 | Week 3-4 | Improve affiliate flow, homepage, measure impact | ✅ Code done |
-| **Gate** | Review data | End of Week 4 | Verify tracking, baselines, indexing progress | ⏳ BLOCKED — need redirect + GA4 check + affiliate status |
+| **Gate** | Review data | End of Week 4 | Verify tracking, baselines, indexing progress | ⏳ Remaining: verify GA4 events + check affiliate status |
 | **3 - Expand** | 34 + 35 (scoped down) | Week 5-8 | 5-8 scenarios + 2 calculators | Not started |
 | **4 - Data-driven** | Decide based on metrics | Week 9+ | Scale what converts, cut what doesn't | Not started |
 

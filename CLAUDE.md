@@ -444,13 +444,13 @@ When starting a new session on this project:
 See **`docs/implementation-plan.md`** for the active roadmap, split into 4 phases:
 - **Phase 1 (CODE COMPLETE):** Sprint 30 (data accuracy), Sprint 31 (trust layer), Sprint 36 (GA4 events). Manual items still needed: Cloudflare redirect, Turnstile secret key, affiliate follow-ups.
 - **Phase 2 (CODE COMPLETE):** Sprint 32 (affiliate flow), Sprint 33 (homepage UK prompts + non-finance separation).
-- **Decision Gate (CURRENT BLOCKER):** Phase 3 requires: (1) Cloudflare redirect set up, (2) GA4 events verified working, (3) affiliate partner status checked. Owner must complete these manual items before Phase 3 begins.
+- **Decision Gate (2 items remain):** Cloudflare redirect ✅ done, Turnstile ✅ done. Still needed: (1) verify GA4 events in dashboard, (2) check affiliate partner status (CJ, Awin, Pro Affiliate Partner).
 - **Phase 3 (BLOCKED):** Sprint 34 (reframe top scenario titles + 5-8 new high-intent scenarios), Sprint 35 (salary sacrifice calculator + debt-vs-invest calculator)
 - **Phase 4:** Data-driven decisions based on GA4/GSC metrics
 
 **GSC status (3 Mar 2026):** 3 pages indexed, 37 discovered not indexed, 4 redirect errors (bare domain — no www redirect). Near-zero impressions.
 
-**Next steps:** Owner must complete manual items (Cloudflare redirect is #1 priority — causing indexing errors). Then pass decision gate → Phase 3.
+**Next steps:** Owner needs to (1) verify GA4 events firing in analytics.google.com → Realtime, (2) check affiliate dashboards for new approvals. Then decision gate passes → Phase 3 (Sprint 34 scenarios + Sprint 35 calculators).
 
 ## Running
 
