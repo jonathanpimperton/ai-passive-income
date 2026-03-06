@@ -80,6 +80,9 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
         {/* Try it yourself CTA */}
         <a
           href={toolPath}
+          data-scenario-cta
+          data-scenario-slug={slug}
+          data-tool-slug={toolSlug}
           class="inline-flex items-center gap-2 mb-8 px-5 py-3 text-sm font-semibold rounded-xl text-white bg-primary-600 hover:bg-primary-700 transition-all duration-200 shadow-sm shadow-primary-600/20"
         >
           Try it with your numbers
@@ -162,4 +165,44 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
       </aside>
     </div>
   </div>
+
+  <script>
+    const _gtag = (window as any).gtag as ((...a: unknown[]) => void) | undefined;
+
+    // Scenario "Try it" CTA click tracking
+    document.querySelectorAll('[data-scenario-cta]').forEach(el => {
+      el.addEventListener('click', () => {
+        if (_gtag) {
+          _gtag('event', 'scenario_try_it_click', {
+            scenario_slug: (el as HTMLElement).dataset.scenarioSlug || '',
+            tool_slug: (el as HTMLElement).dataset.toolSlug || '',
+          });
+        }
+      });
+    });
+
+    // Affiliate click tracking on scenario pages
+    document.addEventListener('click', (e) => {
+      const link = (e.target as Element).closest?.('a.affiliate-link') as HTMLAnchorElement | null;
+      if (link && _gtag) {
+        _gtag('event', 'affiliate_click', {
+          partner: link.dataset.affiliatePartner || '',
+          placement: link.dataset.affiliatePlacement || 'scenario',
+          page_type: 'scenario',
+        });
+      }
+    });
+
+    // Scroll depth milestones
+    const _scrollFired = new Set<number>();
+    window.addEventListener('scroll', () => {
+      const scrollPct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
+      for (const depth of [50, 90]) {
+        if (scrollPct >= depth && !_scrollFired.has(depth)) {
+          _scrollFired.add(depth);
+          if (_gtag) _gtag('event', 'scroll_depth', { depth, page_type: 'scenario' });
+        }
+      }
+    }, { passive: true });
+  </script>
 </BaseLayout>

@@ -56,7 +56,9 @@ if (LOAN_SLUGS.has(toolSlug) || category === 'debt-and-loans') {
         href={buildAffiliateUrl(partner.id, toolSlug)}
         target="_blank"
         rel="noopener sponsored"
-        class="group bg-white rounded-xl border border-neutral-200/80 p-5 sm:p-6 shadow-card hover:shadow-card-hover hover:border-primary-300 hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+        data-affiliate-partner={partner.id}
+        data-affiliate-placement="take-next-step"
+        class="group affiliate-link bg-white rounded-xl border border-neutral-200/80 p-5 sm:p-6 shadow-card hover:shadow-card-hover hover:border-primary-300 hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
       >
         <div class="flex items-start gap-3 mb-1">
           <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-50 text-primary-600 shrink-0 group-hover:bg-primary-700 group-hover:text-white transition-colors duration-200">

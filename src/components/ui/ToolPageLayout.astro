@@ -98,7 +98,7 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
 ---
 
 {/* Calculator section — subtle gradient header */}
-<div class="bg-white dark:bg-neutral-900 overflow-x-hidden" data-calc-section>
+<div class="bg-white dark:bg-neutral-900 overflow-x-hidden" data-calc-section data-tool-slug={slug}>
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <Breadcrumb items={breadcrumbs} />
 
@@ -477,4 +477,52 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
       wrapper.appendChild(el);
     }
   });
+
+  /* ── GA4 Event Tracking (Sprint 36) ─────────────────── */
+  const _gtag = (window as any).gtag as ((...a: unknown[]) => void) | undefined;
+  const _slug = document.querySelector('[data-tool-slug]')?.getAttribute('data-tool-slug') || '';
+
+  // Affiliate click tracking
+  document.addEventListener('click', (e) => {
+    const link = (e.target as Element).closest?.('a.affiliate-link') as HTMLAnchorElement | null;
+    if (link && _gtag) {
+      _gtag('event', 'affiliate_click', {
+        partner: link.dataset.affiliatePartner || '',
+        placement: link.dataset.affiliatePlacement || '',
+        page_type: 'tool',
+      });
+    }
+  });
+
+  // Calculator interaction (debounced — fires once per 5s max)
+  let _calcTimer: ReturnType<typeof setTimeout> | null = null;
+  const _calcEl = document.querySelector('[data-calc-section]');
+  if (_calcEl) {
+    _calcEl.addEventListener('input', () => {
+      if (_calcTimer) return;
+      _calcTimer = setTimeout(() => { _calcTimer = null; }, 5000);
+      if (_gtag) _gtag('event', 'calculator_interaction', { tool_slug: _slug });
+    });
+  }
+
+  // PDF export click
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as Element).closest?.('[data-export-pdf]');
+    if (btn && _gtag) {
+      _gtag('event', 'pdf_export_click', { tool_slug: _slug });
+    }
+  });
+
+  // Scroll depth milestones (50% and 90%)
+  const _scrollFired = new Set<number>();
+  const _pageType = _slug ? 'tool' : 'page';
+  window.addEventListener('scroll', () => {
+    const scrollPct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
+    for (const depth of [50, 90]) {
+      if (scrollPct >= depth && !_scrollFired.has(depth)) {
+        _scrollFired.add(depth);
+        if (_gtag) _gtag('event', 'scroll_depth', { depth, page_type: _pageType });
+      }
+    }
+  }, { passive: true });
 </script>

@@ -186,4 +186,32 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
       </aside>
     </div>
   </div>
+
+  <script>
+    const _gtag = (window as any).gtag as ((...a: unknown[]) => void) | undefined;
+
+    // Affiliate click tracking on comparison pages
+    document.addEventListener('click', (e) => {
+      const link = (e.target as Element).closest?.('a.affiliate-link') as HTMLAnchorElement | null;
+      if (link && _gtag) {
+        _gtag('event', 'affiliate_click', {
+          partner: link.dataset.affiliatePartner || '',
+          placement: link.dataset.affiliatePlacement || 'comparison',
+          page_type: 'comparison',
+        });
+      }
+    });
+
+    // Scroll depth milestones
+    const _scrollFired = new Set<number>();
+    window.addEventListener('scroll', () => {
+      const scrollPct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
+      for (const depth of [50, 90]) {
+        if (scrollPct >= depth && !_scrollFired.has(depth)) {
+          _scrollFired.add(depth);
+          if (_gtag) _gtag('event', 'scroll_depth', { depth, page_type: 'comparison' });
+        }
+      }
+    }, { passive: true });
+  </script>
 </BaseLayout>

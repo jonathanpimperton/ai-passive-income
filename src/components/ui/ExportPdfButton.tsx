@@ -41,6 +41,7 @@ export default function ExportPdfButton({ toolName, getInputs, resultsRef }: Exp
       }`}
       aria-label="Export results as PDF"
       data-pdf-hide
+      data-export-pdf
     >
       {error ? (
         <>

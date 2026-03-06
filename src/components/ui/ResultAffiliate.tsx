@@ -147,7 +147,9 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
         href={buildUrl(partner, toolSlug)}
         target="_blank"
         rel="noopener sponsored"
-        className="group flex items-center gap-3 bg-white rounded-lg border border-neutral-200/80 p-3 hover:border-primary-300 hover:shadow-sm transition-all duration-200"
+        data-affiliate-partner={partner.name.toLowerCase().replace(/\s+/g, '-')}
+        data-affiliate-placement="inline"
+        className="group affiliate-link flex items-center gap-3 bg-white rounded-lg border border-neutral-200/80 p-3 hover:border-primary-300 hover:shadow-sm transition-all duration-200"
       >
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-neutral-900 group-hover:text-primary-700 transition-colors duration-200">

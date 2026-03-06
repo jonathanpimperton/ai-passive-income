@@ -140,9 +140,8 @@ export default function EmailResultsButton({
       if (response.ok && data.success) {
         setStatus('success');
         if ((window as any).gtag) {
-          (window as any).gtag('event', 'email_results', {
-            event_category: 'engagement',
-            event_label: toolSlug,
+          (window as any).gtag('event', 'email_capture_submit', {
+            variant: 'results',
           });
         }
       } else {

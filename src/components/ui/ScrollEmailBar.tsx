@@ -79,9 +79,8 @@ export default function ScrollEmailBar({ toolSlug }: ScrollEmailBarProps) {
         setStatus('success');
         localStorage.setItem(LS_KEY, '1');
         if (window.gtag) {
-          window.gtag('event', 'email_signup', {
-            event_category: 'engagement',
-            event_label: `scroll_bar_${toolSlug || 'page'}`,
+          window.gtag('event', 'email_capture_submit', {
+            variant: 'scroll',
           });
         }
         setTimeout(dismiss, 3000);

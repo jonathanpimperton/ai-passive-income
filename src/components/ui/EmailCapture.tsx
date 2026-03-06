@@ -56,9 +56,8 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
         setStatus('success');
         // Fire GA4 event
         if (window.gtag) {
-          window.gtag('event', 'email_signup', {
-            event_category: 'engagement',
-            event_label: toolSlug || 'newsletter',
+          window.gtag('event', 'email_capture_submit', {
+            variant: variant,
           });
         }
       } else {
