@@ -10,29 +10,29 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$5,988/month"
+resultSummary: "$5,975/month"
 ---
 
-## You take home $5,988 per month on a $90,000 salary
+## You take home $5,975 per month on a $90,000 salary
 
-**A $90,000 salary as a single filer with no state income tax leaves you with $71,855 per year, or $5,988 per month, after federal income tax and FICA.** Taxes claim $18,145 — about 20.2% of your gross pay.
+**A $90,000 salary as a single filer with no state income tax leaves you with $71,701 per year, or $5,975 per month, after federal income tax and FICA.** Taxes claim $18,299 — about 20.3% of your gross pay.
 
-## Where the $18,145 goes
+## Where the $18,299 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $74,300. The breakdown:
+With the 2025 standard deduction of $15,000, your taxable income is $75,000. The breakdown:
 
-- **Federal income tax: $11,260.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), and 22% on the remaining $25,825 ($5,682). Your effective federal rate is 12.5%.
+- **Federal income tax: $11,414.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), and 22% on the remaining $26,525 ($5,836). Your effective federal rate is 12.7%.
 - **Social Security (6.2%): $5,580.** Applied to your full $90,000, well below the $176,100 cap.
 - **Medicare (1.45%): $1,305.** No cap on Medicare.
 - **Total FICA: $6,885.** Payroll taxes now represent 7.7% of your salary.
 
-Your biweekly paycheck (26 per year) comes to about $2,764 before state taxes.
+Your biweekly paycheck (26 per year) comes to about $2,758 before state taxes.
 
 ## Where $90,000 puts you
 
 A $90,000 salary places you roughly at the 70th percentile of individual earners in the United States. You earn about twice the national median individual income. This is solidly upper-middle income for a single person, and in most cities outside the coasts, it provides real financial flexibility.
 
-You are deeper into the 22% bracket now, with $25,825 of your taxable income taxed at that rate. But you are still well below the 24% bracket, which does not kick in until taxable income exceeds $103,350. A raise to $100,000 would keep you in the same 22% bracket — there is no cliff.
+You are deeper into the 22% bracket now, with $26,525 of your taxable income taxed at that rate. But you are still well below the 24% bracket, which does not kick in until taxable income exceeds $103,350. A raise to $100,000 would keep you in the same 22% bracket — there is no cliff.
 
 At $90,000, your hourly equivalent is roughly $43.27 based on 2,080 hours. After federal taxes and FICA in a no-tax state, your effective hourly rate is about $34.55.
 
@@ -40,7 +40,7 @@ At $90,000, your hourly equivalent is roughly $43.27 based on 2,080 hours. After
 
 These figures assume zero state income tax. State taxes reduce your monthly take-home from $5,988:
 
-- **Texas, Florida, Washington, Nevada:** $5,988/month
+- **Texas, Florida, Washington, Nevada:** $5,975/month
 - **Colorado (4.4% flat):** About $330 less per month
 - **New York State:** About $400 less per month
 - **California:** About $320 less per month at this income

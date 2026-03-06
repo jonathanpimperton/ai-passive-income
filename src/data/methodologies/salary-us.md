@@ -9,7 +9,7 @@ variables:
   - name: "Federal Income Tax"
     description: "Progressive tax on income after standard deduction, using IRS marginal brackets"
   - name: "Social Security (OASDI)"
-    description: "6.2% of gross income up to the wage base limit ($176,100 for 2025)"
+    description: "6.2% of gross income up to the 2025 wage base limit ($176,100)"
   - name: "Medicare"
     description: "1.45% of all gross income, plus an additional 0.9% on income above $200,000 (single) or $250,000 (married)"
   - name: "State Tax"
@@ -54,23 +54,23 @@ The US salary calculator converts your gross annual income (or hourly rate) into
 Federal income tax uses progressive marginal brackets. Each bracket applies only to income within that range, not to your entire income. The standard deduction is subtracted from gross income before applying brackets.
 
 **Standard Deductions (2025):**
-- Single: $14,600
-- Married Filing Jointly: $29,200
-- Head of Household: $21,900
+- Single: $15,000
+- Married Filing Jointly: $30,000
+- Head of Household: $22,500
 
 **Single Filer Brackets (2025):**
 
 | Taxable Income | Marginal Rate |
 |---------------|---------------|
-| $0 - $11,600 | 10% |
-| $11,601 - $47,150 | 12% |
-| $47,151 - $100,525 | 22% |
-| $100,526 - $191,950 | 24% |
-| $191,951 - $243,725 | 32% |
-| $243,726 - $609,350 | 35% |
-| Over $609,350 | 37% |
+| $0 - $11,925 | 10% |
+| $11,926 - $48,475 | 12% |
+| $48,476 - $103,350 | 22% |
+| $103,351 - $197,300 | 24% |
+| $197,301 - $250,525 | 32% |
+| $250,526 - $626,350 | 35% |
+| Over $626,350 | 37% |
 
-A single filer earning $75,000 has a taxable income of $60,400 ($75,000 minus $14,600 standard deduction). They pay 10% on the first $11,600, 12% on $11,601-$47,150, and 22% on $47,151-$60,400. The total federal tax is approximately $8,560 — an effective rate of about 11.4%.
+A single filer earning $75,000 has a taxable income of $60,000 ($75,000 minus $15,000 standard deduction). They pay 10% on the first $11,925, 12% on $11,926-$48,475, and 22% on $48,476-$60,000. The total federal tax is approximately $8,295 — an effective rate of about 11.1%.
 
 ## FICA Taxes
 

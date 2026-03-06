@@ -22,12 +22,12 @@ resultSummary: "$3,743/month take-home ($720/year in tax savings)"
 |--|---------------|-----------------|
 | Gross salary | $60,000 | $60,000 |
 | 401(k) contribution | $0 | $6,000 |
-| Standard deduction | $14,600 | $14,600 |
-| Taxable income | $45,400 | $39,400 |
-| Federal income tax | $5,216 | $4,496 |
+| Standard deduction | $15,000 | $15,000 |
+| Taxable income | $45,000 | $39,000 |
+| Federal income tax | $5,162 | $4,442 |
 | FICA | $4,590 | $4,590 |
-| Take-home (annual) | $50,194 | $44,914 |
-| Take-home (monthly) | $4,183 | $3,743 |
+| Take-home (annual) | $50,248 | $44,968 |
+| Take-home (monthly) | $4,187 | $3,747 |
 | **Tax savings** | — | **$720/year** |
 
 The key insight: FICA (Social Security + Medicare) is calculated on your full $60,000 regardless of 401(k) contributions. Only federal income tax is reduced by the contribution.

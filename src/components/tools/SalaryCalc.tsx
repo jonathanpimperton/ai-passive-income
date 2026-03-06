@@ -27,30 +27,30 @@ const FILING_LABELS: Record<FilingStatus, string> = {
 };
 
 /**
- * 2024 Federal Income Tax Brackets.
+ * 2025 Federal Income Tax Brackets (IRS Rev. Proc. 2024-40).
  * Each bracket: [threshold, marginal rate].
  */
 const BRACKETS: Record<FilingStatus, [number, number][]> = {
   single: [
-    [0, 0.10], [11600, 0.12], [47150, 0.22], [100525, 0.24],
-    [191950, 0.32], [243725, 0.35], [609350, 0.37],
+    [0, 0.10], [11925, 0.12], [48475, 0.22], [103350, 0.24],
+    [197300, 0.32], [250525, 0.35], [626350, 0.37],
   ],
   married: [
-    [0, 0.10], [23200, 0.12], [94300, 0.22], [201050, 0.24],
-    [383900, 0.32], [487450, 0.35], [731200, 0.37],
+    [0, 0.10], [23850, 0.12], [96950, 0.22], [206700, 0.24],
+    [394600, 0.32], [501050, 0.35], [751600, 0.37],
   ],
   head: [
-    [0, 0.10], [16550, 0.12], [63100, 0.22], [100500, 0.24],
-    [191950, 0.32], [243700, 0.35], [609350, 0.37],
+    [0, 0.10], [17000, 0.12], [64850, 0.22], [103350, 0.24],
+    [197300, 0.32], [250500, 0.35], [626350, 0.37],
   ],
 };
 
 const STANDARD_DEDUCTION: Record<FilingStatus, number> = {
-  single: 14600, married: 29200, head: 21900,
+  single: 15000, married: 30000, head: 22500,
 };
 
 const SS_RATE = 0.062;
-const SS_CAP = 168600;
+const SS_CAP = 176100;
 const MEDICARE_RATE = 0.0145;
 const MEDICARE_ADDITIONAL_THRESHOLD: Record<FilingStatus, number> = {
   single: 200000, married: 250000, head: 200000,
@@ -285,6 +285,9 @@ export default function SalaryCalc() {
         {/* Results */}
         <div id="sal-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">Tax year 2025</span>
+            </div>
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {formatCurrency(animatedNetAnnual)}

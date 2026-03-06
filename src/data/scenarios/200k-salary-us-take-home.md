@@ -10,29 +10,29 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$12,425/month"
+resultSummary: "$12,411/month"
 ---
 
-## You take home $12,425 per month on a $200,000 salary
+## You take home $12,411 per month on a $200,000 salary
 
-**A $200,000 salary as a single filer with no state income tax leaves you with $149,103 per year, or $12,425 per month, after federal income tax and FICA.** Taxes total $50,897 — about 25.4% of your gross pay. One in every four dollars goes to the federal government.
+**A $200,000 salary as a single filer with no state income tax leaves you with $148,935 per year, or $12,411 per month, after federal income tax and FICA.** Taxes total $51,065 — about 25.4% of your gross pay. One in every four dollars goes to the federal government.
 
-## Where the $50,897 goes
+## Where the $51,065 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $184,300. Here is the breakdown:
+With the 2025 standard deduction of $15,000, your taxable income is $185,000. Here is the breakdown:
 
-- **Federal income tax: $37,079.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $184,300 ($19,428). Your effective federal rate is 18.5%.
+- **Federal income tax: $37,247.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $185,000 ($19,596). Your effective federal rate is 18.6%.
 - **Social Security (6.2%): $10,918.** Only the first $176,100 is subject to Social Security tax. The remaining $23,900 is exempt, saving you $1,482 compared to paying 6.2% on the full salary.
 - **Medicare (1.45%): $2,900.** No income cap. At exactly $200,000 in wages, the Additional Medicare Tax of 0.9% does not apply — it only hits wages above $200,000. If you earned $200,001, you would owe an extra $0.009.
 - **Total FICA: $13,818.** The Social Security cap provides a meaningful benefit at this level.
 
-Your biweekly paycheck comes to about $5,735 in a no-tax state.
+Your biweekly paycheck comes to about $5,728 in a no-tax state.
 
 ## What $200,000 means in 2025
 
 A $200,000 salary places you in the top 5% of individual earners in the United States. This is an income that most Americans consider wealthy, though the reality depends heavily on geography, family size, and debt.
 
-At $12,425/month after federal taxes, you have substantial financial flexibility. A single person in a city like Austin, Nashville, or Raleigh can live very well, max out all retirement accounts, save aggressively, and still have ample discretionary income. In San Francisco or Manhattan, the math tightens — especially after state and local taxes take their cut.
+At $12,411/month after federal taxes, you have substantial financial flexibility. A single person in a city like Austin, Nashville, or Raleigh can live very well, max out all retirement accounts, save aggressively, and still have ample discretionary income. In San Francisco or Manhattan, the math tightens — especially after state and local taxes take their cut.
 
 Your hourly equivalent at 2,080 hours is $96.15 gross. After federal taxes and FICA, the effective hourly rate drops to about $71.68.
 
@@ -40,9 +40,9 @@ You remain in the 24% federal bracket. The 32% bracket starts at taxable income 
 
 ## State taxes at $200,000
 
-Without state income tax, $12,425/month is yours. With state taxes:
+Without state income tax, $12,411/month is yours. With state taxes:
 
-- **Texas, Florida, Washington:** $12,425/month
+- **Texas, Florida, Washington:** $12,411/month
 - **Colorado (4.4% flat):** About $733 less per month
 - **New York State:** About $975 less per month
 - **California:** About $1,120 less per month

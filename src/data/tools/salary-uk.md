@@ -22,7 +22,7 @@ relatedTools:
   - "savings-goal"
   - "emergency-fund"
   - "inflation"
-lastUpdated: "2026-03-04"
+lastUpdated: "2026-03-06"
 dataSources:
   - name: "HMRC Income Tax rates 2025/26"
     url: "https://www.gov.uk/income-tax-rates"
@@ -40,11 +40,11 @@ faq:
   - question: "What is the 60% tax trap?"
     answer: "Between £100,000 and £125,140, your Personal Allowance is reduced by £1 for every £2 earned over £100,000. This creates an effective marginal tax rate of about 60% in that band (40% Income Tax + 20% from lost allowance). Salary sacrifice into a pension is one common strategy to reduce taxable income below £100,000 and reclaim the full Personal Allowance."
   - question: "How much National Insurance will I pay?"
-    answer: "For the 2025/26 tax year, employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270 per year, and 2% on earnings above £50,270. Your employer also pays 13.8% on your earnings above £9,100 (this doesn't come out of your pay). NI contributions count toward your State Pension entitlement — you need 35 qualifying years for the full State Pension."
+    answer: "For the 2025/26 tax year, employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270 per year, and 2% on earnings above £50,270. Your employer also pays 15% on your earnings above £5,000 (this doesn't come out of your pay). NI contributions count toward your State Pension entitlement — you need 35 qualifying years for the full State Pension."
   - question: "How do student loan repayments work in the UK?"
     answer: "Student loan repayments are deducted from your salary once you earn above the threshold for your plan. Plan 1 (pre-2012 England/Wales, Scotland, NI): 9% above £26,065/year. Plan 2 (post-2012 England/Wales): 9% above £28,470/year. Plan 4 (Scotland post-2012): 9% above £32,745/year. Plan 5 (from 2023): 9% above £25,000/year. Postgraduate Loan: 6% above £21,000/year. You can have both a Plan and Postgraduate Loan deducted simultaneously."
   - question: "What is salary sacrifice and how does it affect my take-home pay?"
-    answer: "Salary sacrifice is an arrangement where you give up part of your gross salary in exchange for a non-cash benefit, most commonly pension contributions. The benefit is that both you and your employer save on National Insurance — 8% and 13.8% respectively. For example, sacrificing £5,000 from a £50,000 salary saves you approximately £400 in NI and your employer saves £690, which good employers add to your pension. The trade-off is lower gross salary, which can affect mortgage applications and some benefits."
+    answer: "Salary sacrifice is an arrangement where you give up part of your gross salary in exchange for a non-cash benefit, most commonly pension contributions. The benefit is that both you and your employer save on National Insurance — 8% and 15% respectively. For example, sacrificing £5,000 from a £50,000 salary saves you approximately £400 in NI and your employer saves £750, which good employers add to your pension. The trade-off is lower gross salary, which can affect mortgage applications and some benefits."
   - question: "Do I pay Scottish Income Tax rates?"
     answer: "If you live in Scotland (regardless of where your employer is based), you pay Scottish Income Tax rates, which differ from the rest of the UK. For 2025/26, Scotland has six bands: Starter (19%), Basic (20%), Intermediate (21%), Higher (42%), Advanced (45%), and Top (48%). The main impact is felt above £43,663 where Scotland charges 42% vs 40% in the rest of the UK, and above £125,140 where Scotland charges 48% vs 45%."
 workedExamples:
@@ -98,15 +98,16 @@ The most common strategy to avoid this trap is salary sacrifice into a pension. 
 
 ## National Insurance Contributions
 
-Employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270, then 2% on earnings above £50,270. Your employer also pays 13.8% on your earnings above £9,100 — this doesn't come out of your pay, but it's a significant cost to your employer.
+Employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270, then 2% on earnings above £50,270. Your employer also pays 15% on your earnings above £5,000 — this doesn't come out of your pay, but it's a significant cost to your employer.
 
 NI contributions count toward your State Pension entitlement. You need 35 qualifying years for the full new State Pension (currently £230.25 per week). If you have gaps, you can make voluntary Class 3 contributions to fill them.
 
 | Salary Band | Employee NI Rate | Employer NI Rate |
 |---|---|---|
-| Below £12,570 | 0% | 13.8% above £9,100 |
-| £12,570 – £50,270 | 8% | 13.8% |
-| Above £50,270 | 2% | 13.8% |
+| Below £5,000 | 0% | 0% |
+| £5,000 – £12,570 | 0% | 15% |
+| £12,570 – £50,270 | 8% | 15% |
+| Above £50,270 | 2% | 15% |
 
 ## Scottish Income Tax
 

@@ -10,23 +10,23 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$10,023/month"
+resultSummary: "$10,009/month"
 ---
 
-## You take home $10,023 per month on a $160,000 salary
+## You take home $10,009 per month on a $160,000 salary
 
-**A $160,000 salary as a single filer with no state income tax leaves you with $120,281 per year, or $10,023 per month, after federal income tax and FICA.** Taxes total $39,719 — about 24.8% of your gross pay. A quarter of everything you earn goes to the federal government before you see it.
+**A $160,000 salary as a single filer with no state income tax leaves you with $120,113 per year, or $10,009 per month, after federal income tax and FICA.** Taxes total $39,887 — about 24.9% of your gross pay. A quarter of everything you earn goes to the federal government before you see it.
 
-## Where the $39,719 goes
+## Where the $39,887 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $144,300. Here is the breakdown:
+With the 2025 standard deduction of $15,000, your taxable income is $145,000. Here is the breakdown:
 
-- **Federal income tax: $27,479.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $144,300 ($9,828). Your effective federal rate is 17.2%.
+- **Federal income tax: $27,647.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $145,000 ($9,996). Your effective federal rate is 17.3%.
 - **Social Security (6.2%): $9,920.** Applied to your full $160,000 — you are approaching the $176,100 cap but still below it.
 - **Medicare (1.45%): $2,320.** No cap.
 - **Total FICA: $12,240.** Over $1,000 per month in payroll taxes alone.
 
-Your biweekly paycheck comes to about $4,626 in a no-tax state.
+Your biweekly paycheck comes to about $4,620 in a no-tax state.
 
 ## What crossing $10K/month means
 
@@ -38,9 +38,9 @@ You are deep in the 24% bracket, with $40,950 of your taxable income taxed at th
 
 ## State taxes at $160,000
 
-In a no-tax state, $10,023/month is yours. In states with income tax, expect:
+In a no-tax state, $10,009/month is yours. In states with income tax, expect:
 
-- **Texas, Florida, Nevada:** $10,023/month
+- **Texas, Florida, Nevada:** $10,009/month
 - **Illinois (4.95% flat):** About $660 less per month
 - **New York State:** About $740 less per month
 - **California:** About $810 less per month

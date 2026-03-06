@@ -10,27 +10,27 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$7,745/month"
+resultSummary: "$7,731/month"
 ---
 
-## You take home $7,745 per month on a $120,000 salary
+## You take home $7,731 per month on a $120,000 salary
 
-**A $120,000 salary as a single filer with no state income tax leaves you with $92,941 per year, or $7,745 per month, after federal income tax and FICA.** Taxes claim $27,059 — about 22.5% of your gross pay.
+**A $120,000 salary as a single filer with no state income tax leaves you with $92,773 per year, or $7,731 per month, after federal income tax and FICA.** Taxes claim $27,227 — about 22.7% of your gross pay.
 
-## Where the $27,059 goes
+## Where the $27,227 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $104,300. This is the first salary in this range that crosses into the 24% bracket. Here is the breakdown:
+With the 2025 standard deduction of $15,000, your taxable income is $105,000. This is the first salary in this range that crosses into the 24% bracket. Here is the breakdown:
 
-- **Federal income tax: $17,879.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on the remaining $950 ($228). Your effective federal rate is 14.9%.
+- **Federal income tax: $18,047.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on the remaining $1,650 ($396). Your effective federal rate is 15.0%.
 - **Social Security (6.2%): $7,440.** Applied to your full $120,000.
 - **Medicare (1.45%): $1,740.** No income cap.
 - **Total FICA: $9,180.** Payroll taxes remain a fixed 7.65% of every dollar.
 
-Your biweekly paycheck comes to about $3,575 in a state with no income tax.
+Your biweekly paycheck comes to about $3,568 in a state with no income tax.
 
 ## Crossing into the 24% bracket
 
-At $120,000, you have just entered the 24% federal bracket. But only $950 of your taxable income is taxed at that rate — the vast majority is still taxed at 10%, 12%, and 22%. This is an important distinction. Many people avoid raises or bonuses thinking they will "jump into a higher bracket" and somehow take home less. That is not how progressive taxation works. Only the income above $103,350 in taxable income (roughly $119,050 in gross) is taxed at 24%.
+At $120,000, you have just entered the 24% federal bracket. But only $1,650 of your taxable income is taxed at that rate — the vast majority is still taxed at 10%, 12%, and 22%. This is an important distinction. Many people avoid raises or bonuses thinking they will "jump into a higher bracket" and somehow take home less. That is not how progressive taxation works. Only the income above $103,350 in taxable income (roughly $119,050 in gross) is taxed at 24%.
 
 A $120,000 salary places you around the 83rd percentile of individual earners in the United States. You are earning more than four out of five Americans. In cities like Austin, Denver, or Chicago, this salary supports a very comfortable lifestyle for a single person, including aggressive saving and investing.
 
@@ -38,7 +38,7 @@ A $120,000 salary places you around the 83rd percentile of individual earners in
 
 The figures above assume no state income tax. In states that tax income, your monthly take-home drops from $7,745:
 
-- **Texas, Florida, Nevada:** $7,745/month
+- **Texas, Florida, Nevada:** $7,731/month
 - **Colorado (4.4% flat):** About $440 less per month
 - **New York State:** About $520 less per month
 - **California:** About $500 less per month

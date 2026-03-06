@@ -10,29 +10,29 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$2,855/month"
+resultSummary: "$2,848/month"
 ---
 
-## You take home $2,855 per month on a $40,000 salary
+## You take home $2,848 per month on a $40,000 salary
 
-**A $40,000 salary as a single filer with no state income tax leaves you with $34,263 per year, or $2,855 per month, after federal income tax and FICA.** That means $5,737 — about 14.3% of your gross pay — goes to the government before you see it.
+**A $40,000 salary as a single filer with no state income tax leaves you with $34,178 per year, or $2,848 per month, after federal income tax and FICA.** That means $5,822 — about 14.6% of your gross pay — goes to the government before you see it.
 
-## Where the $5,737 goes
+## Where the $5,822 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $24,300. Here is how the deductions break down:
+With the 2025 standard deduction of $15,000, your taxable income is $25,000. Here is how the deductions break down:
 
-- **Federal income tax: $2,678.** Your taxable income of $24,300 falls across two brackets. You pay 10% on the first $11,925 ($1,193) and 12% on the remaining $12,375 ($1,485). Your effective federal rate is 6.7%.
+- **Federal income tax: $2,762.** Your taxable income of $25,000 falls across two brackets. You pay 10% on the first $11,925 ($1,193) and 12% on the remaining $13,075 ($1,569). Your effective federal rate is 6.9%.
 - **Social Security (6.2%): $2,480.** This applies to your full $40,000 since it is well below the $176,100 cap.
 - **Medicare (1.45%): $580.** Medicare has no income cap — every dollar is taxed.
 - **Total FICA: $3,060.** Combined payroll taxes take a larger bite than federal income tax at this salary.
 
-Notice that FICA ($3,060) actually exceeds your federal income tax ($2,678). This is common at lower incomes — payroll taxes are the bigger burden until you reach the mid-$50K range.
+Notice that FICA ($3,060) actually exceeds your federal income tax ($2,762). This is common at lower incomes — payroll taxes are the bigger burden until you reach the mid-$50K range.
 
 ## What $40,000 looks like in practice
 
-A $40,000 salary puts you near the 40th percentile of individual earners in the United States. Your biweekly paycheck (26 per year) comes to about $1,318 before any state taxes.
+A $40,000 salary puts you near the 40th percentile of individual earners in the United States. Your biweekly paycheck (26 per year) comes to about $1,315 before any state taxes.
 
-At $2,855 per month after federal deductions, budgeting needs to be tight in most metro areas. The general rule of spending no more than 30% of gross income on housing translates to $1,000 per month — achievable in many mid-sized cities but difficult in coastal metros. Building from net income rather than gross is more realistic: 30% of $2,855 is $857, which gives you an honest picture of what you can afford.
+At $2,848 per month after federal deductions, budgeting needs to be tight in most metro areas. The general rule of spending no more than 30% of gross income on housing translates to $1,000 per month — achievable in many mid-sized cities but difficult in coastal metros. Building from net income rather than gross is more realistic: 30% of $2,855 is $857, which gives you an honest picture of what you can afford.
 
 State taxes can reduce this further. In a state with no income tax (Texas, Florida, Washington, Nevada, Wyoming, South Dakota, Alaska), $2,855 is your actual monthly take-home. In a state like California, you would lose an additional $400-$600 per year at this income. At $40,000, state tax differences are smaller in dollar terms than at higher incomes, but they still matter when every dollar counts.
 

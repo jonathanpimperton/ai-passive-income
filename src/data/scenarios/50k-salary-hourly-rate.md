@@ -20,7 +20,7 @@ resultSummary: "$24.04/hour (gross) · ~$19.05/hour (net)"
 
 The gross hourly calculation is straightforward: $50,000 divided by 2,080 hours equals $24.04 per hour. But that number does not hit your bank account. Here is what comes out:
 
-- **Federal income tax:** ~$4,240. With the standard deduction of $14,600, your taxable income is $35,400. You pay 10% on the first $11,600 ($1,160) and 12% on the remainder ($2,856), plus a small slice at 22%. Your effective federal rate is about 8.5%.
+- **Federal income tax:** ~$3,962. With the standard deduction of $15,000, your taxable income is $35,000. You pay 10% on the first $11,925 ($1,193) and 12% on the remainder ($2,769). Your effective federal rate is about 7.9%.
 - **FICA taxes (Social Security + Medicare):** ~$3,825. Social Security is 6.2% ($3,100) and Medicare is 1.45% ($725). No deductions reduce these.
 - **State income tax:** $0 in Texas, Florida, Nevada, Washington, Wyoming, South Dakota, Alaska, Tennessee, or New Hampshire (on wages).
 

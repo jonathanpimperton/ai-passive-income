@@ -424,6 +424,9 @@ export default function SalaryUkCalc() {
         {/* Results */}
         <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">Tax year 2025/26</span>
+            </div>
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {formatGBP(animatedNetAnnual)}

@@ -74,7 +74,7 @@ On $80,000 income: contribute enough to your traditional 401(k) to get the full 
 
 ## The variable most people get wrong
 
-The comparison is not just "current bracket vs retirement bracket." It is "marginal rate on contributions now" vs "effective rate on withdrawals later." Traditional contributions save tax at your top marginal rate (22% on $80K). But retirement withdrawals fill up brackets from the bottom — the first $14,600 is tax-free (standard deduction), the next $11,600 at 10%, and so on.
+The comparison is not just "current bracket vs retirement bracket." It is "marginal rate on contributions now" vs "effective rate on withdrawals later." Traditional contributions save tax at your top marginal rate (22% on $80K). But retirement withdrawals fill up brackets from the bottom — the first $15,000 is tax-free (standard deduction), the next $11,925 at 10%, and so on.
 
 This means your effective withdrawal rate is often lower than your stated bracket, tilting the math further toward traditional for high earners.
 

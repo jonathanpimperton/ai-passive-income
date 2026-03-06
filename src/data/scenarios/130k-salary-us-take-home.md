@@ -10,27 +10,27 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$8,315/month"
+resultSummary: "$8,301/month"
 ---
 
-## You take home $8,315 per month on a $130,000 salary
+## You take home $8,301 per month on a $130,000 salary
 
-**A $130,000 salary as a single filer with no state income tax leaves you with $99,776 per year, or $8,315 per month, after federal income tax and FICA.** Taxes total $30,224 — about 23.2% of your gross income.
+**A $130,000 salary as a single filer with no state income tax leaves you with $99,608 per year, or $8,301 per month, after federal income tax and FICA.** Taxes total $30,392 — about 23.4% of your gross income.
 
-## Where the $30,224 goes
+## Where the $30,392 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $114,300. Here is the breakdown:
+With the 2025 standard deduction of $15,000, your taxable income is $115,000. Here is the breakdown:
 
-- **Federal income tax: $20,279.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $114,300 ($2,628). Your effective federal rate is 15.6%.
+- **Federal income tax: $20,447.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $115,000 ($2,796). Your effective federal rate is 15.7%.
 - **Social Security (6.2%): $8,060.** Applied to your full $130,000.
 - **Medicare (1.45%): $1,885.** No income cap.
 - **Total FICA: $9,945.** Payroll taxes remain 7.65% regardless of income level up to the Social Security cap.
 
-Your biweekly paycheck comes to about $3,838 in a no-tax state.
+Your biweekly paycheck comes to about $3,831 in a no-tax state.
 
 ## Just short of six figures in take-home
 
-At $130,000 gross, your after-tax income of $99,776 puts you just below the psychological $100,000 net threshold. One more $1,000 raise would not get you there — the 24% federal bracket plus FICA means you keep about 68 cents of each additional dollar. You would need to earn roughly $131,000 to hit $100K in take-home (in a no-tax state with no other deductions).
+At $130,000 gross, your after-tax income of $99,608 puts you just below the psychological $100,000 net threshold. One more $1,000 raise would not get you there — the 24% federal bracket plus FICA means you keep about 68 cents of each additional dollar. You would need to earn roughly $131,000 to hit $100K in take-home (in a no-tax state with no other deductions).
 
 A $130,000 salary places you near the 85th percentile of individual earners. In most American cities, this provides genuine financial comfort — the ability to rent or buy, save 20%+ of income, invest, and travel without stress. In the most expensive metros (San Francisco, Manhattan, Boston), it is comfortable but not lavish.
 
@@ -38,9 +38,9 @@ Your hourly equivalent at 2,080 hours is $62.50 gross. After taxes in a no-tax s
 
 ## State tax impact
 
-Without state income tax, you keep $8,315/month. In states with income tax:
+Without state income tax, you keep $8,301/month. In states with income tax:
 
-- **Texas, Florida, Washington:** $8,315/month
+- **Texas, Florida, Washington:** $8,301/month
 - **Illinois (4.95% flat):** About $536 less per month
 - **New York State:** About $575 less per month
 - **California:** About $590 less per month

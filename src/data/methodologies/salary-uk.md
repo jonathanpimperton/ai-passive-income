@@ -25,7 +25,7 @@ assumptions:
   - "Scottish income tax bands apply when the Scottish resident toggle is selected"
   - "No additional income sources (dividends, rental income, savings interest)"
 limitations:
-  - "Does not model employer NI contributions (13.8% above £9,100)"
+  - "Does not model employer NI contributions (15% above £5,000 for 2025/26)"
   - "Does not include tax on benefits in kind (company car, private medical, etc.)"
   - "Does not model Marriage Allowance transfer (10% of PA transferable between spouses)"
   - "Does not handle multiple concurrent student loan plans"

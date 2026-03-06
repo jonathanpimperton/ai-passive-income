@@ -23,7 +23,7 @@ relatedTools:
   - "savings-goal"
   - "emergency-fund"
   - "inflation"
-lastUpdated: "2026-03-04"
+lastUpdated: "2026-03-06"
 dataSources:
   - name: "IRS Tax Brackets 2025"
     url: "https://www.irs.gov/newsroom/irs-provides-tax-inflation-adjustments-for-tax-year-2025"
@@ -78,27 +78,27 @@ Your take-home pay — also called net pay — is what actually lands in your ba
   <span class="stat-text">of your gross income goes to combined federal, state, and FICA taxes. The exact rate depends on your income, filing status, and state.</span>
 </div>
 
-The US uses a progressive (marginal) tax system. You don't pay one flat rate on your entire income — instead, different portions of your income are taxed at different rates. For 2024, single filer brackets are:
+The US uses a progressive (marginal) tax system. You don't pay one flat rate on your entire income — instead, different portions of your income are taxed at different rates. For 2025, single filer brackets are:
 
 | Taxable Income | Marginal Rate |
 |---|---|
-| $0 – $11,600 | 10% |
-| $11,601 – $47,150 | 12% |
-| $47,151 – $100,525 | 22% |
-| $100,526 – $191,950 | 24% |
-| $191,951 – $243,725 | 32% |
-| $243,726 – $609,350 | 35% |
-| Over $609,350 | 37% |
+| $0 – $11,925 | 10% |
+| $11,926 – $48,475 | 12% |
+| $48,476 – $103,350 | 22% |
+| $103,351 – $197,300 | 24% |
+| $197,301 – $250,525 | 32% |
+| $250,526 – $626,350 | 35% |
+| Over $626,350 | 37% |
 
-Before calculating tax, you subtract the standard deduction ($14,600 for single filers, $29,200 for married filing jointly). This means the first $14,600 of a single filer's income is effectively tax-free.
+Before calculating tax, you subtract the standard deduction ($15,000 for single filers, $30,000 for married filing jointly). This means the first $15,000 of a single filer's income is effectively tax-free.
 
-> **Example:** On a $60,000 salary, your taxable income is $45,400 after the standard deduction. You pay 10% on the first $11,600 and 12% on the remaining $33,800 — for a total federal tax of about $5,216, an effective rate of just 8.7%.
+> **Example:** On a $60,000 salary, your taxable income is $45,000 after the standard deduction. You pay 10% on the first $11,925 and 12% on the remaining $33,075 — for a total federal tax of about $5,162, an effective rate of just 8.6%.
 
 ## FICA: Social Security and Medicare
 
 Every worker pays FICA (Federal Insurance Contributions Act) taxes regardless of income level or filing status:
 
-- **Social Security:** 6.2% on income up to $168,600 (the wage base cap). Your employer pays an additional 6.2%.
+- **Social Security:** 6.2% on income up to $176,100 (the 2025 wage base cap). Your employer pays an additional 6.2%.
 - **Medicare:** 1.45% on all income, with an additional 0.9% on income above $200,000 (single) or $250,000 (married).
 
 These taxes are non-negotiable — there's no deduction or filing status trick to reduce them.

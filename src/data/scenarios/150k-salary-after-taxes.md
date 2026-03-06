@@ -9,43 +9,43 @@ inputs:
   Annual Salary: "$150,000"
   Filing Status: "Single"
   State: "Texas (no state tax)"
-resultSummary: "~$112,987/year ($9,416/month) before state taxes"
+resultSummary: "~$113,278/year ($9,440/month) before state taxes"
 ---
 
-## You take home roughly $112,987 in a no-income-tax state
+## You take home roughly $113,278 in a no-income-tax state
 
-**On a $150,000 salary filing single in a state with no income tax (like Texas, Florida, or Washington), you keep approximately $112,987 after federal income tax and FICA.** That is $9,416 per month. In a state with income tax, you keep less — the exact amount depends on where you live.
+**On a $150,000 salary filing single in a state with no income tax (like Texas, Florida, or Washington), you keep approximately $113,278 after federal income tax and FICA.** That is $9,440 per month. In a state with income tax, you keep less — the exact amount depends on where you live.
 
 ## Federal tax breakdown
 
 **Gross salary:** $150,000
-**Standard deduction (2024):** $14,600
-**Taxable income:** $135,400
+**Standard deduction (2025):** $15,000
+**Taxable income:** $135,000
 
-Federal income tax (2024 brackets, single):
-- 10% on first $11,600 = $1,160
-- 12% on $11,601–$47,150 = $4,266
-- 22% on $47,151–$100,525 = $11,742
-- 24% on $100,526–$135,400 = $8,370
+Federal income tax (2025 brackets, single):
+- 10% on first $11,925 = $1,193
+- 12% on $11,926–$48,475 = $4,386
+- 22% on $48,476–$103,350 = $12,073
+- 24% on $103,351–$135,000 = $7,596
 
-**Total federal income tax: $25,538**
+**Total federal income tax: $25,248**
 
 FICA taxes (on full $150,000):
-- Social Security (6.2% up to $168,600): $9,300
+- Social Security (6.2% up to $176,100): $9,300
 - Medicare (1.45%): $2,175
 
 **Total FICA: $11,475**
 
-**Total deductions: $37,013**
-**Take-home: $112,987**
+**Total deductions: $36,723**
+**Take-home: $113,277**
 
-Your effective federal tax rate is 17.0%, and your effective total rate (including FICA) is 24.7%.
+Your effective federal tax rate is 16.8%, and your effective total rate (including FICA) is 24.5%.
 
 ## How state taxes change the picture
 
 | State | State tax on $150K | Annual take-home | Monthly take-home |
 |-------|-------------------|-----------------|------------------|
-| Texas / Florida | $0 | $112,987 | $9,416 |
+| Texas / Florida | $0 | $113,278 | $9,440 |
 | Colorado (4.4%) | ~$5,930 | $107,057 | $8,921 |
 | Illinois (4.95%) | ~$6,653 | $106,334 | $8,861 |
 | New York State | ~$8,200 | $104,787 | $8,732 |
@@ -58,12 +58,12 @@ Living in California versus Texas costs you roughly $10,100/year in state income
 
 Contributing 15% to a traditional 401(k) ($22,500/year, just under the $23,500 limit):
 
-- Taxable income drops to $112,900
-- Federal income tax falls to $20,134 (saving $5,404)
+- Taxable income drops to $112,500
+- Federal income tax falls to $19,848 (saving $5,400)
 - FICA stays the same ($11,475 — 401k does not reduce FICA)
-- Take-home: $150,000 − $20,134 − $11,475 − $22,500 = $95,891
+- Take-home: $150,000 − $19,848 − $11,475 − $22,500 = $96,177
 
-You receive $17,096 less in cash, but $22,500 went into your retirement account — and you saved $5,404 in taxes. The effective cost of the $22,500 contribution is only $17,096.
+You receive $17,101 less in cash, but $22,500 went into your retirement account — and you saved $5,400 in taxes. The effective cost of the $22,500 contribution is only $17,100.
 
 ## Marginal vs effective rate
 

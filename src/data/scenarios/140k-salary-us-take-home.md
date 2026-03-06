@@ -10,23 +10,23 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$8,884/month"
+resultSummary: "$8,870/month"
 ---
 
-## You take home $8,884 per month on a $140,000 salary
+## You take home $8,870 per month on a $140,000 salary
 
-**A $140,000 salary as a single filer with no state income tax leaves you with $106,611 per year, or $8,884 per month, after federal income tax and FICA.** The government takes $33,389 — about 23.8% of your gross pay.
+**A $140,000 salary as a single filer with no state income tax leaves you with $106,443 per year, or $8,870 per month, after federal income tax and FICA.** The government takes $33,557 — about 24.0% of your gross pay.
 
-## Where the $33,389 goes
+## Where the $33,557 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $124,300. Here is the breakdown:
+With the 2025 standard deduction of $15,000, your taxable income is $125,000. Here is the breakdown:
 
-- **Federal income tax: $22,679.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $124,300 ($5,028). Your effective federal rate is 16.2%.
+- **Federal income tax: $22,847.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $125,000 ($5,196). Your effective federal rate is 16.3%.
 - **Social Security (6.2%): $8,680.** Applied to your full $140,000.
 - **Medicare (1.45%): $2,030.** No cap.
 - **Total FICA: $10,710.** At this salary, FICA alone costs you almost $900 per month.
 
-Your biweekly paycheck (26 per year) comes to about $4,100 in a no-tax state.
+Your biweekly paycheck (26 per year) comes to about $4,094 in a no-tax state.
 
 ## What $140,000 looks like across America
 
@@ -38,9 +38,9 @@ You are firmly in the 24% federal bracket, with $20,950 of your taxable income t
 
 ## State taxes at this level
 
-Without state income tax, $8,884/month is your take-home. In states with income tax:
+Without state income tax, $8,870/month is your take-home. In states with income tax:
 
-- **Texas, Florida, Washington:** $8,884/month
+- **Texas, Florida, Washington:** $8,870/month
 - **Colorado (4.4% flat):** About $513 less per month
 - **New York State:** About $620 less per month
 - **California:** About $640 less per month

@@ -10,23 +10,23 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$7,160/month"
+resultSummary: "$7,148/month"
 ---
 
-## You take home $7,160 per month on a $110,000 salary
+## You take home $7,148 per month on a $110,000 salary
 
-**A $110,000 salary as a single filer with no state income tax leaves you with $85,925 per year, or $7,160 per month, after federal income tax and FICA.** Taxes total $24,075 — about 21.9% of your gross income.
+**A $110,000 salary as a single filer with no state income tax leaves you with $85,771 per year, or $7,148 per month, after federal income tax and FICA.** Taxes total $24,229 — about 22.0% of your gross income.
 
-## Where the $24,075 goes
+## Where the $24,229 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $94,300. Here is the breakdown:
+With the 2025 standard deduction of $15,000, your taxable income is $95,000. Here is the breakdown:
 
-- **Federal income tax: $15,660.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), and 22% on $48,476 to $94,300 ($10,081). Your effective federal rate is 14.2%.
+- **Federal income tax: $15,814.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), and 22% on $48,476 to $95,000 ($10,236). Your effective federal rate is 14.4%.
 - **Social Security (6.2%): $6,820.** Applied to your full $110,000, still below the $176,100 cap.
 - **Medicare (1.45%): $1,595.** No income limit.
 - **Total FICA: $8,415.** Payroll taxes take 7.65% of every dollar.
 
-Your biweekly paycheck (26 per year) comes to about $3,305 in a no-tax state.
+Your biweekly paycheck (26 per year) comes to about $3,299 in a no-tax state.
 
 ## What $110,000 means financially
 

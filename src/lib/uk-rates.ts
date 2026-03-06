@@ -13,7 +13,7 @@
  */
 
 export const UK_TAX_YEAR = '2025/26';
-export const UK_RATES_LAST_CHECKED = '2026-03-04';
+export const UK_RATES_LAST_CHECKED = '2026-03-06';
 
 /* ── Income Tax ──────────────────────────────────────────── */
 export const UK_INCOME_TAX = {
@@ -37,6 +37,14 @@ export const UK_NI = {
   mainRate: 0.08,
   /** Employee rate above UEL */
   upperRate: 0.02,
+};
+
+/* ── Employer National Insurance (Class 1) ────────────────── */
+export const UK_EMPLOYER_NI = {
+  /** Secondary threshold — employer NI starts above this (lowered from £9,100 in April 2025) */
+  secondaryThreshold: 5_000,
+  /** Employer rate (raised from 13.8% in April 2025) */
+  rate: 0.15,
 };
 
 /* ── State Pension ───────────────────────────────────────── */

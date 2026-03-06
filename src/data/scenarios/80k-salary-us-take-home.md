@@ -10,29 +10,29 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$5,402/month"
+resultSummary: "$5,389/month"
 ---
 
-## You take home $5,402 per month on an $80,000 salary
+## You take home $5,389 per month on an $80,000 salary
 
-**An $80,000 salary as a single filer with no state income tax leaves you with $64,820 per year, or $5,402 per month, after federal income tax and FICA.** That is $15,180 going to taxes — about 19% of your gross income.
+**An $80,000 salary as a single filer with no state income tax leaves you with $64,666 per year, or $5,389 per month, after federal income tax and FICA.** That is $15,334 going to taxes — about 19.2% of your gross income.
 
-## Where the $15,180 goes
+## Where the $15,334 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $64,300. Here is how it breaks down:
+With the 2025 standard deduction of $15,000, your taxable income is $65,000. Here is how it breaks down:
 
-- **Federal income tax: $9,060.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), and 22% on the remaining $15,825 ($3,482). Your effective federal rate is 11.3%.
+- **Federal income tax: $9,214.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), and 22% on the remaining $16,525 ($3,636). Your effective federal rate is 11.5%.
 - **Social Security (6.2%): $4,960.** Applied to your full $80,000 since it falls below the $176,100 cap.
 - **Medicare (1.45%): $1,160.** No income limit on Medicare tax.
 - **Total FICA: $6,120.** Combined payroll taxes now trail federal income tax, but not by much.
 
-On a biweekly paycheck schedule (26 per year), you bring home about $2,493 before state taxes.
+On a biweekly paycheck schedule (26 per year), you bring home about $2,487 before state taxes.
 
 ## What $80,000 buys in 2025
 
 An $80,000 salary puts you above the median individual income by a significant margin. You are comfortably in the top 40% of earners nationally. In most mid-cost cities — Phoenix, Atlanta, Charlotte, Minneapolis — this salary supports a solid single lifestyle with room for saving and modest discretionary spending.
 
-At this level, the 22% bracket is starting to take a meaningful bite. Of your $64,300 in taxable income, $15,825 is taxed at 22%. That is about $3,482 going to the higher bracket. Every additional dollar of ordinary income — from a raise, bonus, or side job — will be taxed at 22% federally plus FICA.
+At this level, the 22% bracket is starting to take a meaningful bite. Of your $65,000 in taxable income, $16,525 is taxed at 22%. That is about $3,636 going to the higher bracket. Every additional dollar of ordinary income — from a raise, bonus, or side job — will be taxed at 22% federally plus FICA.
 
 Your hourly rate at $80,000 is roughly $38.46 based on a standard 2,080-hour work year. After taxes in a no-tax state, your effective hourly rate drops to about $31.16.
 
@@ -40,7 +40,7 @@ Your hourly rate at $80,000 is roughly $38.46 based on a standard 2,080-hour wor
 
 These figures assume no state income tax. Here is how state taxes change your monthly take-home from $5,402:
 
-- **Texas, Florida, Nevada, Washington:** $5,402/month (no state tax)
+- **Texas, Florida, Nevada, Washington:** $5,389/month (no state tax)
 - **Illinois (4.95% flat):** About $330 less per month
 - **New York State:** About $340 less per month
 - **California:** About $260 less per month at this income

@@ -10,23 +10,23 @@ inputs:
   Filing Status: "Single"
   State: "No state tax"
   Pre-Tax 401(k): "$0"
-resultSummary: "$11,183/month"
+resultSummary: "$11,169/month"
 ---
 
-## You take home $11,183 per month on a $180,000 salary
+## You take home $11,169 per month on a $180,000 salary
 
-**A $180,000 salary as a single filer with no state income tax leaves you with $134,193 per year, or $11,183 per month, after federal income tax and FICA.** Taxes total $45,807 — about 25.4% of your gross income.
+**A $180,000 salary as a single filer with no state income tax leaves you with $134,025 per year, or $11,169 per month, after federal income tax and FICA.** Taxes total $45,975 — about 25.5% of your gross income.
 
-## Where the $45,807 goes
+## Where the $45,975 goes
 
-With the 2025 standard deduction of $15,700, your taxable income is $164,300. Here is the breakdown:
+With the 2025 standard deduction of $15,000, your taxable income is $165,000. Here is the breakdown:
 
-- **Federal income tax: $32,279.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $164,300 ($14,628). Your effective federal rate is 17.9%.
+- **Federal income tax: $32,447.** You pay 10% on the first $11,925 ($1,193), 12% on $11,926 to $48,475 ($4,386), 22% on $48,476 to $103,350 ($12,072), and 24% on $103,351 to $165,000 ($14,796). Your effective federal rate is 18.0%.
 - **Social Security (6.2%): $10,918.** Social Security tax applies on income up to $176,100. On a $180,000 salary, only $176,100 is subject to the 6.2% tax — the remaining $3,900 is exempt. So you pay $10,918 rather than the $11,160 you would pay if the cap did not exist.
 - **Medicare (1.45%): $2,610.** No income cap on Medicare.
 - **Total FICA: $13,528.** The Social Security cap saves you about $242 compared to paying 6.2% on the full salary.
 
-Your biweekly paycheck comes to about $5,161 in a no-tax state.
+Your biweekly paycheck comes to about $5,155 in a no-tax state.
 
 ## The Social Security cap in action
 
@@ -34,13 +34,13 @@ At $180,000, you cross the 2025 Social Security wage base of $176,100. This mean
 
 Your paychecks in the final months of the year will be about $242 larger because Social Security is no longer withheld. This is a small perk that becomes more noticeable at higher salaries — someone earning $250,000 stops paying Social Security tax in August and keeps an extra $4,582 over the rest of the year.
 
-A $180,000 salary puts you in the top 7-8% of individual earners nationally. Your $11,183/month after federal taxes gives you substantial capacity for both lifestyle and wealth building.
+A $180,000 salary puts you in the top 7-8% of individual earners nationally. Your $11,169/month after federal taxes gives you substantial capacity for both lifestyle and wealth building.
 
 ## State taxes at $180,000
 
-Without state income tax, $11,183/month is yours. In states that tax income:
+Without state income tax, $11,169/month is yours. In states that tax income:
 
-- **Texas, Florida, Nevada:** $11,183/month
+- **Texas, Florida, Nevada:** $11,169/month
 - **Colorado (4.4% flat):** About $660 less per month
 - **New York State:** About $850 less per month
 - **California:** About $960 less per month
