@@ -4,7 +4,8 @@
 
 Before building anything, read these files in order:
 
-1. **`docs/growth-plan.md`** — **START HERE.** Current status, what to build next, priority matrix, revenue projections. This is the active roadmap.
+1. **`docs/implementation-plan.md`** — **START HERE.** Current status, what to build next, phased roadmap with decision gates. This is the active plan.
+1b. **`docs/growth-plan.md`** — Revenue model, human action plan (Reddit, Product Hunt, HN), revenue projections.
 2. **`docs/build-spec.md`** — Original spec: target audience, personas, value proposition, competitive positioning, customer journey, tools list, file structure, content schema, SEO, keyword targets, monetization, revenue targets, KPIs, post-launch operations. The sprint roadmap (Sprints 1-7) is complete — see growth-plan.md for what's next.
 3. **`docs/design-system.md`** — How it looks: branding, colors, typography, calculator UI patterns, navigation, mobile, accessibility, visual polish.
 
@@ -297,6 +298,34 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 - Wired into all integration points: [tool].astro, tools-data.ts, ResultAffiliate.tsx, worker.ts (TOOL_REGISTRY, QUICK_TIPS, AFFILIATE_RECS)
 - 184 pages total (40 tools, 17 financial calculators)
 
+**Sprint 30 — Data Accuracy (Complete):**
+- UK employer NI rate corrected: 13.8% above £9,100 → 15% above £5,000 (HMRC 2025/26)
+- US tax brackets updated to 2025 (10% band $11,925, SS wage base $176,100)
+- Created `src/lib/us-rates.ts` — central US tax rates module (mirrors `uk-rates.ts` pattern)
+- Tax year badges on UK/US salary calculator result panels
+- All 31 salary scenario pages verified consistent with calculator math
+- 13 regression tests added in `tax-rates.test.ts`
+
+**Sprint 31 — Trust Layer (Complete):**
+- About page: "Who built this" section with ACA-qualified accountant credentials
+- Source quality strengthened on money pages (GOV.UK, IRS, SSA links verified)
+- Contextual affiliate disclosures: investment pages get "Capital at risk", loan pages get repossession warning
+
+**Sprint 32 — Affiliate Flow (Complete):**
+- "Best for" labels on affiliate partner cards (e.g., "Best for beginners", "Best for low fees")
+- Scenario page layout reordered: answer → CTA → content → affiliate (natural flow)
+- UK comparison pages monetised: cash-isa-vs-savings-account, lisa-vs-regular-isa, emergency-fund-savings-vs-money-market
+
+**Sprint 33 — Homepage & Nav Coherence (Complete):**
+- UK salary CTA hook added to homepage ("How much of your salary goes to HMRC?")
+- CTA grid changed from 3-col to 2-col (4 hooks in 2×2 layout)
+- Visual separation for non-financial tools: "Developer & File Tools" header, distinct dividers
+
+**Sprint 36 — Measurement (Complete):**
+- GA4 event taxonomy: 6 privacy-preserving events (calculator_interaction, affiliate_click, scenario_try_it_click, email_capture_submit, pdf_export_click, scroll_depth)
+- `data-affiliate-partner` and `data-affiliate-placement` attributes on all affiliate links
+- Affiliate click attribution in AffiliateLinks.astro and ResultAffiliate.tsx
+
 **Affiliate network accounts:**
 - **CJ Affiliate** — Active. NordPass approved, NordVPN approved, 1Password declined, Ally declined. Pending: LendingTree, Barclays US Online Savings, Experian, Axos Bank, BMO Harris Bank
 - **Impact.com** — Marketplace application DECLINED (low traffic, new site). Can apply directly to brands via their Impact signup pages. Reapply to marketplace once traffic grows.
@@ -405,18 +434,20 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then `docs/growth-plan.md` (active roadmap), then `docs/build-spec.md` and `docs/design-system.md` as needed.
-3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 1-29A complete (including Sprint 27). 184 pages (40 tools + 102 scenarios + 15 comparisons + 17 methodology + 1 comparison index + 9 static). 215 unit + 69 E2E = 284 tests. NordPass + NordVPN live via CJ. Inline affiliate cards on 11 calculators, affiliate sections on all comparisons + relevant scenarios. Scroll email capture bar on all financial calculators. **The bottleneck is traffic, not product.** See `docs/growth-plan.md` for full roadmap.
+3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 1-33 complete (including 30, 31, 32, 33, 36). 184 pages (40 tools + 102 scenarios + 15 comparisons + 17 methodology + 1 comparison index + 9 static). 228 unit + 69 E2E = 297 tests. NordPass + NordVPN live via CJ. Inline affiliate cards on 11 calculators, affiliate sections on all comparisons + relevant scenarios. Scroll email capture bar on all financial calculators. **The bottleneck is traffic, not product.** See `docs/implementation-plan.md` for the active roadmap.
 4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 
 ## Growth Roadmap
 
-See **`docs/growth-plan.md`** for the full plan, split into:
-- **Part A (Claude Code sprints):** Sprints 23-29A ALL COMPLETE. 40 tools (17 financial calculators), 102 scenarios, 15 comparisons, 17 methodology pages. Sprint 29B (seasonal content) and 29C (Pinterest infographics) are future.
-- **Part B (Human actions):** MailerLite drip (run setup script + paste HTML), Reddit answers, Product Hunt, HN, affiliate follow-ups, Cloudflare config, widget outreach, Quora, forums, Pinterest
+See **`docs/implementation-plan.md`** for the active roadmap, split into 4 phases:
+- **Phase 1 (COMPLETE):** Sprint 30 (data accuracy — UK/US tax rates), Sprint 31 (trust layer — about page, sources, contextual disclosures), Sprint 36 (GA4 event taxonomy + affiliate click attribution)
+- **Phase 2 (COMPLETE):** Sprint 32 (affiliate flow — best-for labels, UK comparison monetisation, scenario reorder), Sprint 33 (homepage UK prompts + visual separation for non-finance tools)
+- **Phase 3 (NEXT):** Sprint 34 (reframe top scenario titles + 5-8 new high-intent scenarios), Sprint 35 (salary sacrifice calculator + debt-vs-invest calculator)
+- **Phase 4:** Data-driven decisions based on GA4/GSC metrics
 
-**Next steps:** All planned Claude Code sprints complete. Focus shifts to human actions (Part B) for traffic acquisition. Sprint 29B/C are available if more content is needed.
+**Next steps:** Phase 3 — Sprint 34 (selective scenario work) then Sprint 35 (two new calculators). See `docs/implementation-plan.md` for full details and decision gates.
 
 ## Running
 
@@ -430,7 +461,7 @@ npm run dev
 # Build
 npm run build
 
-# Run unit tests (vitest — 215 tests)
+# Run unit tests (vitest — 228 tests)
 npm test
 
 # Run E2E tests (playwright — 69 tests, auto-starts dev server)

@@ -27,6 +27,7 @@ const ctaHooks = [
   { text: 'Wondering if you can retire at 55?', description: 'Model different retirement ages and contribution levels.', link: '/tools/income-and-planning/retirement-savings', label: 'Try the retirement calculator' },
   { text: 'Evaluating a job offer?', description: 'See exactly what you keep after federal and state taxes.', link: '/tools/income-and-planning/salary-us', label: 'See your real take-home pay' },
   { text: 'Buying your first home?', description: 'Calculate your monthly payment with taxes and insurance.', link: '/tools/debt-and-loans/mortgage-payment', label: 'Calculate your monthly payment' },
+  { text: 'How much of your salary goes to HMRC?', description: 'UK income tax, National Insurance, student loans — see your real take-home.', link: '/tools/income-and-planning/salary-uk', label: 'Try the UK salary calculator' },
 ];
 ---
 
@@ -158,7 +159,7 @@ const ctaHooks = [
         <p class="text-white/50 mb-8 text-sm sm:text-base">Pick one and get your answer in under a minute.</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[900px] mb-10">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[900px] mb-10">
         {ctaHooks.map((hook) => (
           <a
             href={hook.link}
@@ -195,11 +196,20 @@ const ctaHooks = [
           const categoryTools = TOOLS.filter((t) => t.category === catSlug);
           if (categoryTools.length === 0) return null;
           const isFileTools = catSlug === 'file-tools';
+          const isNonFinance = catSlug === 'utility' || catSlug === 'file-tools';
           const initialCount = isFileTools ? 8 : categoryTools.length;
           return (
             <>
-              {catIndex > 0 && (
+              {catIndex > 0 && !isNonFinance && (
                 <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent my-10 sm:my-12"></div>
+              )}
+              {catSlug === 'utility' && (
+                <div class="mt-14 mb-8 pt-8 border-t-2 border-neutral-200">
+                  <p class="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Developer & File Tools</p>
+                </div>
+              )}
+              {isFileTools && (
+                <div class="h-px bg-gradient-to-r from-transparent via-neutral-300/30 to-transparent my-8"></div>
               )}
               <div class="category-section" data-category={catSlug}>
                 <div class="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 lg:gap-10">
