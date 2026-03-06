@@ -33,6 +33,10 @@ comparisonTable:
   - feature: "Uses ISA allowance"
     option1: "Yes — reduces Stocks & Shares ISA space"
     option2: "No"
+affiliateContext: "Open a Stocks & Shares ISA instead"
+affiliatePrograms:
+  - "InvestEngine"
+  - "Nutmeg"
 ---
 
 ## The Personal Savings Allowance changed everything

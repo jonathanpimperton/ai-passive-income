@@ -11,6 +11,7 @@ interface PartnerConfig {
   tagline: string;
   url: string;
   tracked?: boolean;
+  bestFor?: string;
 }
 
 interface ToolAffiliateConfig {
@@ -25,6 +26,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'LendingTree',
       tagline: 'See personalised mortgage rates in minutes',
       url: 'https://www.lendingtree.com/',
+      bestFor: 'Best for comparing rates',
     }],
   },
   'compound-interest': {
@@ -33,6 +35,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'Betterment',
       tagline: 'Automated investing with no minimum balance',
       url: 'https://www.betterment.com/',
+      bestFor: 'Best for automated investing',
     }],
   },
   'debt-payoff': {
@@ -41,6 +44,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'SoFi',
       tagline: 'Personal loans from 8.99% APR',
       url: 'https://www.sofi.com/',
+      bestFor: 'Best for debt consolidation',
     }],
   },
   'retirement-savings': {
@@ -49,6 +53,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'Betterment',
       tagline: 'Automated investing with no minimum balance',
       url: 'https://www.betterment.com/',
+      bestFor: 'Best for hands-off retirement',
     }],
   },
   'investment-return': {
@@ -57,6 +62,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'Betterment',
       tagline: 'Automated investing with no minimum balance',
       url: 'https://www.betterment.com/',
+      bestFor: 'Best for low-fee investing',
     }],
   },
   'investment-fee': {
@@ -65,6 +71,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'Betterment',
       tagline: 'Automated investing — 0.25% annual fee, no trade commissions',
       url: 'https://www.betterment.com/',
+      bestFor: 'Best for low fees',
     }],
   },
   'savings-goal': {
@@ -73,6 +80,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'SoFi',
       tagline: 'High-yield savings with no account fees',
       url: 'https://www.sofi.com/',
+      bestFor: 'Best for high-yield savings',
     }],
   },
   'loan-amortization': {
@@ -81,6 +89,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'LendingTree',
       tagline: 'See personalised loan rates in minutes',
       url: 'https://www.lendingtree.com/',
+      bestFor: 'Best for comparing rates',
     }],
   },
   'rent-vs-buy': {
@@ -89,6 +98,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'LendingTree',
       tagline: 'Compare mortgage rates from multiple lenders',
       url: 'https://www.lendingtree.com/',
+      bestFor: 'Best for comparing rates',
     }],
   },
   'mortgage-affordability': {
@@ -97,6 +107,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'LendingTree',
       tagline: 'Compare mortgage rates from multiple lenders',
       url: 'https://www.lendingtree.com/',
+      bestFor: 'Best for comparing rates',
     }],
   },
   'credit-card-payoff': {
@@ -105,6 +116,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       name: 'SoFi',
       tagline: 'Consolidate credit card debt — low rates, no hidden fees',
       url: 'https://www.sofi.com/',
+      bestFor: 'Best for consolidation',
     }],
   },
 };
@@ -152,9 +164,16 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
         className="group affiliate-link flex items-center gap-3 bg-white rounded-lg border border-neutral-200/80 p-3 hover:border-primary-300 hover:shadow-sm transition-all duration-200"
       >
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-neutral-900 group-hover:text-primary-700 transition-colors duration-200">
-            {partner.name}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-neutral-900 group-hover:text-primary-700 transition-colors duration-200">
+              {partner.name}
+            </p>
+            {partner.bestFor && (
+              <span className="text-[10px] font-semibold text-primary-700 bg-primary-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                {partner.bestFor}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-neutral-500 mt-0.5">{partner.tagline}</p>
         </div>
         <ArrowUpRight
