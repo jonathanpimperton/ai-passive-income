@@ -80,10 +80,13 @@ Files:
 Add visible "Tax year: 2025/26" (UK) / "Tax year: 2025" (US) badge in calculator UI itself, not just page header. Verify existing badges (Sprint 21B) are prominent and accurate.
 
 **Done when:**
-- [ ] `npm run build` + `npm test` pass with new rate values
-- [ ] UK: 15% / £5,000 everywhere. US: 2025 brackets + $176,100 everywhere.
-- [ ] Tax year badges visible on UK Salary, US Salary, Inflation pages
-- [ ] `lastUpdated` refreshed on all changed files
+- [x] `npm run build` + `npm test` pass with new rate values
+- [x] UK: 15% / £5,000 everywhere. US: 2025 brackets + $176,100 everywhere.
+- [x] Tax year badges visible on UK Salary and US Salary calculator results panels. (Inflation excluded — it uses user-specified rates, not tax-year-specific data.)
+- [x] `lastUpdated` refreshed on all changed files
+- [x] US rates centralised in `src/lib/us-rates.ts`, calculator imports from it
+- [x] UK employer NI constant added to `uk-rates.ts` for content accuracy (calculator does not model employer NI — it is informational text only)
+- [x] Scenario pages QA'd: all 31 salary scenarios verified consistent (summary, headline, body figures match calculator math)
 
 ---
 
@@ -403,3 +406,11 @@ Total new scenarios: **5-8** (not 20+).
 Total existing title rewrites: **10-15** (not all 102).
 
 Every sprint has a definition of done. Every change targets money pages first. Measurement runs from week 1.
+
+---
+
+## Known Issues (Non-Blocking)
+
+| Issue | Severity | Notes |
+|---|---|---|
+| Recharts build warning: "width(-1) and height(-1) of chart should be greater than 0" | Low | SSR renders charts without a DOM container. Charts work correctly client-side. Investigate if it causes CLS or layout issues on slow connections. |

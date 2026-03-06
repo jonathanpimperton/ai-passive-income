@@ -15,51 +15,26 @@ import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
+import {
+  US_BRACKETS,
+  US_STANDARD_DEDUCTION,
+  US_SOCIAL_SECURITY,
+  US_MEDICARE,
+  type FilingStatus,
+} from '../../lib/us-rates';
 
 type InputMode = 'annual' | 'hourly';
 
 const FILING_STATUSES = ['single', 'married', 'head'] as const;
-type FilingStatus = (typeof FILING_STATUSES)[number];
 const FILING_LABELS: Record<FilingStatus, string> = {
   single: 'Single',
   married: 'Married Filing Jointly',
   head: 'Head of Household',
 };
 
-/**
- * 2025 Federal Income Tax Brackets (IRS Rev. Proc. 2024-40).
- * Each bracket: [threshold, marginal rate].
- */
-const BRACKETS: Record<FilingStatus, [number, number][]> = {
-  single: [
-    [0, 0.10], [11925, 0.12], [48475, 0.22], [103350, 0.24],
-    [197300, 0.32], [250525, 0.35], [626350, 0.37],
-  ],
-  married: [
-    [0, 0.10], [23850, 0.12], [96950, 0.22], [206700, 0.24],
-    [394600, 0.32], [501050, 0.35], [751600, 0.37],
-  ],
-  head: [
-    [0, 0.10], [17000, 0.12], [64850, 0.22], [103350, 0.24],
-    [197300, 0.32], [250500, 0.35], [626350, 0.37],
-  ],
-};
-
-const STANDARD_DEDUCTION: Record<FilingStatus, number> = {
-  single: 15000, married: 30000, head: 22500,
-};
-
-const SS_RATE = 0.062;
-const SS_CAP = 176100;
-const MEDICARE_RATE = 0.0145;
-const MEDICARE_ADDITIONAL_THRESHOLD: Record<FilingStatus, number> = {
-  single: 200000, married: 250000, head: 200000,
-};
-const MEDICARE_ADDITIONAL_RATE = 0.009;
-
 function calcFederalTax(grossIncome: number, filingStatus: FilingStatus): number {
-  const taxable = Math.max(0, grossIncome - STANDARD_DEDUCTION[filingStatus]);
-  const brackets = BRACKETS[filingStatus];
+  const taxable = Math.max(0, grossIncome - US_STANDARD_DEDUCTION[filingStatus]);
+  const brackets = US_BRACKETS[filingStatus];
   let tax = 0;
   for (let i = 0; i < brackets.length; i++) {
     const [threshold, rate] = brackets[i];
@@ -72,11 +47,11 @@ function calcFederalTax(grossIncome: number, filingStatus: FilingStatus): number
 }
 
 function calcFICA(grossIncome: number, filingStatus: FilingStatus) {
-  const ss = Math.min(grossIncome, SS_CAP) * SS_RATE;
-  const medicareBase = grossIncome * MEDICARE_RATE;
-  const additionalThreshold = MEDICARE_ADDITIONAL_THRESHOLD[filingStatus];
+  const ss = Math.min(grossIncome, US_SOCIAL_SECURITY.wageCap) * US_SOCIAL_SECURITY.rate;
+  const medicareBase = grossIncome * US_MEDICARE.rate;
+  const additionalThreshold = US_MEDICARE.additionalThreshold[filingStatus];
   const medicareAdditional = grossIncome > additionalThreshold
-    ? (grossIncome - additionalThreshold) * MEDICARE_ADDITIONAL_RATE
+    ? (grossIncome - additionalThreshold) * US_MEDICARE.additionalRate
     : 0;
   return { ss, medicare: medicareBase + medicareAdditional, total: ss + medicareBase + medicareAdditional };
 }
