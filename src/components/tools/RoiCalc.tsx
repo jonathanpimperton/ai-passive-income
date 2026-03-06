@@ -240,12 +240,10 @@ export default function RoiCalc() {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <ShareButton toolSlug="roi" toolName="ROI Calculator" />
-            <div className="flex flex-wrap gap-2">
-              <EmailResultsButton toolSlug="roi" toolName="ROI Calculator" getInputs={getInputs} getResults={getResults} />
-              <ExportPdfButton toolName="ROI Calculator" getInputs={getInputs} resultsRef={resultsRef} />
-            </div>
+            <EmailResultsButton toolSlug="roi" toolName="ROI Calculator" getInputs={getInputs} getResults={getResults} />
+            <ExportPdfButton toolName="ROI Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Comparison chart */}

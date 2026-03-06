@@ -375,16 +375,16 @@ function buildResultsEmail(
       if (res.highlight) {
         return `
         <tr>
-          <td colspan="2" style="padding:16px 12px;background-color:#EFF6FF;border-bottom:1px solid #DBEAFE;border-radius:8px;">
-            <div style="font-size:13px;color:#1E40AF;margin-bottom:4px;">${sanitizeText(res.label)}</div>
-            <div style="font-size:28px;font-weight:700;color:#1D4ED8;font-variant-numeric:tabular-nums;">${sanitizeText(res.value)}</div>
+          <td colspan="2" style="padding:16px 12px;background-color:#E6F2F2;border-bottom:1px solid #B8DADA;border-radius:8px;">
+            <div style="font-size:13px;color:#0B6E6E;margin-bottom:4px;">${sanitizeText(res.label)}</div>
+            <div style="font-size:28px;font-weight:700;color:#085858;font-variant-numeric:tabular-nums;">${sanitizeText(res.value)}</div>
           </td>
         </tr>`;
       }
       return `
       <tr>
         <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${sanitizeText(res.label)}</td>
-        <td style="padding:8px 12px;font-size:14px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${sanitizeText(res.value)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#1A1A2E;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${sanitizeText(res.value)}</td>
       </tr>`;
     })
     .join('');
@@ -407,11 +407,11 @@ function buildResultsEmail(
     ? `
     <tr>
       <td style="padding:24px 32px 8px;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#EFF6FF;border-radius:12px;border:1px solid #BFDBFE;overflow:hidden;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#E6F2F2;border-radius:12px;border:1px solid #B8DADA;overflow:hidden;">
           <tr>
             <td style="padding:20px 20px 8px;">
-              <div style="font-size:16px;font-weight:700;color:#1E3A5F;margin-bottom:4px;">Ready to take the next step?</div>
-              <div style="font-size:13px;color:#64748B;margin-bottom:16px;">Based on your results, these tools can help you take action.</div>
+              <div style="font-size:16px;font-weight:700;color:#1A1A2E;margin-bottom:4px;font-family:'Libre Baskerville','Georgia',serif;">Ready to take the next step?</div>
+              <div style="font-size:13px;color:#4B5563;margin-bottom:16px;">Based on your results, these tools can help you take action.</div>
             </td>
           </tr>
           ${affiliates.map((a) => {
@@ -428,7 +428,7 @@ function buildResultsEmail(
                           <div style="font-size:10px;font-weight:700;color:#0A5555;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${escapeHtml(a.category)}</div>
                           <div style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:4px;">${escapeHtml(a.name)} *</div>
                           <div style="font-size:13px;color:#475569;line-height:1.4;margin-bottom:12px;">${escapeHtml(a.tagline)}</div>
-                          <a href="${affUrl}" style="display:inline-block;padding:10px 24px;background-color:#0E8585;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;">
+                          <a href="${affUrl}" style="display:inline-block;padding:10px 24px;background-color:#0B6E6E;color:#FFFFFF;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;">
                             ${escapeHtml(a.cta)} &rarr;
                           </a>
                         </td>
@@ -456,23 +456,30 @@ function buildResultsEmail(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Your ${escapeHtml(toolName)} Results</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@700&display=swap');
+  </style>
 </head>
-<body style="margin:0;padding:0;background-color:#F3F4F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F3F4F6;padding:32px 16px;">
+<body style="margin:0;padding:0;background-color:#FAFAF8;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAFAF8;padding:32px 16px;">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-          <!-- Header -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#FFFFFF;border-radius:12px;overflow:hidden;border:1px solid #E5E7EB;">
+
+          <!-- Header — teal accent bar + logo -->
           <tr>
-            <td style="padding:24px 32px;background-color:#FFFFFF;border-bottom:1px solid #E5E7EB;">
+            <td style="height:4px;background-color:#0B6E6E;font-size:0;line-height:0;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding:24px 32px 20px;background-color:#FFFFFF;">
               <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                 <tr>
                   <td style="padding-right:10px;vertical-align:middle;">
-                    <img src="https://www.calcrun.com/icon-192.png" alt="CalcRun" width="36" height="36" style="display:block;border-radius:8px;" />
+                    <img src="https://www.calcrun.com/icon-192.png" alt="CalcRun" width="32" height="32" style="display:block;border-radius:6px;" />
                   </td>
                   <td style="vertical-align:middle;">
-                    <span style="font-size:22px;font-weight:700;letter-spacing:-0.02em;">
-                      <span style="color:#0F1B2D;">Calc</span><span style="color:#0B6E6E;">Run</span>
+                    <span style="font-size:20px;font-weight:700;letter-spacing:-0.02em;">
+                      <span style="color:#1A1A2E;">Calc</span><span style="color:#0B6E6E;">Run</span>
                     </span>
                   </td>
                 </tr>
@@ -482,18 +489,25 @@ function buildResultsEmail(
 
           <!-- Title -->
           <tr>
-            <td style="padding:32px 32px 8px;">
-              <h1 style="margin:0;font-size:22px;font-weight:700;color:#111827;letter-spacing:-0.02em;">
+            <td style="padding:0 32px 8px;">
+              <h1 style="margin:0;font-size:22px;font-weight:700;color:#1A1A2E;letter-spacing:-0.02em;font-family:'Libre Baskerville','Georgia',serif;">
                 Your ${escapeHtml(toolName)} Results
               </h1>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding:8px 32px 0;">
+              <div style="height:1px;background:linear-gradient(to right,#0B6E6E22,#0B6E6E44,#0B6E6E22);"></div>
             </td>
           </tr>
 
           <!-- Inputs Section -->
           <tr>
             <td style="padding:24px 32px 8px;">
-              <div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Your Inputs</div>
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB;border-collapse:separate;">
+              <div style="font-size:11px;font-weight:600;color:#0B6E6E;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Your Inputs</div>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAFAF8;border-radius:8px;border:1px solid #E5E7EB;border-collapse:separate;">
                 ${inputRows}
               </table>
             </td>
@@ -502,7 +516,7 @@ function buildResultsEmail(
           <!-- Results Section -->
           <tr>
             <td style="padding:24px 32px 8px;">
-              <div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Your Results</div>
+              <div style="font-size:11px;font-weight:600;color:#0B6E6E;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Your Results</div>
               <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:8px;border:1px solid #E5E7EB;border-collapse:separate;">
                 ${resultRows}
               </table>
@@ -521,7 +535,7 @@ function buildResultsEmail(
           <tr>
             <td style="padding:28px 32px;" align="center">
               <a href="${toolUrl}?utm_source=email&utm_medium=results&utm_campaign=${encodeURIComponent(toolSlug)}"
-                style="display:inline-block;padding:12px 28px;background-color:#0E8585;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
+                style="display:inline-block;padding:14px 32px;background-color:#E8604C;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
                 Run this calculator again &rarr;
               </a>
             </td>
@@ -529,13 +543,13 @@ function buildResultsEmail(
 
           <!-- Footer -->
           <tr>
-            <td style="padding:20px 32px;background-color:#F9FAFB;border-top:1px solid #E5E7EB;">
-              <p style="margin:0;font-size:12px;color:#9CA3AF;line-height:1.6;">
-                <a href="https://www.calcrun.com" style="color:#6B7280;text-decoration:none;font-weight:600;">CalcRun</a> &mdash; Free financial calculators<br>
-                You received this because you emailed yourself calculator results from calcrun.com.<br>
-                This is a one-time transactional email. You will not receive marketing emails unless you opted in.
+            <td style="padding:20px 32px;background-color:#FAFAF8;border-top:1px solid #E5E7EB;">
+              <p style="margin:0;font-size:12px;color:#6B7280;line-height:1.6;">
+                <a href="https://www.calcrun.com" style="color:#0B6E6E;text-decoration:none;font-weight:600;">CalcRun</a> &mdash; Clear calculators for real financial decisions<br>
+                You received this because you emailed yourself results from calcrun.com.<br>
+                This is a one-time transactional email.
               </p>
-              <p style="margin:8px 0 0;font-size:11px;color:#D1D5DB;line-height:1.5;">
+              <p style="margin:8px 0 0;font-size:11px;color:#9CA3AF;line-height:1.5;">
                 Links marked with * are affiliate links. CalcRun may earn a commission at no cost to you.
               </p>
             </td>

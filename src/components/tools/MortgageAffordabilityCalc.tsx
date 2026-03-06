@@ -495,12 +495,10 @@ export default function MortgageAffordabilityCalc() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <ShareButton toolSlug="mortgage-affordability" toolName="Mortgage Affordability Calculator" />
-            <div className="flex flex-wrap gap-2">
-              <EmailResultsButton toolSlug="mortgage-affordability" toolName="Mortgage Affordability Calculator" getInputs={getInputs} getResults={getResults} />
-              <ExportPdfButton toolName="Mortgage Affordability Calculator" getInputs={getInputs} resultsRef={resultsRef} />
-            </div>
+            <EmailResultsButton toolSlug="mortgage-affordability" toolName="Mortgage Affordability Calculator" getInputs={getInputs} getResults={getResults} />
+            <ExportPdfButton toolName="Mortgage Affordability Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           <ResultAffiliate toolSlug="mortgage-affordability" />

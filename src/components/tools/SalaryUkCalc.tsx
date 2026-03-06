@@ -503,12 +503,10 @@ export default function SalaryUkCalc() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <ShareButton toolSlug="salary-uk" toolName="UK Salary Calculator" />
-            <div className="flex flex-wrap gap-2">
-              <EmailResultsButton toolSlug="salary-uk" toolName="UK Salary Calculator" getInputs={getInputs} getResults={getResults} />
-              <ExportPdfButton toolName="UK Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
-            </div>
+            <EmailResultsButton toolSlug="salary-uk" toolName="UK Salary Calculator" getInputs={getInputs} getResults={getResults} />
+            <ExportPdfButton toolName="UK Salary Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Pie chart */}

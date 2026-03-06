@@ -428,12 +428,10 @@ export default function MortgagePaymentCalc() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <ShareButton toolSlug="mortgage-payment" toolName="Mortgage Payment Calculator" />
-            <div className="flex flex-wrap gap-2">
-              <EmailResultsButton toolSlug="mortgage-payment" toolName="Mortgage Payment Calculator" getInputs={getInputs} getResults={getResults} />
-              <ExportPdfButton toolName="Mortgage Payment Calculator" getInputs={getInputs} resultsRef={resultsRef} />
-            </div>
+            <EmailResultsButton toolSlug="mortgage-payment" toolName="Mortgage Payment Calculator" getInputs={getInputs} getResults={getResults} />
+            <ExportPdfButton toolName="Mortgage Payment Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           <ResultAffiliate toolSlug="mortgage-payment" />

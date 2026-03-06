@@ -127,7 +127,7 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
   if (!partner) return null;
 
   return (
-    <div data-pdf-hide className="mt-6 rounded-lg border border-primary-200/60 bg-primary-50/50 p-4">
+    <div data-pdf-hide className="mt-6 mb-6 rounded-lg border border-primary-200/60 bg-primary-50/50 p-4">
       <p className="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-2">
         {config.cta}
       </p>

@@ -271,12 +271,10 @@ export default function NetWorthCalc() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <ShareButton toolSlug="net-worth" toolName="Net Worth Calculator" />
-            <div className="flex flex-wrap gap-2">
-              <EmailResultsButton toolSlug="net-worth" toolName="Net Worth Calculator" getInputs={getInputs} getResults={getResults} />
-              <ExportPdfButton toolName="Net Worth Calculator" getInputs={getInputs} resultsRef={resultsRef} />
-            </div>
+            <EmailResultsButton toolSlug="net-worth" toolName="Net Worth Calculator" getInputs={getInputs} getResults={getResults} />
+            <ExportPdfButton toolName="Net Worth Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
           {/* Charts side by side */}
