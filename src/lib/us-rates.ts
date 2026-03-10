@@ -57,6 +57,38 @@ export const US_MEDICARE = {
   } as Record<FilingStatus, number>,
 };
 
+/* ── Capital Gains Tax (2025) ──────────────────────────────── */
+export const US_CAPITAL_GAINS = {
+  /** Long-term capital gains brackets (held > 1 year) */
+  longTerm: {
+    single: [
+      { from: 0, rate: 0 },
+      { from: 48_350, rate: 0.15 },
+      { from: 533_400, rate: 0.20 },
+    ],
+    married: [
+      { from: 0, rate: 0 },
+      { from: 96_700, rate: 0.15 },
+      { from: 600_050, rate: 0.20 },
+    ],
+    head: [
+      { from: 0, rate: 0 },
+      { from: 64_750, rate: 0.15 },
+      { from: 566_700, rate: 0.20 },
+    ],
+  } as Record<FilingStatus, { from: number; rate: number }[]>,
+  /** Net Investment Income Tax (NIIT) — 3.8% surtax */
+  niit: {
+    rate: 0.038,
+    threshold: {
+      single: 200_000,
+      married: 250_000,
+      head: 200_000,
+    } as Record<FilingStatus, number>,
+  },
+  /** Short-term gains taxed at ordinary income rates (use US_BRACKETS) */
+};
+
 /* ── 401(k) ───────────────────────────────────────────────── */
 export const US_401K = {
   /** Employee elective deferral limit (under age 50) */

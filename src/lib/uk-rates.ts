@@ -63,6 +63,40 @@ export const UK_STUDENT_LOANS = {
   postgrad: { threshold: 21_000, rate: 0.06 },
 };
 
+/* ── Stamp Duty Land Tax (SDLT) — Residential (from 1 April 2025) ── */
+export const UK_SDLT = {
+  /** Standard residential rates */
+  standard: [
+    { from: 0, to: 125_000, rate: 0 },
+    { from: 125_000, to: 250_000, rate: 0.02 },
+    { from: 250_000, to: 925_000, rate: 0.05 },
+    { from: 925_000, to: 1_500_000, rate: 0.10 },
+    { from: 1_500_000, to: Infinity, rate: 0.12 },
+  ],
+  /** First-time buyer rates (property must be ≤ £500,000) */
+  firstTimeBuyer: [
+    { from: 0, to: 300_000, rate: 0 },
+    { from: 300_000, to: 500_000, rate: 0.05 },
+  ],
+  /** Price cap for first-time buyer relief */
+  firstTimeBuyerCap: 500_000,
+  /** Additional property surcharge (from 31 Oct 2024) */
+  additionalSurcharge: 0.05,
+  source: 'https://www.gov.uk/stamp-duty-land-tax/residential-property-rates',
+};
+
+/* ── Capital Gains Tax (UK, 2025/26) ──────────────────────── */
+export const UK_CGT = {
+  /** Annual exempt amount */
+  annualExempt: 3_000,
+  /** Rates from 30 October 2024 — unified across all asset types */
+  basicRate: 0.18,
+  higherRate: 0.24,
+  /** Basic rate band (above personal allowance) for determining CGT rate */
+  basicRateBand: 37_700,
+  source: 'https://www.gov.uk/capital-gains-tax/rates',
+};
+
 /* ── Scottish Income Tax (for residents of Scotland) ─────── */
 export const UK_SCOTTISH_TAX = {
   bands: [

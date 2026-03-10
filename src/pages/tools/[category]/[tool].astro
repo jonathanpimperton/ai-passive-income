@@ -52,6 +52,8 @@ import PngToIco from '@components/tools/PngToIco.tsx';
 import CreditCardPayoffCalc from '@components/tools/CreditCardPayoffCalc.tsx';
 import SolarPaybackCalc from '@components/tools/SolarPaybackCalc.tsx';
 import CarFinanceCalc from '@components/tools/CarFinanceCalc.tsx';
+import StampDutyCalc from '@components/tools/StampDutyCalc.tsx';
+import CapitalGainsTaxCalc from '@components/tools/CapitalGainsTaxCalc.tsx';
 
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
@@ -116,6 +118,8 @@ const CALCULATOR_MAP: Record<string, string> = {
   'credit-card-payoff': 'CreditCardPayoffCalc',
   'solar-payback': 'SolarPaybackCalc',
   'car-finance': 'CarFinanceCalc',
+  'stamp-duty': 'StampDutyCalc',
+  'capital-gains-tax': 'CapitalGainsTaxCalc',
 };
 
 const hasCalculator = slug in CALCULATOR_MAP;
@@ -170,6 +174,8 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'credit-card-payoff' && <CreditCardPayoffCalc client:idle />}
     {slug === 'solar-payback' && <SolarPaybackCalc client:idle />}
     {slug === 'car-finance' && <CarFinanceCalc client:idle />}
+    {slug === 'stamp-duty' && <StampDutyCalc client:idle />}
+    {slug === 'capital-gains-tax' && <CapitalGainsTaxCalc client:idle />}
     {!hasCalculator && <PlaceholderCalc name={name} client:idle />}
     <Fragment slot="content">
       <Content />

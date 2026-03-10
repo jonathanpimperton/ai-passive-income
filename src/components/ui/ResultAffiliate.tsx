@@ -128,6 +128,24 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       bestFor: 'Best for rate comparison',
     }],
   },
+  'stamp-duty': {
+    cta: 'Compare mortgage rates for your purchase',
+    partners: [{
+      name: 'LendingTree',
+      tagline: 'Compare mortgage rates from multiple lenders in minutes',
+      url: 'https://www.lendingtree.com/',
+      bestFor: 'Best for comparing rates',
+    }],
+  },
+  'capital-gains-tax': {
+    cta: 'Reduce your tax bill with tax-loss harvesting',
+    partners: [{
+      name: 'Betterment',
+      tagline: 'Automated tax-loss harvesting — keep more of your gains',
+      url: 'https://www.betterment.com/',
+      bestFor: 'Best for tax efficiency',
+    }],
+  },
 };
 
 function buildUrl(partner: PartnerConfig, toolSlug: string): string {
@@ -147,8 +165,8 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
   const partner = config.partners[0];
   if (!partner) return null;
 
-  const LOAN_TOOLS = new Set(['mortgage-payment', 'mortgage-affordability', 'loan-amortization', 'rent-vs-buy', 'credit-card-payoff', 'debt-payoff', 'car-finance']);
-  const INVEST_TOOLS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'savings-goal']);
+  const LOAN_TOOLS = new Set(['mortgage-payment', 'mortgage-affordability', 'loan-amortization', 'rent-vs-buy', 'credit-card-payoff', 'debt-payoff', 'car-finance', 'stamp-duty']);
+  const INVEST_TOOLS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'savings-goal', 'capital-gains-tax']);
 
   let disclosure: string;
   if (LOAN_TOOLS.has(toolSlug)) {

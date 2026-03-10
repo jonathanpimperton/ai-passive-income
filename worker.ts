@@ -43,6 +43,8 @@ const TOOL_REGISTRY: Record<string, string> = {
   'credit-card-payoff': 'Credit Card Payoff Calculator',
   'solar-payback': 'Solar Panel Payback Calculator',
   'car-finance': 'Car Finance Comparison Calculator',
+  'stamp-duty': 'Stamp Duty Calculator',
+  'capital-gains-tax': 'Capital Gains Tax Calculator',
 };
 
 const MAILERLITE_GROUP_ID = '180838346043426395';
@@ -71,6 +73,8 @@ const QUICK_TIPS: Record<string, string> = {
   'credit-card-payoff': 'Even $50/month extra on a credit card can save thousands in interest and cut years off the payoff time.',
   'solar-payback': 'A battery increases self-consumption from ~30% to ~70%, but the extra upfront cost typically extends payback by 3–5 years.',
   'car-finance': 'A personal loan from your bank almost always beats dealer finance on total cost — get pre-approved before visiting the showroom.',
+  'stamp-duty': 'Factor SDLT into your total budget early — on a £450,000 home it adds £12,500 on top of deposit, solicitor fees, and surveys.',
+  'capital-gains-tax': 'Holding investments for over a year (US) or using ISA wrappers (UK) can dramatically reduce your capital gains tax bill.',
 };
 
 /* ── Affiliate recommendations per calculator (2 per tool for better conversion) ── */
@@ -150,6 +154,14 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
   'car-finance': [
     { name: 'LendingTree', tagline: 'Compare auto loan rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Auto Loans', cta: 'Compare rates now' },
     { name: 'SoFi', tagline: 'Competitive car loan rates with no hidden fees', url: 'https://www.sofi.com/', category: 'Auto Loans', cta: 'Check your rate' },
+  ],
+  'stamp-duty': [
+    { name: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Mortgages', cta: 'Compare rates now' },
+    { name: 'Nutmeg', tagline: 'UK investing made simple — ISAs, pensions, and more', url: 'https://www.nutmeg.com/', category: 'Investing (UK)', cta: 'Start investing' },
+  ],
+  'capital-gains-tax': [
+    { name: 'Betterment', tagline: 'Tax-loss harvesting to reduce your capital gains bill', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
+    { name: 'Wealthfront', tagline: 'Automated tax-loss harvesting — keep more of your gains', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
   ],
 };
 

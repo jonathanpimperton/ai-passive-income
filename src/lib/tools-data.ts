@@ -54,7 +54,7 @@ export interface ToolMeta {
 }
 
 /**
- * All 42 tools with metadata for navigation and homepage display.
+ * All 44 tools with metadata for navigation and homepage display.
  * Order within each category matches the build-spec priority.
  */
 export const TOOLS: ToolMeta[] = [
@@ -194,6 +194,20 @@ export const TOOLS: ToolMeta[] = [
     category: 'economic',
     description: 'See how inflation affects your purchasing power over time.',
     icon: 'trending-down',
+  },
+  {
+    name: 'Stamp Duty Calculator',
+    slug: 'stamp-duty',
+    category: 'economic',
+    description: 'Calculate UK Stamp Duty (SDLT) for first-time buyers, movers, and additional properties.',
+    icon: 'building-2',
+  },
+  {
+    name: 'Capital Gains Tax Calculator',
+    slug: 'capital-gains-tax',
+    category: 'economic',
+    description: 'Estimate US and UK capital gains tax on investments and property.',
+    icon: 'banknote',
   },
   // Utility
   {
