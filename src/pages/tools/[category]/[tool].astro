@@ -50,6 +50,8 @@ import JsonYamlConverter from '@components/tools/JsonYamlConverter.tsx';
 import JsonXmlConverter from '@components/tools/JsonXmlConverter.tsx';
 import PngToIco from '@components/tools/PngToIco.tsx';
 import CreditCardPayoffCalc from '@components/tools/CreditCardPayoffCalc.tsx';
+import SolarPaybackCalc from '@components/tools/SolarPaybackCalc.tsx';
+import CarFinanceCalc from '@components/tools/CarFinanceCalc.tsx';
 
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
@@ -112,6 +114,8 @@ const CALCULATOR_MAP: Record<string, string> = {
   'json-xml': 'JsonXmlConverter',
   'png-to-ico': 'PngToIco',
   'credit-card-payoff': 'CreditCardPayoffCalc',
+  'solar-payback': 'SolarPaybackCalc',
+  'car-finance': 'CarFinanceCalc',
 };
 
 const hasCalculator = slug in CALCULATOR_MAP;
@@ -164,6 +168,8 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'json-xml' && <JsonXmlConverter client:idle />}
     {slug === 'png-to-ico' && <PngToIco client:idle />}
     {slug === 'credit-card-payoff' && <CreditCardPayoffCalc client:idle />}
+    {slug === 'solar-payback' && <SolarPaybackCalc client:idle />}
+    {slug === 'car-finance' && <CarFinanceCalc client:idle />}
     {!hasCalculator && <PlaceholderCalc name={name} client:idle />}
     <Fragment slot="content">
       <Content />

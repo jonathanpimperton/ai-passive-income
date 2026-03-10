@@ -137,6 +137,13 @@ export const TOOLS: ToolMeta[] = [
     description: 'Compare the total cost of renting versus buying over time.',
     icon: 'home',
   },
+  {
+    name: 'Car Finance Comparison Calculator',
+    slug: 'car-finance',
+    category: 'debt-and-loans',
+    description: 'Compare PCP, HP, personal loan, and cash purchase side by side.',
+    icon: 'car',
+  },
   // Income & Planning
   {
     name: 'Retirement Savings Calculator',
@@ -172,6 +179,13 @@ export const TOOLS: ToolMeta[] = [
     category: 'income-and-planning',
     description: 'Calculate how much you need for a 3, 6, or 12-month emergency fund.',
     icon: 'umbrella',
+  },
+  {
+    name: 'Solar Panel Payback Calculator',
+    slug: 'solar-payback',
+    category: 'saving-and-growth',
+    description: 'Estimate how long solar panels take to pay for themselves.',
+    icon: 'sun',
   },
   // Economic
   {

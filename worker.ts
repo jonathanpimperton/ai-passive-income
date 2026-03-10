@@ -41,6 +41,8 @@ const TOOL_REGISTRY: Record<string, string> = {
   'investment-fee': 'Investment Fee Calculator',
   'mortgage-affordability': 'Mortgage Affordability Calculator',
   'credit-card-payoff': 'Credit Card Payoff Calculator',
+  'solar-payback': 'Solar Panel Payback Calculator',
+  'car-finance': 'Car Finance Comparison Calculator',
 };
 
 const MAILERLITE_GROUP_ID = '180838346043426395';
@@ -67,6 +69,8 @@ const QUICK_TIPS: Record<string, string> = {
   'investment-fee': 'A 1% fee sounds small, but over 30 years it can cost more than your total contributions. Index funds often charge under 0.10%.',
   'mortgage-affordability': 'Lenders look at your debt-to-income ratio — keep total monthly debts below 36% of gross income for the best rates.',
   'credit-card-payoff': 'Even $50/month extra on a credit card can save thousands in interest and cut years off the payoff time.',
+  'solar-payback': 'A battery increases self-consumption from ~30% to ~70%, but the extra upfront cost typically extends payback by 3–5 years.',
+  'car-finance': 'A personal loan from your bank almost always beats dealer finance on total cost — get pre-approved before visiting the showroom.',
 };
 
 /* ── Affiliate recommendations per calculator (2 per tool for better conversion) ── */
@@ -138,6 +142,14 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
   'credit-card-payoff': [
     { name: 'LendingTree', tagline: 'Compare balance transfer and consolidation options', url: 'https://www.lendingtree.com/', category: 'Loans', cta: 'Compare options now' },
     { name: 'SoFi', tagline: 'Consolidate credit card debt at a lower rate', url: 'https://www.sofi.com/', category: 'Loans', cta: 'Get pre-qualified' },
+  ],
+  'solar-payback': [
+    { name: 'Betterment', tagline: 'Invest the savings from your solar panels', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
+    { name: 'Wealthfront', tagline: 'Grow your solar savings with automated investing', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
+  ],
+  'car-finance': [
+    { name: 'LendingTree', tagline: 'Compare auto loan rates from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Auto Loans', cta: 'Compare rates now' },
+    { name: 'SoFi', tagline: 'Competitive car loan rates with no hidden fees', url: 'https://www.sofi.com/', category: 'Auto Loans', cta: 'Check your rate' },
   ],
 };
 
