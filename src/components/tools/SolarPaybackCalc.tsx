@@ -28,8 +28,9 @@ const DEFAULTS = {
   systemSize: 4,
   includeBattery: false,
   batteryCost: 4500,
+  batteryCapacity: 5,        // kWh usable capacity
   electricityTariff: 24.5,   // pence or cents per kWh
-  selfConsumption: 30,       // %
+  baseSelfConsumption: 30,   // % without battery
   exportTariff: 4.5,         // pence or cents per kWh
   energyInflation: 3,        // % per year
   degradation: 0.5,          // % per year
@@ -37,6 +38,7 @@ const DEFAULTS = {
   taxCredit: 0,
   analysisPeriod: 25,        // years
   kWhPerKwp: 900,            // annual kWh generated per kWp
+  batteryRoundTrip: 0.9,     // 90% round-trip efficiency
 };
 
 export default function SolarPaybackCalc() {
@@ -50,8 +52,9 @@ export default function SolarPaybackCalc() {
   const [systemSize, setSystemSize] = useState(DEFAULTS.systemSize);
   const [includeBattery, setIncludeBattery] = useState(DEFAULTS.includeBattery);
   const [batteryCost, setBatteryCost] = useState(DEFAULTS.batteryCost);
+  const [batteryCapacity, setBatteryCapacity] = useState(DEFAULTS.batteryCapacity);
   const [electricityTariff, setElectricityTariff] = useState(DEFAULTS.electricityTariff);
-  const [selfConsumption, setSelfConsumption] = useState(DEFAULTS.selfConsumption);
+  const [baseSelfConsumption, setBaseSelfConsumption] = useState(DEFAULTS.baseSelfConsumption);
   const [exportTariff, setExportTariff] = useState(DEFAULTS.exportTariff);
   const [energyInflation, setEnergyInflation] = useState(DEFAULTS.energyInflation);
   const [degradation, setDegradation] = useState(DEFAULTS.degradation);
@@ -67,8 +70,9 @@ export default function SolarPaybackCalc() {
     setSystemSize(DEFAULTS.systemSize);
     setIncludeBattery(DEFAULTS.includeBattery);
     setBatteryCost(DEFAULTS.batteryCost);
+    setBatteryCapacity(DEFAULTS.batteryCapacity);
     setElectricityTariff(DEFAULTS.electricityTariff);
-    setSelfConsumption(DEFAULTS.selfConsumption);
+    setBaseSelfConsumption(DEFAULTS.baseSelfConsumption);
     setExportTariff(DEFAULTS.exportTariff);
     setEnergyInflation(DEFAULTS.energyInflation);
     setDegradation(DEFAULTS.degradation);
@@ -79,12 +83,23 @@ export default function SolarPaybackCalc() {
   }, []);
 
   const handleBatteryToggle = useCallback(() => {
-    setIncludeBattery(prev => {
-      const next = !prev;
-      setSelfConsumption(next ? 70 : 30);
-      return next;
-    });
+    setIncludeBattery(prev => !prev);
   }, []);
+
+  /**
+   * Effective self-consumption: with a battery, surplus daytime generation
+   * is stored (up to battery capacity × round-trip efficiency) for evening use.
+   */
+  const effectiveSelfConsumption = useMemo(() => {
+    if (!includeBattery) return baseSelfConsumption;
+    const dailyGen = (systemSize * kWhPerKwp) / 365;
+    if (dailyGen <= 0) return baseSelfConsumption;
+    const baseFraction = baseSelfConsumption / 100;
+    const dailySurplus = dailyGen * (1 - baseFraction);
+    const batteryCapture = Math.min(dailySurplus, batteryCapacity * DEFAULTS.batteryRoundTrip);
+    const effective = baseFraction + batteryCapture / dailyGen;
+    return Math.min(Math.round(effective * 100), 95); // cap at 95% — never 100% in practice
+  }, [includeBattery, baseSelfConsumption, systemSize, kWhPerKwp, batteryCapacity]);
 
   /* ── Core calculation ───────────────────────────────────── */
 
@@ -92,7 +107,7 @@ export default function SolarPaybackCalc() {
     const netCost = systemCost + (includeBattery ? batteryCost : 0) - taxCredit;
     const tariffRate = electricityTariff / 100;    // convert pence → pounds
     const exportRate = exportTariff / 100;
-    const selfRate = selfConsumption / 100;
+    const selfRate = effectiveSelfConsumption / 100;
     const degRate = degradation / 100;
     const inflRate = energyInflation / 100;
 
@@ -155,7 +170,7 @@ export default function SolarPaybackCalc() {
     };
   }, [
     systemCost, systemSize, includeBattery, batteryCost,
-    electricityTariff, selfConsumption, exportTariff,
+    electricityTariff, effectiveSelfConsumption, exportTariff,
     energyInflation, degradation, maintenanceCost,
     taxCredit, analysisPeriod, kWhPerKwp,
   ]);
@@ -187,14 +202,14 @@ export default function SolarPaybackCalc() {
     const inputs = [
       { label: 'System Cost', value: fmt(systemCost) },
       { label: 'System Size', value: `${systemSize} kWp` },
-      { label: 'Battery', value: includeBattery ? `Yes (${fmt(batteryCost)})` : 'No' },
+      { label: 'Battery', value: includeBattery ? `${batteryCapacity} kWh (${fmt(batteryCost)})` : 'No' },
       { label: 'Electricity Tariff', value: `${electricityTariff}${tariffUnit}/kWh` },
-      { label: 'Self-Consumption', value: `${selfConsumption}%` },
+      { label: 'Self-Consumption', value: `${effectiveSelfConsumption}%${includeBattery ? ` (${baseSelfConsumption}% base)` : ''}` },
       { label: 'Export Tariff', value: `${exportTariff}${tariffUnit}/kWh` },
     ];
     if (taxCredit > 0) inputs.push({ label: 'Tax Credit / Grant', value: fmt(taxCredit) });
     return inputs;
-  }, [systemCost, systemSize, includeBattery, batteryCost, electricityTariff, selfConsumption, exportTariff, taxCredit, currency]);
+  }, [systemCost, systemSize, includeBattery, batteryCost, batteryCapacity, electricityTariff, baseSelfConsumption, effectiveSelfConsumption, exportTariff, taxCredit, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
     { label: 'Payback Period', value: paybackDisplay, highlight: true },
@@ -267,26 +282,39 @@ export default function SolarPaybackCalc() {
                   Include battery storage
                 </span>
               </button>
-              {includeBattery && (
-                <p className="text-xs text-neutral-500 mt-1 ml-14">
-                  Self-consumption updated to 70% (typical with battery)
-                </p>
-              )}
             </div>
 
             {includeBattery && (
-              <SliderInput
-                label="Battery Cost"
-                hint="Installed battery storage cost"
-                id="solar-battery"
-                value={batteryCost}
-                min={1000}
-                max={20000}
-                step={500}
-                onChange={setBatteryCost}
-                prefix={currencySymbol}
-                formatDisplay={formatNumber}
-              />
+              <div className="space-y-5 pl-3 border-l-2 border-primary-100">
+                <SliderInput
+                  label="Battery Capacity"
+                  hint="Usable storage capacity"
+                  id="solar-battery-kwh"
+                  value={batteryCapacity}
+                  min={2}
+                  max={20}
+                  step={0.5}
+                  onChange={setBatteryCapacity}
+                  suffix=" kWh"
+                  formatDisplay={(v) => v.toFixed(1)}
+                />
+                <SliderInput
+                  label="Battery Cost"
+                  hint="Installed cost of battery system"
+                  id="solar-battery"
+                  value={batteryCost}
+                  min={1000}
+                  max={20000}
+                  step={500}
+                  onChange={setBatteryCost}
+                  prefix={currencySymbol}
+                  formatDisplay={formatNumber}
+                />
+                <p className="text-xs text-neutral-500 leading-relaxed">
+                  Battery boosts self-consumption from {baseSelfConsumption}% to <strong className="text-primary-700">{effectiveSelfConsumption}%</strong> by
+                  storing {batteryCapacity} kWh of surplus for evening use.
+                </p>
+              </div>
             )}
 
             <SliderInput
@@ -302,16 +330,16 @@ export default function SolarPaybackCalc() {
               formatDisplay={(v) => v.toFixed(1)}
             />
             <SliderInput
-              label="Self-Consumption"
-              hint={includeBattery ? 'With battery: typically 60–80%' : 'Without battery: typically 25–35%'}
+              label={includeBattery ? 'Base Self-Consumption' : 'Self-Consumption'}
+              hint={includeBattery ? 'Without battery — battery effect is added automatically' : 'Percentage of solar used directly (typically 25–35%)'}
               id="solar-self"
-              value={selfConsumption}
+              value={baseSelfConsumption}
               min={10}
-              max={100}
+              max={80}
               step={5}
-              onChange={setSelfConsumption}
+              onChange={setBaseSelfConsumption}
               suffix="%"
-              formatDisplay={(v) => v.toFixed(0)}
+              formatDisplay={(v) => includeBattery ? `${v.toFixed(0)} → ${effectiveSelfConsumption}` : v.toFixed(0)}
             />
             <SliderInput
               label="Export Tariff"

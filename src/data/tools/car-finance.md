@@ -46,7 +46,7 @@ workedExamples:
       pcpBalloonPct: 40
       hpApr: 8.9
       loanApr: 5.6
-    description: "PCP at 7.9% with a 40% balloon (£10,000): monthly payment of £370, total cost £30,265, interest £5,265. HP at 8.9%: monthly £558, total £29,278, interest £4,278. Personal loan at 5.6%: monthly £524, total £27,641, interest £2,641. Cash: £25,000, no interest. The personal loan saves £2,624 compared to PCP (if keeping the car) and £1,637 compared to HP. PCP's monthly payment is 34% lower, but its total cost is the highest."
+    description: "PCP at 7.9% with a 40% balloon (£10,000): monthly payment ~£370, total paid ~£30,280, interest ~£5,280. HP at 8.9%: monthly ~£558, total ~£29,295. Personal loan at 5.6%: monthly ~£523, total ~£27,620. Cash: £25,000, no interest but ~£4,920 opportunity cost (if invested at 4.5% over 4 years). The calculator's 'true cost' (total paid + opportunity cost) shows cash (~£29,920) still edges ahead of the personal loan (~£30,470) at these rates — but if your investment returns exceed the loan APR, financing and investing the difference wins."
   - title: "£15,000 used car, short 2-year term"
     inputs:
       carPrice: 15000
@@ -55,7 +55,7 @@ workedExamples:
       pcpApr: 9.9
       hpApr: 8.9
       loanApr: 6.5
-    description: "On a shorter term, the total interest is lower across all options. Personal loan at 6.5%: monthly £534, total £15,816, interest £816. HP at 8.9%: monthly £548, total £16,152, interest £1,152. PCP at 9.9% with 40% balloon: monthly £355, total £17,020 (including £6,000 balloon), interest £2,020. The personal loan is clearly cheapest, and on a 2-year term the monthly difference between HP and personal loan is only £14."
+    description: "On a shorter term, the total interest is lower across all options. Personal loan at 6.5%: monthly ~£535, total ~£15,840, interest ~£840. HP at 8.9%: monthly ~£548, total ~£16,150, interest ~£1,150. PCP at 9.9% with 40% balloon (£6,000): monthly ~£325, total ~£16,810 (including balloon), interest ~£1,810. Cash: £15,000 plus ~£1,380 opportunity cost at 4.5%. The personal loan is cheapest in both total paid and true cost, and on a 2-year term the monthly difference between HP and personal loan is only ~£13."
   - title: "$35,000 new car in the US with 0% dealer deal"
     inputs:
       carPrice: 35000
@@ -72,7 +72,7 @@ dataSources:
     url: "https://www.bankrate.com/loans/auto-loans/rates/"
   - name: "FCA — Motor Finance Review"
     url: "https://www.fca.org.uk/data/motor-finance-data"
-calculationMethod: "Standard loan amortization (M = P × r(1+r)^n / ((1+r)^n − 1)) for HP and personal loans. PCP uses modified formula with balloon: M = r × (PV − FV/(1+r)^n) / (1 − (1+r)^−n). Cash comparison includes opportunity cost of invested capital."
+calculationMethod: "Standard loan amortization (M = P × r(1+r)^n / ((1+r)^n − 1)) for HP and personal loans. PCP uses modified formula with balloon: M = r × (PV − FV/(1+r)^n) / (1 − (1+r)^−n). True Cost = Total Paid + Opportunity Cost, where opportunity cost is the investment returns forgone by spending money earlier (upfront deposit and each monthly payment lose time to compound). Cash purchase has the highest opportunity cost because the full price is spent on day one."
 ---
 
 ## Which Car Finance Option Is Right for You?

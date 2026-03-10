@@ -19,9 +19,9 @@ relatedTools:
   - "investment-fee"
 faq:
   - question: "How long do solar panels take to pay for themselves?"
-    answer: "A typical 4kW system in the UK costs around £7,000 and generates roughly £600–£900 of savings per year, giving a payback period of 8–12 years. In the US, a 8kW system at $20,000 before the federal tax credit typically pays back in 7–10 years (faster in sunny states). Adding a battery extends payback by 3–5 years because of the extra upfront cost, but increases self-consumption from ~30% to ~70% and protects against future tariff rises."
+    answer: "A typical 4kW system in the UK costs around £7,000 and generates roughly £600–£900 of savings per year, giving a payback period of 8–12 years. In the US, a 8kW system at $20,000 before the federal tax credit typically pays back in 7–10 years (faster in sunny states). Adding a battery extends payback by 3–5 years because of the extra upfront cost, but increases self-consumption from ~30% to ~75% and protects against future tariff rises."
   - question: "Does adding a solar battery make financial sense?"
-    answer: "It depends on the gap between your electricity tariff and export tariff. In the UK, you pay ~24.5p/kWh but the Smart Export Guarantee only pays ~3–6p/kWh — so every kWh you store and use yourself saves ~20p compared to exporting it. A 5kWh battery costing £4,500 that shifts 5kWh/day from export to self-consumption saves roughly £365/year extra, paying back in about 12 years. With rising energy prices and falling battery costs, the economics are improving each year. Without time-of-use tariffs or frequent power cuts, a battery is still marginal purely on financial grounds."
+    answer: "It depends on the gap between your electricity tariff and export tariff. In the UK, you pay ~24.5p/kWh but the Smart Export Guarantee only pays ~3–6p/kWh — so every kWh you store and use yourself saves ~20p compared to exporting it. A 5kWh battery costing £4,500 that shifts ~4.5kWh/day (after 90% round-trip efficiency losses) from export to self-consumption saves roughly £330/year extra, paying back in about 13 years. With rising energy prices and falling battery costs, the economics are improving each year. Without time-of-use tariffs or frequent power cuts, a battery is still marginal purely on financial grounds."
   - question: "What is self-consumption rate and why does it matter?"
     answer: "Self-consumption is the percentage of generated solar electricity that you use directly in your home rather than exporting to the grid. Without a battery, a typical household self-consumes only 25–35% because panels generate most electricity during midday when many people are at work. With a battery, self-consumption rises to 60–80% because surplus daytime generation is stored for evening use. Higher self-consumption means greater savings — you avoid buying grid electricity at the full tariff rate, rather than exporting at a much lower rate."
   - question: "What is the Smart Export Guarantee (SEG) and how much does it pay?"
@@ -46,8 +46,9 @@ workedExamples:
       systemCost: 7000
       systemSize: 4
       batteryCost: 4500
-      selfConsumption: 70
-    description: "Same 4kW system, but a 5kWh battery boosts self-consumption to 70%. Now 2,520 kWh is used directly (saving £617) and only 1,080 kWh is exported (earning £49). Year 1 savings rise to £516 after maintenance. However, the net system cost is £11,500 (panels + battery), extending payback to approximately 14 years. Over 25 years, total savings exceed £22,000 — the battery adds cost but increases lifetime returns."
+      baseSelfConsumption: 30
+      batteryCapacity: 5
+    description: "Same 4kW system, but a 5kWh battery with 90% round-trip efficiency boosts effective self-consumption to 76%. Of the 3,600 kWh generated, 2,736 kWh is self-consumed (saving £670 at 24.5p/kWh) and 864 kWh is exported (earning £39 at 4.5p/kWh). Year 1 savings are £559 after £150 maintenance. However, the net system cost is £11,500 (panels + battery), extending payback to approximately 13 years. Over 25 years, total savings exceed £23,000 — the battery adds cost but increases lifetime returns."
   - title: "8kW system in a sunny US state"
     inputs:
       systemCost: 20000

@@ -16,8 +16,12 @@ variables:
     description: "Annual energy output per kilowatt-peak installed, depends on location and roof orientation (UK ~900, US ~1,400)"
   - name: "Panel Degradation Rate"
     description: "Annual percentage decline in panel output, typically 0.5% per year"
-  - name: "Self-Consumption Rate"
-    description: "Percentage of generated electricity used directly in the home rather than exported to the grid"
+  - name: "Base Self-Consumption Rate"
+    description: "Percentage of generated electricity used directly in the home without a battery, typically 25–35%"
+  - name: "Battery Capacity (kWh)"
+    description: "Usable storage capacity of the battery system, used to calculate how much surplus generation can be shifted from export to self-consumption"
+  - name: "Battery Round-Trip Efficiency"
+    description: "Fraction of energy retained after a full charge/discharge cycle, default 0.9 (90%). A 5kWh battery at 90% efficiency delivers 4.5kWh of usable energy per cycle"
   - name: "Electricity Tariff"
     description: "Current price paid per kWh for grid electricity, applied to self-consumed solar generation"
   - name: "Export Tariff"
@@ -33,6 +37,8 @@ assumptions:
   - "Maintenance cost remains constant (not inflation-adjusted)"
   - "No inverter replacement cost is modelled separately (assumed included in maintenance)"
   - "Battery does not degrade over the analysis period (conservative simplification)"
+  - "Battery round-trip efficiency is 90% (10% energy loss per charge/discharge cycle)"
+  - "Effective self-consumption is capped at 95% — some generation always occurs when no home load exists"
   - "All generated electricity is either self-consumed or exported — no curtailment"
   - "No time-of-use tariff variation — average flat rate applied"
 limitations:
@@ -66,12 +72,18 @@ Unlike simple payback calculators that divide cost by annual savings, this model
 For each year from 1 to the analysis period:
 
 1. **Calculate annual generation**: System Size × kWh/kWp × (1 − degradation rate)^(year−1)
-2. **Split into self-consumed and exported**: Generation × self-consumption rate = self-consumed kWh; the remainder is exported
-3. **Apply tariff rates**: Self-consumed kWh × current electricity tariff (saves buying from grid); Exported kWh × current export tariff (earns income)
-4. **Escalate tariffs**: Both tariffs increase by the energy price inflation rate each year
-5. **Subtract maintenance**: Annual savings = self-consumption savings + export income − maintenance cost
-6. **Accumulate**: Add annual savings to the running cumulative total
-7. **Check payback**: When cumulative savings first exceed the net system cost, payback is reached
+2. **Calculate effective self-consumption** (if battery is present):
+   - Daily generation = Annual generation ÷ 365
+   - Daily surplus = Daily generation × (1 − Base Self-Consumption Rate)
+   - Battery capture = min(Daily surplus, Battery Capacity × Round-Trip Efficiency)
+   - Effective Self-Consumption = Base Self-Consumption Rate + (Battery capture ÷ Daily generation), capped at 95%
+   - Without a battery, effective self-consumption equals the base rate
+3. **Split into self-consumed and exported**: Generation × effective self-consumption rate = self-consumed kWh; the remainder is exported
+4. **Apply tariff rates**: Self-consumed kWh × current electricity tariff (saves buying from grid); Exported kWh × current export tariff (earns income)
+5. **Escalate tariffs**: Both tariffs increase by the energy price inflation rate each year
+6. **Subtract maintenance**: Annual savings = self-consumption savings + export income − maintenance cost
+7. **Accumulate**: Add annual savings to the running cumulative total
+8. **Check payback**: When cumulative savings first exceed the net system cost, payback is reached
 
 The payback month is interpolated: if the crossover happens partway through a year, the calculator estimates which month within that year the break-even occurred.
 
@@ -79,7 +91,7 @@ The payback month is interpolated: if the crossover happens partway through a ye
 
 **Electricity tariff** is the most impactful variable. Every 1p/kWh increase in tariff improves annual savings by roughly £10–£40 depending on system size and self-consumption. UK rates (24.5p/kWh) make solar significantly more attractive than low-cost US states.
 
-**Self-consumption rate** determines the value of each kWh. At 24.5p import vs 4.5p export, a self-consumed kWh is worth 5.4× more than an exported one. Increasing self-consumption from 30% to 70% (e.g., by adding a battery) can nearly double annual savings.
+**Self-consumption rate** determines the value of each kWh. At 24.5p import vs 4.5p export, a self-consumed kWh is worth 5.4× more than an exported one. A 5kWh battery with a 30% base self-consumption rate raises effective self-consumption to ~76%, nearly doubling annual savings compared to no battery.
 
 **System cost** is the denominator of the payback equation. Lower installation costs shorten payback proportionally. Battery costs add to the numerator but improve the self-consumption rate.
 

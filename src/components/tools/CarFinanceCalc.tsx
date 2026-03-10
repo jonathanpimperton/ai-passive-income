@@ -7,7 +7,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
+  Legend,
 } from 'recharts';
 import { ChevronDown, RotateCcw, Trophy } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
@@ -36,7 +36,6 @@ function calcMonthly(principal: number, aprPercent: number, months: number): num
 /**
  * PCP monthly payment with balloon (GMFV).
  * Monthly = r × (PV - FV / (1+r)^n) / (1 - (1+r)^-n)
- * Where PV = finance amount, FV = balloon, r = monthly rate, n = months.
  */
 function calcPcpMonthly(financeAmount: number, balloon: number, aprPercent: number, months: number): number {
   if (financeAmount <= 0 || months <= 0) return 0;
@@ -47,6 +46,26 @@ function calcPcpMonthly(financeAmount: number, balloon: number, aprPercent: numb
   return (pvMinusFv * r) / (1 - Math.pow(1 + r, -n));
 }
 
+/**
+ * Opportunity cost: what your money could have earned if invested instead.
+ * For an upfront payment at month 0: upfront × ((1+r)^n − 1)
+ * For monthly payments: monthly × (((1+r)^n − 1)/r − n)  (closed-form sum)
+ * Final payments at month n have zero opportunity cost (no time to grow).
+ */
+function calcOpportunityCost(
+  upfront: number,
+  monthly: number,
+  months: number,
+  annualReturnPct: number,
+): number {
+  if (annualReturnPct <= 0 || months <= 0) return 0;
+  const r = annualReturnPct / 100 / 12;
+  const compoundN = Math.pow(1 + r, months);
+  const upfrontCost = upfront * (compoundN - 1);
+  const monthlyCost = monthly > 0 ? monthly * ((compoundN - 1) / r - months) : 0;
+  return upfrontCost + monthlyCost;
+}
+
 const BAR_COLORS = ['#0B6E6E', '#22A06B', '#3B82F6', '#8B5CF6'];
 
 interface FinanceResult {
@@ -55,6 +74,8 @@ interface FinanceResult {
   monthly: number;
   totalPaid: number;
   totalInterest: number;
+  opportunityCost: number;
+  trueCost: number;
   ownAtEnd: string;
   note: string;
 }
@@ -67,7 +88,7 @@ const DEFAULTS = {
   pcpBalloonPct: 40,
   hpApr: 8.9,
   loanApr: 5.6,
-  cashReturnRate: 4.5,
+  investReturnRate: 4.5,
 };
 
 export default function CarFinanceCalc() {
@@ -84,7 +105,7 @@ export default function CarFinanceCalc() {
   const [pcpBalloonPct, setPcpBalloonPct] = useState(DEFAULTS.pcpBalloonPct);
   const [hpApr, setHpApr] = useState(DEFAULTS.hpApr);
   const [loanApr, setLoanApr] = useState(DEFAULTS.loanApr);
-  const [cashReturnRate, setCashReturnRate] = useState(DEFAULTS.cashReturnRate);
+  const [investReturnRate, setInvestReturnRate] = useState(DEFAULTS.investReturnRate);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleReset = useCallback(() => {
@@ -95,34 +116,44 @@ export default function CarFinanceCalc() {
     setPcpBalloonPct(DEFAULTS.pcpBalloonPct);
     setHpApr(DEFAULTS.hpApr);
     setLoanApr(DEFAULTS.loanApr);
-    setCashReturnRate(DEFAULTS.cashReturnRate);
+    setInvestReturnRate(DEFAULTS.investReturnRate);
   }, []);
 
+  /* ── Derived constraints ──────────────────────────────────── */
+  const financeAmount = Math.max(0, carPrice - deposit);
+  // Balloon + deposit must not exceed car price
+  const maxBalloonPct = Math.min(60, Math.floor((financeAmount / carPrice) * 100));
+  const effectiveBalloonPct = Math.min(Math.max(0, pcpBalloonPct), Math.max(0, maxBalloonPct));
+  const balloon = Math.round(carPrice * effectiveBalloonPct / 100);
+
   /* ── Core calculation ───────────────────────────────────── */
-
   const results = useMemo((): FinanceResult[] => {
-    const financeAmount = Math.max(0, carPrice - deposit);
-    const balloon = carPrice * (pcpBalloonPct / 100);
-
-    // PCP (keep the car)
+    // --- PCP (keep the car — pay balloon at end) ---
     const pcpMonthly = calcPcpMonthly(financeAmount, balloon, pcpApr, termMonths);
     const pcpTotalPaid = deposit + pcpMonthly * termMonths + balloon;
     const pcpInterest = pcpTotalPaid - carPrice;
+    // Opportunity cost: deposit paid at month 0, monthly payments each month, balloon at end (0 opp cost)
+    const pcpOpp = calcOpportunityCost(deposit, pcpMonthly, termMonths, investReturnRate);
+    const pcpTrue = pcpTotalPaid + pcpOpp;
 
-    // HP
+    // --- HP ---
     const hpMonthly = calcMonthly(financeAmount, hpApr, termMonths);
     const hpTotalPaid = deposit + hpMonthly * termMonths;
     const hpInterest = hpTotalPaid - carPrice;
+    const hpOpp = calcOpportunityCost(deposit, hpMonthly, termMonths, investReturnRate);
+    const hpTrue = hpTotalPaid + hpOpp;
 
-    // Personal Loan
+    // --- Personal Loan ---
     const loanMonthly = calcMonthly(financeAmount, loanApr, termMonths);
     const loanTotalPaid = deposit + loanMonthly * termMonths;
     const loanInterest = loanTotalPaid - carPrice;
+    const loanOpp = calcOpportunityCost(deposit, loanMonthly, termMonths, investReturnRate);
+    const loanTrue = loanTotalPaid + loanOpp;
 
-    // Cash
-    const cashTotalPaid = carPrice;
-    const years = termMonths / 12;
-    const opportunityCost = financeAmount * (Math.pow(1 + cashReturnRate / 100, years) - 1);
+    // --- Cash ---
+    // All money spent on day 1 → maximum opportunity cost
+    const cashOpp = calcOpportunityCost(carPrice, 0, termMonths, investReturnRate);
+    const cashTrue = carPrice + cashOpp;
 
     return [
       {
@@ -131,8 +162,10 @@ export default function CarFinanceCalc() {
         monthly: pcpMonthly,
         totalPaid: pcpTotalPaid,
         totalInterest: pcpInterest,
-        ownAtEnd: `Optional (${fmt(balloon)} balloon)`,
-        note: 'Lowest monthly payment. Balloon payment required to keep the car.',
+        opportunityCost: pcpOpp,
+        trueCost: pcpTrue,
+        ownAtEnd: `Yes (${fmt(balloon)} balloon at end)`,
+        note: `Lower monthly payments, but a ${fmt(balloon)} balloon is due at month ${termMonths} to keep the car.`,
       },
       {
         type: 'hp',
@@ -140,8 +173,10 @@ export default function CarFinanceCalc() {
         monthly: hpMonthly,
         totalPaid: hpTotalPaid,
         totalInterest: hpInterest,
+        opportunityCost: hpOpp,
+        trueCost: hpTrue,
         ownAtEnd: 'Yes',
-        note: 'You own the car at the end. No mileage limits.',
+        note: 'Higher monthly payments than PCP, but you own the car at the end with no final payment.',
       },
       {
         type: 'loan',
@@ -149,59 +184,60 @@ export default function CarFinanceCalc() {
         monthly: loanMonthly,
         totalPaid: loanTotalPaid,
         totalInterest: loanInterest,
+        opportunityCost: loanOpp,
+        trueCost: loanTrue,
         ownAtEnd: 'Yes (from day one)',
-        note: 'Often the lowest APR. You own the car outright immediately.',
+        note: 'You own the car outright immediately. Often the lowest APR with good credit.',
       },
       {
         type: 'cash',
-        label: 'Cash Purchase',
+        label: 'Cash',
         monthly: 0,
-        totalPaid: cashTotalPaid,
+        totalPaid: carPrice,
         totalInterest: 0,
+        opportunityCost: cashOpp,
+        trueCost: cashTrue,
         ownAtEnd: 'Yes (immediate)',
-        note: `No interest, but ${fmt(Math.round(opportunityCost))} opportunity cost if invested at ${cashReturnRate}%.`,
+        note: `No interest, but you lose ${fmt(Math.round(cashOpp))} in potential investment returns over ${termMonths} months.`,
       },
     ];
-  }, [carPrice, deposit, termMonths, pcpApr, pcpBalloonPct, hpApr, loanApr, cashReturnRate, currency]);
+  }, [carPrice, deposit, financeAmount, balloon, termMonths, pcpApr, effectiveBalloonPct, hpApr, loanApr, investReturnRate, currency]);
 
-  // Find cheapest (owning the car at the end — exclude PCP return-only)
+  // Find cheapest by true cost (all options included — all end with ownership)
   const cheapest = useMemo(() => {
-    const owning = results.filter(r => r.type !== 'pcp');
-    return owning.reduce((best, r) => r.totalPaid < best.totalPaid ? r : best, owning[0]);
+    return results.reduce((best, r) => r.trueCost < best.trueCost ? r : best, results[0]);
   }, [results]);
 
-  // Chart data
+  // Chart data — stacked bar: payments + opportunity cost = true cost
   const chartData = useMemo(() =>
     results.map(r => ({
       name: r.label,
-      total: Math.round(r.totalPaid),
-      interest: Math.round(r.totalInterest),
+      payments: Math.round(r.totalPaid),
+      opportunity: Math.round(r.opportunityCost),
     })),
   [results]);
 
   /* ── Callbacks for PDF / Email ──────────────────────────── */
-
   const getInputs = useCallback(() => [
     { label: 'Car Price', value: fmt(carPrice) },
     { label: 'Deposit', value: fmt(deposit) },
     { label: 'Term', value: `${termMonths} months` },
     { label: 'PCP APR', value: `${pcpApr}%` },
-    { label: 'PCP Balloon', value: `${pcpBalloonPct}%` },
+    { label: 'PCP Balloon', value: `${effectiveBalloonPct}% (${fmt(balloon)})` },
     { label: 'HP APR', value: `${hpApr}%` },
-    { label: 'Personal Loan APR', value: `${loanApr}%` },
-  ], [carPrice, deposit, termMonths, pcpApr, pcpBalloonPct, hpApr, loanApr, currency]);
+    { label: 'Loan APR', value: `${loanApr}%` },
+    { label: 'Investment Return', value: `${investReturnRate}%` },
+  ], [carPrice, deposit, termMonths, pcpApr, effectiveBalloonPct, balloon, hpApr, loanApr, investReturnRate, currency]);
 
   const getResults = useCallback((): ResultItem[] => {
-    const winner = cheapest;
     return [
-      { label: 'Cheapest Option', value: winner.label, highlight: true },
-      ...results.map(r => ({ label: `${r.label} Monthly`, value: r.monthly > 0 ? fmt(r.monthly) : 'N/A' })),
-      ...results.map(r => ({ label: `${r.label} Total`, value: fmt(r.totalPaid) })),
+      { label: 'Cheapest Option (True Cost)', value: cheapest.label, highlight: true },
+      ...results.map(r => ({ label: `${r.label} True Cost`, value: fmt(Math.round(r.trueCost)) })),
+      ...results.map(r => ({ label: `${r.label} Monthly`, value: r.monthly > 0 ? fmt(Math.round(r.monthly)) : 'N/A' })),
     ];
   }, [results, cheapest, currency]);
 
   /* ── Render ─────────────────────────────────────────────── */
-
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
@@ -224,7 +260,7 @@ export default function CarFinanceCalc() {
           <div className="space-y-5">
             <SliderInput
               label="Car Price"
-              hint="On-the-road price of the vehicle"
+              hint="On-the-road price"
               id="car-price"
               value={carPrice}
               min={3000}
@@ -240,7 +276,7 @@ export default function CarFinanceCalc() {
               id="car-deposit"
               value={deposit}
               min={0}
-              max={Math.min(carPrice, 75000)}
+              max={Math.min(carPrice - 1000, 75000)}
               step={500}
               onChange={setDeposit}
               prefix={currencySymbol}
@@ -248,7 +284,7 @@ export default function CarFinanceCalc() {
             />
             <SliderInput
               label="Term"
-              hint="Finance period in months"
+              hint="How long you'll finance the car"
               id="car-term"
               value={termMonths}
               min={12}
@@ -259,81 +295,22 @@ export default function CarFinanceCalc() {
               formatDisplay={(v) => v.toFixed(0)}
             />
 
-            {/* PCP section */}
-            <div className="pt-2">
-              <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: BAR_COLORS[0] }} />
-                PCP (Personal Contract Purchase)
-              </h3>
-              <div className="space-y-4">
-                <SliderInput
-                  label="PCP APR"
-                  hint="Annual percentage rate for PCP deal"
-                  id="car-pcp-apr"
-                  value={pcpApr}
-                  min={0}
-                  max={25}
-                  step={0.1}
-                  onChange={setPcpApr}
-                  suffix="%"
-                  formatDisplay={(v) => v.toFixed(1)}
-                />
-                <SliderInput
-                  label="Balloon / GMFV"
-                  hint="Guaranteed future value as % of car price"
-                  id="car-pcp-balloon"
-                  value={pcpBalloonPct}
-                  min={15}
-                  max={60}
-                  step={1}
-                  onChange={setPcpBalloonPct}
-                  suffix="%"
-                  formatDisplay={(v) => `${v.toFixed(0)} (${fmt(carPrice * v / 100)})`}
-                />
-              </div>
-            </div>
+            <div className="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent" />
 
-            {/* HP section */}
-            <div className="pt-2">
-              <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: BAR_COLORS[1] }} />
-                HP (Hire Purchase)
-              </h3>
-              <SliderInput
-                label="HP APR"
-                hint="Annual percentage rate for hire purchase"
-                id="car-hp-apr"
-                value={hpApr}
-                min={0}
-                max={25}
-                step={0.1}
-                onChange={setHpApr}
-                suffix="%"
-                formatDisplay={(v) => v.toFixed(1)}
-              />
-            </div>
+            <SliderInput
+              label="Expected Investment Return"
+              hint="What your cash could earn if not spent on the car"
+              id="car-invest-return"
+              value={investReturnRate}
+              min={0}
+              max={12}
+              step={0.5}
+              onChange={setInvestReturnRate}
+              suffix="%"
+              formatDisplay={(v) => v.toFixed(1)}
+            />
 
-            {/* Personal Loan section */}
-            <div className="pt-2">
-              <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: BAR_COLORS[2] }} />
-                Personal Loan
-              </h3>
-              <SliderInput
-                label="Loan APR"
-                hint="Bank or credit union personal loan rate"
-                id="car-loan-apr"
-                value={loanApr}
-                min={0}
-                max={25}
-                step={0.1}
-                onChange={setLoanApr}
-                suffix="%"
-                formatDisplay={(v) => v.toFixed(1)}
-              />
-            </div>
-
-            {/* Advanced toggle */}
+            {/* Advanced toggle for APR and balloon settings */}
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               aria-expanded={showAdvanced}
@@ -344,20 +321,53 @@ export default function CarFinanceCalc() {
                 className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
                 aria-hidden="true"
               />
-              {showAdvanced ? 'Hide' : 'Show'} Advanced Settings
+              {showAdvanced ? 'Hide' : 'Adjust'} Interest Rates
             </button>
 
             {showAdvanced && (
-              <div className="space-y-5 pt-1">
+              <div className="space-y-4 pt-1 pl-3 border-l-2 border-primary-100">
                 <SliderInput
-                  label="Savings Return Rate"
-                  hint="Expected return if you invested the cash instead"
-                  id="car-cash-return"
-                  value={cashReturnRate}
+                  label="PCP APR"
+                  id="car-pcp-apr"
+                  value={pcpApr}
                   min={0}
-                  max={12}
-                  step={0.5}
-                  onChange={setCashReturnRate}
+                  max={25}
+                  step={0.1}
+                  onChange={setPcpApr}
+                  suffix="%"
+                  formatDisplay={(v) => v.toFixed(1)}
+                />
+                <SliderInput
+                  label="PCP Balloon / GMFV"
+                  hint={`Final payment to own the car (${fmt(balloon)})`}
+                  id="car-pcp-balloon"
+                  value={effectiveBalloonPct}
+                  min={0}
+                  max={Math.max(0, maxBalloonPct)}
+                  step={1}
+                  onChange={setPcpBalloonPct}
+                  suffix={`% of price`}
+                  formatDisplay={(v) => v.toFixed(0)}
+                />
+                <SliderInput
+                  label="HP APR"
+                  id="car-hp-apr"
+                  value={hpApr}
+                  min={0}
+                  max={25}
+                  step={0.1}
+                  onChange={setHpApr}
+                  suffix="%"
+                  formatDisplay={(v) => v.toFixed(1)}
+                />
+                <SliderInput
+                  label="Personal Loan APR"
+                  id="car-loan-apr"
+                  value={loanApr}
+                  min={0}
+                  max={25}
+                  step={0.1}
+                  onChange={setLoanApr}
                   suffix="%"
                   formatDisplay={(v) => v.toFixed(1)}
                 />
@@ -376,11 +386,11 @@ export default function CarFinanceCalc() {
           <div data-pdf-section className="mb-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-sm font-medium mb-3">
               <Trophy size={14} aria-hidden="true" />
-              {cheapest.label} is cheapest to own
+              {cheapest.label} has the lowest true cost
             </div>
             <p className="text-sm text-neutral-500 leading-relaxed">
-              Based on total cost to own the car over {termMonths} months with a {fmt(deposit)} deposit.
-              {results[0].monthly > 0 && ` PCP has the lowest monthly payment at ${fmt(results[0].monthly)}/mo.`}
+              <strong>True cost</strong> = total payments + the investment returns you give up by spending money earlier.
+              {investReturnRate > 0 && ` Assumes ${investReturnRate}% annual return on uninvested cash.`}
             </p>
           </div>
 
@@ -397,38 +407,50 @@ export default function CarFinanceCalc() {
               >
                 {r.type === cheapest.type && (
                   <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wide">
-                    Cheapest
+                    Best Value
                   </div>
                 )}
                 <div className="flex items-center gap-2 mb-3">
                   <span
                     className="inline-block w-3 h-3 rounded-full shrink-0"
                     style={{ backgroundColor: BAR_COLORS[i] }}
+                    aria-hidden="true"
                   />
                   <h3 className="text-sm font-semibold text-neutral-800">{r.label}</h3>
                 </div>
 
+                {/* Primary metric: True Cost */}
+                <div className="mb-2">
+                  <p className="text-xs text-neutral-500 mb-0.5">True Cost</p>
+                  <p className="text-2xl font-bold text-neutral-900 tabular-nums">
+                    {fmt(Math.round(r.trueCost))}
+                  </p>
+                </div>
+
+                {/* Monthly payment */}
                 <div className="mb-3">
                   <p className="text-xs text-neutral-500 mb-0.5">Monthly Payment</p>
-                  <p className="text-2xl font-bold text-neutral-900 tabular-nums">
-                    {r.monthly > 0 ? fmt(r.monthly) : '—'}
+                  <p className="text-lg font-semibold text-neutral-700 tabular-nums">
+                    {r.monthly > 0 ? `${fmt(Math.round(r.monthly))}/mo` : '—'}
                   </p>
                 </div>
 
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Total paid</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(r.totalPaid)}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(Math.round(r.totalPaid))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Interest</span>
                     <span className={`font-medium tabular-nums ${r.totalInterest > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {r.totalInterest > 0 ? fmt(r.totalInterest) : fmt(0)}
+                      {fmt(Math.round(r.totalInterest))}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-neutral-500">Own the car?</span>
-                    <span className="font-medium text-neutral-700 text-right text-xs leading-snug max-w-[60%]">{r.ownAtEnd}</span>
+                    <span className="text-neutral-500">Opportunity cost</span>
+                    <span className="font-medium text-neutral-500 tabular-nums">
+                      {fmt(Math.round(r.opportunityCost))}
+                    </span>
                   </div>
                 </div>
 
@@ -448,21 +470,20 @@ export default function CarFinanceCalc() {
 
           <ResultAffiliate toolSlug="car-finance" />
 
-          {/* Total cost bar chart */}
+          {/* True cost stacked bar chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
-            <h3 className="text-sm font-medium text-neutral-700 mb-3">Total Cost Comparison</h3>
-            <div className="h-[200px]">
+            <h3 className="text-sm font-medium text-neutral-700 mb-1">True Cost Breakdown</h3>
+            <p className="text-xs text-neutral-400 mb-3">Payments + opportunity cost (what your cash could have earned)</p>
+            <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
                   <XAxis dataKey="name" tick={{ fill: ct.axisText, fontSize: 11 }} stroke={ct.axis} />
                   <YAxis tick={{ fill: ct.axisText, fontSize: 12 }} stroke={ct.axis} tickFormatter={(v: number) => `${currencySymbol}${formatNumber(v)}`} />
                   <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
-                  <Bar dataKey="total" name="Total Paid" animationDuration={600} radius={[4, 4, 0, 0]}>
-                    {chartData.map((_, i) => (
-                      <Cell key={i} fill={BAR_COLORS[i]} />
-                    ))}
-                  </Bar>
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="payments" name="Total Paid" stackId="a" fill="#0B6E6E" radius={[0, 0, 0, 0]} animationDuration={600} />
+                  <Bar dataKey="opportunity" name="Opportunity Cost" stackId="a" fill="#E8604C" radius={[4, 4, 0, 0]} animationDuration={600} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -482,20 +503,46 @@ export default function CarFinanceCalc() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { label: 'Monthly Payment', key: 'monthly' as const },
-                  { label: 'Total Paid', key: 'totalPaid' as const },
-                  { label: 'Total Interest', key: 'totalInterest' as const },
-                ].map((row, ri) => (
-                  <tr key={row.key} className={`border-b border-neutral-100 ${ri % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
-                    <td className="py-2.5 px-3 font-medium text-neutral-700">{row.label}</td>
-                    {results.map(r => (
-                      <td key={r.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums">
-                        {row.key === 'monthly' && r.monthly === 0 ? '—' : fmt(r[row.key])}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                <tr className="border-b border-neutral-100 bg-white">
+                  <td className="py-2.5 px-3 font-medium text-neutral-700">Monthly Payment</td>
+                  {results.map(r => (
+                    <td key={r.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums">
+                      {r.monthly > 0 ? fmt(Math.round(r.monthly)) : '—'}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-neutral-100 bg-neutral-50/50">
+                  <td className="py-2.5 px-3 font-medium text-neutral-700">Total Paid</td>
+                  {results.map(r => (
+                    <td key={r.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums">
+                      {fmt(Math.round(r.totalPaid))}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-neutral-100 bg-white">
+                  <td className="py-2.5 px-3 font-medium text-neutral-700">Interest</td>
+                  {results.map(r => (
+                    <td key={r.type} className={`py-2.5 px-3 text-right tabular-nums ${r.totalInterest > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {fmt(Math.round(r.totalInterest))}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-neutral-100 bg-neutral-50/50">
+                  <td className="py-2.5 px-3 font-medium text-neutral-700">Opportunity Cost</td>
+                  {results.map(r => (
+                    <td key={r.type} className="py-2.5 px-3 text-right text-neutral-500 tabular-nums">
+                      {fmt(Math.round(r.opportunityCost))}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-neutral-100 bg-green-50/50 font-semibold">
+                  <td className="py-2.5 px-3 text-neutral-900">True Cost</td>
+                  {results.map(r => (
+                    <td key={r.type} className={`py-2.5 px-3 text-right tabular-nums ${r.type === cheapest.type ? 'text-green-700' : 'text-neutral-900'}`}>
+                      {fmt(Math.round(r.trueCost))}
+                    </td>
+                  ))}
+                </tr>
                 <tr className="bg-neutral-50/50">
                   <td className="py-2.5 px-3 font-medium text-neutral-700">Own at End?</td>
                   {results.map(r => (
