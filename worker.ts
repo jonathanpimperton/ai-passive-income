@@ -8,11 +8,13 @@
  * tool name derivation (never trust client toolName), input sanitization,
  * 20KB request size cap.
  *
- * Rate limiting: Cloudflare WAF should be configured with:
- *   - Rule: POST /api/email-results → 5 requests per IP per minute, burst 10
+ * Rate limiting: Cloudflare WAF should be configured with TWO rules:
+ *   - Rule 1: POST /api/email-results → 5 requests per IP per minute
+ *   - Rule 2: POST /api/subscribe → 5 requests per IP per minute
  *   - Action: Block with 429 Too Many Requests
  *   - This is set in the Cloudflare dashboard (Security > WAF > Rate limiting rules)
  *   - The 429 is returned by Cloudflare BEFORE the worker runs, so no in-worker handling needed.
+ *   - Without Rule 2, attackers can list-bomb the MailerLite free tier (500 subs).
  */
 
 interface Env {
@@ -277,13 +279,25 @@ function validateEmailResultsBody(raw: unknown): {
 }
 
 /* ── CORS ──────────────────────────────────────────────────── */
+function isAllowedOrigin(origin: string): boolean {
+  if (origin === ALLOWED_ORIGIN) return true;
+  // Allow localhost for dev — strict check to prevent bypass via localhost.evil.com
+  try {
+    const url = new URL(origin);
+    return url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+}
+
 function corsHeaders(origin: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
   };
-  if (origin && (origin === ALLOWED_ORIGIN || origin.startsWith('http://localhost'))) {
+  if (origin && isAllowedOrigin(origin)) {
     headers['Access-Control-Allow-Origin'] = origin;
   }
   return headers;
@@ -313,15 +327,54 @@ async function subscribeToMailerLite(
   });
 
   if (!mlResponse.ok && mlResponse.status !== 422) {
-    const errorData = await mlResponse.text();
-    console.error('MailerLite error:', mlResponse.status, errorData);
+    console.error('MailerLite error: status', mlResponse.status);
   }
+}
+
+/* ── Validate /api/subscribe body ─────────────────────────── */
+function validateSubscribeBody(raw: unknown): {
+  ok: true;
+  data: { email: string; toolSlug: string | undefined; honeypot: string };
+} | { ok: false; error: string } {
+  if (typeof raw !== 'object' || raw === null) {
+    return { ok: false, error: 'Invalid request body' };
+  }
+  const body = raw as Record<string, unknown>;
+
+  const honeypot = typeof body.honeypot === 'string' ? body.honeypot : '';
+
+  const rawEmail = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  if (!rawEmail || rawEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+    return { ok: false, error: 'Please enter a valid email address' };
+  }
+
+  // toolSlug is optional for subscribe, but if present must be valid
+  let toolSlug: string | undefined;
+  if (typeof body.toolSlug === 'string' && body.toolSlug.trim()) {
+    const slug = body.toolSlug.trim();
+    if (slug.length > 50 || !(slug in TOOL_REGISTRY)) {
+      toolSlug = undefined; // silently ignore invalid slugs — don't leak registry
+    } else {
+      toolSlug = slug;
+    }
+  }
+
+  return { ok: true, data: { email: rawEmail, toolSlug, honeypot } };
 }
 
 /* ── Handle POST /api/subscribe ────────────────────────────── */
 async function handleSubscribe(request: Request, env: Env): Promise<Response> {
   const origin = request.headers.get('Origin');
   const headers = { ...corsHeaders(origin), 'Content-Type': 'application/json' };
+
+  // 1. Request size cap (same as email-results)
+  const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
+  if (contentLength > MAX_REQUEST_SIZE) {
+    return new Response(
+      JSON.stringify({ error: 'Request too large' }),
+      { status: 413, headers }
+    );
+  }
 
   const apiKey = env.MAILERLITE_API_KEY;
   if (!apiKey) {
@@ -331,34 +384,53 @@ async function handleSubscribe(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  let body: SubscribeBody;
+  // 2. Parse JSON with size guard
+  let rawText: string;
   try {
-    body = await request.json();
+    rawText = await request.text();
   } catch {
     return new Response(
       JSON.stringify({ error: 'Invalid request body' }),
       { status: 400, headers }
     );
   }
-
-  // Honeypot filled = bot → silently succeed
-  if (body.honeypot) {
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+  if (rawText.length > MAX_REQUEST_SIZE) {
+    return new Response(
+      JSON.stringify({ error: 'Request too large' }),
+      { status: 413, headers }
+    );
   }
 
-  const email = body.email?.trim().toLowerCase();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  let rawBody: unknown;
+  try {
+    rawBody = JSON.parse(rawText);
+  } catch {
     return new Response(
-      JSON.stringify({ error: 'Please enter a valid email address' }),
+      JSON.stringify({ error: 'Invalid JSON' }),
       { status: 400, headers }
     );
   }
 
-  try {
-    await subscribeToMailerLite(email, body.toolSlug, apiKey, 'newsletter');
+  // 3. Validate with strict schema
+  const validation = validateSubscribeBody(rawBody);
+  if (!validation.ok) {
+    return new Response(
+      JSON.stringify({ error: validation.error }),
+      { status: 400, headers }
+    );
+  }
+  const body = validation.data;
+
+  // 4. Honeypot filled = bot → silently succeed
+  if (body.honeypot) {
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-  } catch (err) {
-    console.error('MailerLite request failed:', err);
+  }
+
+  // 5. Subscribe
+  try {
+    await subscribeToMailerLite(body.email, body.toolSlug, apiKey, 'newsletter');
+    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+  } catch {
     return new Response(
       JSON.stringify({ error: 'Subscription failed. Please try again.' }),
       { status: 502, headers }
@@ -650,7 +722,10 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
   }
 
-  // 5. Verify Turnstile token (skip if secret key not configured — allows gradual rollout)
+  // 5. Verify Turnstile token
+  if (!env.TURNSTILE_SECRET_KEY) {
+    console.warn('TURNSTILE_SECRET_KEY not set — bot verification DISABLED. Set this env var in Cloudflare Pages.');
+  }
   if (env.TURNSTILE_SECRET_KEY) {
     if (!body.turnstileToken) {
       return new Response(
@@ -690,15 +765,14 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
     });
 
     if (!msResponse.ok) {
-      const errorData = await msResponse.text();
-      console.error('MailerSend error:', msResponse.status, errorData);
+      console.error('MailerSend error: status', msResponse.status);
       return new Response(
         JSON.stringify({ error: 'Failed to send email. Please try again.' }),
         { status: 502, headers }
       );
     }
-  } catch (err) {
-    console.error('MailerSend request failed:', err);
+  } catch {
+    console.error('MailerSend request failed');
     return new Response(
       JSON.stringify({ error: 'Failed to send email. Please try again.' }),
       { status: 502, headers }
@@ -709,8 +783,8 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
   if (body.subscribe && env.MAILERLITE_API_KEY) {
     try {
       await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY, 'results');
-    } catch (err) {
-      console.error('MailerLite subscribe (from email-results) failed:', err);
+    } catch {
+      console.error('MailerLite subscribe (from email-results) failed');
     }
   }
 
