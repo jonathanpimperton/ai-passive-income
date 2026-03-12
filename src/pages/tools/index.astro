@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
+import AuroraBackground from '@components/ui/AuroraBackground.astro';
 import { TOOLS, POPULAR_TOOL_SLUGS, CATEGORIES, getToolPath, type CategorySlug } from '@lib/tools-data';
 
 const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][];
@@ -10,9 +11,10 @@ const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATE
   title="Online Calculators & Tools | CalcRun"
   description="Browse all 42 calculators, file converters, and utility tools. No signup, no ads, no data harvesting."
 >
-  {/* Page header — solid navy, distinct from homepage hero gradient */}
-  <section class="bg-[#0F1B2D] py-12 sm:py-16">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+  {/* Page header */}
+  <section class="relative overflow-hidden bg-[#0F1B2D] py-12 sm:py-16">
+    <AuroraBackground intensity="medium" />
+    <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <h1 class="font-serif text-3xl sm:text-4xl font-bold text-white mb-2">All Tools</h1>
       <p class="text-lg text-white/60">
         {TOOLS.length} calculators and tools — instant results, no signup required.

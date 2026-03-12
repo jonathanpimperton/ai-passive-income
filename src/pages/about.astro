@@ -1,15 +1,17 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
+import AuroraBackground from '@components/ui/AuroraBackground.astro';
 ---
 
 <BaseLayout
   title="About CalcRun"
   description="CalcRun builds financial calculators with cited sources, current tax rates, and no signup. Learn how our tools work and how we're funded."
 >
-  {/* Page header — solid navy, no gradient (distinct from homepage hero) */}
-  <section class="bg-[#0F1B2D] py-12 sm:py-16">
-    <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8">
+  {/* Page header */}
+  <section class="relative overflow-hidden bg-[#0F1B2D] py-12 sm:py-16">
+    <AuroraBackground intensity="medium" />
+    <div class="relative z-10 max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3">About CalcRun</h1>
       <p class="text-lg text-white/60">
         Financial calculators that show their working.

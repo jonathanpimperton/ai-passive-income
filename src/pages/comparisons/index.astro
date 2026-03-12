@@ -2,6 +2,7 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
+import AuroraBackground from '@components/ui/AuroraBackground.astro';
 import { getCollection } from 'astro:content';
 
 const comparisons = await getCollection('comparisons');
@@ -17,8 +18,9 @@ const breadcrumbs = [
   description="Compare financial options side by side. ISA vs general account, 15 vs 30-year mortgage, snowball vs avalanche, and more."
 >
   {/* Dark header */}
-  <div class="bg-[#0F1B2D] text-white">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+  <div class="relative overflow-hidden bg-[#0F1B2D] text-white">
+    <AuroraBackground intensity="medium" />
+    <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
       <Breadcrumb items={breadcrumbs} variant="dark" />
       <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mt-4 mb-3">Financial Comparisons</h1>
       <p class="text-lg text-white/70 max-w-2xl leading-relaxed">
