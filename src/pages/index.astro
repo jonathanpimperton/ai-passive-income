@@ -64,46 +64,101 @@ const ctaHooks = [
   structuredData={[websiteSchema]}
 >
   {/* ===== HERO ===== */}
-  <section class="hero-bg relative overflow-hidden py-16 sm:py-20 lg:py-24">
+  <section class="hero-bg relative overflow-hidden py-16 sm:py-20 lg:py-28">
     <AuroraBackground intensity="full" />
 
-    <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h1 class="hero-enter hero-enter-1 font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em] max-w-[700px] mx-auto">
-        Clear calculators for real financial decisions
-      </h1>
-      <p class="hero-enter hero-enter-2 mt-4 text-lg sm:text-xl text-white/70 max-w-[600px] mx-auto leading-relaxed">
-        Mortgage repayments, salary breakdowns, compound interest — calculated properly, explained clearly.
-      </p>
+    <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-12 lg:items-center">
+        {/* Left column: copy + search */}
+        <div class="text-center lg:text-left">
+          <h1 class="hero-enter hero-enter-1 font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-[-0.02em] max-w-[700px] mx-auto lg:mx-0">
+            Clear calculators for real financial decisions
+          </h1>
+          <p class="hero-enter hero-enter-2 mt-4 text-lg sm:text-xl text-white/70 max-w-[600px] mx-auto lg:mx-0 leading-relaxed">
+            Mortgage repayments, salary breakdowns, compound interest — calculated properly, explained clearly.
+          </p>
 
-      {/* Search bar */}
-      <div class="hero-enter hero-enter-3 mt-8 max-w-[520px] mx-auto relative">
-        <div class="relative">
-          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="search"
-            id="hero-search"
-            placeholder="Search 42 financial calculators & tools..."
-            class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-neutral-900 placeholder-neutral-400 text-base shadow-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary-400"
-            autocomplete="off"
-          />
-        </div>
-        {/* Search results dropdown */}
-        <div id="hero-search-results" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200/80 overflow-hidden z-50 hidden">
-        </div>
-      </div>
+          {/* Search bar */}
+          <div class="hero-enter hero-enter-3 mt-8 max-w-[520px] mx-auto lg:mx-0 relative">
+            <div class="relative">
+              <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="search"
+                id="hero-search"
+                placeholder="Search 42 financial calculators & tools..."
+                class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-neutral-900 placeholder-neutral-400 text-base shadow-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                autocomplete="off"
+              />
+            </div>
+            {/* Search results dropdown */}
+            <div id="hero-search-results" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200/80 overflow-hidden z-50 hidden">
+            </div>
+          </div>
 
-      {/* Quick-link pills */}
-      <div class="hero-enter hero-enter-4 mt-6 flex flex-wrap justify-center gap-2.5 sm:gap-2">
-        {quickLinks.map((link) => (
-          <a
-            href={`/tools/${link.category}/${link.slug}`}
-            class="inline-flex items-center px-4 py-2 sm:px-3.5 sm:py-1.5 rounded-full text-sm font-medium bg-white/10 text-white/90 border border-white/15 hover:bg-white/20 hover:border-white/25 transition-all duration-150"
-          >
-            {link.label}
-          </a>
-        ))}
+          {/* Quick-link pills */}
+          <div class="hero-enter hero-enter-4 mt-6 flex flex-wrap justify-center lg:justify-start gap-2.5 sm:gap-2">
+            {quickLinks.map((link) => (
+              <a
+                href={`/tools/${link.category}/${link.slug}`}
+                class="inline-flex items-center px-4 py-2 sm:px-3.5 sm:py-1.5 rounded-full text-sm font-medium bg-white/10 text-white/90 border border-white/15 hover:bg-white/20 hover:border-white/25 transition-all duration-150"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Right column: overlapping calculator result cards (desktop only) */}
+        <div class="hidden lg:block relative h-[340px]" aria-hidden="true">
+          {/* Back card: Compound Interest */}
+          <div class="hero-card hero-card-1 absolute top-0 left-0 w-[290px] bg-white rounded-xl shadow-lg p-5">
+            <div class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Compound Interest</div>
+            <div class="text-2xl font-bold text-primary-700 tabular-nums mb-1">£142,830</div>
+            <div class="text-xs text-neutral-400 mb-3">projected balance</div>
+            <svg class="w-full h-[50px]" viewBox="0 0 240 50" fill="none" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="hero-curve-fill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0B6E6E" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#0B6E6E" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,45 Q40,44 80,40 T160,25 T240,5" stroke="#0B6E6E" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path d="M0,45 Q40,44 80,40 T160,25 T240,5 L240,50 L0,50 Z" fill="url(#hero-curve-fill)"/>
+            </svg>
+          </div>
+
+          {/* Middle card: UK Salary */}
+          <div class="hero-card hero-card-2 absolute top-[55px] left-[90px] w-[290px] bg-white rounded-xl shadow-xl p-5">
+            <div class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">UK Salary</div>
+            <div class="text-2xl font-bold text-primary-700 tabular-nums mb-1">£2,851<span class="text-base font-medium text-neutral-400">/mo</span></div>
+            <div class="text-xs text-neutral-400 mb-3">monthly take-home on £45,000</div>
+            <div class="flex gap-1 h-[14px] rounded-full overflow-hidden">
+              <div class="bg-primary-600 rounded-l-full" style="width:63%" title="Take-home"></div>
+              <div class="bg-neutral-300" style="width:22%" title="Income Tax"></div>
+              <div class="bg-neutral-200 rounded-r-full" style="width:15%" title="National Insurance"></div>
+            </div>
+            <div class="flex justify-between mt-1.5 text-[10px] text-neutral-400">
+              <span>Take-home</span><span>Tax</span><span>NI</span>
+            </div>
+          </div>
+
+          {/* Front card: Mortgage Payment (largest, on top) */}
+          <div class="hero-card hero-card-3 absolute top-[115px] left-[180px] w-[310px] bg-white rounded-xl shadow-2xl p-6">
+            <div class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Mortgage Payment</div>
+            <div class="text-3xl font-bold text-primary-700 tabular-nums mb-1">£1,389<span class="text-lg font-medium text-neutral-400">/mo</span></div>
+            <div class="text-xs text-neutral-400 mb-3">£250,000 · 25 years · 4.5%</div>
+            <div class="flex items-end gap-[3px] h-[40px]">
+              {[38,35,32,29,26,22,18,14,10,7,4,2].map((h) => (
+                <div class="flex-1 rounded-sm bg-primary-500/80" style={`height:${h}px`}></div>
+              ))}
+            </div>
+            <div class="flex justify-between mt-1.5 text-[10px] text-neutral-400">
+              <span>Year 1</span><span>Year 25</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -392,6 +447,25 @@ const ctaHooks = [
   }
 
   @keyframes hero-text-reveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ===== HERO CALCULATOR CARDS ENTRANCE ===== */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-card {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: hero-card-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .hero-card-1 { animation-delay: 0.5s; }
+    .hero-card-2 { animation-delay: 0.65s; }
+    .hero-card-3 { animation-delay: 0.8s; }
+  }
+
+  @keyframes hero-card-reveal {
     to {
       opacity: 1;
       transform: translateY(0);
