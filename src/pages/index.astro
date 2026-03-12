@@ -113,10 +113,10 @@ const ctaHooks = [
         {/* Right column: overlapping calculator result cards (desktop only) */}
         <div class="hidden lg:block relative h-[340px]" aria-hidden="true">
           {/* Back card: Compound Interest */}
-          <div class="hero-card hero-card-1 absolute top-0 left-0 w-[290px] bg-white rounded-xl shadow-lg p-5">
-            <div class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Compound Interest</div>
-            <div class="text-2xl font-bold text-primary-700 tabular-nums mb-1">£142,830</div>
-            <div class="text-xs text-neutral-400 mb-3">projected balance</div>
+          <div class="hero-card hero-card-1 absolute top-0 left-0 w-[290px] rounded-xl shadow-lg p-5" style="background:#fff;color:#525252">
+            <div class="text-xs font-semibold uppercase tracking-wide mb-2" style="color:#737373">Compound Interest</div>
+            <div class="text-2xl font-bold tabular-nums mb-1" style="color:#0B6E6E">£142,830</div>
+            <div class="text-xs mb-3" style="color:#737373">projected balance</div>
             <svg class="w-full h-[50px]" viewBox="0 0 240 50" fill="none" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="hero-curve-fill" x1="0" y1="0" x2="0" y2="1">
@@ -130,31 +130,31 @@ const ctaHooks = [
           </div>
 
           {/* Middle card: UK Salary */}
-          <div class="hero-card hero-card-2 absolute top-[55px] left-[90px] w-[290px] bg-white rounded-xl shadow-xl p-5">
-            <div class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">UK Salary</div>
-            <div class="text-2xl font-bold text-primary-700 tabular-nums mb-1">£2,851<span class="text-base font-medium text-neutral-400">/mo</span></div>
-            <div class="text-xs text-neutral-400 mb-3">monthly take-home on £45,000</div>
+          <div class="hero-card hero-card-2 absolute top-[55px] left-[90px] w-[290px] rounded-xl shadow-xl p-5" style="background:#fff;color:#525252">
+            <div class="text-xs font-semibold uppercase tracking-wide mb-2" style="color:#737373">UK Salary</div>
+            <div class="text-2xl font-bold tabular-nums mb-1" style="color:#0B6E6E">£2,851<span class="text-base font-medium" style="color:#737373">/mo</span></div>
+            <div class="text-xs mb-3" style="color:#737373">monthly take-home on £45,000</div>
             <div class="flex gap-1 h-[14px] rounded-full overflow-hidden">
-              <div class="bg-primary-600 rounded-l-full" style="width:63%" title="Take-home"></div>
-              <div class="bg-neutral-300" style="width:22%" title="Income Tax"></div>
-              <div class="bg-neutral-200 rounded-r-full" style="width:15%" title="National Insurance"></div>
+              <div class="rounded-l-full" style="width:63%;background:#0B6E6E" title="Take-home"></div>
+              <div style="width:22%;background:#d4d4d4" title="Income Tax"></div>
+              <div class="rounded-r-full" style="width:15%;background:#e5e5e5" title="National Insurance"></div>
             </div>
-            <div class="flex justify-between mt-1.5 text-[10px] text-neutral-400">
+            <div class="flex justify-between mt-1.5 text-[10px]" style="color:#737373">
               <span>Take-home</span><span>Tax</span><span>NI</span>
             </div>
           </div>
 
           {/* Front card: Mortgage Payment (largest, on top) */}
-          <div class="hero-card hero-card-3 absolute top-[115px] left-[180px] w-[310px] bg-white rounded-xl shadow-2xl p-6">
-            <div class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Mortgage Payment</div>
-            <div class="text-3xl font-bold text-primary-700 tabular-nums mb-1">£1,389<span class="text-lg font-medium text-neutral-400">/mo</span></div>
-            <div class="text-xs text-neutral-400 mb-3">£250,000 · 25 years · 4.5%</div>
+          <div class="hero-card hero-card-3 absolute top-[115px] left-[180px] w-[310px] rounded-xl shadow-2xl p-6" style="background:#fff;color:#525252">
+            <div class="text-xs font-semibold uppercase tracking-wide mb-2" style="color:#737373">Mortgage Payment</div>
+            <div class="text-3xl font-bold tabular-nums mb-1" style="color:#0B6E6E">£1,389<span class="text-lg font-medium" style="color:#737373">/mo</span></div>
+            <div class="text-xs mb-3" style="color:#737373">£250,000 · 25 years · 4.5%</div>
             <div class="flex items-end gap-[3px] h-[40px]">
               {[38,35,32,29,26,22,18,14,10,7,4,2].map((h) => (
-                <div class="flex-1 rounded-sm bg-primary-500/80" style={`height:${h}px`}></div>
+                <div class="flex-1 rounded-sm" style={`height:${h}px;background:rgba(11,110,110,0.8)`}></div>
               ))}
             </div>
-            <div class="flex justify-between mt-1.5 text-[10px] text-neutral-400">
+            <div class="flex justify-between mt-1.5 text-[10px]" style="color:#737373">
               <span>Year 1</span><span>Year 25</span>
             </div>
           </div>
@@ -327,7 +327,7 @@ const ctaHooks = [
               )}
               {catSlug === 'utility' && (
                 <div class="mt-14 mb-8 pt-8 border-t-2 border-neutral-200">
-                  <p class="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Developer & File Tools</p>
+                  <p class="text-xs font-semibold text-neutral-500 uppercase tracking-widest">Developer & File Tools</p>
                 </div>
               )}
               {isFileTools && (
