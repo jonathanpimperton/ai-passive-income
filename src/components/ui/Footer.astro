@@ -8,7 +8,10 @@ const footerCalcs = ['compound-interest', 'loan-amortization', 'retirement-savin
   .map((slug) => TOOLS.find((t) => t.slug === slug))
   .filter((t) => t !== undefined);
 
-const utilityTools = TOOLS.filter((t) => t.category === 'utility');
+const moreTools = [
+  ...TOOLS.filter((t) => t.category === 'economic').slice(0, 2),
+  ...TOOLS.filter((t) => t.category === 'utility').slice(0, 2),
+];
 ---
 
 <footer class="footer-dark mt-auto">
@@ -64,13 +67,19 @@ const utilityTools = TOOLS.filter((t) => t.category === 'utility');
         </ul>
       </div>
 
-      {/* Utility Tools */}
+      {/* More Tools */}
       <div>
-        <h3 class="text-sm font-semibold text-white/80 mb-4">Utility Tools</h3>
+        <h3 class="text-sm font-semibold text-white/80 mb-4">More Tools</h3>
         <ul class="space-y-2.5 text-sm">
-          {utilityTools.map((tool) => (
+          {moreTools.map((tool) => (
             <li><a href={getToolPath(tool)} class="text-white/50 hover:text-white transition-colors duration-150">{tool.name}</a></li>
           ))}
+          <li>
+            <a href="/tools" class="inline-flex items-center gap-1 text-primary-400 dark:text-primary-500 hover:text-primary-300 font-medium transition-colors duration-150">
+              All tools
+              <ToolIcon name="arrow-right" size={14} />
+            </a>
+          </li>
         </ul>
       </div>
 

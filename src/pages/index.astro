@@ -45,7 +45,7 @@ const FINANCIAL_CATEGORIES: CategorySlug[] = ['saving-and-growth', 'debt-and-loa
 const financialCategoryData = FINANCIAL_CATEGORIES.map((catSlug) => ({
   slug: catSlug,
   ...CATEGORIES[catSlug],
-  tools: TOOLS.filter((t) => t.category === catSlug).slice(0, 3),
+  tools: TOOLS.filter((t) => t.category === catSlug).slice(0, 2),
   totalCount: TOOLS.filter((t) => t.category === catSlug).length,
 }));
 
@@ -194,23 +194,23 @@ const searchIndex = JSON.stringify(TOOLS.map((t) => ({
     </div>
   </section>
 
-  {/* ===== QUESTIONS CTA (moved above Popular — stronger start-here for new visitors) ===== */}
-  <section class="relative overflow-hidden bg-[#0F1B2D] py-14 sm:py-16">
+  {/* ===== QUESTIONS CTA ===== */}
+  <section class="relative overflow-hidden bg-[#0F1B2D] py-10 sm:py-12">
     <AuroraBackground intensity="subtle" />
     <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-[900px]">
         <h2 class="font-serif text-2xl sm:text-3xl font-bold text-white mb-3">Start with a question that matters to you</h2>
-        <p class="text-white/50 mb-8 text-sm sm:text-base">Pick one and get your answer in under a minute.</p>
+        <p class="text-white/50 mb-6 text-sm sm:text-base">Pick one and get your answer in under a minute.</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[900px]">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-[900px]">
         {ctaHooks.map((hook) => (
           <a
             href={hook.link}
-            class="group bg-white/[0.07] border border-white/10 rounded-lg p-6 hover:bg-white/[0.12] hover:border-white/20 transition-all duration-200 text-left"
+            class="group bg-white/[0.05] border border-white/[0.08] rounded-lg p-5 hover:bg-white/[0.10] hover:border-white/15 transition-all duration-200 text-left"
           >
-            <p class="text-white font-semibold text-lg mb-2">{hook.text}</p>
-            <p class="text-white/50 text-sm mb-3">{hook.description}</p>
+            <p class="text-white font-semibold mb-1.5">{hook.text}</p>
+            <p class="text-white/60 text-sm mb-2.5">{hook.description}</p>
             <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-400 group-hover:text-accent-300 transition-colors duration-150">
               {hook.label}
               <ToolIcon name="arrow-right" size={14} />
@@ -304,13 +304,17 @@ const searchIndex = JSON.stringify(TOOLS.map((t) => ({
                 </a>
               ))}
             </div>
-            {cat.totalCount > 3 && (
+            {cat.totalCount > 2 && (
               <a
                 href={`/tools#${cat.slug}`}
-                class="inline-flex items-center gap-1 mt-3 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors duration-150"
+                class="group flex items-center gap-3 rounded-lg p-3 -mx-1 hover:bg-primary-50/50 transition-colors duration-150"
               >
-                All {cat.totalCount} {cat.label.toLowerCase()} tools
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-neutral-100 text-neutral-400 group-hover:bg-primary-100 group-hover:text-primary-600 transition-all duration-200 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </div>
+                <span class="text-sm font-medium text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
+                  See all {cat.totalCount} tools
+                </span>
               </a>
             )}
           </div>
@@ -319,7 +323,7 @@ const searchIndex = JSON.stringify(TOOLS.map((t) => ({
 
       <div class="mt-10 text-center">
         <a href="/tools" class="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-          View all {TOOLS.length} tools including file converters and utilities
+          Explore all tools
           <ToolIcon name="arrow-right" size={16} />
         </a>
       </div>
@@ -339,19 +343,39 @@ const searchIndex = JSON.stringify(TOOLS.map((t) => ({
         </a>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {featuredComparisons.map((comp) => (
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6">
+        {/* Lead article — larger */}
+        {featuredComparisons[0] && (
+          <a
+            href={`/comparisons/${featuredComparisons[0].data.slug}`}
+            class="group bg-white border border-neutral-200/80 rounded-lg shadow-card hover:shadow-card-hover hover:border-primary-500/40 transition-all duration-200 hover:-translate-y-0.5 p-7 flex flex-col lg:row-span-2"
+          >
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-50 text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-200 mb-5">
+              <ToolIcon name="scale" size={24} />
+            </div>
+            <h3 class="font-serif font-semibold text-xl text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-3 leading-snug">
+              {featuredComparisons[0].data.title}
+            </h3>
+            <p class="text-neutral-500 leading-relaxed mb-5">{featuredComparisons[0].data.description}</p>
+            <span class="inline-flex items-center gap-1 mt-auto text-sm font-semibold text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
+              Read the full comparison
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </span>
+          </a>
+        )}
+        {/* Supporting articles — stacked */}
+        {featuredComparisons.slice(1).map((comp) => (
           <a
             href={`/comparisons/${comp.data.slug}`}
             class="group bg-white border border-neutral-200/80 rounded-lg shadow-card hover:shadow-card-hover hover:border-primary-500/40 transition-all duration-200 hover:-translate-y-0.5 p-6 flex flex-col"
           >
-            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-accent-50 text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-200 mb-4">
-              <ToolIcon name="scale" size={22} />
+            <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-50 text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-200 mb-3">
+              <ToolIcon name="scale" size={20} />
             </div>
-            <h3 class="font-semibold text-lg text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-2 leading-snug">
+            <h3 class="font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-1.5 leading-snug">
               {comp.data.title}
             </h3>
-            <p class="text-sm text-neutral-500 leading-relaxed mb-4">{comp.data.description}</p>
+            <p class="text-sm text-neutral-500 leading-relaxed mb-3">{comp.data.description}</p>
             <span class="inline-flex items-center gap-1 mt-auto text-sm font-semibold text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
               Read the comparison
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
