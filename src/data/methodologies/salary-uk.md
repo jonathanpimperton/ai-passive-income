@@ -41,7 +41,7 @@ dataSources:
   - name: "GOV.UK — Student Loan Repayment"
     url: "https://www.gov.uk/repaying-your-student-loan/what-you-pay"
   - name: "Scottish Government — Scottish Income Tax 2025-2026"
-    url: "https://www.gov.scot/publications/scottish-income-tax-2025-2026/"
+    url: "https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/"
 ---
 
 ## What This Calculator Does

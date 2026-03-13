@@ -31,7 +31,7 @@ dataSources:
   - name: "Student loan repayment thresholds"
     url: "https://www.gov.uk/repaying-your-student-loan/what-you-pay"
   - name: "Scottish Income Tax rates 2025/26"
-    url: "https://www.gov.scot/publications/scottish-income-tax-2025-2026/"
+    url: "https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/"
   - name: "State Pension rates"
     url: "https://www.gov.uk/new-state-pension/what-youll-get"
 faq:
