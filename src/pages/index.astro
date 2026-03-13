@@ -87,7 +87,7 @@ const ctaHooks = [
               <input
                 type="search"
                 id="hero-search"
-                placeholder="Search 42 financial calculators & tools..."
+                placeholder="Search 44 financial calculators & tools..."
                 class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-neutral-900 placeholder-neutral-400 text-base shadow-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 autocomplete="off"
               />
@@ -118,9 +118,9 @@ const ctaHooks = [
         </div>
 
         {/* Right column: overlapping calculator result cards (desktop only) */}
-        <div class="hidden lg:block relative h-[380px]" aria-hidden="true">
+        <div class="hidden lg:block relative h-[400px]" aria-hidden="true">
           {/* Back card: Compound Interest — offset left so title + number are visible */}
-          <div class="hero-card hero-card-1 absolute top-0 left-0 w-[300px] rounded-xl shadow-lg overflow-hidden" style="background:#fff;color:#525252">
+          <div class="hero-card hero-card-1 absolute top-[10px] left-0 w-[300px] rounded-xl shadow-lg overflow-hidden" style="background:#fff;color:#525252">
             <div class="px-5 pt-4 pb-1">
               <div class="flex items-center justify-between mb-3">
                 <div class="text-[11px] font-semibold uppercase tracking-wide" style="color:#525252">Compound Interest</div>
@@ -130,7 +130,7 @@ const ctaHooks = [
                 </div>
               </div>
               <div class="text-[26px] font-bold tabular-nums lining-nums mb-0.5" style="color:#0B6E6E">£142,830</div>
-              <div class="text-[11px] mb-2" style="color:#636363">from £50,000 · 20 years · 5.5% p.a.</div>
+              <div class="text-[11px] mb-2" style="color:#525252">from £50,000 · 20 years · 5.5% p.a.</div>
             </div>
             <svg class="w-full h-[52px]" viewBox="0 0 300 52" fill="none" preserveAspectRatio="none">
               <defs>
@@ -145,31 +145,31 @@ const ctaHooks = [
           </div>
 
           {/* Middle card: UK Salary — staggered to show title + number clearly */}
-          <div class="hero-card hero-card-2 absolute top-[75px] left-[70px] w-[300px] rounded-xl shadow-xl p-5" style="background:#fff;color:#525252">
+          <div class="hero-card hero-card-2 absolute top-[90px] left-[70px] w-[300px] rounded-xl shadow-xl p-5" style="background:#fff;color:#525252">
             <div class="flex items-center justify-between mb-3">
               <div class="text-[11px] font-semibold uppercase tracking-wide" style="color:#525252">UK Salary</div>
               <div class="text-[10px] px-1.5 py-0.5 rounded font-medium" style="background:#f0fdfa;color:#0B6E6E">2025/26</div>
             </div>
-            <div class="text-[26px] font-bold tabular-nums lining-nums mb-0.5" style="color:#0B6E6E">£2,851<span class="text-base font-medium" style="color:#636363">/mo</span></div>
-            <div class="text-[11px] mb-3" style="color:#636363">take-home on £45,000 gross</div>
+            <div class="text-[26px] font-bold tabular-nums lining-nums mb-0.5" style="color:#0B6E6E">£2,851<span class="text-base font-medium" style="color:#525252">/mo</span></div>
+            <div class="text-[11px] mb-3" style="color:#525252">take-home on £45,000 gross</div>
             <div class="flex gap-[3px] h-[14px] rounded-full overflow-hidden">
               <div class="rounded-l-full" style="width:63%;background:#0B6E6E" title="Take-home 63%"></div>
               <div style="width:22%;background:#c4b5a3" title="Income Tax 22%"></div>
               <div class="rounded-r-full" style="width:15%;background:#e0d9cf" title="NI 15%"></div>
             </div>
-            <div class="flex justify-between mt-1.5 text-[10px]" style="color:#636363">
+            <div class="flex justify-between mt-1.5 text-[10px]" style="color:#525252">
               <span>Take-home 63%</span><span>Tax 22%</span><span>NI 15%</span>
             </div>
           </div>
 
-          {/* Front card: Mortgage Payment — largest, anchored right */}
-          <div class="hero-card hero-card-3 absolute top-[155px] right-0 w-[320px] rounded-xl shadow-2xl p-5" style="background:#fff;color:#525252">
+          {/* Front card: Mortgage Payment — anchored right, slightly smaller to balance stack */}
+          <div class="hero-card hero-card-3 absolute top-[175px] right-0 w-[300px] rounded-xl shadow-2xl p-5" style="background:#fff;color:#525252">
             <div class="flex items-center justify-between mb-3">
               <div class="text-[11px] font-semibold uppercase tracking-wide" style="color:#525252">Mortgage Payment</div>
               <div class="text-[10px] px-1.5 py-0.5 rounded font-medium" style="background:#fef2f2;color:#9a3412">25 yr fixed</div>
             </div>
-            <div class="text-[28px] font-bold tabular-nums lining-nums mb-0.5" style="color:#0B6E6E">£1,389<span class="text-base font-medium" style="color:#636363">/mo</span></div>
-            <div class="text-[11px] mb-3" style="color:#636363">£250,000 loan · 4.5% interest</div>
+            <div class="text-[26px] font-bold tabular-nums lining-nums mb-0.5" style="color:#0B6E6E">£1,389<span class="text-base font-medium" style="color:#525252">/mo</span></div>
+            <div class="text-[11px] mb-3" style="color:#525252">£250,000 loan · 4.5% interest</div>
             <div class="grid grid-cols-2 gap-3 mb-3">
               <div class="rounded-lg px-3 py-2" style="background:#f9fafb">
                 <div class="text-[10px] mb-0.5" style="color:#525252">Total interest</div>
@@ -185,7 +185,7 @@ const ctaHooks = [
                 <div class="flex-1 rounded-sm" style={`height:${h}px;background:rgba(11,110,110,0.75)`}></div>
               ))}
             </div>
-            <div class="flex justify-between mt-1 text-[10px]" style="color:#636363">
+            <div class="flex justify-between mt-1 text-[10px]" style="color:#525252">
               <span>Interest (Yr 1)</span><span>Interest (Yr 25)</span>
             </div>
           </div>
