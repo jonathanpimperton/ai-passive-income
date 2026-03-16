@@ -129,9 +129,9 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
         <SegmentedBar segments={segments} />
         <a
           href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
         >
-          See full breakdown
+          Open full calculator
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
         </a>
       </div>
@@ -216,9 +216,9 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
         <SegmentedBar segments={segments} />
         <a
           href="/tools/debt-and-loans/mortgage-affordability"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
         >
-          See full breakdown
+          Open full calculator
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
         </a>
       </div>
@@ -293,9 +293,9 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
         <SegmentedBar segments={segments} />
         <a
           href="/tools/saving-and-growth/compound-interest"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
         >
-          See full breakdown
+          Open full calculator
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
         </a>
       </div>
@@ -470,6 +470,18 @@ export default function DecisionEngine() {
             </div>
           );
         })}
+      </div>
+
+      {/* View all link */}
+      <div className="mt-6 text-center">
+        <p className="text-xs text-neutral-400 mb-2">These are quick estimates. Each full calculator has more inputs, charts, and exportable results.</p>
+        <a
+          href="/tools"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150"
+        >
+          View all calculators & tools
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+        </a>
       </div>
     </>
   );
