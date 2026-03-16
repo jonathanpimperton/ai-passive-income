@@ -77,6 +77,80 @@ function SegmentedBar({ segments }: { segments: BarSegment[] }) {
   );
 }
 
+/* ── Mortgage Bar — thick capacity gauge ─────────────────── */
+
+function MortgageBar({ segments }: { segments: BarSegment[] }) {
+  const total = segments.reduce((s, seg) => s + seg.value, 0);
+  if (total <= 0) return null;
+
+  return (
+    <div>
+      <div className="flex gap-[3px] h-4 rounded-full overflow-hidden">
+        {segments.map((seg) => {
+          const pct = (seg.value / total) * 100;
+          if (pct < 0.5) return null;
+          return (
+            <div
+              key={seg.label}
+              className={`first:rounded-l-full last:rounded-r-full transition-all duration-300 ${seg.className}`}
+              style={{ width: `${pct}%` }}
+              title={`${seg.label}: ${pct.toFixed(0)}%`}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-1.5">
+        {segments.map((seg) => {
+          const pct = total > 0 ? (seg.value / total) * 100 : 0;
+          if (pct < 5) return null;
+          return (
+            <span key={seg.label} className="text-[11px] text-neutral-500">
+              {seg.label} {pct.toFixed(0)}%
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Salary Bar — thick who-takes-what split ─────────────── */
+
+function SalaryBar({ segments }: { segments: BarSegment[] }) {
+  const total = segments.reduce((s, seg) => s + seg.value, 0);
+  if (total <= 0) return null;
+
+  return (
+    <div>
+      <div className="flex gap-[3px] h-5 rounded-full overflow-hidden">
+        {segments.map((seg) => {
+          const pct = (seg.value / total) * 100;
+          if (pct < 0.5) return null;
+          return (
+            <div
+              key={seg.label}
+              className={`first:rounded-l-full last:rounded-r-full transition-all duration-300 ${seg.className}`}
+              style={{ width: `${pct}%` }}
+              title={`${seg.label}: ${pct.toFixed(0)}%`}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-1.5">
+        {segments.map((seg) => {
+          const pct = total > 0 ? (seg.value / total) * 100 : 0;
+          if (pct < 5) return null;
+          return (
+            <span key={seg.label} className="text-xs font-medium text-neutral-500">
+              {seg.label} {pct.toFixed(0)}%
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ── Salary Panel ────────────────────────────────────────── */
 
 function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: SalaryState) => void }) {
@@ -115,18 +189,18 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
 
   return (
     <div className="space-y-5">
-      {/* Result — the star */}
+      {/* Result — who takes what */}
       <div className="space-y-3">
         <div>
-          <p className="text-sm text-neutral-500 mb-1">Monthly take-home</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
-            {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-lg font-medium text-neutral-500">/mo</span>
+          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">You actually take home</p>
+          <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+            {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-xl font-medium text-neutral-400">/mo</span>
           </p>
         </div>
-        <p className="text-sm text-neutral-500">
-          You keep {result.keepPct.toFixed(0)}% — {state.country === 'uk' ? 'tax' : 'federal tax'}: {symbol}{formatNumber(Math.round(result.tax))}, {state.country === 'uk' ? 'NI' : 'FICA'}: {symbol}{formatNumber(Math.round(state.country === 'uk' ? result.ni! : result.fica!))}
+        <p className="text-sm text-neutral-600 font-medium">
+          {result.keepPct.toFixed(0)}% is yours. {(100 - Number(result.keepPct.toFixed(0)))}% goes to {state.country === 'uk' ? 'tax and NI' : 'federal tax and FICA'}.
         </p>
-        <SegmentedBar segments={segments} />
+        <SalaryBar segments={segments} />
         <a
           href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
@@ -201,19 +275,18 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
 
   return (
     <div className="space-y-5">
-      {/* Result — the star */}
+      {/* Result — capacity gauge */}
       <div className="space-y-3">
         <div>
-          <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
+          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">Your buying power</p>
+          <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
             ${formatNumber(Math.round(animatedPrice))}
           </p>
         </div>
         <p className="text-sm text-neutral-500">
-          Monthly payment: ${formatNumber(Math.round(result.monthlyPayment))} at {(MORTGAGE_RATE * 100).toFixed(2)}% / {MORTGAGE_TERM_YEARS}yr
+          ${formatNumber(Math.round(result.monthlyPayment))}/mo at {(MORTGAGE_RATE * 100).toFixed(2)}% over {MORTGAGE_TERM_YEARS} years
         </p>
-        <p className="text-xs text-neutral-400">Assumes {(MORTGAGE_DTI * 100).toFixed(0)}% debt-to-income ratio</p>
-        <SegmentedBar segments={segments} />
+        <MortgageBar segments={segments} />
         <a
           href="/tools/debt-and-loans/mortgage-affordability"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
@@ -272,24 +345,24 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
   const animatedBalance = useAnimatedNumber(result.finalBalance);
 
   const segments: BarSegment[] = [
-    { label: 'Interest earned', value: result.interestEarned, className: 'bg-primary-500' },
+    { label: 'Interest earned', value: result.interestEarned, className: 'bg-accent-500' },
     { label: 'Your contributions', value: result.totalContributions, className: 'bg-neutral-300' },
   ];
 
   return (
     <div className="space-y-5">
-      {/* Result — the star */}
+      {/* Result — growth overpowering contributions */}
       <div className="space-y-3">
         <div>
-          <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
+          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">After {SNOWBALL_YEARS} years</p>
+          <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
             ${formatNumber(Math.round(animatedBalance))}
           </p>
         </div>
-        <p className="text-sm text-neutral-500">
-          Your money earns ${formatNumber(Math.round(result.interestEarned))} in interest — {result.multiplier.toFixed(1)}x what you put in
-        </p>
-        <p className="text-xs text-neutral-400">Monthly compounding, {SNOWBALL_YEARS} years, no initial lump sum</p>
+        <div className="flex items-baseline gap-3">
+          <span className="text-2xl font-bold text-accent-600">{result.multiplier.toFixed(1)}x</span>
+          <span className="text-sm text-neutral-500">your money back — ${formatNumber(Math.round(result.interestEarned))} is pure interest</span>
+        </div>
         <SegmentedBar segments={segments} />
         <a
           href="/tools/saving-and-growth/compound-interest"
@@ -398,7 +471,7 @@ export default function DecisionEngine() {
       {/* ── Desktop layout (lg+) ─────────────────────────────── */}
       <div className="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
         {/* Tab list */}
-        <div role="tablist" aria-label="Choose a financial question" className="space-y-2">
+        <div role="tablist" aria-label="Choose a financial question" className="space-y-1">
           {PROMPTS.map((p) => (
             <button
               key={p.id}
@@ -409,13 +482,13 @@ export default function DecisionEngine() {
               tabIndex={active === p.id ? 0 : -1}
               onClick={() => switchPrompt(p.id)}
               onKeyDown={(e) => handleTabKeyDown(e, p.id)}
-              className={`w-full text-left px-5 py-5 rounded-lg transition-all duration-200 border-l-[3px] ${
+              className={`w-full text-left px-5 py-6 transition-all duration-200 border-l-[4px] ${
                 active === p.id
-                  ? 'border-l-primary-500 bg-primary-50 font-bold text-neutral-900'
-                  : 'border-l-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50'
+                  ? 'border-l-primary-500 font-bold text-neutral-900'
+                  : 'border-l-transparent text-neutral-600 hover:text-neutral-900 hover:border-l-neutral-300'
               }`}
             >
-              <span className="text-[17px] leading-snug">{p.question}</span>
+              <span className="text-xl leading-relaxed">{p.question}</span>
             </button>
           ))}
         </div>

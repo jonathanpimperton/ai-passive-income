@@ -47,8 +47,8 @@ test.describe('Homepage', () => {
     // Look for a visible engine-panel that contains result text
     const visiblePanel = page.locator('.engine-panel:visible');
     await expect(visiblePanel.first()).toBeVisible({ timeout: 10000 });
-    // Should contain a mortgage result ($ amount) or any calculator result
-    await expect(visiblePanel.first().getByText(/afford up to/)).toBeVisible();
+    // Should contain a mortgage result (buying power label)
+    await expect(visiblePanel.first().getByText(/buying power/i)).toBeVisible();
   });
 
   test('has meta description and og:image', async ({ page }) => {
