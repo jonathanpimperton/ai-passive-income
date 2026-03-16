@@ -79,9 +79,8 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-4 sm:mb-5">
         <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 tracking-[-0.02em]">
-          Choose a question. See the consequence.
+          Financial calculators for salary, mortgages, investing, debt, and retirement
         </h1>
-        <p class="mt-3 text-neutral-500 text-base sm:text-lg">Financial calculators for mortgages, salary, investing, debt, retirement, and more.</p>
       </div>
 
       {/* Server-rendered skeleton — replaced by React on hydrate */}
@@ -89,6 +88,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
         <div class="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
           {/* Tab list skeleton */}
           <div>
+            <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider px-5 mb-2">What question do you have?</h2>
             <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-primary-500 font-bold text-neutral-900">
               <span class="text-xl leading-relaxed">Can I actually afford this house?</span>
             </div>
@@ -98,17 +98,29 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
               <span class="text-xl leading-relaxed">What does this salary really become?</span>
             </div>
+            <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
+              <span class="text-xl leading-relaxed">Should I invest in solar panels?</span>
+            </div>
           </div>
 
           {/* Result panel skeleton — mortgage result first */}
           <div class="engine-panel rounded-xl p-6 sm:p-8">
             <div class="space-y-5">
               <div class="space-y-3">
-                <div>
-                  <p class="text-sm text-neutral-500 mb-1">You could afford up to</p>
-                  <p class="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
-                    ${formatNumber(Math.round(defaultMaxPrice))}
-                  </p>
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <p class="text-sm text-neutral-500 mb-1">You could afford up to</p>
+                    <p class="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+                      ${formatNumber(Math.round(defaultMaxPrice))}
+                    </p>
+                  </div>
+                  <a
+                    href="/tools/debt-and-loans/mortgage-affordability"
+                    class="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+                  >
+                    Open full calculator
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  </a>
                 </div>
                 <p class="text-sm text-neutral-500">
                   ${formatNumber(Math.round(defaultMortgagePayment))}/mo at {(MORTGAGE_RATE * 100).toFixed(2)}% over {MORTGAGE_TERM_YEARS} years
@@ -123,13 +135,6 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
                     <span class="text-[11px] text-neutral-500">Down payment {defaultDownPct}%</span>
                   </div>
                 </div>
-                <a
-                  href="/tools/debt-and-loans/mortgage-affordability"
-                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
-                >
-                  Open full calculator
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </a>
               </div>
 
               <div class="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent"></div>
@@ -152,6 +157,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
 
         {/* Mobile skeleton: first accordion open — mortgage */}
         <div class="lg:hidden space-y-3">
+          <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider px-1 mb-1">What question do you have?</h2>
           <div class="rounded-xl overflow-hidden border border-neutral-200/80">
             <div class="w-full text-left px-5 py-4 flex items-center justify-between bg-primary-50 font-semibold text-neutral-900">
               <span class="text-[15px] font-medium leading-snug">Can I actually afford this house?</span>
@@ -173,6 +179,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
           </div>
           <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">How fast does $500/mo snowball?</div>
           <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">What does this salary really become?</div>
+          <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">Should I invest in solar panels?</div>
         </div>
       </div>
 

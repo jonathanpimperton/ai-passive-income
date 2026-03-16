@@ -9,7 +9,7 @@ import SliderInput from '../ui/SliderInput';
 
 /* ── Types ───────────────────────────────────────────────── */
 
-type PromptId = 0 | 1 | 2;
+type PromptId = 0 | 1 | 2 | 3;
 
 interface SalaryState {
   gross: number;
@@ -26,12 +26,18 @@ interface SnowballState {
   rate: number;
 }
 
+interface SolarState {
+  systemCost: number;
+  electricityBill: number;
+}
+
 /* ── Prompt Config ───────────────────────────────────────── */
 
 const PROMPTS = [
   { id: 0 as const, question: 'Can I actually afford this house?', short: 'Mortgage' },
   { id: 1 as const, question: 'How fast does $500/mo snowball?', short: 'Compound' },
   { id: 2 as const, question: 'What does this salary really become?', short: 'Salary' },
+  { id: 3 as const, question: 'Should I invest in solar panels?', short: 'Solar' },
 ];
 
 /* ── Segmented Bar ───────────────────────────────────────── */
@@ -191,23 +197,25 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
     <div className="space-y-5">
       {/* Result — who takes what */}
       <div className="space-y-3">
-        <div>
-          <p className="text-sm text-neutral-500 mb-1">You actually take home</p>
-          <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
-            {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-xl font-medium text-neutral-400">/mo</span>
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-neutral-500 mb-1">You actually take home</p>
+            <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+              {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-xl font-medium text-neutral-400">/mo</span>
+            </p>
+          </div>
+          <a
+            href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+          >
+            Open full calculator
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </a>
         </div>
         <p className="text-sm text-neutral-600 font-medium">
           {result.keepPct.toFixed(0)}% is yours. {(100 - Number(result.keepPct.toFixed(0)))}% goes to {state.country === 'uk' ? 'tax and NI' : 'federal tax and FICA'}.
         </p>
         <SalaryBar segments={segments} />
-        <a
-          href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
-        >
-          Open full calculator
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-        </a>
       </div>
 
       <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
@@ -277,23 +285,25 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
     <div className="space-y-5">
       {/* Result — capacity gauge */}
       <div className="space-y-3">
-        <div>
-          <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
-          <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
-            ${formatNumber(Math.round(animatedPrice))}
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
+            <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+              ${formatNumber(Math.round(animatedPrice))}
+            </p>
+          </div>
+          <a
+            href="/tools/debt-and-loans/mortgage-affordability"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+          >
+            Open full calculator
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </a>
         </div>
         <p className="text-sm text-neutral-500">
           ${formatNumber(Math.round(result.monthlyPayment))}/mo at {(MORTGAGE_RATE * 100).toFixed(2)}% over {MORTGAGE_TERM_YEARS} years
         </p>
         <MortgageBar segments={segments} />
-        <a
-          href="/tools/debt-and-loans/mortgage-affordability"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
-        >
-          Open full calculator
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-        </a>
       </div>
 
       <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
@@ -353,24 +363,26 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
     <div className="space-y-5">
       {/* Result — growth overpowering contributions */}
       <div className="space-y-3">
-        <div>
-          <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
-          <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
-            ${formatNumber(Math.round(animatedBalance))}
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
+            <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+              ${formatNumber(Math.round(animatedBalance))}
+            </p>
+          </div>
+          <a
+            href="/tools/saving-and-growth/compound-interest"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+          >
+            Open full calculator
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </a>
         </div>
         <div className="flex items-baseline gap-3">
           <span className="text-2xl font-bold text-accent-600">{result.multiplier.toFixed(1)}x</span>
           <span className="text-sm text-neutral-500">your money back — ${formatNumber(Math.round(result.interestEarned))} is pure interest</span>
         </div>
         <SegmentedBar segments={segments} />
-        <a
-          href="/tools/saving-and-growth/compound-interest"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150 mt-2"
-        >
-          Open full calculator
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-        </a>
       </div>
 
       <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
@@ -406,6 +418,124 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
   );
 }
 
+/* ── Solar Panel ────────────────────────────────────────── */
+
+const SOLAR_SYSTEM_SIZE = 4; // kWp
+const SOLAR_KWH_PER_KWP = 900;
+const SOLAR_SELF_CONSUMPTION = 0.30;
+const SOLAR_EXPORT_TARIFF = 4.5; // p/kWh
+const SOLAR_ENERGY_INFLATION = 0.03;
+const SOLAR_DEGRADATION = 0.005;
+const SOLAR_MAINTENANCE = 150;
+const SOLAR_YEARS = 25;
+
+function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: SolarState) => void }) {
+  const result = useMemo(() => {
+    const annualGeneration = SOLAR_SYSTEM_SIZE * SOLAR_KWH_PER_KWP;
+    const tariffPerKwh = state.electricityBill > 0 ? state.electricityBill / (annualGeneration * SOLAR_SELF_CONSUMPTION * 100 / state.electricityBill) : 0.245;
+    // Simplified: use electricity bill to derive rough tariff
+    const monthlyBill = state.electricityBill;
+    const annualBill = monthlyBill * 12;
+    // Annual kWh consumed ≈ annualBill / tariff (assume 24.5p/kWh avg)
+    const tariff = 0.245; // £/kWh
+    const selfConsumedKwh = annualGeneration * SOLAR_SELF_CONSUMPTION;
+    const exportedKwh = annualGeneration * (1 - SOLAR_SELF_CONSUMPTION);
+
+    let cumulative = 0;
+    let paybackYear = -1;
+    for (let y = 1; y <= SOLAR_YEARS; y++) {
+      const degradedGen = annualGeneration * Math.pow(1 - SOLAR_DEGRADATION, y - 1);
+      const inflatedTariff = tariff * Math.pow(1 + SOLAR_ENERGY_INFLATION, y - 1);
+      const inflatedExport = (SOLAR_EXPORT_TARIFF / 100) * Math.pow(1 + SOLAR_ENERGY_INFLATION, y - 1);
+      const savings = (degradedGen * SOLAR_SELF_CONSUMPTION * inflatedTariff) +
+                      (degradedGen * (1 - SOLAR_SELF_CONSUMPTION) * inflatedExport) -
+                      SOLAR_MAINTENANCE;
+      cumulative += savings;
+      if (paybackYear === -1 && cumulative >= state.systemCost) {
+        paybackYear = y;
+      }
+    }
+
+    const year1Savings = (annualGeneration * SOLAR_SELF_CONSUMPTION * tariff) +
+                         (annualGeneration * (1 - SOLAR_SELF_CONSUMPTION) * SOLAR_EXPORT_TARIFF / 100) -
+                         SOLAR_MAINTENANCE;
+    const totalProfit = cumulative - state.systemCost;
+
+    return { paybackYear, totalSavings: cumulative, year1Savings, totalProfit };
+  }, [state.systemCost, state.electricityBill]);
+
+  const animatedSavings = useAnimatedNumber(result.totalSavings);
+
+  const segments: BarSegment[] = result.totalProfit > 0
+    ? [
+        { label: 'Profit', value: result.totalProfit, className: 'bg-primary-500' },
+        { label: 'System cost', value: state.systemCost, className: 'bg-neutral-300' },
+      ]
+    : [
+        { label: 'Savings so far', value: result.totalSavings, className: 'bg-primary-500' },
+        { label: 'Remaining cost', value: Math.max(0, state.systemCost - result.totalSavings), className: 'bg-neutral-300' },
+      ];
+
+  return (
+    <div className="space-y-5">
+      {/* Result */}
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-neutral-500 mb-1">{SOLAR_YEARS}-year savings</p>
+            <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+              £{formatNumber(Math.round(animatedSavings))}
+            </p>
+          </div>
+          <a
+            href="/tools/saving-and-growth/solar-payback"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+          >
+            Open full calculator
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </a>
+        </div>
+        <p className="text-sm text-neutral-600 font-medium">
+          {result.paybackYear > 0
+            ? `Pays for itself in ${result.paybackYear} years. Year 1 saves £${formatNumber(Math.round(result.year1Savings))}.`
+            : `Year 1 saves £${formatNumber(Math.round(result.year1Savings))}. May not reach payback.`}
+        </p>
+        <SegmentedBar segments={segments} />
+      </div>
+
+      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
+      {/* Controls */}
+      <div>
+        <SliderInput
+          label="System cost"
+          id="engine-solar-cost"
+          value={state.systemCost}
+          min={3000}
+          max={15000}
+          step={500}
+          onChange={(v) => onChange({ ...state, systemCost: v })}
+          prefix="£"
+          formatDisplay={formatNumber}
+        />
+        <div className="mt-3">
+          <SliderInput
+            label="Monthly electricity bill"
+            id="engine-solar-bill"
+            value={state.electricityBill}
+            min={30}
+            max={300}
+            step={10}
+            onChange={(v) => onChange({ ...state, electricityBill: v })}
+            prefix="£"
+            formatDisplay={formatNumber}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main DecisionEngine Component ───────────────────────── */
 
 export default function DecisionEngine() {
@@ -413,6 +543,7 @@ export default function DecisionEngine() {
   const [salary, setSalary] = useState<SalaryState>({ gross: 75000, country: 'us' });
   const [mortgage, setMortgage] = useState<MortgageState>({ income: 75000, downPayment: 50000 });
   const [snowball, setSnowball] = useState<SnowballState>({ monthly: 500, rate: 7 });
+  const [solar, setSolar] = useState<SolarState>({ systemCost: 7000, electricityBill: 120 });
 
   const panelRef = useRef<HTMLDivElement>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -435,18 +566,19 @@ export default function DecisionEngine() {
   // Keyboard navigation for tabs
   const handleTabKeyDown = useCallback((e: React.KeyboardEvent, id: PromptId) => {
     let next: PromptId | null = null;
+    const count = PROMPTS.length;
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
       e.preventDefault();
-      next = ((id + 1) % 3) as PromptId;
+      next = ((id + 1) % count) as PromptId;
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
       e.preventDefault();
-      next = ((id + 2) % 3) as PromptId;
+      next = ((id + count - 1) % count) as PromptId;
     } else if (e.key === 'Home') {
       e.preventDefault();
       next = 0;
     } else if (e.key === 'End') {
       e.preventDefault();
-      next = 2;
+      next = (count - 1) as PromptId;
     }
     if (next !== null) {
       switchPrompt(next);
@@ -463,6 +595,7 @@ export default function DecisionEngine() {
       case 0: return <MortgagePanel state={mortgage} onChange={setMortgage} />;
       case 1: return <SnowballPanel state={snowball} onChange={setSnowball} />;
       case 2: return <SalaryPanel state={salary} onChange={setSalary} />;
+      case 3: return <SolarPanel state={solar} onChange={setSolar} />;
     }
   };
 
@@ -471,6 +604,8 @@ export default function DecisionEngine() {
       {/* ── Desktop layout (lg+) ─────────────────────────────── */}
       <div className="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
         {/* Tab list */}
+        <div>
+          <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wider px-5 mb-2">What question do you have?</h2>
         <div role="tablist" aria-label="Choose a financial question">
           {PROMPTS.map((p) => (
             <button
@@ -502,6 +637,7 @@ export default function DecisionEngine() {
             </a>
           </div>
         </div>
+        </div>
 
         {/* Calculator panel */}
         <div
@@ -520,6 +656,7 @@ export default function DecisionEngine() {
 
       {/* ── Mobile layout (< lg) — Accordion ────────────────── */}
       <div className="lg:hidden space-y-3">
+        <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wider px-1 mb-1">What question do you have?</h2>
         {PROMPTS.map((p) => {
           const isOpen = mobileExpanded === p.id;
           return (
