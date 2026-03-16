@@ -16,6 +16,14 @@ import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatNumber } from '../../lib/calculator-utils';
 import {
+  calcPersonalAllowance,
+  calcIncomeTax as calcIncomeTaxShared,
+  calcNI,
+  UK_BANDS,
+  PA_TAPER_THRESHOLD,
+  PA_TAPER_LIMIT,
+} from '../../lib/uk-tax-calc';
+import {
   UK_INCOME_TAX,
   UK_NI,
   UK_STUDENT_LOANS,
@@ -25,17 +33,8 @@ import {
 /* ── Constants derived from central rates module ──────────── */
 
 const PERSONAL_ALLOWANCE = UK_INCOME_TAX.personalAllowance;
-const PA_TAPER_THRESHOLD = UK_INCOME_TAX.paTaperThreshold;
-const PA_TAPER_LIMIT = UK_INCOME_TAX.paTaperLimit;
-
-const UK_BANDS: [number, number][] = UK_INCOME_TAX.bands.map(b => [b.from, b.rate]);
 
 const SCOTTISH_BANDS: [number, number][] = UK_SCOTTISH_TAX.bands.map(b => [b.from, b.rate]);
-
-const NI_PRIMARY_THRESHOLD = UK_NI.primaryThreshold;
-const NI_UPPER_EARNINGS_LIMIT = UK_NI.upperEarningsLimit;
-const NI_MAIN_RATE = UK_NI.mainRate;
-const NI_UPPER_RATE = UK_NI.upperRate;
 
 type StudentLoanPlan = 'none' | 'plan1' | 'plan2' | 'plan4' | 'plan5' | 'postgrad';
 
@@ -90,15 +89,12 @@ function parseTaxCode(code: string): { allowance: number; isKCode: boolean; flat
   return null; // Unrecognized — fall back to standard
 }
 
-function calcPersonalAllowance(grossIncome: number, taxCodeOverride?: number | null): number {
-  if (taxCodeOverride !== undefined && taxCodeOverride !== null) return taxCodeOverride;
-  if (grossIncome <= PA_TAPER_THRESHOLD) return PERSONAL_ALLOWANCE;
-  if (grossIncome >= PA_TAPER_LIMIT) return 0;
-  const reduction = Math.floor((grossIncome - PA_TAPER_THRESHOLD) / 2);
-  return Math.max(0, PERSONAL_ALLOWANCE - reduction);
-}
-
-function calcIncomeTax(grossIncome: number, isScottish: boolean, taxCodeParsed?: ReturnType<typeof parseTaxCode>): number {
+/**
+ * Full income tax calculation with Scottish rates and tax code support.
+ * Wraps the shared calcIncomeTaxShared for the standard case,
+ * adds K-code, flat-rate, and Scottish band logic.
+ */
+function calcIncomeTaxFull(grossIncome: number, isScottish: boolean, taxCodeParsed?: ReturnType<typeof parseTaxCode>): number {
   // Flat-rate tax codes (BR, D0, D1, NT)
   if (taxCodeParsed?.flatRate !== null && taxCodeParsed?.flatRate !== undefined) {
     return grossIncome * taxCodeParsed.flatRate;
@@ -126,13 +122,6 @@ function calcIncomeTax(grossIncome: number, isScottish: boolean, taxCodeParsed?:
     tax += taxableInBand * rate;
   }
   return tax;
-}
-
-function calcNI(grossIncome: number): number {
-  if (grossIncome <= NI_PRIMARY_THRESHOLD) return 0;
-  const mainBand = Math.min(grossIncome, NI_UPPER_EARNINGS_LIMIT) - NI_PRIMARY_THRESHOLD;
-  const upperBand = Math.max(0, grossIncome - NI_UPPER_EARNINGS_LIMIT);
-  return mainBand * NI_MAIN_RATE + upperBand * NI_UPPER_RATE;
 }
 
 function calcStudentLoan(grossIncome: number, plan: StudentLoanPlan): number {
@@ -182,7 +171,7 @@ export default function SalaryUkCalc() {
       ? salary - pensionAmount // Salary sacrifice saves NI
       : salary;               // Standard pension: NI on full salary
 
-    const incomeTax = calcIncomeTax(taxableIncome, isScottish, taxCodeParsed ?? undefined);
+    const incomeTax = calcIncomeTaxFull(taxableIncome, isScottish, taxCodeParsed ?? undefined);
     const ni = calcNI(niIncome);
     const studentLoanRepayment = calcStudentLoan(salary, studentLoan);
 

@@ -19,15 +19,37 @@ const mainH1 = '#main-content h1';
 // ════════════════════════════════════════════════════════════════
 
 test.describe('Homepage', () => {
-  test('loads with h1 and tool cards', async ({ page }) => {
+  test('loads with decision engine h1 and discovery links', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator(mainH1).first()).toBeVisible();
-    // Should have tool cards in the main content area
-    const toolCards = page.locator('#main-content a[href*="/tools/"]');
-    await expect(toolCards.first()).toBeVisible();
-    expect(await toolCards.count()).toBeGreaterThan(5);
+    // New H1: "What are you trying to figure out?"
+    const h1 = page.locator(mainH1).first();
+    await expect(h1).toBeVisible();
+    await expect(h1).toContainText('What are you trying to figure out');
+
+    // Discovery section has visible tool links (scope to the bg-neutral-50 discovery section)
+    const discoverySection = page.locator('section.bg-neutral-50');
+    const toolLinks = discoverySection.locator('a[href*="/tools/"]');
+    await expect(toolLinks.first()).toBeVisible();
+    expect(await toolLinks.count()).toBeGreaterThanOrEqual(6);
+
+    // Comparison links present in discovery section
+    const compLinks = discoverySection.locator('a[href*="/comparisons/"]');
+    await expect(compLinks.first()).toBeVisible();
+    expect(await compLinks.count()).toBeGreaterThanOrEqual(3);
+  });
+
+  test('decision engine renders with calculator result', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Wait for React to hydrate — the skeleton is hidden and the React panel renders
+    // Look for a visible engine-panel that contains result text
+    const visiblePanel = page.locator('.engine-panel:visible');
+    await expect(visiblePanel.first()).toBeVisible({ timeout: 10000 });
+    // Should contain a salary result (£ amount with /mo)
+    await expect(visiblePanel.first().getByText(/\/mo/)).toBeVisible();
   });
 
   test('has meta description and og:image', async ({ page }) => {

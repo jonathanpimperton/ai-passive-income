@@ -1,61 +1,55 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import ToolIcon from '@components/ui/ToolIcon.astro';
-import AuroraBackground from '@components/ui/AuroraBackground.astro';
 import EmailCapture from '@components/ui/EmailCapture.tsx';
-import { TOOLS, POPULAR_TOOL_SLUGS, CATEGORIES, getToolPath, type CategorySlug, type ToolMeta } from '@lib/tools-data';
+import DecisionEngine from '@components/homepage/DecisionEngine.tsx';
+import { TOOLS, getToolPath } from '@lib/tools-data';
 import { buildWebsiteSchema } from '@lib/seo';
-import { getCollection } from 'astro:content';
-
-const popularTools = POPULAR_TOOL_SLUGS
-  .map((slug) => TOOLS.find((t) => t.slug === slug))
-  .filter((t): t is ToolMeta => t !== undefined);
+import { calcSimpleIncomeTax, calcNI } from '@lib/uk-tax-calc';
+import { formatNumber } from '@lib/calculator-utils';
 
 const websiteSchema = buildWebsiteSchema();
 
-/** Featured comparisons — hand-picked, editorial picks */
-const allComparisons = await getCollection('comparisons');
-const FEATURED_COMPARISON_SLUGS = [
-  'renting-vs-buying-2026',
-  'pay-off-debt-vs-invest',
-  'roth-vs-traditional-401k',
-];
-const featuredComparisons = FEATURED_COMPARISON_SLUGS
-  .map((slug) => allComparisons.find((c) => c.data.slug === slug))
-  .filter((c): c is NonNullable<typeof c> => c !== undefined);
-
-/** Quick-link pills for hero */
-const quickLinks = [
-  { label: 'Mortgage', slug: 'mortgage-payment', category: 'debt-and-loans' },
-  { label: 'UK Salary', slug: 'salary-uk', category: 'income-and-planning' },
-  { label: 'Compound Interest', slug: 'compound-interest', category: 'saving-and-growth' },
-  { label: 'Retirement', slug: 'retirement-savings', category: 'income-and-planning' },
-];
-
-/** Question-based CTAs */
-const ctaHooks = [
-  { text: 'Wondering if you can retire at 55?', description: 'Model different retirement ages and contribution levels.', link: '/tools/income-and-planning/retirement-savings', label: 'Try the retirement calculator' },
-  { text: 'Evaluating a job offer?', description: 'See exactly what you keep after federal and state taxes.', link: '/tools/income-and-planning/salary-us', label: 'See your real take-home pay' },
-  { text: 'Buying your first home?', description: 'Calculate your monthly payment with taxes and insurance.', link: '/tools/debt-and-loans/mortgage-payment', label: 'Calculate your monthly payment' },
-  { text: 'How much of your salary goes to HMRC?', description: 'UK income tax, National Insurance, student loans — see your real take-home.', link: '/tools/income-and-planning/salary-uk', label: 'Try the UK salary calculator' },
-];
-
-/** Financial categories only — no utility or file tools on homepage */
-const FINANCIAL_CATEGORIES: CategorySlug[] = ['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic'];
-const financialCategoryData = FINANCIAL_CATEGORIES.map((catSlug) => ({
-  slug: catSlug,
-  ...CATEGORIES[catSlug],
-  tools: TOOLS.filter((t) => t.category === catSlug).slice(0, 2),
-  totalCount: TOOLS.filter((t) => t.category === catSlug).length,
-}));
-
-/** Build search index as JSON for the search script (all tools, not just visible ones) */
+/** Build search index as JSON for the nav search (all tools) */
 const searchIndex = JSON.stringify(TOOLS.map((t) => ({
   name: t.name,
   description: t.description,
   category: t.category,
   path: getToolPath(t),
 })));
+
+/** 6 flagship tools for discovery section */
+const FLAGSHIP_SLUGS = [
+  'compound-interest',
+  'salary-uk',
+  'salary-us',
+  'mortgage-payment',
+  'retirement-savings',
+  'debt-payoff',
+];
+const flagshipTools = FLAGSHIP_SLUGS
+  .map((slug) => TOOLS.find((t) => t.slug === slug))
+  .filter((t): t is NonNullable<typeof t> => t !== undefined);
+
+/** 3 featured comparisons for discovery section */
+const FEATURED_COMPARISONS = [
+  { title: 'Renting vs Buying in 2026', slug: 'renting-vs-buying-2026' },
+  { title: 'Pay Off Debt vs Invest', slug: 'pay-off-debt-vs-invest' },
+  { title: 'Roth vs Traditional 401(k)', slug: 'roth-vs-traditional-401k' },
+];
+
+/**
+ * Server-render the default salary result for the skeleton.
+ * This shows a real result before React hydrates — no blank state.
+ */
+const defaultGross = 45000;
+const defaultTax = calcSimpleIncomeTax(defaultGross);
+const defaultNI = calcNI(defaultGross);
+const defaultNet = defaultGross - defaultTax - defaultNI;
+const defaultMonthly = defaultNet / 12;
+const defaultKeepPct = ((defaultNet / defaultGross) * 100).toFixed(0);
+const defaultTakeHomePct = ((defaultNet / defaultGross) * 100).toFixed(0);
+const defaultTaxPct = ((defaultTax / defaultGross) * 100).toFixed(0);
+const defaultNIPct = ((defaultNI / defaultGross) * 100).toFixed(0);
 ---
 
 <BaseLayout
@@ -63,333 +57,172 @@ const searchIndex = JSON.stringify(TOOLS.map((t) => ({
   description="Financial calculators with interactive charts and plain-English explanations. Mortgage, salary, compound interest, retirement — no signup, no ads."
   structuredData={[websiteSchema]}
 >
-  {/* ===== HERO ===== */}
-  <section class="hero-bg relative overflow-hidden py-16 sm:py-20 lg:py-28">
-    <AuroraBackground intensity="full" />
+  {/* ===== SECTION 1: DECISION ENGINE ===== */}
+  <section class="py-12 sm:py-16 lg:py-20">
+    <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-8 sm:mb-10">
+        <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 tracking-[-0.02em]">
+          What are you trying to figure out?
+        </h1>
+        <p class="mt-3 text-neutral-500 text-lg">Pick a question. See a real answer.</p>
+      </div>
 
-    <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-8 lg:items-center">
-        {/* Left column: copy + search */}
-        <div class="text-center lg:text-left">
-          <h1 class="hero-enter hero-enter-1 font-serif text-3xl sm:text-4xl lg:text-[2.65rem] font-bold text-white leading-tight tracking-[-0.02em] max-w-[520px] mx-auto lg:mx-0">
-            Clear calculators for real financial decisions
-          </h1>
-          <p class="hero-enter hero-enter-2 mt-4 text-lg sm:text-xl text-white/70 max-w-[480px] mx-auto lg:mx-0 leading-relaxed">
-            Mortgage repayments, salary breakdowns, compound interest — calculated properly, explained clearly.
-          </p>
-
-          {/* Search bar */}
-          <div class="hero-enter hero-enter-3 mt-8 max-w-[480px] mx-auto lg:mx-0 relative">
-            <div class="relative">
-              <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="search"
-                id="hero-search"
-                placeholder="Search calculators & tools..."
-                class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-neutral-900 placeholder-neutral-400 text-base shadow-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                autocomplete="off"
-              />
+      {/* Server-rendered skeleton — replaced by React on hydrate */}
+      <div id="engine-skeleton">
+        <div class="hidden lg:grid lg:grid-cols-[280px_1fr] lg:gap-6">
+          {/* Tab list skeleton */}
+          <div class="space-y-2">
+            <div class="w-full text-left px-5 py-4 rounded-lg border-l-[3px] border-l-teal-400 bg-neutral-100 font-semibold text-neutral-900">
+              <span class="text-[15px] leading-snug">What does this salary really become?</span>
             </div>
-            {/* Search results dropdown */}
-            <div id="hero-search-results" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200/80 overflow-hidden z-50 hidden">
+            <div class="w-full text-left px-5 py-4 rounded-lg border-l-[3px] border-l-transparent text-neutral-500">
+              <span class="text-[15px] leading-snug">Can I actually afford this house?</span>
+            </div>
+            <div class="w-full text-left px-5 py-4 rounded-lg border-l-[3px] border-l-transparent text-neutral-500">
+              <span class="text-[15px] leading-snug">How fast does £500/mo snowball?</span>
             </div>
           </div>
 
-          {/* Quick-link pills */}
-          <div class="hero-enter hero-enter-4 mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-2">
-            {quickLinks.map((link) => (
+          {/* Result panel skeleton — real server-computed values */}
+          <div class="engine-panel rounded-xl p-6 sm:p-8">
+            <div class="space-y-5">
+              {/* Fake input area */}
+              <div class="space-y-3">
+                <div>
+                  <div class="text-sm font-medium mb-1.5 engine-label">Gross salary</div>
+                  <div class="shimmer-line h-11 rounded-lg"></div>
+                  <div class="shimmer-line h-2 rounded-full mt-2.5"></div>
+                </div>
+                <div>
+                  <div class="text-sm font-medium mb-1.5 engine-label">Country</div>
+                  <div class="flex gap-1">
+                    <div class="flex-1 py-2 rounded-lg text-sm font-medium text-center" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.2)">🇬🇧 UK</div>
+                    <div class="flex-1 py-2 rounded-lg text-sm text-center" style="color:rgba(255,255,255,0.5)">🇺🇸 US</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Real computed result */}
+              <div class="space-y-3">
+                <div>
+                  <p class="text-sm opacity-60 mb-1">Monthly take-home</p>
+                  <p class="text-3xl sm:text-4xl font-bold tabular-nums lining-nums text-white">
+                    £{formatNumber(Math.round(defaultMonthly))}<span class="text-lg font-medium opacity-60">/mo</span>
+                  </p>
+                </div>
+                <p class="text-sm opacity-70">
+                  You keep {defaultKeepPct}% — tax: £{formatNumber(Math.round(defaultTax))}, NI: £{formatNumber(Math.round(defaultNI))}
+                </p>
+                {/* Bar */}
+                <div>
+                  <div class="flex gap-[3px] h-3 rounded-full overflow-hidden">
+                    <div class="rounded-l-full" style={`width:${defaultTakeHomePct}%;background:#5EEAD4`}></div>
+                    <div style={`width:${defaultTaxPct}%;background:#64748B`}></div>
+                    <div class="rounded-r-full" style={`width:${defaultNIPct}%;background:#94A3B8`}></div>
+                  </div>
+                  <div class="flex justify-between mt-1.5">
+                    <span class="text-[11px] opacity-70">Take-home {defaultTakeHomePct}%</span>
+                    <span class="text-[11px] opacity-70">Tax {defaultTaxPct}%</span>
+                    <span class="text-[11px] opacity-70">NI {defaultNIPct}%</span>
+                  </div>
+                </div>
+                <a
+                  href="/tools/income-and-planning/salary-uk"
+                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-300 hover:text-teal-200 transition-colors duration-150 mt-2"
+                >
+                  See full breakdown
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile skeleton: first accordion open */}
+        <div class="lg:hidden space-y-3">
+          <div class="rounded-xl overflow-hidden border border-neutral-200/80">
+            <div class="w-full text-left px-5 py-4 flex items-center justify-between bg-neutral-100 font-semibold text-neutral-900">
+              <span class="text-sm leading-snug">What does this salary really become?</span>
+              <svg class="w-5 h-5 shrink-0 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </div>
+            <div class="engine-panel p-5">
+              <div class="space-y-3">
+                <div>
+                  <p class="text-sm opacity-60 mb-1">Monthly take-home</p>
+                  <p class="text-3xl font-bold tabular-nums lining-nums text-white">
+                    £{formatNumber(Math.round(defaultMonthly))}<span class="text-lg font-medium opacity-60">/mo</span>
+                  </p>
+                </div>
+                <p class="text-sm opacity-70">
+                  You keep {defaultKeepPct}% — tax: £{formatNumber(Math.round(defaultTax))}, NI: £{formatNumber(Math.round(defaultNI))}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-sm">Can I actually afford this house?</div>
+          <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-sm">How fast does £500/mo snowball?</div>
+        </div>
+      </div>
+
+      <DecisionEngine client:load />
+    </div>
+  </section>
+
+  {/* ===== SECTION 2: DISCOVERY — Flagship Tools + Comparisons ===== */}
+  <section class="py-12 sm:py-16 bg-neutral-50">
+    <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        {/* Left: Flagship tools */}
+        <div>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">6 calculators people use most</h2>
+          <div class="space-y-1">
+            {flagshipTools.map((tool) => (
               <a
-                href={`/tools/${link.category}/${link.slug}`}
-                class="inline-flex items-center px-4 py-2 sm:px-3.5 sm:py-1.5 rounded-full text-sm font-medium bg-white/10 text-white/90 border border-white/15 hover:bg-white/20 hover:border-white/25 transition-all duration-150"
+                href={getToolPath(tool)}
+                class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
               >
-                {link.label}
+                <div class="min-w-0 pr-4">
+                  <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150">
+                    {tool.name}
+                  </span>
+                  <p class="text-sm text-neutral-500 line-clamp-1">{tool.description}</p>
+                </div>
+                <svg class="w-4 h-4 shrink-0 text-neutral-300 group-hover:text-primary-500 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
               </a>
             ))}
-            <a
-              href="/tools"
-              class="inline-flex items-center gap-1 px-4 py-2 sm:px-3.5 sm:py-1.5 rounded-full text-sm font-medium text-white/70 hover:text-white/90 transition-colors duration-150"
-            >
-              All tools
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-            </a>
           </div>
-        </div>
-
-        {/* Right column: overlapping calculator result cards (desktop only) */}
-        <div class="hidden lg:block relative h-[400px]" aria-hidden="true">
-          {/* Back card: Compound Interest */}
-          <div class="hero-card hero-card-1 absolute top-[10px] left-0 w-[300px] rounded-xl shadow-lg overflow-hidden" style="background:#fff;color:#525252">
-            <div class="px-5 pt-4 pb-1">
-              <div class="flex items-center justify-between mb-3">
-                <div class="text-[11px] font-semibold uppercase tracking-wide" style="color:#525252">Compound Interest</div>
-                <div class="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded" style="background:#f0fdfa;color:#0B6E6E">
-                  <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
-                  +185%
-                </div>
-              </div>
-              <div class="text-[26px] font-bold tabular-nums lining-nums mb-0.5" style="color:#0B6E6E">£142,830</div>
-              <div class="text-[11px] mb-2" style="color:#525252">from £50,000 · 20 years · 5.5% p.a.</div>
-            </div>
-            <svg class="w-full h-[52px]" viewBox="0 0 300 52" fill="none" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="hero-curve-fill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#0B6E6E" stop-opacity="0.12"/>
-                  <stop offset="100%" stop-color="#0B6E6E" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <path d="M0,48 C50,47 100,42 150,34 S250,12 300,4" stroke="#0B6E6E" stroke-width="2" fill="none" stroke-linecap="round"/>
-              <path d="M0,48 C50,47 100,42 150,34 S250,12 300,4 L300,52 L0,52 Z" fill="url(#hero-curve-fill)"/>
-            </svg>
-          </div>
-
-          {/* Middle card: UK Salary */}
-          <div class="hero-card hero-card-2 absolute top-[90px] left-[70px] w-[300px] rounded-xl shadow-xl p-5" style="background:#fff;color:#525252">
-            <div class="flex items-center justify-between mb-3">
-              <div class="text-[11px] font-semibold uppercase tracking-wide" style="color:#525252">UK Salary</div>
-              <div class="text-[10px] px-1.5 py-0.5 rounded font-medium" style="background:#f0fdfa;color:#0B6E6E">2025/26</div>
-            </div>
-            <div class="text-[26px] font-bold tabular-nums lining-nums mb-0.5" style="color:#0B6E6E">£2,851<span class="text-base font-medium" style="color:#525252">/mo</span></div>
-            <div class="text-[11px] mb-3" style="color:#525252">take-home on £45,000 gross</div>
-            <div class="flex gap-[3px] h-[14px] rounded-full overflow-hidden">
-              <div class="rounded-l-full" style="width:63%;background:#0B6E6E" title="Take-home 63%"></div>
-              <div style="width:22%;background:#c4b5a3" title="Income Tax 22%"></div>
-              <div class="rounded-r-full" style="width:15%;background:#e0d9cf" title="NI 15%"></div>
-            </div>
-            <div class="flex justify-between mt-1.5 text-[10px]" style="color:#525252">
-              <span>Take-home 63%</span><span>Tax 22%</span><span>NI 15%</span>
-            </div>
-          </div>
-
-          {/* Front card: Mortgage Payment */}
-          <div class="hero-card hero-card-3 absolute top-[175px] right-0 w-[300px] rounded-xl shadow-2xl p-5" style="background:#fff;color:#525252">
-            <div class="flex items-center justify-between mb-3">
-              <div class="text-[11px] font-semibold uppercase tracking-wide" style="color:#525252">Mortgage Payment</div>
-              <div class="text-[10px] px-1.5 py-0.5 rounded font-medium" style="background:#fef2f2;color:#9a3412">25 yr fixed</div>
-            </div>
-            <div class="text-[26px] font-bold tabular-nums lining-nums mb-0.5" style="color:#0B6E6E">£1,389<span class="text-base font-medium" style="color:#525252">/mo</span></div>
-            <div class="text-[11px] mb-3" style="color:#525252">£250,000 loan · 4.5% interest</div>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-              <div class="rounded-lg px-3 py-2" style="background:#f9fafb">
-                <div class="text-[10px] mb-0.5" style="color:#525252">Total interest</div>
-                <div class="text-sm font-semibold tabular-nums" style="color:#525252">£166,713</div>
-              </div>
-              <div class="rounded-lg px-3 py-2" style="background:#f9fafb">
-                <div class="text-[10px] mb-0.5" style="color:#525252">Total cost</div>
-                <div class="text-sm font-semibold tabular-nums" style="color:#525252">£416,713</div>
-              </div>
-            </div>
-            <div class="flex items-end gap-[3px] h-[36px]">
-              {[36,33,30,27,24,20,16,12,9,6,3,1].map((h) => (
-                <div class="flex-1 rounded-sm" style={`height:${h}px;background:rgba(11,110,110,0.75)`}></div>
-              ))}
-            </div>
-            <div class="flex justify-between mt-1 text-[10px]" style="color:#525252">
-              <span>Interest (Yr 1)</span><span>Interest (Yr 25)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  {/* ===== QUESTIONS CTA ===== */}
-  <section class="py-12 sm:py-16 bg-neutral-50">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-[900px]">
-        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">Start with a question that matters to you</h2>
-        <p class="text-neutral-500 mb-6 text-sm sm:text-base">Pick one and get your answer in under a minute.</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-[900px]">
-        {ctaHooks.map((hook) => (
-          <a
-            href={hook.link}
-            class="group bg-white border border-neutral-200/80 rounded-lg shadow-card p-5 hover:shadow-card-hover hover:border-primary-500/40 hover:-translate-y-0.5 transition-all duration-200 text-left"
-          >
-            <p class="text-neutral-900 font-semibold mb-1.5">{hook.text}</p>
-            <p class="text-neutral-500 text-sm mb-2.5">{hook.description}</p>
-            <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
-              {hook.label}
-              <ToolIcon name="arrow-right" size={14} />
-            </span>
+          <a href="/tools" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
+            See all {TOOLS.length} tools
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  {/* ===== POPULAR CALCULATORS ===== */}
-  <section id="popular" class="py-16 sm:py-20 lg:py-24">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-end justify-between mb-10">
-        <div>
-          <h2 class="font-serif text-2xl sm:text-3xl font-bold text-neutral-900">Most Popular</h2>
-          <p class="text-neutral-500 mt-2">The calculators people use most.</p>
         </div>
-        <a href="/tools" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-          View all
-          <ToolIcon name="arrow-right" size={16} />
-        </a>
-      </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {popularTools.map((tool, i) => {
-          const isFeature = i < 2;
-          return (
-            <a
-              href={getToolPath(tool)}
-              class={`tool-card-popular group relative bg-white border border-neutral-200/80 rounded-lg shadow-card hover:shadow-card-hover hover:border-primary-500/40 transition-all duration-200 hover:-translate-y-0.5 ${isFeature ? 'lg:col-span-2 p-6 sm:p-7' : 'p-5'}`}
-            >
-              <div class={`flex items-start gap-4 ${isFeature ? '' : 'gap-3'}`}>
-                <div class={`inline-flex items-center justify-center rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-700 group-hover:text-white transition-all duration-200 shrink-0 ${isFeature ? 'w-14 h-14' : 'w-10 h-10'}`}>
-                  <ToolIcon name={tool.icon} size={isFeature ? 28 : 20} />
-                </div>
-                <div class="min-w-0">
-                  <h3 class={`font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-1 ${isFeature ? 'text-xl' : 'text-base'}`}>
-                    {tool.name}
-                  </h3>
-                  <p class={`text-neutral-500 leading-relaxed ${isFeature ? 'text-sm sm:text-base' : 'text-sm'}`}>{tool.description}</p>
-                  {isFeature && (
-                    <span class="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
-                      Try this calculator
-                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                    </span>
-                  )}
-                </div>
-              </div>
-            </a>
-          );
-        })}
-      </div>
-
-      <a href="/tools" class="sm:hidden mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600">
-        View all tools <ToolIcon name="arrow-right" size={16} />
-      </a>
-    </div>
-  </section>
-
-  {/* ===== FINANCIAL CATEGORIES (curated preview — no utility/file tools) ===== */}
-  <section class="py-16 sm:py-20 bg-neutral-50">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">Browse by Category</h2>
-      <p class="text-neutral-500 mb-10">Financial calculators across four categories.</p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {financialCategoryData.map((cat) => (
-          <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-1 h-8 rounded-full" style={`background:${cat.color}`}></div>
-              <div>
-                <h3 class="font-semibold text-neutral-900">{cat.label}</h3>
-                <p class="text-sm text-neutral-500">{cat.tagline}</p>
-              </div>
-            </div>
-            <div class="space-y-2">
-              {cat.tools.map((tool) => (
-                <a
-                  href={getToolPath(tool)}
-                  class="group flex items-center gap-3 rounded-lg p-3 -mx-1 hover:bg-primary-50/50 transition-colors duration-150"
-                >
-                  <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 text-primary-600 group-hover:bg-primary-700 group-hover:text-white transition-all duration-200 shrink-0">
-                    <ToolIcon name={tool.icon} size={18} />
-                  </div>
-                  <div class="min-w-0">
-                    <span class="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150">{tool.name}</span>
-                    <p class="text-xs text-neutral-500 line-clamp-1">{tool.description}</p>
-                  </div>
-                  <svg class="w-4 h-4 text-neutral-300 group-hover:text-primary-500 ml-auto shrink-0 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </a>
-              ))}
-            </div>
-            {cat.totalCount > 2 && (
+        {/* Right: Featured comparisons */}
+        <div>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Decisions people actually argue about</h2>
+          <div class="space-y-1">
+            {FEATURED_COMPARISONS.map((comp) => (
               <a
-                href={`/tools#${cat.slug}`}
-                class="group flex items-center gap-3 rounded-lg p-3 -mx-1 hover:bg-primary-50/50 transition-colors duration-150"
+                href={`/comparisons/${comp.slug}`}
+                class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
               >
-                <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-neutral-100 text-neutral-400 group-hover:bg-primary-100 group-hover:text-primary-600 transition-all duration-200 shrink-0">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </div>
-                <span class="text-sm font-medium text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
-                  See all {cat.totalCount} tools
+                <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
+                  {comp.title}
                 </span>
+                <svg class="w-4 h-4 shrink-0 text-neutral-300 group-hover:text-primary-500 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
               </a>
-            )}
+            ))}
           </div>
-        ))}
-      </div>
-
-      <div class="mt-10 text-center">
-        <a href="/tools" class="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-          Explore all tools
-          <ToolIcon name="arrow-right" size={16} />
-        </a>
-      </div>
-    </div>
-  </section>
-
-  {/* ===== FEATURED COMPARISONS (fewer, bigger, more editorial) ===== */}
-  <section class="py-16 sm:py-20">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-end justify-between mb-10">
-        <div>
-          <h2 class="font-serif text-2xl sm:text-3xl font-bold text-neutral-900">Worth Reading</h2>
-          <p class="text-neutral-500 mt-2">Real-number comparisons for decisions you are actually making.</p>
+          <a href="/comparisons" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
+            All comparisons
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </a>
         </div>
-        <a href="/comparisons" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-          All comparisons <ToolIcon name="arrow-right" size={16} />
-        </a>
       </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6">
-        {/* Lead article — larger */}
-        {featuredComparisons[0] && (
-          <a
-            href={`/comparisons/${featuredComparisons[0].data.slug}`}
-            class="group bg-white border border-neutral-200/80 rounded-lg shadow-card hover:shadow-card-hover hover:border-primary-500/40 transition-all duration-200 hover:-translate-y-0.5 p-7 flex flex-col lg:row-span-2"
-          >
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-50 text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-200 mb-5">
-              <ToolIcon name="scale" size={24} />
-            </div>
-            <h3 class="font-serif font-semibold text-xl text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-3 leading-snug">
-              {featuredComparisons[0].data.title}
-            </h3>
-            <p class="text-neutral-500 leading-relaxed mb-5">{featuredComparisons[0].data.description}</p>
-            <span class="inline-flex items-center gap-1 mt-auto text-sm font-semibold text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
-              Read the full comparison
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-            </span>
-          </a>
-        )}
-        {/* Supporting articles — stacked */}
-        {featuredComparisons.slice(1).map((comp) => (
-          <a
-            href={`/comparisons/${comp.data.slug}`}
-            class="group bg-white border border-neutral-200/80 rounded-lg shadow-card hover:shadow-card-hover hover:border-primary-500/40 transition-all duration-200 hover:-translate-y-0.5 p-6 flex flex-col"
-          >
-            <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-50 text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-200 mb-3">
-              <ToolIcon name="scale" size={20} />
-            </div>
-            <h3 class="font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 mb-1.5 leading-snug">
-              {comp.data.title}
-            </h3>
-            <p class="text-sm text-neutral-500 leading-relaxed mb-3">{comp.data.description}</p>
-            <span class="inline-flex items-center gap-1 mt-auto text-sm font-semibold text-primary-600 group-hover:text-primary-700 transition-colors duration-150">
-              Read the comparison
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-            </span>
-          </a>
-        ))}
-      </div>
-
-      <a href="/comparisons" class="sm:hidden mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600">
-        All comparisons <ToolIcon name="arrow-right" size={16} />
-      </a>
     </div>
   </section>
 
-  {/* ===== NEWSLETTER SIGNUP ===== */}
+  {/* ===== SECTION 3: NEWSLETTER ===== */}
   <section class="py-12 sm:py-16 border-t border-neutral-100">
     <div class="max-w-[600px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 class="text-lg sm:text-xl font-bold text-neutral-900 mb-1">Practical money decisions, weekly</h2>
@@ -399,163 +232,78 @@ const searchIndex = JSON.stringify(TOOLS.map((t) => ({
   </section>
 </BaseLayout>
 
-<style>
-  /* ===== HERO ===== */
-  .hero-bg {
-    background: linear-gradient(135deg, #0F1B2D 0%, #0A4444 50%, #0F1B2D 100%);
+<style is:global>
+  /* ===== Decision Engine Panel (dark focal area) ===== */
+  .engine-panel {
+    background: linear-gradient(135deg, #0F1B2D 0%, #0A2E2E 50%, #0F1B2D 100%);
+    color: #fff;
   }
 
-  /* ===== HERO TEXT ENTRANCE (motion-safe only) ===== */
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-enter {
-      opacity: 0;
-      transform: translateY(22px);
-      animation: hero-text-reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    .hero-enter-1 { animation-delay: 0.1s; }
-    .hero-enter-2 { animation-delay: 0.25s; }
-    .hero-enter-3 { animation-delay: 0.4s; }
-    .hero-enter-4 { animation-delay: 0.55s; }
+  /* Label text inside dark panel */
+  .engine-panel .engine-label,
+  .engine-panel label {
+    color: rgba(255, 255, 255, 0.7);
   }
 
-  @keyframes hero-text-reveal {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  /* SliderInput overrides for dark background */
+  .engine-panel input[type="text"] {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+  }
+  .engine-panel input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+  .engine-panel input[type="text"]:focus {
+    border-color: rgba(94, 234, 212, 0.5) !important;
+    box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.15) !important;
+  }
+  .engine-panel input[type="range"] {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .engine-panel input[type="range"]::-webkit-slider-thumb {
+    background: #5EEAD4 !important;
+  }
+  .engine-panel input[type="range"]::-moz-range-thumb {
+    background: #5EEAD4 !important;
+  }
+  .engine-panel .text-neutral-700 {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .engine-panel .text-neutral-500 {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .engine-panel .text-neutral-900 {
+    color: #fff;
+  }
+  .engine-panel p.text-xs.text-neutral-500 {
+    color: rgba(255, 255, 255, 0.4);
   }
 
-  /* ===== HERO CALCULATOR CARDS ENTRANCE ===== */
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-card {
-      opacity: 0;
-      transform: translateY(30px);
-      animation: hero-card-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    .hero-card-1 { animation-delay: 0.5s; }
-    .hero-card-2 { animation-delay: 0.65s; }
-    .hero-card-3 { animation-delay: 0.8s; }
+  /* Error text in dark panel */
+  .engine-panel p.text-xs.text-red-600 {
+    color: #FCA5A5;
   }
 
-  @keyframes hero-card-reveal {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  /* Prefix/suffix spans */
+  .engine-panel .pointer-events-none {
+    color: rgba(255, 255, 255, 0.5);
   }
 
-  /* ===== SEARCH RESULTS ===== */
-  .search-result-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 1rem;
-    transition: background-color 0.1s ease;
-    text-decoration: none;
-    color: inherit;
+  /* Shimmer skeleton for initial load */
+  .engine-panel .shimmer-line {
+    background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
   }
-  .search-result-item:hover,
-  .search-result-item.active {
-    background-color: var(--color-primary-50);
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
-  .search-result-item .result-icon {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 0.5rem;
-    background-color: var(--color-primary-50);
-    color: var(--color-primary-600);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .search-result-item:hover .result-icon,
-  .search-result-item.active .result-icon {
-    background-color: var(--color-primary-600);
-    color: white;
+
+  /* Dark mode overrides for the engine panel — already dark, so minimal changes */
+  [data-theme="dark"] .engine-panel {
+    background: linear-gradient(135deg, #0A1420 0%, #082222 50%, #0A1420 100%);
   }
 </style>
-
-<script define:vars={{ searchIndex }}>
-  // ===== Tool search (index embedded at build time) =====
-  const searchTools = JSON.parse(searchIndex);
-
-  const heroSearch = document.getElementById('hero-search');
-  const heroResults = document.getElementById('hero-search-results');
-  let activeIndex = -1;
-
-  function renderSearchResults(query) {
-    if (!query.trim()) {
-      heroResults.classList.add('hidden');
-      heroResults.innerHTML = '';
-      activeIndex = -1;
-      return;
-    }
-
-    const q = query.toLowerCase();
-    const matches = searchTools.filter((t) =>
-      t.name.toLowerCase().includes(q) ||
-      t.description.toLowerCase().includes(q)
-    ).slice(0, 6);
-
-    if (matches.length === 0) {
-      heroResults.innerHTML = '<div class="px-4 py-3 text-sm text-neutral-500">No tools found</div>';
-      heroResults.classList.remove('hidden');
-      activeIndex = -1;
-      return;
-    }
-
-    heroResults.innerHTML = matches.map((tool, i) =>
-      `<a href="${tool.path}" class="search-result-item${i === activeIndex ? ' active' : ''}" data-index="${i}">
-        <div class="result-icon">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-        </div>
-        <div>
-          <div class="text-sm font-medium text-neutral-900">${tool.name}</div>
-          <div class="text-xs text-neutral-500 truncate max-w-[340px]">${tool.description}</div>
-        </div>
-      </a>`
-    ).join('');
-    heroResults.classList.remove('hidden');
-    activeIndex = -1;
-  }
-
-  heroSearch?.addEventListener('input', (e) => {
-    renderSearchResults(e.target.value);
-  });
-
-  heroSearch?.addEventListener('keydown', (e) => {
-    const items = heroResults.querySelectorAll('.search-result-item');
-    if (!items.length) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      activeIndex = Math.min(activeIndex + 1, items.length - 1);
-      items.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      activeIndex = Math.max(activeIndex - 1, 0);
-      items.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
-    } else if (e.key === 'Enter' && activeIndex >= 0) {
-      e.preventDefault();
-      items[activeIndex].click();
-    } else if (e.key === 'Escape') {
-      heroResults.classList.add('hidden');
-      heroSearch.blur();
-    }
-  });
-
-  // Close on outside click
-  document.addEventListener('click', (e) => {
-    if (!heroSearch?.contains(e.target) && !heroResults?.contains(e.target)) {
-      heroResults?.classList.add('hidden');
-    }
-  });
-
-  // Re-show on focus
-  heroSearch?.addEventListener('focus', () => {
-    if (heroSearch.value.trim()) {
-      renderSearchResults(heroSearch.value);
-    }
-  });
-</script>
