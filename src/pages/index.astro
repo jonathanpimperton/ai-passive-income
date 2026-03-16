@@ -17,14 +17,18 @@ const searchIndex = JSON.stringify(TOOLS.map((t) => ({
   path: getToolPath(t),
 })));
 
-/** 6 flagship tools for discovery section */
+/** 10 flagship tools for discovery section */
 const FLAGSHIP_SLUGS = [
   'compound-interest',
   'salary-uk',
   'salary-us',
   'mortgage-payment',
+  'mortgage-affordability',
   'retirement-savings',
   'debt-payoff',
+  'investment-return',
+  'net-worth',
+  'emergency-fund',
 ];
 const flagshipTools = FLAGSHIP_SLUGS
   .map((slug) => TOOLS.find((t) => t.slug === slug))
@@ -35,6 +39,15 @@ const FEATURED_COMPARISONS = [
   { title: 'Renting vs Buying in 2026', slug: 'renting-vs-buying-2026' },
   { title: 'Pay Off Debt vs Invest', slug: 'pay-off-debt-vs-invest' },
   { title: 'Roth vs Traditional 401(k)', slug: 'roth-vs-traditional-401k' },
+];
+
+/** 5 featured scenarios for discovery section */
+const FEATURED_SCENARIOS = [
+  { title: '£50K salary UK take-home', slug: '50k-salary-uk-take-home' },
+  { title: '$100K salary after tax', slug: '100k-salary-take-home' },
+  { title: '£500/mo invested for 10 years', slug: '500-per-month-10-years' },
+  { title: '$300K mortgage at 6.5%', slug: '300k-mortgage-6-5-percent' },
+  { title: '6-month emergency fund', slug: '6-month-emergency-fund' },
 ];
 
 /**
@@ -61,6 +74,7 @@ const defaultNIPct = ((defaultNI / defaultGross) * 100).toFixed(0);
   <section class="py-12 sm:py-16 lg:py-20">
     <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-8 sm:mb-10">
+        <p class="text-sm font-medium text-primary-600 tracking-wide uppercase mb-3">{TOOLS.length} financial calculators & tools with real-time results</p>
         <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 tracking-[-0.02em]">
           What are you trying to figure out?
         </h1>
@@ -170,25 +184,22 @@ const defaultNIPct = ((defaultNI / defaultGross) * 100).toFixed(0);
     </div>
   </section>
 
-  {/* ===== SECTION 2: DISCOVERY — Flagship Tools + Comparisons ===== */}
+  {/* ===== SECTION 2: DISCOVERY — Flagship Tools + Comparisons + Scenarios ===== */}
   <section class="py-12 sm:py-16 bg-neutral-50">
     <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-        {/* Left: Flagship tools */}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-10">
+        {/* Column 1: Flagship tools */}
         <div>
-          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">6 calculators people use most</h2>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Popular calculators</h2>
           <div class="space-y-1">
             {flagshipTools.map((tool) => (
               <a
                 href={getToolPath(tool)}
-                class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
+                class="group flex items-center justify-between py-2.5 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
               >
-                <div class="min-w-0 pr-4">
-                  <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150">
-                    {tool.name}
-                  </span>
-                  <p class="text-sm text-neutral-500 line-clamp-1">{tool.description}</p>
-                </div>
+                <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
+                  {tool.name}
+                </span>
                 <svg class="w-4 h-4 shrink-0 text-neutral-300 group-hover:text-primary-500 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
               </a>
             ))}
@@ -199,14 +210,14 @@ const defaultNIPct = ((defaultNI / defaultGross) * 100).toFixed(0);
           </a>
         </div>
 
-        {/* Right: Featured comparisons */}
+        {/* Column 2: Featured comparisons */}
         <div>
-          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Decisions people actually argue about</h2>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Comparisons</h2>
           <div class="space-y-1">
             {FEATURED_COMPARISONS.map((comp) => (
               <a
                 href={`/comparisons/${comp.slug}`}
-                class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
+                class="group flex items-center justify-between py-2.5 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
               >
                 <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
                   {comp.title}
@@ -216,7 +227,29 @@ const defaultNIPct = ((defaultNI / defaultGross) * 100).toFixed(0);
             ))}
           </div>
           <a href="/comparisons" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-            All comparisons
+            All 15 comparisons
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </a>
+        </div>
+
+        {/* Column 3: Featured scenarios */}
+        <div>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Common scenarios</h2>
+          <div class="space-y-1">
+            {FEATURED_SCENARIOS.map((scenario) => (
+              <a
+                href={`/scenarios/${scenario.slug}`}
+                class="group flex items-center justify-between py-2.5 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
+              >
+                <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
+                  {scenario.title}
+                </span>
+                <svg class="w-4 h-4 shrink-0 text-neutral-300 group-hover:text-primary-500 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+              </a>
+            ))}
+          </div>
+          <a href="/scenarios" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
+            Browse 100+ scenarios
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
         </div>
