@@ -23,10 +23,9 @@ test.describe('Homepage', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // New H1: "What are you trying to figure out?"
     const h1 = page.locator(mainH1).first();
     await expect(h1).toBeVisible();
-    await expect(h1).toContainText('What are you trying to figure out');
+    await expect(h1).toContainText('Choose a question');
 
     // Discovery section has visible tool links (scope to the bg-neutral-50 discovery section)
     const discoverySection = page.locator('section.bg-neutral-50');
@@ -48,8 +47,8 @@ test.describe('Homepage', () => {
     // Look for a visible engine-panel that contains result text
     const visiblePanel = page.locator('.engine-panel:visible');
     await expect(visiblePanel.first()).toBeVisible({ timeout: 10000 });
-    // Should contain a salary result (£ amount with /mo)
-    await expect(visiblePanel.first().getByText(/\/mo/)).toBeVisible();
+    // Should contain a mortgage result ($ amount) or any calculator result
+    await expect(visiblePanel.first().getByText(/afford up to/)).toBeVisible();
   });
 
   test('has meta description and og:image', async ({ page }) => {

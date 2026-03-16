@@ -29,9 +29,9 @@ interface SnowballState {
 /* ── Prompt Config ───────────────────────────────────────── */
 
 const PROMPTS = [
-  { id: 0 as const, question: 'What does this salary really become?', short: 'Salary' },
-  { id: 1 as const, question: 'Can I actually afford this house?', short: 'Mortgage' },
-  { id: 2 as const, question: 'How fast does £500/mo snowball?', short: 'Compound' },
+  { id: 0 as const, question: 'Can I actually afford this house?', short: 'Mortgage' },
+  { id: 1 as const, question: 'How fast does £500/mo snowball?', short: 'Compound' },
+  { id: 2 as const, question: 'What does this salary really become?', short: 'Salary' },
 ];
 
 /* ── Segmented Bar ───────────────────────────────────────── */
@@ -115,6 +115,30 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
 
   return (
     <div className="space-y-5">
+      {/* Result — the star */}
+      <div className="space-y-3">
+        <div>
+          <p className="text-sm text-neutral-500 mb-1">Monthly take-home</p>
+          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
+            {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-lg font-medium text-neutral-500">/mo</span>
+          </p>
+        </div>
+        <p className="text-sm text-neutral-500">
+          You keep {result.keepPct.toFixed(0)}% — {state.country === 'uk' ? 'tax' : 'federal tax'}: {symbol}{formatNumber(Math.round(result.tax))}, {state.country === 'uk' ? 'NI' : 'FICA'}: {symbol}{formatNumber(Math.round(state.country === 'uk' ? result.ni! : result.fica!))}
+        </p>
+        <SegmentedBar segments={segments} />
+        <a
+          href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
+        >
+          See full breakdown
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+        </a>
+      </div>
+
+      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
+      {/* Controls */}
       <div>
         <SliderInput
           label="Gross salary"
@@ -145,28 +169,6 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
-
-      <div className="space-y-3">
-        <div>
-          <p className="text-sm text-neutral-500 mb-1">Monthly take-home</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
-            {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-lg font-medium text-neutral-500">/mo</span>
-          </p>
-        </div>
-        <p className="text-sm text-neutral-500">
-          You keep {result.keepPct.toFixed(0)}% — {state.country === 'uk' ? 'tax' : 'federal tax'}: {symbol}{formatNumber(Math.round(result.tax))}, {state.country === 'uk' ? 'NI' : 'FICA'}: {symbol}{formatNumber(Math.round(state.country === 'uk' ? result.ni! : result.fica!))}
-        </p>
-        <SegmentedBar segments={segments} />
-        <a
-          href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
-        >
-          See full breakdown
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-        </a>
       </div>
     </div>
   );
@@ -199,6 +201,31 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
 
   return (
     <div className="space-y-5">
+      {/* Result — the star */}
+      <div className="space-y-3">
+        <div>
+          <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
+          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
+            ${formatNumber(Math.round(animatedPrice))}
+          </p>
+        </div>
+        <p className="text-sm text-neutral-500">
+          Monthly payment: ${formatNumber(Math.round(result.monthlyPayment))} at {(MORTGAGE_RATE * 100).toFixed(2)}% / {MORTGAGE_TERM_YEARS}yr
+        </p>
+        <p className="text-xs text-neutral-400">Assumes {(MORTGAGE_DTI * 100).toFixed(0)}% debt-to-income ratio</p>
+        <SegmentedBar segments={segments} />
+        <a
+          href="/tools/debt-and-loans/mortgage-affordability"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
+        >
+          See full breakdown
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+        </a>
+      </div>
+
+      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
+      {/* Controls */}
       <div>
         <SliderInput
           label="Annual income"
@@ -224,29 +251,6 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
             formatDisplay={formatNumber}
           />
         </div>
-      </div>
-
-      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
-
-      <div className="space-y-3">
-        <div>
-          <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
-            ${formatNumber(Math.round(animatedPrice))}
-          </p>
-        </div>
-        <p className="text-sm text-neutral-500">
-          Monthly payment: ${formatNumber(Math.round(result.monthlyPayment))} at {(MORTGAGE_RATE * 100).toFixed(2)}% / {MORTGAGE_TERM_YEARS}yr
-        </p>
-        <p className="text-xs text-neutral-400">Assumes {(MORTGAGE_DTI * 100).toFixed(0)}% debt-to-income ratio</p>
-        <SegmentedBar segments={segments} />
-        <a
-          href="/tools/debt-and-loans/mortgage-affordability"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
-        >
-          See full breakdown
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-        </a>
       </div>
     </div>
   );
@@ -274,6 +278,31 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
 
   return (
     <div className="space-y-5">
+      {/* Result — the star */}
+      <div className="space-y-3">
+        <div>
+          <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
+          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
+            £{formatNumber(Math.round(animatedBalance))}
+          </p>
+        </div>
+        <p className="text-sm text-neutral-500">
+          Your money earns £{formatNumber(Math.round(result.interestEarned))} in interest — {result.multiplier.toFixed(1)}x what you put in
+        </p>
+        <p className="text-xs text-neutral-400">Monthly compounding, {SNOWBALL_YEARS} years, no initial lump sum</p>
+        <SegmentedBar segments={segments} />
+        <a
+          href="/tools/saving-and-growth/compound-interest"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
+        >
+          See full breakdown
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+        </a>
+      </div>
+
+      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
+      {/* Controls */}
       <div>
         <SliderInput
           label="Monthly amount"
@@ -299,29 +328,6 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
             formatDisplay={(v) => v.toFixed(1)}
           />
         </div>
-      </div>
-
-      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
-
-      <div className="space-y-3">
-        <div>
-          <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
-            £{formatNumber(Math.round(animatedBalance))}
-          </p>
-        </div>
-        <p className="text-sm text-neutral-500">
-          Your money earns £{formatNumber(Math.round(result.interestEarned))} in interest — {result.multiplier.toFixed(1)}x what you put in
-        </p>
-        <p className="text-xs text-neutral-400">Monthly compounding, {SNOWBALL_YEARS} years, no initial lump sum</p>
-        <SegmentedBar segments={segments} />
-        <a
-          href="/tools/saving-and-growth/compound-interest"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
-        >
-          See full breakdown
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-        </a>
       </div>
     </div>
   );
@@ -381,16 +387,16 @@ export default function DecisionEngine() {
 
   const renderPanel = (id: PromptId) => {
     switch (id) {
-      case 0: return <SalaryPanel state={salary} onChange={setSalary} />;
-      case 1: return <MortgagePanel state={mortgage} onChange={setMortgage} />;
-      case 2: return <SnowballPanel state={snowball} onChange={setSnowball} />;
+      case 0: return <MortgagePanel state={mortgage} onChange={setMortgage} />;
+      case 1: return <SnowballPanel state={snowball} onChange={setSnowball} />;
+      case 2: return <SalaryPanel state={salary} onChange={setSalary} />;
     }
   };
 
   return (
     <>
       {/* ── Desktop layout (lg+) ─────────────────────────────── */}
-      <div className="hidden lg:grid lg:grid-cols-[280px_1fr] lg:gap-6">
+      <div className="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
         {/* Tab list */}
         <div role="tablist" aria-label="Choose a financial question" className="space-y-2">
           {PROMPTS.map((p) => (
@@ -403,13 +409,13 @@ export default function DecisionEngine() {
               tabIndex={active === p.id ? 0 : -1}
               onClick={() => switchPrompt(p.id)}
               onKeyDown={(e) => handleTabKeyDown(e, p.id)}
-              className={`w-full text-left px-5 py-4 rounded-lg transition-all duration-200 border-l-[3px] ${
+              className={`w-full text-left px-5 py-5 rounded-lg transition-all duration-200 border-l-[3px] ${
                 active === p.id
-                  ? 'border-l-primary-500 bg-primary-50 font-semibold text-neutral-900'
+                  ? 'border-l-primary-500 bg-primary-50 font-bold text-neutral-900'
                   : 'border-l-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50'
               }`}
             >
-              <span className="text-[15px] leading-snug">{p.question}</span>
+              <span className="text-[17px] leading-snug">{p.question}</span>
             </button>
           ))}
         </div>
@@ -443,7 +449,7 @@ export default function DecisionEngine() {
                   isOpen ? 'bg-primary-50 font-semibold text-neutral-900' : 'bg-white text-neutral-600 hover:bg-neutral-50'
                 }`}
               >
-                <span className="text-sm leading-snug pr-4">{p.question}</span>
+                <span className="text-[15px] font-medium leading-snug pr-4">{p.question}</span>
                 <svg
                   className={`w-5 h-5 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                   fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"
