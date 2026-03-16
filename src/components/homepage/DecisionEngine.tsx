@@ -178,13 +178,13 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
   const segments: BarSegment[] = state.country === 'uk'
     ? [
         { label: 'Take-home', value: result.net, className: 'bg-primary-500' },
-        { label: 'Tax', value: result.tax, className: 'bg-neutral-400' },
-        { label: 'NI', value: result.ni!, className: 'bg-neutral-300' },
+        { label: 'Tax', value: result.tax, className: 'bg-accent-400' },
+        { label: 'NI', value: result.ni!, className: 'bg-accent-300' },
       ]
     : [
         { label: 'Take-home', value: result.net, className: 'bg-primary-500' },
-        { label: 'Federal tax', value: result.tax, className: 'bg-neutral-400' },
-        { label: 'FICA', value: result.fica!, className: 'bg-neutral-300' },
+        { label: 'Federal tax', value: result.tax, className: 'bg-accent-400' },
+        { label: 'FICA', value: result.fica!, className: 'bg-accent-300' },
       ];
 
   return (
@@ -471,7 +471,7 @@ export default function DecisionEngine() {
       {/* ── Desktop layout (lg+) ─────────────────────────────── */}
       <div className="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
         {/* Tab list */}
-        <div role="tablist" aria-label="Choose a financial question" className="space-y-1">
+        <div role="tablist" aria-label="Choose a financial question">
           {PROMPTS.map((p) => (
             <button
               key={p.id}
@@ -482,15 +482,25 @@ export default function DecisionEngine() {
               tabIndex={active === p.id ? 0 : -1}
               onClick={() => switchPrompt(p.id)}
               onKeyDown={(e) => handleTabKeyDown(e, p.id)}
-              className={`w-full text-left px-5 py-6 transition-all duration-200 border-l-[4px] ${
+              className={`w-full text-left px-5 py-5 transition-all duration-200 border-l-[4px] ${
                 active === p.id
                   ? 'border-l-primary-500 font-bold text-neutral-900'
-                  : 'border-l-transparent text-neutral-600 hover:text-neutral-900 hover:border-l-neutral-300'
+                  : 'border-l-transparent text-neutral-800 hover:text-neutral-900 hover:border-l-neutral-300'
               }`}
             >
               <span className="text-xl leading-relaxed">{p.question}</span>
             </button>
           ))}
+          <div className="px-5 pt-4 mt-2 border-t border-neutral-200/60">
+            <p className="text-xs text-neutral-400 mb-2">Quick estimates — full calculators have more inputs, charts, and exports.</p>
+            <a
+              href="/tools"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150"
+            >
+              View all calculators
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </a>
+          </div>
         </div>
 
         {/* Calculator panel */}
@@ -545,14 +555,13 @@ export default function DecisionEngine() {
         })}
       </div>
 
-      {/* View all link */}
-      <div className="mt-6 text-center">
-        <p className="text-xs text-neutral-400 mb-2">These are quick estimates. Each full calculator has more inputs, charts, and exportable results.</p>
+      {/* Mobile: View all link */}
+      <div className="lg:hidden mt-4 text-center">
         <a
           href="/tools"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150"
         >
-          View all calculators & tools
+          View all calculators
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
         </a>
       </div>

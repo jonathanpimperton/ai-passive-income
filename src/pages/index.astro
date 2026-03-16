@@ -75,9 +75,9 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
   structuredData={[websiteSchema]}
 >
   {/* ===== SECTION 1: DECISION ENGINE ===== */}
-  <section class="py-8 sm:py-10 lg:py-12">
+  <section class="py-6 sm:py-8 lg:py-10">
     <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-6 sm:mb-8">
+      <div class="text-center mb-4 sm:mb-5">
         <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 tracking-[-0.02em]">
           Choose a question. See the consequence.
         </h1>
@@ -88,14 +88,14 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       <div id="engine-skeleton">
         <div class="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
           {/* Tab list skeleton */}
-          <div class="space-y-1">
-            <div class="w-full text-left px-5 py-6 border-l-[4px] border-l-primary-500 font-bold text-neutral-900">
+          <div>
+            <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-primary-500 font-bold text-neutral-900">
               <span class="text-xl leading-relaxed">Can I actually afford this house?</span>
             </div>
-            <div class="w-full text-left px-5 py-6 border-l-[4px] border-l-transparent text-neutral-600">
+            <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent text-neutral-800">
               <span class="text-xl leading-relaxed">How fast does $500/mo snowball?</span>
             </div>
-            <div class="w-full text-left px-5 py-6 border-l-[4px] border-l-transparent text-neutral-600">
+            <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent text-neutral-800">
               <span class="text-xl leading-relaxed">What does this salary really become?</span>
             </div>
           </div>
@@ -254,9 +254,9 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
   </section>
 
   {/* ===== SECTION 3: NEWSLETTER ===== */}
-  <section class="py-8 sm:py-10 border-t border-neutral-100">
-    <div class="max-w-[480px] mx-auto px-4 sm:px-6 lg:px-8">
-      <p class="text-sm text-neutral-500 mb-3 text-center">One email a week. Salary breakdowns, mortgage maths, new tools.</p>
+  <section class="py-6 sm:py-8">
+    <div class="max-w-[440px] mx-auto px-4 sm:px-6 lg:px-8">
+      <p class="text-xs text-neutral-400 mb-2 text-center">One email a week. New tools, scenarios, and money maths worth knowing.</p>
       <EmailCapture client:visible variant="newsletter" />
     </div>
   </section>
