@@ -30,7 +30,7 @@ interface SnowballState {
 
 const PROMPTS = [
   { id: 0 as const, question: 'Can I actually afford this house?', short: 'Mortgage' },
-  { id: 1 as const, question: 'How fast does £500/mo snowball?', short: 'Compound' },
+  { id: 1 as const, question: 'How fast does $500/mo snowball?', short: 'Compound' },
   { id: 2 as const, question: 'What does this salary really become?', short: 'Salary' },
 ];
 
@@ -283,11 +283,11 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
         <div>
           <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
           <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
-            £{formatNumber(Math.round(animatedBalance))}
+            ${formatNumber(Math.round(animatedBalance))}
           </p>
         </div>
         <p className="text-sm text-neutral-500">
-          Your money earns £{formatNumber(Math.round(result.interestEarned))} in interest — {result.multiplier.toFixed(1)}x what you put in
+          Your money earns ${formatNumber(Math.round(result.interestEarned))} in interest — {result.multiplier.toFixed(1)}x what you put in
         </p>
         <p className="text-xs text-neutral-400">Monthly compounding, {SNOWBALL_YEARS} years, no initial lump sum</p>
         <SegmentedBar segments={segments} />
@@ -312,7 +312,7 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
           max={5000}
           step={50}
           onChange={(v) => onChange({ ...state, monthly: v })}
-          prefix="£"
+          prefix="$"
           formatDisplay={formatNumber}
         />
         <div className="mt-3">
@@ -337,7 +337,7 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
 
 export default function DecisionEngine() {
   const [active, setActive] = useState<PromptId>(0);
-  const [salary, setSalary] = useState<SalaryState>({ gross: 45000, country: 'uk' });
+  const [salary, setSalary] = useState<SalaryState>({ gross: 75000, country: 'us' });
   const [mortgage, setMortgage] = useState<MortgageState>({ income: 75000, downPayment: 50000 });
   const [snowball, setSnowball] = useState<SnowballState>({ monthly: 500, rate: 7 });
 
