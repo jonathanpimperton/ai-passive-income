@@ -92,10 +92,10 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-primary-500 font-bold text-neutral-900">
               <span class="text-xl leading-relaxed">Can I actually afford this house?</span>
             </div>
-            <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent text-neutral-800">
+            <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
               <span class="text-xl leading-relaxed">How fast does $500/mo snowball?</span>
             </div>
-            <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent text-neutral-800">
+            <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
               <span class="text-xl leading-relaxed">What does this salary really become?</span>
             </div>
           </div>
@@ -105,7 +105,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             <div class="space-y-5">
               <div class="space-y-3">
                 <div>
-                  <p class="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">Your buying power</p>
+                  <p class="text-sm text-neutral-500 mb-1">You could afford up to</p>
                   <p class="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
                     ${formatNumber(Math.round(defaultMaxPrice))}
                   </p>
@@ -160,7 +160,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             <div class="engine-panel p-5 border-t border-neutral-100">
               <div class="space-y-3">
                 <div>
-                  <p class="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">Your buying power</p>
+                  <p class="text-sm text-neutral-500 mb-1">You could afford up to</p>
                   <p class="text-3xl font-bold tabular-nums lining-nums result-number">
                     ${formatNumber(Math.round(defaultMaxPrice))}
                   </p>
@@ -201,7 +201,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             ))}
           </div>
           <a href="/tools" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-            See all {TOOLS.length} tools
+            See all tools
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
         </div>
@@ -223,7 +223,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             ))}
           </div>
           <a href="/comparisons" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-            All 15 comparisons
+            All comparisons
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
         </div>
@@ -245,7 +245,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             ))}
           </div>
           <a href="/scenarios" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-            Browse 100+ scenarios
+            Browse scenarios
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
         </div>

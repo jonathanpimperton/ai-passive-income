@@ -192,7 +192,7 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
       {/* Result — who takes what */}
       <div className="space-y-3">
         <div>
-          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">You actually take home</p>
+          <p className="text-sm text-neutral-500 mb-1">You actually take home</p>
           <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
             {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-xl font-medium text-neutral-400">/mo</span>
           </p>
@@ -278,7 +278,7 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
       {/* Result — capacity gauge */}
       <div className="space-y-3">
         <div>
-          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">Your buying power</p>
+          <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
           <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
             ${formatNumber(Math.round(animatedPrice))}
           </p>
@@ -354,7 +354,7 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
       {/* Result — growth overpowering contributions */}
       <div className="space-y-3">
         <div>
-          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">After {SNOWBALL_YEARS} years</p>
+          <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
           <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
             ${formatNumber(Math.round(animatedBalance))}
           </p>
@@ -485,14 +485,14 @@ export default function DecisionEngine() {
               className={`w-full text-left px-5 py-5 transition-all duration-200 border-l-[4px] ${
                 active === p.id
                   ? 'border-l-primary-500 font-bold text-neutral-900'
-                  : 'border-l-transparent text-neutral-800 hover:text-neutral-900 hover:border-l-neutral-300'
+                  : 'border-l-transparent font-medium text-neutral-800 hover:text-neutral-900 hover:border-l-neutral-300'
               }`}
             >
               <span className="text-xl leading-relaxed">{p.question}</span>
             </button>
           ))}
           <div className="px-5 pt-4 mt-2 border-t border-neutral-200/60">
-            <p className="text-xs text-neutral-400 mb-2">Quick estimates — full calculators have more inputs, charts, and exports.</p>
+            <p className="text-xs text-neutral-400 mb-2">Preview only. Open the full calculator for the full breakdown.</p>
             <a
               href="/tools"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150"
