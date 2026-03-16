@@ -39,7 +39,7 @@ const PROMPTS = [
 interface BarSegment {
   label: string;
   value: number;
-  color: string;
+  className: string;
 }
 
 function SegmentedBar({ segments }: { segments: BarSegment[] }) {
@@ -55,8 +55,8 @@ function SegmentedBar({ segments }: { segments: BarSegment[] }) {
           return (
             <div
               key={seg.label}
-              className="first:rounded-l-full last:rounded-r-full transition-all duration-300"
-              style={{ width: `${pct}%`, backgroundColor: seg.color }}
+              className={`first:rounded-l-full last:rounded-r-full transition-all duration-300 ${seg.className}`}
+              style={{ width: `${pct}%` }}
               title={`${seg.label}: ${pct.toFixed(0)}%`}
             />
           );
@@ -67,7 +67,7 @@ function SegmentedBar({ segments }: { segments: BarSegment[] }) {
           const pct = total > 0 ? (seg.value / total) * 100 : 0;
           if (pct < 5) return null;
           return (
-            <span key={seg.label} className="text-[11px] opacity-70">
+            <span key={seg.label} className="text-[11px] text-neutral-500">
               {seg.label} {pct.toFixed(0)}%
             </span>
           );
@@ -103,19 +103,19 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
 
   const segments: BarSegment[] = state.country === 'uk'
     ? [
-        { label: 'Take-home', value: result.net, color: '#5EEAD4' },
-        { label: 'Tax', value: result.tax, color: '#64748B' },
-        { label: 'NI', value: result.ni!, color: '#94A3B8' },
+        { label: 'Take-home', value: result.net, className: 'bg-primary-500' },
+        { label: 'Tax', value: result.tax, className: 'bg-neutral-400' },
+        { label: 'NI', value: result.ni!, className: 'bg-neutral-300' },
       ]
     : [
-        { label: 'Take-home', value: result.net, color: '#5EEAD4' },
-        { label: 'Federal tax', value: result.tax, color: '#64748B' },
-        { label: 'FICA', value: result.fica!, color: '#94A3B8' },
+        { label: 'Take-home', value: result.net, className: 'bg-primary-500' },
+        { label: 'Federal tax', value: result.tax, className: 'bg-neutral-400' },
+        { label: 'FICA', value: result.fica!, className: 'bg-neutral-300' },
       ];
 
   return (
     <div className="space-y-5">
-      <div className="engine-inputs">
+      <div>
         <SliderInput
           label="Gross salary"
           id="engine-salary"
@@ -128,16 +128,16 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
           formatDisplay={formatNumber}
         />
         <div className="mt-3">
-          <label className="block text-sm font-medium mb-1.5 engine-label">Country</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-1.5">Country</label>
           <div className="flex gap-1">
             {(['uk', 'us'] as const).map((c) => (
               <button
                 key={c}
                 onClick={() => onChange({ ...state, country: c })}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-150 border ${
                   state.country === c
-                    ? 'bg-white/15 text-white border border-white/20'
-                    : 'text-white/50 hover:text-white/70 border border-transparent'
+                    ? 'bg-primary-50 text-primary-700 border-primary-200'
+                    : 'text-neutral-500 hover:text-neutral-700 border-neutral-200 hover:border-neutral-300'
                 }`}
               >
                 {c === 'uk' ? '🇬🇧 UK' : '🇺🇸 US'}
@@ -147,20 +147,22 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
         </div>
       </div>
 
+      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
       <div className="space-y-3">
         <div>
-          <p className="text-sm opacity-60 mb-1">Monthly take-home</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums text-white">
-            {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-lg font-medium opacity-60">/mo</span>
+          <p className="text-sm text-neutral-500 mb-1">Monthly take-home</p>
+          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
+            {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-lg font-medium text-neutral-500">/mo</span>
           </p>
         </div>
-        <p className="text-sm opacity-70">
+        <p className="text-sm text-neutral-500">
           You keep {result.keepPct.toFixed(0)}% — {state.country === 'uk' ? 'tax' : 'federal tax'}: {symbol}{formatNumber(Math.round(result.tax))}, {state.country === 'uk' ? 'NI' : 'FICA'}: {symbol}{formatNumber(Math.round(state.country === 'uk' ? result.ni! : result.fica!))}
         </p>
         <SegmentedBar segments={segments} />
         <a
           href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-300 hover:text-teal-200 transition-colors duration-150 mt-2"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
         >
           See full breakdown
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -180,7 +182,6 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
   const result = useMemo(() => {
     const maxMonthlyPayment = (state.income / 12) * MORTGAGE_DTI;
     const termMonths = MORTGAGE_TERM_YEARS * 12;
-    // Reverse loanMonthlyPayment: P = M * [(1+r)^n - 1] / [r(1+r)^n]
     const r = MORTGAGE_RATE / 12;
     const factor = (Math.pow(1 + r, termMonths) - 1) / (r * Math.pow(1 + r, termMonths));
     const maxLoan = maxMonthlyPayment * factor;
@@ -192,13 +193,13 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
   const animatedPrice = useAnimatedNumber(result.maxPrice);
 
   const segments: BarSegment[] = [
-    { label: 'Loan', value: result.maxLoan, color: '#5EEAD4' },
-    { label: 'Down payment', value: state.downPayment, color: '#94A3B8' },
+    { label: 'Loan', value: result.maxLoan, className: 'bg-primary-500' },
+    { label: 'Down payment', value: state.downPayment, className: 'bg-neutral-300' },
   ];
 
   return (
     <div className="space-y-5">
-      <div className="engine-inputs">
+      <div>
         <SliderInput
           label="Annual income"
           id="engine-income"
@@ -225,21 +226,23 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
         </div>
       </div>
 
+      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
       <div className="space-y-3">
         <div>
-          <p className="text-sm opacity-60 mb-1">You could afford up to</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums text-white">
+          <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
+          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
             ${formatNumber(Math.round(animatedPrice))}
           </p>
         </div>
-        <p className="text-sm opacity-70">
+        <p className="text-sm text-neutral-500">
           Monthly payment: ${formatNumber(Math.round(result.monthlyPayment))} at {(MORTGAGE_RATE * 100).toFixed(2)}% / {MORTGAGE_TERM_YEARS}yr
         </p>
-        <p className="text-xs opacity-50">Assumes {(MORTGAGE_DTI * 100).toFixed(0)}% debt-to-income ratio</p>
+        <p className="text-xs text-neutral-400">Assumes {(MORTGAGE_DTI * 100).toFixed(0)}% debt-to-income ratio</p>
         <SegmentedBar segments={segments} />
         <a
           href="/tools/debt-and-loans/mortgage-affordability"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-300 hover:text-teal-200 transition-colors duration-150 mt-2"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
         >
           See full breakdown
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -265,13 +268,13 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
   const animatedBalance = useAnimatedNumber(result.finalBalance);
 
   const segments: BarSegment[] = [
-    { label: 'Interest earned', value: result.interestEarned, color: '#5EEAD4' },
-    { label: 'Your contributions', value: result.totalContributions, color: '#94A3B8' },
+    { label: 'Interest earned', value: result.interestEarned, className: 'bg-primary-500' },
+    { label: 'Your contributions', value: result.totalContributions, className: 'bg-neutral-300' },
   ];
 
   return (
     <div className="space-y-5">
-      <div className="engine-inputs">
+      <div>
         <SliderInput
           label="Monthly amount"
           id="engine-monthly"
@@ -298,21 +301,23 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
         </div>
       </div>
 
+      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
       <div className="space-y-3">
         <div>
-          <p className="text-sm opacity-60 mb-1">After {SNOWBALL_YEARS} years</p>
-          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums text-white">
+          <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
+          <p className="text-3xl sm:text-4xl font-bold tabular-nums lining-nums result-number">
             £{formatNumber(Math.round(animatedBalance))}
           </p>
         </div>
-        <p className="text-sm opacity-70">
+        <p className="text-sm text-neutral-500">
           Your money earns £{formatNumber(Math.round(result.interestEarned))} in interest — {result.multiplier.toFixed(1)}x what you put in
         </p>
-        <p className="text-xs opacity-50">Monthly compounding, {SNOWBALL_YEARS} years, no initial lump sum</p>
+        <p className="text-xs text-neutral-400">Monthly compounding, {SNOWBALL_YEARS} years, no initial lump sum</p>
         <SegmentedBar segments={segments} />
         <a
           href="/tools/saving-and-growth/compound-interest"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-300 hover:text-teal-200 transition-colors duration-150 mt-2"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150 mt-2"
         >
           See full breakdown
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -366,13 +371,12 @@ export default function DecisionEngine() {
     }
     if (next !== null) {
       switchPrompt(next);
-      // Focus the new tab button
       const btn = document.getElementById(`engine-tab-${next}`);
       btn?.focus();
     }
   }, [switchPrompt]);
 
-  // Mobile accordion state: which one is expanded
+  // Mobile accordion state
   const [mobileExpanded, setMobileExpanded] = useState<PromptId>(0);
 
   const renderPanel = (id: PromptId) => {
@@ -401,7 +405,7 @@ export default function DecisionEngine() {
               onKeyDown={(e) => handleTabKeyDown(e, p.id)}
               className={`w-full text-left px-5 py-4 rounded-lg transition-all duration-200 border-l-[3px] ${
                 active === p.id
-                  ? 'border-l-teal-400 bg-neutral-100 font-semibold text-neutral-900'
+                  ? 'border-l-primary-500 bg-primary-50 font-semibold text-neutral-900'
                   : 'border-l-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50'
               }`}
             >
@@ -436,7 +440,7 @@ export default function DecisionEngine() {
                 aria-controls={`engine-mobile-panel-${p.id}`}
                 onClick={() => setMobileExpanded(p.id)}
                 className={`w-full text-left px-5 py-4 flex items-center justify-between transition-colors duration-150 ${
-                  isOpen ? 'bg-neutral-100 font-semibold text-neutral-900' : 'bg-white text-neutral-600 hover:bg-neutral-50'
+                  isOpen ? 'bg-primary-50 font-semibold text-neutral-900' : 'bg-white text-neutral-600 hover:bg-neutral-50'
                 }`}
               >
                 <span className="text-sm leading-snug pr-4">{p.question}</span>
@@ -449,8 +453,8 @@ export default function DecisionEngine() {
               </button>
               <div
                 id={`engine-mobile-panel-${p.id}`}
-                className={`engine-panel overflow-hidden transition-all duration-300 ${
-                  isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
+                className={`engine-panel overflow-hidden transition-all duration-300 border-t border-neutral-100 ${
+                  isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0 border-t-0'
                 }`}
               >
                 <div className="p-5 sm:p-6" aria-live="polite">
