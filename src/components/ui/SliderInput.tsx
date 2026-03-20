@@ -129,7 +129,7 @@ export default function SliderInput({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-2 mt-0.5 py-2 rounded-full appearance-none cursor-pointer
+        className="w-full h-2 mt-2 py-2 rounded-full appearance-none cursor-pointer
           bg-neutral-200 accent-primary-500
           [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full
           [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
