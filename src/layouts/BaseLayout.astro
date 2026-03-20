@@ -83,7 +83,7 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
     ))}
 
   </head>
-  <body class="min-h-screen flex flex-col bg-bg text-neutral-900">
+  <body class="min-h-screen flex flex-col bg-bg text-neutral-900 overflow-x-hidden">
     <script is:inline>
       if(new URLSearchParams(location.search).has('embed')){
         document.body.classList.add('embed-mode');

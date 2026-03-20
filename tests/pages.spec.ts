@@ -25,7 +25,7 @@ test.describe('Homepage', () => {
 
     const h1 = page.locator(mainH1).first();
     await expect(h1).toBeVisible();
-    await expect(h1).toContainText('Financial Calculators');
+    await expect(h1).toContainText('Run your numbers');
 
     // Discovery section has visible tool links (scope to the bg-neutral-50 discovery section)
     const discoverySection = page.locator('section.bg-neutral-50');

@@ -73,7 +73,7 @@ function SegmentedBar({ segments }: { segments: BarSegment[] }) {
           const pct = total > 0 ? (seg.value / total) * 100 : 0;
           if (pct < 5) return null;
           return (
-            <span key={seg.label} className="text-[11px] text-neutral-500">
+            <span key={seg.label} className="text-xs text-neutral-500">
               {seg.label} {pct.toFixed(0)}%
             </span>
           );
@@ -110,7 +110,7 @@ function MortgageBar({ segments }: { segments: BarSegment[] }) {
           const pct = total > 0 ? (seg.value / total) * 100 : 0;
           if (pct < 5) return null;
           return (
-            <span key={seg.label} className="text-[11px] text-neutral-500">
+            <span key={seg.label} className="text-xs text-neutral-500">
               {seg.label} {pct.toFixed(0)}%
             </span>
           );
@@ -200,13 +200,13 @@ function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: Sa
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm text-neutral-500 mb-1">You actually take home</p>
-            <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
               {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-xl font-medium text-neutral-400">/mo</span>
             </p>
           </div>
           <a
             href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -288,13 +288,13 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
-            <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
               ${formatNumber(Math.round(animatedPrice))}
             </p>
           </div>
           <a
             href="/tools/debt-and-loans/mortgage-affordability"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -366,13 +366,13 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
-            <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
               ${formatNumber(Math.round(animatedBalance))}
             </p>
           </div>
           <a
             href="/tools/saving-and-growth/compound-interest"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -483,13 +483,13 @@ function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: Sola
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm text-neutral-500 mb-1">{SOLAR_YEARS}-year savings</p>
-            <p className="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
               £{formatNumber(Math.round(animatedSavings))}
             </p>
           </div>
           <a
             href="/tools/saving-and-growth/solar-payback"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -605,7 +605,6 @@ export default function DecisionEngine() {
       <div className="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
         {/* Tab list */}
         <div>
-          <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wider px-5 mb-2">What question do you have?</h2>
         <div role="tablist" aria-label="Choose a financial question">
           {PROMPTS.map((p) => (
             <button
@@ -656,7 +655,6 @@ export default function DecisionEngine() {
 
       {/* ── Mobile layout (< lg) — Accordion ────────────────── */}
       <div className="lg:hidden space-y-3">
-        <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wider px-1 mb-1">What question do you have?</h2>
         {PROMPTS.map((p) => {
           const isOpen = mobileExpanded === p.id;
           return (

@@ -79,9 +79,9 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-6 sm:mb-8 lg:mb-10">
         <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 tracking-[-0.02em]">
-          Financial Calculators
+          Run your numbers
         </h1>
-        <p class="mt-2 text-neutral-500 text-lg sm:text-xl">Salary, mortgages, investing, debt, and retirement</p>
+        <p class="mt-2 text-neutral-500 text-lg sm:text-xl">Salary, mortgage, investing, and debt — answers in seconds</p>
       </div>
 
       {/* Server-rendered skeleton — replaced by React on hydrate */}
@@ -89,7 +89,6 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
         <div class="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
           {/* Tab list skeleton */}
           <div>
-            <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider px-5 mb-2">What question do you have?</h2>
             <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-primary-500 font-bold text-neutral-900">
               <span class="text-xl leading-relaxed">Can I actually afford this house?</span>
             </div>
@@ -111,13 +110,13 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
                 <div class="flex items-start justify-between gap-4">
                   <div>
                     <p class="text-sm text-neutral-500 mb-1">You could afford up to</p>
-                    <p class="text-4xl sm:text-5xl font-bold tabular-nums lining-nums result-number">
+                    <p class="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
                       ${formatNumber(Math.round(defaultMaxPrice))}
                     </p>
                   </div>
                   <a
                     href="/tools/debt-and-loans/mortgage-affordability"
-                    class="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-all duration-150"
+                    class="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
                   >
                     Open full calculator
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -132,8 +131,8 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
                     <div class="rounded-r-full bg-neutral-300" style={`width:${defaultDownPct}%`}></div>
                   </div>
                   <div class="flex justify-between mt-1.5">
-                    <span class="text-[11px] text-neutral-500">Loan {defaultLoanPct}%</span>
-                    <span class="text-[11px] text-neutral-500">Down payment {defaultDownPct}%</span>
+                    <span class="text-xs text-neutral-500">Loan {defaultLoanPct}%</span>
+                    <span class="text-xs text-neutral-500">Down payment {defaultDownPct}%</span>
                   </div>
                 </div>
               </div>
@@ -158,7 +157,6 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
 
         {/* Mobile skeleton: first accordion open — mortgage */}
         <div class="lg:hidden space-y-3">
-          <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider px-1 mb-1">What question do you have?</h2>
           <div class="rounded-xl overflow-hidden border border-neutral-200/80">
             <div class="w-full text-left px-5 py-4 flex items-center justify-between bg-primary-50 font-semibold text-neutral-900">
               <span class="text-[15px] font-medium leading-snug">Can I actually afford this house?</span>
@@ -168,7 +166,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
               <div class="space-y-3">
                 <div>
                   <p class="text-sm text-neutral-500 mb-1">You could afford up to</p>
-                  <p class="text-3xl font-bold tabular-nums lining-nums result-number">
+                  <p class="text-2xl sm:text-3xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
                     ${formatNumber(Math.round(defaultMaxPrice))}
                   </p>
                 </div>
@@ -195,11 +193,11 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
         {/* Column 1: Flagship tools */}
         <div>
           <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Popular calculators</h2>
-          <div class="space-y-1">
+          <div class="space-y-0">
             {flagshipTools.map((tool) => (
               <a
                 href={getToolPath(tool)}
-                class="group flex items-center justify-between py-2.5 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
+                class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
               >
                 <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
                   {tool.name}
@@ -208,7 +206,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
               </a>
             ))}
           </div>
-          <a href="/tools" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
+          <a href="/tools" class="inline-flex items-center gap-1.5 mt-5 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
             See all tools
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
@@ -217,11 +215,11 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
         {/* Column 2: Featured comparisons */}
         <div>
           <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Comparisons</h2>
-          <div class="space-y-1">
+          <div class="space-y-0">
             {FEATURED_COMPARISONS.map((comp) => (
               <a
                 href={`/comparisons/${comp.slug}`}
-                class="group flex items-center justify-between py-2.5 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
+                class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
               >
                 <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
                   {comp.title}
@@ -230,7 +228,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
               </a>
             ))}
           </div>
-          <a href="/comparisons" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
+          <a href="/comparisons" class="inline-flex items-center gap-1.5 mt-5 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
             All comparisons
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
@@ -239,11 +237,11 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
         {/* Column 3: Featured scenarios */}
         <div>
           <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Common scenarios</h2>
-          <div class="space-y-1">
+          <div class="space-y-0">
             {FEATURED_SCENARIOS.map((scenario) => (
               <a
                 href={`/scenarios/${scenario.slug}`}
-                class="group flex items-center justify-between py-2.5 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
+                class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
               >
                 <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
                   {scenario.title}
@@ -252,7 +250,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
               </a>
             ))}
           </div>
-          <a href="/scenarios" class="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
+          <a href="/scenarios" class="inline-flex items-center gap-1.5 mt-5 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
             Browse scenarios
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
@@ -264,7 +262,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
   {/* ===== SECTION 3: NEWSLETTER ===== */}
   <section class="py-6 sm:py-8">
     <div class="max-w-[440px] mx-auto px-4 sm:px-6 lg:px-8">
-      <p class="text-xs text-neutral-400 mb-2 text-center">One email a week. New tools, scenarios, and money maths worth knowing.</p>
+      <p class="text-sm text-neutral-500 mb-2 text-center">One email a week. New tools, scenarios, and money maths worth knowing.</p>
       <EmailCapture client:visible variant="newsletter" />
     </div>
   </section>
