@@ -4,9 +4,13 @@
  *
  * Key UX: During focus, users type freely (no formatting/clamping). On blur,
  * the value is parsed, validated, clamped to [min, max], and formatted.
- * This fixes: can't backspace, can't type decimals, intermediate states reformatted.
+ *
+ * Non-linear scaling: When a slider has >1000 discrete positions (e.g. $0-$10M
+ * at $5K step), it automatically switches to quadratic mapping. This gives the
+ * lower portion of the range more track space — where most users operate.
+ * The text input is unaffected and always accepts exact values.
  */
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 interface SliderInputProps {
   label: string;
@@ -24,6 +28,25 @@ interface SliderInputProps {
   maxLabel?: string;
   /** Plain-English hint displayed below the label */
   hint?: string;
+}
+
+/* ── Non-linear slider mapping ──────────────────────────────── */
+
+/** Virtual slider resolution — higher = smoother drag on non-linear sliders */
+const VIRT_MAX = 10000;
+
+/** Convert a real value to virtual slider position (quadratic: sqrt mapping) */
+function valueToVirtual(value: number, min: number, max: number): number {
+  if (max <= min) return 0;
+  const normalized = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  return Math.round(Math.sqrt(normalized) * VIRT_MAX);
+}
+
+/** Convert a virtual slider position back to a real value, snapped to step */
+function virtualToValue(virt: number, min: number, max: number, step: number): number {
+  const normalized = virt / VIRT_MAX;
+  const raw = min + (max - min) * normalized * normalized; // quadratic
+  return Math.min(max, Math.max(min, Math.round(raw / step) * step));
 }
 
 export default function SliderInput({
@@ -46,6 +69,12 @@ export default function SliderInput({
   const [error, setError] = useState<string | null>(null);
 
   const displayValue = formatDisplay ? formatDisplay(value) : String(value);
+
+  /** Auto-detect: use non-linear when range has >1000 discrete steps */
+  const useNonLinear = useMemo(() => {
+    if (max <= min || step <= 0) return false;
+    return (max - min) / step > 1000;
+  }, [min, max, step]);
 
   const handleFocus = () => {
     setIsEditing(true);
@@ -90,11 +119,26 @@ export default function SliderInput({
 
   const shown = isEditing ? editingValue : displayValue;
 
+  /* ── Range input values (virtual or real) ──────────────── */
+  const rangeMin = useNonLinear ? 0 : min;
+  const rangeMax = useNonLinear ? VIRT_MAX : max;
+  const rangeStep = useNonLinear ? 1 : step;
+  const rangeValue = useNonLinear ? valueToVirtual(value, min, max) : value;
+
+  const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = parseFloat(e.target.value);
+    if (useNonLinear) {
+      onChange(virtualToValue(raw, min, max, step));
+    } else {
+      onChange(raw);
+    }
+  };
+
   /* ── Track fill gradient ──────────────────────────────── */
   const progressPct = useMemo(() => {
-    if (max <= min) return 0;
-    return ((value - min) / (max - min)) * 100;
-  }, [value, min, max]);
+    if (rangeMax <= rangeMin) return 0;
+    return ((rangeValue - rangeMin) / (rangeMax - rangeMin)) * 100;
+  }, [rangeValue, rangeMin, rangeMax]);
 
   const trackStyle = useMemo(() => ({
     background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${progressPct}%, var(--color-neutral-200) ${progressPct}%, var(--color-neutral-200) 100%)`,
@@ -141,11 +185,11 @@ export default function SliderInput({
       </div>
       <input
         type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
+        min={rangeMin}
+        max={rangeMax}
+        step={rangeStep}
+        value={rangeValue}
+        onChange={handleRangeChange}
         style={trackStyle}
         className="slider-track w-full h-2 mt-2 rounded-full appearance-none cursor-pointer
           [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:rounded-full
