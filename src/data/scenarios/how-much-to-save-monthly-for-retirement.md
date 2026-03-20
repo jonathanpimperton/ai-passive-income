@@ -3,7 +3,7 @@ title: "How Much to Save Monthly to Retire by 65"
 slug: "how-much-to-save-monthly-for-retirement"
 description: "Calculate the monthly savings needed to retire at 65 with $1 million. See the impact of starting age and return rates."
 keywords: ["how much to save for retirement", "retirement savings per month", "save for retirement by 65", "monthly retirement savings calculator"]
-toolSlug: "retirement-savings"
+toolSlug: "retirement-contribution"
 toolCategory: "income-and-planning"
 inputs:
   Current Age: "30"

@@ -153,6 +153,20 @@ export const TOOLS: ToolMeta[] = [
     icon: 'piggy-bank',
   },
   {
+    name: 'Retirement Contribution Calculator',
+    slug: 'retirement-contribution',
+    category: 'income-and-planning',
+    description: 'Find out how much to save each month to hit your retirement goal.',
+    icon: 'badge-dollar-sign',
+  },
+  {
+    name: 'Retirement Age Calculator',
+    slug: 'retirement-age',
+    category: 'income-and-planning',
+    description: 'Find out when you can afford to retire based on your savings.',
+    icon: 'hourglass',
+  },
+  {
     name: 'US Salary & Take-Home Calculator',
     slug: 'salary-us',
     category: 'income-and-planning',

@@ -286,6 +286,36 @@ export function solveForPrincipal(
   return remaining / growthFactor;
 }
 
+/**
+ * Solve for retirement age using binary search.
+ * Given current savings, monthly contribution, return rate, and target balance,
+ * finds the age at which the target is reached.
+ */
+export function solveForRetirementAge(
+  currentAge: number,
+  currentSavings: number,
+  monthlyContribution: number,
+  annualRate: number,
+  targetBalance: number,
+  maxAge: number = 90
+): number {
+  if (currentSavings >= targetBalance) return currentAge;
+
+  let low = 0;
+  let high = maxAge - currentAge;
+
+  for (let i = 0; i < 100; i++) {
+    const mid = (low + high) / 2;
+    const result = compoundInterest(currentSavings, monthlyContribution, annualRate, mid, 12);
+    if (Math.abs(result - targetBalance) < Math.max(1, targetBalance * 0.001)) break;
+    if (result < targetBalance) low = mid;
+    else high = mid;
+  }
+
+  const years = (low + high) / 2;
+  return Math.min(maxAge, Math.round((currentAge + years) * 10) / 10);
+}
+
 /* ── Debt Payoff: Snowball & Avalanche ─────────────────────── */
 
 export interface Debt {

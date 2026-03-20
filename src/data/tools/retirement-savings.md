@@ -2,7 +2,7 @@
 name: "Retirement Savings Calculator"
 slug: "retirement-savings"
 category: "income-and-planning"
-description: "Estimate how much you need to retire. Adjust contributions, returns, and withdrawal rate."
+description: "Project your retirement balance with contributions, returns, and inflation adjustment."
 keywords:
   - "retirement calculator"
   - "retirement savings calculator"
@@ -10,11 +10,12 @@ keywords:
   - "401k calculator"
   - "retirement planning calculator"
 relatedTools:
+  - "retirement-contribution"
+  - "retirement-age"
   - "compound-interest"
   - "investment-return"
   - "inflation"
   - "savings-goal"
-  - "net-worth"
 affiliateContext: "Start your retirement savings with a free account"
 affiliatePrograms:
   - "Betterment"

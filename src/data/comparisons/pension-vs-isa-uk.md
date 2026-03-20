@@ -8,6 +8,7 @@ keywords:
   - "ISA or pension which is better"
 relatedTools:
   - "retirement-savings"
+  - "retirement-contribution"
   - "salary-uk"
   - "compound-interest"
 verdict: "Max your workplace pension to the employer match first — it's a guaranteed 100% return. Then fill your ISA for flexible, tax-free access before adding more to your pension."

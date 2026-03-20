@@ -24,7 +24,7 @@ const partners = resolvePartners(programIds);
 if (partners.length === 0) return;
 
 /* Contextual disclosure text based on page type */
-const INVESTMENT_SLUGS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'savings-goal', 'roi']);
+const INVESTMENT_SLUGS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'retirement-contribution', 'retirement-age', 'savings-goal', 'roi']);
 const LOAN_SLUGS = new Set(['mortgage-payment', 'mortgage-affordability', 'loan-amortization', 'rent-vs-buy']);
 
 let disclosureText: string;

@@ -11,6 +11,7 @@ relatedTools:
   - "compound-interest"
   - "roi"
   - "retirement-savings"
+  - "retirement-age"
 verdict: "Index funds win for most investors. Lower fees compound into tens of thousands more over a career. Active funds rarely beat the index after fees."
 comparisonTable:
   - feature: "Typical annual fee (expense ratio)"

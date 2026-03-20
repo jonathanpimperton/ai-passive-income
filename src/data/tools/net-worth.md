@@ -14,6 +14,7 @@ relatedTools:
   - "savings-goal"
   - "emergency-fund"
   - "investment-return"
+  - "retirement-contribution"
 affiliateContext: "Grow your net worth with a smart investment account"
 affiliatePrograms:
   - "Betterment"

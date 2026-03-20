@@ -15,6 +15,7 @@ relatedTools:
   - "investment-return"
   - "savings-goal"
   - "salary-us"
+  - "retirement-contribution"
 affiliateContext: "Don't let inflation erode your wealth — start investing"
 affiliatePrograms:
   - "Betterment"

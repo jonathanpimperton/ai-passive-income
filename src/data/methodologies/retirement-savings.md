@@ -49,14 +49,6 @@ The retirement savings calculator projects how much money you'll have at retirem
 
 The nominal calculation uses the standard compound growth formula with monthly compounding. The inflation adjustment divides the nominal balance by `(1 + i)^t`, where `i` is the annual inflation rate and `t` is years until retirement. This converts future dollars into today's dollars, giving you a realistic sense of your retirement purchasing power.
 
-## The Three Solve Modes
-
-**Retirement Balance:** The default mode. Given your current age, retirement age, savings, monthly contribution, and return rate, it calculates your projected balance. It shows both the nominal value and the inflation-adjusted (real) value.
-
-**Monthly Savings:** Given your current savings, a target retirement balance, return rate, and retirement age, it solves for the monthly contribution you need. This uses the algebraic inverse of the future value of annuity formula.
-
-**Retirement Age:** Given your current savings, monthly contribution, return rate, and target balance, it uses binary search to find the age at which you'll reach your goal. The search operates between your current age and age 90.
-
 ## How Each Variable Affects the Result
 
 **Current Age and Retirement Age:** These determine your time horizon. The difference between retiring at 60 versus 65 is five fewer years of contributions and five fewer years of compounding — this can reduce the final balance by 30-40%.
@@ -83,6 +75,8 @@ The most common mistake is planning with nominal dollars alone. Saying "I'll hav
 
 Another mistake is ignoring the accumulation curve. Retirement savings growth is not linear — it accelerates. The last 10 years of saving typically produce more wealth than the first 20 years. This makes starting early extremely valuable, even with small amounts.
 
-## Why This Calculator Exists
+## Related Calculators
 
-Retirement is the largest financial goal most people have, and it's the one with the least room for error. This calculator answers the three fundamental retirement questions: "How much will I have?", "How much should I save?", and "When can I retire?" — with inflation adjustment built in.
+This calculator answers "How much will I have?" For the other two retirement questions, see:
+- **[Retirement Contribution Calculator](/tools/income-and-planning/retirement-contribution)** — "How much should I save each month?"
+- **[Retirement Age Calculator](/tools/income-and-planning/retirement-age)** — "When can I retire?"

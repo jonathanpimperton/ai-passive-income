@@ -5,6 +5,7 @@ import {
   loanMonthlyPayment,
   amortizationSchedule,
   monthlySavingsRequired,
+  solveForRetirementAge,
   formatCurrency,
   formatPercent,
   formatNumber,
@@ -179,6 +180,33 @@ describe('formatPercent', () => {
 
   it('formats with specified decimals', () => {
     expect(formatPercent(0.07123, 2)).toBe('7.12%');
+  });
+});
+
+describe('solveForRetirementAge', () => {
+  it('returns current age if savings already exceed target', () => {
+    const result = solveForRetirementAge(30, 2000000, 500, 0.07, 1000000);
+    expect(result).toBe(30);
+  });
+
+  it('finds correct retirement age for typical scenario', () => {
+    // 30-year-old, $50K saved, $500/mo, 7% return, targeting $1M
+    const result = solveForRetirementAge(30, 50000, 500, 0.07, 1000000);
+    // Should be around 60-65
+    expect(result).toBeGreaterThan(55);
+    expect(result).toBeLessThan(70);
+  });
+
+  it('caps at max age of 90', () => {
+    // Very low savings rate, high target — should cap at 90
+    const result = solveForRetirementAge(70, 0, 10, 0.03, 10000000);
+    expect(result).toBeLessThanOrEqual(90);
+  });
+
+  it('returns earlier age with higher contributions', () => {
+    const low = solveForRetirementAge(30, 50000, 500, 0.07, 1000000);
+    const high = solveForRetirementAge(30, 50000, 2000, 0.07, 1000000);
+    expect(high).toBeLessThan(low);
   });
 });
 

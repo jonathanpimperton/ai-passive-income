@@ -15,6 +15,7 @@ relatedTools:
   - "investment-return"
   - "retirement-savings"
   - "inflation"
+  - "retirement-contribution"
 affiliateContext: "Reach your goal faster with a high-yield savings account"
 affiliatePrograms:
   - "Wealthfront"

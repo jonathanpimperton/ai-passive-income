@@ -21,6 +21,8 @@ const CALCULATORS = [
   { name: 'US Salary', path: '/tools/income-and-planning/salary-us/' },
   { name: 'UK Salary', path: '/tools/income-and-planning/salary-uk/' },
   { name: 'Retirement Savings', path: '/tools/income-and-planning/retirement-savings/' },
+  { name: 'Retirement Contribution', path: '/tools/income-and-planning/retirement-contribution/' },
+  { name: 'Retirement Age', path: '/tools/income-and-planning/retirement-age/' },
   { name: 'Net Worth', path: '/tools/income-and-planning/net-worth/' },
   { name: 'Emergency Fund', path: '/tools/income-and-planning/emergency-fund/' },
   { name: 'Inflation', path: '/tools/economic/inflation/' },

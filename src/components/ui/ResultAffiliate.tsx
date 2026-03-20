@@ -56,6 +56,24 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
       bestFor: 'Best for hands-off retirement',
     }],
   },
+  'retirement-contribution': {
+    cta: 'Start saving for retirement',
+    partners: [{
+      name: 'Betterment',
+      tagline: 'Automated investing with no minimum balance',
+      url: 'https://www.betterment.com/',
+      bestFor: 'Best for automated saving',
+    }],
+  },
+  'retirement-age': {
+    cta: 'Start building toward retirement',
+    partners: [{
+      name: 'Betterment',
+      tagline: 'Automated investing with no minimum balance',
+      url: 'https://www.betterment.com/',
+      bestFor: 'Best for long-term growth',
+    }],
+  },
   'investment-return': {
     cta: 'Start investing with low fees',
     partners: [{
@@ -166,7 +184,7 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
   if (!partner) return null;
 
   const LOAN_TOOLS = new Set(['mortgage-payment', 'mortgage-affordability', 'loan-amortization', 'rent-vs-buy', 'credit-card-payoff', 'debt-payoff', 'car-finance', 'stamp-duty']);
-  const INVEST_TOOLS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'savings-goal', 'capital-gains-tax']);
+  const INVEST_TOOLS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'retirement-contribution', 'retirement-age', 'savings-goal', 'capital-gains-tax']);
 
   let disclosure: string;
   if (LOAN_TOOLS.has(toolSlug)) {

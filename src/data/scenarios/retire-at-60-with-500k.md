@@ -3,7 +3,7 @@ title: "Can You Retire at 60 with $500K?"
 slug: "retire-at-60-with-500k"
 description: "See if $500,000 is enough to retire at 60. Withdrawal rates, Social Security timing, and strategies to make it work."
 keywords: ["retire at 60 with 500k", "500k retirement", "can I retire with 500000", "early retirement 500k"]
-toolSlug: "retirement-savings"
+toolSlug: "retirement-age"
 toolCategory: "income-and-planning"
 inputs:
   Current Savings: "$500,000"

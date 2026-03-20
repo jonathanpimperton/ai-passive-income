@@ -224,6 +224,33 @@ test.describe('Retirement Savings Calculator', () => {
   });
 });
 
+test.describe('Retirement Contribution Calculator', () => {
+  test('computes required monthly savings', async ({ page }) => {
+    await page.goto('/tools/income-and-planning/retirement-contribution');
+    await waitForCalcHydration(page);
+
+    await fillSliderInput(page, 'retc-current-age', '30');
+    await fillSliderInput(page, 'retc-retirement-age', '65');
+
+    const result = await getResultText(page);
+    // Should show a dollar amount with /month
+    expect(result).toMatch(/\$[\d,]+/);
+  });
+});
+
+test.describe('Retirement Age Calculator', () => {
+  test('computes estimated retirement age', async ({ page }) => {
+    await page.goto('/tools/income-and-planning/retirement-age');
+    await waitForCalcHydration(page);
+
+    await fillSliderInput(page, 'reta-current-age', '30');
+
+    const result = await getResultText(page);
+    // Should show "Age XX"
+    expect(result).toMatch(/Age \d+/);
+  });
+});
+
 test.describe('Emergency Fund Calculator', () => {
   test('shows recommended target', async ({ page }) => {
     await page.goto('/tools/income-and-planning/emergency-fund');

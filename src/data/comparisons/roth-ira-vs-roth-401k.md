@@ -8,6 +8,8 @@ keywords:
   - "should I use roth ira or roth 401k"
 relatedTools:
   - "retirement-savings"
+  - "retirement-contribution"
+  - "retirement-age"
   - "salary-us"
   - "investment-return"
 verdict: "If your employer offers a Roth 401(k) with a match, contribute there first. Then open a Roth IRA for its broader investment choices and flexible withdrawal rules."

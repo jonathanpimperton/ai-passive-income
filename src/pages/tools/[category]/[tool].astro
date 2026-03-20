@@ -15,6 +15,8 @@ import LoanAmortizationCalc from '@components/tools/LoanAmortizationCalc.tsx';
 import InvestmentReturnCalc from '@components/tools/InvestmentReturnCalc.tsx';
 import InvestmentFeeCalc from '@components/tools/InvestmentFeeCalc.tsx';
 import RetirementSavingsCalc from '@components/tools/RetirementSavingsCalc.tsx';
+import RetirementContributionCalc from '@components/tools/RetirementContributionCalc.tsx';
+import RetirementAgeCalc from '@components/tools/RetirementAgeCalc.tsx';
 import DebtPayoffCalc from '@components/tools/DebtPayoffCalc.tsx';
 import SavingsGoalCalc from '@components/tools/SavingsGoalCalc.tsx';
 import QrCodeGenerator from '@components/tools/QrCodeGenerator.tsx';
@@ -81,6 +83,8 @@ const CALCULATOR_MAP: Record<string, string> = {
   'investment-return': 'InvestmentReturnCalc',
   'investment-fee': 'InvestmentFeeCalc',
   'retirement-savings': 'RetirementSavingsCalc',
+  'retirement-contribution': 'RetirementContributionCalc',
+  'retirement-age': 'RetirementAgeCalc',
   'debt-payoff': 'DebtPayoffCalc',
   'savings-goal': 'SavingsGoalCalc',
   'qr-code': 'QrCodeGenerator',
@@ -137,6 +141,8 @@ const hasCalculator = slug in CALCULATOR_MAP;
     {slug === 'investment-return' && <InvestmentReturnCalc client:idle />}
     {slug === 'investment-fee' && <InvestmentFeeCalc client:idle />}
     {slug === 'retirement-savings' && <RetirementSavingsCalc client:idle />}
+    {slug === 'retirement-contribution' && <RetirementContributionCalc client:idle />}
+    {slug === 'retirement-age' && <RetirementAgeCalc client:idle />}
     {slug === 'debt-payoff' && <DebtPayoffCalc client:idle />}
     {slug === 'savings-goal' && <SavingsGoalCalc client:idle />}
     {slug === 'qr-code' && <QrCodeGenerator client:idle />}

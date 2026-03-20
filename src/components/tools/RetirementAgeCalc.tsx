@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   compoundInterest,
   compoundInterestSchedule,
+  solveForRetirementAge,
   formatCurrency,
   formatNumber,
 } from '../../lib/calculator-utils';
@@ -16,7 +17,7 @@ import {
   Legend,
   ReferenceLine,
 } from 'recharts';
-import { RotateCcw, PiggyBank, Calendar, Wallet, Sparkles } from 'lucide-react';
+import { RotateCcw, Calendar, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
@@ -49,23 +50,23 @@ const MILESTONES = [
 /* ── Defaults ──────────────────────────────────────────────── */
 const DEFAULTS = {
   currentAge: 30,
-  retirementAge: 65,
   currentSavings: 50000,
   monthlyContribution: 500,
+  targetBalance: 1000000,
   annualReturn: 7,
   inflationRate: 3,
 };
 
 /* ── Main Calculator ───────────────────────────────────────── */
-export default function RetirementSavingsCalc() {
+export default function RetirementAgeCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [currentAge, setCurrentAge] = useState(DEFAULTS.currentAge);
-  const [retirementAge, setRetirementAge] = useState(DEFAULTS.retirementAge);
   const [currentSavings, setCurrentSavings] = useState(DEFAULTS.currentSavings);
   const [monthlyContribution, setMonthlyContribution] = useState(DEFAULTS.monthlyContribution);
+  const [targetBalance, setTargetBalance] = useState(DEFAULTS.targetBalance);
   const [annualReturn, setAnnualReturn] = useState(DEFAULTS.annualReturn);
   const [inflationRate, setInflationRate] = useState(DEFAULTS.inflationRate);
   const ct = useChartTheme();
@@ -73,32 +74,36 @@ export default function RetirementSavingsCalc() {
   /* ── Derived values ──────────────────────────────────────── */
   const rateDecimal = annualReturn / 100;
   const inflationDecimal = inflationRate / 100;
-  const yearsToRetirement = Math.max(0, retirementAge - currentAge);
 
   /* ── Core calculations ───────────────────────────────────── */
   const results = useMemo(() => {
-    const nominal = compoundInterest(currentSavings, monthlyContribution, rateDecimal, yearsToRetirement, 12);
-    const real = nominal / Math.pow(1 + inflationDecimal, yearsToRetirement);
-    const totalContributions = currentSavings + monthlyContribution * 12 * yearsToRetirement;
+    const age = solveForRetirementAge(currentAge, currentSavings, monthlyContribution, rateDecimal, targetBalance);
+    const roundedAge = Math.round(age);
+    const years = Math.max(0, roundedAge - currentAge);
+    const nominal = compoundInterest(currentSavings, monthlyContribution, rateDecimal, years, 12);
+    const real = nominal / Math.pow(1 + inflationDecimal, years);
+    const totalContributions = currentSavings + monthlyContribution * 12 * years;
     const totalInterest = nominal - totalContributions;
     return {
+      retirementAge: roundedAge,
+      years,
       nominal,
       real,
       totalContributions,
       totalInterest,
-      contextLine: `By age ${retirementAge}, saving ${fmt(monthlyContribution)}/mo at ${annualReturn}% return`,
+      contextLine: `Saving ${fmt(monthlyContribution)}/mo to reach ${fmt(targetBalance)} at ${annualReturn}% return`,
     };
-  }, [currentAge, retirementAge, currentSavings, monthlyContribution, rateDecimal, inflationDecimal, yearsToRetirement, annualReturn, currency]);
+  }, [currentAge, currentSavings, monthlyContribution, rateDecimal, inflationDecimal, targetBalance, annualReturn, currency]);
 
   /* ── Chart data ──────────────────────────────────────────── */
   const chartData = useMemo(() => {
-    if (yearsToRetirement <= 0) return [];
+    if (results.years <= 0) return [];
 
     const schedule = compoundInterestSchedule(
       currentSavings,
       monthlyContribution,
       rateDecimal,
-      yearsToRetirement,
+      results.years,
       12
     );
 
@@ -113,26 +118,27 @@ export default function RetirementSavingsCalc() {
         Contributions: Math.round(row.totalContributions),
       };
     });
-  }, [currentAge, currentSavings, monthlyContribution, yearsToRetirement, rateDecimal, inflationDecimal]);
+  }, [currentAge, currentSavings, monthlyContribution, results.years, rateDecimal, inflationDecimal]);
 
   /* ── Milestone filtering ─────────────────────────────────── */
   const visibleMilestones = useMemo(() => {
-    const maxAge = currentAge + yearsToRetirement;
+    const maxAge = currentAge + results.years;
     return MILESTONES.filter((m) => m.age > currentAge && m.age <= maxAge);
-  }, [currentAge, yearsToRetirement]);
+  }, [currentAge, results.years]);
 
   /* ── PDF Export ──────────────────────────────────────────── */
   const getInputs = useCallback(() => [
     { label: 'Current Age', value: `${currentAge} years` },
-    { label: 'Retirement Age', value: `${retirementAge} years` },
     { label: 'Current Savings', value: fmt(currentSavings) },
     { label: 'Monthly Contribution', value: fmt(monthlyContribution) },
+    { label: 'Target Balance', value: fmt(targetBalance) },
     { label: 'Expected Annual Return', value: `${annualReturn}%` },
     { label: 'Expected Inflation Rate', value: `${inflationRate}%` },
-  ], [currentAge, retirementAge, currentSavings, monthlyContribution, annualReturn, inflationRate, currency]);
+  ], [currentAge, currentSavings, monthlyContribution, targetBalance, annualReturn, inflationRate, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
-    { label: 'Estimated Retirement Balance', value: fmt(results.nominal), highlight: true },
+    { label: 'Estimated Retirement Age', value: `Age ${results.retirementAge}`, highlight: true },
+    { label: 'Projected Balance', value: fmt(results.nominal) },
     { label: 'Inflation-Adjusted Value', value: fmt(results.real) },
     { label: 'Total Contributions', value: fmt(results.totalContributions) },
     { label: 'Total Interest Earned', value: fmt(results.totalInterest) },
@@ -141,14 +147,14 @@ export default function RetirementSavingsCalc() {
   /* ── Reset ───────────────────────────────────────────────── */
   const handleReset = useCallback(() => {
     setCurrentAge(DEFAULTS.currentAge);
-    setRetirementAge(DEFAULTS.retirementAge);
     setCurrentSavings(DEFAULTS.currentSavings);
     setMonthlyContribution(DEFAULTS.monthlyContribution);
+    setTargetBalance(DEFAULTS.targetBalance);
     setAnnualReturn(DEFAULTS.annualReturn);
     setInflationRate(DEFAULTS.inflationRate);
   }, []);
 
-  const animatedNominal = useAnimatedNumber(results.nominal);
+  const animatedAge = useAnimatedNumber(results.retirementAge);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -171,39 +177,25 @@ export default function RetirementSavingsCalc() {
             </button>
           </div>
           <p className="text-xs text-neutral-500 mb-6 leading-relaxed">
-            How much will I have when I retire?
+            When can I afford to retire?
           </p>
 
           <div className="space-y-5">
             <SliderInput
               label="Current Age"
-              id="ret-current-age"
+              id="reta-current-age"
               value={currentAge}
               min={18}
               max={80}
               step={1}
-              onChange={(v) => {
-                setCurrentAge(v);
-                if (retirementAge <= v) setRetirementAge(Math.min(90, v + 1));
-              }}
-              suffix="yrs"
-            />
-
-            <SliderInput
-              label="Retirement Age"
-              id="ret-retirement-age"
-              value={retirementAge}
-              min={currentAge + 1}
-              max={90}
-              step={1}
-              onChange={setRetirementAge}
+              onChange={setCurrentAge}
               suffix="yrs"
             />
 
             <SliderInput
               label="Current Savings"
               hint="Total saved for retirement so far (401k, IRA, etc.)"
-              id="ret-current-savings"
+              id="reta-current-savings"
               value={currentSavings}
               min={0}
               max={10000000}
@@ -216,7 +208,7 @@ export default function RetirementSavingsCalc() {
             <SliderInput
               label="Monthly Contribution"
               hint="Amount you'll save each month toward retirement"
-              id="ret-monthly"
+              id="reta-monthly"
               value={monthlyContribution}
               min={0}
               max={50000}
@@ -227,9 +219,22 @@ export default function RetirementSavingsCalc() {
             />
 
             <SliderInput
+              label="Target Retirement Balance"
+              hint="How much you want saved before retiring"
+              id="reta-target"
+              value={targetBalance}
+              min={50000}
+              max={50000000}
+              step={25000}
+              onChange={setTargetBalance}
+              prefix={currencySymbol}
+              formatDisplay={(v) => formatNumber(v)}
+            />
+
+            <SliderInput
               label="Expected Annual Return"
               hint="Stock/bond portfolio average: ~6-8% is typical"
-              id="ret-return"
+              id="reta-return"
               value={annualReturn}
               min={0}
               max={25}
@@ -242,7 +247,7 @@ export default function RetirementSavingsCalc() {
             <SliderInput
               label="Expected Inflation Rate"
               hint="How fast prices rise — ~3% is the US long-term average"
-              id="ret-inflation"
+              id="reta-inflation"
               value={inflationRate}
               min={0}
               max={10}
@@ -259,14 +264,19 @@ export default function RetirementSavingsCalc() {
           ref={resultsRef}
           className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto"
           aria-live="polite"
-          id="retirement-results"
+          id="retirement-age-results"
         >
           {/* Big Number */}
           <div data-pdf-section className="mb-6">
-            <p className="text-sm text-neutral-500 mb-1">Estimated Retirement Balance</p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {formatCurrency(animatedNominal, currency)}
-            </p>
+            <p className="text-sm text-neutral-500 mb-1">Estimated Retirement Age</p>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                Age {Math.round(animatedAge)}
+              </p>
+              <span className="text-lg text-neutral-500 font-medium">
+                ({results.years} years from now)
+              </span>
+            </div>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               {results.contextLine}
             </p>
@@ -276,21 +286,10 @@ export default function RetirementSavingsCalc() {
           <div data-pdf-section className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <PiggyBank size={16} aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Nominal Balance</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {fmt(results.nominal)}
-                </p>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Calendar size={16} aria-hidden="true" />
               </div>
               <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Today&apos;s Dollars</p>
+                <p className="text-xs text-neutral-500 mb-0.5">Inflation-Adjusted Value</p>
                 <p className="text-lg font-semibold text-amber-600 tabular-nums">
                   {fmt(results.real)}
                 </p>
@@ -321,44 +320,32 @@ export default function RetirementSavingsCalc() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <ShareButton toolSlug="retirement-savings" toolName="Retirement Savings Calculator" />
-            <EmailResultsButton toolSlug="retirement-savings" toolName="Retirement Savings Calculator" getInputs={getInputs} getResults={getResults} />
-            <ExportPdfButton toolName="Retirement Savings Calculator" getInputs={getInputs} resultsRef={resultsRef} />
+            <ShareButton toolSlug="retirement-age" toolName="Retirement Age Calculator" />
+            <EmailResultsButton toolSlug="retirement-age" toolName="Retirement Age Calculator" getInputs={getInputs} getResults={getResults} />
+            <ExportPdfButton toolName="Retirement Age Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="retirement-savings" />
-
-          {/* Inflation Impact Note */}
-          {inflationRate > 0 && (
-            <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-4 mb-6">
-              <p className="text-sm text-amber-800 leading-relaxed">
-                <span className="font-semibold">Inflation impact:</span>{' '}
-                Your {fmt(results.nominal)} will have the purchasing power of{' '}
-                <span className="font-semibold tabular-nums">{fmt(results.real)}</span>{' '}
-                in today&apos;s dollars, assuming {inflationRate}% annual inflation over {yearsToRetirement} years.
-              </p>
-            </div>
-          )}
+          <ResultAffiliate toolSlug="retirement-age" />
 
           {/* Chart */}
           {chartData.length > 1 && (
             <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
               <h3 className="text-sm font-medium text-neutral-700 mb-3">
-                Retirement Savings Projection
+                Savings Projection
               </h3>
               <div className="h-56 sm:h-72">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 5, bottom: 5 }}>
                     <defs>
-                      <linearGradient id="colorNominal" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="colorNominalRA" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
                         <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
                       </linearGradient>
-                      <linearGradient id="colorReal" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="colorRealRA" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.15} />
                         <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
                       </linearGradient>
-                      <linearGradient id="colorContrib" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="colorContribRA" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
                         <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
                       </linearGradient>
@@ -381,7 +368,6 @@ export default function RetirementSavingsCalc() {
                     <Tooltip content={<ChartTooltip labelPrefix="Age" formatValue={fmt} />} />
                     <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
 
-                    {/* Milestone reference lines */}
                     {visibleMilestones.map((m) => (
                       <ReferenceLine
                         key={m.age}
@@ -389,39 +375,13 @@ export default function RetirementSavingsCalc() {
                         stroke="#94A3B8"
                         strokeDasharray="4 4"
                         strokeWidth={1}
-                        label={{
-                          value: m.label,
-                          position: 'top',
-                          fontSize: 10,
-                          fill: '#64748B',
-                        }}
+                        label={{ value: m.label, position: 'top', fontSize: 10, fill: '#64748B' }}
                       />
                     ))}
 
-                    <Area
-                      type="monotone"
-                      dataKey="Nominal Balance"
-                      stroke="#0B6E6E"
-                      strokeWidth={2}
-                      fill="url(#colorNominal)"
-                      animationDuration={600}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="Inflation-Adjusted"
-                      stroke="#F59E0B"
-                      strokeWidth={2}
-                      fill="url(#colorReal)"
-                      animationDuration={600}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="Contributions"
-                      stroke="#22A06B"
-                      strokeWidth={2}
-                      fill="url(#colorContrib)"
-                      animationDuration={600}
-                    />
+                    <Area type="monotone" dataKey="Nominal Balance" stroke="#0B6E6E" strokeWidth={2} fill="url(#colorNominalRA)" animationDuration={600} />
+                    <Area type="monotone" dataKey="Inflation-Adjusted" stroke="#F59E0B" strokeWidth={2} fill="url(#colorRealRA)" animationDuration={600} />
+                    <Area type="monotone" dataKey="Contributions" stroke="#22A06B" strokeWidth={2} fill="url(#colorContribRA)" animationDuration={600} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -440,12 +400,8 @@ export default function RetirementSavingsCalc() {
                     <tr className="bg-neutral-50 border-b border-neutral-200/80 sticky top-0 z-10">
                       <th className="text-left py-3 px-4 font-medium text-neutral-600">Age</th>
                       <th className="text-right py-3 px-4 font-medium text-neutral-600">Nominal</th>
-                      <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">
-                        Today&apos;s Dollars
-                      </th>
-                      <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">
-                        Contributions
-                      </th>
+                      <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Today&apos;s Dollars</th>
+                      <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Contributions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -458,21 +414,12 @@ export default function RetirementSavingsCalc() {
                       .map((row, i) => (
                         <tr
                           key={row.age}
-                          className={`border-b border-neutral-100 transition-colors duration-150
-                            ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}
+                          className={`border-b border-neutral-100 transition-colors duration-150 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}
                         >
-                          <td className="py-2.5 px-4 font-medium text-neutral-900 tabular-nums">
-                            {row.age}
-                          </td>
-                          <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">
-                            {fmt(row['Nominal Balance'])}
-                          </td>
-                          <td className="py-2.5 px-4 text-right text-amber-600 tabular-nums hidden sm:table-cell">
-                            {fmt(row['Inflation-Adjusted'])}
-                          </td>
-                          <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
-                            {fmt(row.Contributions)}
-                          </td>
+                          <td className="py-2.5 px-4 font-medium text-neutral-900 tabular-nums">{row.age}</td>
+                          <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">{fmt(row['Nominal Balance'])}</td>
+                          <td className="py-2.5 px-4 text-right text-amber-600 tabular-nums hidden sm:table-cell">{fmt(row['Inflation-Adjusted'])}</td>
+                          <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">{fmt(row.Contributions)}</td>
                         </tr>
                       ))}
                   </tbody>

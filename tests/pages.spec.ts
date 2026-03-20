@@ -94,6 +94,8 @@ const calculatorPages = [
   { name: 'US Salary', url: '/tools/income-and-planning/salary-us' },
   { name: 'UK Salary', url: '/tools/income-and-planning/salary-uk' },
   { name: 'Retirement Savings', url: '/tools/income-and-planning/retirement-savings' },
+  { name: 'Retirement Contribution', url: '/tools/income-and-planning/retirement-contribution' },
+  { name: 'Retirement Age', url: '/tools/income-and-planning/retirement-age' },
   { name: 'Emergency Fund', url: '/tools/income-and-planning/emergency-fund' },
   { name: 'Net Worth', url: '/tools/income-and-planning/net-worth' },
   { name: 'Rent vs Buy', url: '/tools/debt-and-loans/rent-vs-buy' },

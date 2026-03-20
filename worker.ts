@@ -30,6 +30,8 @@ const TOOL_REGISTRY: Record<string, string> = {
   'loan-amortization': 'Loan Amortization Calculator',
   'investment-return': 'Investment Return Calculator',
   'retirement-savings': 'Retirement Savings Calculator',
+  'retirement-contribution': 'Retirement Contribution Calculator',
+  'retirement-age': 'Retirement Age Calculator',
   'debt-payoff': 'Debt Payoff Calculator',
   'savings-goal': 'Savings Goal Calculator',
   'salary': 'US Salary Calculator',
@@ -60,6 +62,8 @@ const QUICK_TIPS: Record<string, string> = {
   'loan-amortization': 'Making one extra payment per year can shave years off your loan and save thousands in interest.',
   'investment-return': 'Historically, the S&P 500 has returned about 10% annually before inflation. Diversification helps manage risk.',
   'retirement-savings': 'The 4% rule suggests you can withdraw 4% of your savings annually in retirement without running out.',
+  'retirement-contribution': 'Starting 10 years earlier can cut the required monthly contribution in half — time is your biggest advantage.',
+  'retirement-age': 'Doubling your monthly savings rate can move your retirement date up by 7-10 years thanks to compound growth.',
   'debt-payoff': 'The avalanche method (highest interest first) saves the most money, but the snowball method (smallest balance first) keeps you motivated.',
   'savings-goal': 'Automate your savings — set up automatic transfers on payday so you never forget.',
   'salary': 'Maximizing your 401(k) employer match is the closest thing to free money in personal finance.',
@@ -96,6 +100,14 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
   'retirement-savings': [
     { name: 'Betterment', tagline: 'Automated retirement planning with IRA options', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Open an IRA' },
     { name: 'Wealthfront', tagline: 'Tax-loss harvesting to maximize your returns', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Plan your retirement' },
+  ],
+  'retirement-contribution': [
+    { name: 'Betterment', tagline: 'Automated investing with no minimum balance', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start saving today' },
+    { name: 'Wealthfront', tagline: 'Automated investing and tax-loss harvesting', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Open free account' },
+  ],
+  'retirement-age': [
+    { name: 'Betterment', tagline: 'Automated retirement planning with IRA options', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Plan your retirement' },
+    { name: 'Wealthfront', tagline: 'Tax-loss harvesting to maximize your returns', url: 'https://www.wealthfront.com/', category: 'Investing', cta: 'Start investing' },
   ],
   'debt-payoff': [
     { name: 'LendingTree', tagline: 'Compare debt consolidation options from multiple lenders', url: 'https://www.lendingtree.com/', category: 'Loans', cta: 'Compare options now' },

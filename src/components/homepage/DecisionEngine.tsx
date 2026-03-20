@@ -1,8 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { calcSimpleIncomeTax, calcNI } from '../../lib/uk-tax-calc';
-import { calcFederalTax, calcFICA } from '../../lib/us-tax-calc';
-import { compoundInterest } from '../../lib/calculator-utils';
+import { compoundInterest, solveForRetirementAge } from '../../lib/calculator-utils';
 import { loanMonthlyPayment } from '../../lib/calculator-utils';
 import { formatNumber } from '../../lib/calculator-utils';
 import SliderInput from '../ui/SliderInput';
@@ -10,11 +8,6 @@ import SliderInput from '../ui/SliderInput';
 /* ── Types ───────────────────────────────────────────────── */
 
 type PromptId = 0 | 1 | 2 | 3;
-
-interface SalaryState {
-  gross: number;
-  country: 'uk' | 'us';
-}
 
 interface MortgageState {
   income: number;
@@ -24,6 +17,11 @@ interface MortgageState {
 interface SnowballState {
   monthly: number;
   rate: number;
+}
+
+interface RetirementState {
+  currentAge: number;
+  monthlyContribution: number;
 }
 
 interface SolarState {
@@ -36,7 +34,7 @@ interface SolarState {
 const PROMPTS = [
   { id: 0 as const, question: 'Can I actually afford this house?', short: 'Mortgage' },
   { id: 1 as const, question: 'How fast does $500/mo snowball?', short: 'Compound' },
-  { id: 2 as const, question: 'What does this salary really become?', short: 'Salary' },
+  { id: 2 as const, question: 'When can I retire?', short: 'Retire' },
   { id: 3 as const, question: 'Should I invest in solar panels?', short: 'Solar' },
 ];
 
@@ -115,142 +113,6 @@ function MortgageBar({ segments }: { segments: BarSegment[] }) {
             </span>
           );
         })}
-      </div>
-    </div>
-  );
-}
-
-/* ── Salary Bar — thick who-takes-what split ─────────────── */
-
-function SalaryBar({ segments }: { segments: BarSegment[] }) {
-  const total = segments.reduce((s, seg) => s + seg.value, 0);
-  if (total <= 0) return null;
-
-  return (
-    <div>
-      <div className="flex gap-[3px] h-5 rounded-full overflow-hidden">
-        {segments.map((seg) => {
-          const pct = (seg.value / total) * 100;
-          if (pct < 0.5) return null;
-          return (
-            <div
-              key={seg.label}
-              className={`first:rounded-l-full last:rounded-r-full transition-all duration-300 ${seg.className}`}
-              style={{ width: `${pct}%` }}
-              title={`${seg.label}: ${pct.toFixed(0)}%`}
-            />
-          );
-        })}
-      </div>
-      <div className="flex justify-between mt-1.5">
-        {segments.map((seg) => {
-          const pct = total > 0 ? (seg.value / total) * 100 : 0;
-          if (pct < 5) return null;
-          return (
-            <span key={seg.label} className="text-xs font-medium text-neutral-500">
-              {seg.label} {pct.toFixed(0)}%
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ── Salary Panel ────────────────────────────────────────── */
-
-function SalaryPanel({ state, onChange }: { state: SalaryState; onChange: (s: SalaryState) => void }) {
-  const result = useMemo(() => {
-    if (state.country === 'uk') {
-      const tax = calcSimpleIncomeTax(state.gross);
-      const ni = calcNI(state.gross);
-      const net = state.gross - tax - ni;
-      const monthly = net / 12;
-      const keepPct = state.gross > 0 ? (net / state.gross) * 100 : 0;
-      return { monthly, net, tax, ni, keepPct, totalDeductions: tax + ni, symbol: '£' };
-    } else {
-      const tax = calcFederalTax(state.gross, 'single');
-      const fica = calcFICA(state.gross, 'single');
-      const net = state.gross - tax - fica.total;
-      const monthly = net / 12;
-      const keepPct = state.gross > 0 ? (net / state.gross) * 100 : 0;
-      return { monthly, net, tax, fica: fica.total, keepPct, totalDeductions: tax + fica.total, symbol: '$' };
-    }
-  }, [state.gross, state.country]);
-
-  const animatedMonthly = useAnimatedNumber(result.monthly);
-  const symbol = result.symbol;
-
-  const segments: BarSegment[] = state.country === 'uk'
-    ? [
-        { label: 'Take-home', value: result.net, className: 'bg-primary-500' },
-        { label: 'Tax', value: result.tax, className: 'bg-accent-400' },
-        { label: 'NI', value: result.ni!, className: 'bg-accent-300' },
-      ]
-    : [
-        { label: 'Take-home', value: result.net, className: 'bg-primary-500' },
-        { label: 'Federal tax', value: result.tax, className: 'bg-accent-400' },
-        { label: 'FICA', value: result.fica!, className: 'bg-accent-300' },
-      ];
-
-  return (
-    <div className="space-y-5">
-      {/* Result — who takes what */}
-      <div className="space-y-3">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm text-neutral-500 mb-1">You actually take home</p>
-            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
-              {symbol}{formatNumber(Math.round(animatedMonthly))}<span className="text-xl font-medium text-neutral-400">/mo</span>
-            </p>
-          </div>
-          <a
-            href={state.country === 'uk' ? '/tools/income-and-planning/salary-uk' : '/tools/income-and-planning/salary-us'}
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
-          >
-            Open full calculator
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-          </a>
-        </div>
-        <p className="text-sm text-neutral-600 font-medium">
-          {result.keepPct.toFixed(0)}% is yours. {(100 - Number(result.keepPct.toFixed(0)))}% goes to {state.country === 'uk' ? 'tax and NI' : 'federal tax and FICA'}.
-        </p>
-        <SalaryBar segments={segments} />
-      </div>
-
-      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
-
-      {/* Controls */}
-      <div>
-        <SliderInput
-          label="Gross salary"
-          id="engine-salary"
-          value={state.gross}
-          min={20000}
-          max={200000}
-          step={1000}
-          onChange={(v) => onChange({ ...state, gross: v })}
-          prefix={symbol}
-          formatDisplay={formatNumber}
-        />
-        <div className="mt-3">
-          <label className="block text-sm font-medium text-neutral-700 mb-1.5">Country</label>
-          <div className="flex gap-1">
-            {(['uk', 'us'] as const).map((c) => (
-              <button
-                key={c}
-                onClick={() => onChange({ ...state, country: c })}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-150 border ${
-                  state.country === c
-                    ? 'bg-primary-50 text-primary-700 border-primary-200'
-                    : 'text-neutral-500 hover:text-neutral-700 border-neutral-200 hover:border-neutral-300'
-                }`}
-              >
-                {c === 'uk' ? '🇬🇧 UK' : '🇺🇸 US'}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -418,6 +280,87 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
   );
 }
 
+/* ── Retirement Panel ────────────────────────────────────── */
+
+const RETIREMENT_RETURN = 0.07;
+const RETIREMENT_TARGET = 1000000;
+
+function RetirementPanel({ state, onChange }: { state: RetirementState; onChange: (s: RetirementState) => void }) {
+  const result = useMemo(() => {
+    const retireAge = solveForRetirementAge(
+      state.currentAge, 0, state.monthlyContribution, RETIREMENT_RETURN, RETIREMENT_TARGET
+    );
+    const roundedAge = Math.round(retireAge);
+    const years = Math.max(0, roundedAge - state.currentAge);
+    const totalContributions = state.monthlyContribution * 12 * years;
+    const interestEarned = RETIREMENT_TARGET - totalContributions;
+    return { retireAge: roundedAge, years, totalContributions, interestEarned: Math.max(0, interestEarned) };
+  }, [state.currentAge, state.monthlyContribution]);
+
+  const animatedAge = useAnimatedNumber(result.retireAge);
+
+  const segments: BarSegment[] = [
+    { label: 'Saving years', value: result.years, className: 'bg-primary-500' },
+    { label: 'Retirement years', value: Math.max(0, 90 - result.retireAge), className: 'bg-accent-400' },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {/* Result */}
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-neutral-500 mb-1">You could retire at</p>
+            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
+              Age {Math.round(animatedAge)}
+            </p>
+          </div>
+          <a
+            href="/tools/income-and-planning/retirement-age"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
+          >
+            Open full calculator
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </a>
+        </div>
+        <p className="text-sm text-neutral-600 font-medium">
+          {result.years} years of saving to reach ${formatNumber(RETIREMENT_TARGET)} at 7% return
+        </p>
+        <SegmentedBar segments={segments} />
+      </div>
+
+      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
+      {/* Controls */}
+      <div>
+        <SliderInput
+          label="Current age"
+          id="engine-retire-age"
+          value={state.currentAge}
+          min={18}
+          max={65}
+          step={1}
+          onChange={(v) => onChange({ ...state, currentAge: v })}
+          suffix="yrs"
+        />
+        <div className="mt-3">
+          <SliderInput
+            label="Monthly savings"
+            id="engine-retire-monthly"
+            value={state.monthlyContribution}
+            min={100}
+            max={5000}
+            step={50}
+            onChange={(v) => onChange({ ...state, monthlyContribution: v })}
+            prefix="$"
+            formatDisplay={formatNumber}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Solar Panel ────────────────────────────────────────── */
 
 const SOLAR_SYSTEM_SIZE = 4; // kWp
@@ -432,14 +375,8 @@ const SOLAR_YEARS = 25;
 function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: SolarState) => void }) {
   const result = useMemo(() => {
     const annualGeneration = SOLAR_SYSTEM_SIZE * SOLAR_KWH_PER_KWP;
-    const tariffPerKwh = state.electricityBill > 0 ? state.electricityBill / (annualGeneration * SOLAR_SELF_CONSUMPTION * 100 / state.electricityBill) : 0.245;
     // Simplified: use electricity bill to derive rough tariff
-    const monthlyBill = state.electricityBill;
-    const annualBill = monthlyBill * 12;
-    // Annual kWh consumed ≈ annualBill / tariff (assume 24.5p/kWh avg)
     const tariff = 0.245; // £/kWh
-    const selfConsumedKwh = annualGeneration * SOLAR_SELF_CONSUMPTION;
-    const exportedKwh = annualGeneration * (1 - SOLAR_SELF_CONSUMPTION);
 
     let cumulative = 0;
     let paybackYear = -1;
@@ -540,9 +477,9 @@ function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: Sola
 
 export default function DecisionEngine() {
   const [active, setActive] = useState<PromptId>(0);
-  const [salary, setSalary] = useState<SalaryState>({ gross: 75000, country: 'us' });
   const [mortgage, setMortgage] = useState<MortgageState>({ income: 75000, downPayment: 50000 });
   const [snowball, setSnowball] = useState<SnowballState>({ monthly: 500, rate: 7 });
+  const [retirement, setRetirement] = useState<RetirementState>({ currentAge: 30, monthlyContribution: 500 });
   const [solar, setSolar] = useState<SolarState>({ systemCost: 7000, electricityBill: 120 });
 
   const panelRef = useRef<HTMLDivElement>(null);
@@ -587,14 +524,18 @@ export default function DecisionEngine() {
     }
   }, [switchPrompt]);
 
-  // Mobile accordion state
-  const [mobileExpanded, setMobileExpanded] = useState<PromptId>(0);
+  // Mobile accordion state — null means all collapsed
+  const [mobileExpanded, setMobileExpanded] = useState<PromptId | null>(0);
+
+  const toggleMobileAccordion = useCallback((id: PromptId) => {
+    setMobileExpanded((prev) => (prev === id ? null : id));
+  }, []);
 
   const renderPanel = (id: PromptId) => {
     switch (id) {
       case 0: return <MortgagePanel state={mortgage} onChange={setMortgage} />;
       case 1: return <SnowballPanel state={snowball} onChange={setSnowball} />;
-      case 2: return <SalaryPanel state={salary} onChange={setSalary} />;
+      case 2: return <RetirementPanel state={retirement} onChange={setRetirement} />;
       case 3: return <SolarPanel state={solar} onChange={setSolar} />;
     }
   };
@@ -662,7 +603,7 @@ export default function DecisionEngine() {
               <button
                 aria-expanded={isOpen}
                 aria-controls={`engine-mobile-panel-${p.id}`}
-                onClick={() => setMobileExpanded(p.id)}
+                onClick={() => toggleMobileAccordion(p.id)}
                 className={`w-full text-left px-5 py-4 flex items-center justify-between transition-colors duration-150 ${
                   isOpen ? 'bg-primary-50 font-semibold text-neutral-900' : 'bg-white text-neutral-600 hover:bg-neutral-50'
                 }`}

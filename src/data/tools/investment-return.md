@@ -15,6 +15,8 @@ relatedTools:
   - "roi"
   - "savings-goal"
   - "inflation"
+  - "retirement-contribution"
+  - "retirement-age"
 affiliateContext: "Ready to start investing? Open a free account"
 affiliatePrograms:
   - "Betterment"

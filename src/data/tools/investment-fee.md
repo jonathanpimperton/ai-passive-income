@@ -18,6 +18,7 @@ relatedTools:
   - "retirement-savings"
   - "roi"
   - "savings-goal"
+  - "retirement-age"
 affiliateContext: "Switch to a low-fee investment platform"
 affiliatePrograms:
   - "Betterment"

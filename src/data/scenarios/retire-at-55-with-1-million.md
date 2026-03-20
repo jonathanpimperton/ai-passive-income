@@ -3,8 +3,8 @@ title: "Can I Retire at 55 with $1 Million?"
 slug: "retire-at-55-with-1-million"
 description: "Find out if $1 million is enough to retire at 55, how much to save monthly, and strategies to bridge the gap before Social Security."
 keywords: ["retire at 55", "retire with 1 million", "early retirement calculator", "retirement savings plan", "FIRE movement"]
-toolSlug: "retirement-savings"
-toolCategory: "saving-and-growth"
+toolSlug: "retirement-age"
+toolCategory: "income-and-planning"
 inputs:
   Current Age: "30"
   Retirement Age: "55"

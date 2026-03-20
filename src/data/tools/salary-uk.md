@@ -22,6 +22,7 @@ relatedTools:
   - "savings-goal"
   - "emergency-fund"
   - "inflation"
+  - "retirement-contribution"
 lastUpdated: "2026-03-06"
 dataSources:
   - name: "HMRC Income Tax rates 2025/26"
