@@ -335,13 +335,19 @@ export default function PasswordGenerator() {
                 step={1}
                 value={length}
                 onChange={(e) => setLength(parseInt(e.target.value, 10))}
+                style={{ background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${((length - 8) / 120) * 100}%, var(--color-neutral-200) ${((length - 8) / 120) * 100}%, var(--color-neutral-200) 100%)` }}
                 className="w-full h-2 mt-2.5 rounded-full appearance-none cursor-pointer
-                  bg-neutral-200 accent-primary-500
-                  [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full
-                  [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
-                  [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full
-                  [&::-moz-range-thumb]:bg-primary-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
+                  [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:rounded-full
+                  [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
+                  [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150
+                  [&::-webkit-slider-thumb:hover]:scale-110 [&::-webkit-slider-thumb:active]:scale-95
+                  [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:rounded-full
+                  [&::-moz-range-thumb]:bg-primary-600 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white
+                  [&::-moz-range-thumb]:shadow-md
+                  [&::-moz-range-track]:bg-transparent [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full"
                 aria-label="Password length slider"
+                aria-valuetext={`${length} characters`}
               />
               <div className="flex justify-between mt-1">
                 <span className="text-xs text-neutral-500 tabular-nums">8</span>

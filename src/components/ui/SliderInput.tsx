@@ -6,7 +6,7 @@
  * the value is parsed, validated, clamped to [min, max], and formatted.
  * This fixes: can't backspace, can't type decimals, intermediate states reformatted.
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 interface SliderInputProps {
   label: string;
@@ -90,6 +90,23 @@ export default function SliderInput({
 
   const shown = isEditing ? editingValue : displayValue;
 
+  /* ── Track fill gradient ──────────────────────────────── */
+  const progressPct = useMemo(() => {
+    if (max <= min) return 0;
+    return ((value - min) / (max - min)) * 100;
+  }, [value, min, max]);
+
+  const trackStyle = useMemo(() => ({
+    background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${progressPct}%, var(--color-neutral-200) ${progressPct}%, var(--color-neutral-200) 100%)`,
+  }), [progressPct]);
+
+  /* ── Accessible value text ────────────────────────────── */
+  const ariaValueText = prefix
+    ? `${prefix}${displayValue}`
+    : suffix
+      ? `${displayValue} ${suffix}`
+      : displayValue;
+
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-neutral-700 mb-0.5">
@@ -129,16 +146,25 @@ export default function SliderInput({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-2 mt-2 py-2 rounded-full appearance-none cursor-pointer
-          bg-neutral-200 accent-primary-500
-          [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full
-          [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-md
-          [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full
-          [&::-moz-range-thumb]:bg-primary-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
+        style={trackStyle}
+        className="slider-track w-full h-2 mt-2 rounded-full appearance-none cursor-pointer
+          [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:rounded-full
+          [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none
+          [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
+          [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150
+          [&::-webkit-slider-thumb:hover]:scale-110 [&::-webkit-slider-thumb:active]:scale-95
+          [&::-webkit-slider-thumb:active]:bg-primary-700
+          [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:rounded-full
+          [&::-moz-range-thumb]:bg-primary-600 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white
+          [&::-moz-range-thumb]:shadow-md
+          [&::-moz-range-thumb:hover]:scale-110 [&::-moz-range-thumb:active]:scale-95
+          [&::-moz-range-thumb:active]:bg-primary-700
+          [&::-moz-range-track]:bg-transparent [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full"
         aria-label={`${label} slider`}
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
+        aria-valuetext={ariaValueText}
       />
       {(minLabel || maxLabel) && (
         <div className="flex justify-between mt-1">

@@ -484,11 +484,23 @@ a {
   background-size: 24px 24px;
 }
 
-/* --- Prevent slider horizontal scroll on mobile --- */
+/* --- Slider styling --- */
 input[type="range"] {
   touch-action: pan-y;
   -webkit-touch-callout: none;
   max-width: 100%;
+}
+
+/* WebKit: hide default track styling so inline gradient shows through */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+
+/* Expand touch target beyond visual thumb (44px hit area) */
+input[type="range"] {
+  padding-block: 0.5rem;
 }
 
 /* --- Gradient text for result numbers --- */
