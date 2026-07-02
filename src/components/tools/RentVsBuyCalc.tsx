@@ -281,7 +281,7 @@ export default function RentVsBuyCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite" ref={resultsRef}>
           {/* Verdict */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">

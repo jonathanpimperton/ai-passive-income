@@ -35,22 +35,26 @@ export default function EmailResultsButton({
   const turnstileWidgetRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
 
-  // Load Turnstile script once
-  useEffect(() => {
-    if (!TURNSTILE_SITE_KEY) return;
-    if (document.querySelector('script[src*="turnstile"]')) return;
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-    script.async = true;
-    document.head.appendChild(script);
-  }, []);
-
-  // Render invisible Turnstile widget when expanded
+  // Load Turnstile script + render invisible widget when the form is first
+  // expanded. Deferring the third-party script to expand (instead of mount)
+  // means calculator pages don't pay the Turnstile cost unless the visitor
+  // actually opens the email form.
   useEffect(() => {
     if (!expanded || !TURNSTILE_SITE_KEY || !turnstileWidgetRef.current) return;
     if (turnstileWidgetIdRef.current !== null) return;
 
+    // Inject the script once (dedupe across islands/expands); the render
+    // loop below polls until window.turnstile is ready.
+    if (!document.querySelector('script[src*="turnstile"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+
+    let cancelled = false;
     const tryRender = () => {
+      if (cancelled) return;
       const turnstile = (window as any).turnstile;
       if (!turnstile) {
         setTimeout(tryRender, 200);
@@ -67,6 +71,7 @@ export default function EmailResultsButton({
     tryRender();
 
     return () => {
+      cancelled = true;
       const turnstile = (window as any).turnstile;
       if (turnstile && turnstileWidgetIdRef.current !== null) {
         turnstile.remove(turnstileWidgetIdRef.current);

@@ -3,6 +3,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { readdirSync, readFileSync } from 'node:fs';
+import rehypeMonoFigures from './src/lib/rehype-mono-figures.mjs';
 
 /**
  * Map of page pathname -> lastUpdated date, sourced from tool markdown
@@ -29,6 +30,14 @@ const lastmodMap = buildLastmodMap();
 export default defineConfig({
   site: 'https://www.calcrun.com',
   trailingSlash: 'always',
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'viewport',
+  },
+  markdown: {
+    // Mono numerals on financial figures inside markdown tables + bold stats
+    rehypePlugins: [rehypeMonoFigures],
+  },
   integrations: [
     react(),
     sitemap({

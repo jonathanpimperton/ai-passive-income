@@ -925,17 +925,12 @@ input[type="range"] {
   background-color: var(--color-neutral-100);
 }
 
-/* --- Dark mode: footer --- */
-[data-theme="dark"] .footer-dark {
-  background-color: #0A1018;
-}
-
-/* Footer logo "a" hole — must match footer bg in both themes */
-.footer-logo-hole {
-  fill: #0F1B2D;
-}
-[data-theme="dark"] .footer-logo-hole {
-  fill: #0A1018;
+/* --- Dark mode: footer + other surface-alt panels ---
+   bg-surface-alt compiles to var(--color-surface-alt), which flips with the
+   theme tokens above — this explicit rule follows the established
+   belt-and-braces pattern used for the other surface classes. */
+[data-theme="dark"] .bg-surface-alt {
+  background-color: var(--color-surface-alt);
 }
 
 /* --- Dark mode: hover states --- */

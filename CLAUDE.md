@@ -465,36 +465,34 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then `docs/growth-plan.md` (active roadmap), then `docs/build-spec.md` and `docs/design-system.md` as needed.
-3. **Current status (July 2026):** Site is live at `https://www.calcrun.com` but the last
-   deploy was 20 March 2026 — local work since 2 July is committed on `claude/master`
-   but NOT pushed (push = production deploy; held for owner design review). A March-20
-   commit burst (undocumented in the sprint log above) redesigned the homepage as an
-   interactive "Decision Engine" hero, split retirement into 3 tools, and added
-   solar-payback, stamp-duty, capital-gains, car-finance, JWT/base64/URL tools — now
-   197 built pages, 46 tool markdown files. A comprehensive review ran on 2 July 2026
-   (`docs/review-2026-07.md`) and a multi-phase overhaul is IN PROGRESS
-   (`docs/plan-2026-07.md` — read its Session Handoff State + RESUME POINT before doing
-   anything). Done so far: **Phase 1 complete** (UK 2026/27 + US 2026 verified tax data
-   with a freshness guard wired into every build, all review bugs fixed, trailing-slash
-   migration, methodology pages de-orphaned, content sweep — c11d19c); **Phase 2 design
-   overhaul waves 1-3 complete** ("Precision Instrument": Space Grotesk display +
-   JetBrains Mono on all financial figures, ink/paper palette, semantic money colors,
-   light page chrome site-wide, slider redo, mobile sticky result bar, chart system on
-   all 21 chart calculators with crossover annotations, quiet affiliate recommendation
-   rows, one badge + meta line, homepage rebuilt with take-home tab/trust strip/instant
-   answers, new type-set logo — 335f717, d13eed8, efe10dd, 47fc26c; remaining: OG
-   templates, CalculatorShell dedup, perf pass — see plan doc). `docs/design-system.md`
-   is SUPERSEDED (banner added) — design rules live in this file's Design Quality
-   Standards section. **Responsive QA gate:** `scripts/qa-responsive-sweep.mjs`
-   checks every page at 360/768/1280 (must exit 0; run after UI changes with
-   `npx astro preview --port 4399` serving dist) + `scripts/qa-shot-matrix.mjs` for
-   visual-review captures. Authoritative take-home tables: `docs/tax-values-2026.json`.
-   Owner has deferred distribution + revenue work — current focus is product quality.
-   Sprint log above (1-36) is historical record, not current state. Test counts:
-   301 unit (vitest) + 74 E2E (playwright).
-4. **Git workflow:** Work on `claude/master`. **Do NOT push without explicit owner
-   approval** — Cloudflare Pages auto-deploys from this branch, and the working tree is
-   mid-overhaul. Ask the owner before committing/pushing.
+3. **Current status (July 2026):** Site live at `https://www.calcrun.com`, running the
+   July 2026 overhaul (deployed 2 July 2026). A comprehensive review
+   (`docs/review-2026-07.md`) drove a multi-phase overhaul tracked in
+   `docs/plan-2026-07.md` — read its Session Handoff State + RESUME POINT before doing
+   anything. **Phase 1 complete:** UK 2026/27 + US 2026 verified tax data with a
+   freshness-guard test wired into every build (rates-freshness.test.ts fails on tax-year
+   rollover), all review bugs fixed, trailing-slash migration, methodology pages
+   de-orphaned, full content sweep. **Phase 2 complete ("Precision Instrument" design):**
+   Space Grotesk display + JetBrains Mono on all financial figures (.tabular-nums sets
+   the mono face globally), ink/paper palette, semantic money colors (gain=green,
+   cost=red), light page chrome site-wide, chart system with crossover annotations,
+   quiet affiliate rows, homepage rebuilt (take-home tab, trust strip, instant answers),
+   type-set logo, brand OG images, light footer, TOC rail, and a perf pass (React
+   removed from all non-island pages via vanilla CookieBanner.astro, hero at
+   client:idle, Turnstile deferred, nav SVG sprite, Astro prefetch). **Next: Phase 3**
+   (SEO restructure — scenario hub consolidation + 301s, E-E-A-T bylines/schema,
+   internal-link ladders) per the plan doc; a post-deploy maintenance list
+   (CalculatorShell dedup, lazy recharts) is also in the plan doc.
+   `docs/design-system.md` is SUPERSEDED (banner added) — design rules live in this
+   file's Design Quality Standards section. **Responsive QA gate:**
+   `scripts/qa-responsive-sweep.mjs` checks every page at 360/768/1280 (must exit 0;
+   run after UI changes with `npx astro preview --port 4399` serving dist) +
+   `scripts/qa-shot-matrix.mjs` for visual-review captures. Authoritative take-home
+   tables: `docs/tax-values-2026.json`. Owner has deferred distribution + revenue work.
+   Sprint log above (1-36) is historical record. Tests: 301 unit + 74 E2E.
+4. **Git workflow:** Work on `claude/master`. Pushing auto-deploys to production via
+   Cloudflare Pages — get owner approval before pushing unless a standing instruction
+   says otherwise. Local checkpoint commits at milestones are approved practice.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 

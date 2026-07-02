@@ -1,4 +1,5 @@
 ---
+import Logo from './Logo.astro';
 import ToolIcon from './ToolIcon.astro';
 import { TOOLS, getToolPath } from '@lib/tools-data';
 
@@ -14,52 +15,28 @@ const moreTools = [
 ];
 ---
 
-<footer class="footer-dark mt-auto">
-  {/* Gradient top edge — replaces flat border */}
-  <div class="h-px bg-gradient-to-r from-transparent via-primary-600/50 to-transparent"></div>
-
+<footer class="mt-auto bg-surface-alt border-t border-neutral-200/80">
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-10">
       {/* Brand */}
       <div>
-        <a href="/" class="inline-block mb-4" aria-label="CalcRun Home">
-          <svg
-            role="img"
-            aria-label="CalcRun"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="80 805 1810 410"
-            class="h-7 w-auto footer-logo"
-          >
-            <path fill="#14B8A6" d="M403.08 913.456C417.867 916.264 434.517 920.886 449.3 924.411C455.109 925.796 471.309 929.306 476.479 931.028C464.12 992.82 412.785 1056.66 352.884 1078.72C339.977 1084.46 323.791 1084.85 311.535 1091.06C307.674 1093.02 307.07 1102.66 312.992 1104.97C329.52 1111.42 422.144 1102.75 430.866 1109.64C432.971 1116.01 410.5 1173.32 406.862 1183.62C378.469 1183.32 349.976 1183.97 321.573 1183.85C311.058 1183.81 301.445 1184.2 291.064 1182.1C270.966 1178.13 253.337 1166.19 242.208 1148.99C230.369 1130.26 226.612 1107.54 231.793 1086C239.566 1052.37 266.232 1027.97 298.317 1017.77C316.858 1011.87 330.191 1011.12 347.405 999.938C380.016 978.756 394.527 949.922 403.08 913.456Z"/>
-            <path fill="#E5E7EB" d="M321.084 919.423C338.503 918.933 364.76 920.305 382.791 920.744C382.08 923.129 381.334 925.503 380.553 927.866C371.439 955.274 348.902 984.778 320.506 993.334C302.649 998.714 291.036 998.734 273.468 1008.22C225.806 1033.95 219.125 1062.4 202.42 1107.87C193.396 1132.21 184.845 1156.72 176.772 1181.39L156.75 1181.76C136.893 1182.02 115.609 1181.5 95.668 1181.38C119.561 1121.84 143.014 1025.36 185.183 979.072C221.213 939.517 268.63 921.926 321.084 919.423Z"/>
-            <path fill="#E5E7EB" d="M386.185 909.901C420.406 880.353 454.473 850.627 488.384 820.723C494.322 858.749 500.194 900.109 507.046 937.904L476.479 931.028C471.309 929.306 455.109 925.796 449.3 924.411C434.517 920.886 417.867 916.264 403.08 913.456L386.185 909.901Z"/>
-            <path fill="#E5E7EB" d="M644.557 924.348C647.211 924.127 649.868 923.956 652.529 923.837C716.096 921.164 764.136 960.289 766.46 1025.09C745.521 1025.23 724.58 1025.2 703.641 1024.99C691.808 1001.47 675.184 987.938 647.375 992.359C608.977 998.462 578.579 1035.79 585.153 1075.07C587.598 1089.19 595.709 1101.69 607.604 1109.67C630.914 1125.45 664.611 1116.51 683.288 1097.6C688.292 1092.54 691.212 1088.26 695.115 1082.28C707.119 1081.76 722.036 1082.2 734.25 1082.26L759.332 1082.43C740.411 1133.44 706.368 1173.79 650.236 1181.01C468.412 1204.41 483.937 945.323 644.557 924.348Z"/>
-            <path fill="#E5E7EB" d="M892.604 1153.95C877.514 1181.1 840.634 1190.67 815.438 1181.09C744.751 1153.14 760.408 1043.65 815.314 1006.76C846.193 986.012 893.042 973.469 913.605 1014.77C915.44 1009.85 914.33 1005.14 915.125 998.698C915.254 995.487 914.728 994.354 916.238 992.12C927.517 990.507 971.875 991.882 985.723 991.824L951.33 1180.94L889.952 1181L894.695 1159.37C894.502 1156.24 894.545 1156.51 892.604 1153.95Z"/>
-            <path fill="#E5E7EB" d="M898.071 1142.12C897.123 1147.9 895.674 1153.59 894.695 1159.37C894.502 1156.24 894.545 1156.51 892.604 1153.95C893.44 1151.32 896.792 1144.76 898.071 1142.12Z"/>
-            <path fill="#E5E7EB" d="M915.125 998.698C916.017 1004.69 915.946 1011.15 916.292 1017.31L914.298 1018.62C914.053 1016.8 914.048 1016.42 913.605 1014.77C915.44 1009.85 914.33 1005.14 915.125 998.698Z"/>
-            <path fill="#E5E7EB" d="M916.292 1017.31C916.784 1018.35 917.792 1021.58 916.413 1022.32C915.055 1022.13 914.64 1019.59 914.298 1018.62L916.292 1017.31Z"/>
-            <path class="footer-logo-hole" d="M867.501 1048.22C875.884 1047.49 882.289 1047.36 890.002 1051.25C896.565 1054.64 901.482 1060.53 903.638 1067.59C910.617 1090.09 894.589 1118.27 871.482 1124.84C817.755 1128.82 826.091 1059.77 867.501 1048.22Z"/>
-            <path fill="#E5E7EB" d="M1015.54 924.053L1078.14 924.191C1072.04 953.658 1066.93 985.787 1061.53 1015.56L1031.26 1180.9C1010.84 1181.21 989.333 1180.88 968.834 1180.85C983.396 1095.41 1000.8 1009.67 1015.54 924.053Z"/>
-            <path fill="#E5E7EB" d="M1160.01 988.373C1213.59 984.852 1249.35 1011.06 1257.41 1064.62C1235.78 1064.99 1214.14 1064.89 1192.52 1064.32C1191.25 1062.69 1189.96 1061.1 1188.63 1059.54C1175.12 1043.77 1151.49 1045.48 1137.14 1059.28C1128.16 1068.05 1123.23 1080.15 1123.5 1092.7C1123.98 1112.79 1137.77 1123.71 1157.36 1122.65C1170.25 1121.96 1178.65 1115.58 1186.96 1106.53C1196.94 1106.36 1245.47 1105.43 1251.92 1107.21L1252.14 1109.37C1246.88 1120.34 1242.93 1129.32 1235.64 1139.23C1218.28 1162.43 1190.9 1178.97 1162.32 1183.24C1111.82 1190.8 1071.28 1159.16 1064.58 1108.52C1060.59 1080.23 1068.23 1051.53 1085.77 1028.97C1104.36 1005.11 1130.31 992.004 1160.01 988.373Z"/>
-            <path fill="#14B8A6" d="M1302.46 924.265L1367.79 924.041C1382.68 923.996 1411.33 922.786 1424.57 926.59C1444.24 932.311 1460.88 945.532 1470.9 963.404C1490.25 998.363 1480.44 1047.3 1448.58 1071.5C1442.09 1076.43 1436.33 1079.61 1429.12 1083.5C1439.67 1115.13 1451.42 1149.75 1462.99 1180.95L1400.53 1180.93C1387.79 1154.79 1375.33 1128.5 1363.18 1102.08L1329.31 1102.07C1323.91 1125.23 1319.08 1156.77 1314.66 1180.75L1303.58 1180.95L1255.29 1181.05L1274.79 1075.31C1293.48 1068.44 1320.8 1057.65 1339.13 1052.12C1362.63 1047.44 1390.1 1058.82 1409.8 1040.24C1425.25 1025.67 1431.04 996.52 1414.83 979.973C1400.52 965.376 1372.66 968.845 1353.36 969.015C1350.47 984.815 1341.97 1026.19 1341.51 1040.62C1324.47 1048.94 1294.77 1059.08 1276.38 1065.91C1284.8 1018.64 1294.26 971.551 1302.46 924.265Z"/>
-            <path fill="#14B8A6" d="M1617.76 989.425C1638.06 989.228 1658.37 989.222 1678.68 989.408C1671.96 1019.77 1666.17 1056.72 1660.37 1087.71L1643.26 1180.96L1580.98 1181.05C1584.85 1169.09 1588.87 1157.46 1592.54 1145.39C1575.35 1175.92 1557.42 1187.13 1521.24 1183.38C1484.4 1179.43 1474.32 1135.85 1479.04 1105.39C1485.03 1066.73 1493.89 1028.3 1499.74 989.665L1516.56 989.441L1560.48 989.32C1556.08 1009.9 1551.5 1033.8 1548.45 1054.59C1545.2 1076.75 1527.32 1120.93 1558.95 1127.33C1567.39 1129.08 1576.18 1127.24 1583.21 1122.25C1598.97 1111.19 1601.04 1080.2 1604.46 1061.71L1617.76 989.425Z"/>
-            <path fill="#14B8A6" d="M1798.8 988.246C1820.16 985.829 1841.22 989.923 1854.3 1008.97C1876.65 1041.51 1865.28 1078.73 1858.63 1114.22C1854.37 1136.44 1850.27 1158.69 1846.32 1180.97L1784.38 1180.97L1798.39 1106.39C1800.59 1094.56 1804.46 1078.44 1804.76 1067.2C1805.42 1042.79 1773.1 1038.59 1757.25 1050.24C1745.75 1058.68 1744.32 1070.48 1741.87 1082.76C1736.16 1114.65 1730.24 1149.41 1723.57 1180.89L1661.73 1180.99C1663.78 1172.21 1665.42 1162.2 1666.9 1153.25C1675.9 1098.88 1688.09 1044.16 1696.73 989.799C1717.4 989.626 1738.07 989.601 1758.74 989.723L1745.9 1029.13C1747.83 1025.73 1749.85 1022.39 1751.96 1019.1C1763.62 1001.14 1778.29 992.553 1798.8 988.246Z"/>
-          </svg>
-        </a>
-        <p class="text-sm text-white/50 max-w-[240px] leading-relaxed">
+        <div class="mb-4">
+          <Logo />
+        </div>
+        <p class="text-sm text-neutral-600 max-w-[240px] leading-relaxed">
           Financial calculators with interactive charts and cited sources.
         </p>
       </div>
 
       {/* Calculators */}
       <div>
-        <h3 class="text-sm font-semibold text-white/80 mb-4">Calculators</h3>
+        <h3 class="text-sm font-semibold text-neutral-900 mb-4">Calculators</h3>
         <ul class="space-y-2.5 text-sm">
           {footerCalcs.map((tool) => (
-            <li><a href={getToolPath(tool)} class="text-white/50 hover:text-white transition-colors duration-150">{tool.name.replace(' Calculator', '')}</a></li>
+            <li><a href={getToolPath(tool)} class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">{tool.name.replace(' Calculator', '')}</a></li>
           ))}
           <li>
-            <a href="/tools/" class="inline-flex items-center gap-1 text-primary-400 dark:text-primary-500 hover:text-primary-300 font-medium transition-colors duration-150">
+            <a href="/tools/" class="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150">
               View all tools
               <ToolIcon name="arrow-right" size={14} />
             </a>
@@ -69,13 +46,13 @@ const moreTools = [
 
       {/* More Tools */}
       <div>
-        <h3 class="text-sm font-semibold text-white/80 mb-4">More Tools</h3>
+        <h3 class="text-sm font-semibold text-neutral-900 mb-4">More Tools</h3>
         <ul class="space-y-2.5 text-sm">
           {moreTools.map((tool) => (
-            <li><a href={getToolPath(tool)} class="text-white/50 hover:text-white transition-colors duration-150">{tool.name}</a></li>
+            <li><a href={getToolPath(tool)} class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">{tool.name}</a></li>
           ))}
           <li>
-            <a href="/tools/" class="inline-flex items-center gap-1 text-primary-400 dark:text-primary-500 hover:text-primary-300 font-medium transition-colors duration-150">
+            <a href="/tools/" class="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150">
               All tools
               <ToolIcon name="arrow-right" size={14} />
             </a>
@@ -85,26 +62,26 @@ const moreTools = [
 
       {/* Company */}
       <div>
-        <h3 class="text-sm font-semibold text-white/80 mb-4">Company</h3>
+        <h3 class="text-sm font-semibold text-neutral-900 mb-4">Company</h3>
         <ul class="space-y-2.5 text-sm">
-          <li><a href="/about/" class="text-white/50 hover:text-white transition-colors duration-150">About</a></li>
-          <li><a href="/privacy/" class="text-white/50 hover:text-white transition-colors duration-150">Privacy Policy</a></li>
-          <li><a href="/terms/" class="text-white/50 hover:text-white transition-colors duration-150">Terms of Use</a></li>
-          <li><a href="/disclosure/" class="text-white/50 hover:text-white transition-colors duration-150">Affiliate Disclosure</a></li>
-          <li><a href="/accessibility/" class="text-white/50 hover:text-white transition-colors duration-150">Accessibility</a></li>
-          <li><a href="/embed/" class="text-white/50 hover:text-white transition-colors duration-150">Embed Our Tools</a></li>
+          <li><a href="/about/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">About</a></li>
+          <li><a href="/privacy/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Privacy Policy</a></li>
+          <li><a href="/terms/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Terms of Use</a></li>
+          <li><a href="/disclosure/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Affiliate Disclosure</a></li>
+          <li><a href="/accessibility/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Accessibility</a></li>
+          <li><a href="/embed/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Embed Our Tools</a></li>
         </ul>
       </div>
     </div>
 
-    {/* Divider */}
-    <div class="h-px bg-white/10 mb-6"></div>
+    {/* Solid hairline divider */}
+    <div class="border-t border-neutral-200/80 mb-6"></div>
 
     <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p class="text-xs text-white/50">
+      <p class="text-xs text-neutral-500">
         &copy; {currentYear} CalcRun. All rights reserved.
       </p>
-      <p class="text-xs text-white/50">
+      <p class="text-xs text-neutral-500">
         CalcRun provides educational tools, not financial advice.
       </p>
     </div>
@@ -112,10 +89,8 @@ const moreTools = [
 </footer>
 
 <style>
-  .footer-dark {
-    background-color: #0F1B2D;
-  }
-  .footer-dark ul a {
+  /* Comfortable touch targets on footer links */
+  footer ul a {
     display: inline-block;
     padding-block: 0.375rem;
   }

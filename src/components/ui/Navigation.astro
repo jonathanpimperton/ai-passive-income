@@ -1,8 +1,8 @@
 ---
 import Logo from './Logo.astro';
-import ToolIcon from './ToolIcon.astro';
 import ThemeToggle from './ThemeToggle.astro';
 import { CATEGORIES, TOOLS, getToolPath } from '@lib/tools-data';
+import { ICON_PATHS } from '@lib/icon-paths';
 
 const currentPath = Astro.url.pathname;
 
@@ -18,7 +18,44 @@ const utilityTools = TOOLS.filter((t) => t.category === 'utility').slice(0, 4);
 const fileTools = TOOLS.filter((t) => t.category === 'file-tools').slice(0, 4);
 const allUtilityTools = TOOLS.filter((t) => t.category === 'utility');
 const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
+
+// SVG sprite: the nav renders most tool icons twice per page (desktop dropdown
+// + mobile menu). Each distinct icon is emitted ONCE as a <symbol> below and
+// referenced via <use href="#icon-{name}">, instead of inlining full path data
+// at every occurrence (~70+ inline SVGs per page before this).
+const navIconNames = [
+  ...new Set([
+    ...TOOLS.map((t) => t.icon),
+    'calculator', // Scenarios link
+    'scale', // Comparisons link
+    'home', // mobile Home link
+    'search', // mobile All Tools link
+    'info', // mobile About link
+  ]),
+];
+const navIcons = navIconNames.map((name) => ({
+  name,
+  // Same fallback as ToolIcon.astro: unknown names render the calculator icon
+  paths: ICON_PATHS[name] || ICON_PATHS['calculator'],
+}));
 ---
+
+{/* Icon sprite — presentation attributes live on each <symbol> (inherited by
+    its paths), matching the attrs ToolIcon.astro puts on its root <svg>. */}
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  {navIcons.map((icon) => (
+    <symbol
+      id={`icon-${icon.name}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      set:html={icon.paths}
+    />
+  ))}
+</svg>
 
 <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm">
   <nav class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
@@ -81,7 +118,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                               ? "bg-primary-100 text-primary-600"
                               : "bg-neutral-100 text-neutral-500",
                           ]}>
-                            <ToolIcon name={tool.icon} size={15} />
+                            <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
                           </div>
                           {tool.name.replace(' Calculator', '')}
                         </a>
@@ -115,7 +152,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                               ? "bg-primary-100 text-primary-600"
                               : "bg-neutral-100 text-neutral-500",
                           ]}>
-                            <ToolIcon name={tool.icon} size={15} />
+                            <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
                           </div>
                           {tool.name.replace(' Converter', '').replace(' Generator', '')}
                         </a>
@@ -145,7 +182,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                               ? "bg-primary-100 text-primary-600"
                               : "bg-neutral-100 text-neutral-500",
                           ]}>
-                            <ToolIcon name={tool.icon} size={15} />
+                            <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
                           </div>
                           {tool.name.replace(' Converter', '')}
                         </a>
@@ -175,7 +212,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                             ? "bg-primary-100 text-primary-600"
                             : "bg-neutral-100 text-neutral-500",
                         ]}>
-                          <ToolIcon name="calculator" size={15} />
+                          <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-calculator" /></svg>
                         </div>
                         Scenarios
                       </a>
@@ -196,7 +233,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                             ? "bg-primary-100 text-primary-600"
                             : "bg-neutral-100 text-neutral-500",
                         ]}>
-                          <ToolIcon name="scale" size={15} />
+                          <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-scale" /></svg>
                         </div>
                         Comparisons
                       </a>
@@ -337,7 +374,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                         ? "bg-primary-100 text-primary-600"
                         : "bg-neutral-100 text-neutral-500",
                     ]}>
-                      <ToolIcon name={tool.icon} size={16} />
+                      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
                     </div>
                     {tool.name.replace(' Calculator', '')}
                   </a>
@@ -369,7 +406,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                     ? "bg-primary-100 text-primary-600"
                     : "bg-neutral-100 text-neutral-500",
                 ]}>
-                  <ToolIcon name="calculator" size={16} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-calculator" /></svg>
                 </div>
                 Scenarios
               </a>
@@ -390,7 +427,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                     ? "bg-primary-100 text-primary-600"
                     : "bg-neutral-100 text-neutral-500",
                 ]}>
-                  <ToolIcon name="scale" size={16} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-scale" /></svg>
                 </div>
                 Comparisons
               </a>
@@ -421,7 +458,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                       ? "bg-primary-100 text-primary-600"
                       : "bg-neutral-100 text-neutral-500",
                   ]}>
-                    <ToolIcon name={tool.icon} size={16} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
                   </div>
                   {tool.name.replace(' Generator', '').replace(' Converter', '')}
                 </a>
@@ -453,7 +490,7 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                       ? "bg-primary-100 text-primary-600"
                       : "bg-neutral-100 text-neutral-500",
                   ]}>
-                    <ToolIcon name={tool.icon} size={16} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
                   </div>
                   {tool.name.replace(' Converter', '')}
                 </a>
@@ -475,19 +512,19 @@ const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
                 ? "bg-primary-100 text-primary-600"
                 : "bg-neutral-100 text-neutral-500",
             ]}>
-              <ToolIcon name="home" size={16} />
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-home" /></svg>
             </div>
             Home
           </a>
           <a href="/tools/" class="flex items-center gap-3 px-3 py-3 text-[15px] font-medium text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors duration-150">
             <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-100 text-neutral-500 shrink-0">
-              <ToolIcon name="search" size={16} />
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search" /></svg>
             </div>
             All Tools
           </a>
           <a href="/about/" class="flex items-center gap-3 px-3 py-3 text-[15px] font-medium text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors duration-150">
             <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-100 text-neutral-500 shrink-0">
-              <ToolIcon name="info" size={16} />
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-info" /></svg>
             </div>
             About
           </a>

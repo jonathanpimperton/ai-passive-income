@@ -1,5 +1,6 @@
 /**
  * Build-time OG image generation for comparison articles.
+ * "Precision Instrument" brand: paper background, 1px frame, teal accent.
  * Shows the title + verdict snippet.
  * Output: /og/comparisons/{slug}.png (1200x630)
  */
@@ -7,8 +8,16 @@ import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import satori from 'satori';
 import sharp from 'sharp';
-import fs from 'node:fs';
-import path from 'node:path';
+import {
+  OG,
+  OG_WIDTH,
+  OG_HEIGHT,
+  loadOgFonts,
+  brandBlock,
+  ogRoot,
+  eyebrow,
+  footerLine,
+} from '../_brand';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const comparisons = await getCollection('comparisons');
@@ -24,157 +33,61 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const GET: APIRoute = async ({ props }) => {
   const { title, verdict } = props as { title: string; verdict: string };
 
-  const fontDir = path.resolve('public/fonts');
-  const baskBold = fs.readFileSync(path.join(fontDir, 'LibreBaskerville-Bold.ttf'));
-  const dmSans = fs.readFileSync(path.join(fontDir, 'DMSans-Regular.ttf'));
-
   const shortVerdict = verdict.length > 140 ? verdict.slice(0, 137) + '...' : verdict;
 
   const svg = await satori(
-    {
-      type: 'div',
-      props: {
-        style: {
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '60px',
-          backgroundColor: '#FFFFFF',
-          fontFamily: 'Libre Baskerville, DM Sans',
+    ogRoot([
+      brandBlock(44, 30),
+      // Main content
+      {
+        type: 'div',
+        props: {
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            flex: 1,
+            gap: '24px',
+          },
+          children: [
+            eyebrow('Comparison'),
+            // Title — big, 2 lines max
+            {
+              type: 'div',
+              props: {
+                style: {
+                  fontFamily: 'Space Grotesk',
+                  fontWeight: 600,
+                  fontSize: '56px',
+                  color: OG.ink,
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.02em',
+                  lineClamp: 2,
+                },
+                children: title,
+              },
+            },
+            // Verdict
+            {
+              type: 'div',
+              props: {
+                style: {
+                  fontFamily: 'DM Sans',
+                  fontSize: '24px',
+                  color: OG.secondary,
+                  lineHeight: 1.45,
+                  maxWidth: '960px',
+                  lineClamp: 3,
+                },
+                children: shortVerdict,
+              },
+            },
+          ],
         },
-        children: [
-          // Top accent bar (teal for comparisons)
-          {
-            type: 'div',
-            props: {
-              style: {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '6px',
-                backgroundColor: '#0E8585',
-              },
-            },
-          },
-          // Main content
-          {
-            type: 'div',
-            props: {
-              style: {
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '20px',
-                flex: 1,
-              },
-              children: [
-                // "Comparison" pill
-                {
-                  type: 'div',
-                  props: {
-                    style: { display: 'flex' },
-                    children: [
-                      {
-                        type: 'div',
-                        props: {
-                          style: {
-                            backgroundColor: '#EFF6FF',
-                            color: '#0E8585',
-                            fontSize: '20px',
-                            fontWeight: 700,
-                            padding: '8px 20px',
-                            borderRadius: '100px',
-                          },
-                          children: 'Comparison',
-                        },
-                      },
-                    ],
-                  },
-                },
-                // Title
-                {
-                  type: 'div',
-                  props: {
-                    style: {
-                      fontSize: '48px',
-                      fontWeight: 700,
-                      color: '#0F1B2D',
-                      lineHeight: 1.15,
-                      letterSpacing: '-0.02em',
-                    },
-                    children: title,
-                  },
-                },
-                // Verdict
-                {
-                  type: 'div',
-                  props: {
-                    style: {
-                      fontSize: '22px',
-                      color: '#64748B',
-                      lineHeight: 1.5,
-                    },
-                    children: shortVerdict,
-                  },
-                },
-              ],
-            },
-          },
-          // Footer
-          {
-            type: 'div',
-            props: {
-              style: {
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              },
-              children: [
-                {
-                  type: 'div',
-                  props: {
-                    style: { display: 'flex', alignItems: 'center', gap: '4px' },
-                    children: [
-                      {
-                        type: 'span',
-                        props: {
-                          style: { fontSize: '32px', fontWeight: 700, color: '#0F1B2D' },
-                          children: 'Calc',
-                        },
-                      },
-                      {
-                        type: 'span',
-                        props: {
-                          style: { fontSize: '32px', fontWeight: 700, color: '#0E8585' },
-                          children: 'Run',
-                        },
-                      },
-                    ],
-                  },
-                },
-                {
-                  type: 'div',
-                  props: {
-                    style: { fontSize: '18px', color: '#94A3B8' },
-                    children: 'calcrun.com',
-                  },
-                },
-              ],
-            },
-          },
-        ],
       },
-    },
-    {
-      width: 1200,
-      height: 630,
-      fonts: [
-        { name: 'Libre Baskerville', data: baskBold, weight: 700, style: 'normal' },
-        { name: 'DM Sans', data: dmSans, weight: 400, style: 'normal' },
-      ],
-    },
+      footerLine(),
+    ]),
+    { width: OG_WIDTH, height: OG_HEIGHT, fonts: loadOgFonts() },
   );
 
   const png = await sharp(Buffer.from(svg)).png({ quality: 90 }).toBuffer();

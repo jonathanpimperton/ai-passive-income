@@ -1,7 +1,7 @@
 ---
 import Navigation from '@components/ui/Navigation.astro';
 import Footer from '@components/ui/Footer.astro';
-import CookieConsent from '@components/ui/CookieConsent.tsx';
+import CookieBanner from '@components/ui/CookieBanner.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -123,6 +123,8 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
         });
       }
       wrapWideTables();
+      // Font swap can widen tables after first pass — re-check once fonts land
+      document.fonts?.ready.then(() => wrapWideTables());
       // React islands hydrate at idle — sweep again once they've rendered
       setTimeout(wrapWideTables, 2500);
       let tableResizeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -136,6 +138,6 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
       <slot />
     </main>
     <Footer />
-    <CookieConsent client:idle />
+    <CookieBanner />
   </body>
 </html>

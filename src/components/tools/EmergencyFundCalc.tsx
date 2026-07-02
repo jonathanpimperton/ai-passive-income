@@ -194,7 +194,7 @@ export default function EmergencyFundCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite" ref={resultsRef}>
           <h2 className="text-lg font-semibold text-neutral-900 mb-4">Your Emergency Fund Targets</h2>
 
           <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">

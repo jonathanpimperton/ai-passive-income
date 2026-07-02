@@ -1,21 +1,24 @@
 /**
  * Build-time OG image generation for scenario pages.
- * Shows the result summary prominently + key inputs as pills.
+ * "Precision Instrument" brand: paper background, 1px frame, teal accent.
+ * Shows the result figure prominently + key inputs as bordered chips.
  * Output: /og/scenarios/{slug}.png (1200x630)
  */
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import satori from 'satori';
 import sharp from 'sharp';
-import fs from 'node:fs';
-import path from 'node:path';
-
-const CATEGORY_COLORS: Record<string, { bg: string; accent: string }> = {
-  'saving-and-growth': { bg: '#EFF6FF', accent: '#0E8585' },
-  'debt-and-loans': { bg: '#FEF2F2', accent: '#DC2626' },
-  'income-and-planning': { bg: '#F0FDF4', accent: '#16A34A' },
-  economic: { bg: '#FFFBEB', accent: '#D97706' },
-};
+import {
+  OG,
+  OG_WIDTH,
+  OG_HEIGHT,
+  loadOgFonts,
+  brandBlock,
+  ogRoot,
+  eyebrow,
+  footerLine,
+  getCategoryLabel,
+} from '../_brand';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const scenarios = await getCollection('scenarios');
@@ -30,6 +33,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }));
 };
 
+/** Result figures range from "$7,185/month" to full sentences — scale to fit. */
+function figureFontSize(text: string): string {
+  if (text.length <= 16) return '88px';
+  if (text.length <= 34) return '64px';
+  return '44px';
+}
+
 export const GET: APIRoute = async ({ props }) => {
   const { title, resultSummary, inputs, toolCategory } = props as {
     title: string;
@@ -38,167 +48,105 @@ export const GET: APIRoute = async ({ props }) => {
     toolCategory: string;
   };
 
-  const colors = CATEGORY_COLORS[toolCategory] || CATEGORY_COLORS['saving-and-growth'];
-
-  const fontDir = path.resolve('public/fonts');
-  const baskBold = fs.readFileSync(path.join(fontDir, 'LibreBaskerville-Bold.ttf'));
-  const dmSans = fs.readFileSync(path.join(fontDir, 'DMSans-Regular.ttf'));
-
-  // Take first 3 inputs for pills
+  // Take first 3 inputs for chips
   const inputEntries = Object.entries(inputs).slice(0, 3);
 
   const shortTitle = title.length > 70 ? title.slice(0, 67) + '...' : title;
 
   const svg = await satori(
-    {
-      type: 'div',
-      props: {
-        style: {
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '60px',
-          backgroundColor: '#FFFFFF',
-          fontFamily: 'Libre Baskerville, DM Sans',
-        },
-        children: [
-          // Top accent bar
-          {
-            type: 'div',
-            props: {
-              style: {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '6px',
-                backgroundColor: colors.accent,
+    ogRoot([
+      brandBlock(44, 30),
+      // Main content
+      {
+        type: 'div',
+        props: {
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            flex: 1,
+            gap: '20px',
+          },
+          children: [
+            eyebrow(getCategoryLabel(toolCategory)),
+            // Scenario title
+            {
+              type: 'div',
+              props: {
+                style: {
+                  fontFamily: 'Space Grotesk',
+                  fontWeight: 600,
+                  fontSize: '34px',
+                  color: OG.ink,
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.02em',
+                  lineClamp: 2,
+                },
+                children: shortTitle,
               },
             },
-          },
-          // Main content
-          {
-            type: 'div',
-            props: {
-              style: {
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                flex: 1,
+            // Result figure — large, tight, instrument-like
+            {
+              type: 'div',
+              props: {
+                style: {
+                  fontFamily: 'Space Grotesk',
+                  fontWeight: 600,
+                  fontSize: figureFontSize(resultSummary),
+                  color: OG.teal,
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.03em',
+                  lineClamp: 2,
+                },
+                children: resultSummary,
               },
-              children: [
-                // Scenario title
-                {
-                  type: 'div',
-                  props: {
-                    style: {
-                      fontSize: '36px',
-                      fontWeight: 700,
-                      color: '#0F1B2D',
-                      lineHeight: 1.2,
-                      letterSpacing: '-0.02em',
-                    },
-                    children: shortTitle,
-                  },
+            },
+            // Input chips
+            {
+              type: 'div',
+              props: {
+                style: {
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  marginTop: '8px',
                 },
-                // Result summary (big number)
-                {
-                  type: 'div',
-                  props: {
-                    style: {
-                      fontSize: '64px',
-                      fontWeight: 700,
-                      color: colors.accent,
-                      lineHeight: 1.1,
-                      letterSpacing: '-0.02em',
-                      marginTop: '8px',
-                    },
-                    children: resultSummary,
-                  },
-                },
-                // Input pills
-                {
+                children: inputEntries.map(([key, val]) => ({
                   type: 'div',
                   props: {
                     style: {
                       display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '10px',
-                      marginTop: '12px',
+                      alignItems: 'center',
+                      gap: '6px',
+                      backgroundColor: OG.paper,
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderColor: OG.frame,
+                      borderRadius: '8px',
+                      fontFamily: 'DM Sans',
+                      fontSize: '19px',
+                      padding: '10px 18px',
                     },
-                    children: inputEntries.map(([key, val]) => ({
-                      type: 'div',
-                      props: {
-                        style: {
-                          backgroundColor: colors.bg,
-                          color: '#4A4A5A',
-                          fontSize: '18px',
-                          padding: '8px 16px',
-                          borderRadius: '8px',
-                        },
-                        children: `${key}: ${val}`,
-                      },
-                    })),
-                  },
-                },
-              ],
-            },
-          },
-          // Footer
-          {
-            type: 'div',
-            props: {
-              style: {
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              },
-              children: [
-                {
-                  type: 'div',
-                  props: {
-                    style: { display: 'flex', alignItems: 'center', gap: '4px' },
                     children: [
                       {
                         type: 'span',
-                        props: {
-                          style: { fontSize: '32px', fontWeight: 700, color: '#0F1B2D' },
-                          children: 'Calc',
-                        },
+                        props: { style: { color: OG.secondary }, children: `${key}:` },
                       },
                       {
                         type: 'span',
-                        props: {
-                          style: { fontSize: '32px', fontWeight: 700, color: '#0E8585' },
-                          children: 'Run',
-                        },
+                        props: { style: { color: OG.ink }, children: String(val) },
                       },
                     ],
                   },
-                },
-                {
-                  type: 'div',
-                  props: {
-                    style: { fontSize: '18px', color: '#94A3B8' },
-                    children: 'calcrun.com',
-                  },
-                },
-              ],
+                })),
+              },
             },
-          },
-        ],
+          ],
+        },
       },
-    },
-    {
-      width: 1200,
-      height: 630,
-      fonts: [
-        { name: 'Libre Baskerville', data: baskBold, weight: 700, style: 'normal' },
-        { name: 'DM Sans', data: dmSans, weight: 400, style: 'normal' },
-      ],
-    },
+      footerLine(),
+    ]),
+    { width: OG_WIDTH, height: OG_HEIGHT, fonts: loadOgFonts() },
   );
 
   const png = await sharp(Buffer.from(svg)).png({ quality: 90 }).toBuffer();
