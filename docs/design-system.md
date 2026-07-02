@@ -1,5 +1,28 @@
 # Design, Branding & UX Plan
 
+> **SUPERSEDED (July 2026).** This document describes the ORIGINAL launch design
+> (Inter typography, later Libre Baskerville + coral accents, gradient dividers,
+> dark hero bands). The site now runs the **"Precision Instrument"** system,
+> implemented July 2026:
+>
+> - **Type:** Space Grotesk (display, via `--font-display`; h1/h2 automatic) ·
+>   DM Sans (body/UI) · **JetBrains Mono on EVERY financial figure** (any element
+>   with `.tabular-nums` gets the mono face globally — the brand signature).
+> - **Color:** ink `#14161A` on paper `#FCFCFA`; deep teal is the SOLE accent
+>   (interactive, focus, primary data series). Semantic money colors:
+>   gains = `success-600`, costs = `red-600`. Coral never appears on data;
+>   at most one coral CTA per page.
+> - **Surfaces:** 1px borders over shadows, `rounded-lg`, solid hairline dividers.
+>   NO gradient text/dividers, NO aurora glows, NO dark interior hero bands —
+>   interior pages use compact light headers.
+> - **Charts:** always via `useChartTheme()` (`src/lib/useChartTheme.ts`).
+> - **Logo:** type-set Space Grotesk wordmark + rising-spark mark (`Logo.astro`).
+>
+> Authoritative rules: **CLAUDE.md → "Design Quality Standards"**. Current plan &
+> progress: **`docs/plan-2026-07.md`**. Tokens: `src/styles/global.css` `@theme`.
+> The sections below are kept for historical reference only — do NOT implement
+> from them.
+
 > Planning pass focused on aesthetics, styling, UI/UX, navigation, and branding.
 > Informed by competitor analysis (NerdWallet, Bankrate, SmartAsset, Calculator.net)
 > and UX research (Nielsen Norman Group, Baymard Institute).

@@ -477,10 +477,15 @@ When starting a new session on this project:
    anything). Done so far: **Phase 1 complete** (UK 2026/27 + US 2026 verified tax data
    with a freshness guard wired into every build, all review bugs fixed, trailing-slash
    migration, methodology pages de-orphaned, content sweep — c11d19c); **Phase 2 design
-   overhaul in progress** ("Precision Instrument": Space Grotesk display + JetBrains
-   Mono on all financial figures, ink/paper palette, semantic money colors, light page
-   chrome site-wide, slider redo, mobile sticky result bar — 335f717, d13eed8, + the
-   responsive milestone). **Responsive QA gate:** `scripts/qa-responsive-sweep.mjs`
+   overhaul waves 1-3 complete** ("Precision Instrument": Space Grotesk display +
+   JetBrains Mono on all financial figures, ink/paper palette, semantic money colors,
+   light page chrome site-wide, slider redo, mobile sticky result bar, chart system on
+   all 21 chart calculators with crossover annotations, quiet affiliate recommendation
+   rows, one badge + meta line, homepage rebuilt with take-home tab/trust strip/instant
+   answers, new type-set logo — 335f717, d13eed8, efe10dd, 47fc26c; remaining: OG
+   templates, CalculatorShell dedup, perf pass — see plan doc). `docs/design-system.md`
+   is SUPERSEDED (banner added) — design rules live in this file's Design Quality
+   Standards section. **Responsive QA gate:** `scripts/qa-responsive-sweep.mjs`
    checks every page at 360/768/1280 (must exit 0; run after UI changes with
    `npx astro preview --port 4399` serving dist) + `scripts/qa-shot-matrix.mjs` for
    visual-review captures. Authoritative take-home tables: `docs/tax-values-2026.json`.
