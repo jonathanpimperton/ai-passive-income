@@ -116,7 +116,9 @@
   --color-neutral-800: #23262D;
   --color-neutral-700: #3A3E48;
   --color-neutral-600: #555A66;
-  --color-neutral-500: #6B7280;
+  /* 500 must clear 4.5:1 on neutral-50 #F6F6F5 (it's used for tab/table text
+     on that background) — #646D7A is ~4.9:1 there, ~5.3:1 on white */
+  --color-neutral-500: #646D7A;
   --color-neutral-400: #979DA8;
   --color-neutral-300: #C6C9CF;
   --color-neutral-200: #E2E4E7;
