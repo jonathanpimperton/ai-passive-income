@@ -95,6 +95,42 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold">
       Skip to main content
     </a>
+    <script>
+      // Any table wider than its container gets wrapped in a horizontal scroll
+      // box with a right-edge fade cue — wide tables scroll in place instead of
+      // clipping or forcing page-level horizontal scroll. Tables that fit keep
+      // their natural full-width rendering. Re-runs after React islands hydrate
+      // and on resize.
+      function wrapWideTables() {
+        document.querySelectorAll<HTMLTableElement>('main table').forEach((t) => {
+          // Never mutate React island DOM — moving nodes before hydration
+          // causes React #418 mismatches. Islands manage their own overflow.
+          if (t.closest('astro-island')) return;
+          if (t.closest('.table-scroll') || t.closest('.overflow-x-auto')) return;
+          const parent = t.parentElement;
+          if (!parent) return;
+          if (t.scrollWidth <= parent.clientWidth + 1) return;
+          const wrap = document.createElement('div');
+          wrap.className = 'table-scroll';
+          parent.insertBefore(wrap, t);
+          wrap.appendChild(t);
+          const updateEnd = () => {
+            const atEnd = wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 2;
+            wrap.classList.toggle('at-end', atEnd);
+          };
+          wrap.addEventListener('scroll', updateEnd, { passive: true });
+          updateEnd();
+        });
+      }
+      wrapWideTables();
+      // React islands hydrate at idle — sweep again once they've rendered
+      setTimeout(wrapWideTables, 2500);
+      let tableResizeTimer: ReturnType<typeof setTimeout> | undefined;
+      window.addEventListener('resize', () => {
+        clearTimeout(tableResizeTimer);
+        tableResizeTimer = setTimeout(wrapWideTables, 250);
+      }, { passive: true });
+    </script>
     <Navigation />
     <main id="main-content" class="flex-1">
       <slot />

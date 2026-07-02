@@ -288,7 +288,7 @@ export default function RentVsBuyCalc() {
             <p className="text-sm text-neutral-500 mb-1">
               Over {timeHorizon} years, {analysis.buyWins ? 'buying' : 'renting'} saves you
             </p>
-            <p className={`text-3xl sm:text-4xl font-bold tabular-nums result-number`}>
+            <p data-headline-result data-headline-label={`Over ${timeHorizon} years, ${analysis.buyWins ? 'buying' : 'renting'} saves you`} className={`text-3xl sm:text-4xl font-bold tabular-nums result-number`}>
               {fmt(animatedSavings)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">

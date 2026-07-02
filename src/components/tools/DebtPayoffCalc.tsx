@@ -471,7 +471,7 @@ export default function DebtPayoffCalc() {
               {/* ── Big Number: Time to Debt-Free ──────── */}
               <div data-pdf-section className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">Debt-Free In</p>
-                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                <p data-headline-result data-headline-label="Debt-Free In" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                   {formatMonths(Math.round(animatedMonths))}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">

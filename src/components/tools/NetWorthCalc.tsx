@@ -228,7 +228,7 @@ export default function NetWorthCalc() {
         <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Your Net Worth</p>
-            <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${netWorth >= 0 ? 'result-number' : 'text-red-600'}`}>
+            <p data-headline-result data-headline-label="Your Net Worth" className={`text-3xl sm:text-4xl font-bold tabular-nums ${netWorth >= 0 ? 'result-number' : 'text-red-600'}`}>
               {fmt(animatedNetWorth)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">

@@ -498,7 +498,7 @@ export default function InvestmentReturnCalc() {
           {/* Big Number */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{result.label}</p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+            <p data-headline-result data-headline-label={result.label} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {animatedFormatted}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">{result.context}</p>

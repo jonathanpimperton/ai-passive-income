@@ -573,7 +573,7 @@ export default function CreditCardPayoffCalc() {
             <p className="text-sm text-neutral-500 mb-1">
               {hasExtra ? 'Paid Off In (with extra payments)' : 'Paid Off In'}
             </p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+            <p data-headline-result data-headline-label={hasExtra ? 'Paid Off In (with extra payments)' : 'Paid Off In'} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {isNeverPaidOff ? '100+ years' : formatMonths(Math.round(animatedMonths))}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">

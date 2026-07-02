@@ -72,9 +72,9 @@ const breadcrumbs = [
           <h2 class="text-lg font-bold text-neutral-900 mb-4">Variables</h2>
           <div class="space-y-3">
             {variables.map((v) => (
-              <div class="flex gap-3 items-baseline">
-                <span class="font-mono text-sm font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded shrink-0">{v.name}</span>
-                <span class="text-sm text-neutral-700">{v.description}</span>
+              <div class="flex flex-wrap gap-x-3 gap-y-1 items-baseline">
+                <span class="font-mono text-sm font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded shrink-0 max-w-full break-words">{v.name}</span>
+                <span class="text-sm text-neutral-700 min-w-0">{v.description}</span>
               </div>
             ))}
           </div>

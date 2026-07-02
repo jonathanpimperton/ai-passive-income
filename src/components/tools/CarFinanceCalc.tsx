@@ -383,7 +383,11 @@ export default function CarFinanceCalc() {
                 {/* Primary metric: True Cost */}
                 <div className="mb-2">
                   <p className="text-xs text-neutral-500 mb-0.5">True Cost</p>
-                  <p className="text-2xl font-bold text-neutral-900 tabular-nums">
+                  <p
+                    data-headline-result={r.type === cheapest.type ? '' : undefined}
+                    data-headline-label={r.type === cheapest.type ? `${r.label} — True Cost` : undefined}
+                    className="text-2xl font-bold text-neutral-900 tabular-nums"
+                  >
                     {fmt(Math.round(r.trueCost))}
                   </p>
                 </div>
@@ -452,7 +456,8 @@ export default function CarFinanceCalc() {
 
           {/* Detailed comparison table */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="bg-neutral-50 border-b border-neutral-200/60">
                   <th className="text-left py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Metric</th>
@@ -513,7 +518,8 @@ export default function CarFinanceCalc() {
                   ))}
                 </tr>
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         </div>
       </div>

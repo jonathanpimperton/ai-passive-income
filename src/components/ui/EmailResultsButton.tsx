@@ -173,7 +173,9 @@ export default function EmailResultsButton({
   }
 
   return (
-    <div data-pdf-hide className="inline-flex flex-col items-end">
+    // items-start keeps this button aligned with its siblings when the parent
+    // flex row wraps on mobile (items-end staggered the wrapped rows)
+    <div data-pdf-hide className="inline-flex flex-col items-start">
       <button
         type="button"
         onClick={handleToggle}

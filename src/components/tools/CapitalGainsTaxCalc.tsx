@@ -403,7 +403,7 @@ export default function CapitalGainsTaxCalc() {
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
               Capital Gains Tax
             </p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums text-neutral-900 dark:text-neutral-100">
+            <p data-headline-result data-headline-label="Capital Gains Tax" className="text-3xl sm:text-4xl font-bold result-number tabular-nums text-neutral-900 dark:text-neutral-100">
               {gain > 0 ? fmt(Math.round(animatedTax)) : fmt(0)}
             </p>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
@@ -459,7 +459,8 @@ export default function CapitalGainsTaxCalc() {
                   Tax Breakdown
                 </h3>
               </div>
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                 <tbody>
                   {country === 'us' ? (
                     <>
@@ -515,7 +516,8 @@ export default function CapitalGainsTaxCalc() {
                     <td className="py-2.5 px-4 text-right font-bold text-primary-700 dark:text-primary-400 tabular-nums">{fmt(totalTax)}</td>
                   </tr>
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           )}
 

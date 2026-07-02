@@ -115,6 +115,21 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
 ---
 
 {/* Calculator section — subtle gradient header */}
+{/* Mobile sticky result mini-bar — mirrors the calculator's headline figure so
+    "results as you type" stays true on phones, where the results panel sits
+    below the inputs. Populated + toggled by the script at the bottom of this
+    layout; hidden on lg+ where the sticky results panel does the job. */}
+<div
+  id="mobile-result-bar"
+  class="lg:hidden fixed top-16 inset-x-0 z-30 hidden bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm"
+  aria-hidden="true"
+>
+  <div class="flex items-baseline justify-between gap-3 px-4 py-2">
+    <span id="mobile-result-label" class="text-xs text-neutral-500 truncate"></span>
+    <span id="mobile-result-value" class="tabular-nums text-base font-bold text-neutral-900"></span>
+  </div>
+</div>
+
 <div class="bg-white dark:bg-neutral-900 overflow-x-hidden" data-calc-section data-tool-slug={slug}>
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <Breadcrumb items={breadcrumbs} />
@@ -548,4 +563,54 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
       }
     }
   }, { passive: true });
+
+  /* ── Mobile sticky result mini-bar ─────────────────────────
+     Mirrors the calculator's headline figure (element marked with
+     data-headline-result + data-headline-label) into a fixed bar under the
+     header, shown only while the user is inside the calculator section with
+     the real headline off-screen. Keeps "results as you type" true on phones. */
+  const miniBar = document.getElementById('mobile-result-bar');
+  const miniLabel = document.getElementById('mobile-result-label');
+  const miniValue = document.getElementById('mobile-result-value');
+  if (miniBar && miniLabel && miniValue && calcSection) {
+    let headlineEl: Element | null = null;
+    let headlineVisible = true;
+    let sectionVisible = false;
+
+    const updateBar = () => {
+      const show = sectionVisible && !headlineVisible && headlineEl !== null && window.innerWidth < 1024;
+      miniBar.classList.toggle('hidden', !show);
+    };
+
+    const headlineObserver = new IntersectionObserver(([e]) => {
+      headlineVisible = e.isIntersecting;
+      updateBar();
+    }, { rootMargin: '-64px 0px 0px 0px' });
+
+    const sectionObserver = new IntersectionObserver(([e]) => {
+      sectionVisible = e.isIntersecting;
+      updateBar();
+    });
+    sectionObserver.observe(calcSection);
+
+    const syncFromHeadline = () => {
+      // Re-query each time: React hydration can replace the SSR node
+      const h = calcSection.querySelector('[data-headline-result]');
+      if (!h) return;
+      if (h !== headlineEl) {
+        if (headlineEl) headlineObserver.unobserve(headlineEl);
+        headlineEl = h;
+        headlineObserver.observe(h);
+      }
+      miniValue.textContent = h.textContent;
+      miniLabel.textContent = h.getAttribute('data-headline-label') || '';
+    };
+    syncFromHeadline();
+    new MutationObserver(syncFromHeadline).observe(calcSection, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+    });
+    window.addEventListener('resize', updateBar, { passive: true });
+  }
 </script>

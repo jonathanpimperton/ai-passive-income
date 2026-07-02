@@ -237,7 +237,7 @@ export default function EmergencyFundCalc() {
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Target size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Recommended Target</p>
-                <p className="text-lg font-semibold result-number tabular-nums">{fmt(animatedRecommendedTarget)}</p>
+                <p data-headline-result data-headline-label="Recommended Target" className="text-lg font-semibold result-number tabular-nums">{fmt(animatedRecommendedTarget)}</p>
                 <p className="text-xs text-neutral-500">6 months of expenses</p>
               </div>
             </div>

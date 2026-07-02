@@ -466,17 +466,27 @@ When starting a new session on this project:
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then `docs/growth-plan.md` (active roadmap), then `docs/build-spec.md` and `docs/design-system.md` as needed.
 3. **Current status (July 2026):** Site is live at `https://www.calcrun.com` but the last
-   deploy was 20 March 2026. A March-20 commit burst (undocumented in the sprint log above)
-   redesigned the homepage as an interactive "Decision Engine" hero, split retirement into
-   3 tools, and added solar-payback, stamp-duty, capital-gains, car-finance, JWT/base64/URL
-   tools — now 196 built pages, 46 tool markdown files. A comprehensive review ran on
-   2 July 2026 (`docs/review-2026-07.md`) and a multi-phase overhaul is IN PROGRESS
-   (`docs/plan-2026-07.md` — read its Session Handoff State before doing anything).
-   Key facts: tax data now updated to UK 2026/27 + US 2026 in `src/lib/uk-rates.ts` /
-   `us-rates.ts`; authoritative take-home tables in `docs/tax-values-2026.json`; owner has
-   deferred distribution + revenue work — current focus is product quality (correctness,
-   design direction "Precision Instrument", SEO structure). Sprint log above (1-36) is
-   historical record, not current state.
+   deploy was 20 March 2026 — local work since 2 July is committed on `claude/master`
+   but NOT pushed (push = production deploy; held for owner design review). A March-20
+   commit burst (undocumented in the sprint log above) redesigned the homepage as an
+   interactive "Decision Engine" hero, split retirement into 3 tools, and added
+   solar-payback, stamp-duty, capital-gains, car-finance, JWT/base64/URL tools — now
+   197 built pages, 46 tool markdown files. A comprehensive review ran on 2 July 2026
+   (`docs/review-2026-07.md`) and a multi-phase overhaul is IN PROGRESS
+   (`docs/plan-2026-07.md` — read its Session Handoff State + RESUME POINT before doing
+   anything). Done so far: **Phase 1 complete** (UK 2026/27 + US 2026 verified tax data
+   with a freshness guard wired into every build, all review bugs fixed, trailing-slash
+   migration, methodology pages de-orphaned, content sweep — c11d19c); **Phase 2 design
+   overhaul in progress** ("Precision Instrument": Space Grotesk display + JetBrains
+   Mono on all financial figures, ink/paper palette, semantic money colors, light page
+   chrome site-wide, slider redo, mobile sticky result bar — 335f717, d13eed8, + the
+   responsive milestone). **Responsive QA gate:** `scripts/qa-responsive-sweep.mjs`
+   checks every page at 360/768/1280 (must exit 0; run after UI changes with
+   `npx astro preview --port 4399` serving dist) + `scripts/qa-shot-matrix.mjs` for
+   visual-review captures. Authoritative take-home tables: `docs/tax-values-2026.json`.
+   Owner has deferred distribution + revenue work — current focus is product quality.
+   Sprint log above (1-36) is historical record, not current state. Test counts:
+   301 unit (vitest) + 74 E2E (playwright).
 4. **Git workflow:** Work on `claude/master`. **Do NOT push without explicit owner
    approval** — Cloudflare Pages auto-deploys from this branch, and the working tree is
    mid-overhaul. Ask the owner before committing/pushing.

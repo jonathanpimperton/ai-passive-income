@@ -380,7 +380,7 @@ export default function MortgagePaymentCalc() {
         <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Monthly Payment (P&I)</p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+            <p data-headline-result data-headline-label="Monthly Payment (P&I)" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {fmt(animatedMonthlyPI)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
@@ -458,7 +458,8 @@ export default function MortgagePaymentCalc() {
           {/* PITI breakdown */}
           {showAdvanced && (
             <div className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden mb-6">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-neutral-50 border-b border-neutral-200/60">
                     <th className="text-left py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Component</th>
@@ -483,7 +484,8 @@ export default function MortgagePaymentCalc() {
                     <td className="py-2.5 px-4 text-right text-primary-700 tabular-nums">{fmt(result.totalMonthly + extraMonthly)}</td>
                   </tr>
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           )}
 
@@ -520,7 +522,7 @@ export default function MortgagePaymentCalc() {
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={result.chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 6" stroke={ct.grid} />
-                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: ct.axisText }} interval={Math.max(0, Math.floor(result.chartData.length / 8) - 1)} />
+                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: ct.axisText }} interval="preserveStartEnd" minTickGap={24} />
                     <YAxis tick={{ fontSize: 11, fill: ct.axisText }} tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${(v / 1000).toFixed(0)}k`; }} width={55} />
                     <Tooltip content={<ChartTooltip formatValue={fmt} />} />
                     <Area type="monotone" dataKey="balance" name="Remaining Balance" stroke="#0B6E6E" fill="#D1F0F0" strokeWidth={2} animationDuration={800} />

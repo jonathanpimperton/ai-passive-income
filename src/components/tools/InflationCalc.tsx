@@ -240,7 +240,7 @@ export default function InflationCalc() {
             <>
               <div data-pdf-section className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">{formatCurrency(amount)} in {startYear} equals</p>
-                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                <p data-headline-result data-headline-label={`${formatCurrency(amount)} in ${startYear} equals`} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                   {formatCurrency(animatedHistorical)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">

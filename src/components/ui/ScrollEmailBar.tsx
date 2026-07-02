@@ -32,6 +32,9 @@ export default function ScrollEmailBar({ toolSlug }: ScrollEmailBarProps) {
     function onScroll() {
       const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (scrollableHeight <= 0) return;
+      // Never fight the cookie banner for the bottom edge — wait until the
+      // visitor has answered it before this bar is allowed to appear.
+      if (localStorage.getItem('calcrun-cookie-consent') === null) return;
       const scrollPercent = window.scrollY / scrollableHeight;
       if (scrollPercent > 0.6) {
         setVisible(true);

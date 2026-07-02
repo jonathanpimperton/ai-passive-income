@@ -218,7 +218,7 @@ export default function StampDutyCalc() {
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
               Stamp Duty (SDLT) to pay
             </p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums text-neutral-900 dark:text-neutral-100">
+            <p data-headline-result data-headline-label="Stamp Duty (SDLT) to pay" className="text-3xl sm:text-4xl font-bold result-number tabular-nums text-neutral-900 dark:text-neutral-100">
               {fmt(Math.round(animatedTax))}
             </p>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
@@ -266,7 +266,8 @@ export default function StampDutyCalc() {
                   Tax Breakdown by Band
                 </h3>
               </div>
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200/80 dark:border-neutral-700">
                     <th className="text-left py-2.5 px-4 font-medium text-neutral-600 dark:text-neutral-400">Band</th>
@@ -298,7 +299,8 @@ export default function StampDutyCalc() {
                     </td>
                   </tr>
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           )}
 

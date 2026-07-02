@@ -435,7 +435,7 @@ export default function MortgageAffordabilityCalc() {
           {/* Big number */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">You can afford up to</p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+            <p data-headline-result data-headline-label="You can afford up to" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {fmt(animatedHomePrice)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
@@ -525,7 +525,8 @@ export default function MortgageAffordabilityCalc() {
 
           {/* Monthly payment breakdown table */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden mb-6">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="bg-neutral-50 border-b border-neutral-200/60">
                   <th className="text-left py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Component</th>
@@ -550,7 +551,8 @@ export default function MortgageAffordabilityCalc() {
                   <td className="py-2.5 px-4 text-right text-primary-700 tabular-nums">{fmt(result.totalMonthly)}</td>
                 </tr>
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
 
           {/* Pie chart — payment breakdown */}

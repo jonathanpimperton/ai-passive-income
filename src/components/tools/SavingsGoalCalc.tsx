@@ -354,7 +354,7 @@ export default function SavingsGoalCalc() {
             {mode === 'monthly' ? (
               <>
                 <p className="text-sm text-neutral-500 mb-1">Monthly Savings Needed</p>
-                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                <p data-headline-result data-headline-label="Monthly Savings Needed" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                   {fmt(animatedMonthlySavings)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">

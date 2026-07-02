@@ -279,7 +279,7 @@ export default function RetirementAgeCalc() {
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Estimated Retirement Age</p>
             <div className="flex items-baseline gap-2 flex-wrap">
-              <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+              <p data-headline-result data-headline-label="Estimated Retirement Age" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                 Age {Math.round(animatedAge)}
               </p>
               <span className="text-lg text-neutral-500 font-medium">

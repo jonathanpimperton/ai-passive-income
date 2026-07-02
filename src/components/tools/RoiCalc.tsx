@@ -175,7 +175,7 @@ export default function RoiCalc() {
           {/* Investment A results */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">{showComparison ? 'Investment A — ' : ''}Total Return</p>
-            <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${resultA.totalReturn >= 0 ? 'result-number' : 'text-red-600'}`}>
+            <p data-headline-result data-headline-label="Total Return" className={`text-3xl sm:text-4xl font-bold tabular-nums ${resultA.totalReturn >= 0 ? 'result-number' : 'text-red-600'}`}>
               {animatedTotalReturn.toFixed(2)}%
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">

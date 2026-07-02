@@ -194,6 +194,46 @@ a {
   text-underline-offset: 2px;
 }
 
+/* Code blocks anywhere (incl. outside .prose — tool guides, JWT decoder output)
+   scroll inside their own box, never the page */
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tables that overflow their container get wrapped in .table-scroll by the
+   BaseLayout script — scrolls in place with a right-edge fade cue, while
+   tables that fit keep their natural full-width rendering. */
+.table-scroll {
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  margin: 1.75rem 0;
+}
+
+.table-scroll > table {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Right-edge fade = "there's more, scroll" — removed once scrolled to the end */
+.table-scroll:not(.at-end) {
+  mask-image: linear-gradient(to right, black calc(100% - 28px), rgba(0, 0, 0, 0.3) 100%);
+}
+
+/* Mobile backstop: extreme money figures wrap inside stat cards instead of
+   clipping mid-digit; 2-col stat grids stack on very narrow screens */
+@media (max-width: 26rem) {
+  [data-calc-section] .tabular-nums {
+    overflow-wrap: anywhere;
+  }
+  [data-calc-section] .grid.grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Focus ring — teal (the sole accent), consistent visible keyboard focus */
 :focus-visible {
   outline: 3px solid color-mix(in srgb, var(--color-primary-500) 80%, white 20%);

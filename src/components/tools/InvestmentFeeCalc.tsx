@@ -268,7 +268,7 @@ export default function InvestmentFeeCalc() {
           {/* Big Number */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Fee Difference Costs You</p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+            <p data-headline-result data-headline-label="Fee Difference Costs You" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {fmt(animatedFeeCost)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
@@ -323,7 +323,8 @@ export default function InvestmentFeeCalc() {
 
           {/* Comparison Table */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden mb-6">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="bg-neutral-50 border-b border-neutral-200/80">
                   <th className="text-left py-3 px-4 font-medium text-neutral-600"></th>
@@ -358,7 +359,8 @@ export default function InvestmentFeeCalc() {
                   <td className="py-2.5 px-4 text-right tabular-nums text-red-600">{fmt(results.compFeesPaid)}</td>
                 </tr>
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
 
           {/* Action buttons */}

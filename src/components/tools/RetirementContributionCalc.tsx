@@ -273,7 +273,7 @@ export default function RetirementContributionCalc() {
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Required Monthly Savings</p>
             <div className="flex items-baseline gap-2 flex-wrap">
-              <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+              <p data-headline-result data-headline-label="Required Monthly Savings" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
                 {formatCurrency(animatedMonthly, currency)}
               </p>
               <span className="text-lg text-neutral-500 font-medium">/month</span>

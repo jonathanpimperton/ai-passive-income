@@ -375,7 +375,7 @@ export default function CompoundInterestCalc() {
           {/* Big Number — gradient text + count-up animation */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Final Balance</p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+            <p data-headline-result data-headline-label="Final Balance" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {fmt(useAnimatedNumber(finalBalance))}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">

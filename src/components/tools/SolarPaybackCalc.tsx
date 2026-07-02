@@ -410,7 +410,7 @@ export default function SolarPaybackCalc() {
           {/* Big number */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Estimated payback period</p>
-            <p className={`text-3xl sm:text-4xl font-bold tabular-nums ${paybackColor}`}>
+            <p data-headline-result data-headline-label="Estimated payback period" className={`text-3xl sm:text-4xl font-bold tabular-nums ${paybackColor}`}>
               {paybackDisplay}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
@@ -509,7 +509,8 @@ export default function SolarPaybackCalc() {
 
           {/* Year-by-year table */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="bg-neutral-50 border-b border-neutral-200/60">
                   <th className="text-left py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Year</th>
@@ -541,7 +542,8 @@ export default function SolarPaybackCalc() {
                     </tr>
                   ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         </div>
       </div>

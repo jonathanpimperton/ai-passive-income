@@ -235,7 +235,7 @@ export default function SalaryCalc() {
               <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">Tax year {US_TAX_YEAR}</span>
             </div>
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
-            <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+            <p data-headline-result data-headline-label="Annual Take-Home Pay" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {formatCurrency(animatedNetAnnual)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
@@ -245,7 +245,8 @@ export default function SalaryCalc() {
 
           {/* Breakdown table */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden mb-6">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="bg-neutral-50 border-b border-neutral-200/60">
                   <th className="text-left py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Period</th>
@@ -268,7 +269,8 @@ export default function SalaryCalc() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
 
           {/* Tax breakdown cards */}
