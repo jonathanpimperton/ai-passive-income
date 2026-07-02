@@ -3,7 +3,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection, render } from 'astro:content';
-import { buildBreadcrumbSchema } from '@lib/seo';
 import { TOOLS, getToolPath } from '@lib/tools-data';
 
 export async function getStaticPaths() {
@@ -23,19 +22,17 @@ const toolPath = toolMeta ? getToolPath(toolMeta) : '#';
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },
-  { name: 'Tools', url: '/tools' },
+  { name: 'Tools', url: '/tools/' },
   { name: toolMeta?.name || slug, url: toolPath },
-  { name: 'How We Calculate', url: `/how-we-calculate/${slug}` },
+  { name: 'How We Calculate', url: `/how-we-calculate/${slug}/` },
 ];
-
-const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
 ---
 
+{/* BreadcrumbList JSON-LD is emitted once by the Breadcrumb component below */}
 <BaseLayout
   title={title}
   description={`Methodology and formulas behind the ${toolMeta?.name || slug} calculator on CalcRun. See the exact formula, variables, assumptions, and data sources.`}
   ogImage={`/og/${toolSlug}.png`}
-  structuredData={[breadcrumbSchema]}
 >
   <!-- Dark header -->
   <div class="bg-[#0F1B2D] text-white">

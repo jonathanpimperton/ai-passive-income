@@ -158,7 +158,7 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
 
       <p className="text-xs text-neutral-500 mt-3">
         No spam. Unsubscribe anytime.{' '}
-        <a href="/privacy" className="underline hover:text-primary-600 transition-colors duration-200">
+        <a href="/privacy/" className="underline hover:text-primary-600 transition-colors duration-200">
           Privacy policy
         </a>
       </p>

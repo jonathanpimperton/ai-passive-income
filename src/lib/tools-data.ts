@@ -400,7 +400,7 @@ export function getToolBySlug(slug: string): ToolMeta | undefined {
 
 /** Get URL path for a tool */
 export function getToolPath(tool: ToolMeta): string {
-  return `/tools/${tool.category}/${tool.slug}`;
+  return `/tools/${tool.category}/${tool.slug}/`;
 }
 
 /** Popular tools for homepage — high search volume + affiliate revenue potential */

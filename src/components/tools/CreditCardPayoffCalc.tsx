@@ -428,8 +428,11 @@ export default function CreditCardPayoffCalc() {
               id="cc-balance"
               value={balance}
               min={100}
-              max={100000}
+              max={50000}
               step={100}
+              textMax={100000}
+              minLabel={`${currencySymbol}100`}
+              maxLabel={`${currencySymbol}50K`}
               onChange={setBalance}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}
@@ -489,6 +492,8 @@ export default function CreditCardPayoffCalc() {
                 min={25}
                 max={2000}
                 step={5}
+                minLabel={`${currencySymbol}25`}
+                maxLabel={`${currencySymbol}2K`}
                 onChange={setMinFixed}
                 prefix={currencySymbol}
                 formatDisplay={(v) => formatNumber(v)}
@@ -520,6 +525,8 @@ export default function CreditCardPayoffCalc() {
               min={0}
               max={2000}
               step={10}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}2K`}
               onChange={setExtra}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}

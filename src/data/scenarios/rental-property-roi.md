@@ -82,4 +82,4 @@ Index funds win on simplicity and liquidity. Property wins on leverage and the p
 - **Interest rate rises:** A 2% rate increase on a £150,000 mortgage adds £3,000/year.
 - **Regulation:** Increased energy efficiency requirements (EPC C by 2028) may require capital expenditure.
 
-Use the [ROI Calculator](/tools/saving-and-growth/roi) to model your specific rental property numbers, including purchase costs, renovation, and expected rent.
+Use the [ROI Calculator](/tools/saving-and-growth/roi/) to model your specific rental property numbers, including purchase costs, renovation, and expected rent.

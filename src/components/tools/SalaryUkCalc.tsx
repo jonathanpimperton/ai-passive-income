@@ -24,6 +24,7 @@ import {
   PA_TAPER_LIMIT,
 } from '../../lib/uk-tax-calc';
 import {
+  UK_TAX_YEAR,
   UK_INCOME_TAX,
   UK_NI,
   UK_STUDENT_LOANS,
@@ -291,8 +292,11 @@ export default function SalaryUkCalc() {
               id="uk-salary"
               value={salary}
               min={10000}
-              max={1000000}
-              step={1000}
+              max={250000}
+              step={500}
+              textMax={1000000}
+              minLabel="£10K"
+              maxLabel="£250K"
               onChange={setSalary}
               prefix="£"
               formatDisplay={formatNumber}
@@ -414,7 +418,7 @@ export default function SalaryUkCalc() {
         <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">Tax year 2025/26</span>
+              <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">Tax year {UK_TAX_YEAR}</span>
             </div>
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">

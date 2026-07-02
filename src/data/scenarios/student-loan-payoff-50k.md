@@ -75,4 +75,4 @@ Refinancing $50,000 from 5.5% to 4.0% and paying $600/month saves $3,280 in inte
 
 The goal is to balance debt payoff with other priorities — emergency fund, retirement savings, and not sacrificing your 20s and 30s entirely for student loan payments.
 
-Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff) to compare payoff timelines at different payment amounts for your specific loan balance and rate.
+Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff/) to compare payoff timelines at different payment amounts for your specific loan balance and rate.

@@ -63,4 +63,4 @@ The gap between cash and stocks is over $330,000 in real purchasing power over 2
 - **Salary negotiation:** A 3% annual raise is not a raise — it is keeping pace with inflation. You need above-inflation raises to actually improve your standard of living.
 - **Fixed-rate debt:** Inflation benefits borrowers. A 30-year mortgage with fixed payments gets cheaper in real terms every year. This is one reason homeownership is seen as an inflation hedge.
 
-Use the [Inflation Calculator](/tools/economic/inflation) to see how inflation affects any amount over any time period.
+Use the [Inflation Calculator](/tools/economic/inflation/) to see how inflation affects any amount over any time period.

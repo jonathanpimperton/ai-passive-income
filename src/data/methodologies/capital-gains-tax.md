@@ -17,11 +17,11 @@ variables:
   - name: "Tax Band (UK)"
     description: "Whether the taxpayer is a basic rate or higher/additional rate taxpayer"
 assumptions:
-  - "US: Uses 2025 federal long-term capital gains brackets and ordinary income brackets"
+  - "US: Uses 2026 federal long-term capital gains brackets and ordinary income brackets"
   - "US: Short-term gains are stacked on top of existing taxable income and taxed at ordinary rates"
   - "US: Long-term gains rate is determined by total taxable income (ordinary + gains combined)"
   - "US: NIIT (3.8%) applies when modified AGI exceeds $200,000 (single) or $250,000 (married)"
-  - "UK: Uses 2025/26 rates — 18% basic rate, 24% higher/additional rate (unified from October 2024)"
+  - "UK: Uses 2026/27 rates — 18% basic rate, 24% higher/additional rate (unified from October 2024)"
   - "UK: Annual exempt amount of £3,000 deducted before applying CGT rates"
   - "UK: Basic rate taxpayers may have part of their gain taxed at 18% and the rest at 24% if it pushes them into the higher rate band"
   - "No state/local taxes are included in the US calculation"
@@ -40,8 +40,8 @@ dataSources:
     url: "https://www.irs.gov/taxtopics/tc409"
   - name: "IRS — Net Investment Income Tax"
     url: "https://www.irs.gov/individuals/net-investment-income-tax"
-  - name: "IRS — 2025 Tax Inflation Adjustments"
-    url: "https://www.irs.gov/newsroom/irs-provides-tax-inflation-adjustments-for-tax-year-2025"
+  - name: "IRS — 2026 Tax Inflation Adjustments"
+    url: "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill"
   - name: "GOV.UK — Capital Gains Tax rates"
     url: "https://www.gov.uk/capital-gains-tax/rates"
   - name: "GOV.UK — Capital Gains Tax annual exempt amount"
@@ -77,7 +77,7 @@ This stacking means a large short-term gain can push you into a higher marginal 
 ## How the UK Calculation Works
 
 1. Calculate the gain: sale price − purchase price
-2. Deduct the annual exempt amount (£3,000 for 2025/26)
+2. Deduct the annual exempt amount (£3,000 for 2026/27)
 3. For basic rate taxpayers: determine how much unused basic rate band remains after salary/income
 4. Tax gains within the remaining basic rate band at 18%, and any excess at 24%
 5. For higher/additional rate taxpayers: all taxable gains at 24%

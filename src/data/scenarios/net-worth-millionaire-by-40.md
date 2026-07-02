@@ -58,12 +58,12 @@ At $120,000 household income, hitting $3,056/month is doable if you keep housing
 
 Before investing $3,056/month in a taxable account, max out tax-advantaged options:
 
-1. **401(k) with employer match:** $23,500/year employee limit (2025). If your employer matches 4%, that is $4,800 of "free" money on $120K income.
-2. **Roth IRA:** $7,000/year (if income permits). Grows completely tax-free.
-3. **HSA (if eligible):** $4,300/year. Triple tax benefit — deduction, tax-free growth, tax-free withdrawal for medical.
+1. **401(k) with employer match:** $24,500/year employee limit (2026). If your employer matches 4%, that is $4,800 of "free" money on $120K income.
+2. **Roth IRA:** $7,500/year (if income permits). Grows completely tax-free.
+3. **HSA (if eligible):** $4,400/year. Triple tax benefit — deduction, tax-free growth, tax-free withdrawal for medical.
 4. **Taxable brokerage:** Everything above the tax-advantaged limits goes here.
 
-Between a maxed 401(k) ($1,958/month), Roth IRA ($583/month), and HSA ($358/month), you are already at $2,899/month in tax-advantaged savings. You only need $157/month in a taxable account to hit the $3,056 target.
+Between a maxed 401(k) ($2,042/month), Roth IRA ($625/month), and HSA ($367/month), you are already at $3,034/month in tax-advantaged savings. You only need $22/month in a taxable account to hit the $3,056 target.
 
 ## What if you start later?
 
@@ -87,4 +87,4 @@ The $3,056/month assumes pure savings and investment returns. Other paths includ
 
 Most people who hit $1M by 40 use a combination of high savings rate, employer-matched retirement accounts, and at least one of the above accelerators.
 
-Use the [Net Worth Calculator](/tools/income-and-planning/net-worth) to track your current net worth and see how close you are to your target.
+Use the [Net Worth Calculator](/tools/income-and-planning/net-worth/) to track your current net worth and see how close you are to your target.

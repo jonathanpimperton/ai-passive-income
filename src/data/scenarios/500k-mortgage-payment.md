@@ -55,4 +55,4 @@ Your realistic all-in housing cost could range from $4,000 to $5,000 per month.
 - **You make biweekly half-payments:** Instead of 12 monthly payments, you make 26 half-payments per year (equivalent to 13 full payments). This can cut 4–5 years off your term and save over $130,000 in interest.
 - **You buy discount points at closing:** Paying 1 point (1% of the loan, or $5,000) typically reduces your rate by 0.25%. On a $500,000 loan, that point could save $30,000+ over 30 years.
 
-At a half-million-dollar loan, the difference between a good rate and a great rate is worth six figures. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to experiment with your actual rate, term, and down payment — and see exactly how extra payments or a shorter term would change your total cost.
+At a half-million-dollar loan, the difference between a good rate and a great rate is worth six figures. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to experiment with your actual rate, term, and down payment — and see exactly how extra payments or a shorter term would change your total cost.

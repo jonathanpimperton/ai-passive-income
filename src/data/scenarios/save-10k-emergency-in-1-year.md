@@ -85,4 +85,4 @@ Or lower the target:
 
 Starting small is better than not starting. Even $500/month for a year gets you to $6,250 — enough to cover most single emergencies.
 
-Use the [Savings Goal Calculator](/tools/saving-and-growth/savings-goal) to adjust the target, timeline, and starting balance for your specific situation.
+Use the [Savings Goal Calculator](/tools/saving-and-growth/savings-goal/) to adjust the target, timeline, and starting balance for your specific situation.

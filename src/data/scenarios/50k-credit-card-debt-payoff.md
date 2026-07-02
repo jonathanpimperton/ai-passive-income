@@ -68,4 +68,4 @@ $50,000 in credit card debt creates significant financial stress. The path out r
 
 If minimum payments barely cover interest and the debt feels unmanageable, contact a nonprofit credit counselling agency (NFCC member). They can negotiate lower rates and create a structured repayment plan — often reducing the APR to 8–12%.
 
-Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff) to model your specific debt balance, APR, and payment amount.
+Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff/) to model your specific debt balance, APR, and payment amount.

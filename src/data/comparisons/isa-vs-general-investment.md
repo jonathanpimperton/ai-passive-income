@@ -18,10 +18,10 @@ comparisonTable:
     option2: "Unlimited"
   - feature: "Tax on dividends"
     option1: "None"
-    option2: "Taxed above £1,000 allowance (8.75–39.35%)"
+    option2: "Taxed above £500 allowance (10.75–39.35%)"
   - feature: "Tax on capital gains"
     option1: "None"
-    option2: "Taxed above £3,000 allowance (10–20%)"
+    option2: "Taxed above £3,000 allowance (18–24%)"
   - feature: "Tax on interest"
     option1: "None"
     option2: "Taxed above personal savings allowance"
@@ -65,7 +65,7 @@ You'll crystallise any capital gain on the sale, but the £3,000 annual CGT allo
 
 ## ISA vs pension
 
-The ISA's main competitor isn't the general account — it's your pension (SIPP or workplace). Pensions offer tax relief on contributions (20-45% depending on your bracket) but lock your money away until age 57.
+The ISA's main competitor isn't the general account — it's your pension (SIPP or workplace). Pensions offer tax relief on contributions (20-45% depending on your bracket) but lock your money away until age 55 (rising to 57 from April 2028).
 
 The priority order for most people:
 
@@ -78,4 +78,4 @@ The priority order for most people:
 
 With the personal savings allowance (£1,000 for basic rate, £500 for higher rate), most people don't pay tax on cash savings anyway. Using your ISA allowance on cash wastes its potential — the real value of an ISA is sheltering investment *growth* from capital gains and dividend tax, which can be substantial over decades.
 
-Unless you're a higher-rate taxpayer with large cash holdings, put your ISA allowance into stocks and shares.
+Unless you're a higher-rate taxpayer with large cash holdings, put your ISA allowance into stocks and shares. From April 2027 the rules push the same way — the annual Cash ISA limit is due to drop to £12,000 for under-65s, while the overall £20,000 allowance stays.

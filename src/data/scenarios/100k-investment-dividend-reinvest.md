@@ -73,4 +73,4 @@ On $100,000 at 7% in a taxable account with a 15% dividend tax rate, the after-t
 
 Adding $500/month on top of the $100,000 lump sum at 7% over 20 years grows to approximately $664,330. The $100K grows to $404K, and the $500/month contributions add another $260K. Combined, the portfolio generates over $424,000 in investment gains on $220,000 in total money invested.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to model your investment with different return assumptions, contribution amounts, and time horizons.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to model your investment with different return assumptions, contribution amounts, and time horizons.

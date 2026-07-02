@@ -45,4 +45,4 @@ At $150,000, even small extra payments make a noticeable dent:
 - **Switch to biweekly payments:** Pay $474.05 every two weeks instead of $948.10 monthly. You'll make the equivalent of 13 monthly payments per year, shaving about 5 years off the loan and saving around $38,000 in interest.
 - **Choose a 15-year term instead:** Your payment jumps to about $1,306, but total interest drops to $85,100 — saving you $106,216 compared to the 30-year option.
 
-A $150,000 mortgage is on the lower end nationally, which means the interest savings from extra payments or a shorter term are very achievable. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to plug in your actual rate, down payment, and extra payment amount.
+A $150,000 mortgage is on the lower end nationally, which means the interest savings from extra payments or a shorter term are very achievable. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to plug in your actual rate, down payment, and extra payment amount.

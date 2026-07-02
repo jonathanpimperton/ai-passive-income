@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Cookie consent banner for EU compliance.
- * Stores preference in localStorage (not a cookie).
- * If declined, Google Analytics is never loaded.
- *
- * Per build-spec: "Simple banner, lightweight, no heavy third-party scripts"
+ * Cookie consent banner for EU compliance, paired with Google Consent Mode v2.
+ * GA loads with analytics_storage DENIED by default (set in BaseLayout <head>);
+ * Accept upgrades consent via gtag('consent','update'), Decline leaves it denied.
+ * Preference is stored in localStorage (not a cookie) and honored on later visits.
  *
  * Mobile: compact single-row bar (~56px). Desktop (sm+): card with icon + paragraph.
  */
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
@@ -22,12 +28,13 @@ export default function CookieConsent() {
   function accept() {
     localStorage.setItem('calcrun-cookie-consent', 'accepted');
     setVisible(false);
-    // Google Analytics would be loaded here when configured
+    window.gtag?.('consent', 'update', { analytics_storage: 'granted' });
   }
 
   function decline() {
     localStorage.setItem('calcrun-cookie-consent', 'declined');
     setVisible(false);
+    window.gtag?.('consent', 'update', { analytics_storage: 'denied' });
   }
 
   if (!visible) return null;

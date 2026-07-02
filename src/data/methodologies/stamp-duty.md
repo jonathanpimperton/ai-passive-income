@@ -12,7 +12,7 @@ variables:
     description: "Progressive tax rates that apply only to the portion of the price within each band (not the full price)"
 assumptions:
   - "Rates are for residential property in England and Northern Ireland only (not Scotland LBTT or Wales LTT)"
-  - "Uses rates effective from 1 April 2025 (post-temporary relief reversion)"
+  - "Uses rates effective from 1 April 2025 (post-temporary relief reversion), unchanged for the 2026/27 tax year"
   - "First-time buyer relief applies only to properties up to £500,000 — above this, standard rates apply to the full price"
   - "Additional property surcharge of 5% (from 31 October 2024) applies on top of standard rates at every band"
   - "Non-residential and mixed-use properties have different rates (not covered)"
@@ -60,7 +60,7 @@ SDLT is a **progressive tax** — each portion of the price is taxed at its own 
 
 **Property Price:** SDLT increases progressively. The jump from £125,000 to £125,001 triggers the first tax (£0.02), but the jump from £925,000 to £925,001 adds 10% on the marginal pound. Higher bands have steeper marginal rates.
 
-**Buyer Type:** The biggest differentiator. At £400,000, a first-time buyer pays £5,000, a home mover pays £10,000, and an additional property buyer pays £25,000. The same property, three very different tax bills.
+**Buyer Type:** The biggest differentiator. At £400,000, a first-time buyer pays £5,000, a home mover pays £10,000, and an additional property buyer pays £30,000. The same property, three very different tax bills.
 
 ## Key Rate Thresholds
 

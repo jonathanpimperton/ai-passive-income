@@ -52,4 +52,4 @@ If you are staring at $30,000 in high-interest debt, here are proven strategies 
 - **You get a $5,000 windfall (tax refund, bonus):** Applying it directly to the principal in month 1 saves roughly $3,400 in interest over the life of the debt. Lump-sum payments on high-interest debt are one of the highest-return financial moves you can make.
 - **You consolidate to a 10% personal loan:** Same $800/month, but payoff drops to 42 months with $3,600 in interest. You save $11,520 and finish 14 months sooner.
 
-Your payoff timeline depends on your exact balance, interest rate, and how much you can put toward payments each month. Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff) to model your specific debts — experiment with different payment amounts to see how much time and money you can save.
+Your payoff timeline depends on your exact balance, interest rate, and how much you can put toward payments each month. Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff/) to model your specific debts — experiment with different payment amounts to see how much time and money you can save.

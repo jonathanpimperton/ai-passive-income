@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on an £85,000 Salary in 2025/26"
+title: "Take-Home Pay on an £85,000 Salary in 2026/27"
 slug: "85k-salary-uk-take-home"
 description: "See your take-home pay on £85,000 after income tax and NI. Higher rate breakdown and strategies to reduce your tax bill."
 keywords: ["85k salary uk take home", "85000 salary after tax uk", "uk take home pay 85k", "85k salary tax breakdown"]
@@ -62,8 +62,8 @@ Other tax-efficient options:
 
 ## What else could change your take-home
 
-- **Student loan Plan 2:** Repayments are 9% above £28,470. On £85,000, that is £5,088/year (£424/month).
-- **Child benefit charge:** Fully repaid above £60,000. Two children means about £2,200/year clawed back.
-- **Scottish taxpayer:** At £85,000, the Scottish top rate of 48% applies to income above £75,000, adding roughly £2,000 extra in tax compared to the rest of the UK.
+- **Student loan Plan 2:** Repayments are 9% above £29,385. On £85,000, that is £5,005/year (£417/month).
+- **Child benefit charge:** Fully repaid above £80,000. Two children means about £2,340/year clawed back.
+- **Scottish taxpayer:** At £85,000, the Scottish advanced rate of 45% applies to income above £75,000. In total a Scottish taxpayer pays roughly £2,550 more per year than in the rest of the UK.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model pension contributions, student loans, and other deductions on your £85,000 salary.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model pension contributions, student loans, and other deductions on your £85,000 salary.

@@ -67,4 +67,4 @@ On its own, $81,165 is not a retirement. At a 4% withdrawal rate, it supports $3
 
 If a 25-year-old invests $10,000 and forgets about it until age 55, they find $81,165 waiting. That is the power of time and patience on even a small amount of money.
 
-Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model your own starting balance, contribution schedule, and expected return rate.
+Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to model your own starting balance, contribution schedule, and expected return rate.

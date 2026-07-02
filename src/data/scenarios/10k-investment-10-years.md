@@ -71,4 +71,4 @@ Ten years is long enough to smooth out most short-term volatility, but not immun
 
 Dollar-cost averaging — investing a fixed amount at regular intervals rather than one lump sum — reduces the risk of investing everything at a market peak. However, historically, lump-sum investing beats dollar-cost averaging about two-thirds of the time because markets trend upward.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to model your specific starting amount, contribution schedule, and expected returns.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to model your specific starting amount, contribution schedule, and expected returns.

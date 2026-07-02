@@ -70,4 +70,4 @@ Retirees who depend primarily on Social Security are partially protected. Those 
 
 $1 million is a reasonable retirement target, but only if your withdrawal strategy accounts for inflation. A flat $40,000/year withdrawal will leave you feeling significantly poorer in real terms within 15 years. Build your retirement plan assuming your expenses will roughly double over a 25-year retirement.
 
-Use the [Inflation Calculator](/tools/economic/inflation) to model how any amount loses purchasing power over time.
+Use the [Inflation Calculator](/tools/economic/inflation/) to model how any amount loses purchasing power over time.

@@ -88,4 +88,4 @@ This approach captures roughly 80% of the lump sum advantage while significantly
 - You are psychologically risk-averse and know you would sell in a panic if markets dropped 30% immediately after investing.
 - Markets are at all-time highs and you feel uncomfortable (though markets hit all-time highs frequently — roughly 7% of all trading days — and continue rising from there most of the time).
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to model both scenarios with your specific amount and expected returns.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to model both scenarios with your specific amount and expected returns.

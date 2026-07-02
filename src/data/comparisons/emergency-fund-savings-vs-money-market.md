@@ -11,9 +11,9 @@ relatedTools:
   - "savings-goal"
 verdict: "A high-yield savings account is the better default for most emergency funds. Money market accounts make sense if you have a large balance and want check-writing access."
 comparisonTable:
-  - feature: "Typical APY (2025-26)"
-    option1: "4.00–5.00%"
-    option2: "4.00–4.75%"
+  - feature: "Typical APY (2026)"
+    option1: "3.50–4.25%"
+    option2: "3.25–4.00%"
   - feature: "FDIC / NCUA insured"
     option1: "Yes (up to $250,000)"
     option2: "Yes (up to $250,000)"
@@ -46,7 +46,7 @@ The differences are real but narrow — and for an emergency fund, the account t
 
 ## High-yield savings: the simple choice
 
-Online banks (SoFi, Ally, Marcus, Discover) offer savings accounts with no minimums, no monthly fees, and rates in the 4.00-5.00% range as of 2025. You link your checking account, transfer money in, and earn interest. That's it.
+Online banks (SoFi, Ally, Marcus, Discover) offer savings accounts with no minimums, no monthly fees, and rates in the 3.50-4.25% range as of mid-2026. You link your checking account, transfer money in, and earn interest. That's it.
 
 For emergency funds, simplicity is a feature. When your car breaks down at 10pm on a Friday, you want to open an app, tap "transfer," and have money in your checking account — not worry about minimum balances or which account to pull from.
 
@@ -58,7 +58,7 @@ Money market accounts add features that savings accounts don't have: debit cards
 
 The trade-off is that money market accounts frequently require higher minimum balances — $1,000 to $10,000 to open, and sometimes $2,500+ to avoid monthly fees. If your emergency fund is still small (under $5,000), these minimums can be a barrier or eat into your balance with fees.
 
-Rates on money market accounts are competitive with savings accounts, though they tend to be slightly lower at the top end (4.00-4.75% vs 4.25-5.00% for the best savings accounts). The gap is usually 0.10-0.25%.
+Rates on money market accounts are competitive with savings accounts, though they tend to be slightly lower at the top end (3.25-4.00% vs 3.50-4.25% for the best savings accounts). The gap is usually 0.10-0.25%.
 
 ## Which is better for an emergency fund?
 

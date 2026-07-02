@@ -27,9 +27,9 @@ comparisonTable:
   - feature: "Best for tax bracket"
     option1: "Lower bracket now, higher later"
     option2: "Higher bracket now, lower later"
-  - feature: "2025 contribution limit"
-    option1: "$23,500 ($31,000 if 50+)"
-    option2: "$23,500 ($31,000 if 50+)"
+  - feature: "2026 contribution limit"
+    option1: "$24,500 ($32,500 if 50+)"
+    option2: "$24,500 ($32,500 if 50+)"
   - feature: "Immediate tax benefit"
     option1: "None"
     option2: "Reduces taxable income today"
@@ -49,7 +49,7 @@ Most people assume their income drops in retirement, making Traditional seem obv
 
 Several trends favour the Roth:
 
-- **Tax rates are historically low.** The 2017 Tax Cuts and Jobs Act expires after 2025, potentially pushing rates higher. Paying today's known rates may beat tomorrow's unknown ones.
+- **Tax rates are historically low.** The 2025 tax law made today's brackets permanent, but Congress can always raise rates later. Paying today's known rates may beat tomorrow's unknown ones.
 - **Social Security taxation.** Traditional 401(k) withdrawals count as income, which can push up to 85% of your Social Security benefits into taxable territory.
 - **No RMDs.** Traditional 401(k)s force withdrawals starting at 73, whether you need the money or not. Roth accounts let your money grow tax-free indefinitely.
 - **Estate planning.** Roth accounts pass to heirs tax-free. Traditional accounts burden heirs with income tax on every dollar withdrawn.
@@ -63,19 +63,19 @@ The Traditional 401(k) is better when:
 - You're close to retirement with little time for Roth growth to compound
 - Your employer match goes into Traditional regardless — so having both provides tax diversification
 
-A $23,500 Traditional contribution saves someone in the 24% bracket **$5,640** in taxes this year. That's real money you can invest elsewhere.
+A $24,500 Traditional contribution saves someone in the 24% bracket **$5,880** in taxes this year. That's real money you can invest elsewhere.
 
-## The math on a $23,500 contribution
+## The math on a $24,500 contribution
 
 Assume 7% annual growth over 25 years, 24% tax bracket now, 22% in retirement:
 
-**Roth path:** $23,500 after-tax → grows to $127,845 → withdraw **$127,845 tax-free**
+**Roth path:** $24,500 after-tax → grows to $132,972 → withdraw **$132,972 tax-free**
 
-**Traditional path:** $23,500 pre-tax → grows to $127,845 → withdraw $127,845 minus 22% tax = **$99,719 after tax**
+**Traditional path:** $24,500 pre-tax → grows to $132,972 → withdraw $132,972 minus 22% tax = **$103,718 after tax**
 
-But the Traditional saver got a $5,640 tax refund upfront. Invested at 7% for 25 years, that becomes **$30,627**.
+But the Traditional saver got a $5,880 tax refund upfront. Invested at 7% for 25 years, that becomes **$31,913**.
 
-Traditional total: $99,719 + $30,627 = **$130,346**. Slightly more than Roth — but only because the retirement tax rate was lower.
+Traditional total: $103,718 + $31,913 = **$135,631**. Slightly more than Roth — but only because the retirement tax rate was lower.
 
 If retirement and current rates are the same (24%), the Roth wins because there's no tax drag on the full balance.
 

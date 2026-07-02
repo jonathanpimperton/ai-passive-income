@@ -45,4 +45,4 @@ If you're stretching, consider whether a slightly smaller home or a different lo
 - **You make biweekly payments:** Splitting your monthly payment in half and paying every two weeks adds one extra payment per year, shaving ~5 years off the loan.
 - **You refinance in 5 years at 5.5%:** If rates drop, refinancing the remaining ~$372,000 balance could save over $200/month.
 
-Model your specific situation with the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment). Adjust the rate, term, and extra payments to find the most affordable path to homeownership.
+Model your specific situation with the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/). Adjust the rate, term, and extra payments to find the most affordable path to homeownership.

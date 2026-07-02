@@ -2,7 +2,7 @@
 name: "US Salary & Take-Home Calculator"
 slug: "salary-us"
 category: "income-and-planning"
-description: "2025 federal tax, state tax, FICA, and 401(k) — full breakdown from gross to net pay."
+description: "2026 federal tax, state tax, FICA, and 401(k) — full breakdown from gross to net pay."
 keywords:
   - "salary to hourly calculator"
   - "hourly to salary"
@@ -24,13 +24,13 @@ relatedTools:
   - "emergency-fund"
   - "inflation"
   - "retirement-contribution"
-lastUpdated: "2026-03-06"
+lastUpdated: "2026-07-02"
 dataSources:
-  - name: "IRS Tax Brackets 2025"
-    url: "https://www.irs.gov/newsroom/irs-provides-tax-inflation-adjustments-for-tax-year-2025"
-  - name: "Social Security wage base 2025"
+  - name: "IRS Tax Brackets 2026"
+    url: "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill"
+  - name: "Social Security wage base 2026"
     url: "https://www.ssa.gov/oact/cola/cbb.html"
-  - name: "401(k) contribution limits 2025"
+  - name: "401(k) contribution limits 2026"
     url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits"
 faq:
   - question: "How do I convert my salary to an hourly rate?"
@@ -58,7 +58,7 @@ workedExamples:
       filingStatus: "single"
       state: "New York"
       retirement401k: 6
-    description: "A single filer earning $75,000 in New York, contributing 6% to their 401(k). Approximate monthly take-home: $4,150. Federal taxes: $8,400/year, state/local taxes: $4,200/year, FICA: $5,738/year, 401(k): $4,500/year. Total deductions: about $22,838, leaving $52,162 net."
+    description: "A single filer earning $75,000 in New York, contributing 6% to their 401(k). Approximate monthly take-home: $4,490. Federal taxes: $6,680/year, state/local taxes: $4,200/year, FICA: $5,738/year, 401(k): $4,500/year. Total deductions: about $21,118, leaving $53,882 net."
   - title: "Part-time to full-time equivalent"
     inputs:
       hourlyRate: 22
@@ -79,27 +79,27 @@ Your take-home pay — also called net pay — is what actually lands in your ba
   <span class="stat-text">of your gross income goes to combined federal, state, and FICA taxes. The exact rate depends on your income, filing status, and state.</span>
 </div>
 
-The US uses a progressive (marginal) tax system. You don't pay one flat rate on your entire income — instead, different portions of your income are taxed at different rates. For 2025, single filer brackets are:
+The US uses a progressive (marginal) tax system. You don't pay one flat rate on your entire income — instead, different portions of your income are taxed at different rates. For 2026, single filer brackets are:
 
 | Taxable Income | Marginal Rate |
 |---|---|
-| $0 – $11,925 | 10% |
-| $11,926 – $48,475 | 12% |
-| $48,476 – $103,350 | 22% |
-| $103,351 – $197,300 | 24% |
-| $197,301 – $250,525 | 32% |
-| $250,526 – $626,350 | 35% |
-| Over $626,350 | 37% |
+| $0 – $12,400 | 10% |
+| $12,401 – $50,400 | 12% |
+| $50,401 – $105,700 | 22% |
+| $105,701 – $201,775 | 24% |
+| $201,776 – $256,225 | 32% |
+| $256,226 – $640,600 | 35% |
+| Over $640,600 | 37% |
 
-Before calculating tax, you subtract the standard deduction ($15,000 for single filers, $30,000 for married filing jointly). This means the first $15,000 of a single filer's income is effectively tax-free.
+Before calculating tax, you subtract the standard deduction ($16,100 for single filers, $32,200 for married filing jointly). This means the first $16,100 of a single filer's income is effectively tax-free.
 
-> **Example:** On a $60,000 salary, your taxable income is $45,000 after the standard deduction. You pay 10% on the first $11,925 and 12% on the remaining $33,075 — for a total federal tax of about $5,162, an effective rate of just 8.6%.
+> **Example:** On a $60,000 salary, your taxable income is $43,900 after the standard deduction. You pay 10% on the first $12,400 and 12% on the remaining $31,500 — for a total federal tax of about $5,020, an effective rate of just 8.4%.
 
 ## FICA: Social Security and Medicare
 
 Every worker pays FICA (Federal Insurance Contributions Act) taxes regardless of income level or filing status:
 
-- **Social Security:** 6.2% on income up to $176,100 (the 2025 wage base cap). Your employer pays an additional 6.2%.
+- **Social Security:** 6.2% on income up to $184,500 (the 2026 wage base cap). Your employer pays an additional 6.2%.
 - **Medicare:** 1.45% on all income, with an additional 0.9% on income above $200,000 (single) or $250,000 (married).
 
 These taxes are non-negotiable — there's no deduction or filing status trick to reduce them.
@@ -127,7 +127,7 @@ A $100,000 salary in Texas (0% state tax) takes home roughly $5,000-$7,000 more 
 
 Converting between salary and hourly requires knowing your working hours. The standard formula for full-time is: Annual Salary ÷ 2,080 hours (40 hours × 52 weeks) = Hourly Rate.
 
-But hourly workers have overtime potential. Under the FLSA, hours beyond 40 per week earn 1.5x the regular rate. An hourly worker at $30/hour who consistently works 45 hours per week earns $81,900 annually — $19,500 more than the $62,400 base.
+But hourly workers have overtime potential. Under the FLSA, hours beyond 40 per week earn 1.5x the regular rate. An hourly worker at $30/hour who consistently works 45 hours per week earns $74,100 annually — $11,700 more than the $62,400 base.
 
 When comparing job offers, factor in realistic overtime. Also consider benefits: a salaried position often includes health insurance, retirement matching, and paid time off that hourly roles may lack.
 

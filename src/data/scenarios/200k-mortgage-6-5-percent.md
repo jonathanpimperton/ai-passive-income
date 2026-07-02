@@ -46,4 +46,4 @@ $255,090 in interest is a lot on a $200,000 loan. Here's what moves the needle:
 - **15-year term:** Monthly payment rises to about $1,742, but total interest drops to $113,500 — saving $141,590 versus the 30-year option.
 - **Refinance if rates drop:** If rates fall to 5.5%, refinancing could save about $130/month or $47,000 over the remaining term.
 
-A $200,000 mortgage is close to the national median. Small changes in rate or monthly contribution compound into five-figure savings. Run your exact numbers through the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment).
+A $200,000 mortgage is close to the national median. Small changes in rate or monthly contribution compound into five-figure savings. Run your exact numbers through the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/).

@@ -2,7 +2,7 @@
 name: "UK Salary & Take-Home Calculator"
 slug: "salary-uk"
 category: "income-and-planning"
-description: "2025/26 income tax, National Insurance, student loans, and pension — gross to net breakdown."
+description: "2026/27 income tax, National Insurance, student loans, and pension — gross to net breakdown."
 keywords:
   - "UK salary calculator"
   - "UK take-home pay calculator"
@@ -23,31 +23,31 @@ relatedTools:
   - "emergency-fund"
   - "inflation"
   - "retirement-contribution"
-lastUpdated: "2026-03-06"
+lastUpdated: "2026-07-02"
 dataSources:
-  - name: "HMRC Income Tax rates 2025/26"
+  - name: "HMRC Income Tax rates 2026/27"
     url: "https://www.gov.uk/income-tax-rates"
   - name: "National Insurance rates and categories"
     url: "https://www.gov.uk/national-insurance-rates-letters"
   - name: "Student loan repayment thresholds"
     url: "https://www.gov.uk/repaying-your-student-loan/what-you-pay"
-  - name: "Scottish Income Tax rates 2025/26"
+  - name: "Scottish Income Tax rates 2026/27"
     url: "https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/"
   - name: "State Pension rates"
     url: "https://www.gov.uk/new-state-pension/what-youll-get"
 faq:
   - question: "How much tax will I pay on my UK salary?"
-    answer: "UK Income Tax uses a progressive band system for the 2025/26 tax year: you pay 0% on the first £12,570 (Personal Allowance), 20% on £12,571–£50,270 (Basic Rate), 40% on £50,271–£125,140 (Higher Rate), and 45% above £125,140 (Additional Rate). Scotland has its own rates ranging from 19% to 48%. Your total deductions also include National Insurance at 8% on earnings between £12,570 and £50,270, then 2% above that."
+    answer: "UK Income Tax uses a progressive band system for the 2026/27 tax year: you pay 0% on the first £12,570 (Personal Allowance), 20% on £12,571–£50,270 (Basic Rate), 40% on £50,271–£125,140 (Higher Rate), and 45% above £125,140 (Additional Rate). Scotland has its own rates ranging from 19% to 48%. Your total deductions also include National Insurance at 8% on earnings between £12,570 and £50,270, then 2% above that."
   - question: "What is the 60% tax trap?"
     answer: "Between £100,000 and £125,140, your Personal Allowance is reduced by £1 for every £2 earned over £100,000. This creates an effective marginal tax rate of about 60% in that band (40% Income Tax + 20% from lost allowance). Salary sacrifice into a pension is one common strategy to reduce taxable income below £100,000 and reclaim the full Personal Allowance."
   - question: "How much National Insurance will I pay?"
-    answer: "For the 2025/26 tax year, employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270 per year, and 2% on earnings above £50,270. Your employer also pays 15% on your earnings above £5,000 (this doesn't come out of your pay). NI contributions count toward your State Pension entitlement — you need 35 qualifying years for the full State Pension."
+    answer: "For the 2026/27 tax year, employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270 per year, and 2% on earnings above £50,270. Your employer also pays 15% on your earnings above £5,000 (this doesn't come out of your pay). NI contributions count toward your State Pension entitlement — you need 35 qualifying years for the full State Pension."
   - question: "How do student loan repayments work in the UK?"
-    answer: "Student loan repayments are deducted from your salary once you earn above the threshold for your plan. Plan 1 (pre-2012 England/Wales, Scotland, NI): 9% above £26,065/year. Plan 2 (post-2012 England/Wales): 9% above £28,470/year. Plan 4 (Scotland post-2012): 9% above £32,745/year. Plan 5 (from 2023): 9% above £25,000/year. Postgraduate Loan: 6% above £21,000/year. You can have both a Plan and Postgraduate Loan deducted simultaneously."
+    answer: "Student loan repayments are deducted from your salary once you earn above the threshold for your plan. Plan 1 (pre-2012 England/Wales, Scotland, NI): 9% above £26,900/year. Plan 2 (post-2012 England/Wales): 9% above £29,385/year. Plan 4 (Scotland post-2012): 9% above £33,795/year. Plan 5 (from 2023, first repayments began April 2026): 9% above £25,000/year. Postgraduate Loan: 6% above £21,000/year. You can have both a Plan and Postgraduate Loan deducted simultaneously."
   - question: "What is salary sacrifice and how does it affect my take-home pay?"
     answer: "Salary sacrifice is an arrangement where you give up part of your gross salary in exchange for a non-cash benefit, most commonly pension contributions. The benefit is that both you and your employer save on National Insurance — 8% and 15% respectively. For example, sacrificing £5,000 from a £50,000 salary saves you approximately £400 in NI and your employer saves £750, which good employers add to your pension. The trade-off is lower gross salary, which can affect mortgage applications and some benefits."
   - question: "Do I pay Scottish Income Tax rates?"
-    answer: "If you live in Scotland (regardless of where your employer is based), you pay Scottish Income Tax rates, which differ from the rest of the UK. For 2025/26, Scotland has six bands: Starter (19%), Basic (20%), Intermediate (21%), Higher (42%), Advanced (45%), and Top (48%). The main impact is felt above £43,663 where Scotland charges 42% vs 40% in the rest of the UK, and above £125,140 where Scotland charges 48% vs 45%."
+    answer: "If you live in Scotland (regardless of where your employer is based), you pay Scottish Income Tax rates, which differ from the rest of the UK. For 2026/27, Scotland has six bands: Starter (19%), Basic (20%), Intermediate (21%), Higher (42%), Advanced (45%), and Top (48%). The main impact is felt above £43,663 where Scotland charges 42% vs 40% in the rest of the UK, and above £125,140 where Scotland charges 48% vs 45%."
 workedExamples:
   - title: "Take-home pay on a £35,000 salary"
     inputs:
@@ -55,28 +55,28 @@ workedExamples:
       taxCode: "1257L"
       studentLoan: "none"
       pensionContribution: 5
-    description: "A £35,000 salary with no student loan and 5% pension contribution (auto-enrolment). Income Tax: £4,486/year (20% on £22,430 above Personal Allowance). National Insurance: £1,794/year (8% on £22,430). Pension: £1,750/year. Total deductions: £8,030. Annual take-home: £26,970, or approximately £2,248 per month."
+    description: "A £35,000 salary with no student loan and 5% pension contribution (auto-enrolment). Income Tax: £4,136/year (20% on £20,680 after the Personal Allowance and pension relief). National Insurance: £1,794/year (8% on £22,430). Pension: £1,750/year. Total deductions: £7,680. Annual take-home: £27,320, or approximately £2,277 per month."
   - title: "Higher-rate taxpayer with student loan"
     inputs:
       annualSalary: 55000
       taxCode: "1257L"
       studentLoan: "plan2"
       pensionContribution: 5
-    description: "A £55,000 salary with Plan 2 student loan and 5% pension. Income Tax: £8,486/year (£7,540 at 20% + £946 at 40%). National Insurance: £3,108/year (£3,016 at 8% + £92 at 2%). Student loan: £2,388/year (9% above £28,470). Pension: £2,750. Total deductions: £16,732. Monthly take-home: approximately £3,189."
+    description: "A £55,000 salary with Plan 2 student loan and 5% pension. Income Tax: £8,332/year (£7,540 at 20% + £792 at 40% after pension relief). National Insurance: £3,111/year (£3,016 at 8% + £95 at 2%). Student loan: £2,305/year (9% above £29,385). Pension: £2,750. Total deductions: £16,498. Monthly take-home: approximately £3,209."
   - title: "The 60% tax trap at £110,000"
     inputs:
       annualSalary: 110000
       taxCode: "1257L"
       studentLoan: "none"
       pensionContribution: 0
-    description: "At £110,000, the Personal Allowance is reduced by £5,000 (half of the £10,000 above £100,000), leaving a £7,570 allowance. This means Income Tax is approximately £31,632 — effectively 60% on the £100K-£110K portion. Total with NI: £38,312 in deductions. Many taxpayers at this level use salary sacrifice to bring taxable income below £100,000 and reclaim the full Personal Allowance, saving thousands."
+    description: "At £110,000, the Personal Allowance is reduced by £5,000 (half of the £10,000 above £100,000), leaving a £7,570 allowance. This means Income Tax is approximately £33,432 — effectively 60% on the £100K-£110K portion. Total with NI: £37,643 in deductions. Many taxpayers at this level use salary sacrifice to bring taxable income below £100,000 and reclaim the full Personal Allowance, saving thousands."
 ---
 
 ## Understanding Your UK Take-Home Pay
 
 Your take-home pay in the UK is your gross salary minus Income Tax, National Insurance, pension contributions, and (if applicable) student loan repayments. For most employees, these deductions are handled through PAYE (Pay As You Earn) — your employer calculates and deducts them before you receive your pay.
 
-> **Key takeaway:** On a typical £35,000 salary, roughly £8,000 goes to deductions — meaning you keep about 77p of every pound earned. At £55,000, that drops to around 69p.
+> **Key takeaway:** On a typical £35,000 salary, roughly £7,700 goes to deductions — meaning you keep about 78p of every pound earned. At £55,000, that drops to around 70p.
 
 ## How UK Income Tax Works
 
@@ -85,7 +85,7 @@ Your take-home pay in the UK is your gross salary minus Income Tax, National Ins
   <span class="stat-text">effective marginal tax rate between £100K and £125K due to the Personal Allowance taper. Salary sacrifice into a pension is the most common way to sidestep this trap.</span>
 </div>
 
-The UK uses a progressive tax band system. For the 2025/26 tax year, everyone gets a Personal Allowance of £12,570 — income up to this amount is tax-free. Income above the Personal Allowance is taxed at increasing rates: 20% Basic Rate (up to £50,270), 40% Higher Rate (up to £125,140), and 45% Additional Rate (above £125,140).
+The UK uses a progressive tax band system. For the 2026/27 tax year, everyone gets a Personal Allowance of £12,570 — income up to this amount is tax-free. Income above the Personal Allowance is taxed at increasing rates: 20% Basic Rate (up to £50,270), 40% Higher Rate (up to £125,140), and 45% Additional Rate (above £125,140).
 
 Your tax code tells your employer how much Personal Allowance to apply. The standard code 1257L means a £12,570 allowance. If HMRC adjusts your code (for example, because you receive benefits in kind or owe tax from a previous year), your effective allowance changes — which directly affects your take-home pay.
 
@@ -101,7 +101,7 @@ The most common strategy to avoid this trap is salary sacrifice into a pension. 
 
 Employees pay Class 1 National Insurance at 8% on earnings between £12,570 and £50,270, then 2% on earnings above £50,270. Your employer also pays 15% on your earnings above £5,000 — this doesn't come out of your pay, but it's a significant cost to your employer.
 
-NI contributions count toward your State Pension entitlement. You need 35 qualifying years for the full new State Pension (currently £230.25 per week). If you have gaps, you can make voluntary Class 3 contributions to fill them.
+NI contributions count toward your State Pension entitlement. You need 35 qualifying years for the full new State Pension (currently £241.30 per week). If you have gaps, you can make voluntary Class 3 contributions to fill them.
 
 | Salary Band | Employee NI Rate | Employer NI Rate |
 |---|---|---|
@@ -122,15 +122,15 @@ Student loan repayments are deducted from your pay once you earn above the thres
 
 | Plan | Applies To | Threshold | Rate |
 |---|---|---|---|
-| Plan 1 | Pre-2012 (England/Wales, Scotland, NI) | £26,065/year | 9% |
-| Plan 2 | Post-2012 (England/Wales) | £28,470/year | 9% |
-| Plan 4 | Post-2012 (Scotland) | £32,745/year | 9% |
+| Plan 1 | Pre-2012 (England/Wales, Scotland, NI) | £26,900/year | 9% |
+| Plan 2 | Post-2012 (England/Wales) | £29,385/year | 9% |
+| Plan 4 | Post-2012 (Scotland) | £33,795/year | 9% |
 | Plan 5 | From 2023 onwards | £25,000/year | 9% |
 | Postgraduate | Postgraduate loans | £21,000/year | 6% |
 
 You can hold both a Plan (1, 2, 4, or 5) and a Postgraduate Loan simultaneously, meaning up to 15% of income above the thresholds could go to student loan repayments.
 
-> **Example:** On a £35,000 salary with a Plan 2 loan, you'd repay 9% of income above £28,470 — that's £588/year or about £49/month deducted from your pay.
+> **Example:** On a £35,000 salary with a Plan 2 loan, you'd repay 9% of income above £29,385 — that's £505/year or about £42/month deducted from your pay.
 
 ## Common Mistakes
 

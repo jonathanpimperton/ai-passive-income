@@ -134,4 +134,4 @@ Use the mortgage affordability calculator when you are:
 - **Comparing 15-year vs 30-year** terms to see which fits your budget
 - **Weighing whether to pay off debt first** — test how eliminating a car payment changes your max home price
 
-Once you know your maximum, use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to explore specific home prices, see amortization schedules, and test extra payment scenarios.
+Once you know your maximum, use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to explore specific home prices, see amortization schedules, and test extra payment scenarios.

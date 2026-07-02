@@ -89,4 +89,4 @@ UK mortgages typically offer 2-year or 5-year fixed periods before reverting to 
 
 On a £300,000 mortgage, the 0.5% difference between a 2-year and 5-year fix is about £88/month. Whether to lock in depends on your view of where rates are heading.
 
-Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to model your specific loan amount, rate, and term.
+Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to model your specific loan amount, rate, and term.

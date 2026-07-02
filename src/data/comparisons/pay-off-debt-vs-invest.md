@@ -84,7 +84,7 @@ If debt keeps you up at night, the mathematical advantage of investing a few ext
 
 After capturing the employer match and clearing high-interest debt, you face another choice: max out tax-advantaged accounts (401(k), IRA, ISA, SIPP) or keep attacking medium-rate debt?
 
-Tax-advantaged accounts have annual contribution limits that don't roll over. Miss a year of ISA allowance (£20,000) or 401(k) contributions ($23,500 in 2025), and that tax-free space is gone permanently.
+Tax-advantaged accounts have annual contribution limits that don't roll over. Miss a year of ISA allowance (£20,000) or 401(k) contributions ($24,500 in 2026), and that tax-free space is gone permanently.
 
 For debt below 5%, prioritising these accounts usually wins. The tax savings alone — 20-40% immediate return on pension contributions, or decades of tax-free growth in an ISA — tip the balance firmly toward investing.
 

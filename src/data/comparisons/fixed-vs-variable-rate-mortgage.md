@@ -4,7 +4,7 @@ slug: "fixed-vs-variable-rate-mortgage"
 description: "Compare fixed and variable rate mortgages. See how each works, when fixed wins, when variable saves money, and how to calculate the break-even point."
 keywords:
   - "fixed vs variable rate mortgage"
-  - "fixed or variable mortgage 2025"
+  - "fixed or variable mortgage 2026"
   - "mortgage rate comparison"
 relatedTools:
   - "mortgage-payment"
@@ -45,19 +45,19 @@ affiliatePrograms:
 
 ## The maths: when does fixed save money?
 
-Take a £250,000 mortgage over 25 years. In early 2025-26, a typical 5-year fix sits around 4.5% while a 2-year tracker starts at 4.0%.
+Take a £250,000 mortgage over 25 years, with a 5-year fix at 4.5% and a 2-year tracker starting at 4.0%.
 
-**Fixed at 4.5%:** Monthly payment of £1,390. Over 5 years, you pay £83,400 in total payments and owe £213,800 remaining.
+**Fixed at 4.5%:** Monthly payment of £1,390. Over 5 years, you pay £83,400 in total payments and owe about £219,600 remaining.
 
 **Tracker at 4.0% initially:** Monthly payment starts at £1,320 — £70/month cheaper. But if the Bank of England raises rates by 0.5% in year 2 and another 0.5% in year 3, your rate hits 5.0% and your payment jumps to £1,461.
 
 The break-even point: if rates rise by more than about 0.5% on average over your mortgage term, the fixed rate saves money. If rates stay flat or fall, the variable rate wins.
 
-## The 2025-26 rate environment
+## The 2026 rate environment
 
-Central banks in the US and UK raised rates aggressively in 2022-2024 to fight inflation. As of early 2026, the Bank of England base rate sits at 4.5% and the US Federal Funds rate at 4.25-4.50%.
+Central banks in the US and UK raised rates aggressively in 2022-23 to fight inflation, then began cutting in 2024. As of mid-2026, the Bank of England base rate sits at 3.75% and the US Federal Funds rate at 3.50-3.75%.
 
-Markets are pricing in gradual cuts over the next 2-3 years. If those cuts materialise, variable-rate borrowers benefit automatically. Fixed-rate borrowers stay locked at today's rates and miss the reduction — though they can remortgage when their fix ends.
+Markets expect rates to hold near current levels through 2026, with any further cuts coming slowly. If cuts do materialise, variable-rate borrowers benefit automatically. Fixed-rate borrowers stay locked at today's rates and miss the reduction — though they can remortgage when their fix ends.
 
 This creates an unusual situation: short-term fixes (2 years) let you lock in current rates while giving you the option to remortgage at lower rates relatively soon. Long fixes (5+ years) protect you if rate cuts don't happen or reverse.
 

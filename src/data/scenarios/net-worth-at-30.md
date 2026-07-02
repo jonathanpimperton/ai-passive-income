@@ -75,4 +75,4 @@ The biggest drivers of net worth growth between 30 and 40:
 
 The decade between 30 and 40 is typically the fastest net worth growth period for most people, as incomes rise, debts get paid down, and compound interest begins to work.
 
-Use the [Net Worth Calculator](/tools/income-and-planning/net-worth) to add up your assets and liabilities and see exactly where you stand.
+Use the [Net Worth Calculator](/tools/income-and-planning/net-worth/) to add up your assets and liabilities and see exactly where you stand.

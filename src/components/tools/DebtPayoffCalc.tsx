@@ -362,7 +362,9 @@ export default function DebtPayoffCalc() {
               value={extraPayment}
               min={0}
               max={5000}
-              step={50}
+              step={25}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}5K`}
               onChange={setExtraPayment}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}

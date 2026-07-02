@@ -21,50 +21,7 @@ import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
-
-/* ── Finance calculation helpers ──────────────────────────── */
-
-/** Standard loan monthly payment: M = P × r(1+r)^n / ((1+r)^n - 1) */
-function calcMonthly(principal: number, aprPercent: number, months: number): number {
-  if (principal <= 0 || months <= 0) return 0;
-  if (aprPercent <= 0) return principal / months;
-  const r = aprPercent / 100 / 12;
-  const n = months;
-  return (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-}
-
-/**
- * PCP monthly payment with balloon (GMFV).
- * Monthly = r × (PV - FV / (1+r)^n) / (1 - (1+r)^-n)
- */
-function calcPcpMonthly(financeAmount: number, balloon: number, aprPercent: number, months: number): number {
-  if (financeAmount <= 0 || months <= 0) return 0;
-  if (aprPercent <= 0) return (financeAmount - balloon) / months;
-  const r = aprPercent / 100 / 12;
-  const n = months;
-  const pvMinusFv = financeAmount - balloon / Math.pow(1 + r, n);
-  return (pvMinusFv * r) / (1 - Math.pow(1 + r, -n));
-}
-
-/**
- * Opportunity cost: what your money could have earned if invested instead.
- * For an upfront payment at month 0: upfront × ((1+r)^n − 1)
- * For monthly payments: monthly × (((1+r)^n − 1)/r − n)  (closed-form sum)
- * Final payments at month n have zero opportunity cost (no time to grow).
- */
-function calcOpportunityCost(
-  upfront: number,
-  monthly: number,
-  months: number,
-  annualReturnPct: number,
-): number {
-  if (annualReturnPct <= 0 || months <= 0) return 0;
-  const r = annualReturnPct / 100 / 12;
-  const compoundN = Math.pow(1 + r, months);
-  const upfrontCost = upfront * (compoundN - 1);
-  const monthlyCost = monthly > 0 ? monthly * ((compoundN - 1) / r - months) : 0;
-  return upfrontCost + monthlyCost;
-}
+import { calcMonthly, calcPcpMonthly, calcOpportunityCost } from '../../lib/car-finance';
 
 const BAR_COLORS = ['#0B6E6E', '#22A06B', '#3B82F6', '#8B5CF6'];
 
@@ -266,6 +223,8 @@ export default function CarFinanceCalc() {
               min={3000}
               max={150000}
               step={500}
+              minLabel={`${currencySymbol}3K`}
+              maxLabel={`${currencySymbol}150K`}
               onChange={setCarPrice}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -278,6 +237,8 @@ export default function CarFinanceCalc() {
               min={0}
               max={Math.min(carPrice - 1000, 75000)}
               step={500}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={fmt(Math.min(carPrice - 1000, 75000))}
               onChange={setDeposit}
               prefix={currencySymbol}
               formatDisplay={formatNumber}

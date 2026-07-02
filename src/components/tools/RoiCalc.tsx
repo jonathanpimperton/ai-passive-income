@@ -143,9 +143,9 @@ export default function RoiCalc() {
 
           <div className="space-y-5">
             <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Investment A</p>
-            <SliderInput label="Initial Investment" id="roi-initial" value={initialInvestment} min={100} max={10000000} step={1000} onChange={setInitialInvestment} prefix={currencySymbol} formatDisplay={formatNumber} hint="How much you originally put in" />
-            <SliderInput label="Final Value" id="roi-final" value={finalValue} min={0} max={20000000} step={1000} onChange={setFinalValue} prefix={currencySymbol} formatDisplay={formatNumber} hint="What your investment is worth now (or when you sold)" />
-            <SliderInput label="Dividends / Income Received" id="roi-div" value={dividendsReceived} min={0} max={100000} step={50} onChange={setDividendsReceived} prefix={currencySymbol} formatDisplay={formatNumber} hint="Total cash payments received over the holding period" />
+            <SliderInput label="Initial Investment" id="roi-initial" value={initialInvestment} min={100} max={500000} step={1000} textMax={10000000} minLabel={`${currencySymbol}100`} maxLabel={`${currencySymbol}500K`} onChange={setInitialInvestment} prefix={currencySymbol} formatDisplay={formatNumber} hint="How much you originally put in" />
+            <SliderInput label="Final Value" id="roi-final" value={finalValue} min={0} max={1000000} step={2500} textMax={20000000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}1M`} onChange={setFinalValue} prefix={currencySymbol} formatDisplay={formatNumber} hint="What your investment is worth now (or when you sold)" />
+            <SliderInput label="Dividends / Income Received" id="roi-div" value={dividendsReceived} min={0} max={20000} step={50} textMax={100000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}20K`} onChange={setDividendsReceived} prefix={currencySymbol} formatDisplay={formatNumber} hint="Total cash payments received over the holding period" />
             <SliderInput label="Time Held (Years)" id="roi-years" value={yearsHeld} min={0.25} max={100} step={0.25} onChange={setYearsHeld} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} hint="How long you held the investment — use 0.5 for 6 months" />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
@@ -161,9 +161,9 @@ export default function RoiCalc() {
             {showComparison && (
               <div className="space-y-5 pt-2">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Investment B</p>
-                <SliderInput label="Initial Investment" id="roi-initial-b" value={initialB} min={100} max={10000000} step={1000} onChange={setInitialB} prefix={currencySymbol} formatDisplay={formatNumber} />
-                <SliderInput label="Final Value" id="roi-final-b" value={finalB} min={0} max={20000000} step={1000} onChange={setFinalB} prefix={currencySymbol} formatDisplay={formatNumber} />
-                <SliderInput label="Dividends / Income Received" id="roi-div-b" value={dividendsB} min={0} max={100000} step={50} onChange={setDividendsB} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="Initial Investment" id="roi-initial-b" value={initialB} min={100} max={500000} step={1000} textMax={10000000} minLabel={`${currencySymbol}100`} maxLabel={`${currencySymbol}500K`} onChange={setInitialB} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="Final Value" id="roi-final-b" value={finalB} min={0} max={1000000} step={2500} textMax={20000000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}1M`} onChange={setFinalB} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="Dividends / Income Received" id="roi-div-b" value={dividendsB} min={0} max={20000} step={50} textMax={100000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}20K`} onChange={setDividendsB} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Time Held (Years)" id="roi-years-b" value={yearsB} min={0.25} max={100} step={0.25} onChange={setYearsB} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} />
               </div>
             )}

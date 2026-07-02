@@ -68,4 +68,4 @@ If you invested $50,000 for a specific goal in five years, $70,881 is a solid re
 
 The last 10 years (years 20-30) add $201,974 — nearly three times what the first 10 years produced. Every year you leave the money invested, the compounding effect strengthens.
 
-Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model your own lump sum with your expected rate and timeline.
+Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to model your own lump sum with your expected rate and timeline.

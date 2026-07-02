@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on a £90,000 Salary in 2025/26"
+title: "Take-Home Pay on a £90,000 Salary in 2026/27"
 slug: "90k-salary-uk-take-home"
 description: "See your take-home pay on £90,000 after income tax and NI. Tax band breakdown and pension planning before £100K."
 keywords: ["90k salary uk take home", "90000 salary after tax uk", "uk take home pay 90k", "90k salary tax breakdown"]
@@ -59,8 +59,8 @@ For example, if your salary rises to £105,000, contributing at least £5,000 vi
 
 ## What else could change your take-home
 
-- **Student loan Plan 2:** Repayments are 9% above £28,470. On £90,000, that is £5,538/year (£462/month).
-- **Child benefit charge:** Fully repaid above £60,000. Two children costs about £2,200/year.
+- **Student loan Plan 2:** Repayments are 9% above £29,385. On £90,000, that is £5,455/year (£455/month).
+- **Child benefit charge:** Fully repaid above £80,000. Two children costs about £2,340/year.
 - **Employer share schemes:** If you receive shares or options, these may count as taxable income — potentially pushing you past the £100,000 threshold without you realising.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model pension contributions, student loans, and other adjustments on your £90,000 salary.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model pension contributions, student loans, and other adjustments on your £90,000 salary.

@@ -78,5 +78,5 @@ Another mistake is ignoring the accumulation curve. Retirement savings growth is
 ## Related Calculators
 
 This calculator answers "How much will I have?" For the other two retirement questions, see:
-- **[Retirement Contribution Calculator](/tools/income-and-planning/retirement-contribution)** — "How much should I save each month?"
-- **[Retirement Age Calculator](/tools/income-and-planning/retirement-age)** — "When can I retire?"
+- **[Retirement Contribution Calculator](/tools/income-and-planning/retirement-contribution/)** — "How much should I save each month?"
+- **[Retirement Age Calculator](/tools/income-and-planning/retirement-age/)** — "When can I retire?"

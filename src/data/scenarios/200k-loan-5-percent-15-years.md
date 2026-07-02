@@ -73,4 +73,4 @@ Even small extra payments make a noticeable difference on a 15-year loan:
 
 Because the principal is already shrinking quickly on a 15-year schedule, extra payments have a slightly smaller relative impact than on a 30-year loan. But the absolute interest savings are still significant.
 
-Use the [Loan Amortization Calculator](/tools/debt-and-loans/loan-amortization) to see a year-by-year breakdown and experiment with extra payments on your specific loan.
+Use the [Loan Amortization Calculator](/tools/debt-and-loans/loan-amortization/) to see a year-by-year breakdown and experiment with extra payments on your specific loan.

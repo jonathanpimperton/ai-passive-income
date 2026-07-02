@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on a £70,000 Salary in 2025/26"
+title: "Take-Home Pay on a £70,000 Salary in 2026/27"
 slug: "70k-salary-uk-take-home"
 description: "See your take-home pay on £70,000 after income tax and NI. Breakdown of basic rate, higher rate, and pension options."
 keywords: ["70k salary uk take home", "70000 salary after tax uk", "uk take home pay 70k", "70k salary tax breakdown"]
@@ -37,7 +37,7 @@ HMRC takes two separate slices from your gross pay:
 
 ## How the tax is calculated
 
-The 2025/26 UK tax system gives you £12,570 tax-free (personal allowance). Income from £12,571 to £50,270 is taxed at the basic rate of 20%. Everything above £50,270 is taxed at the higher rate of 40%. National Insurance is 8% on earnings between £12,570 and £50,270, then 2% above that.
+The 2026/27 UK tax system gives you £12,570 tax-free (personal allowance). Income from £12,571 to £50,270 is taxed at the basic rate of 20%. Everything above £50,270 is taxed at the higher rate of 40%. National Insurance is 8% on earnings between £12,570 and £50,270, then 2% above that.
 
 At £70,000, nearly £20,000 of your salary sits in the higher rate band. The combined marginal rate on that portion is 42% (40% tax plus 2% NI). This is a meaningful difference from the 28% combined rate on income in the basic rate band.
 
@@ -57,8 +57,8 @@ Consider the numbers: £19,730 of your salary is taxed at the higher rate. Direc
 
 ## What else could change your take-home
 
-- **Student loan Plan 2:** Repayments are 9% above £28,470. On £70,000, that is £3,738/year (£312/month).
-- **Child benefit charge:** If you earn over £60,000, you repay 100% of child benefit through the High Income Child Benefit Charge. For two children, that is about £2,200/year clawed back.
-- **Scottish taxpayer:** Scotland has higher tax rates — at £70,000 you would pay the advanced rate of 45% on income above £62,430, taking an extra slice compared to the rest of the UK.
+- **Student loan Plan 2:** Repayments are 9% above £29,385. On £70,000, that is £3,655/year (£305/month).
+- **Child benefit charge:** The High Income Child Benefit Charge withdraws child benefit gradually between £60,000 and £80,000. At £70,000 you repay half — for two children, that is about £1,170/year clawed back.
+- **Scottish taxpayer:** Scotland has higher tax rates — at £70,000 you pay the 42% higher rate on income above £43,662 (the 45% advanced rate only starts at £75,000). That works out at roughly £1,950 more per year than in the rest of the UK.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to see how pension, student loans, or a different tax code affect your exact take-home.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to see how pension, student loans, or a different tax code affect your exact take-home.

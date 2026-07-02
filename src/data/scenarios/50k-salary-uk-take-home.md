@@ -1,7 +1,7 @@
 ---
-title: "Take-Home Pay on a £50,000 Salary in 2025/26"
+title: "Take-Home Pay on a £50,000 Salary in 2026/27"
 slug: "50k-salary-uk-take-home"
-description: "See your take-home pay on a £50,000 UK salary after income tax and National Insurance for the 2025/26 tax year."
+description: "See your take-home pay on a £50,000 UK salary after income tax and National Insurance for the 2026/27 tax year."
 keywords: ["50k salary uk take home", "50000 salary after tax uk", "uk take home pay 50k", "50k salary national insurance"]
 toolSlug: "salary-uk"
 toolCategory: "income-and-planning"
@@ -28,7 +28,7 @@ Your personal allowance is £12,570 — the first chunk of income you pay no tax
 - Tax at 20%: £37,430 x 0.20 = £7,486
 
 **National Insurance: £2,994**
-Employee NI contributions for 2025/26 are 8% on earnings between £12,570 and £50,270 per year.
+Employee NI contributions for 2026/27 are 8% on earnings between £12,570 and £50,270 per year.
 
 - NI-liable earnings: £50,000 - £12,570 = £37,430
 - NI at 8%: £37,430 x 0.08 = £2,994
@@ -38,7 +38,7 @@ Employee NI contributions for 2025/26 are 8% on earnings between £12,570 and £
 
 ## How the tax is calculated
 
-The 2025/26 UK tax system gives you a £12,570 personal allowance (tax-free). The basic rate of 20% covers income from £12,571 to £50,270. The higher rate of 40% starts above £50,270. At £50,000, you sit just below the higher rate threshold — every pound of your taxable income is in the basic rate band.
+The 2026/27 UK tax system gives you a £12,570 personal allowance (tax-free). The basic rate of 20% covers income from £12,571 to £50,270. The higher rate of 40% starts above £50,270. At £50,000, you sit just below the higher rate threshold — every pound of your taxable income is in the basic rate band.
 
 This makes £50,000 an interesting salary point. You are £270 away from the higher rate band. A small pay rise pushes you into 40% tax territory, where the combined marginal rate jumps from 28% to 42% (40% tax plus 2% NI instead of 20% tax plus 8% NI). The NI rate actually drops from 8% to 2% above £50,270, but the income tax increase from 20% to 40% more than offsets that.
 
@@ -60,7 +60,7 @@ A rough monthly budget for a medium-cost UK area:
 ## What could change your take-home
 
 - **Pension contributions:** Contributing 5% (£2,500/year) through salary sacrifice is particularly efficient at this salary — it keeps more income below the higher rate threshold if your salary creeps above £50,270.
-- **Student loan Plan 2:** Repayments are 9% above £28,470. On £50,000, that is £1,938/year (£162/month).
+- **Student loan Plan 2:** Repayments are 9% above £29,385. On £50,000, that is £1,855/year (£155/month).
 - **Bonus or overtime:** Any additional earnings above £50,270 will be taxed at 42% combined (40% tax + 2% NI), which is a noticeable jump from the 28% rate on your base salary.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model your exact situation with pension, student loans, and tax code adjustments.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model your exact situation with pension, student loans, and tax code adjustments.

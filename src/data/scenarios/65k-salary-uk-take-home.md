@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on a £65,000 Salary in 2025/26"
+title: "Take-Home Pay on a £65,000 Salary in 2026/27"
 slug: "65k-salary-uk-take-home"
 description: "See your take-home pay on £65,000 after income tax and NI. Full breakdown of basic and higher rate tax bands."
 keywords: ["65k salary uk take home", "65000 salary after tax uk", "uk take home pay 65k", "65k salary higher rate tax"]
@@ -57,8 +57,8 @@ Even a modest 10% pension contribution (£6,500/year) saves about £2,600 in tax
 
 ## What else could change your take-home
 
-- **Student loan Plan 2:** Repayments are 9% above £28,470. On £65,000, that is £3,288/year (£274/month).
+- **Student loan Plan 2:** Repayments are 9% above £29,385. On £65,000, that is £3,205/year (£267/month).
 - **Childcare costs:** The tax-free childcare scheme gives a 25% top-up on up to £10,000 per child per year. At this salary, you are still eligible.
 - **Self-assessment:** As a higher rate taxpayer, you should file a self-assessment return if you have Gift Aid donations, pension contributions via relief at source, or other tax relief claims.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model your situation with pension contributions, student loans, and different tax codes.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model your situation with pension contributions, student loans, and different tax codes.

@@ -48,4 +48,4 @@ At $450,000, the potential savings from smart payoff strategies are substantial:
 - **15-year term at 6.5%:** Payments jump to about $3,921, but total interest drops to $255,700 — saving $318,252 versus the 30-year option. That's the price of a second property in some markets.
 - **Secure a lower rate:** At 6.0% instead of 6.5%, your monthly payment drops to $2,698.12, saving $146.19/month or about $52,628 over 30 years.
 
-On a $450,000 loan, the difference between a 30-year and 15-year term is more than $300,000 in interest. Run your specific numbers through the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to find the right balance of payment size and total cost.
+On a $450,000 loan, the difference between a 30-year and 15-year term is more than $300,000 in interest. Run your specific numbers through the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to find the right balance of payment size and total cost.

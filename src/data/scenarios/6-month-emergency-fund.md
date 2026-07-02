@@ -80,4 +80,4 @@ Faster strategies:
 
 You do not need to hit $27,000 before focusing on other goals. Build to $5,000 (roughly one month), then split your savings between the emergency fund and other priorities like retirement or debt payoff.
 
-Use the [Emergency Fund Calculator](/tools/income-and-planning/emergency-fund) to calculate your specific target based on your actual monthly expenses.
+Use the [Emergency Fund Calculator](/tools/income-and-planning/emergency-fund/) to calculate your specific target based on your actual monthly expenses.

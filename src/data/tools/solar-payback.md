@@ -132,4 +132,4 @@ Use this calculator when you are:
 - **Evaluating different tariffs** — switch between import rates and export rates to model different suppliers
 - **Planning for the future** — adjust energy price inflation to see how rising prices affect returns
 
-Compare results with the [ROI Calculator](/tools/saving-and-growth/roi) for a simple percentage return, or the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to see what the same money would earn in the stock market.
+Compare results with the [ROI Calculator](/tools/saving-and-growth/roi/) for a simple percentage return, or the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to see what the same money would earn in the stock market.

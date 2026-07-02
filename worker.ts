@@ -4,7 +4,7 @@
  * Handles API routes (POST /api/subscribe, POST /api/email-results)
  * and delegates all other requests to static assets served from dist/.
  *
- * Security: Turnstile bot prevention, Zod schema validation, server-side
+ * Security: Turnstile bot prevention, hand-rolled schema validation, server-side
  * tool name derivation (never trust client toolName), input sanitization,
  * 20KB request size cap.
  *
@@ -49,6 +49,33 @@ const TOOL_REGISTRY: Record<string, string> = {
   'car-finance': 'Car Finance Comparison Calculator',
   'stamp-duty': 'Stamp Duty Calculator',
   'capital-gains-tax': 'Capital Gains Tax Calculator',
+};
+
+/* ── Tool page paths — canonical URL per slug (note: 'salary' lives at salary-us) ── */
+const TOOL_PATHS: Record<string, string> = {
+  'compound-interest': '/tools/saving-and-growth/compound-interest/',
+  'loan-amortization': '/tools/debt-and-loans/loan-amortization/',
+  'investment-return': '/tools/saving-and-growth/investment-return/',
+  'retirement-savings': '/tools/income-and-planning/retirement-savings/',
+  'retirement-contribution': '/tools/income-and-planning/retirement-contribution/',
+  'retirement-age': '/tools/income-and-planning/retirement-age/',
+  'debt-payoff': '/tools/debt-and-loans/debt-payoff/',
+  'savings-goal': '/tools/saving-and-growth/savings-goal/',
+  'salary': '/tools/income-and-planning/salary-us/',
+  'salary-uk': '/tools/income-and-planning/salary-uk/',
+  'mortgage-payment': '/tools/debt-and-loans/mortgage-payment/',
+  'inflation': '/tools/economic/inflation/',
+  'roi': '/tools/saving-and-growth/roi/',
+  'net-worth': '/tools/income-and-planning/net-worth/',
+  'rent-vs-buy': '/tools/debt-and-loans/rent-vs-buy/',
+  'emergency-fund': '/tools/income-and-planning/emergency-fund/',
+  'investment-fee': '/tools/saving-and-growth/investment-fee/',
+  'mortgage-affordability': '/tools/debt-and-loans/mortgage-affordability/',
+  'credit-card-payoff': '/tools/debt-and-loans/credit-card-payoff/',
+  'solar-payback': '/tools/saving-and-growth/solar-payback/',
+  'car-finance': '/tools/debt-and-loans/car-finance/',
+  'stamp-duty': '/tools/economic/stamp-duty/',
+  'capital-gains-tax': '/tools/economic/capital-gains-tax/',
 };
 
 const MAILERLITE_GROUP_ID = '180838346043426395';
@@ -338,8 +365,12 @@ async function subscribeToMailerLite(
     }),
   });
 
+  // 422 = already subscribed / validation quirk — treat as success.
+  // Anything else is a real failure and must surface to the caller so the
+  // UI can show an error instead of silently losing the signup.
   if (!mlResponse.ok && mlResponse.status !== 422) {
     console.error('MailerLite error: status', mlResponse.status);
+    throw new Error(`MailerLite responded ${mlResponse.status}`);
   }
 }
 
@@ -466,7 +497,8 @@ function buildResultsEmail(
   results: Array<{ label: string; value: string; highlight?: boolean }>,
 ): string {
   const tip = QUICK_TIPS[toolSlug] || '';
-  const toolUrl = `https://www.calcrun.com/tools/${encodeURIComponent(toolSlug)}`;
+  // toolSlug is already validated against TOOL_REGISTRY upstream
+  const toolUrl = `https://www.calcrun.com${TOOL_PATHS[toolSlug] || '/tools/'}`;
 
   const inputRows = inputs
     .map(
@@ -550,7 +582,7 @@ function buildResultsEmail(
           }).join('')}
           <tr>
             <td style="padding:4px 20px 16px;">
-              <div style="font-size:11px;color:#94A3B8;line-height:1.4;">* Affiliate link — CalcRun may earn a commission at no cost to you. <a href="https://www.calcrun.com/disclosure" style="color:#94A3B8;">Full disclosure</a></div>
+              <div style="font-size:11px;color:#94A3B8;line-height:1.4;">* Affiliate link — CalcRun may earn a commission at no cost to you. <a href="https://www.calcrun.com/disclosure/" style="color:#94A3B8;">Full disclosure</a></div>
             </td>
           </tr>
         </table>
@@ -734,9 +766,14 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
   }
 
-  // 5. Verify Turnstile token
+  // 5. Verify Turnstile token — fail CLOSED: sending branded email from our
+  // verified domain without bot verification is worse than a temporary outage.
   if (!env.TURNSTILE_SECRET_KEY) {
-    console.warn('TURNSTILE_SECRET_KEY not set — bot verification DISABLED. Set this env var in Cloudflare Pages.');
+    console.error('TURNSTILE_SECRET_KEY not set — refusing to send email without bot verification.');
+    return new Response(
+      JSON.stringify({ error: 'Email sending is temporarily unavailable.' }),
+      { status: 503, headers }
+    );
   }
   if (env.TURNSTILE_SECRET_KEY) {
     if (!body.turnstileToken) {

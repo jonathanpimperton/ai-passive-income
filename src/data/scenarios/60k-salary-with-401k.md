@@ -74,4 +74,4 @@ At $60,000, you are in the 12% federal bracket (after deduction). This is a rela
 
 Many financial advisers suggest Roth contributions for people in the 12% bracket or below, since tax rates are historically low and likely to rise. The $720 tax savings disappears with Roth, but you gain tax-free growth that could be worth tens of thousands more in retirement.
 
-Use the [US Salary Calculator](/tools/income-and-planning/salary-us) to see your exact take-home at any contribution level and filing status.
+Use the [US Salary Calculator](/tools/income-and-planning/salary-us/) to see your exact take-home at any contribution level and filing status.

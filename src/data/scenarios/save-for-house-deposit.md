@@ -73,4 +73,4 @@ It is tight but achievable, especially if you can reduce rent by splitting with 
 
 Extending to 4 years drops the monthly requirement to about $1,040. At 5 years, it falls to $810. The trade-off: home prices may rise 3–5% annually, so your $300,000 target could become $315,000–$340,000 by the time you buy. Factor in expected home price appreciation when choosing your timeline.
 
-Use the [Savings Goal Calculator](/tools/saving-and-growth/savings-goal) to model your specific target, timeline, and starting balance.
+Use the [Savings Goal Calculator](/tools/saving-and-growth/savings-goal/) to model your specific target, timeline, and starting balance.

@@ -79,7 +79,7 @@ async function saveDownload(download: Download): Promise<{ path: string; size: n
 
 test.describe('Image Compressor', () => {
   test('compresses a JPEG and shows size savings', async ({ page }) => {
-    await page.goto('/tools/file-tools/image-compressor');
+    await page.goto('/tools/file-tools/image-compressor/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'test-photo.jpg'));
@@ -91,7 +91,7 @@ test.describe('Image Compressor', () => {
   });
 
   test('compresses a PNG image', async ({ page }) => {
-    await page.goto('/tools/file-tools/image-compressor');
+    await page.goto('/tools/file-tools/image-compressor/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'test-image.png'));
@@ -103,7 +103,7 @@ test.describe('Image Compressor', () => {
 
 test.describe('Image Resizer', () => {
   test('resizes a PNG image', async ({ page }) => {
-    await page.goto('/tools/file-tools/image-resizer');
+    await page.goto('/tools/file-tools/image-resizer/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'test-image.png'));
@@ -117,7 +117,7 @@ test.describe('Image Resizer', () => {
 
 test.describe('Image Format Converter', () => {
   test('converts PNG to JPEG', async ({ page }) => {
-    await page.goto('/tools/file-tools/image-format-converter');
+    await page.goto('/tools/file-tools/image-format-converter/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'test-image.png'));
@@ -128,7 +128,7 @@ test.describe('Image Format Converter', () => {
   });
 
   test('converts WebP to PNG', async ({ page }) => {
-    await page.goto('/tools/file-tools/image-format-converter');
+    await page.goto('/tools/file-tools/image-format-converter/');
     await page.waitForLoadState('networkidle');
 
     await page.locator('#target-format').selectOption('image/png');
@@ -141,7 +141,7 @@ test.describe('Image Format Converter', () => {
 
 test.describe('SVG to PNG', () => {
   test('converts SVG and produces downloadable PNG', async ({ page }) => {
-    await page.goto('/tools/file-tools/svg-to-png');
+    await page.goto('/tools/file-tools/svg-to-png/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.svg'));
@@ -155,7 +155,7 @@ test.describe('SVG to PNG', () => {
 
 test.describe('Images to PDF', () => {
   test('combines multiple images into PDF', async ({ page }) => {
-    await page.goto('/tools/file-tools/images-to-pdf');
+    await page.goto('/tools/file-tools/images-to-pdf/');
     await page.waitForLoadState('networkidle');
 
     await uploadFiles(page, [
@@ -176,7 +176,7 @@ test.describe('Images to PDF', () => {
 
 test.describe('PDF Merge', () => {
   test('merges two PDFs', async ({ page }) => {
-    await page.goto('/tools/file-tools/pdf-merge');
+    await page.goto('/tools/file-tools/pdf-merge/');
     await page.waitForLoadState('networkidle');
 
     await uploadFiles(page, [
@@ -193,7 +193,7 @@ test.describe('PDF Merge', () => {
 
 test.describe('PDF Split', () => {
   test('loads multi-page PDF and shows page count', async ({ page }) => {
-    await page.goto('/tools/file-tools/pdf-split');
+    await page.goto('/tools/file-tools/pdf-split/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
@@ -205,7 +205,7 @@ test.describe('PDF Split', () => {
 
 test.describe('PDF Compress', () => {
   test('loads a PDF and shows compress button', async ({ page }) => {
-    await page.goto('/tools/file-tools/pdf-compress');
+    await page.goto('/tools/file-tools/pdf-compress/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
@@ -217,7 +217,7 @@ test.describe('PDF Compress', () => {
 
 test.describe('PDF to Image', () => {
   test('converts PDF pages to images', async ({ page }) => {
-    await page.goto('/tools/file-tools/pdf-to-image');
+    await page.goto('/tools/file-tools/pdf-to-image/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.pdf'));
@@ -235,7 +235,7 @@ test.describe('PDF to Image', () => {
 
 test.describe('Excel to PDF', () => {
   test('converts XLSX and shows table preview', async ({ page }) => {
-    await page.goto('/tools/file-tools/excel-to-pdf');
+    await page.goto('/tools/file-tools/excel-to-pdf/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.xlsx'));
@@ -257,7 +257,7 @@ test.describe('Excel to PDF', () => {
 
 test.describe('CSV to JSON Converter', () => {
   test('converts CSV with quoted fields and produces valid JSON', async ({ page }) => {
-    await page.goto('/tools/file-tools/csv-json');
+    await page.goto('/tools/file-tools/csv-json/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.csv'));
@@ -283,7 +283,7 @@ test.describe('CSV to JSON Converter', () => {
 
 test.describe('JSON to CSV Converter', () => {
   test('converts JSON to CSV with headers and data rows', async ({ page }) => {
-    await page.goto('/tools/file-tools/csv-json');
+    await page.goto('/tools/file-tools/csv-json/');
     await page.waitForLoadState('networkidle');
 
     await page.getByRole('button', { name: /csv.*json|json.*csv/i }).click();
@@ -308,7 +308,7 @@ test.describe('JSON to CSV Converter', () => {
 
 test.describe('Markdown to HTML Converter', () => {
   test('converts Markdown to valid HTML with semantic tags', async ({ page }) => {
-    await page.goto('/tools/file-tools/markdown-html');
+    await page.goto('/tools/file-tools/markdown-html/');
     await page.waitForLoadState('networkidle');
 
     await uploadFile(page, path.join(FIXTURES, 'complex.md'));
@@ -332,7 +332,7 @@ test.describe('Markdown to HTML Converter', () => {
 
 test.describe('HTML to Markdown Converter', () => {
   test('converts HTML to Markdown with proper formatting', async ({ page }) => {
-    await page.goto('/tools/file-tools/markdown-html');
+    await page.goto('/tools/file-tools/markdown-html/');
     await page.waitForLoadState('networkidle');
 
     await page.getByRole('button', { name: /markdown.*html|html.*markdown/i }).click();
@@ -359,10 +359,12 @@ test.describe('HTML to Markdown Converter', () => {
 
 test.describe('HEIC to JPG', () => {
   test('page loads and shows upload zone', async ({ page }) => {
-    await page.goto('/tools/file-tools/heic-to-jpg');
+    await page.goto('/tools/file-tools/heic-to-jpg/');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.getByText(/heic/i).first()).toBeVisible();
+    // Scope to main content — a bare getByText(/heic/i) matches hidden nav
+    // menu links first, which made this test permanently flaky.
+    await expect(page.locator('main').getByText(/heic/i).first()).toBeVisible();
     await expect(page.locator('input[type="file"]')).toBeAttached();
   });
 });

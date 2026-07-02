@@ -28,6 +28,13 @@ interface SliderInputProps {
   maxLabel?: string;
   /** Plain-English hint displayed below the label */
   hint?: string;
+  /**
+   * Hard bounds for the TEXT input, when wider than the slider range.
+   * The slider covers the realistic range (good drag precision); typed
+   * values are accepted up to these limits. Default: min/max.
+   */
+  textMin?: number;
+  textMax?: number;
 }
 
 /* ── Non-linear slider mapping ──────────────────────────────── */
@@ -63,23 +70,30 @@ export default function SliderInput({
   minLabel,
   maxLabel,
   hint,
+  textMin,
+  textMax,
 }: SliderInputProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingValue, setEditingValue] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const hardMin = textMin ?? min;
+  const hardMax = textMax ?? max;
 
   const displayValue = formatDisplay ? formatDisplay(value) : String(value);
 
-  /** Auto-detect: use non-linear when range has >1000 discrete steps */
+  /** Auto-detect: use non-linear when range has >250 discrete steps */
   const useNonLinear = useMemo(() => {
     if (max <= min || step <= 0) return false;
-    return (max - min) / step > 1000;
+    return (max - min) / step > 250;
   }, [min, max, step]);
 
   const handleFocus = () => {
     setIsEditing(true);
     setEditingValue(String(value));
     setError(null);
+    setNotice(null);
   };
 
   const handleBlur = () => {
@@ -95,12 +109,15 @@ export default function SliderInput({
     }
     const parsed = parseFloat(cleaned);
     if (!isNaN(parsed)) {
-      if (parsed < min || parsed > max) {
-        setError(`Value must be between ${min.toLocaleString()} and ${max.toLocaleString()}`);
+      setError(null);
+      if (parsed < hardMin) {
+        setNotice(`Adjusted to the minimum of ${prefix ?? ''}${hardMin.toLocaleString()}${suffix ? ` ${suffix}` : ''}`);
+      } else if (parsed > hardMax) {
+        setNotice(`Adjusted to the maximum of ${prefix ?? ''}${hardMax.toLocaleString()}${suffix ? ` ${suffix}` : ''}`);
       } else {
-        setError(null);
+        setNotice(null);
       }
-      onChange(Math.min(max, Math.max(min, parsed)));
+      onChange(Math.min(hardMax, Math.max(hardMin, parsed)));
     } else if (editingValue.trim() !== '') {
       setError('Please enter a valid number');
     }
@@ -132,6 +149,42 @@ export default function SliderInput({
     } else {
       onChange(raw);
     }
+  };
+
+  /**
+   * Keyboard support on non-linear sliders: the virtual quadratic mapping makes
+   * native arrow-key steps round back to the same value (a no-op) and PageUp
+   * jump wildly, so we handle keys against the REAL value instead.
+   */
+  const handleRangeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!useNonLinear) return;
+    let next: number | null = null;
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowUp':
+        next = value + step;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        next = value - step;
+        break;
+      case 'PageUp':
+        next = value + step * 10;
+        break;
+      case 'PageDown':
+        next = value - step * 10;
+        break;
+      case 'Home':
+        next = min;
+        break;
+      case 'End':
+        next = max;
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    onChange(Math.min(max, Math.max(min, Math.round(next / step) * step)));
   };
 
   /* ── Track fill gradient ──────────────────────────────── */
@@ -173,6 +226,7 @@ export default function SliderInput({
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
+          aria-describedby={error || notice ? `${id}-message` : undefined}
           className={`w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base
             focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
             ${prefix ? 'pl-7' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
@@ -190,6 +244,7 @@ export default function SliderInput({
         step={rangeStep}
         value={rangeValue}
         onChange={handleRangeChange}
+        onKeyDown={handleRangeKeyDown}
         style={trackStyle}
         className="slider-track w-full h-2 mt-2 rounded-full appearance-none cursor-pointer
           [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:rounded-full
@@ -207,7 +262,7 @@ export default function SliderInput({
         aria-label={`${label} slider`}
         aria-valuemin={min}
         aria-valuemax={max}
-        aria-valuenow={value}
+        aria-valuenow={Math.min(max, Math.max(min, value))}
         aria-valuetext={ariaValueText}
       />
       {(minLabel || maxLabel) && (
@@ -217,7 +272,10 @@ export default function SliderInput({
         </div>
       )}
       {error && (
-        <p className="text-xs text-red-600 mt-1" role="alert">{error}</p>
+        <p id={`${id}-message`} className="text-xs text-red-600 mt-1" role="alert">{error}</p>
+      )}
+      {!error && notice && (
+        <p id={`${id}-message`} className="text-xs text-neutral-500 mt-1" role="status">{notice}</p>
       )}
     </div>
   );

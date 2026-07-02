@@ -12,9 +12,9 @@ relatedTools:
   - "emergency-fund"
 verdict: "High-yield savings wins for emergency funds and money you might need soon. CDs win when rates are falling and you want to lock in today's rate for 1-2 years."
 comparisonTable:
-  - feature: "Typical APY (2025-26)"
-    option1: "4.00–5.00%"
-    option2: "4.25–5.25%"
+  - feature: "Typical APY (2026)"
+    option1: "3.50–4.25%"
+    option2: "3.75–4.50%"
   - feature: "Access to funds"
     option1: "Anytime (instant transfer)"
     option2: "Locked until maturity (3 months–5 years)"
@@ -38,7 +38,7 @@ affiliatePrograms:
 
 ## The rate gap is smaller than you think
 
-In 2025-26, the difference between top high-yield savings accounts and CDs is typically 0.25-0.50%. On $10,000, that's $25-50 per year — meaningful but not life-changing.
+In 2026, the difference between top high-yield savings accounts and CDs is typically 0.25-0.50%. On $10,000, that's $25-50 per year — meaningful but not life-changing.
 
 The real question is whether that small rate premium is worth giving up access to your money. For most people, it isn't.
 

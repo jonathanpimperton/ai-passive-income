@@ -49,4 +49,4 @@ At this loan size, every dollar of extra payment and every fraction of a percent
 - **Lower rate by 0.5%:** At 6.0%, the monthly payment drops to $3,297.81, saving $178.57/month or about $64,285 over 30 years.
 - **Buying points:** One discount point ($5,500) typically reduces the rate by 0.25%. On $550,000 over 30 years, that one point can save $35,000+ in interest — a strong return if you plan to stay in the home more than 4-5 years.
 
-Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to model your exact scenario with different rates, terms, and extra payment amounts.
+Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to model your exact scenario with different rates, terms, and extra payment amounts.

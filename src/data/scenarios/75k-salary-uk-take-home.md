@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on a £75,000 Salary in 2025/26"
+title: "Take-Home Pay on a £75,000 Salary in 2026/27"
 slug: "75k-salary-uk-take-home"
 description: "See your take-home pay on £75,000 after income tax and NI. Full breakdown of deductions and pension planning tips."
 keywords: ["75k salary uk take home", "75000 salary after tax uk", "uk take home pay 75k", "75k salary tax breakdown"]
@@ -57,8 +57,8 @@ You are still £25,000 away from the £100,000 personal allowance taper. If your
 
 ## What else could change your take-home
 
-- **Student loan Plan 2:** Repayments are 9% above £28,470. On £75,000, that is £4,188/year (£349/month).
-- **Child benefit charge:** If you earn over £60,000, you repay 100% of child benefit. For two children, that claws back about £2,200/year.
+- **Student loan Plan 2:** Repayments are 9% above £29,385. On £75,000, that is £4,105/year (£342/month).
+- **Child benefit charge:** Child benefit is withdrawn gradually between £60,000 and £80,000. At £75,000 you repay 75% — for two children, that claws back about £1,750/year.
 - **Bonus payments:** Any bonus is taxed at your marginal rate — 42% combined if it takes your total above £50,270, which it almost certainly will.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model your exact take-home with pension, student loans, and tax code variations.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model your exact take-home with pension, student loans, and tax code variations.

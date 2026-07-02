@@ -53,7 +53,7 @@ async function waitForCalcHydration(page: Page) {
 
 test.describe('Compound Interest Calculator', () => {
   test('computes future value with known inputs', async ({ page }) => {
-    await page.goto('/tools/saving-and-growth/compound-interest');
+    await page.goto('/tools/saving-and-growth/compound-interest/');
     await waitForCalcHydration(page);
 
     await expect(page.locator(mainH1).first()).toBeVisible();
@@ -69,7 +69,7 @@ test.describe('Compound Interest Calculator', () => {
   });
 
   test('share, email, and export buttons render', async ({ page }) => {
-    await page.goto('/tools/saving-and-growth/compound-interest');
+    await page.goto('/tools/saving-and-growth/compound-interest/');
     await waitForCalcHydration(page);
 
     await expect(page.getByRole('button', { name: /share/i }).first()).toBeVisible();
@@ -78,7 +78,7 @@ test.describe('Compound Interest Calculator', () => {
   });
 
   test('currency selector switches to GBP', async ({ page }) => {
-    await page.goto('/tools/saving-and-growth/compound-interest');
+    await page.goto('/tools/saving-and-growth/compound-interest/');
     await waitForCalcHydration(page);
 
     // Click GBP button
@@ -93,7 +93,7 @@ test.describe('Compound Interest Calculator', () => {
 
 test.describe('Investment Return Calculator', () => {
   test('computes future value', async ({ page }) => {
-    await page.goto('/tools/saving-and-growth/investment-return');
+    await page.goto('/tools/saving-and-growth/investment-return/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'ir-principal', '10000');
@@ -109,7 +109,7 @@ test.describe('Investment Return Calculator', () => {
 
 test.describe('Savings Goal Calculator', () => {
   test('computes monthly savings needed', async ({ page }) => {
-    await page.goto('/tools/saving-and-growth/savings-goal');
+    await page.goto('/tools/saving-and-growth/savings-goal/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'sg-goal', '50000');
@@ -122,7 +122,7 @@ test.describe('Savings Goal Calculator', () => {
 
 test.describe('ROI Calculator', () => {
   test('computes ROI percentage', async ({ page }) => {
-    await page.goto('/tools/saving-and-growth/roi');
+    await page.goto('/tools/saving-and-growth/roi/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'roi-initial', '10000');
@@ -142,7 +142,7 @@ test.describe('ROI Calculator', () => {
 
 test.describe('Loan Amortization Calculator', () => {
   test('computes monthly payment', async ({ page }) => {
-    await page.goto('/tools/debt-and-loans/loan-amortization');
+    await page.goto('/tools/debt-and-loans/loan-amortization/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'la-amount', '200000');
@@ -157,7 +157,7 @@ test.describe('Loan Amortization Calculator', () => {
 
 test.describe('Mortgage Payment Calculator', () => {
   test('computes monthly payment', async ({ page }) => {
-    await page.goto('/tools/debt-and-loans/mortgage-payment');
+    await page.goto('/tools/debt-and-loans/mortgage-payment/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'mort-price', '400000');
@@ -170,7 +170,7 @@ test.describe('Mortgage Payment Calculator', () => {
 
 test.describe('Debt Payoff Calculator', () => {
   test('shows payoff timeline with default debts', async ({ page }) => {
-    await page.goto('/tools/debt-and-loans/debt-payoff');
+    await page.goto('/tools/debt-and-loans/debt-payoff/');
     await waitForCalcHydration(page);
 
     // Calculator has default debts pre-filled, so results should show
@@ -186,7 +186,7 @@ test.describe('Debt Payoff Calculator', () => {
 
 test.describe('US Salary Calculator', () => {
   test('computes take-home pay', async ({ page }) => {
-    await page.goto('/tools/income-and-planning/salary-us');
+    await page.goto('/tools/income-and-planning/salary-us/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'sal-annual', '75000');
@@ -199,7 +199,7 @@ test.describe('US Salary Calculator', () => {
 
 test.describe('UK Salary Calculator', () => {
   test('computes take-home pay', async ({ page }) => {
-    await page.goto('/tools/income-and-planning/salary-uk');
+    await page.goto('/tools/income-and-planning/salary-uk/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'uk-salary', '50000');
@@ -212,7 +212,7 @@ test.describe('UK Salary Calculator', () => {
 
 test.describe('Retirement Savings Calculator', () => {
   test('computes projected balance', async ({ page }) => {
-    await page.goto('/tools/income-and-planning/retirement-savings');
+    await page.goto('/tools/income-and-planning/retirement-savings/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'ret-current-age', '30');
@@ -226,7 +226,7 @@ test.describe('Retirement Savings Calculator', () => {
 
 test.describe('Retirement Contribution Calculator', () => {
   test('computes required monthly savings', async ({ page }) => {
-    await page.goto('/tools/income-and-planning/retirement-contribution');
+    await page.goto('/tools/income-and-planning/retirement-contribution/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'retc-current-age', '30');
@@ -240,7 +240,7 @@ test.describe('Retirement Contribution Calculator', () => {
 
 test.describe('Retirement Age Calculator', () => {
   test('computes estimated retirement age', async ({ page }) => {
-    await page.goto('/tools/income-and-planning/retirement-age');
+    await page.goto('/tools/income-and-planning/retirement-age/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'reta-current-age', '30');
@@ -253,7 +253,7 @@ test.describe('Retirement Age Calculator', () => {
 
 test.describe('Emergency Fund Calculator', () => {
   test('shows recommended target', async ({ page }) => {
-    await page.goto('/tools/income-and-planning/emergency-fund');
+    await page.goto('/tools/income-and-planning/emergency-fund/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'ef-housing', '1500');
@@ -266,7 +266,7 @@ test.describe('Emergency Fund Calculator', () => {
 
 test.describe('Net Worth Calculator', () => {
   test('shows net worth with default items', async ({ page }) => {
-    await page.goto('/tools/income-and-planning/net-worth');
+    await page.goto('/tools/income-and-planning/net-worth/');
     await page.waitForLoadState('networkidle');
     // Net Worth has no SliderInputs (no range inputs), wait for the result to appear
     const resultEl = page.locator('.text-3xl.font-bold.tabular-nums').first();
@@ -279,7 +279,7 @@ test.describe('Net Worth Calculator', () => {
 
 test.describe('Rent vs Buy Calculator', () => {
   test('shows verdict with default values', async ({ page }) => {
-    await page.goto('/tools/debt-and-loans/rent-vs-buy');
+    await page.goto('/tools/debt-and-loans/rent-vs-buy/');
     // Rent vs Buy has 14+ SliderInputs — give extra time for hydration
     await page.waitForLoadState('networkidle');
     await page.locator('input#rvb-price').waitFor({ state: 'visible', timeout: 30000 });
@@ -298,7 +298,7 @@ test.describe('Rent vs Buy Calculator', () => {
 
 test.describe('Inflation Calculator', () => {
   test('shows future purchasing power', async ({ page }) => {
-    await page.goto('/tools/economic/inflation');
+    await page.goto('/tools/economic/inflation/');
     await waitForCalcHydration(page);
 
     await fillSliderInput(page, 'inf-amount', '100000');

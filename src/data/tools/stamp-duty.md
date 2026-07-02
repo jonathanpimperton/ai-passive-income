@@ -8,7 +8,7 @@ keywords:
   - "SDLT calculator"
   - "stamp duty land tax"
   - "stamp duty first time buyer"
-  - "stamp duty rates 2025"
+  - "stamp duty rates 2026"
   - "additional property stamp duty"
   - "how much stamp duty"
 relatedTools:
@@ -22,7 +22,7 @@ affiliateContext: "Planning to buy? Compare mortgage rates to find the best deal
 affiliatePrograms:
   - "LendingTree"
   - "Nutmeg"
-lastUpdated: "2026-03-10"
+lastUpdated: "2026-07-02"
 dataSources:
   - name: "GOV.UK — Stamp Duty Land Tax rates"
     url: "https://www.gov.uk/stamp-duty-land-tax/residential-property-rates"
@@ -48,7 +48,7 @@ workedExamples:
     inputs:
       propertyPrice: 300000
       buyerType: "first-time"
-    description: "A first-time buyer purchasing a £300,000 property pays £0 in stamp duty — the entire price falls within the first-time buyer nil-rate band of £300,000. This relief saves £2,500 compared to the standard rate (which would charge 2% on the £125,000–£250,000 portion and 5% on £250,000–£300,000)."
+    description: "A first-time buyer purchasing a £300,000 property pays £0 in stamp duty — the entire price falls within the first-time buyer nil-rate band of £300,000. This relief saves £5,000 compared to the standard rate (which would charge 2% on the £125,000–£250,000 portion and 5% on £250,000–£300,000 — £2,500 each)."
   - title: "Moving home to a £450,000 house"
     inputs:
       propertyPrice: 450000
@@ -58,14 +58,14 @@ workedExamples:
     inputs:
       propertyPrice: 250000
       buyerType: "additional"
-    description: "An additional property at £250,000 costs £10,000 in SDLT. The 5% additional property surcharge applies on top of standard rates: 5% on the first £125,000 (£6,250) plus 7% on the next £125,000 (£8,750... wait, that's £15,000). Actually: £125,000 × 5% = £6,250 + £125,000 × 7% = £8,750 = £15,000 total at an effective rate of 6%. This is significantly more than the £2,500 a home mover would pay."
+    description: "An additional property at £250,000 costs £15,000 in SDLT. The 5% additional property surcharge applies on top of standard rates: 5% on the first £125,000 (£6,250) plus 7% on the next £125,000 (£8,750) — an effective rate of 6%. This is significantly more than the £2,500 a home mover would pay."
 ---
 
 ## What Is Stamp Duty?
 
 Stamp Duty Land Tax (SDLT) is a tax on property purchases in England and Northern Ireland. You pay it on the portion of the price that falls within each band — it works like income tax, not a flat rate on the whole price.
 
-> **Key change — April 2025:** The nil-rate threshold reverted from £250,000 back to £125,000, and the first-time buyer threshold dropped from £425,000 to £300,000. If you're buying in 2025, use updated rates.
+> **Key change — April 2025:** The nil-rate threshold reverted from £250,000 back to £125,000, and the first-time buyer threshold dropped from £425,000 to £300,000. These rates remain in force for 2026/27.
 
 ## Current SDLT Rates (From 1 April 2025)
 
@@ -83,7 +83,7 @@ Stamp Duty Land Tax (SDLT) is a tax on property purchases in England and Norther
 
 ## Who Pays What
 
-**First-time buyers** get the most generous treatment — no tax on the first £300,000, and 5% on the next £200,000 (for properties up to £500,000). This saves up to £11,250 compared to standard rates.
+**First-time buyers** get the most generous treatment — no tax on the first £300,000, and 5% on the next £200,000 (for properties up to £500,000). This saves up to £5,000 compared to standard rates.
 
 **Home movers** (replacing your main residence) pay standard rates starting at 2% above £125,000.
 
@@ -99,5 +99,5 @@ Stamp Duty Land Tax (SDLT) is a tax on property purchases in England and Norther
 ## Common Mistakes
 
 1. **Forgetting SDLT in your budget.** On a £450,000 home, SDLT is £12,500 — that's real money on top of deposit, solicitor fees, surveys, and moving costs.
-2. **Assuming first-time buyer relief applies above £500,000.** It doesn't. At £500,001, you pay full standard rates on the entire price. This cliff edge means a £500,000 property costs £8,750 less in SDLT than a £500,001 property.
-3. **Not accounting for the additional property surcharge.** The 5% surcharge on second homes means a £300,000 buy-to-let costs £14,500 in SDLT vs £8,750 for a home mover — a £5,750 difference.
+2. **Assuming first-time buyer relief applies above £500,000.** It doesn't. At £500,001, you pay full standard rates on the entire price. This cliff edge means a £500,000 property costs £5,000 less in SDLT than a £500,001 property.
+3. **Not accounting for the additional property surcharge.** The 5% surcharge on second homes means a £300,000 buy-to-let costs £20,000 in SDLT vs £5,000 for a home mover — a £15,000 difference.

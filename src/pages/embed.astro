@@ -63,7 +63,7 @@ const embeddableTools = TOOLS.filter((t) => embeddableCategories.includes(t.cate
 
     <div class="space-y-3" id="embed-list">
       {embeddableTools.map((tool) => {
-        const url = `https://www.calcrun.com/tools/${tool.category}/${tool.slug}?embed`;
+        const url = `https://www.calcrun.com/tools/${tool.category}/${tool.slug}/?embed`;
         const code = `<iframe src="${url}" width="100%" height="700" style="border:none;border-radius:12px;" loading="lazy" title="${tool.name}"></iframe>`;
         return (
           <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden embed-card">

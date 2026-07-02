@@ -76,4 +76,4 @@ If you start with $50,000 and add $1,000/month at 7%:
 
 The $50,000 head start adds $200,966 — nearly as much as the lump sum itself grew through compounding alone. Starting with any lump sum, even $10,000, accelerates the timeline meaningfully.
 
-Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model your specific starting balance, contribution amount, and expected return rate.
+Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to model your specific starting balance, contribution amount, and expected return rate.

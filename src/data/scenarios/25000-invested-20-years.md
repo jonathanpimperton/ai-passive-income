@@ -62,4 +62,4 @@ Using the 4% withdrawal rule, $100,968 supports about $4,039 per year ($337/mont
 
 The point is straightforward: $25,000 sitting in a savings account earning 0.5% becomes $27,620 in 20 years. Invested at 7%, it becomes $100,968. Same money, same time, 3.6x more growth.
 
-Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model your own lump sum with your expected rate and timeline.
+Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to model your own lump sum with your expected rate and timeline.

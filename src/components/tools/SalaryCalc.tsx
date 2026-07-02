@@ -16,7 +16,7 @@ import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { calcFederalTax, calcFICA } from '../../lib/us-tax-calc';
-import { type FilingStatus } from '../../lib/us-rates';
+import { US_TAX_YEAR, US_401K, type FilingStatus } from '../../lib/us-rates';
 
 type InputMode = 'annual' | 'hourly';
 
@@ -84,8 +84,8 @@ export default function SalaryCalc() {
 
     // 401(k) contribution — reduces federal & state taxable income, but NOT FICA
     const retirement401kAmount = grossAnnual * (retirement401k / 100);
-    // Cap at IRS limit ($23,500 for 2024, used here as a reasonable limit)
-    const cappedRetirement = Math.min(retirement401kAmount, 23500);
+    // Cap at the IRS employee elective deferral limit (from the central rates module)
+    const cappedRetirement = Math.min(retirement401kAmount, US_401K.limit);
 
     const federalTax = calcFederalTax(grossAnnual - cappedRetirement, filingStatus);
     const fica = calcFICA(grossAnnual, filingStatus); // FICA is on full gross
@@ -197,9 +197,9 @@ export default function SalaryCalc() {
           </div>
           <div className="space-y-5">
             {inputMode === 'annual' ? (
-              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={1000000} step={1000} onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
+              <SliderInput label="Annual Salary" id="sal-annual" value={salary} min={10000} max={500000} step={1000} textMax={1000000} minLabel="$10K" maxLabel="$500K" onChange={setSalary} prefix="$" formatDisplay={formatNumber} hint="Your gross yearly pay before taxes" />
             ) : (
-              <SliderInput label="Hourly Rate" id="sal-hourly" value={hourlyRate} min={7.25} max={200} step={0.25} onChange={setHourlyRate} prefix="$" formatDisplay={(v) => v.toFixed(2)} hint="Your pay per hour before taxes" />
+              <SliderInput label="Hourly Rate" id="sal-hourly" value={hourlyRate} min={7.25} max={200} step={0.25} minLabel="$7.25" maxLabel="$200" onChange={setHourlyRate} prefix="$" formatDisplay={(v) => v.toFixed(2)} hint="Your pay per hour before taxes" />
             )}
             <SliderInput label="Hours per Week" id="sal-hours" value={hoursPerWeek} min={1} max={80} step={1} onChange={setHoursPerWeek} />
             <SliderInput label="Weeks per Year" id="sal-weeks" value={weeksPerYear} min={1} max={52} step={1} onChange={setWeeksPerYear} />
@@ -232,7 +232,7 @@ export default function SalaryCalc() {
         <div id="sal-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">Tax year 2025</span>
+              <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">Tax year {US_TAX_YEAR}</span>
             </div>
             <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
             <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">

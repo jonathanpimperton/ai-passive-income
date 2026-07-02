@@ -326,7 +326,7 @@ export default function MortgagePaymentCalc() {
           <CurrencySelector value={currency} onChange={setCurrency} />
 
           <div className="space-y-5">
-            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={10000000} step={10000} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={2000000} step={5000} textMax={10000000} minLabel={`${currencySymbol}50K`} maxLabel={`${currencySymbol}2M`} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} />
             <SliderInput label="Down Payment" id="mort-down" value={downPaymentPercent} min={0} max={90} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${fmt(homePrice * (downPaymentPercent / 100))} down`} />
             <SliderInput label="Interest Rate" id="mort-rate" value={interestRate} min={1} max={15} step={0.125} onChange={setInterestRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} />
 
@@ -351,7 +351,7 @@ export default function MortgagePaymentCalc() {
               </div>
             </div>
 
-            <SliderInput label="Extra Monthly Payment" id="mort-extra" value={extraMonthly} min={0} max={5000} step={25} onChange={setExtraMonthly} prefix={currencySymbol} formatDisplay={formatNumber} hint="Additional principal paid each month" />
+            <SliderInput label="Extra Monthly Payment" id="mort-extra" value={extraMonthly} min={0} max={5000} step={25} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setExtraMonthly} prefix={currencySymbol} formatDisplay={formatNumber} hint="Additional principal paid each month" />
 
             {/* Advanced toggle */}
             <button
@@ -370,7 +370,7 @@ export default function MortgagePaymentCalc() {
             {showAdvanced && (
               <div className="space-y-5 pt-1">
                 <SliderInput label="Property Tax Rate" id="mort-tax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
-                <SliderInput label="Annual Insurance" id="mort-ins" value={insuranceAnnual} min={0} max={10000} step={100} onChange={setInsuranceAnnual} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="Annual Insurance" id="mort-ins" value={insuranceAnnual} min={0} max={10000} step={100} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}10K`} onChange={setInsuranceAnnual} prefix={currencySymbol} formatDisplay={formatNumber} />
               </div>
             )}
           </div>

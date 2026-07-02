@@ -81,4 +81,4 @@ Lenders typically require your total housing payment (PITI) to be no more than 2
 
 With other debts (car loan, student loans), lenders also check your debt-to-income ratio stays below 36–43% of gross income.
 
-Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to see your exact payment with taxes, insurance, and PMI included.
+Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to see your exact payment with taxes, insurance, and PMI included.

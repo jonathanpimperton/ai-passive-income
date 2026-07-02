@@ -101,7 +101,7 @@ Expense ratios aren't the only cost of investing, but they're the most consisten
 
 When comparing total investment cost, add your fund's expense ratio to any advisory fee you pay. If you use a robo-advisor charging 0.25% and it invests in funds averaging 0.05%, your total cost is about 0.30%. A traditional advisor charging 1% who uses funds averaging 0.75% costs you 1.75% total.
 
-## The Fee Landscape in 2025
+## The Fee Landscape
 
 Fee compression has been one of the biggest trends in investing over the past two decades. Average fund fees have dropped dramatically:
 

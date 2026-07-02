@@ -229,7 +229,7 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
       </a>
       <p className="text-[10px] text-neutral-500 mt-2 leading-relaxed">
         {disclosure}{' '}
-        <a href="/disclosure" className="text-primary-600 hover:text-primary-700 underline">
+        <a href="/disclosure/" className="text-primary-600 hover:text-primary-700 underline">
           Disclosure
         </a>
       </p>

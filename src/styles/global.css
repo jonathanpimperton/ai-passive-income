@@ -719,6 +719,11 @@ input[type="range"] {
   background-color: var(--color-primary-50);
 }
 
+/* Teal badge/pill text on dark primary-50 chips (tax badges, methodology link) */
+[data-theme="dark"] .text-primary-700 {
+  color: var(--color-primary-700);
+}
+
 [data-theme="dark"] .bg-primary-100 {
   background-color: var(--color-primary-100);
 }

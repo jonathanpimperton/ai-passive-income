@@ -83,4 +83,4 @@ On a 4-year loan at 7%, you stay above water throughout the term. On a 7-year lo
 
 A car loan at 7% is not cheap, but the 4-year term keeps total interest under 15% of the purchase price. Extending to 6 or 7 years to get a lower monthly number is where the real cost accumulates.
 
-Use the [Loan Amortization Calculator](/tools/debt-and-loans/loan-amortization) to build a full payment schedule for your specific loan amount, rate, and term.
+Use the [Loan Amortization Calculator](/tools/debt-and-loans/loan-amortization/) to build a full payment schedule for your specific loan amount, rate, and term.

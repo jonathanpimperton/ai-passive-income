@@ -282,8 +282,11 @@ export default function InvestmentReturnCalc() {
           id="ir-principal"
           value={principal}
           min={0}
-          max={10000000}
-          step={5000}
+          max={500000}
+          step={1000}
+          textMax={10000000}
+          minLabel={`${currencySymbol}0`}
+          maxLabel={`${currencySymbol}500K`}
           onChange={setPrincipal}
           prefix={currencySymbol}
           formatDisplay={(v) => formatNumber(v)}
@@ -300,8 +303,11 @@ export default function InvestmentReturnCalc() {
           id="ir-monthly"
           value={monthly}
           min={0}
-          max={50000}
-          step={100}
+          max={5000}
+          step={25}
+          textMax={50000}
+          minLabel={`${currencySymbol}0`}
+          maxLabel={`${currencySymbol}5K`}
           onChange={setMonthly}
           prefix={currencySymbol}
           formatDisplay={(v) => formatNumber(v)}
@@ -352,8 +358,11 @@ export default function InvestmentReturnCalc() {
           id="ir-target"
           value={target}
           min={1000}
-          max={10000000}
+          max={2000000}
           step={5000}
+          textMax={10000000}
+          minLabel={`${currencySymbol}1K`}
+          maxLabel={`${currencySymbol}2M`}
           onChange={setTarget}
           prefix={currencySymbol}
           formatDisplay={(v) => formatNumber(v)}

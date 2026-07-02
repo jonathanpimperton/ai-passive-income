@@ -67,4 +67,4 @@ To reach $1 million by the same age, you would need approximately $1,235/month a
 
 Every five years of delay costs roughly $140,000–$160,000. Time is the one input you cannot buy back.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to adjust the contribution amount, starting balance, and return rate for your situation.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to adjust the contribution amount, starting balance, and return rate for your situation.

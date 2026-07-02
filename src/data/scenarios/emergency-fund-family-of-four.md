@@ -76,4 +76,4 @@ Review your emergency fund annually or whenever your situation changes:
 - **Kids start school (childcare ends):** Reduce target by the childcare amount
 - **Job change to less stable industry:** Consider extending to 9 months
 
-Use the [Emergency Fund Calculator](/tools/income-and-planning/emergency-fund) to input your family's actual monthly expenses and see your personalised target.
+Use the [Emergency Fund Calculator](/tools/income-and-planning/emergency-fund/) to input your family's actual monthly expenses and see your personalised target.

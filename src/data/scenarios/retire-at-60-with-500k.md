@@ -70,4 +70,4 @@ Mitigation strategies:
 - **Pension or annuity:** Any guaranteed income stream reduces the burden on the $500K.
 - **Relocate to a lower-cost area:** The cost-of-living difference between San Francisco and rural Tennessee can be 60–70%.
 
-Use the [Retirement Savings Calculator](/tools/saving-and-growth/retirement-savings) to model your specific savings, expected Social Security, and withdrawal strategy.
+Use the [Retirement Savings Calculator](/tools/saving-and-growth/retirement-savings/) to model your specific savings, expected Social Security, and withdrawal strategy.

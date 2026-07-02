@@ -155,7 +155,7 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
             </p>
           </div>
           <a
-            href="/tools/debt-and-loans/mortgage-affordability"
+            href="/tools/debt-and-loans/mortgage-affordability/"
             className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
@@ -233,7 +233,7 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
             </p>
           </div>
           <a
-            href="/tools/saving-and-growth/compound-interest"
+            href="/tools/saving-and-growth/compound-interest/"
             className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
@@ -316,7 +316,7 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
             </p>
           </div>
           <a
-            href="/tools/income-and-planning/retirement-age"
+            href="/tools/income-and-planning/retirement-age/"
             className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
@@ -365,27 +365,32 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
 
 const SOLAR_SYSTEM_SIZE = 4; // kWp
 const SOLAR_KWH_PER_KWP = 900;
-const SOLAR_SELF_CONSUMPTION = 0.30;
+const SOLAR_MAX_SELF_CONSUMPTION = 0.5; // no battery — half of generation is the realistic ceiling
 const SOLAR_EXPORT_TARIFF = 4.5; // p/kWh
 const SOLAR_ENERGY_INFLATION = 0.03;
 const SOLAR_DEGRADATION = 0.005;
 const SOLAR_MAINTENANCE = 150;
 const SOLAR_YEARS = 25;
+const SOLAR_TARIFF = 0.245; // £/kWh import unit rate
 
 function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: SolarState) => void }) {
   const result = useMemo(() => {
     const annualGeneration = SOLAR_SYSTEM_SIZE * SOLAR_KWH_PER_KWP;
-    // Simplified: use electricity bill to derive rough tariff
-    const tariff = 0.245; // £/kWh
+    // Household usage derived from the bill; self-consumption rises with usage
+    // on a diminishing-returns curve (a bigger bill means more daytime demand
+    // to soak up generation, but a 4kWp system tops out around 50% self-use).
+    const annualUsageKwh = (state.electricityBill * 12) / SOLAR_TARIFF;
+    const selfUseFraction =
+      SOLAR_MAX_SELF_CONSUMPTION * (1 - Math.exp(-annualUsageKwh / annualGeneration));
 
     let cumulative = 0;
     let paybackYear = -1;
     for (let y = 1; y <= SOLAR_YEARS; y++) {
       const degradedGen = annualGeneration * Math.pow(1 - SOLAR_DEGRADATION, y - 1);
-      const inflatedTariff = tariff * Math.pow(1 + SOLAR_ENERGY_INFLATION, y - 1);
+      const inflatedTariff = SOLAR_TARIFF * Math.pow(1 + SOLAR_ENERGY_INFLATION, y - 1);
       const inflatedExport = (SOLAR_EXPORT_TARIFF / 100) * Math.pow(1 + SOLAR_ENERGY_INFLATION, y - 1);
-      const savings = (degradedGen * SOLAR_SELF_CONSUMPTION * inflatedTariff) +
-                      (degradedGen * (1 - SOLAR_SELF_CONSUMPTION) * inflatedExport) -
+      const savings = (degradedGen * selfUseFraction * inflatedTariff) +
+                      (degradedGen * (1 - selfUseFraction) * inflatedExport) -
                       SOLAR_MAINTENANCE;
       cumulative += savings;
       if (paybackYear === -1 && cumulative >= state.systemCost) {
@@ -393,8 +398,8 @@ function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: Sola
       }
     }
 
-    const year1Savings = (annualGeneration * SOLAR_SELF_CONSUMPTION * tariff) +
-                         (annualGeneration * (1 - SOLAR_SELF_CONSUMPTION) * SOLAR_EXPORT_TARIFF / 100) -
+    const year1Savings = (annualGeneration * selfUseFraction * SOLAR_TARIFF) +
+                         (annualGeneration * (1 - selfUseFraction) * SOLAR_EXPORT_TARIFF / 100) -
                          SOLAR_MAINTENANCE;
     const totalProfit = cumulative - state.systemCost;
 
@@ -425,7 +430,7 @@ function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: Sola
             </p>
           </div>
           <a
-            href="/tools/saving-and-growth/solar-payback"
+            href="/tools/saving-and-growth/solar-payback/"
             className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
@@ -566,17 +571,18 @@ export default function DecisionEngine() {
               <span className="text-xl leading-relaxed">{p.question}</span>
             </button>
           ))}
+        </div>
+          {/* Footer sits OUTSIDE the tablist — role="tablist" only allows tab children */}
           <div className="px-5 pt-4 mt-2 border-t border-neutral-200/60">
-            <p className="text-xs text-neutral-400 mb-2">Preview only. Open the full calculator for the full breakdown.</p>
+            <p className="text-xs text-neutral-500 mb-2">Preview only. Open the full calculator for the full breakdown.</p>
             <a
-              href="/tools"
+              href="/tools/"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150"
             >
               View all calculators
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
             </a>
           </div>
-        </div>
         </div>
 
         {/* Calculator panel */}
@@ -634,7 +640,7 @@ export default function DecisionEngine() {
       {/* Mobile: View all link */}
       <div className="lg:hidden mt-4 text-center">
         <a
-          href="/tools"
+          href="/tools/"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150"
         >
           View all calculators

@@ -21,6 +21,7 @@ affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
 calculationMethod: "Uses binary search to find the age when projected savings reach the target balance"
+lastUpdated: "2026-07-02"
 faq:
   - question: "At what age can I realistically retire?"
     answer: "It depends entirely on your savings rate and investment returns. With $50,000 saved, $500/month contributions, and 7% returns, you'd reach $1 million around age 62. Increasing contributions to $1,000/month moves that to around 55. The key variables are how much you save and what your target is."
@@ -84,13 +85,13 @@ This approach handles the non-linear relationship between time and growth correc
 
 | Age | What happens |
 |-----|-------------|
-| **50** | Eligible for catch-up contributions ($7,500 extra to 401(k) in 2025) |
+| **50** | Eligible for catch-up contributions ($8,000 extra to 401(k) in 2026) |
 | **55** | Rule of 55: penalty-free 401(k) withdrawal if you leave your employer at 55+ |
 | **59½** | No more 10% early withdrawal penalty on 401(k)/IRA |
 | **62** | Earliest Social Security (at reduced benefit — roughly 70% of full) |
 | **65** | Medicare eligibility |
 | **67** | Full Social Security retirement age (born after 1960) |
-| **70** | Maximum Social Security benefit (132% of full benefit) |
+| **70** | Maximum Social Security benefit (124% of full benefit with a full retirement age of 67) |
 
 ## The Savings Rate Effect
 

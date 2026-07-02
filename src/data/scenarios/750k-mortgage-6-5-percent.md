@@ -49,4 +49,4 @@ The strategies that matter most at this loan size:
 - **Lower rate by 0.5%:** At 6.0% instead of 6.5%, the monthly payment drops to $4,496.89, saving $243.63/month or about $87,707 over 30 years.
 - **Buying discount points:** One point ($7,500) reduces the rate by about 0.25%. On a $750,000 loan over 30 years, one point saves roughly $48,000 in interest. The breakeven point is around 4 years, so it makes sense if you plan to stay that long.
 
-At three-quarters of a million dollars, rate shopping is one of the highest-value things you can do. The difference between 6.25% and 6.75% is over $100,000 in total interest. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to test different rates, terms, and extra payment strategies for your exact situation.
+At three-quarters of a million dollars, rate shopping is one of the highest-value things you can do. The difference between 6.25% and 6.75% is over $100,000 in total interest. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to test different rates, terms, and extra payment strategies for your exact situation.

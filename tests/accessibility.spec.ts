@@ -54,9 +54,9 @@ test.describe('Accessibility — Homepage', () => {
 // ════════════════════════════════════════════════════════════════
 
 const calculatorPages = [
-  { name: 'Compound Interest', url: '/tools/saving-and-growth/compound-interest' },
-  { name: 'UK Salary', url: '/tools/income-and-planning/salary-uk' },
-  { name: 'Mortgage Payment', url: '/tools/debt-and-loans/mortgage-payment' },
+  { name: 'Compound Interest', url: '/tools/saving-and-growth/compound-interest/' },
+  { name: 'UK Salary', url: '/tools/income-and-planning/salary-uk/' },
+  { name: 'Mortgage Payment', url: '/tools/debt-and-loans/mortgage-payment/' },
 ];
 
 for (const calc of calculatorPages) {
@@ -79,7 +79,7 @@ for (const calc of calculatorPages) {
 
 test.describe('Accessibility — Scenarios Index', () => {
   test('passes WCAG AA checks', async ({ page }) => {
-    await page.goto('/scenarios');
+    await page.goto('/scenarios/');
     await page.waitForLoadState('networkidle');
 
     const violations = await runAxe(page);
@@ -112,7 +112,7 @@ test.describe('Accessibility — Dark Mode', () => {
   });
 
   test('calculator in dark mode passes WCAG AA checks', async ({ page }) => {
-    await page.goto('/tools/saving-and-growth/compound-interest');
+    await page.goto('/tools/saving-and-growth/compound-interest/');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);
 

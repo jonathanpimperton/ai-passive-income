@@ -61,4 +61,4 @@ Each 1% increase adds roughly $200–$240 to your monthly payment and $80,000–
 
 **Consider a 15-year term.** The same $350,000 at 6% over 15 years costs $2,953/month — $855 more. But total interest drops to $181,487, saving $224,000. This only works if your budget can handle the higher payment.
 
-Use the [Loan Amortization Calculator](/tools/debt-and-loans/loan-amortization) to generate a full year-by-year schedule for your specific loan amount, rate, and extra payment strategy.
+Use the [Loan Amortization Calculator](/tools/debt-and-loans/loan-amortization/) to generate a full year-by-year schedule for your specific loan amount, rate, and extra payment strategy.

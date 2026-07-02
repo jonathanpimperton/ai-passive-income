@@ -77,4 +77,4 @@ The stock market wins by a wide margin in pure financial terms. Renovate because
 3. Get three contractor quotes and check references
 4. If selling within 2 years, stick to cosmetic updates (paint, fixtures, hardware) with 80%+ recovery rates
 
-Use the [ROI Calculator](/tools/saving-and-growth/roi) to compute the exact return on any renovation or investment scenario.
+Use the [ROI Calculator](/tools/saving-and-growth/roi/) to compute the exact return on any renovation or investment scenario.

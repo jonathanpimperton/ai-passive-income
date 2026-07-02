@@ -249,7 +249,8 @@ export default function LoanAmortizationCalc() {
 
           <div className="space-y-5">
             <SliderInput label="Loan Amount" id="la-amount" value={loanAmount}
-              min={1000} max={10000000} step={10000} onChange={setLoanAmount}
+              min={1000} max={1000000} step={2500} textMax={10000000}
+              minLabel={`${currencySymbol}1K`} maxLabel={`${currencySymbol}1M`} onChange={setLoanAmount}
               prefix={currencySymbol} formatDisplay={(v) => formatNumber(v)} hint="Total amount you're borrowing" />
             <SliderInput label="Annual Interest Rate" id="la-rate" value={rate}
               min={0.1} max={20} step={0.1} onChange={setRate}
@@ -268,7 +269,8 @@ export default function LoanAmortizationCalc() {
             </button>
             <div className={`overflow-hidden transition-all duration-200 ${showAdvanced ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
               <SliderInput label="Extra Monthly Payment" id="la-extra" value={extraPayment}
-                min={0} max={5000} step={50} onChange={setExtraPayment}
+                min={0} max={5000} step={25}
+                minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setExtraPayment}
                 prefix={currencySymbol} formatDisplay={(v) => formatNumber(v)} hint="Any extra amount above your minimum — saves interest" />
             </div>
           </div>

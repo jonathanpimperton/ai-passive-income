@@ -206,8 +206,11 @@ export default function RetirementSavingsCalc() {
               id="ret-current-savings"
               value={currentSavings}
               min={0}
-              max={10000000}
-              step={5000}
+              max={500000}
+              step={1000}
+              textMax={10000000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}500K`}
               onChange={setCurrentSavings}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}
@@ -219,8 +222,11 @@ export default function RetirementSavingsCalc() {
               id="ret-monthly"
               value={monthlyContribution}
               min={0}
-              max={50000}
-              step={100}
+              max={5000}
+              step={25}
+              textMax={50000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}5K`}
               onChange={setMonthlyContribution}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}

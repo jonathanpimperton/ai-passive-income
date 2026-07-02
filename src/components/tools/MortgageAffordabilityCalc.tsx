@@ -271,7 +271,10 @@ export default function MortgageAffordabilityCalc() {
               value={annualIncome}
               min={30000}
               max={500000}
-              step={5000}
+              step={1000}
+              textMax={1000000}
+              minLabel={`${currencySymbol}30K`}
+              maxLabel={`${currencySymbol}500K`}
               onChange={setAnnualIncome}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -283,7 +286,9 @@ export default function MortgageAffordabilityCalc() {
               value={monthlyDebt}
               min={0}
               max={5000}
-              step={50}
+              step={25}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}5K`}
               onChange={setMonthlyDebt}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -295,7 +300,10 @@ export default function MortgageAffordabilityCalc() {
               value={downPayment}
               min={0}
               max={200000}
-              step={5000}
+              step={500}
+              textMax={2000000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}200K`}
               onChange={setDownPayment}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -353,6 +361,8 @@ export default function MortgageAffordabilityCalc() {
               min={0}
               max={5000}
               step={100}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}5K`}
               onChange={setInsuranceAnnual}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -365,6 +375,8 @@ export default function MortgageAffordabilityCalc() {
               min={0}
               max={1000}
               step={25}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}1K`}
               onChange={setHoaMonthly}
               prefix={currencySymbol}
               formatDisplay={formatNumber}

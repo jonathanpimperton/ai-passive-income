@@ -31,7 +31,7 @@ resultSummary: "Traditional saves ~$47,000 more if your tax rate drops in retire
 - The money grows tax-free
 - Withdrawals in retirement are completely tax-free
 
-Both have the same $23,500 annual contribution limit (2025). Employer matches always go into the traditional bucket, regardless of your choice.
+Both have the same $24,500 annual contribution limit (2026). Employer matches always go into the traditional bucket, regardless of your choice.
 
 ## 30-year comparison at $12,000/year
 
@@ -70,12 +70,12 @@ Assume 7% annual returns, 30-year horizon:
 
 Many financial advisers recommend contributing to both — typically traditional in your 401(k) and Roth in an IRA. This creates tax diversification: in retirement, you can withdraw from traditional accounts up to the top of the 12% bracket, then pull additional funds from Roth accounts tax-free.
 
-On $80,000 income: contribute enough to your traditional 401(k) to get the full employer match, then max a Roth IRA ($7,000/year), then put additional savings back into the 401(k) — traditional or Roth depending on your tax outlook.
+On $80,000 income: contribute enough to your traditional 401(k) to get the full employer match, then max a Roth IRA ($7,500/year), then put additional savings back into the 401(k) — traditional or Roth depending on your tax outlook.
 
 ## The variable most people get wrong
 
-The comparison is not just "current bracket vs retirement bracket." It is "marginal rate on contributions now" vs "effective rate on withdrawals later." Traditional contributions save tax at your top marginal rate (22% on $80K). But retirement withdrawals fill up brackets from the bottom — the first $15,000 is tax-free (standard deduction), the next $11,925 at 10%, and so on.
+The comparison is not just "current bracket vs retirement bracket." It is "marginal rate on contributions now" vs "effective rate on withdrawals later." Traditional contributions save tax at your top marginal rate (22% on $80K). But retirement withdrawals fill up brackets from the bottom — the first $16,100 is tax-free (standard deduction), the next $12,400 at 10%, and so on.
 
 This means your effective withdrawal rate is often lower than your stated bracket, tilting the math further toward traditional for high earners.
 
-Use the [US Salary Calculator](/tools/income-and-planning/salary-us) to see how Roth vs traditional 401(k) contributions affect your current take-home pay.
+Use the [US Salary Calculator](/tools/income-and-planning/salary-us/) to see how Roth vs traditional 401(k) contributions affect your current take-home pay.

@@ -208,8 +208,11 @@ export default function RetirementContributionCalc() {
               id="retc-current-savings"
               value={currentSavings}
               min={0}
-              max={10000000}
-              step={5000}
+              max={500000}
+              step={1000}
+              textMax={10000000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}500K`}
               onChange={setCurrentSavings}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}
@@ -221,8 +224,11 @@ export default function RetirementContributionCalc() {
               id="retc-target"
               value={targetBalance}
               min={50000}
-              max={50000000}
-              step={25000}
+              max={5000000}
+              step={10000}
+              textMax={50000000}
+              minLabel={`${currencySymbol}50K`}
+              maxLabel={`${currencySymbol}5M`}
               onChange={setTargetBalance}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}

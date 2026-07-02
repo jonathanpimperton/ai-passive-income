@@ -81,4 +81,4 @@ If you have $500/month of extra cash and multiple competing priorities:
 
 Once the high-rate debt is gone, redirect that $200 to investing. Once the emergency fund is full, redirect that $100 too. Eventually all $500/month goes to investing.
 
-Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff) to see how quickly you can eliminate your specific debts, then compare the timeline against investment growth.
+Use the [Debt Payoff Calculator](/tools/debt-and-loans/debt-payoff/) to see how quickly you can eliminate your specific debts, then compare the timeline against investment growth.

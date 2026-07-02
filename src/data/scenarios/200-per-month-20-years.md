@@ -69,4 +69,4 @@ $104,185 is not enough to retire on alone. At a 4% withdrawal rate, it supports 
 
 If $200/month gets you to $104,185, consider what happens if you increase the contribution over time. Bumping to $300/month after year 10 (when you likely earn more) changes the final balance to roughly $136,000. Financial plans work best when contributions grow alongside your income.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to adjust the contribution amount, starting balance, and return rate for your situation.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to adjust the contribution amount, starting balance, and return rate for your situation.

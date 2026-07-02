@@ -77,4 +77,4 @@ Whether that is enough depends on:
 - **Healthcare:** Medicare covers most medical costs at 65, but supplemental insurance costs $150–$300/month.
 - **Lifestyle:** Travel, hobbies, and helping family members require additional budget.
 
-Use the [Retirement Savings Calculator](/tools/saving-and-growth/retirement-savings) to find the exact monthly savings amount for your age, current balance, and target.
+Use the [Retirement Savings Calculator](/tools/saving-and-growth/retirement-savings/) to find the exact monthly savings amount for your age, current balance, and target.

@@ -20,6 +20,10 @@ import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useChartTheme } from '../../lib/useChartTheme';
+import {
+  calculateSolarPayback,
+  effectiveSelfConsumption as calcEffectiveSelfConsumption,
+} from '../../lib/solar-payback';
 
 /* ── Defaults ─────────────────────────────────────────────── */
 
@@ -38,7 +42,6 @@ const DEFAULTS = {
   taxCredit: 0,
   analysisPeriod: 25,        // years
   kWhPerKwp: 900,            // annual kWh generated per kWp
-  batteryRoundTrip: 0.9,     // 90% round-trip efficiency
 };
 
 export default function SolarPaybackCalc() {
@@ -90,85 +93,28 @@ export default function SolarPaybackCalc() {
    * Effective self-consumption: with a battery, surplus daytime generation
    * is stored (up to battery capacity × round-trip efficiency) for evening use.
    */
-  const effectiveSelfConsumption = useMemo(() => {
-    if (!includeBattery) return baseSelfConsumption;
-    const dailyGen = (systemSize * kWhPerKwp) / 365;
-    if (dailyGen <= 0) return baseSelfConsumption;
-    const baseFraction = baseSelfConsumption / 100;
-    const dailySurplus = dailyGen * (1 - baseFraction);
-    const batteryCapture = Math.min(dailySurplus, batteryCapacity * DEFAULTS.batteryRoundTrip);
-    const effective = baseFraction + batteryCapture / dailyGen;
-    return Math.min(Math.round(effective * 100), 95); // cap at 95% — never 100% in practice
-  }, [includeBattery, baseSelfConsumption, systemSize, kWhPerKwp, batteryCapacity]);
+  const effectiveSelfConsumption = useMemo(
+    () => calcEffectiveSelfConsumption(includeBattery, baseSelfConsumption, systemSize, kWhPerKwp, batteryCapacity),
+    [includeBattery, baseSelfConsumption, systemSize, kWhPerKwp, batteryCapacity]
+  );
 
   /* ── Core calculation ───────────────────────────────────── */
 
-  const result = useMemo(() => {
-    const netCost = systemCost + (includeBattery ? batteryCost : 0) - taxCredit;
-    const tariffRate = electricityTariff / 100;    // convert pence → pounds
-    const exportRate = exportTariff / 100;
-    const selfRate = effectiveSelfConsumption / 100;
-    const degRate = degradation / 100;
-    const inflRate = energyInflation / 100;
-
-    let cumulative = 0;
-    let paybackYear = -1;
-    let paybackFraction = 0;
-    let prevCumulative = 0;
-
-    const yearly: Array<{
-      year: number;
-      generation: number;
-      annualSavings: number;
-      cumulativeSavings: number;
-    }> = [];
-
-    for (let y = 1; y <= analysisPeriod; y++) {
-      const gen = systemSize * kWhPerKwp * Math.pow(1 - degRate, y - 1);
-      const selfKwh = gen * selfRate;
-      const exportKwh = gen - selfKwh;
-      const curTariff = tariffRate * Math.pow(1 + inflRate, y - 1);
-      const curExport = exportRate * Math.pow(1 + inflRate, y - 1);
-
-      const savings = selfKwh * curTariff + exportKwh * curExport - maintenanceCost;
-
-      prevCumulative = cumulative;
-      cumulative += savings;
-
-      if (paybackYear === -1 && cumulative >= netCost && netCost > 0) {
-        paybackYear = y;
-        const needed = netCost - prevCumulative;
-        paybackFraction = savings > 0 ? needed / savings : 0;
-      }
-
-      yearly.push({
-        year: y,
-        generation: Math.round(gen),
-        annualSavings: Math.round(savings),
-        cumulativeSavings: Math.round(cumulative),
-      });
-    }
-
-    const paybackMonths = paybackYear > 0
-      ? Math.min(Math.round(paybackFraction * 12), 11)
-      : 0;
-    const paybackYears = paybackYear > 0 ? paybackYear - 1 : -1;
-
-    const year1Savings = yearly[0]?.annualSavings ?? 0;
-    const totalSavings = cumulative;
-    const roi = netCost > 0 ? ((totalSavings - netCost) / netCost) * 100 : 0;
-
-    return {
-      netCost,
-      paybackYears,
-      paybackMonths,
-      reachesPayback: paybackYear > 0,
-      year1Savings,
-      totalSavings: Math.round(totalSavings),
-      roi,
-      yearly,
-    };
-  }, [
+  const result = useMemo(() => calculateSolarPayback({
+    systemCost,
+    systemSize,
+    includeBattery,
+    batteryCost,
+    electricityTariff,
+    selfConsumptionPct: effectiveSelfConsumption,
+    exportTariff,
+    energyInflation,
+    degradation,
+    maintenanceCost,
+    taxCredit,
+    analysisPeriod,
+    kWhPerKwp,
+  }), [
     systemCost, systemSize, includeBattery, batteryCost,
     electricityTariff, effectiveSelfConsumption, exportTariff,
     energyInflation, degradation, maintenanceCost,
@@ -249,6 +195,8 @@ export default function SolarPaybackCalc() {
               min={2000}
               max={50000}
               step={500}
+              minLabel={`${currencySymbol}2K`}
+              maxLabel={`${currencySymbol}50K`}
               onChange={setSystemCost}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -306,6 +254,8 @@ export default function SolarPaybackCalc() {
                   min={1000}
                   max={20000}
                   step={500}
+                  minLabel={`${currencySymbol}1K`}
+                  maxLabel={`${currencySymbol}20K`}
                   onChange={setBatteryCost}
                   prefix={currencySymbol}
                   formatDisplay={formatNumber}
@@ -414,6 +364,8 @@ export default function SolarPaybackCalc() {
                   min={0}
                   max={1000}
                   step={25}
+                  minLabel={`${currencySymbol}0`}
+                  maxLabel={`${currencySymbol}1K`}
                   onChange={setMaintenanceCost}
                   prefix={currencySymbol}
                   formatDisplay={formatNumber}
@@ -426,6 +378,8 @@ export default function SolarPaybackCalc() {
                   min={0}
                   max={20000}
                   step={500}
+                  minLabel={`${currencySymbol}0`}
+                  maxLabel={`${currencySymbol}20K`}
                   onChange={setTaxCredit}
                   prefix={currencySymbol}
                   formatDisplay={formatNumber}

@@ -48,4 +48,4 @@ At this loan size, extra payments save six figures:
 - **15-year term:** Monthly payment rises to about $3,049, but total interest plummets to $198,700 — a savings of $247,706.
 - **Rate matters at this size:** If you secure 6.0% instead of 6.5%, monthly payments drop to $2,098.43, saving $113.81/month or about $40,972 over 30 years.
 
-Every tenth of a percent on a $350,000 loan is worth thousands. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to compare rates, terms, and extra payment amounts for your situation.
+Every tenth of a percent on a $350,000 loan is worth thousands. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to compare rates, terms, and extra payment amounts for your situation.

@@ -23,13 +23,13 @@ comparisonTable:
     option1: "£60,000 (or 100% of earnings)"
     option2: "£20,000"
   - feature: "Access to funds"
-    option1: "Locked until age 57 (rising to 58 in 2028)"
+    option1: "Locked until age 55 (rising to 57 from April 2028)"
     option2: "Anytime — no restrictions"
   - feature: "Tax on withdrawals"
     option1: "25% tax-free, rest taxed as income"
     option2: "Completely tax-free"
   - feature: "Inheritance tax"
-    option1: "Usually IHT-free if you die before 75"
+    option1: "Unused pensions due to fall within IHT from April 2027"
     option2: "Part of your estate (subject to IHT)"
   - feature: "Investment choices"
     option1: "Limited to your scheme's fund range"
@@ -58,7 +58,7 @@ Over a 30-year career, the combination of employer match plus tax relief can add
 
 ## Why the ISA comes second, not never
 
-Pensions have one major drawback: you cannot touch the money until age 57 (rising to 58 from 2028). If you're 30, that's 27 years of zero access. Life throws curveballs well before retirement — redundancy, home deposits, career changes, illness.
+Pensions have one major drawback: you cannot touch the money until age 55 (rising to 57 from 6 April 2028). If you're 30 today, that means no access until your late fifties. Life throws curveballs well before retirement — redundancy, home deposits, career changes, illness.
 
 A Stocks & Shares ISA gives you tax-free growth *and* the ability to withdraw whenever you need. No penalties, no waiting, no tax on the way out. This makes it the natural home for medium-term goals (5-20 years) and as a flexible backup behind your pension.
 

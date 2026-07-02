@@ -19,82 +19,14 @@ import type { ResultItem } from '../../lib/email-types';
 import { formatNumber } from '../../lib/calculator-utils';
 import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
-
-/* ── SDLT Rates (from 1 April 2025) ─────────────────────── */
-const STANDARD_BANDS = [
-  { from: 0, to: 125_000, rate: 0 },
-  { from: 125_000, to: 250_000, rate: 0.02 },
-  { from: 250_000, to: 925_000, rate: 0.05 },
-  { from: 925_000, to: 1_500_000, rate: 0.10 },
-  { from: 1_500_000, to: Infinity, rate: 0.12 },
-];
-
-const FTB_BANDS = [
-  { from: 0, to: 300_000, rate: 0 },
-  { from: 300_000, to: 500_000, rate: 0.05 },
-];
-
-const FTB_CAP = 500_000;
-const ADDITIONAL_SURCHARGE = 0.05;
-
-type BuyerType = 'standard' | 'first-time' | 'additional';
+import { calculateSdlt, type BuyerType } from '../../lib/stamp-duty';
+import { UK_SDLT } from '../../lib/uk-rates';
 
 const BUYER_TYPES: { key: BuyerType; label: string; hint: string }[] = [
   { key: 'first-time', label: 'First-time buyer', hint: 'Never owned a property before' },
   { key: 'standard', label: 'Moving home', hint: 'Replacing your main residence' },
   { key: 'additional', label: 'Additional property', hint: 'Buy-to-let or second home' },
 ];
-
-/* ── SDLT Calculation ────────────────────────────────────── */
-interface SdltBand {
-  from: number;
-  to: number;
-  rate: number;
-  tax: number;
-}
-
-interface SdltResult {
-  totalTax: number;
-  effectiveRate: number;
-  bands: SdltBand[];
-}
-
-function calculateSdlt(price: number, buyerType: BuyerType): SdltResult {
-  if (price <= 0) return { totalTax: 0, effectiveRate: 0, bands: [] };
-
-  let baseBands: typeof STANDARD_BANDS;
-
-  if (buyerType === 'first-time' && price <= FTB_CAP) {
-    baseBands = FTB_BANDS;
-  } else {
-    baseBands = STANDARD_BANDS;
-  }
-
-  const surcharge = buyerType === 'additional' ? ADDITIONAL_SURCHARGE : 0;
-  const bands: SdltBand[] = [];
-  let totalTax = 0;
-
-  for (const band of baseBands) {
-    if (price <= band.from) break;
-    const taxableInBand = Math.min(price, band.to) - band.from;
-    if (taxableInBand <= 0) continue;
-    const effectiveRate = band.rate + surcharge;
-    const tax = taxableInBand * effectiveRate;
-    totalTax += tax;
-    bands.push({
-      from: band.from,
-      to: Math.min(price, band.to),
-      rate: effectiveRate,
-      tax,
-    });
-  }
-
-  // For additional property, if price is within a band that has 0% base,
-  // the surcharge still applies to the full amount in that band
-  const effectiveRate = price > 0 ? (totalTax / price) * 100 : 0;
-
-  return { totalTax, effectiveRate, bands };
-}
 
 /* ── Format currency (always GBP) ────────────────────────── */
 function fmt(v: number): string {
@@ -203,8 +135,11 @@ export default function StampDutyCalc() {
               id="sdlt-price"
               value={price}
               min={0}
-              max={5_000_000}
+              max={2_000_000}
               step={5000}
+              textMax={5_000_000}
+              minLabel="£0"
+              maxLabel="£2M"
               onChange={setPrice}
               prefix="£"
               formatDisplay={formatNumber}
@@ -241,10 +176,10 @@ export default function StampDutyCalc() {
           </div>
 
           {/* First-time buyer eligibility note */}
-          {buyerType === 'first-time' && price > FTB_CAP && (
+          {buyerType === 'first-time' && price > UK_SDLT.firstTimeBuyerCap && (
             <div className="mt-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/50 p-3">
               <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-                First-time buyer relief only applies to properties up to {fmt(FTB_CAP)}. Standard rates are being used for this price.
+                First-time buyer relief only applies to properties up to {fmt(UK_SDLT.firstTimeBuyerCap)}. Standard rates are being used for this price.
               </p>
             </div>
           )}
@@ -253,11 +188,11 @@ export default function StampDutyCalc() {
           <div className="mt-6 pt-5">
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 dark:via-neutral-700 to-transparent mb-5" />
             <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
-              {buyerType === 'first-time' && price <= FTB_CAP ? 'First-Time Buyer Rates' : buyerType === 'additional' ? 'Rates (incl. 5% surcharge)' : 'Standard Rates'}
+              {buyerType === 'first-time' && price <= UK_SDLT.firstTimeBuyerCap ? 'First-Time Buyer Rates' : buyerType === 'additional' ? 'Rates (incl. 5% surcharge)' : 'Standard Rates'}
             </p>
             <div className="space-y-1.5">
-              {(buyerType === 'first-time' && price <= FTB_CAP ? FTB_BANDS : STANDARD_BANDS).map((band, i) => {
-                const surcharge = buyerType === 'additional' ? ADDITIONAL_SURCHARGE : 0;
+              {(buyerType === 'first-time' && price <= UK_SDLT.firstTimeBuyerCap ? UK_SDLT.firstTimeBuyer : UK_SDLT.standard).map((band, i) => {
+                const surcharge = buyerType === 'additional' ? UK_SDLT.additionalSurcharge : 0;
                 const effectiveRate = ((band.rate + surcharge) * 100).toFixed(0);
                 return (
                   <div key={i} className="flex justify-between text-xs">
@@ -288,7 +223,7 @@ export default function StampDutyCalc() {
             </p>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
               on a {fmt(price)} property
-              {buyerType === 'first-time' && price <= FTB_CAP && ' (first-time buyer)'}
+              {buyerType === 'first-time' && price <= UK_SDLT.firstTimeBuyerCap && ' (first-time buyer)'}
               {buyerType === 'additional' && ' (incl. 5% additional property surcharge)'}
             </p>
           </div>

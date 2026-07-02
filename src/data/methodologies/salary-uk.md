@@ -7,7 +7,7 @@ variables:
   - name: "Gross Salary"
     description: "Annual salary before any deductions"
   - name: "Personal Allowance"
-    description: "Tax-free income threshold (£12,570 for 2025/26), tapered by £1 for every £2 earned above £100,000, fully removed at £125,140"
+    description: "Tax-free income threshold (£12,570 for 2026/27), tapered by £1 for every £2 earned above £100,000, fully removed at £125,140"
   - name: "Income Tax"
     description: "Calculated on taxable income (gross minus personal allowance) through progressive bands"
   - name: "National Insurance"
@@ -17,7 +17,7 @@ variables:
   - name: "Pension"
     description: "Employee contribution as a percentage of gross salary — can be salary sacrifice (pre-tax) or after-tax"
 assumptions:
-  - "Uses 2025/26 tax year rates and thresholds"
+  - "Uses 2026/27 tax year rates and thresholds"
   - "Standard tax code 1257L unless a custom tax code is entered"
   - "Employee is aged under State Pension age (NI Class 1 applies)"
   - "Pension contributions are either salary sacrifice (reduces taxable income and NI-able earnings) or personal (post-tax, no NI reduction)"
@@ -25,13 +25,13 @@ assumptions:
   - "Scottish income tax bands apply when the Scottish resident toggle is selected"
   - "No additional income sources (dividends, rental income, savings interest)"
 limitations:
-  - "Does not model employer NI contributions (15% above £5,000 for 2025/26)"
+  - "Does not model employer NI contributions (15% above £5,000 for 2026/27)"
   - "Does not include tax on benefits in kind (company car, private medical, etc.)"
   - "Does not model Marriage Allowance transfer (10% of PA transferable between spouses)"
   - "Does not handle multiple concurrent student loan plans"
   - "Does not calculate tax relief on pension contributions above the annual allowance (£60,000)"
   - "Does not model Child Benefit High Income Charge (clawback above £60,000)"
-  - "Does not include the dividend allowance (£500 for 2025/26) or savings interest allowance"
+  - "Does not include the dividend allowance (£500 for 2026/27) or savings interest allowance"
   - "Tax code parsing handles common codes (numeric+L, K codes, BR, D0, D1, NT) but not all HMRC codes"
 dataSources:
   - name: "GOV.UK — Income Tax Rates and Bands"
@@ -40,17 +40,17 @@ dataSources:
     url: "https://www.gov.uk/national-insurance-rates-letters"
   - name: "GOV.UK — Student Loan Repayment"
     url: "https://www.gov.uk/repaying-your-student-loan/what-you-pay"
-  - name: "Scottish Government — Scottish Income Tax 2025-2026"
+  - name: "Scottish Government — Scottish Income Tax 2026-2027"
     url: "https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/"
 ---
 
 ## What This Calculator Does
 
-The UK salary calculator converts your gross annual salary into take-home pay by applying HMRC's income tax bands, National Insurance contributions, student loan repayments, and pension contributions — all using verified 2025/26 tax year rates.
+The UK salary calculator converts your gross annual salary into take-home pay by applying HMRC's income tax bands, National Insurance contributions, student loan repayments, and pension contributions — all using verified 2026/27 tax year rates.
 
 The calculation follows the same logic HMRC uses: start with gross income, determine the Personal Allowance, calculate tax on the taxable portion through progressive bands, add NI contributions, subtract student loan repayments if applicable, and deduct pension contributions.
 
-## Income Tax (2025/26)
+## Income Tax (2026/27)
 
 Income tax is applied to taxable income (gross salary minus Personal Allowance) through progressive bands:
 
@@ -78,11 +78,11 @@ Earnings below £12,570 incur no NI.
 
 Repayments are 9% of income above the plan-specific threshold (6% for postgraduate loans):
 
-| Plan | Threshold (2025/26) | Rate |
+| Plan | Threshold (2026/27) | Rate |
 |------|---------------------|------|
-| Plan 1 (pre-2012 England/Wales) | £26,065 | 9% |
-| Plan 2 (post-2012 England/Wales) | £28,470 | 9% |
-| Plan 4 (Scotland) | £32,745 | 9% |
+| Plan 1 (pre-2012 England/Wales) | £26,900 | 9% |
+| Plan 2 (post-2012 England/Wales) | £29,385 | 9% |
+| Plan 4 (Scotland) | £33,795 | 9% |
 | Plan 5 (from 2023) | £25,000 | 9% |
 | Postgraduate Loan | £21,000 | 6% |
 

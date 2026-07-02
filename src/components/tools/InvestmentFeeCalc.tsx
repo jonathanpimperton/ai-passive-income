@@ -187,8 +187,11 @@ export default function InvestmentFeeCalc() {
               id="if-principal"
               value={principal}
               min={0}
-              max={1000000}
-              step={5000}
+              max={500000}
+              step={1000}
+              textMax={1000000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}500K`}
               onChange={setPrincipal}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}
@@ -199,8 +202,11 @@ export default function InvestmentFeeCalc() {
               id="if-monthly"
               value={monthly}
               min={0}
-              max={10000}
-              step={50}
+              max={5000}
+              step={25}
+              textMax={10000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}5K`}
               onChange={setMonthly}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}

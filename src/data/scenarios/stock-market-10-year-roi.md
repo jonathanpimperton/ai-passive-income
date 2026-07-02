@@ -69,4 +69,4 @@ For money you already have, lump sum is statistically better. For money you earn
 
 Ten years is long enough for stocks to be a reasonable bet, but short enough that bad luck can leave you flat. Every rolling 20-year period in S&P 500 history has been positive. If you have a 10-year horizon, expect roughly 7–10% nominal returns, but prepare for the possibility of significantly more or less.
 
-Use the [ROI Calculator](/tools/saving-and-growth/roi) to compute returns on any investment amount and time period.
+Use the [ROI Calculator](/tools/saving-and-growth/roi/) to compute returns on any investment amount and time period.

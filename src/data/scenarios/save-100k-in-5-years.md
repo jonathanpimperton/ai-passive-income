@@ -53,4 +53,4 @@ Saving $1,393 per month is ambitious but achievable, especially if you approach 
 - **You extend the timeline to 7 years:** The monthly contribution falls to roughly $920/month — far more manageable. If $1,393 feels like a stretch, giving yourself two more years is a powerful lever.
 - **You earn 8% returns (aggressive investing):** The required monthly savings drops to $1,306, saving you $87/month. But an 8% return over just 5 years is not guaranteed — the stock market can easily return negative in any given 5-year window.
 
-Your exact monthly savings target depends on what you have already saved, your expected return, and your timeline. Use the [Savings Goal Calculator](/tools/saving-and-growth/savings-goal) to plug in your real numbers — adjust the time frame and return rate to find a plan that fits your budget and risk tolerance.
+Your exact monthly savings target depends on what you have already saved, your expected return, and your timeline. Use the [Savings Goal Calculator](/tools/saving-and-growth/savings-goal/) to plug in your real numbers — adjust the time frame and return rate to find a plan that fits your budget and risk tolerance.

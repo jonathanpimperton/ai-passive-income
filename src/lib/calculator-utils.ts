@@ -351,10 +351,15 @@ export function debtPayoff(
   const balances = debts.map((d) => d.balance);
   const rates = debts.map((d) => d.rate);
   const mins = debts.map((d) => d.minPayment);
+  const paidOff = debts.map(() => false);
   const payoffOrder: string[] = [];
   const timeline: DebtPayoffResult['timeline'] = [];
   let totalInterest = 0;
   let totalPaid = 0;
+  // Minimum payments freed by fully-paid debts roll into the extra-payment
+  // pool permanently (total monthly outlay stays constant) — this rollover is
+  // the engine of both snowball and avalanche strategies.
+  let rolledMinimums = 0;
   let month = 0;
   const maxMonths = 600;
 
@@ -370,14 +375,19 @@ export function debtPayoff(
     }
     totalInterest += monthInterest;
 
-    let available = extraMonthlyPayment;
+    let available = extraMonthlyPayment + rolledMinimums;
     for (let i = 0; i < balances.length; i++) {
       if (balances[i] <= 0) continue;
       const payment = Math.min(mins[i], balances[i]);
       balances[i] -= payment;
       totalPaid += payment;
       if (balances[i] <= 0.01) {
+        balances[i] = 0;
         available += mins[i] - payment;
+        if (!paidOff[i]) {
+          paidOff[i] = true;
+          rolledMinimums += mins[i];
+        }
         if (!payoffOrder.includes(debts[i].name)) payoffOrder.push(debts[i].name);
       }
     }
@@ -395,8 +405,13 @@ export function debtPayoff(
       balances[d.idx] -= payment;
       totalPaid += payment;
       available -= payment;
-      if (balances[d.idx] <= 0.01 && !payoffOrder.includes(debts[d.idx].name)) {
-        payoffOrder.push(debts[d.idx].name);
+      if (balances[d.idx] <= 0.01) {
+        balances[d.idx] = 0;
+        if (!paidOff[d.idx]) {
+          paidOff[d.idx] = true;
+          rolledMinimums += mins[d.idx];
+        }
+        if (!payoffOrder.includes(debts[d.idx].name)) payoffOrder.push(debts[d.idx].name);
       }
     }
 

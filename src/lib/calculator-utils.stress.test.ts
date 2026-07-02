@@ -981,6 +981,38 @@ describe('debtPayoff — stress tests', () => {
     expect(result.payoffOrder).toHaveLength(3);
   });
 
+  // --- Rollover: freed minimums permanently join the payment pool ---
+  it('rolls a paid-off debt\'s minimum into remaining debts (hand-computed)', () => {
+    // Two 0%-interest debts, £100 minimum each, no extra payment.
+    // Small clears in month 5; its £100/mo must then roll onto Big,
+    // which pays £200/mo from month 6 → cleared in month 13.
+    // Without rollover this wrongly takes 20 months.
+    const debts: Debt[] = [
+      { name: 'Small', balance: 500, rate: 0, minPayment: 100 },
+      { name: 'Big', balance: 2000, rate: 0, minPayment: 100 },
+    ];
+    const result = debtPayoff(debts, 0, 'snowball');
+    expect(result.months).toBe(13);
+    expect(result.totalInterest).toBe(0);
+    expect(result.totalPaid).toBeCloseTo(2500, 2);
+    expect(result.payoffOrder).toEqual(['Small', 'Big']);
+  });
+
+  it('keeps total monthly outlay constant after a payoff (rollover + extra)', () => {
+    // £50 extra on top: month 1-? outlay = 250/mo. Small (500) takes
+    // 500/150-extra-path... simpler invariant: total paid ≈ months * 250
+    // minus the final month's partial payment. Verify no payment capacity
+    // is lost after Small clears.
+    const debts: Debt[] = [
+      { name: 'Small', balance: 600, rate: 0, minPayment: 100 },
+      { name: 'Big', balance: 3000, rate: 0, minPayment: 100 },
+    ];
+    const result = debtPayoff(debts, 50, 'snowball');
+    // Total debt 3600 at 250/mo constant outlay → ceil(3600/250) = 15 months
+    expect(result.months).toBe(15);
+    expect(result.totalPaid).toBeCloseTo(3600, 2);
+  });
+
   // --- Edge: debts that can never be paid off ---
   it('handles debt where min payment < monthly interest (caps at 600 months)', () => {
     const debts: Debt[] = [
@@ -1502,8 +1534,9 @@ describe('extreme and adversarial inputs', () => {
     expect(result.totalInterest).toBe(0);
     expect(result.totalPaid).toBeCloseTo(9000, 0);
     // Snowball pays A first: A gets $300/mo (min $100 + extra $200), B gets $100/mo min.
-    // A paid off in 10 months. Then B has $5000 left, gets $300/mo => 17 more months = 27 total.
-    expect(result.months).toBe(27);
+    // A paid off in 10 months. Its freed $100 minimum rolls over, so B then
+    // gets $400/mo on its remaining $5000 => 13 more months = 23 total.
+    expect(result.months).toBe(23);
   });
 
   it('debtPayoff where extra payment alone covers everything in 1 month', () => {

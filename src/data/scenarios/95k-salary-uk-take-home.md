@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on a £95,000 Salary in 2025/26"
+title: "Take-Home Pay on a £95,000 Salary in 2026/27"
 slug: "95k-salary-uk-take-home"
 description: "See your take-home pay on £95,000 after income tax and NI. Why pension planning before £100K is critical."
 keywords: ["95k salary uk take home", "95000 salary after tax uk", "uk take home pay 95k", "95k salary tax breakdown"]
@@ -63,9 +63,9 @@ This makes pension contributions at £95,000 exceptionally important. If a bonus
 
 ## What else could change your take-home
 
-- **Student loan Plan 2:** Repayments are 9% above £28,470. On £95,000, that is £5,988/year (£499/month).
-- **Child benefit charge:** Fully repaid above £60,000. Two children costs about £2,200/year through self-assessment.
-- **Scottish taxpayer:** Scotland's top rate of 48% applies above £75,000. At £95,000, that is an extra £1,600 in tax compared to the rest of the UK.
+- **Student loan Plan 2:** Repayments are 9% above £29,385. On £95,000, that is £5,905/year (£492/month).
+- **Child benefit charge:** Fully repaid above £80,000. Two children costs about £2,340/year through self-assessment.
+- **Scottish taxpayer:** Scotland's advanced rate of 45% applies above £75,000 (the 48% top rate only starts at £125,140). At £95,000, a Scottish taxpayer pays roughly £3,050 more than in the rest of the UK.
 - **Self-assessment:** At this income level, you should be filing a self-assessment return annually to claim higher rate pension relief and manage your child benefit position.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model pension contributions, student loans, and other adjustments on your £95,000 salary.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model pension contributions, student loans, and other adjustments on your £95,000 salary.

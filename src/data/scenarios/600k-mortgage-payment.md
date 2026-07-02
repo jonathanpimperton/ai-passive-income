@@ -68,4 +68,4 @@ A rate drop from 6.5% to 5.5% saves $385/month and $138,851 over the loan term. 
 
 **Recast after a lump sum.** If you receive a bonus or inheritance, a mortgage recast re-amortizes the remaining balance at the same rate but with a lower payment. A $50,000 principal payment followed by a recast reduces monthly P&I by roughly $316.
 
-Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to model your specific home price, down payment, and rate scenario.
+Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to model your specific home price, down payment, and rate scenario.

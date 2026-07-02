@@ -247,8 +247,11 @@ export default function SavingsGoalCalc() {
               id="sg-goal"
               value={goalAmount}
               min={1000}
-              max={50000000}
-              step={5000}
+              max={500000}
+              step={1000}
+              textMax={50000000}
+              minLabel={`${currencySymbol}1K`}
+              maxLabel={`${currencySymbol}500K`}
               onChange={setGoalAmount}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}
@@ -259,8 +262,11 @@ export default function SavingsGoalCalc() {
               id="sg-current"
               value={currentSavings}
               min={0}
-              max={2000000}
+              max={500000}
               step={1000}
+              textMax={2000000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}500K`}
               onChange={setCurrentSavings}
               prefix={currencySymbol}
               formatDisplay={(v) => formatNumber(v)}
@@ -298,8 +304,11 @@ export default function SavingsGoalCalc() {
                 id="sg-monthly"
                 value={monthlyContribution}
                 min={0}
-                max={50000}
-                step={50}
+                max={5000}
+                step={25}
+                textMax={50000}
+                minLabel={`${currencySymbol}0`}
+                maxLabel={`${currencySymbol}5K`}
                 onChange={setMonthlyContribution}
                 prefix={currencySymbol}
                 formatDisplay={(v) => formatNumber(v)}

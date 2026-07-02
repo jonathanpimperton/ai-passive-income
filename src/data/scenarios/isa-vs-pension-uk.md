@@ -83,4 +83,4 @@ The pension produces more total wealth because of tax relief and employer matchi
 - **You lack savings discipline.** Pension money is locked away — you cannot impulse-spend it. For many people, this forced illiquidity is a feature.
 - **Salary sacrifice is available.** It saves employer and employee NI on top of income tax relief. On £50,000, salary sacrifice saves ~£90/month more than a regular pension contribution.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to see how pension contributions affect your take-home pay and tax bill.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to see how pension contributions affect your take-home pay and tax bill.

@@ -45,4 +45,4 @@ Add property taxes ($150-$400/month) and homeowner's insurance ($100-$250/month)
 - **Biweekly payments:** Pay $553.06 every two weeks instead of $1,106.12 monthly. This adds one full extra payment per year, saving about $44,000 in interest and paying off the mortgage around 5 years early.
 - **15-year term at 6.5%:** Monthly payment rises to about $1,524, but total interest drops to $99,300 — saving $123,903 compared to the 30-year option. That's a meaningful difference if your budget can stretch an extra $418/month.
 
-At $175,000, you're in a range where aggressive payoff strategies are realistic. Even rounding up to $1,200/month makes a significant difference over time. Try the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to see exactly how extra payments or a different rate would change your numbers.
+At $175,000, you're in a range where aggressive payoff strategies are realistic. Even rounding up to $1,200/month makes a significant difference over time. Try the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to see exactly how extra payments or a different rate would change your numbers.

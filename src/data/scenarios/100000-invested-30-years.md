@@ -60,4 +60,4 @@ At a 4% safe withdrawal rate, $811,650 supports $32,466 per year ($2,706/month).
 
 If you invest $100,000 at age 35 and leave it alone until 65, you have $811,650 without contributing another dollar. That is the power of a large lump sum given enough time.
 
-Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model your own starting amount, contribution schedule, and expected return.
+Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to model your own starting amount, contribution schedule, and expected return.

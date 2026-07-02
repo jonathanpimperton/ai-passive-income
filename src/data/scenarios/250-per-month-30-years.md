@@ -71,4 +71,4 @@ To reach $500,000 on the same timeline, you would need about $410/month at 7% â€
 
 $250/month is not a sacrifice-level commitment. It is a decision to redirect a small portion of income toward future security. Over 30 years, that decision is worth over $300,000.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to adjust the contribution amount, starting balance, and return rate for your situation.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to adjust the contribution amount, starting balance, and return rate for your situation.

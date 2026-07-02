@@ -68,4 +68,4 @@ $86,541 after 10 years is a practical, reachable number. It could serve as a 20%
 
 The point of 10-year investing is not to get rich. It is to turn consistent effort into a sum that opens real options.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to adjust the contribution amount, starting balance, and return rate for your timeline.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to adjust the contribution amount, starting balance, and return rate for your timeline.

@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on an £80,000 Salary in 2025/26"
+title: "Take-Home Pay on an £80,000 Salary in 2026/27"
 slug: "80k-salary-uk-take-home"
 description: "See your take-home pay on £80,000 after income tax and NI. Understand your higher rate tax liability and pension options."
 keywords: ["80k salary uk take home", "80000 salary after tax uk", "uk take home pay 80k", "80k salary higher rate tax"]
@@ -37,7 +37,7 @@ HMRC takes two separate slices from your gross pay:
 
 ## How the tax is calculated
 
-The 2025/26 UK tax system gives you a £12,570 personal allowance (tax-free). The basic rate of 20% applies from £12,571 to £50,270. The higher rate of 40% applies from £50,271 upwards. National Insurance is 8% on earnings between £12,570 and £50,270, then drops to 2% above that.
+The 2026/27 UK tax system gives you a £12,570 personal allowance (tax-free). The basic rate of 20% applies from £12,571 to £50,270. The higher rate of 40% applies from £50,271 upwards. National Insurance is 8% on earnings between £12,570 and £50,270, then drops to 2% above that.
 
 At £80,000, nearly £30,000 of your income — more than a third — is taxed at the higher rate. Your combined marginal rate is 42%. This means a £5,000 pay rise from £80,000 to £85,000 adds only £2,900 to your annual take-home (about £242/month).
 
@@ -58,8 +58,8 @@ If your salary is heading towards £100,000, increasing pension contributions be
 ## What else could change your take-home
 
 - **Pension contributions:** A 15% salary sacrifice (£12,000/year) would cost about £6,960 in reduced take-home but put £12,000 into your pension — HMRC effectively contributes over £5,000.
-- **Student loan Plan 2:** Repayments are 9% above £28,470. On £80,000, that is £4,638/year (£387/month).
-- **Child benefit charge:** Fully repaid above £60,000. For two children, that is about £2,200/year clawed back through self-assessment.
+- **Student loan Plan 2:** Repayments are 9% above £29,385. On £80,000, that is £4,555/year (£380/month).
+- **Child benefit charge:** The charge tapers between £60,000 and £80,000, so at £80,000 child benefit is fully repaid. For two children, that is about £2,340/year clawed back through self-assessment.
 - **Self-assessment requirement:** At £80,000 with higher rate tax relief claims and child benefit charges, you will almost certainly need to file a tax return.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model pension contributions, student loans, and other adjustments on your £80,000 salary.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model pension contributions, student loans, and other adjustments on your £80,000 salary.

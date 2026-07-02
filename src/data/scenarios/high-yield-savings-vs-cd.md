@@ -76,4 +76,4 @@ For someone in a high-tax state (California, New York), the state tax exemption 
 
 For most people with $50,000 in short-term savings, a high-yield savings account is the right default. The rate difference versus CDs is small, and the flexibility to access your money instantly is worth more than $150/year. Consider CDs only when you are confident rates will fall and you have a separate emergency fund you can access.
 
-Use the [Savings Goal Calculator](/tools/saving-and-growth/savings-goal) to see how your savings grow at different rates and contribution levels.
+Use the [Savings Goal Calculator](/tools/saving-and-growth/savings-goal/) to see how your savings grow at different rates and contribution levels.

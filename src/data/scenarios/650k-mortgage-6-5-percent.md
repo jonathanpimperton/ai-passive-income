@@ -48,4 +48,4 @@ Note: In many markets, a $650,000 loan exceeds the conforming loan limit ($766,5
 - **15-year term at 6.5%:** Monthly payment rises to about $5,662, but total interest drops to $369,100 — saving $459,942 versus the 30-year option.
 - **Drop the rate by 0.5%:** At 6.0%, the monthly payment falls to $3,897.50, saving $210.95/month or about $75,942 over 30 years.
 
-At $650,000, the numbers are large enough that shopping aggressively for the best rate is worth days of effort. A quarter-point difference saves over $40,000. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to compare different rate and term combinations for your specific situation.
+At $650,000, the numbers are large enough that shopping aggressively for the best rate is worth days of effort. A quarter-point difference saves over $40,000. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to compare different rate and term combinations for your specific situation.

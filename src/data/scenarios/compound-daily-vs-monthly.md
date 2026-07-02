@@ -82,4 +82,4 @@ High-yield savings accounts and CDs sometimes compound differently:
 
 If comparing two otherwise identical products, daily compounding at the same stated rate gives you a slight edge. But never choose a lower rate just because it compounds more frequently.
 
-Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to compare compounding frequencies at any rate, amount, and time period.
+Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to compare compounding frequencies at any rate, amount, and time period.

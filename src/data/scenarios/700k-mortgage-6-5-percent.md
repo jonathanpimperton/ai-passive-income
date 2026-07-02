@@ -48,4 +48,4 @@ At $700,000, the dollar amounts saved from any strategy are substantial:
 - **15-year term at 6.5%:** Monthly payment rises to about $6,098, but total interest drops to $397,700 — saving $495,113 versus the 30-year option. That's nearly half a million dollars.
 - **Secure 6.0% instead of 6.5%:** Monthly payment drops to $4,197.20, saving $227.28/month or about $81,821 over 30 years.
 
-At this loan amount, paying for discount points at closing often makes sense. One point ($7,000) can reduce the rate by 0.25%, saving roughly $45,000 over 30 years. The breakeven is typically 4-5 years. Model your exact numbers with the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment).
+At this loan amount, paying for discount points at closing often makes sense. One point ($7,000) can reduce the rate by 0.25%, saving roughly $45,000 over 30 years. The breakeven is typically 4-5 years. Model your exact numbers with the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/).

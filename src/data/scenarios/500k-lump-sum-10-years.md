@@ -78,4 +78,4 @@ For a true 10-year horizon, a stock-heavy allocation has historically outperform
 - **Business sale:** Roll into a tax-advantaged vehicle if possible (Solo 401(k), SEP IRA) to defer taxes.
 - **Early retirement bridge:** $500K at 4% withdrawal provides $20,000/year for 30+ years, supplementing other income.
 
-Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model different return rates, contribution strategies, and time horizons for your lump sum.
+Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to model different return rates, contribution strategies, and time horizons for your lump sum.

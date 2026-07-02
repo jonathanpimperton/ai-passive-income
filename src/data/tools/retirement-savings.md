@@ -21,11 +21,12 @@ affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
 calculationMethod: "Uses future value of annuity formula with inflation adjustment"
+lastUpdated: "2026-07-02"
 faq:
   - question: "How much do I need to save for retirement?"
     answer: "A common rule of thumb is to have 25 times your annual expenses saved by retirement (the 4% rule). If you spend $50,000 per year, you'd target $1.25 million. However, this varies based on your lifestyle, healthcare costs, Social Security income, and retirement age."
   - question: "How much should I contribute to my 401(k)?"
-    answer: "At minimum, contribute enough to get your full employer match — that's free money. Beyond that, aim for 15-20% of your gross income across all retirement accounts. The 2025 401(k) contribution limit is $23,500 ($31,000 if you're 50 or older with catch-up contributions)."
+    answer: "At minimum, contribute enough to get your full employer match — that's free money. Beyond that, aim for 15-20% of your gross income across all retirement accounts. The 2026 401(k) contribution limit is $24,500 ($32,500 if you're 50 or older with catch-up contributions)."
   - question: "What is the 4% rule for retirement?"
     answer: "The 4% rule suggests you can withdraw 4% of your retirement savings in the first year, then adjust for inflation each year after, and your money should last at least 30 years. For example, with $1 million saved, you'd withdraw $40,000 the first year. This is a guideline, not a guarantee."
   - question: "When should I start saving for retirement?"
@@ -40,7 +41,7 @@ workedExamples:
       currentSavings: 25000
       monthlyContribution: 750
       annualReturn: 7
-    description: "A 30-year-old with $25,000 saved, contributing $750/month at 7% average return. By 65, they'd have approximately $1.34 million. After adjusting for 3% inflation, that's about $537,000 in today's dollars — enough to support roughly $21,500/year using the 4% rule."
+    description: "A 30-year-old with $25,000 saved, contributing $750/month at 7% average return. By 65, they'd have approximately $1.64 million. After adjusting for 3% inflation, that's about $582,000 in today's dollars — enough to support roughly $23,300/year using the 4% rule."
   - title: "Catching up at 45"
     inputs:
       currentAge: 45
@@ -48,15 +49,15 @@ workedExamples:
       currentSavings: 100000
       monthlyContribution: 1500
       annualReturn: 7
-    description: "A 45-year-old with $100,000 saved who increases contributions to $1,500/month at 7% return. By 67: approximately $895,000. This supports about $35,800/year with the 4% rule. Combined with Social Security, this could provide a comfortable retirement — but starting earlier would have required much less monthly effort."
+    description: "A 45-year-old with $100,000 saved who increases contributions to $1,500/month at 7% return. By 67: approximately $1.4 million. This supports about $56,000/year with the 4% rule. Combined with Social Security, this could provide a comfortable retirement — but starting earlier would have required much less monthly effort."
   - title: "Maximizing 401(k) contributions"
     inputs:
       currentAge: 28
       retirementAge: 60
       currentSavings: 15000
-      monthlyContribution: 1958
+      monthlyContribution: 2042
       annualReturn: 8
-    description: "A 28-year-old maxing out their 401(k) at $23,500/year ($1,958/month) with an 8% return. By 60: approximately $2.8 million. Even retiring 5 years early, this provides $112,000/year under the 4% rule. Maxing contributions early creates extraordinary results over decades."
+    description: "A 28-year-old maxing out their 401(k) at $24,500/year ($2,042/month) with an 8% return. By 60: approximately $3.8 million. Even retiring 5 years early, this provides $152,000/year under the 4% rule. Maxing contributions early creates extraordinary results over decades."
 ---
 
 ## What Is a Retirement Savings Calculator?

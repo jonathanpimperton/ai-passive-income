@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on a £55,000 Salary in 2025/26"
+title: "Take-Home Pay on a £55,000 Salary in 2026/27"
 slug: "55k-salary-uk-take-home"
 description: "See your take-home pay on £55,000 after income tax and NI. Understand how the 40% higher rate band affects your net pay."
 keywords: ["55k salary uk take home", "55000 salary after tax uk", "uk take home pay 55k", "55k salary higher rate tax"]
@@ -52,8 +52,8 @@ In London, this salary allows a comfortable but not lavish lifestyle. A one-bedr
 ## What could change your take-home
 
 - **Pension contributions:** This is where pension planning becomes particularly valuable. Contributing £4,730 to a pension (through salary sacrifice) pulls all your income back below the higher rate threshold, saving you 40% tax plus 2% NI on that amount instead of 20% plus 8%. The tax efficiency is substantial.
-- **Student loan Plan 2:** Repayments are 9% of income above £28,470. On £55,000, that is £2,388/year (£199/month).
+- **Student loan Plan 2:** Repayments are 9% of income above £29,385. On £55,000, that is £2,305/year (£192/month).
 - **Marriage allowance:** Not available to higher rate taxpayers. If any of your income is taxed at 40%, you cannot claim it.
 - **Charitable giving:** Higher rate taxpayers can claim the difference between 40% and 20% on Gift Aid donations through self-assessment.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model your exact take-home with pension, student loans, and tax code adjustments.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model your exact take-home with pension, student loans, and tax code adjustments.

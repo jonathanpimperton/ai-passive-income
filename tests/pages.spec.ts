@@ -68,7 +68,7 @@ test.describe('Homepage', () => {
 
 test.describe('Tools Index', () => {
   test('loads with categories', async ({ page }) => {
-    await page.goto('/tools');
+    await page.goto('/tools/');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator(mainH1).first()).toBeVisible();
@@ -84,22 +84,22 @@ test.describe('Tools Index', () => {
 // ════════════════════════════════════════════════════════════════
 
 const calculatorPages = [
-  { name: 'Compound Interest', url: '/tools/saving-and-growth/compound-interest' },
-  { name: 'Investment Return', url: '/tools/saving-and-growth/investment-return' },
-  { name: 'Savings Goal', url: '/tools/saving-and-growth/savings-goal' },
-  { name: 'ROI', url: '/tools/saving-and-growth/roi' },
-  { name: 'Loan Amortization', url: '/tools/debt-and-loans/loan-amortization' },
-  { name: 'Mortgage Payment', url: '/tools/debt-and-loans/mortgage-payment' },
-  { name: 'Debt Payoff', url: '/tools/debt-and-loans/debt-payoff' },
-  { name: 'US Salary', url: '/tools/income-and-planning/salary-us' },
-  { name: 'UK Salary', url: '/tools/income-and-planning/salary-uk' },
-  { name: 'Retirement Savings', url: '/tools/income-and-planning/retirement-savings' },
-  { name: 'Retirement Contribution', url: '/tools/income-and-planning/retirement-contribution' },
-  { name: 'Retirement Age', url: '/tools/income-and-planning/retirement-age' },
-  { name: 'Emergency Fund', url: '/tools/income-and-planning/emergency-fund' },
-  { name: 'Net Worth', url: '/tools/income-and-planning/net-worth' },
-  { name: 'Rent vs Buy', url: '/tools/debt-and-loans/rent-vs-buy' },
-  { name: 'Inflation', url: '/tools/economic/inflation' },
+  { name: 'Compound Interest', url: '/tools/saving-and-growth/compound-interest/' },
+  { name: 'Investment Return', url: '/tools/saving-and-growth/investment-return/' },
+  { name: 'Savings Goal', url: '/tools/saving-and-growth/savings-goal/' },
+  { name: 'ROI', url: '/tools/saving-and-growth/roi/' },
+  { name: 'Loan Amortization', url: '/tools/debt-and-loans/loan-amortization/' },
+  { name: 'Mortgage Payment', url: '/tools/debt-and-loans/mortgage-payment/' },
+  { name: 'Debt Payoff', url: '/tools/debt-and-loans/debt-payoff/' },
+  { name: 'US Salary', url: '/tools/income-and-planning/salary-us/' },
+  { name: 'UK Salary', url: '/tools/income-and-planning/salary-uk/' },
+  { name: 'Retirement Savings', url: '/tools/income-and-planning/retirement-savings/' },
+  { name: 'Retirement Contribution', url: '/tools/income-and-planning/retirement-contribution/' },
+  { name: 'Retirement Age', url: '/tools/income-and-planning/retirement-age/' },
+  { name: 'Emergency Fund', url: '/tools/income-and-planning/emergency-fund/' },
+  { name: 'Net Worth', url: '/tools/income-and-planning/net-worth/' },
+  { name: 'Rent vs Buy', url: '/tools/debt-and-loans/rent-vs-buy/' },
+  { name: 'Inflation', url: '/tools/economic/inflation/' },
 ];
 
 for (const calc of calculatorPages) {
@@ -138,7 +138,7 @@ for (const calc of calculatorPages) {
 
 test.describe('Scenarios Index', () => {
   test('loads with scenario cards', async ({ page }) => {
-    await page.goto('/scenarios');
+    await page.goto('/scenarios/');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator(mainH1).first()).toBeVisible();
@@ -150,9 +150,9 @@ test.describe('Scenarios Index', () => {
 
 test.describe('Sample scenario pages', () => {
   const sampleScenarios = [
-    '/scenarios/10k-investment-10-years',
-    '/scenarios/200k-mortgage-5-percent',
-    '/scenarios/100k-salary-take-home',
+    '/scenarios/10k-investment-10-years/',
+    '/scenarios/200k-mortgage-5-percent/',
+    '/scenarios/100k-salary-take-home/',
   ];
 
   for (const url of sampleScenarios) {
@@ -181,10 +181,10 @@ test.describe('Sample scenario pages', () => {
 
 test.describe('Static pages', () => {
   const staticPages = [
-    { name: 'About', url: '/about' },
-    { name: 'Privacy', url: '/privacy' },
-    { name: 'Terms', url: '/terms' },
-    { name: 'Disclosure', url: '/disclosure' },
+    { name: 'About', url: '/about/' },
+    { name: 'Privacy', url: '/privacy/' },
+    { name: 'Terms', url: '/terms/' },
+    { name: 'Disclosure', url: '/disclosure/' },
   ];
 
   for (const sp of staticPages) {
@@ -271,7 +271,7 @@ test.describe('Dark mode', () => {
     });
 
     // Navigate to another page
-    await page.goto('/about');
+    await page.goto('/about/');
     await page.waitForLoadState('networkidle');
 
     // Should still be dark

@@ -8,7 +8,7 @@ toolCategory: "income-and-planning"
 inputs:
   Annual Salary: "£100,000"
   Tax Code: "1257L"
-  Tax Year: "2025/26"
+  Tax Year: "2026/27"
 resultSummary: "£68,557/year (£5,713/month)"
 ---
 
@@ -64,16 +64,16 @@ If your salary is near the threshold, these approaches can bring your adjusted n
 
 | Salary | Take-home | Effective rate |
 |--------|-----------|---------------|
-| £50,000 | £38,840 | 22.3% |
-| £75,000 | £53,357 | 28.9% |
+| £50,000 | £39,520 | 21.0% |
+| £75,000 | £54,057 | 27.9% |
 | £100,000 | £68,557 | 31.4% |
 | £125,000 | £78,057 | 37.6% |
-| £150,000 | £92,057 | 38.6% |
+| £150,000 | £91,286 | 39.1% |
 
 The jump in effective rate between £100K and £125K is the steepest in the entire UK tax system. Above £125,140, the rate actually drops back down because the personal allowance taper is complete.
 
 ## Outside England: Scottish rates
 
-Scottish taxpayers face different bands. At £100,000, Scottish income tax is approximately £29,076 — about £1,644 more than in England, due to the advanced rate of 45% on income between £62,431 and £150,000.
+Scottish taxpayers face different bands. At £100,000, Scottish income tax for 2026/27 is approximately £30,732 — about £3,300 more than in England, driven by the 42% higher rate from £43,663 and the 45% advanced rate on income from £75,001 to £125,140 (a 48% top rate applies above that).
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model pension contributions, student loans, or salary sacrifice to see how to optimise your take-home around the £100K threshold.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model pension contributions, student loans, or salary sacrifice to see how to optimise your take-home around the £100K threshold.

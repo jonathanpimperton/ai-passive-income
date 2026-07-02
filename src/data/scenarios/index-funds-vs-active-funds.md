@@ -85,4 +85,4 @@ Many investors pay layers of fees without realising:
 
 At 3% total fees on a $500,000 portfolio, you are paying $15,000/year. Over 30 years, that could cost over $500,000 in lost growth. Audit every fee layer and keep the total under 0.5% if possible.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to model the impact of different fee levels on your specific portfolio.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to model the impact of different fee levels on your specific portfolio.

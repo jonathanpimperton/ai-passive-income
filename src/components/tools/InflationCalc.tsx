@@ -213,7 +213,7 @@ export default function InflationCalc() {
             </button>
           </div>
           <div className="space-y-5">
-            <SliderInput label="Dollar Amount" id="inf-amount" value={amount} min={1} max={10000000} step={1000} onChange={setAmount} prefix="$" formatDisplay={formatNumber} hint="The amount you want to check" />
+            <SliderInput label="Dollar Amount" id="inf-amount" value={amount} min={1} max={500000} step={1000} textMax={10000000} minLabel="$1" maxLabel="$500K" onChange={setAmount} prefix="$" formatDisplay={formatNumber} hint="The amount you want to check" />
 
             {mode === 'historical' ? (
               <>

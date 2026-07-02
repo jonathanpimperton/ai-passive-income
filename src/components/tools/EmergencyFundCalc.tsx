@@ -166,13 +166,13 @@ export default function EmergencyFundCalc() {
           </div>
           <CurrencySelector value={currency} onChange={setCurrency} />
           <div className="space-y-5">
-            <SliderInput label="Housing / Rent" id="ef-housing" value={housing} min={0} max={15000} step={100} onChange={setHousing} prefix={currencySymbol} formatDisplay={formatNumber} />
-            <SliderInput label="Food & Groceries" id="ef-food" value={food} min={0} max={5000} step={50} onChange={setFood} prefix={currencySymbol} formatDisplay={formatNumber} />
-            <SliderInput label="Transportation" id="ef-transport" value={transportation} min={0} max={5000} step={50} onChange={setTransportation} prefix={currencySymbol} formatDisplay={formatNumber} />
-            <SliderInput label="Utilities" id="ef-utilities" value={utilities} min={0} max={3000} step={25} onChange={setUtilities} prefix={currencySymbol} formatDisplay={formatNumber} />
-            <SliderInput label="Insurance" id="ef-insurance" value={insurance} min={0} max={5000} step={50} onChange={setInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
-            <SliderInput label="Debt Payments" id="ef-debt" value={debtPayments} min={0} max={10000} step={50} onChange={setDebtPayments} prefix={currencySymbol} formatDisplay={formatNumber} />
-            <SliderInput label="Other Expenses" id="ef-other" value={other} min={0} max={5000} step={50} onChange={setOther} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Housing / Rent" id="ef-housing" value={housing} min={0} max={5000} step={25} textMax={15000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setHousing} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Food & Groceries" id="ef-food" value={food} min={0} max={2000} step={10} textMax={5000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}2K`} onChange={setFood} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Transportation" id="ef-transport" value={transportation} min={0} max={2000} step={10} textMax={5000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}2K`} onChange={setTransportation} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Utilities" id="ef-utilities" value={utilities} min={0} max={1000} step={5} textMax={3000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}1K`} onChange={setUtilities} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Insurance" id="ef-insurance" value={insurance} min={0} max={2000} step={10} textMax={5000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}2K`} onChange={setInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Debt Payments" id="ef-debt" value={debtPayments} min={0} max={5000} step={25} textMax={10000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setDebtPayments} prefix={currencySymbol} formatDisplay={formatNumber} />
+            <SliderInput label="Other Expenses" id="ef-other" value={other} min={0} max={2000} step={10} textMax={5000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}2K`} onChange={setOther} prefix={currencySymbol} formatDisplay={formatNumber} />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
 
@@ -181,8 +181,8 @@ export default function EmergencyFundCalc() {
               <p className="text-xl font-bold text-primary-900 tabular-nums">{fmt(monthlyExpenses)}</p>
             </div>
 
-            <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={500000} step={1000} onChange={setCurrentSavings} prefix={currencySymbol} formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
-            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={50000} step={50} onChange={setMonthlySaving} prefix={currencySymbol} formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
+            <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={100000} step={250} textMax={500000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}100K`} onChange={setCurrentSavings} prefix={currencySymbol} formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
+            <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={5000} step={25} textMax={50000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setMonthlySaving} prefix={currencySymbol} formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
             <SliderInput label="Savings Account APY" id="ef-rate" value={savingsRate} min={0} max={10} step={0.1} onChange={setSavingsRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Interest rate on your savings account — high-yield accounts offer ~4-5%" />
           </div>
         </div>

@@ -3,7 +3,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection, render } from 'astro:content';
-import { buildBreadcrumbSchema } from '@lib/seo';
 import AffiliateLinks from '@components/ui/AffiliateLinks.astro';
 import { TOOLS, getToolPath, type ToolMeta } from '@lib/tools-data';
 
@@ -20,7 +19,7 @@ const { title, slug, description, keywords, toolSlug, toolCategory, inputs, resu
 const { Content } = await render(scenario);
 
 const toolMeta = TOOLS.find((t) => t.slug === toolSlug);
-const toolPath = toolMeta ? getToolPath(toolMeta) : `/tools/${toolCategory}/${toolSlug}`;
+const toolPath = toolMeta ? getToolPath(toolMeta) : `/tools/${toolCategory}/${toolSlug}/`;
 
 // Get related scenarios (same tool, excluding current)
 const allScenarios = await getCollection('scenarios');
@@ -30,18 +29,16 @@ const relatedScenarios = allScenarios
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },
-  { name: 'Scenarios', url: '/scenarios' },
-  { name: title, url: `/scenarios/${slug}` },
+  { name: 'Scenarios', url: '/scenarios/' },
+  { name: title, url: `/scenarios/${slug}/` },
 ];
-
-const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
 ---
 
+{/* BreadcrumbList JSON-LD is emitted once by the Breadcrumb component below */}
 <BaseLayout
   title={title}
   description={description}
   ogImage={`/og/scenarios/${slug}.png`}
-  structuredData={[breadcrumbSchema]}
 >
   {/* Dark header */}
   <div class="bg-[#0F1B2D] text-white">
@@ -147,7 +144,7 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
               {relatedScenarios.map((related) => (
                 <li>
                   <a
-                    href={`/scenarios/${related.data.slug}`}
+                    href={`/scenarios/${related.data.slug}/`}
                     class="group block"
                   >
                     <span class="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-200">

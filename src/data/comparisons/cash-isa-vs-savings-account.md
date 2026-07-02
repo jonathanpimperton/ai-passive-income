@@ -18,9 +18,9 @@ comparisonTable:
   - feature: "Personal Savings Allowance"
     option1: "Not applicable"
     option2: "£1,000 (basic rate) / £500 (higher rate)"
-  - feature: "Typical rate (2025-26)"
-    option1: "3.50–4.50%"
-    option2: "4.00–5.00% (easy access) / 4.50–5.25% (fixed)"
+  - feature: "Typical rate (mid-2026)"
+    option1: "3.75–4.65%"
+    option2: "4.00–4.55% (easy access) / 4.00–4.60% (fixed)"
   - feature: "Annual contribution limit"
     option1: "£20,000 (shared with all ISAs)"
     option2: "No limit"
@@ -73,7 +73,7 @@ Over 20 years, a Stocks & Shares ISA invested in a global index fund has histori
 
 If you need a Cash ISA for large short-term balances, consider splitting your ISA allowance: keep enough in a Cash ISA to stay under the PSA on your non-ISA savings, and put the rest into Stocks & Shares.
 
-## The numbers for 2025-26
+## The numbers for 2026-27
 
 Here's the break-even point — the savings balance where your interest exceeds the PSA and a Cash ISA starts saving you tax:
 
@@ -87,4 +87,4 @@ If your savings are below your break-even, a Cash ISA provides no tax advantage.
 
 ## The bottom line
 
-For basic rate taxpayers with modest savings, skip the Cash ISA and use a higher-paying regular account. Save your ISA allowance for investments where the tax shelter is worth far more. For higher earners or people with significant cash holdings, a Cash ISA remains a useful part of the toolkit — just be aware of what it costs you in lost investment ISA space.
+For basic rate taxpayers with modest savings, skip the Cash ISA and use a higher-paying regular account. Save your ISA allowance for investments where the tax shelter is worth far more. For higher earners or people with significant cash holdings, a Cash ISA remains a useful part of the toolkit — just be aware of what it costs you in lost investment ISA space. And note that from April 2027, the annual Cash ISA limit is due to drop to £12,000 for under-65s (the overall £20,000 allowance stays), so larger cash balances will take longer to shelter.

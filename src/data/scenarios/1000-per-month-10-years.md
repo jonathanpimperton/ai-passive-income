@@ -37,7 +37,7 @@ In year 1, you earn $406 in returns — barely noticeable. By year 10, your port
 
 $1,000/month is $12,000/year. At a $80,000 salary, that is a 15% savings rate — the benchmark most financial planners recommend for retirement. At $100,000, it is 12%. This is a realistic figure for a professional in their 30s or 40s, a dual-income household, or anyone who has eliminated high-interest debt and is ready to invest seriously.
 
-If you max out a Roth IRA ($583/month in 2025) and invest the remaining $417 in a taxable brokerage account, you split the $1,000 between tax-free growth and flexible access.
+If you max out a Roth IRA ($625/month in 2026) and invest the remaining $375 in a taxable brokerage account, you split the $1,000 between tax-free growth and flexible access.
 
 ## Different rates on $120,000 contributed
 
@@ -70,4 +70,4 @@ Going from 10 to 20 years triples the balance while only doubling contributions.
 
 Ten years of disciplined investing at $1,000/month puts nearly $175,000 in your hands. The hardest part is not the math — it is maintaining consistency through market dips, job changes, and the temptation to spend.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to model your own contribution level, starting balance, and expected return rate.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to model your own contribution level, starting balance, and expected return rate.

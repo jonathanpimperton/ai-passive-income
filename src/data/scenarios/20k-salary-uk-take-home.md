@@ -1,7 +1,7 @@
 ---
-title: "Take-Home Pay on a £20,000 Salary in 2025/26"
+title: "Take-Home Pay on a £20,000 Salary in 2026/27"
 slug: "20k-salary-uk-take-home"
-description: "See your take-home pay on a £20,000 UK salary after income tax and National Insurance for the 2025/26 tax year."
+description: "See your take-home pay on a £20,000 UK salary after income tax and National Insurance for the 2026/27 tax year."
 keywords: ["20k salary uk take home", "20000 salary after tax uk", "uk take home pay 20k", "20k salary national insurance"]
 toolSlug: "salary-uk"
 toolCategory: "income-and-planning"
@@ -28,7 +28,7 @@ Your personal allowance is £12,570 — the first chunk of income you pay no tax
 - Tax at 20%: £7,430 x 0.20 = £1,486
 
 **National Insurance: £594**
-Employee NI contributions for 2025/26 are 8% on earnings between £12,570 and £50,270 per year.
+Employee NI contributions for 2026/27 are 8% on earnings between £12,570 and £50,270 per year.
 
 - NI-liable earnings: £20,000 - £12,570 = £7,430
 - NI at 8%: £7,430 x 0.08 = £594
@@ -38,7 +38,7 @@ Employee NI contributions for 2025/26 are 8% on earnings between £12,570 and £
 
 ## How the tax is calculated
 
-The UK income tax system for 2025/26 works in bands. The personal allowance of £12,570 is entirely tax-free. Income from £12,571 to £50,270 is taxed at the basic rate of 20%. The higher rate of 40% only kicks in above £50,270. On £20,000, you are well within the basic rate band, so every taxable pound costs you 20p in income tax plus 8p in National Insurance — a combined marginal rate of 28%.
+The UK income tax system for 2026/27 works in bands. The personal allowance of £12,570 is entirely tax-free. Income from £12,571 to £50,270 is taxed at the basic rate of 20%. The higher rate of 40% only kicks in above £50,270. On £20,000, you are well within the basic rate band, so every taxable pound costs you 20p in income tax plus 8p in National Insurance — a combined marginal rate of 28%.
 
 ## What £1,493 per month looks like in practice
 
@@ -51,7 +51,7 @@ Building savings on £20,000 is difficult but not impossible. Even £50-£100 pe
 ## What could change your take-home
 
 - **Pension auto-enrolment:** A 5% employee contribution (£1,000/year) reduces taxable income and lowers your take-home by about £800 after tax relief — but you gain £1,000 in your pension plus employer contributions.
-- **Student loan Plan 2:** Repayments start at £28,470, so on £20,000 you pay nothing back.
+- **Student loan Plan 2:** Repayments start at £29,385, so on £20,000 you pay nothing back.
 - **Marriage allowance:** If your spouse earns under £12,570, they can transfer £1,260 of their allowance to you, saving £252 in tax per year.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model your specific situation with pension contributions, student loans, or a different tax code.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model your specific situation with pension contributions, student loans, or a different tax code.

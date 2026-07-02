@@ -53,4 +53,4 @@ A realistic all-in budget for a $250,000 mortgage often lands between $2,000 and
 - **You put 20% down on a $312,500 home:** Your loan stays at $250,000 and you skip PMI entirely, freeing up $100–$175/month for other priorities.
 - **You refinance after 5 years at a lower rate:** Even a 0.5% rate reduction at that point could save you $30,000+ in remaining interest.
 
-Small changes to your rate, term, or extra payment strategy can shift your total cost by tens of thousands of dollars. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to plug in your exact numbers and see how different scenarios play out side by side.
+Small changes to your rate, term, or extra payment strategy can shift your total cost by tens of thousands of dollars. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to plug in your exact numbers and see how different scenarios play out side by side.

@@ -1,7 +1,7 @@
 ---
-title: "Take-Home Pay on a £45,000 Salary in 2025/26"
+title: "Take-Home Pay on a £45,000 Salary in 2026/27"
 slug: "45k-salary-uk-take-home"
-description: "See your take-home pay on a £45,000 UK salary after income tax and National Insurance for the 2025/26 tax year."
+description: "See your take-home pay on a £45,000 UK salary after income tax and National Insurance for the 2026/27 tax year."
 keywords: ["45k salary uk take home", "45000 salary after tax uk", "uk take home pay 45k", "45k salary national insurance"]
 toolSlug: "salary-uk"
 toolCategory: "income-and-planning"
@@ -28,7 +28,7 @@ Your personal allowance is £12,570 — the first chunk of income you pay no tax
 - Tax at 20%: £32,430 x 0.20 = £6,486
 
 **National Insurance: £2,594**
-Employee NI contributions for 2025/26 are 8% on earnings between £12,570 and £50,270 per year.
+Employee NI contributions for 2026/27 are 8% on earnings between £12,570 and £50,270 per year.
 
 - NI-liable earnings: £45,000 - £12,570 = £32,430
 - NI at 8%: £32,430 x 0.08 = £2,594
@@ -38,7 +38,7 @@ Employee NI contributions for 2025/26 are 8% on earnings between £12,570 and £
 
 ## How the tax is calculated
 
-The 2025/26 UK tax system gives you a £12,570 personal allowance (tax-free). The basic rate of 20% applies from £12,571 to £50,270. The higher rate of 40% starts above £50,270. At £45,000, you are £5,270 below the higher rate threshold, meaning all your taxable income sits in the basic rate band. Your combined marginal rate is 28% (20% tax plus 8% NI).
+The 2026/27 UK tax system gives you a £12,570 personal allowance (tax-free). The basic rate of 20% applies from £12,571 to £50,270. The higher rate of 40% starts above £50,270. At £45,000, you are £5,270 below the higher rate threshold, meaning all your taxable income sits in the basic rate band. Your combined marginal rate is 28% (20% tax plus 8% NI).
 
 This is worth understanding if you are expecting a pay rise. A jump from £45,000 to £50,270 stays at the 28% combined rate. But once you cross £50,270, the marginal rate jumps to 42% (40% tax plus 2% NI).
 
@@ -60,8 +60,8 @@ A rough monthly budget in a medium-cost city:
 ## What could change your take-home
 
 - **Pension contributions:** A 5% employee contribution (£2,250/year) reduces your take-home by about £1,800 after tax relief. Your pension grows by £2,250 plus employer contributions of at least 3%.
-- **Student loan Plan 2:** Repayments are 9% of income above £28,470. On £45,000, that is £1,488/year (£124/month).
-- **Student loan Plan 1:** Threshold is £26,065. Repayments: £1,704/year (£142/month).
+- **Student loan Plan 2:** Repayments are 9% of income above £29,385. On £45,000, that is £1,405/year (£117/month).
+- **Student loan Plan 1:** Threshold is £26,900. Repayments: £1,629/year (£136/month).
 - **Salary sacrifice pension:** Even more efficient than standard contributions, because it also saves you the 8% NI on the sacrificed amount.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model your exact take-home with pension, student loans, and your specific tax code.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model your exact take-home with pension, student loans, and your specific tax code.

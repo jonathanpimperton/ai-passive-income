@@ -33,8 +33,6 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <Fragment set:html={`<script async src="https://www.googletagmanager.com/gtag/js?id=G-K0ZB3P48QG"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-K0ZB3P48QG');</script>`} />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="impact-site-verification" value="d22855a7-f8b7-4391-9e83-81eab87deb9a" />
@@ -82,6 +80,11 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
       <script is:inline type="application/ld+json" set:html={data} />
     ))}
 
+    <!-- Google Analytics with Consent Mode v2: analytics_storage defaults to
+         DENIED and is only granted when the visitor has accepted the cookie
+         banner (stored consent honored on subsequent visits). Loaded at the
+         end of <head> so it never competes with render-critical CSS/fonts. -->
+    <Fragment set:html={`<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});try{if(localStorage.getItem('calcrun-cookie-consent')==='accepted'){gtag('consent','update',{analytics_storage:'granted'});}}catch(e){}gtag('js',new Date());gtag('config','G-K0ZB3P48QG');</script><script async src="https://www.googletagmanager.com/gtag/js?id=G-K0ZB3P48QG"></script>`} />
   </head>
   <body class="min-h-screen flex flex-col bg-bg text-neutral-900 overflow-x-hidden">
     <script is:inline>

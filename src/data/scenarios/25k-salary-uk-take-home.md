@@ -1,7 +1,7 @@
 ---
-title: "Take-Home Pay on a £25,000 Salary in 2025/26"
+title: "Take-Home Pay on a £25,000 Salary in 2026/27"
 slug: "25k-salary-uk-take-home"
-description: "See your take-home pay on a £25,000 UK salary after income tax and National Insurance for the 2025/26 tax year."
+description: "See your take-home pay on a £25,000 UK salary after income tax and National Insurance for the 2026/27 tax year."
 keywords: ["25k salary uk take home", "25000 salary after tax uk", "uk take home pay 25k", "25k salary national insurance"]
 toolSlug: "salary-uk"
 toolCategory: "income-and-planning"
@@ -28,7 +28,7 @@ Your personal allowance is £12,570 — the first chunk of income you pay no tax
 - Tax at 20%: £12,430 x 0.20 = £2,486
 
 **National Insurance: £994**
-Employee NI contributions for 2025/26 are 8% on earnings between £12,570 and £50,270 per year.
+Employee NI contributions for 2026/27 are 8% on earnings between £12,570 and £50,270 per year.
 
 - NI-liable earnings: £25,000 - £12,570 = £12,430
 - NI at 8%: £12,430 x 0.08 = £994
@@ -38,7 +38,7 @@ Employee NI contributions for 2025/26 are 8% on earnings between £12,570 and £
 
 ## How the tax is calculated
 
-The 2025/26 UK income tax system has three main bands. The personal allowance gives you £12,570 tax-free. The basic rate of 20% runs from £12,571 to £50,270. The higher rate of 40% starts above £50,270. On £25,000, all your taxable income sits comfortably in the basic rate band. Your combined marginal rate is 28% (20% income tax plus 8% NI), meaning for every extra pound you earn, you keep 72p.
+The 2026/27 UK income tax system has three main bands. The personal allowance gives you £12,570 tax-free. The basic rate of 20% runs from £12,571 to £50,270. The higher rate of 40% starts above £50,270. On £25,000, all your taxable income sits comfortably in the basic rate band. Your combined marginal rate is 28% (20% income tax plus 8% NI), meaning for every extra pound you earn, you keep 72p.
 
 ## What £1,793 per month means day to day
 
@@ -58,8 +58,9 @@ A rough monthly budget outside London might look like:
 ## What could change your take-home
 
 - **Pension auto-enrolment:** A 5% contribution (£1,250/year) reduces your take-home by about £1,000 after tax relief, but adds £1,250 to your pension plus employer contributions.
-- **Student loan Plan 2:** Repayments begin at £28,470, so on £25,000 you owe nothing.
-- **Student loan Plan 1:** The threshold is £26,065, so you would not repay on £25,000 either.
+- **Student loan Plan 2:** Repayments begin at £29,385, so on £25,000 you owe nothing.
+- **Student loan Plan 1:** The threshold is £26,900, so you would not repay on £25,000 either.
+- **Student loan Plan 5:** The threshold is £25,000 — the first Plan 5 repayments began in April 2026, but at exactly £25,000 you repay nothing.
 - **Pay rise to £30,000:** An extra £5,000 gross gives you roughly £3,600 more take-home (£300/month), because the additional income is taxed at 28%.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to model your specific situation with pension, student loans, or a different tax code.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to model your specific situation with pension, student loans, or a different tax code.

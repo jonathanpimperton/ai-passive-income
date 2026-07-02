@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { RotateCcw, Percent, TrendingUp, Receipt, DollarSign, PoundSterling } from 'lucide-react';
+import { RotateCcw, Percent, TrendingUp, DollarSign, PoundSterling } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
 import ChartTooltip from '../ui/ChartTooltip';
@@ -20,214 +20,23 @@ import type { ResultItem } from '../../lib/email-types';
 import { formatNumber } from '../../lib/calculator-utils';
 import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
-
-/* ── US Capital Gains Rates (2025) ───────────────────────── */
-type USFiling = 'single' | 'married' | 'head';
-
-const US_LONG_TERM: Record<USFiling, { from: number; rate: number }[]> = {
-  single: [
-    { from: 0, rate: 0 },
-    { from: 48_350, rate: 0.15 },
-    { from: 533_400, rate: 0.20 },
-  ],
-  married: [
-    { from: 0, rate: 0 },
-    { from: 96_700, rate: 0.15 },
-    { from: 600_050, rate: 0.20 },
-  ],
-  head: [
-    { from: 0, rate: 0 },
-    { from: 64_750, rate: 0.15 },
-    { from: 566_700, rate: 0.20 },
-  ],
-};
-
-const US_BRACKETS: Record<USFiling, [number, number][]> = {
-  single: [
-    [0, 0.10], [11_925, 0.12], [48_475, 0.22], [103_350, 0.24],
-    [197_300, 0.32], [250_525, 0.35], [626_350, 0.37],
-  ],
-  married: [
-    [0, 0.10], [23_850, 0.12], [96_950, 0.22], [206_700, 0.24],
-    [394_600, 0.32], [501_050, 0.35], [751_600, 0.37],
-  ],
-  head: [
-    [0, 0.10], [17_000, 0.12], [64_850, 0.22], [103_350, 0.24],
-    [197_300, 0.32], [250_500, 0.35], [626_350, 0.37],
-  ],
-};
-
-const US_NIIT_RATE = 0.038;
-const US_NIIT_THRESHOLD: Record<USFiling, number> = {
-  single: 200_000,
-  married: 250_000,
-  head: 200_000,
-};
-
-/* ── UK Capital Gains Rates (2025/26) ────────────────────── */
-const UK_CGT_ANNUAL_EXEMPT = 3_000;
-const UK_CGT_BASIC_RATE = 0.18;
-const UK_CGT_HIGHER_RATE = 0.24;
-const UK_BASIC_RATE_BAND = 37_700;
-const UK_PERSONAL_ALLOWANCE = 12_570;
+import { calculateUSCgt, calculateUKCgt, type HoldingPeriod, type UKTaxpayer } from '../../lib/capital-gains';
+import { type FilingStatus } from '../../lib/us-rates';
+import { UK_TAX_YEAR, UK_CGT } from '../../lib/uk-rates';
 
 /* ── Types ───────────────────────────────────────────────── */
 type Country = 'us' | 'uk';
-type HoldingPeriod = 'short' | 'long';
-type UKTaxpayer = 'basic' | 'higher';
 
 const COUNTRY_TABS: { key: Country; label: string }[] = [
   { key: 'us', label: '🇺🇸 United States' },
   { key: 'uk', label: '🇬🇧 United Kingdom' },
 ];
 
-const FILING_OPTIONS: { key: USFiling; label: string }[] = [
+const FILING_OPTIONS: { key: FilingStatus; label: string }[] = [
   { key: 'single', label: 'Single' },
   { key: 'married', label: 'Married (joint)' },
   { key: 'head', label: 'Head of household' },
 ];
-
-/* ── US CGT Calculation ──────────────────────────────────── */
-interface USCgtResult {
-  gain: number;
-  taxableGain: number;
-  federalTax: number;
-  niit: number;
-  totalTax: number;
-  effectiveRate: number;
-  marginalRate: number;
-}
-
-function calculateUSCgt(
-  purchasePrice: number,
-  salePrice: number,
-  holdingPeriod: HoldingPeriod,
-  filing: USFiling,
-  taxableIncome: number,
-): USCgtResult {
-  const gain = salePrice - purchasePrice;
-  if (gain <= 0) return { gain, taxableGain: gain, federalTax: 0, niit: 0, totalTax: 0, effectiveRate: 0, marginalRate: 0 };
-
-  const taxableGain = gain;
-  let federalTax = 0;
-  let marginalRate = 0;
-
-  if (holdingPeriod === 'short') {
-    // Short-term: taxed at ordinary income rates
-    // Gain stacks on top of existing taxable income
-    const brackets = US_BRACKETS[filing];
-    const baseIncome = taxableIncome;
-    const totalIncome = baseIncome + gain;
-
-    const taxAtTotal = calcBracketTax(totalIncome, brackets);
-    const taxAtBase = calcBracketTax(baseIncome, brackets);
-    federalTax = taxAtTotal - taxAtBase;
-
-    // Find marginal rate
-    for (let i = brackets.length - 1; i >= 0; i--) {
-      if (totalIncome > brackets[i][0]) {
-        marginalRate = brackets[i][1];
-        break;
-      }
-    }
-  } else {
-    // Long-term: use LTCG brackets based on total taxable income
-    const ltBrackets = US_LONG_TERM[filing];
-    const totalTaxableIncome = taxableIncome + gain;
-
-    // LTCG rate is determined by total taxable income (ordinary + gains)
-    let remainingGain = gain;
-    for (let i = ltBrackets.length - 1; i >= 0; i--) {
-      if (totalTaxableIncome > ltBrackets[i].from) {
-        const amountInBracket = Math.min(
-          remainingGain,
-          totalTaxableIncome - Math.max(ltBrackets[i].from, taxableIncome)
-        );
-        if (amountInBracket > 0) {
-          federalTax += amountInBracket * ltBrackets[i].rate;
-          remainingGain -= amountInBracket;
-          if (marginalRate === 0) marginalRate = ltBrackets[i].rate;
-        }
-      }
-    }
-    // Handle remaining gain in 0% bracket if any
-    if (remainingGain > 0) {
-      // All remaining is in 0% bracket
-      marginalRate = marginalRate || 0;
-    }
-  }
-
-  // Net Investment Income Tax (NIIT)
-  const totalAgi = taxableIncome + gain;
-  const niitThreshold = US_NIIT_THRESHOLD[filing];
-  let niit = 0;
-  if (totalAgi > niitThreshold) {
-    const niitableAmount = Math.min(gain, totalAgi - niitThreshold);
-    niit = niitableAmount * US_NIIT_RATE;
-  }
-
-  const totalTax = federalTax + niit;
-  const effectiveRate = gain > 0 ? (totalTax / gain) * 100 : 0;
-
-  return { gain, taxableGain, federalTax, niit, totalTax, effectiveRate, marginalRate };
-}
-
-function calcBracketTax(income: number, brackets: [number, number][]): number {
-  let tax = 0;
-  for (let i = 0; i < brackets.length; i++) {
-    const bracketStart = brackets[i][0];
-    const bracketEnd = i + 1 < brackets.length ? brackets[i + 1][0] : Infinity;
-    const rate = brackets[i][1];
-    if (income <= bracketStart) break;
-    const taxableInBracket = Math.min(income, bracketEnd) - bracketStart;
-    tax += taxableInBracket * rate;
-  }
-  return tax;
-}
-
-/* ── UK CGT Calculation ──────────────────────────────────── */
-interface UKCgtResult {
-  gain: number;
-  annualExempt: number;
-  taxableGain: number;
-  basicRateTax: number;
-  higherRateTax: number;
-  totalTax: number;
-  effectiveRate: number;
-}
-
-function calculateUKCgt(
-  purchasePrice: number,
-  salePrice: number,
-  taxpayerType: UKTaxpayer,
-  annualIncome: number,
-): UKCgtResult {
-  const gain = salePrice - purchasePrice;
-  if (gain <= 0) return { gain, annualExempt: UK_CGT_ANNUAL_EXEMPT, taxableGain: 0, basicRateTax: 0, higherRateTax: 0, totalTax: 0, effectiveRate: 0 };
-
-  const taxableGain = Math.max(0, gain - UK_CGT_ANNUAL_EXEMPT);
-  let basicRateTax = 0;
-  let higherRateTax = 0;
-
-  if (taxpayerType === 'basic') {
-    // Work out how much of the basic rate band is unused
-    const incomeAbovePA = Math.max(0, annualIncome - UK_PERSONAL_ALLOWANCE);
-    const unusedBasicBand = Math.max(0, UK_BASIC_RATE_BAND - incomeAbovePA);
-    const gainAtBasicRate = Math.min(taxableGain, unusedBasicBand);
-    const gainAtHigherRate = taxableGain - gainAtBasicRate;
-
-    basicRateTax = gainAtBasicRate * UK_CGT_BASIC_RATE;
-    higherRateTax = gainAtHigherRate * UK_CGT_HIGHER_RATE;
-  } else {
-    // Higher/additional rate taxpayer — all gains at higher rate
-    higherRateTax = taxableGain * UK_CGT_HIGHER_RATE;
-  }
-
-  const totalTax = basicRateTax + higherRateTax;
-  const effectiveRate = gain > 0 ? (totalTax / gain) * 100 : 0;
-
-  return { gain, annualExempt: UK_CGT_ANNUAL_EXEMPT, taxableGain, basicRateTax, higherRateTax, totalTax, effectiveRate };
-}
 
 /* ── Format helpers ──────────────────────────────────────── */
 function fmtUSD(v: number): string {
@@ -243,7 +52,7 @@ const DEFAULTS = {
   purchasePrice: 50_000,
   salePrice: 80_000,
   holdingPeriod: 'long' as HoldingPeriod,
-  filing: 'single' as USFiling,
+  filing: 'single' as FilingStatus,
   usTaxableIncome: 75_000,
   ukTaxpayer: 'basic' as UKTaxpayer,
   ukAnnualIncome: 35_000,
@@ -258,7 +67,7 @@ export default function CapitalGainsTaxCalc() {
   const [purchasePrice, setPurchasePrice] = useState(DEFAULTS.purchasePrice);
   const [salePrice, setSalePrice] = useState(DEFAULTS.salePrice);
   const [holdingPeriod, setHoldingPeriod] = useState<HoldingPeriod>(DEFAULTS.holdingPeriod);
-  const [filing, setFiling] = useState<USFiling>(DEFAULTS.filing);
+  const [filing, setFiling] = useState<FilingStatus>(DEFAULTS.filing);
   const [usTaxableIncome, setUsTaxableIncome] = useState(DEFAULTS.usTaxableIncome);
   const [ukTaxpayer, setUkTaxpayer] = useState<UKTaxpayer>(DEFAULTS.ukTaxpayer);
   const [ukAnnualIncome, setUkAnnualIncome] = useState(DEFAULTS.ukAnnualIncome);
@@ -417,8 +226,11 @@ export default function CapitalGainsTaxCalc() {
               id="cgt-purchase"
               value={purchasePrice}
               min={0}
-              max={5_000_000}
-              step={1000}
+              max={1_000_000}
+              step={2500}
+              textMax={5_000_000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}1M`}
               onChange={setPurchasePrice}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -429,8 +241,11 @@ export default function CapitalGainsTaxCalc() {
               id="cgt-sale"
               value={salePrice}
               min={0}
-              max={5_000_000}
-              step={1000}
+              max={1_000_000}
+              step={2500}
+              textMax={5_000_000}
+              minLabel={`${currencySymbol}0`}
+              maxLabel={`${currencySymbol}1M`}
               onChange={setSalePrice}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -501,8 +316,11 @@ export default function CapitalGainsTaxCalc() {
                   id="cgt-us-income"
                   value={usTaxableIncome}
                   min={0}
-                  max={1_000_000}
+                  max={500_000}
                   step={1000}
+                  textMax={1_000_000}
+                  minLabel="$0"
+                  maxLabel="$500K"
                   onChange={setUsTaxableIncome}
                   prefix="$"
                   formatDisplay={formatNumber}
@@ -551,8 +369,11 @@ export default function CapitalGainsTaxCalc() {
                   id="cgt-uk-income"
                   value={ukAnnualIncome}
                   min={0}
-                  max={500_000}
-                  step={1000}
+                  max={250_000}
+                  step={500}
+                  textMax={500_000}
+                  minLabel="£0"
+                  maxLabel="£250K"
                   onChange={setUkAnnualIncome}
                   prefix="£"
                   formatDisplay={formatNumber}
@@ -560,7 +381,7 @@ export default function CapitalGainsTaxCalc() {
 
                 <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-3 border border-neutral-200/60 dark:border-neutral-700">
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                    Annual exempt amount for 2025/26: <strong>£{UK_CGT_ANNUAL_EXEMPT.toLocaleString()}</strong>.
+                    Annual exempt amount for {UK_TAX_YEAR}: <strong>£{UK_CGT.annualExempt.toLocaleString()}</strong>.
                     Gains below this are tax-free.
                   </p>
                 </div>

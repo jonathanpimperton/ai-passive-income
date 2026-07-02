@@ -3,7 +3,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection, render } from 'astro:content';
-import { buildBreadcrumbSchema } from '@lib/seo';
 import AffiliateLinks from '@components/ui/AffiliateLinks.astro';
 import { TOOLS, getToolPath } from '@lib/tools-data';
 
@@ -38,18 +37,16 @@ const option2Label = vsMatch ? vsMatch[2].trim() : 'Option B';
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },
-  { name: 'Comparisons', url: '/comparisons' },
-  { name: titleParts, url: `/comparisons/${slug}` },
+  { name: 'Comparisons', url: '/comparisons/' },
+  { name: titleParts, url: `/comparisons/${slug}/` },
 ];
-
-const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
 ---
 
+{/* BreadcrumbList JSON-LD is emitted once by the Breadcrumb component below */}
 <BaseLayout
   title={title}
   description={description}
   ogImage={`/og/comparisons/${slug}.png`}
-  structuredData={[breadcrumbSchema]}
 >
   {/* Dark header */}
   <div class="bg-[#0F1B2D] text-white">
@@ -171,7 +168,7 @@ const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
               {otherComparisons.map((other) => (
                 <li>
                   <a
-                    href={`/comparisons/${other.data.slug}`}
+                    href={`/comparisons/${other.data.slug}/`}
                     class="group block"
                   >
                     <span class="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-200">

@@ -12,8 +12,8 @@
  * - Scottish Tax: https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/
  */
 
-export const UK_TAX_YEAR = '2025/26';
-export const UK_RATES_LAST_CHECKED = '2026-03-06';
+export const UK_TAX_YEAR = '2026/27';
+export const UK_RATES_LAST_CHECKED = '2026-07-02';
 
 /* ── Income Tax ──────────────────────────────────────────── */
 export const UK_INCOME_TAX = {
@@ -49,16 +49,17 @@ export const UK_EMPLOYER_NI = {
 
 /* ── State Pension ───────────────────────────────────────── */
 export const UK_STATE_PENSION = {
-  /** Full new State Pension weekly rate 2025/26 */
-  weeklyRate: 230.25,
+  /** Full new State Pension weekly rate 2026/27 (4.8% triple-lock uprating, April 2026) */
+  weeklyRate: 241.30,
   source: 'https://www.gov.uk/new-state-pension/what-youll-get',
 };
 
-/* ── Student Loans ───────────────────────────────────────── */
+/* ── Student Loans (thresholds from 6 April 2026) ────────── */
 export const UK_STUDENT_LOANS = {
-  plan1: { threshold: 26_065, rate: 0.09 },
-  plan2: { threshold: 28_470, rate: 0.09 },
-  plan4: { threshold: 32_745, rate: 0.09 },
+  plan1: { threshold: 26_900, rate: 0.09 },
+  plan2: { threshold: 29_385, rate: 0.09 },
+  plan4: { threshold: 33_795, rate: 0.09 },
+  /** Plan 5 frozen at £25,000 — first-ever repayments began 6 April 2026 */
   plan5: { threshold: 25_000, rate: 0.09 },
   postgrad: { threshold: 21_000, rate: 0.06 },
 };
@@ -85,7 +86,7 @@ export const UK_SDLT = {
   source: 'https://www.gov.uk/stamp-duty-land-tax/residential-property-rates',
 };
 
-/* ── Capital Gains Tax (UK, 2025/26) ──────────────────────── */
+/* ── Capital Gains Tax (UK, 2026/27) ──────────────────────── */
 export const UK_CGT = {
   /** Annual exempt amount */
   annualExempt: 3_000,
@@ -98,11 +99,16 @@ export const UK_CGT = {
 };
 
 /* ── Scottish Income Tax (for residents of Scotland) ─────── */
+/**
+ * 2026/27 bands (Scottish Budget, 13 Jan 2026). Thresholds are TAXABLE income
+ * above the personal allowance. Starter and Basic band tops rose 7.4%;
+ * Higher/Advanced/Top thresholds and all rates unchanged.
+ */
 export const UK_SCOTTISH_TAX = {
   bands: [
     { from: 0, rate: 0.19, name: 'Starter' as const },
-    { from: 2_306, rate: 0.20, name: 'Basic' as const },
-    { from: 13_991, rate: 0.21, name: 'Intermediate' as const },
+    { from: 3_967, rate: 0.20, name: 'Basic' as const },
+    { from: 16_956, rate: 0.21, name: 'Intermediate' as const },
     { from: 31_092, rate: 0.42, name: 'Higher' as const },
     { from: 62_430, rate: 0.45, name: 'Advanced' as const },
     { from: 125_140, rate: 0.48, name: 'Top' as const },

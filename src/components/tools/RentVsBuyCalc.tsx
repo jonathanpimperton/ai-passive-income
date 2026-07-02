@@ -240,7 +240,7 @@ export default function RentVsBuyCalc() {
           <div className="space-y-5">
             {/* Buy section */}
             <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Buying</p>
-            <SliderInput label="Home Price" id="rvb-price" value={homePrice} min={50000} max={10000000} step={10000} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
+            <SliderInput label="Home Price" id="rvb-price" value={homePrice} min={50000} max={2000000} step={5000} textMax={10000000} minLabel={`${currencySymbol}50K`} maxLabel={`${currencySymbol}2M`} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
             <SliderInput label="Down Payment" id="rvb-down" value={downPaymentPct} min={0} max={100} step={1} onChange={setDownPaymentPct} suffix="%" formatDisplay={(v) => `${v.toFixed(0)} (${fmt(homePrice * v / 100)})`} hint="Percentage of the price you'll pay upfront — shown in dollars below" />
             <SliderInput label="Mortgage Rate" id="rvb-rate" value={mortgageRate} min={2} max={12} step={0.125} onChange={setMortgageRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} hint="Current mortgage interest rates — check bankrate.com" />
             <SliderInput label="Loan Term (Years)" id="rvb-term" value={loanTermYears} min={10} max={30} step={1} onChange={setLoanTermYears} />
@@ -249,7 +249,7 @@ export default function RentVsBuyCalc() {
 
             {/* Rent section */}
             <p className="text-xs font-semibold text-accent-600 uppercase tracking-wide">Renting</p>
-            <SliderInput label="Monthly Rent" id="rvb-rent" value={monthlyRent} min={500} max={15000} step={50} onChange={setMonthlyRent} prefix={currencySymbol} formatDisplay={formatNumber} hint="What you'd pay monthly to rent a comparable home" />
+            <SliderInput label="Monthly Rent" id="rvb-rent" value={monthlyRent} min={500} max={5000} step={25} textMax={15000} minLabel={`${currencySymbol}500`} maxLabel={`${currencySymbol}5K`} onChange={setMonthlyRent} prefix={currencySymbol} formatDisplay={formatNumber} hint="What you'd pay monthly to rent a comparable home" />
             <SliderInput label="Annual Rent Increase" id="rvb-rent-inc" value={rentIncrease} min={0} max={10} step={0.5} onChange={setRentIncrease} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="How much rent goes up each year — ~3% is typical" />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
@@ -269,11 +269,11 @@ export default function RentVsBuyCalc() {
             {showAdvanced && (
               <div className="space-y-5 pt-1">
                 <SliderInput label="Property Tax Rate" id="rvb-ptax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Annual tax as % of home value — check your county assessor's site" />
-                <SliderInput label="Home Insurance (Annual)" id="rvb-hins" value={homeInsurance} min={0} max={10000} step={100} onChange={setHomeInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
-                <SliderInput label="HOA / Month" id="rvb-hoa" value={hoaMonthly} min={0} max={2000} step={25} onChange={setHoaMonthly} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="Home Insurance (Annual)" id="rvb-hins" value={homeInsurance} min={0} max={10000} step={100} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}10K`} onChange={setHomeInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="HOA / Month" id="rvb-hoa" value={hoaMonthly} min={0} max={2000} step={25} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}2K`} onChange={setHoaMonthly} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Maintenance Rate" id="rvb-maint" value={maintenanceRate} min={0} max={3} step={0.1} onChange={setMaintenanceRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Rule of thumb: 1% of home value per year for upkeep" />
                 <SliderInput label="Home Appreciation" id="rvb-appr" value={homeAppreciation} min={-5} max={10} step={0.5} onChange={setHomeAppreciation} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
-                <SliderInput label="Renter's Insurance / Month" id="rvb-rins" value={rentersInsurance} min={0} max={100} step={5} onChange={setRentersInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label="Renter's Insurance / Month" id="rvb-rins" value={rentersInsurance} min={0} max={100} step={5} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}100`} onChange={setRentersInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Investment Return (Renter)" id="rvb-inv" value={investmentReturn} min={0} max={15} step={0.5} onChange={setInvestmentReturn} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="If renting, what return you'd earn investing the difference — ~7% for index funds" />
                 <SliderInput label="Marginal Tax Rate" id="rvb-tax" value={marginalTaxRate} min={0} max={55} step={1} onChange={setMarginalTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint="Your highest combined federal + state tax bracket — 22% is common for middle incomes" />
               </div>

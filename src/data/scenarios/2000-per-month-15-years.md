@@ -72,4 +72,4 @@ If you begin with $50,000 and add $2,000/month at 7%:
 
 The $50,000 head start adds $141,762 — it nearly triples while your monthly contributions compound alongside it. If you have both a lump sum and the ability to contribute monthly, combining them is the fastest path to a six-figure portfolio.
 
-Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return) to model your own contribution level and expected return.
+Use the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to model your own contribution level and expected return.

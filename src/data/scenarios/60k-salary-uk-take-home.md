@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Pay on a £60,000 Salary in 2025/26"
+title: "Take-Home Pay on a £60,000 Salary in 2026/27"
 slug: "60k-salary-uk-take-home"
 description: "Calculate take-home pay on £60,000 after income tax and NI. See how the 40% higher rate band affects your net pay."
 keywords: ["60k salary uk take home", "60000 salary after tax", "higher rate tax uk", "60k salary tax breakdown"]
@@ -8,7 +8,7 @@ toolCategory: "income-and-planning"
 inputs:
   Annual Salary: "£60,000"
   Tax Code: "1257L"
-  Tax Year: "2025/26"
+  Tax Year: "2026/27"
 resultSummary: "£45,357/year (£3,780/month)"
 ---
 
@@ -53,8 +53,8 @@ At £60K, pension contributions are particularly efficient because they pull inc
 
 ## How this compares
 
-- **£50,000 salary:** Take-home ~£38,840 (£3,237/month). The jump from £50K to £60K adds £543/month after tax — less than the raw £833/month difference because of the higher rate.
-- **£75,000 salary:** Take-home ~£53,357 (£4,446/month). Another £15K gross gives you only £666/month more after deductions.
+- **£50,000 salary:** Take-home ~£39,520 (£3,293/month). The jump from £50K to £60K adds £486/month after tax — less than the raw £833/month difference because of the higher rate.
+- **£75,000 salary:** Take-home ~£54,057 (£4,505/month). Another £15K gross gives you only £725/month more after deductions.
 - **£100,000 salary:** Take-home ~£68,557 (£5,713/month). But once you cross £100K, your personal allowance starts to taper — the effective marginal rate between £100K and £125,140 is 60%.
 
 ## Reducing your tax bill
@@ -65,4 +65,4 @@ Besides pension contributions, you can lower the amount HMRC takes through:
 - **Professional subscriptions:** If HMRC recognises your professional body, the subscription fee is tax-deductible.
 - **Working from home allowance:** £6/week (£312/year) if your employer requires remote work, saving £62 in tax.
 
-Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk) to see how pension contributions, student loans, or a different tax code affect your take-home on £60,000.
+Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to see how pension contributions, student loans, or a different tax code affect your take-home on £60,000.

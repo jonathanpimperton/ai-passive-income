@@ -14,11 +14,11 @@ relatedTools:
   - "investment-return"
 verdict: "If your employer offers a Roth 401(k) with a match, contribute there first. Then open a Roth IRA for its broader investment choices and flexible withdrawal rules."
 comparisonTable:
-  - feature: "2025 contribution limit"
-    option1: "$7,000 ($8,000 if 50+)"
-    option2: "$23,500 ($31,000 if 50+)"
+  - feature: "2026 contribution limit"
+    option1: "$7,500 ($8,600 if 50+)"
+    option2: "$24,500 ($32,500 if 50+)"
   - feature: "Income limit to contribute"
-    option1: "Phases out at $150,000–$165,000 (single)"
+    option1: "Phases out at $153,000–$168,000 (single)"
     option2: "No income limit"
   - feature: "Employer match"
     option1: "No"
@@ -49,13 +49,13 @@ Where they differ is in who offers them, how much you can put in, and what happe
 
 ## The contribution limit gap
 
-The most obvious difference is how much you can contribute each year. A Roth IRA caps at $7,000 ($8,000 if you're 50 or older). A Roth 401(k) allows $23,500 ($31,000 if 50+) — more than three times the IRA limit.
+The most obvious difference is how much you can contribute each year. A Roth IRA caps at $7,500 ($8,600 if you're 50 or older). A Roth 401(k) allows $24,500 ($32,500 if 50+) — more than three times the IRA limit.
 
-For aggressive savers who want to shelter as much as possible from future taxes, the Roth 401(k) is the bigger bucket. Contributing the maximum to both accounts would put $30,500 into Roth accounts annually ($39,000 if 50+).
+For aggressive savers who want to shelter as much as possible from future taxes, the Roth 401(k) is the bigger bucket. Contributing the maximum to both accounts would put $32,000 into Roth accounts annually ($41,100 if 50+).
 
 ## The income limit problem
 
-Roth IRA contributions phase out for single filers between $150,000 and $165,000 of modified adjusted gross income (MAGI) in 2025. Married filing jointly phases out between $236,000 and $246,000. Above those thresholds, you cannot contribute directly to a Roth IRA.
+Roth IRA contributions phase out for single filers between $153,000 and $168,000 of modified adjusted gross income (MAGI) in 2026. Married filing jointly phases out between $242,000 and $252,000. Above those thresholds, you cannot contribute directly to a Roth IRA.
 
 The Roth 401(k) has no income limit. A worker earning $500,000 can make full Roth 401(k) contributions as long as their employer's plan offers the option. This makes the Roth 401(k) the only direct Roth savings vehicle for high earners.
 
@@ -88,7 +88,7 @@ This difference makes the Roth IRA a partial backup for emergencies, while the R
 If you have access to a Roth 401(k) and qualify for a Roth IRA, the standard advice is:
 
 1. **Roth 401(k) up to the employer match.** Never leave the match on the table.
-2. **Roth IRA up to the $7,000 limit.** Better fund choices and flexible withdrawals.
-3. **Back to the Roth 401(k) for additional savings.** The higher $23,500 limit gives you more tax-free growth room.
+2. **Roth IRA up to the $7,500 limit.** Better fund choices and flexible withdrawals.
+3. **Back to the Roth 401(k) for additional savings.** The higher $24,500 limit gives you more tax-free growth room.
 
 This approach captures the employer match, gets you the IRA's investment flexibility, and maximises the total amount in Roth accounts. When you leave the employer, you can roll the Roth 401(k) into your Roth IRA to consolidate everything in one place with full control.

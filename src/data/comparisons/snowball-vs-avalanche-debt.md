@@ -50,21 +50,21 @@ Consider three debts:
 - Car loan: $8,000 at 6% APR
 - Student loan: $3,000 at 5% APR
 
-With $800/month total toward debt:
+With $800/month total toward debt (minimum payments of $100, $155, and $50, plus $495 extra — and each cleared debt's minimum rolling onto the next):
 
-**Snowball** (student loan → credit card → car): pays $1,420 in total interest, debt-free in 22 months.
+**Snowball** (student loan → credit card → car): pays $1,634 in total interest, debt-free in 23 months.
 
-**Avalanche** (credit card → car → student loan): pays $1,180 in total interest, debt-free in 21 months.
+**Avalanche** (credit card → car → student loan): pays $1,235 in total interest, debt-free in 22 months.
 
-Avalanche saves **$240 and one month**. The gap widens with more debt and bigger rate differences.
+Avalanche saves **about $400 and one month**. The gap widens with more debt and bigger rate differences.
 
 ## The psychology favours snowball
 
 Harvard Business Review research found that people who pay off small debts first are more likely to eliminate all their debt. The reason: early wins create momentum.
 
-Paying off that $3,000 student loan in 4 months feels like real progress. It reduces the number of bills, simplifies your finances, and proves the system works. The avalanche method might not eliminate a single debt for 8+ months — and many people give up before seeing results.
+Paying off that $3,000 student loan in 6 months feels like real progress. It reduces the number of bills, simplifies your finances, and proves the system works. The avalanche method might not eliminate a single debt for 8+ months — and many people give up before seeing results.
 
-Dave Ramsey's snowball method has helped millions precisely because it prioritises motivation over mathematics. A $240 difference doesn't matter if the avalanche method causes you to quit after 6 months.
+Dave Ramsey's snowball method has helped millions precisely because it prioritises motivation over mathematics. A $400 difference doesn't matter if the avalanche method causes you to quit after 6 months.
 
 ## When the difference is large enough to matter
 

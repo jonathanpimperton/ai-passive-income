@@ -45,4 +45,4 @@ Don't forget to budget beyond principal and interest. Property taxes, homeowner'
 - **You choose a 15-year term:** Payments jump to $2,696.48, but total interest drops to $185,367 — saving $233,160.
 - **You make one extra payment per year:** You'd pay off the mortgage about 4–5 years early and save over $80,000 in interest.
 
-Every fraction of a percent matters at this loan size. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to model your exact scenario — adjust the rate, term, down payment, and see how extra payments change the total cost.
+Every fraction of a percent matters at this loan size. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to model your exact scenario — adjust the rate, term, down payment, and see how extra payments change the total cost.

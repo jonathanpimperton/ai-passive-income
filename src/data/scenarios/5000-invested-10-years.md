@@ -50,4 +50,4 @@ A total U.S. stock market index fund or S&P 500 fund is the simplest choice. If 
 
 Doubling $5,000 is not life-changing. But it proves something important: money grows when left alone. If you start with $5,000 at age 25 and never add another dollar, you have $10,048 at 35, $20,194 at 45, and $40,577 at 65. Four doublings on a single deposit. Add regular contributions and the numbers become genuinely meaningful.
 
-Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest) to model your own starting amount and contribution schedule.
+Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to model your own starting amount and contribution schedule.

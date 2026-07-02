@@ -73,7 +73,7 @@ For retirement, the comparison gets more complex. The LISA bonus (25%) looks sim
 
 **LISA advantages over pensions:**
 - Tax-free withdrawals at 60 (pensions are taxed as income, except the 25% tax-free lump sum)
-- Access at 60, not 57 (pension) — though this is a minor difference
+- Access at 60, vs 55 for pensions (rising to 57 from April 2028) — though this is a minor difference
 - Full control — no requirement to buy an annuity
 
 **Pension advantages over LISA:**
@@ -98,6 +98,6 @@ A Stocks & Shares ISA beats the LISA when:
 
 ## The best approach for most under-40s
 
-If you can afford it, do both. Contribute £4,000 to a LISA to capture the full £1,000 bonus, then put additional savings into a regular ISA. Your £20,000 total ISA allowance covers £4,000 LISA + £16,000 regular ISA.
+If you can afford it, do both. Contribute £4,000 to a LISA to capture the full £1,000 bonus, then put additional savings into a regular ISA. Your £20,000 total ISA allowance covers £4,000 LISA + £16,000 regular ISA. One thing to plan for: from April 2027 the Cash ISA limit is due to drop to £12,000 for under-65s, so if that £16,000 would sit in cash rather than stocks and shares, the split changes.
 
 This gives you the guaranteed 25% bonus on the first £4,000, plus full flexibility on the remaining £16,000. Run the numbers through a compound interest calculator to see what the combined approach looks like over your specific time horizon.

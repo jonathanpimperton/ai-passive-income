@@ -79,4 +79,4 @@ Take the 30-year mortgage for its lower required payment, then pay extra when yo
 
 This gives you the flexibility of the 30-year (you can drop back to $2,155 if money is tight) with nearly the same savings as the 15-year. The only downside: the 30-year rate is 0.50% higher, so you pay about $13,000 more in interest than a true 15-year — a small price for the option value.
 
-Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment) to compare both terms with your specific loan amount and rates.
+Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to compare both terms with your specific loan amount and rates.

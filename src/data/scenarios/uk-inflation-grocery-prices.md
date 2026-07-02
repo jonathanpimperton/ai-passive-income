@@ -74,4 +74,4 @@ That 1.5 percentage point shift might seem small, but it represents £600/year l
 
 None of these offset 5% inflation entirely, but combining several can keep your effective grocery inflation closer to 2–3%.
 
-Use the [Inflation Calculator](/tools/economic/inflation) to see how any cost — groceries, rent, childcare — changes over time at different inflation rates.
+Use the [Inflation Calculator](/tools/economic/inflation/) to see how any cost — groceries, rent, childcare — changes over time at different inflation rates.
