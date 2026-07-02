@@ -4,7 +4,12 @@
 
 Before building anything, read these files in order:
 
-1. **`docs/implementation-plan.md`** — **START HERE.** Current status, what to build next, phased roadmap with decision gates. This is the active plan.
+0. **`docs/plan-2026-07.md`** — **START HERE.** The ACTIVE plan (July 2026 overhaul):
+   owner decisions, phase-by-phase task lists, live progress, and a Session Handoff State
+   section describing exactly where work stopped. Companion: `docs/review-2026-07.md`
+   (the comprehensive 120-finding review that produced it). These supersede
+   `implementation-plan.md`/`growth-plan.md` as the source of truth.
+1. **`docs/implementation-plan.md`** — the March 2026 plan (largely executed or superseded; useful history).
 1b. **`docs/growth-plan.md`** — Revenue model, human action plan (Reddit, Product Hunt, HN), revenue projections.
 2. **`docs/build-spec.md`** — Original spec: target audience, personas, value proposition, competitive positioning, customer journey, tools list, file structure, content schema, SEO, keyword targets, monetization, revenue targets, KPIs, post-launch operations. The sprint roadmap (Sprints 1-7) is complete — see growth-plan.md for what's next.
 3. **`docs/design-system.md`** — How it looks: branding, colors, typography, calculator UI patterns, navigation, mobile, accessibility, visual polish.
@@ -434,8 +439,21 @@ When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
 2. **Read this file first**, then `docs/growth-plan.md` (active roadmap), then `docs/build-spec.md` and `docs/design-system.md` as needed.
-3. **Current status:** Site is live at `https://www.calcrun.com`. Sprints 1-33 complete (including 30, 31, 32, 33, 36). 184 pages (40 tools + 102 scenarios + 15 comparisons + 17 methodology + 1 comparison index + 9 static). 228 unit + 69 E2E = 297 tests. NordPass + NordVPN live via CJ. Inline affiliate cards on 11 calculators, affiliate sections on all comparisons + relevant scenarios. Scroll email capture bar on all financial calculators. **The bottleneck is traffic, not product.** See `docs/implementation-plan.md` for the active roadmap.
-4. **Git workflow:** Push directly to `claude/master` — no feature branches, no PRs. Cloudflare Pages auto-deploys from this branch.
+3. **Current status (July 2026):** Site is live at `https://www.calcrun.com` but the last
+   deploy was 20 March 2026. A March-20 commit burst (undocumented in the sprint log above)
+   redesigned the homepage as an interactive "Decision Engine" hero, split retirement into
+   3 tools, and added solar-payback, stamp-duty, capital-gains, car-finance, JWT/base64/URL
+   tools — now 196 built pages, 46 tool markdown files. A comprehensive review ran on
+   2 July 2026 (`docs/review-2026-07.md`) and a multi-phase overhaul is IN PROGRESS
+   (`docs/plan-2026-07.md` — read its Session Handoff State before doing anything).
+   Key facts: tax data now updated to UK 2026/27 + US 2026 in `src/lib/uk-rates.ts` /
+   `us-rates.ts`; authoritative take-home tables in `docs/tax-values-2026.json`; owner has
+   deferred distribution + revenue work — current focus is product quality (correctness,
+   design direction "Precision Instrument", SEO structure). Sprint log above (1-36) is
+   historical record, not current state.
+4. **Git workflow:** Work on `claude/master`. **Do NOT push without explicit owner
+   approval** — Cloudflare Pages auto-deploys from this branch, and the working tree is
+   mid-overhaul. Ask the owner before committing/pushing.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 
