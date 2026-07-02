@@ -564,8 +564,8 @@ export default function PasswordGenerator() {
           </div>
 
           {/* Privacy Note */}
-          <div className="mt-6 p-4 bg-accent-100/50 rounded-xl border border-accent-500/10">
-            <p className="text-xs text-accent-700 leading-relaxed">
+          <div className="mt-6 p-4 bg-primary-50/50 rounded-xl border border-primary-200/40">
+            <p className="text-xs text-primary-700 leading-relaxed">
               <strong>Privacy:</strong> Passwords are generated entirely in your browser using the Web Crypto API. No data is sent to any server or stored anywhere.
             </p>
           </div>

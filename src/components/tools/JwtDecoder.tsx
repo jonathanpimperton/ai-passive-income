@@ -81,7 +81,7 @@ function ClaimRow({ name, value }: { name: string; value: unknown }) {
             {name === 'exp' && (() => {
               const status = getExpiryStatus(value as number);
               const colorMap = {
-                green: 'text-accent-700 bg-accent-50',
+                green: 'text-success-700 bg-success-50',
                 red: 'text-negative-600 bg-negative-50',
                 amber: 'text-warning-600 bg-warning-50',
               };
@@ -182,14 +182,14 @@ export default function JwtDecoder() {
 
           {/* Payload */}
           <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-1">
-            <div className="flex items-center justify-between px-4 py-3 bg-accent-50 border-b border-accent-100">
+            <div className="flex items-center justify-between px-4 py-3 bg-success-50 border-b border-success-100">
               <div className="flex items-center gap-2">
-                <Key size={16} className="text-accent-700" aria-hidden="true" />
-                <h3 className="text-sm font-bold text-accent-800">Payload</h3>
+                <Key size={16} className="text-success-700" aria-hidden="true" />
+                <h3 className="text-sm font-bold text-success-700">Payload</h3>
               </div>
               <button
                 onClick={() => handleCopy(JSON.stringify(decoded.payload, null, 2), 'payload')}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-accent-700 hover:bg-accent-100 transition-colors duration-150"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-success-700 hover:bg-success-100 transition-colors duration-150"
                 aria-label="Copy payload JSON"
               >
                 {copiedSection === 'payload' ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}

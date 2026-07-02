@@ -11,7 +11,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { ChevronDown, RotateCcw, CreditCard, TrendingDown, Clock, DollarSign, AlertTriangle } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
@@ -694,8 +693,6 @@ export default function CreditCardPayoffCalc() {
             <ExportPdfButton toolName="Credit Card Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="credit-card-payoff" />
-
           {/* ── Balance Over Time Chart ─────────────────── */}
           {chartData.length > 1 && (
             <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
@@ -705,33 +702,28 @@ export default function CreditCardPayoffCalc() {
               <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                    <CartesianGrid stroke={ct.grid} vertical={false} />
                     <XAxis
                       dataKey="month"
-                      tick={{ fontSize: 12, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={{ stroke: ct.axis }}
-                      label={{ value: 'Months', position: 'insideBottomRight', offset: -5, style: { fontSize: 11, fill: '#9CA3AF' } }}
+                      interval="preserveStartEnd"
+                      minTickGap={24}
+                      label={{ value: 'Months', position: 'insideBottomRight', offset: -5, style: { fontSize: 11, fill: ct.axisText } }}
                     />
                     <YAxis
                       tickFormatter={(v: number) => { const s = currency === 'GBP' ? '\u00A3' : currency === 'EUR' ? '\u20AC' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 12, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={false}
                       width={60}
                     />
                     <Tooltip content={<ChartTooltip labelPrefix="Month" formatValue={fmt} />} />
-                    {hasExtra && (
-                      <Legend
-                        wrapperStyle={{ fontSize: 12 }}
-                        iconType="circle"
-                        iconSize={8}
-                      />
-                    )}
                     <Line
                       type="monotone"
                       dataKey="Minimum Only"
-                      stroke="#C4442A"
+                      stroke={ct.series2}
                       strokeWidth={2}
                       dot={false}
                       activeDot={{ r: 4 }}
@@ -741,7 +733,7 @@ export default function CreditCardPayoffCalc() {
                       <Line
                         type="monotone"
                         dataKey="With Extra"
-                        stroke="#22A06B"
+                        stroke={ct.series1}
                         strokeWidth={2}
                         dot={false}
                         activeDot={{ r: 4 }}
@@ -763,6 +755,8 @@ export default function CreditCardPayoffCalc() {
               <ScheduleTable yearGroups={yearGroups} cc={currency} />
             </div>
           )}
+
+          <ResultAffiliate toolSlug="credit-card-payoff" />
         </div>
       </div>
     </div>

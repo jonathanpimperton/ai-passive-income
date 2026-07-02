@@ -36,11 +36,17 @@ const DEFAULTS = {
 };
 
 const TARGETS = [3, 6, 12] as const;
-const TARGET_COLORS: Record<number, string> = { 3: '#F59E0B', 6: '#0B6E6E', 12: '#7C3AED' };
 const TARGET_LABELS: Record<number, string> = { 3: '3 Months', 6: '6 Months', 12: '12 Months' };
 
 export default function EmergencyFundCalc() {
   const ct = useChartTheme();
+  // Target identity colors from the chart theme: 6 months is the recommended
+  // (primary) target, 3 months the quiet milestone, 12 months the stretch goal.
+  const TARGET_COLORS: Record<number, string> = {
+    3: ct.segments[1],
+    6: ct.series1,
+    12: ct.segments[2],
+  };
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
@@ -265,18 +271,14 @@ export default function EmergencyFundCalc() {
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="efColorSavings" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="month"
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                     label={{ value: 'Month', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: ct.axisText }}
                   />
                   <YAxis
@@ -284,7 +286,7 @@ export default function EmergencyFundCalc() {
                       const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$';
                       return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`;
                     }}
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
@@ -295,7 +297,6 @@ export default function EmergencyFundCalc() {
                       key={m}
                       y={monthlyExpenses * m}
                       stroke={TARGET_COLORS[m]}
-                      strokeDasharray="6 3"
                       strokeWidth={1.5}
                       label={{
                         value: TARGET_LABELS[m],
@@ -309,9 +310,9 @@ export default function EmergencyFundCalc() {
                   <Area
                     type="monotone"
                     dataKey="Savings"
-                    stroke="#0B6E6E"
+                    stroke={ct.series1}
                     strokeWidth={2}
-                    fill="url(#efColorSavings)"
+                    fill={ct.series1Fill}
                     animationDuration={600}
                   />
                 </AreaChart>

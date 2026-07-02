@@ -16,6 +16,7 @@ import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
+import { useChartTheme } from '../../lib/useChartTheme';
 
 interface Item {
   id: string;
@@ -23,8 +24,8 @@ interface Item {
   value: number;
 }
 
-const ASSET_COLORS = ['#0B6E6E', '#0E8585', '#38AEAE', '#22A06B', '#F59E0B', '#8B5CF6'];
-const LIABILITY_COLORS = ['#EF4444', '#F97316', '#F59E0B', '#EC4899', '#6366F1'];
+// Liability slices share the cost hue, differentiated by opacity steps.
+const LIABILITY_OPACITY = [1, 0.75, 0.55, 0.38, 0.25];
 
 let idCounter = 0;
 function newId() { return `item-${++idCounter}`; }
@@ -88,9 +89,12 @@ function ItemRow({ item, onChange, onRemove }: {
 }
 
 export default function NetWorthCalc() {
+  const ct = useChartTheme();
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
+  const fmtCompact = (v: number) =>
+    `${currencySymbol}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : Math.round(v)}`;
   const [assets, setAssets] = useState<Item[]>(DEFAULT_ASSETS);
   const [liabilities, setLiabilities] = useState<Item[]>(DEFAULT_LIABILITIES);
 
@@ -284,22 +288,27 @@ export default function NetWorthCalc() {
               <h3 className="text-sm font-medium text-neutral-700 mb-2">Assets Breakdown</h3>
               {assetPieData.length > 0 ? (
                 <>
-                  <div className="h-[180px]">
+                  <div className="relative h-[180px]">
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <PieChart>
                         <Pie data={assetPieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" animationDuration={600}>
                           {assetPieData.map((_, i) => (
-                            <Cell key={i} fill={ASSET_COLORS[i % ASSET_COLORS.length]} />
+                            <Cell key={i} fill={ct.segments[i % ct.segments.length]} />
                           ))}
                         </Pie>
                         <Tooltip content={<ChartTooltip labelPrefix="" />} />
                       </PieChart>
                     </ResponsiveContainer>
+                    {/* Donut center KPI — total assets */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+                      <span className="font-mono tabular-nums text-sm font-semibold text-neutral-900">{fmtCompact(totalAssets)}</span>
+                      <span className="text-[9px] uppercase tracking-wide text-neutral-500">assets</span>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {assetPieData.map((d, i) => (
                       <span key={d.name} className="flex items-center gap-1 text-[11px] text-neutral-500">
-                        <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: ASSET_COLORS[i % ASSET_COLORS.length] }} />
+                        <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: ct.segments[i % ct.segments.length] }} />
                         {d.name}
                       </span>
                     ))}
@@ -315,22 +324,27 @@ export default function NetWorthCalc() {
               <h3 className="text-sm font-medium text-neutral-700 mb-2">Liabilities Breakdown</h3>
               {liabilityPieData.length > 0 ? (
                 <>
-                  <div className="h-[180px]">
+                  <div className="relative h-[180px]">
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <PieChart>
                         <Pie data={liabilityPieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" animationDuration={600}>
                           {liabilityPieData.map((_, i) => (
-                            <Cell key={i} fill={LIABILITY_COLORS[i % LIABILITY_COLORS.length]} />
+                            <Cell key={i} fill={ct.cost} fillOpacity={LIABILITY_OPACITY[i % LIABILITY_OPACITY.length]} />
                           ))}
                         </Pie>
                         <Tooltip content={<ChartTooltip labelPrefix="" />} />
                       </PieChart>
                     </ResponsiveContainer>
+                    {/* Donut center KPI — total liabilities */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+                      <span className="font-mono tabular-nums text-sm font-semibold text-neutral-900">{fmtCompact(totalLiabilities)}</span>
+                      <span className="text-[9px] uppercase tracking-wide text-neutral-500">owed</span>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {liabilityPieData.map((d, i) => (
                       <span key={d.name} className="flex items-center gap-1 text-[11px] text-neutral-500">
-                        <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: LIABILITY_COLORS[i % LIABILITY_COLORS.length] }} />
+                        <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: ct.cost, opacity: LIABILITY_OPACITY[i % LIABILITY_OPACITY.length] }} />
                         {d.name}
                       </span>
                     ))}

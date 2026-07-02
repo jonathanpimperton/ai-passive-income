@@ -473,32 +473,36 @@ export default function SolarPaybackCalc() {
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="year"
-                    tick={{ fill: ct.axisText, fontSize: 12 }}
-                    stroke={ct.axis}
-                    label={{ value: 'Year', position: 'insideBottom', offset: -2, fill: ct.axisText, fontSize: 12 }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
+                    tickLine={false}
+                    axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
+                    label={{ value: 'Year', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: ct.axisText }}
                   />
                   <YAxis
-                    tick={{ fill: ct.axisText, fontSize: 12 }}
-                    stroke={ct.axis}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={60}
                     tickFormatter={(v: number) => `${currencySymbol}${formatNumber(v)}`}
                   />
                   <Tooltip content={<ChartTooltip labelPrefix="Year " formatValue={fmt} />} />
                   <ReferenceLine
                     y={result.netCost}
-                    stroke="#C4442A"
-                    strokeDasharray="5 5"
-                    label={{ value: 'System Cost', fill: '#C4442A', fontSize: 11 }}
+                    stroke={ct.cost}
+                    strokeWidth={1.5}
+                    label={{ value: 'System Cost', fill: ct.cost, fontSize: 11 }}
                   />
                   <Area
                     type="monotone"
                     dataKey="savings"
                     name="Cumulative Savings"
-                    fill="#0B6E6E"
-                    fillOpacity={0.15}
-                    stroke="#0B6E6E"
+                    fill={ct.series1Fill}
+                    stroke={ct.series1}
                     strokeWidth={2}
                     animationDuration={600}
                   />

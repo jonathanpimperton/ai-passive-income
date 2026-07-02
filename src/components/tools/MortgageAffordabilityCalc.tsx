@@ -46,8 +46,6 @@ function calcMaxLoan(monthlyPI: number, annualRate: number, years: number): numb
   return monthlyPI * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
 }
 
-const PIE_COLORS = ['#0B6E6E', '#22A06B', '#F59E0B', '#C4442A', '#6366F1'];
-
 const DEFAULTS = {
   annualIncome: 80000,
   monthlyDebt: 500,
@@ -229,6 +227,19 @@ export default function MortgageAffordabilityCalc() {
   ], [result, currency]);
 
   // Pie chart data for monthly payment breakdown
+  // Semantic slice colors: P&I = primary teal (builds equity), recurring
+  // taxes/fees = cost family differentiated by opacity steps.
+  const sliceStyle = (name: string): { fill: string; opacity: number } => {
+    switch (name) {
+      case 'Principal & Interest': return { fill: ct.series1, opacity: 1 };
+      case 'Property Tax': return { fill: ct.cost, opacity: 1 };
+      case 'Insurance': return { fill: ct.cost, opacity: 0.7 };
+      case 'PMI': return { fill: ct.cost, opacity: 0.5 };
+      case 'HOA': return { fill: ct.cost, opacity: 0.32 };
+      default: return { fill: ct.segments[1], opacity: 1 };
+    }
+  };
+
   const pieData = useMemo(() => {
     const data = [
       { name: 'Principal & Interest', value: Math.round(result.monthlyPI) },
@@ -513,8 +524,6 @@ export default function MortgageAffordabilityCalc() {
             <ExportPdfButton toolName="Mortgage Affordability Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="mortgage-affordability" />
-
           {/* PMI warning */}
           {result.needsPMI && (
             <div data-pdf-section className="mb-6 p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800 leading-relaxed">
@@ -559,7 +568,7 @@ export default function MortgageAffordabilityCalc() {
           {pieData.length > 0 && result.totalMonthly > 0 && (
             <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
               <h3 className="text-sm font-medium text-neutral-700 mb-3">Monthly Payment Breakdown</h3>
-              <div className="h-[200px]">
+              <div className="relative h-[200px]">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie
@@ -572,21 +581,30 @@ export default function MortgageAffordabilityCalc() {
                       dataKey="value"
                       animationDuration={600}
                     >
-                      {pieData.map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
+                      {pieData.map((d, i) => {
+                        const s = sliceStyle(d.name);
+                        return <Cell key={i} fill={s.fill} fillOpacity={s.opacity} />;
+                      })}
                     </Pie>
                     <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
                   </PieChart>
                 </ResponsiveContainer>
+                {/* Donut center KPI — the total monthly payment */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+                  <span className="font-mono tabular-nums text-lg font-semibold text-neutral-900">{fmt(result.totalMonthly)}</span>
+                  <span className="text-[10px] uppercase tracking-wide text-neutral-500">monthly</span>
+                </div>
               </div>
               <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-2">
-                {pieData.map((d, i) => (
-                  <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                    {d.name}: {fmt(d.value)}
-                  </div>
-                ))}
+                {pieData.map((d) => {
+                  const s = sliceStyle(d.name);
+                  return (
+                    <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.fill, opacity: s.opacity }} />
+                      {d.name}: {fmt(d.value)}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -616,6 +634,8 @@ export default function MortgageAffordabilityCalc() {
               </div>
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="mortgage-affordability" />
         </div>
       </div>
     </div>

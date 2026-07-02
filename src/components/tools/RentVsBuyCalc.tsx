@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   ReferenceLine,
 } from 'recharts';
 import { RotateCcw, ChevronDown, Home, DollarSign, TrendingUp, Landmark } from 'lucide-react';
@@ -346,56 +345,46 @@ export default function RentVsBuyCalc() {
             <ExportPdfButton toolName="Rent vs Buy Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="rent-vs-buy" />
-
           {/* Chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Net Cost Comparison Over Time</h3>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={analysis.yearData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="rvbBuy" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.12} />
-                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="rvbRent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.12} />
-                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="year"
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                     label={{ value: 'Year', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: ct.axisText }}
                   />
                   <YAxis
                     tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
                   <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                  <Legend verticalAlign="top" height={30} />
                   {analysis.breakEvenYear && (
                     <ReferenceLine
                       x={analysis.breakEvenYear}
-                      stroke="#F59E0B"
-                      strokeDasharray="6 3"
+                      stroke={ct.axisText}
                       strokeWidth={1.5}
-                      label={{ value: 'Break-even', position: 'top', fill: '#F59E0B', fontSize: 11, fontWeight: 600 }}
+                      label={{ value: 'Break-even', position: 'top', fill: ct.axisText, fontSize: 11, fontWeight: 600 }}
                     />
                   )}
-                  <Area type="monotone" dataKey="totalCostBuy" name="Buy (Net Cost)" stroke="#0B6E6E" strokeWidth={2} fill="url(#rvbBuy)" animationDuration={600} />
-                  <Area type="monotone" dataKey="totalCostRent" name="Rent (Net Cost)" stroke="#22A06B" strokeWidth={2} fill="url(#rvbRent)" animationDuration={600} />
+                  <Area type="monotone" dataKey="totalCostBuy" name="Buy (Net Cost)" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} animationDuration={600} />
+                  <Area type="monotone" dataKey="totalCostRent" name="Rent (Net Cost)" stroke={ct.series2} strokeWidth={2} fill={ct.series2Fill} animationDuration={600} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="rent-vs-buy" />
         </div>
       </div>
     </div>

@@ -311,8 +311,6 @@ export default function StampDutyCalc() {
             <ExportPdfButton toolName="Stamp Duty Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="stamp-duty" />
-
           {/* Chart: SDLT at different price points */}
           <div data-pdf-section className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200/80 dark:border-neutral-700 p-4">
             <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
@@ -321,21 +319,23 @@ export default function StampDutyCalc() {
             <div className="h-56 sm:h-64">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="price"
                     tickFormatter={(v: number) =>
                       v >= 1_000_000 ? `£${(v / 1_000_000).toFixed(1)}M` : `£${(v / 1000).toFixed(0)}K`
                     }
-                    tick={{ fontSize: 11, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                   />
                   <YAxis
                     tickFormatter={(v: number) =>
                       v >= 1_000_000 ? `£${(v / 1_000_000).toFixed(1)}M` : v >= 1000 ? `£${(v / 1000).toFixed(0)}K` : `£${v}`
                     }
-                    tick={{ fontSize: 11, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={false}
                     width={55}
@@ -345,7 +345,7 @@ export default function StampDutyCalc() {
                   />
                   <Bar
                     dataKey="Stamp Duty"
-                    fill="#0B6E6E"
+                    fill={ct.series1}
                     radius={[4, 4, 0, 0]}
                     animationDuration={600}
                   />
@@ -353,6 +353,8 @@ export default function StampDutyCalc() {
               </ResponsiveContainer>
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="stamp-duty" />
         </div>
       </div>
     </div>

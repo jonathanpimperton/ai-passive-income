@@ -15,6 +15,7 @@ import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatNumber } from '../../lib/calculator-utils';
+import { useChartTheme } from '../../lib/useChartTheme';
 import {
   calcPersonalAllowance,
   calcIncomeTax as calcIncomeTaxShared,
@@ -49,9 +50,6 @@ const STUDENT_LOAN_LABELS: Record<StudentLoanPlan, string> = {
   plan5: 'Plan 5 (from 2023)',
   postgrad: 'Postgraduate Loan',
 };
-
-// Positional: Take-Home (teal), Income Tax (amber), NI (muted red — cost), Student Loan (purple), Pension (green — money kept)
-const PIE_COLORS = ['#0B6E6E', '#F59E0B', '#C4442A', '#7C3AED', '#22A06B', '#EC4899'];
 
 function formatGBP(value: number): string {
   return '£' + formatNumber(Math.round(value));
@@ -142,6 +140,7 @@ const DEFAULTS = {
 };
 
 export default function SalaryUkCalc() {
+  const ct = useChartTheme();
   const [salary, setSalary] = useState(DEFAULTS.salary);
   const [isScottish, setIsScottish] = useState(DEFAULTS.isScottish);
   const [studentLoan, setStudentLoan] = useState<StudentLoanPlan>(DEFAULTS.studentLoan);
@@ -270,6 +269,21 @@ export default function SalaryUkCalc() {
     ...(result.studentLoanRepayment > 0 ? [{ name: 'Student Loan', value: result.studentLoanRepayment }] : []),
     ...(result.pensionAmount > 0 ? [{ name: 'Pension', value: result.pensionAmount }] : []),
   ].filter((d) => d.value > 0), [result]);
+
+  // Semantic slice colors: take-home = primary teal, pension = money kept
+  // (gain), deductions = cost family differentiated by opacity steps.
+  const sliceStyle = (name: string): { fill: string; opacity: number } => {
+    switch (name) {
+      case 'Take-Home Pay': return { fill: ct.series1, opacity: 1 };
+      case 'Income Tax': return { fill: ct.cost, opacity: 1 };
+      case 'National Insurance': return { fill: ct.cost, opacity: 0.7 };
+      case 'Student Loan': return { fill: ct.cost, opacity: 0.45 };
+      case 'Pension': return { fill: ct.gain, opacity: 1 };
+      default: return { fill: ct.segments[1], opacity: 1 };
+    }
+  };
+
+  const pctKept = salary > 0 ? Math.round((result.netAnnual / salary) * 100) : 0;
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -511,7 +525,7 @@ export default function SalaryUkCalc() {
           {/* Pie chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Income Breakdown</h3>
-            <div className="h-[240px]">
+            <div className="relative h-[240px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie
@@ -524,21 +538,30 @@ export default function SalaryUkCalc() {
                     dataKey="value"
                     animationDuration={600}
                   >
-                    {pieData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
+                    {pieData.map((d, i) => {
+                      const s = sliceStyle(d.name);
+                      return <Cell key={i} fill={s.fill} fillOpacity={s.opacity} />;
+                    })}
                   </Pie>
                   <Tooltip content={<ChartTooltip labelPrefix="" />} />
                 </PieChart>
               </ResponsiveContainer>
+              {/* Donut center KPI */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+                <span className="font-mono tabular-nums text-2xl font-semibold text-neutral-900">{pctKept}%</span>
+                <span className="text-[10px] uppercase tracking-wide text-neutral-500">kept</span>
+              </div>
             </div>
             <div className="flex flex-wrap justify-center gap-3 mt-2">
-              {pieData.map((d, i) => (
-                <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  {d.name}
-                </div>
-              ))}
+              {pieData.map((d) => {
+                const s = sliceStyle(d.name);
+                return (
+                  <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.fill, opacity: s.opacity }} />
+                    {d.name}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

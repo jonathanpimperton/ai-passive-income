@@ -13,7 +13,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   PieChart,
   Pie,
   Cell,
@@ -97,9 +96,6 @@ function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: st
     </div>
   );
 }
-
-/* ── Pie chart colors ─────────────────────────────────────── */
-const PIE_COLORS = ['#0B6E6E', '#EF4444'];
 
 /* ── Main Calculator ──────────────────────────────────────── */
 const DEFAULTS = { loanAmount: 300000, annualRate: 6.5, termYears: 30, extraPayment: 0 };
@@ -328,25 +324,27 @@ export default function LoanAmortizationCalc() {
             <ExportPdfButton toolName="Loan Amortization Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="loan-amortization" />
-
           {/* Pie + Area Charts */}
           <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
               <h3 className="text-sm font-medium text-neutral-700 mb-2">Principal vs Interest</h3>
-              <div className="h-40">
+              <div className="relative h-40">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={2}
                       animationDuration={600}>
-                      {pieData.map((_, idx) => (
-                        <Cell key={idx} fill={PIE_COLORS[idx]} />
+                      {pieData.map((d, idx) => (
+                        <Cell key={idx} fill={d.name === 'Interest' ? ct.cost : ct.series1} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => fmt(v)} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" iconSize={8} />
+                    <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
                   </PieChart>
                 </ResponsiveContainer>
+                {/* Donut center KPI — the monthly payment */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+                  <span className="font-mono tabular-nums text-sm font-semibold text-neutral-900">{fmt(monthlyPayment)}</span>
+                  <span className="text-[9px] uppercase tracking-wide text-neutral-500">monthly</span>
+                </div>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
@@ -354,12 +352,12 @@ export default function LoanAmortizationCalc() {
               <div className="h-40">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
-                    <XAxis dataKey="year" tick={{ fontSize: 10, fill: ct.axisText }} tickLine={false} />
+                    <CartesianGrid stroke={ct.grid} vertical={false} />
+                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }} tickLine={false} interval="preserveStartEnd" minTickGap={24} />
                     <YAxis tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 10, fill: ct.axisText }} tickLine={false} axisLine={false} width={45} />
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }} tickLine={false} axisLine={false} width={45} />
                     <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                    <Area type="monotone" dataKey="Remaining Balance" stroke="#0B6E6E" strokeWidth={2} fill="#0B6E6E" fillOpacity={0.1} animationDuration={600} />
+                    <Area type="monotone" dataKey="Remaining Balance" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} animationDuration={600} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -371,6 +369,8 @@ export default function LoanAmortizationCalc() {
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Amortization Schedule</h3>
             <AmortizationTable yearGroups={yearGroups} cc={currency} />
           </div>
+
+          <ResultAffiliate toolSlug="loan-amortization" />
         </div>
       </div>
     </div>

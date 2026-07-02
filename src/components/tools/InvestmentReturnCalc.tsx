@@ -17,7 +17,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
+  ReferenceDot,
 } from 'recharts';
 import { ChevronDown, RotateCcw, TrendingUp, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
@@ -206,6 +206,14 @@ export default function InvestmentReturnCalc() {
       Contributions: row.totalContributions,
     }));
   }, [effectiveValues, frequency, timing]);
+
+  /** First year where cumulative earnings exceed cumulative contributions. */
+  const crossover = useMemo(() => {
+    const row = chartData.find(
+      (r) => r.year > 0 && r['Total Balance'] - r.Contributions > r.Contributions
+    );
+    return row ? { year: row.year, balance: row['Total Balance'] } : null;
+  }, [chartData]);
 
   /* ── Summary stats ──────────────────────────────────────── */
   const summary = useMemo(() => {
@@ -547,59 +555,63 @@ export default function InvestmentReturnCalc() {
             <ExportPdfButton toolName="Investment Return Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="investment-return" />
-
           {/* Area Chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Growth Over Time</h3>
             <div className="h-56 sm:h-64">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="irColorBalance" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="irColorContrib" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="year"
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                   />
                   <YAxis
                     tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
                   <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
                   <Area
                     type="monotone"
                     dataKey="Total Balance"
-                    stroke="#0B6E6E"
+                    stroke={ct.series1}
                     strokeWidth={2}
-                    fill="url(#irColorBalance)"
+                    fill={ct.series1Fill}
                     animationDuration={600}
                   />
                   <Area
                     type="monotone"
                     dataKey="Contributions"
-                    stroke="#22A06B"
+                    stroke={ct.series2}
                     strokeWidth={2}
-                    fill="url(#irColorContrib)"
+                    fill={ct.series2Fill}
                     animationDuration={600}
                   />
+                  {crossover && (
+                    <ReferenceDot
+                      x={crossover.year}
+                      y={crossover.balance}
+                      r={4}
+                      fill={ct.series1}
+                      stroke={ct.tooltipBg}
+                      strokeWidth={2}
+                    />
+                  )}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+            {crossover && (
+              <p className="text-xs text-neutral-500 mt-2">
+                Earnings overtake deposits — Yr <span className="font-mono tabular-nums">{crossover.year}</span>
+              </p>
+            )}
           </div>
 
           {/* Year-by-Year Table */}
@@ -607,6 +619,8 @@ export default function InvestmentReturnCalc() {
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Year-by-Year Breakdown</h3>
             <ScheduleTable chartData={chartData} cc={currency} />
           </div>
+
+          <ResultAffiliate toolSlug="investment-return" />
         </div>
       </div>
     </div>

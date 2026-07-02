@@ -14,7 +14,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { Plus, X, RotateCcw, CreditCard, DollarSign } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
@@ -74,12 +73,8 @@ function DebtField({ label, id, value, onChange, prefix, suffix, type = 'number'
   );
 }
 
-/* ── Strategy type and colors ────────────────────────────── */
+/* ── Strategy type ───────────────────────────────────────── */
 type Strategy = 'snowball' | 'avalanche';
-const STRATEGY_COLORS = {
-  snowball: '#0B6E6E',
-  avalanche: '#22A06B',
-} as const;
 
 /* ── Default debts ───────────────────────────────────────── */
 interface DebtInput {
@@ -143,6 +138,12 @@ export default function DebtPayoffCalc() {
   const [extraPayment, setExtraPayment] = useState(DEFAULT_EXTRA);
   const [activeStrategy, setActiveStrategy] = useState<Strategy>('avalanche');
   const ct = useChartTheme();
+  // Strategy identity colors: avalanche (recommended) = primary series,
+  // snowball = quiet comparison series. Used in chart, toggle, and cards.
+  const STRATEGY_COLORS: Record<Strategy, string> = {
+    avalanche: ct.series1,
+    snowball: ct.series2,
+  };
 
   /* ── Parsed debts ─────────────────────────────────────── */
   const debts = useMemo(() => parseDebts(debtInputs), [debtInputs]);
@@ -581,8 +582,6 @@ export default function DebtPayoffCalc() {
                 <ExportPdfButton toolName="Debt Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
               </div>
 
-              <ResultAffiliate toolSlug="debt-payoff" />
-
               {/* ── Balance Over Time Chart ───────────── */}
               {chartData.length > 1 && (
                 <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
@@ -592,27 +591,24 @@ export default function DebtPayoffCalc() {
                   <div className="h-56 sm:h-64">
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                        <CartesianGrid stroke={ct.grid} vertical={false} />
                         <XAxis
                           dataKey="month"
-                          tick={{ fontSize: 12, fill: ct.axisText }}
+                          tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                           tickLine={false}
                           axisLine={{ stroke: ct.axis }}
-                          label={{ value: 'Months', position: 'insideBottomRight', offset: -5, style: { fontSize: 11, fill: '#9CA3AF' } }}
+                          interval="preserveStartEnd"
+                          minTickGap={24}
+                          label={{ value: 'Months', position: 'insideBottomRight', offset: -5, style: { fontSize: 11, fill: ct.axisText } }}
                         />
                         <YAxis
                           tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                          tick={{ fontSize: 12, fill: ct.axisText }}
+                          tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                           tickLine={false}
                           axisLine={false}
                           width={60}
                         />
                         <Tooltip content={<ChartTooltip labelPrefix="Month" formatValue={fmt} />} />
-                        <Legend
-                          wrapperStyle={{ fontSize: 12 }}
-                          iconType="circle"
-                          iconSize={8}
-                        />
                         <Line
                           type="monotone"
                           dataKey="Snowball"
@@ -693,6 +689,8 @@ export default function DebtPayoffCalc() {
                   </p>
                 </div>
               </div>
+
+              <ResultAffiliate toolSlug="debt-payoff" />
             </>
           )}
         </div>

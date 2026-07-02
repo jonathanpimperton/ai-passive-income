@@ -1,6 +1,11 @@
 /**
  * Shared chart tooltip component for recharts.
  * Used across all calculator components that render charts.
+ *
+ * "Precision Instrument" styling: flat card, 1px border, per-series rows in
+ * neutral ink with a small color swatch carrying series identity (never
+ * colored text), values in mono + tabular numerals. Dark-mode correct via
+ * Tailwind `dark:` classes (mapped to [data-theme="dark"]).
  */
 import { formatCurrency } from '../../lib/calculator-utils';
 
@@ -30,15 +35,27 @@ export default function ChartTooltip({
 }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-lg shadow-md p-3 text-sm">
-      <p className="font-medium text-neutral-900 dark:text-neutral-100 mb-1">
+    <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-lg shadow-md px-3 py-2.5 text-sm">
+      <p className="font-medium text-neutral-900 dark:text-neutral-100 mb-1.5">
         {labelPrefix} {label}
       </p>
-      {payload.map((entry) => (
-        <p key={entry.dataKey} style={{ color: entry.color }}>
-          {entry.name}: {formatValue(entry.value)}
-        </p>
-      ))}
+      <div className="space-y-1">
+        {payload.map((entry) => (
+          <div key={entry.dataKey} className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
+              <span
+                className="inline-block w-2 h-2 rounded-[2px] shrink-0"
+                style={{ backgroundColor: entry.color }}
+                aria-hidden="true"
+              />
+              {entry.name}
+            </span>
+            <span className="font-mono tabular-nums text-neutral-900 dark:text-neutral-100">
+              {formatValue(entry.value)}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

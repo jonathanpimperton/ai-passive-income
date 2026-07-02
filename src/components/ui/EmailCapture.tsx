@@ -74,8 +74,8 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
 
   if (status === 'success') {
     return (
-      <div className="bg-accent-100 border border-accent-500/20 rounded-lg p-6 shadow-card text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-500 text-white mb-3">
+      <div className="bg-primary-50 border border-primary-200/60 rounded-lg p-6 shadow-card text-center">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-600 text-white mb-3">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
@@ -144,7 +144,7 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="px-5 py-3 sm:py-2.5 text-base sm:text-sm font-semibold text-white bg-accent-700 rounded-xl hover:bg-accent-500 shadow-md shadow-accent-600/20 disabled:opacity-60 transition-all duration-200 whitespace-nowrap"
+          className="px-5 py-3 sm:py-2.5 text-base sm:text-sm font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-700 shadow-sm disabled:opacity-60 transition-all duration-200 whitespace-nowrap"
         >
           {status === 'loading' ? 'Subscribing...' : isNewsletter ? 'Subscribe' : 'Get tips'}
         </button>

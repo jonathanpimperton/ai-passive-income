@@ -3,6 +3,8 @@ import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { compoundInterest, solveForRetirementAge } from '../../lib/calculator-utils';
 import { loanMonthlyPayment } from '../../lib/calculator-utils';
 import { formatNumber } from '../../lib/calculator-utils';
+import { calcIncomeTax, calcNI } from '../../lib/uk-tax-calc';
+import { calcFederalTax, calcFICA } from '../../lib/us-tax-calc';
 import SliderInput from '../ui/SliderInput';
 
 /* ── Types ───────────────────────────────────────────────── */
@@ -24,18 +26,19 @@ interface RetirementState {
   monthlyContribution: number;
 }
 
-interface SolarState {
-  systemCost: number;
-  electricityBill: number;
+interface TakeHomeState {
+  region: 'US' | 'UK';
+  salaryUS: number;
+  salaryUK: number;
 }
 
 /* ── Prompt Config ───────────────────────────────────────── */
 
 const PROMPTS = [
   { id: 0 as const, question: 'Can I actually afford this house?', short: 'Mortgage' },
-  { id: 1 as const, question: 'How fast does $500/mo snowball?', short: 'Compound' },
+  { id: 1 as const, question: 'What does $500/mo grow into?', short: 'Compound' },
   { id: 2 as const, question: 'When can I retire?', short: 'Retire' },
-  { id: 3 as const, question: 'Should I invest in solar panels?', short: 'Solar' },
+  { id: 3 as const, question: "What's my take-home pay?", short: 'Salary' },
 ];
 
 /* ── Segmented Bar ───────────────────────────────────────── */
@@ -156,7 +159,7 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
           </div>
           <a
             href="/tools/debt-and-loans/mortgage-affordability/"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -168,7 +171,7 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
         <MortgageBar segments={segments} />
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+      <div className="h-px bg-neutral-200/80" />
 
       {/* Controls */}
       <div>
@@ -217,7 +220,7 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
   const animatedBalance = useAnimatedNumber(result.finalBalance);
 
   const segments: BarSegment[] = [
-    { label: 'Interest earned', value: result.interestEarned, className: 'bg-accent-500' },
+    { label: 'Interest earned', value: result.interestEarned, className: 'bg-success-500' },
     { label: 'Your contributions', value: result.totalContributions, className: 'bg-neutral-300' },
   ];
 
@@ -234,20 +237,20 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
           </div>
           <a
             href="/tools/saving-and-growth/compound-interest/"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
         </div>
         <div className="flex items-baseline gap-3">
-          <span className="text-2xl font-bold text-accent-600">{result.multiplier.toFixed(1)}x</span>
+          <span className="text-2xl font-bold text-success-600 tabular-nums">{result.multiplier.toFixed(1)}x</span>
           <span className="text-sm text-neutral-500">your money back — ${formatNumber(Math.round(result.interestEarned))} is pure interest</span>
         </div>
         <SegmentedBar segments={segments} />
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+      <div className="h-px bg-neutral-200/80" />
 
       {/* Controls */}
       <div>
@@ -301,7 +304,7 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
 
   const segments: BarSegment[] = [
     { label: 'Saving years', value: result.years, className: 'bg-primary-500' },
-    { label: 'Retirement years', value: Math.max(0, 90 - result.retireAge), className: 'bg-accent-400' },
+    { label: 'Retirement years', value: Math.max(0, 90 - result.retireAge), className: 'bg-primary-300' },
   ];
 
   return (
@@ -317,7 +320,7 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
           </div>
           <a
             href="/tools/income-and-planning/retirement-age/"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -329,7 +332,7 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
         <SegmentedBar segments={segments} />
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+      <div className="h-px bg-neutral-200/80" />
 
       {/* Controls */}
       <div>
@@ -361,62 +364,37 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
   );
 }
 
-/* ── Solar Panel ────────────────────────────────────────── */
+/* ── Take-Home Pay Panel ─────────────────────────────────────── */
 
-const SOLAR_SYSTEM_SIZE = 4; // kWp
-const SOLAR_KWH_PER_KWP = 900;
-const SOLAR_MAX_SELF_CONSUMPTION = 0.5; // no battery — half of generation is the realistic ceiling
-const SOLAR_EXPORT_TARIFF = 4.5; // p/kWh
-const SOLAR_ENERGY_INFLATION = 0.03;
-const SOLAR_DEGRADATION = 0.005;
-const SOLAR_MAINTENANCE = 150;
-const SOLAR_YEARS = 25;
-const SOLAR_TARIFF = 0.245; // £/kWh import unit rate
+function TakeHomePanel({ state, onChange }: { state: TakeHomeState; onChange: (s: TakeHomeState) => void }) {
+  const isUK = state.region === 'UK';
+  const salary = isUK ? state.salaryUK : state.salaryUS;
+  const sym = isUK ? '£' : '$';
 
-function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: SolarState) => void }) {
   const result = useMemo(() => {
-    const annualGeneration = SOLAR_SYSTEM_SIZE * SOLAR_KWH_PER_KWP;
-    // Household usage derived from the bill; self-consumption rises with usage
-    // on a diminishing-returns curve (a bigger bill means more daytime demand
-    // to soak up generation, but a 4kWp system tops out around 50% self-use).
-    const annualUsageKwh = (state.electricityBill * 12) / SOLAR_TARIFF;
-    const selfUseFraction =
-      SOLAR_MAX_SELF_CONSUMPTION * (1 - Math.exp(-annualUsageKwh / annualGeneration));
-
-    let cumulative = 0;
-    let paybackYear = -1;
-    for (let y = 1; y <= SOLAR_YEARS; y++) {
-      const degradedGen = annualGeneration * Math.pow(1 - SOLAR_DEGRADATION, y - 1);
-      const inflatedTariff = SOLAR_TARIFF * Math.pow(1 + SOLAR_ENERGY_INFLATION, y - 1);
-      const inflatedExport = (SOLAR_EXPORT_TARIFF / 100) * Math.pow(1 + SOLAR_ENERGY_INFLATION, y - 1);
-      const savings = (degradedGen * selfUseFraction * inflatedTariff) +
-                      (degradedGen * (1 - selfUseFraction) * inflatedExport) -
-                      SOLAR_MAINTENANCE;
-      cumulative += savings;
-      if (paybackYear === -1 && cumulative >= state.systemCost) {
-        paybackYear = y;
-      }
+    if (isUK) {
+      const tax = calcIncomeTax(salary);
+      const ni = calcNI(salary);
+      const takeHome = salary - tax - ni;
+      return { takeHome, tax, other: ni, otherLabel: 'National Insurance' };
     }
+    const tax = calcFederalTax(salary, 'single');
+    const fica = calcFICA(salary, 'single');
+    const takeHome = salary - tax - fica.total;
+    return { takeHome, tax, other: fica.total, otherLabel: 'FICA' };
+  }, [isUK, salary]);
 
-    const year1Savings = (annualGeneration * selfUseFraction * SOLAR_TARIFF) +
-                         (annualGeneration * (1 - selfUseFraction) * SOLAR_EXPORT_TARIFF / 100) -
-                         SOLAR_MAINTENANCE;
-    const totalProfit = cumulative - state.systemCost;
+  const animatedMonthly = useAnimatedNumber(result.takeHome / 12);
 
-    return { paybackYear, totalSavings: cumulative, year1Savings, totalProfit };
-  }, [state.systemCost, state.electricityBill]);
+  const segments: BarSegment[] = [
+    { label: 'Take-home', value: result.takeHome, className: 'bg-primary-500' },
+    { label: isUK ? 'Income tax' : 'Federal tax', value: result.tax, className: 'bg-red-300' },
+    { label: result.otherLabel, value: result.other, className: 'bg-neutral-300' },
+  ];
 
-  const animatedSavings = useAnimatedNumber(result.totalSavings);
-
-  const segments: BarSegment[] = result.totalProfit > 0
-    ? [
-        { label: 'Profit', value: result.totalProfit, className: 'bg-primary-500' },
-        { label: 'System cost', value: state.systemCost, className: 'bg-neutral-300' },
-      ]
-    : [
-        { label: 'Savings so far', value: result.totalSavings, className: 'bg-primary-500' },
-        { label: 'Remaining cost', value: Math.max(0, state.systemCost - result.totalSavings), className: 'bg-neutral-300' },
-      ];
+  const calcHref = isUK
+    ? '/tools/income-and-planning/salary-uk/'
+    : '/tools/income-and-planning/salary-us/';
 
   return (
     <div className="space-y-5">
@@ -424,55 +402,63 @@ function SolarPanel({ state, onChange }: { state: SolarState; onChange: (s: Sola
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-neutral-500 mb-1">{SOLAR_YEARS}-year savings</p>
+            <p className="text-sm text-neutral-500 mb-1">Your monthly take-home</p>
             <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
-              £{formatNumber(Math.round(animatedSavings))}
+              {sym}{formatNumber(Math.round(animatedMonthly))}
             </p>
           </div>
           <a
-            href="/tools/saving-and-growth/solar-payback/"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
+            href={calcHref}
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
           >
             Open full calculator
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
           </a>
         </div>
-        <p className="text-sm text-neutral-600 font-medium">
-          {result.paybackYear > 0
-            ? `Pays for itself in ${result.paybackYear} years. Year 1 saves £${formatNumber(Math.round(result.year1Savings))}.`
-            : `Year 1 saves £${formatNumber(Math.round(result.year1Savings))}. May not reach payback.`}
+        <p className="text-sm text-neutral-500">
+          {sym}{formatNumber(Math.round(result.takeHome))}/yr after {sym}{formatNumber(Math.round(result.tax + result.other))} in deductions
+          {isUK ? ' · 2026/27 rates' : ' · 2026 federal + FICA, single filer'}
         </p>
         <SegmentedBar segments={segments} />
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+      <div className="h-px bg-neutral-200/80" />
 
       {/* Controls */}
       <div>
-        <SliderInput
-          label="System cost"
-          id="engine-solar-cost"
-          value={state.systemCost}
-          min={3000}
-          max={15000}
-          step={500}
-          onChange={(v) => onChange({ ...state, systemCost: v })}
-          prefix="£"
-          formatDisplay={formatNumber}
-        />
-        <div className="mt-3">
-          <SliderInput
-            label="Monthly electricity bill"
-            id="engine-solar-bill"
-            value={state.electricityBill}
-            min={30}
-            max={300}
-            step={10}
-            onChange={(v) => onChange({ ...state, electricityBill: v })}
-            prefix="£"
-            formatDisplay={formatNumber}
-          />
+        <div className="mb-4" role="group" aria-label="Country">
+          <div className="inline-flex rounded-lg border border-neutral-200/80 p-0.5 bg-neutral-50">
+            {(['US', 'UK'] as const).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => onChange({ ...state, region: r })}
+                aria-pressed={state.region === r}
+                className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-150 ${
+                  state.region === r
+                    ? 'bg-primary-600 text-white'
+                    : 'text-neutral-600 hover:text-neutral-900'
+                }`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
         </div>
+        <SliderInput
+          label="Annual salary"
+          id="engine-salary"
+          value={salary}
+          min={isUK ? 15000 : 20000}
+          max={isUK ? 250000 : 500000}
+          step={isUK ? 500 : 1000}
+          textMax={1000000}
+          onChange={(v) => onChange(isUK ? { ...state, salaryUK: v } : { ...state, salaryUS: v })}
+          prefix={sym}
+          formatDisplay={formatNumber}
+          minLabel={`${sym}${isUK ? '15K' : '20K'}`}
+          maxLabel={`${sym}${isUK ? '250K' : '500K'}`}
+        />
       </div>
     </div>
   );
@@ -485,7 +471,7 @@ export default function DecisionEngine() {
   const [mortgage, setMortgage] = useState<MortgageState>({ income: 75000, downPayment: 50000 });
   const [snowball, setSnowball] = useState<SnowballState>({ monthly: 500, rate: 7 });
   const [retirement, setRetirement] = useState<RetirementState>({ currentAge: 30, monthlyContribution: 500 });
-  const [solar, setSolar] = useState<SolarState>({ systemCost: 7000, electricityBill: 120 });
+  const [takeHome, setTakeHome] = useState<TakeHomeState>({ region: 'US', salaryUS: 85000, salaryUK: 45000 });
 
   const panelRef = useRef<HTMLDivElement>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -541,7 +527,7 @@ export default function DecisionEngine() {
       case 0: return <MortgagePanel state={mortgage} onChange={setMortgage} />;
       case 1: return <SnowballPanel state={snowball} onChange={setSnowball} />;
       case 2: return <RetirementPanel state={retirement} onChange={setRetirement} />;
-      case 3: return <SolarPanel state={solar} onChange={setSolar} />;
+      case 3: return <TakeHomePanel state={takeHome} onChange={setTakeHome} />;
     }
   };
 
@@ -562,13 +548,23 @@ export default function DecisionEngine() {
               tabIndex={active === p.id ? 0 : -1}
               onClick={() => switchPrompt(p.id)}
               onKeyDown={(e) => handleTabKeyDown(e, p.id)}
-              className={`w-full text-left px-5 py-5 transition-all duration-200 border-l-[4px] ${
+              className={`group w-full text-left px-5 py-5 transition-all duration-200 border-l-[4px] rounded-r-lg ${
                 active === p.id
-                  ? 'border-l-primary-500 font-bold text-neutral-900'
-                  : 'border-l-transparent font-medium text-neutral-800 hover:text-neutral-900 hover:border-l-neutral-300'
+                  ? 'border-l-primary-500 font-bold text-neutral-900 bg-primary-50/50'
+                  : 'border-l-transparent font-medium text-neutral-800 hover:text-neutral-900 hover:bg-neutral-50 hover:border-l-neutral-300'
               }`}
             >
-              <span className="text-xl leading-relaxed">{p.question}</span>
+              <span className="flex items-center justify-between gap-3">
+                <span className="text-xl leading-relaxed">{p.question}</span>
+                <svg
+                  className={`w-4 h-4 shrink-0 transition-all duration-150 ${
+                    active === p.id ? 'text-primary-500' : 'text-neutral-300 group-hover:text-neutral-500'
+                  }`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
             </button>
           ))}
         </div>

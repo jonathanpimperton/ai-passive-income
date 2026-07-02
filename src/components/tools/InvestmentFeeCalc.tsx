@@ -13,7 +13,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { RotateCcw, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
@@ -370,54 +369,43 @@ export default function InvestmentFeeCalc() {
             <ExportPdfButton toolName="Investment Fee Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="investment-fee" />
-
           {/* Area Chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Portfolio Growth Comparison</h3>
             <div className="h-56 sm:h-64">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="ifColorYour" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="ifColorComp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="year"
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                   />
                   <YAxis
                     tickFormatter={yAxisFormatter}
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
                   <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
                   <Area
                     type="monotone"
                     dataKey={yourKey}
-                    stroke="#0B6E6E"
+                    stroke={ct.series1}
                     strokeWidth={2}
-                    fill="url(#ifColorYour)"
+                    fill={ct.series1Fill}
                     animationDuration={600}
                   />
                   <Area
                     type="monotone"
                     dataKey={compKey}
-                    stroke="#22A06B"
+                    stroke={ct.series2}
                     strokeWidth={2}
-                    fill="url(#ifColorComp)"
+                    fill={ct.series2Fill}
                     animationDuration={600}
                   />
                 </AreaChart>
@@ -459,6 +447,8 @@ export default function InvestmentFeeCalc() {
               </table>
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="investment-fee" />
         </div>
       </div>
     </div>

@@ -4,7 +4,11 @@ import EmailCapture from '@components/ui/EmailCapture.tsx';
 import DecisionEngine from '@components/homepage/DecisionEngine.tsx';
 import { TOOLS, getToolPath } from '@lib/tools-data';
 import { buildWebsiteSchema } from '@lib/seo';
-import { formatNumber, loanMonthlyPayment } from '@lib/calculator-utils';
+import { formatNumber, loanMonthlyPayment, compoundInterest } from '@lib/calculator-utils';
+import { calcIncomeTax, calcNI } from '@lib/uk-tax-calc';
+import { calcFederalTax, calcFICA } from '@lib/us-tax-calc';
+import { UK_TAX_YEAR } from '@lib/uk-rates';
+import { US_TAX_YEAR } from '@lib/us-rates';
 
 const websiteSchema = buildWebsiteSchema();
 
@@ -33,20 +37,32 @@ const flagshipTools = FLAGSHIP_SLUGS
   .map((slug) => TOOLS.find((t) => t.slug === slug))
   .filter((t): t is NonNullable<typeof t> => t !== undefined);
 
-/** 3 featured comparisons for discovery section */
+/** 5 featured comparisons for discovery section */
 const FEATURED_COMPARISONS = [
   { title: 'Renting vs Buying in 2026', slug: 'renting-vs-buying-2026' },
   { title: 'Pay Off Debt vs Invest', slug: 'pay-off-debt-vs-invest' },
   { title: 'Roth vs Traditional 401(k)', slug: 'roth-vs-traditional-401k' },
+  { title: '15-Year vs 30-Year Mortgage', slug: '15-year-vs-30-year-mortgage' },
+  { title: 'Snowball vs Avalanche', slug: 'snowball-vs-avalanche-debt' },
 ];
 
-/** 5 featured scenarios for discovery section */
+/**
+ * Featured scenarios with the ANSWER precomputed at build time using the
+ * site's own engines — the numbers are the hook, and they can never drift
+ * from what the calculators actually say.
+ */
+const ukTakeHome50k = 50_000 - calcIncomeTax(50_000) - calcNI(50_000);
+const usTakeHome100k = 100_000 - calcFederalTax(100_000, 'single') - calcFICA(100_000, 'single').total;
+const invest500x10 = compoundInterest(0, 500, 0.07, 10, 12);
+const mortgage300k = loanMonthlyPayment(300_000, 0.065, 360);
+const invest1000x20 = compoundInterest(0, 1000, 0.07, 20, 12);
+
 const FEATURED_SCENARIOS = [
-  { title: '£50K salary UK take-home', slug: '50k-salary-uk-take-home' },
-  { title: '$100K salary after tax', slug: '100k-salary-take-home' },
-  { title: '£500/mo invested for 10 years', slug: '500-per-month-10-years' },
-  { title: '$300K mortgage at 6.5%', slug: '300k-mortgage-6-5-percent' },
-  { title: '6-month emergency fund', slug: '6-month-emergency-fund' },
+  { title: '£50K salary UK take-home', slug: '50k-salary-uk-take-home', answer: `£${formatNumber(Math.round(ukTakeHome50k / 12))}/mo` },
+  { title: '$100K salary after tax', slug: '100k-salary-take-home', answer: `$${formatNumber(Math.round(usTakeHome100k / 12))}/mo` },
+  { title: '£500/mo invested for 10 years', slug: '500-per-month-10-years', answer: `£${formatNumber(Math.round(invest500x10 / 500) * 500)}` },
+  { title: '$300K mortgage at 6.5%', slug: '300k-mortgage-6-5-percent', answer: `$${formatNumber(Math.round(mortgage300k))}/mo` },
+  { title: '$1,000/mo invested for 20 years', slug: '1000-per-month-for-20-years', answer: `$${formatNumber(Math.round(invest1000x20 / 1000) * 1000)}` },
 ];
 
 /**
@@ -81,7 +97,10 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
         <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 tracking-[-0.02em]">
           Run your numbers
         </h1>
-        <p class="mt-2 text-neutral-500 text-lg sm:text-xl">Salary, mortgage, investing, and debt — answers in seconds</p>
+        <p class="mt-2 text-neutral-500 text-lg sm:text-xl">Financial calculators for salary, mortgage, investing, and debt — answers as you type</p>
+        <p class="mt-3 text-sm text-neutral-500">
+          <span class="tabular-nums">{TOOLS.length}</span> calculators &amp; tools&ensp;·&ensp;no signup&ensp;·&ensp;no ads
+        </p>
       </div>
 
       {/* Server-rendered skeleton — replaced by React on hydrate */}
@@ -93,13 +112,13 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
               <span class="text-xl leading-relaxed">Can I actually afford this house?</span>
             </div>
             <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
-              <span class="text-xl leading-relaxed">How fast does $500/mo snowball?</span>
+              <span class="text-xl leading-relaxed">What does $500/mo grow into?</span>
             </div>
             <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
               <span class="text-xl leading-relaxed">When can I retire?</span>
             </div>
             <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
-              <span class="text-xl leading-relaxed">Should I invest in solar panels?</span>
+              <span class="text-xl leading-relaxed">What's my take-home pay?</span>
             </div>
           </div>
 
@@ -116,7 +135,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
                   </div>
                   <a
                     href="/tools/debt-and-loans/mortgage-affordability/"
-                    class="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-lg transition-all duration-150"
+                    class="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
                   >
                     Open full calculator
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -137,7 +156,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
                 </div>
               </div>
 
-              <div class="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent"></div>
+              <div class="h-px bg-neutral-200/80"></div>
 
               <div class="space-y-3">
                 <div>
@@ -176,9 +195,9 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
               </div>
             </div>
           </div>
-          <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">How fast does $500/mo snowball?</div>
+          <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">What does $500/mo grow into?</div>
           <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">When can I retire?</div>
-          <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">Should I invest in solar panels?</div>
+          <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">What's my take-home pay?</div>
         </div>
       </div>
 
@@ -186,7 +205,27 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     </div>
   </section>
 
-  {/* ===== SECTION 2: DISCOVERY — Flagship Tools + Comparisons + Scenarios ===== */}
+  {/* ===== SECTION 2: TRUST STRIP ===== */}
+  <section class="border-y border-neutral-200/60 bg-surface">
+    <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2.5 sm:gap-10 text-sm text-neutral-600">
+        <a href="/about/" class="inline-flex items-center gap-2 hover:text-primary-700 transition-colors duration-150">
+          <svg class="w-4 h-4 text-primary-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+          Built by an ACA-qualified accountant
+        </a>
+        <span class="inline-flex items-center gap-2">
+          <svg class="w-4 h-4 text-primary-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          Tax rates verified for <span class="tabular-nums">{UK_TAX_YEAR}</span> (UK) &amp; <span class="tabular-nums">{US_TAX_YEAR}</span> (US)
+        </span>
+        <a href="/about/" class="inline-flex items-center gap-2 hover:text-primary-700 transition-colors duration-150">
+          <svg class="w-4 h-4 text-primary-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+          Every calculator documents its formula
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* ===== SECTION 3: DISCOVERY — Flagship Tools + Comparisons + Instant Answers ===== */}
   <section class="py-10 sm:py-14 bg-neutral-50">
     <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-10">
@@ -234,19 +273,21 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
           </a>
         </div>
 
-        {/* Column 3: Featured scenarios */}
+        {/* Column 3: Instant answers — precomputed results as the hook */}
         <div>
-          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Common scenarios</h2>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Instant answers</h2>
           <div class="space-y-0">
             {FEATURED_SCENARIOS.map((scenario) => (
               <a
                 href={`/scenarios/${scenario.slug}/`}
-                class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
+                class="group flex items-center justify-between gap-3 py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
               >
-                <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
+                <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150">
                   {scenario.title}
                 </span>
-                <svg class="w-4 h-4 shrink-0 text-neutral-300 group-hover:text-primary-500 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                <span class="shrink-0 text-sm font-semibold text-primary-700 tabular-nums">
+                  {scenario.answer}
+                </span>
               </a>
             ))}
           </div>
@@ -259,11 +300,14 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     </div>
   </section>
 
-  {/* ===== SECTION 3: NEWSLETTER ===== */}
-  <section class="py-6 sm:py-8">
-    <div class="max-w-[440px] mx-auto px-4 sm:px-6 lg:px-8">
-      <p class="text-sm text-neutral-500 mb-2 text-center">One email a week. New tools, scenarios, and money maths worth knowing.</p>
-      <EmailCapture client:visible variant="newsletter" />
+  {/* ===== SECTION 4: NEWSLETTER ===== */}
+  <section class="py-10 sm:py-14">
+    <div class="max-w-[560px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-surface border border-neutral-200/80 rounded-lg p-6 sm:p-8">
+        <h2 class="text-lg font-bold text-neutral-900 mb-1">One worked money question, weekly</h2>
+        <p class="text-sm text-neutral-500 mb-4">New tools, scenarios, and money maths worth knowing. Unsubscribe anytime.</p>
+        <EmailCapture client:visible variant="newsletter" />
+      </div>
     </div>
   </section>
 </BaseLayout>

@@ -254,16 +254,18 @@ export default function RoiCalc() {
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }} barGap={8}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} vertical={false} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                   />
                   <YAxis
                     tickFormatter={(v: number) => `${v.toFixed(0)}%`}
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={false}
                     width={50}
@@ -271,14 +273,16 @@ export default function RoiCalc() {
                   <Tooltip
                     content={<ChartTooltip labelPrefix="" formatValue={(v) => `${v.toFixed(2)}%`} />}
                   />
+                  {/* Identity by investment (A = primary, B = comparison);
+                      the Annualized measure is the same hue at lower opacity. */}
                   <Bar dataKey="Total Return" radius={[6, 6, 0, 0]} maxBarSize={60}>
                     {chartData.map((_, i) => (
-                      <Cell key={i} fill={i === 0 ? '#0B6E6E' : '#7C3AED'} />
+                      <Cell key={i} fill={i === 0 ? ct.series1 : ct.series2} />
                     ))}
                   </Bar>
                   <Bar dataKey="Annualized" radius={[6, 6, 0, 0]} maxBarSize={60}>
                     {chartData.map((_, i) => (
-                      <Cell key={i} fill={i === 0 ? '#60A5FA' : '#A78BFA'} />
+                      <Cell key={i} fill={i === 0 ? ct.series1 : ct.series2} fillOpacity={0.45} />
                     ))}
                   </Bar>
                 </BarChart>

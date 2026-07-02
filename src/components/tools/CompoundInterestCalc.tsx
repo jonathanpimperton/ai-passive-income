@@ -12,7 +12,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
+  ReferenceDot,
 } from 'recharts';
 import { ChevronDown, RotateCcw, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
@@ -189,6 +189,12 @@ export default function CompoundInterestCalc() {
       })),
     [schedule]
   );
+
+  /** First year where cumulative interest exceeds cumulative contributions. */
+  const crossover = useMemo(() => {
+    const row = schedule.find((r) => r.year > 0 && r.totalInterest > r.totalContributions);
+    return row ? { year: row.year, balance: row.balance } : null;
+  }, [schedule]);
 
   const yearTableData: YearRowData[] = useMemo(() => {
     return schedule.slice(1).map((row, i) => {
@@ -415,63 +421,63 @@ export default function CompoundInterestCalc() {
             <ExportPdfButton toolName="Compound Interest Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="compound-interest" />
-
           {/* Chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Growth Over Time</h3>
             <div className="h-56 sm:h-64">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="colorContrib" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="year"
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                   />
                   <YAxis
                     tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
                   <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                  <Legend
-                    wrapperStyle={{ fontSize: 12 }}
-                    iconType="circle"
-                    iconSize={8}
-                  />
                   <Area
                     type="monotone"
                     dataKey="Total Balance"
-                    stroke="#0B6E6E"
+                    stroke={ct.series1}
                     strokeWidth={2}
-                    fill="url(#colorBalance)"
+                    fill={ct.series1Fill}
                     animationDuration={600}
                   />
                   <Area
                     type="monotone"
                     dataKey="Contributions"
-                    stroke="#22A06B"
+                    stroke={ct.series2}
                     strokeWidth={2}
-                    fill="url(#colorContrib)"
+                    fill={ct.series2Fill}
                     animationDuration={600}
                   />
+                  {crossover && (
+                    <ReferenceDot
+                      x={crossover.year}
+                      y={crossover.balance}
+                      r={4}
+                      fill={ct.series1}
+                      stroke={ct.tooltipBg}
+                      strokeWidth={2}
+                    />
+                  )}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+            {crossover && (
+              <p className="text-xs text-neutral-500 mt-2">
+                Interest overtakes deposits — Yr <span className="font-mono tabular-nums">{crossover.year}</span>
+              </p>
+            )}
           </div>
 
           {/* Schedule Table */}
@@ -479,6 +485,8 @@ export default function CompoundInterestCalc() {
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Year-by-Year Breakdown</h3>
             <ScheduleTable data={yearTableData} cc={currency} />
           </div>
+
+          <ResultAffiliate toolSlug="compound-interest" />
         </div>
       </div>
     </div>

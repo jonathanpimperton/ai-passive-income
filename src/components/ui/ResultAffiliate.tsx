@@ -1,8 +1,7 @@
-import { ArrowUpRight } from 'lucide-react';
-
 /**
- * Inline affiliate card for calculator results panels.
- * Renders a small, contextual partner recommendation below the main results.
+ * Inline affiliate recommendation for calculator results panels.
+ * Renders a slim bordered row (not a colored box) with the FTC
+ * disclosure above the partner link, matching AffiliateLinks.astro.
  * Only shows for calculators with a natural affiliate fit.
  */
 
@@ -196,43 +195,38 @@ export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
   }
 
   return (
-    <div data-pdf-hide className="mt-6 mb-6 rounded-lg border border-primary-200/60 bg-primary-50/50 p-4">
-      <p className="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-2">
+    <div data-pdf-hide className="mt-6 mb-6 rounded-lg border border-neutral-200/80 bg-surface p-4">
+      <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
         {config.cta}
       </p>
-      <a
-        href={buildUrl(partner, toolSlug)}
-        target="_blank"
-        rel="noopener sponsored"
-        data-affiliate-partner={partner.name.toLowerCase().replace(/\s+/g, '-')}
-        data-affiliate-placement="inline"
-        className="group affiliate-link flex items-center gap-3 bg-white rounded-lg border border-neutral-200/80 p-3 hover:border-primary-300 hover:shadow-sm transition-all duration-200"
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-neutral-900 group-hover:text-primary-700 transition-colors duration-200">
-              {partner.name}
-            </p>
-            {partner.bestFor && (
-              <span className="text-[10px] font-semibold text-primary-700 bg-primary-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                {partner.bestFor}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-neutral-500 mt-0.5">{partner.tagline}</p>
-        </div>
-        <ArrowUpRight
-          size={16}
-          className="text-primary-600 shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200"
-          aria-hidden="true"
-        />
-      </a>
-      <p className="text-[10px] text-neutral-500 mt-2 leading-relaxed">
+      {/* FTC disclosure — before the link */}
+      <p className="text-[10px] text-neutral-500 mt-1 leading-relaxed">
         {disclosure}{' '}
-        <a href="/disclosure/" className="text-primary-600 hover:text-primary-700 underline">
+        <a href="/disclosure/" className="underline hover:text-primary-600 transition-colors duration-150">
           Disclosure
         </a>
       </p>
+      <div className="mt-3 pt-3 border-t border-neutral-200/80 flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm">
+            <span className="font-semibold text-neutral-900">{partner.name}</span>
+            {partner.bestFor && (
+              <span className="ml-2 text-xs text-neutral-500">{partner.bestFor}</span>
+            )}
+          </p>
+          <p className="text-xs text-neutral-500 mt-0.5">{partner.tagline}</p>
+        </div>
+        <a
+          href={buildUrl(partner, toolSlug)}
+          target="_blank"
+          rel="noopener sponsored"
+          data-affiliate-partner={partner.name.toLowerCase().replace(/\s+/g, '-')}
+          data-affiliate-placement="inline"
+          className="affiliate-link shrink-0 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline transition-colors duration-150 whitespace-nowrap"
+        >
+          Visit {partner.name} <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
     </div>
   );
 }

@@ -331,28 +331,20 @@ export default function InflationCalc() {
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="infColor1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="infColor2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
                   <XAxis
                     dataKey="year"
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={{ stroke: ct.axis }}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                   />
                   <YAxis
                     tickFormatter={(v: number) =>
                       `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`
                     }
-                    tick={{ fontSize: 12, fill: ct.axisText }}
+                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
@@ -360,13 +352,13 @@ export default function InflationCalc() {
                   <Tooltip content={<ChartTooltip labelPrefix="" />} />
                   {mode === 'historical' ? (
                     <>
-                      <Area type="monotone" dataKey="Equivalent Value" stroke="#0B6E6E" strokeWidth={2} fill="url(#infColor1)" animationDuration={600} />
-                      <Area type="monotone" dataKey="Original Amount" stroke="#9CA3AF" strokeWidth={1.5} strokeDasharray="4 3" fill="none" animationDuration={600} />
+                      <Area type="monotone" dataKey="Equivalent Value" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} animationDuration={600} />
+                      <Area type="monotone" dataKey="Original Amount" stroke={ct.series2} strokeWidth={2} fill={ct.series2Fill} animationDuration={600} />
                     </>
                   ) : (
                     <>
-                      <Area type="monotone" dataKey="Cost in Future Dollars" stroke="#0B6E6E" strokeWidth={2} fill="url(#infColor1)" animationDuration={600} />
-                      <Area type="monotone" dataKey="Purchasing Power" stroke="#22A06B" strokeWidth={2} fill="url(#infColor2)" animationDuration={600} />
+                      <Area type="monotone" dataKey="Cost in Future Dollars" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} animationDuration={600} />
+                      <Area type="monotone" dataKey="Purchasing Power" stroke={ct.series2} strokeWidth={2} fill={ct.series2Fill} animationDuration={600} />
                     </>
                   )}
                 </AreaChart>

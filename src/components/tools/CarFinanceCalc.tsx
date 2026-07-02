@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { ChevronDown, RotateCcw, Trophy } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
@@ -22,8 +21,6 @@ import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
 import { calcMonthly, calcPcpMonthly, calcOpportunityCost } from '../../lib/car-finance';
-
-const BAR_COLORS = ['#0B6E6E', '#22A06B', '#3B82F6', '#8B5CF6'];
 
 interface FinanceResult {
   type: string;
@@ -374,7 +371,7 @@ export default function CarFinanceCalc() {
                 <div className="flex items-center gap-2 mb-3">
                   <span
                     className="inline-block w-3 h-3 rounded-full shrink-0"
-                    style={{ backgroundColor: BAR_COLORS[i] }}
+                    style={{ backgroundColor: ct.segments[i % ct.segments.length] }}
                     aria-hidden="true"
                   />
                   <h3 className="text-sm font-semibold text-neutral-800">{r.label}</h3>
@@ -433,8 +430,6 @@ export default function CarFinanceCalc() {
             <ExportPdfButton toolName="Car Finance Comparison Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="car-finance" />
-
           {/* True cost stacked bar chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-1">True Cost Breakdown</h3>
@@ -442,13 +437,12 @@ export default function CarFinanceCalc() {
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
-                  <XAxis dataKey="name" tick={{ fill: ct.axisText, fontSize: 11 }} stroke={ct.axis} />
-                  <YAxis tick={{ fill: ct.axisText, fontSize: 12 }} stroke={ct.axis} tickFormatter={(v: number) => `${currencySymbol}${formatNumber(v)}`} />
+                  <CartesianGrid stroke={ct.grid} vertical={false} />
+                  <XAxis dataKey="name" tick={{ fill: ct.axisText, fontSize: 11, fontFamily: ct.monoFont }} stroke={ct.axis} interval="preserveStartEnd" minTickGap={24} />
+                  <YAxis tick={{ fill: ct.axisText, fontSize: 11, fontFamily: ct.monoFont }} stroke={ct.axis} tickFormatter={(v: number) => `${currencySymbol}${formatNumber(v)}`} />
                   <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="payments" name="Total Paid" stackId="a" fill="#0B6E6E" radius={[0, 0, 0, 0]} animationDuration={600} />
-                  <Bar dataKey="opportunity" name="Opportunity Cost" stackId="a" fill="#C4442A" radius={[4, 4, 0, 0]} animationDuration={600} />
+                  <Bar dataKey="payments" name="Total Paid" stackId="a" fill={ct.series1} radius={[0, 0, 0, 0]} animationDuration={600} />
+                  <Bar dataKey="opportunity" name="Opportunity Cost" stackId="a" fill={ct.cost} radius={[4, 4, 0, 0]} animationDuration={600} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -521,6 +515,8 @@ export default function CarFinanceCalc() {
               </table>
             </div>
           </div>
+
+          <ResultAffiliate toolSlug="car-finance" />
         </div>
       </div>
     </div>

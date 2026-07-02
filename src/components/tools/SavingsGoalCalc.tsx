@@ -441,8 +441,6 @@ export default function SavingsGoalCalc() {
             <ExportPdfButton toolName="Savings Goal Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="savings-goal" />
-
           {/* Chart */}
           {chartData.length > 1 && (
             <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
@@ -450,65 +448,47 @@ export default function SavingsGoalCalc() {
               <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                    <defs>
-                      <linearGradient id="sgColorBalance" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="sgColorContrib" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                    <CartesianGrid stroke={ct.grid} vertical={false} />
                     <XAxis
                       dataKey="year"
-                      tick={{ fontSize: 12, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={{ stroke: ct.axis }}
+                      interval="preserveStartEnd"
+                      minTickGap={24}
                       label={{ value: 'Year', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: ct.axisText }}
                     />
                     <YAxis
                       tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 12, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={false}
                       width={60}
                     />
                     <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                    {/* Goal line reference */}
                     <Area
                       type="monotone"
                       dataKey="Projected Balance"
-                      stroke="#0B6E6E"
+                      stroke={ct.series1}
                       strokeWidth={2}
-                      fill="url(#sgColorBalance)"
+                      fill={ct.series1Fill}
                       animationDuration={600}
                     />
                     <Area
                       type="monotone"
                       dataKey="Contributions"
-                      stroke="#22A06B"
+                      stroke={ct.series2}
                       strokeWidth={2}
-                      fill="url(#sgColorContrib)"
+                      fill={ct.series2Fill}
                       animationDuration={600}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              {/* Goal reference line label */}
-              <div className="flex items-center justify-end gap-4 mt-2 text-xs text-neutral-500">
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-0.5 bg-[#0B6E6E] rounded-full" />
-                  Projected Balance
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-0.5 bg-[#22A06B] rounded-full" />
-                  Contributions
-                </span>
-              </div>
             </div>
           )}
+
+          <ResultAffiliate toolSlug="savings-goal" />
         </div>
       </div>
     </div>

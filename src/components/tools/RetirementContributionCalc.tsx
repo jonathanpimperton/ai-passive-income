@@ -291,7 +291,7 @@ export default function RetirementContributionCalc() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Inflation-Adjusted Target</p>
-                <p className="text-lg font-semibold text-amber-600 tabular-nums">
+                <p className="text-lg font-semibold text-primary-600 tabular-nums">
                   {fmt(results.real)}
                 </p>
               </div>
@@ -326,8 +326,6 @@ export default function RetirementContributionCalc() {
             <ExportPdfButton toolName="Retirement Contribution Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="retirement-contribution" />
-
           {/* Chart */}
           {chartData.length > 1 && (
             <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
@@ -337,52 +335,39 @@ export default function RetirementContributionCalc() {
               <div className="h-56 sm:h-72">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 5, bottom: 5 }}>
-                    <defs>
-                      <linearGradient id="colorNominalRC" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0B6E6E" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#0B6E6E" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorRealRC" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorContribRC" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22A06B" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#22A06B" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                    <CartesianGrid stroke={ct.grid} vertical={false} />
                     <XAxis
                       dataKey="age"
-                      tick={{ fontSize: 12, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={{ stroke: ct.axis }}
-                      label={{ value: 'Age', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: '#9CA3AF' }}
+                      interval="preserveStartEnd"
+                      minTickGap={24}
+                      label={{ value: 'Age', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: ct.axisText }}
                     />
                     <YAxis
                       tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 12, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={false}
                       width={60}
                     />
                     <Tooltip content={<ChartTooltip labelPrefix="Age" formatValue={fmt} />} />
-                    <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" iconSize={8} />
 
                     {visibleMilestones.map((m) => (
                       <ReferenceLine
                         key={m.age}
                         x={m.age}
-                        stroke="#94A3B8"
-                        strokeDasharray="4 4"
+                        stroke={ct.axisText}
                         strokeWidth={1}
-                        label={{ value: m.label, position: 'top', fontSize: 10, fill: '#64748B' }}
+                        label={{ value: m.label, position: 'top', fontSize: 10, fill: ct.axisText }}
                       />
                     ))}
 
-                    <Area type="monotone" dataKey="Nominal Balance" stroke="#0B6E6E" strokeWidth={2} fill="url(#colorNominalRC)" animationDuration={600} />
-                    <Area type="monotone" dataKey="Inflation-Adjusted" stroke="#F59E0B" strokeWidth={2} fill="url(#colorRealRC)" animationDuration={600} />
-                    <Area type="monotone" dataKey="Contributions" stroke="#22A06B" strokeWidth={2} fill="url(#colorContribRC)" animationDuration={600} />
+                    <Area type="monotone" dataKey="Nominal Balance" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} animationDuration={600} />
+                    <Area type="monotone" dataKey="Inflation-Adjusted" stroke={ct.segments[2]} strokeWidth={2} fill="none" animationDuration={600} />
+                    <Area type="monotone" dataKey="Contributions" stroke={ct.series2} strokeWidth={2} fill={ct.series2Fill} animationDuration={600} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -419,7 +404,7 @@ export default function RetirementContributionCalc() {
                         >
                           <td className="py-2.5 px-4 font-medium text-neutral-900 tabular-nums">{row.age}</td>
                           <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">{fmt(row['Nominal Balance'])}</td>
-                          <td className="py-2.5 px-4 text-right text-amber-600 tabular-nums hidden sm:table-cell">{fmt(row['Inflation-Adjusted'])}</td>
+                          <td className="py-2.5 px-4 text-right text-primary-600 tabular-nums hidden sm:table-cell">{fmt(row['Inflation-Adjusted'])}</td>
                           <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">{fmt(row.Contributions)}</td>
                         </tr>
                       ))}
@@ -428,6 +413,8 @@ export default function RetirementContributionCalc() {
               </div>
             </div>
           )}
+
+          <ResultAffiliate toolSlug="retirement-contribution" />
         </div>
       </div>
     </div>

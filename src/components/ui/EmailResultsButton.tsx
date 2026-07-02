@@ -163,7 +163,7 @@ export default function EmailResultsButton({
   if (status === 'success') {
     return (
       <div
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl text-accent-600 bg-accent-50 border border-accent-200/60"
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl text-primary-700 bg-primary-50 border border-primary-200/60"
         data-pdf-hide
       >
         <CheckCircle size={16} aria-hidden="true" />

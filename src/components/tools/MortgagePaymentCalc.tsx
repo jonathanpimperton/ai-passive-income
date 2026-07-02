@@ -108,8 +108,6 @@ function buildAmortization(
   return { yearGroups, totalInterest, totalPaid, payoffMonths };
 }
 
-const PIE_COLORS = ['#0B6E6E', '#F59E0B'];
-
 function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string }) {
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
   const fmtCell = (v: number) => formatCurrency(v, cc);
@@ -434,8 +432,6 @@ export default function MortgagePaymentCalc() {
             <ExportPdfButton toolName="Mortgage Payment Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="mortgage-payment" />
-
           {/* Extra payment savings */}
           {extraMonthly > 0 && result.interestSaved > 0 && (
             <div data-pdf-section className="mb-6 p-4 rounded-xl border border-success-100 bg-success-50/50">
@@ -492,22 +488,27 @@ export default function MortgagePaymentCalc() {
           {/* Pie chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Principal vs Interest</h3>
-            <div className="h-[200px]">
+            <div className="relative h-[200px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value" animationDuration={600}>
-                    {pieData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i]} />
+                    {pieData.map((d, i) => (
+                      <Cell key={i} fill={d.name === 'Total Interest' ? ct.cost : ct.series1} />
                     ))}
                   </Pie>
                   <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
                 </PieChart>
               </ResponsiveContainer>
+              {/* Donut center KPI — the monthly payment */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+                <span className="font-mono tabular-nums text-lg font-semibold text-neutral-900">{fmt(result.totalMonthly)}</span>
+                <span className="text-[10px] uppercase tracking-wide text-neutral-500">monthly</span>
+              </div>
             </div>
             <div className="flex justify-center gap-6 mt-2">
-              {pieData.map((d, i) => (
+              {pieData.map((d) => (
                 <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i] }} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.name === 'Total Interest' ? ct.cost : ct.series1 }} />
                   {d.name}: {fmt(d.value)}
                 </div>
               ))}
@@ -521,11 +522,11 @@ export default function MortgagePaymentCalc() {
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={result.chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 6" stroke={ct.grid} />
-                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: ct.axisText }} interval="preserveStartEnd" minTickGap={24} />
-                    <YAxis tick={{ fontSize: 11, fill: ct.axisText }} tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${(v / 1000).toFixed(0)}k`; }} width={55} />
+                    <CartesianGrid stroke={ct.grid} vertical={false} />
+                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }} interval="preserveStartEnd" minTickGap={24} />
+                    <YAxis tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }} tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${(v / 1000).toFixed(0)}k`; }} width={55} />
                     <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                    <Area type="monotone" dataKey="balance" name="Remaining Balance" stroke="#0B6E6E" fill="#D1F0F0" strokeWidth={2} animationDuration={800} />
+                    <Area type="monotone" dataKey="balance" name="Remaining Balance" stroke={ct.series1} fill={ct.series1Fill} strokeWidth={2} animationDuration={800} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -554,6 +555,8 @@ export default function MortgagePaymentCalc() {
             </div>
           )}
           </div>
+
+          <ResultAffiliate toolSlug="mortgage-payment" />
         </div>
       </div>
     </div>

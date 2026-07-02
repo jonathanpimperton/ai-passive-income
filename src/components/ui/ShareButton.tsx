@@ -159,7 +159,7 @@ export default function ShareButton({ toolSlug, toolName }: ShareButtonProps) {
               onClick={() => item.platform === 'copy' ? handleCopyLink() : handleShare(item.platform)}
               className={`flex items-center gap-3 w-full px-3 py-2.5 text-sm rounded-lg transition-colors duration-150 ${
                 item.platform === 'copy' && copied
-                  ? 'text-accent-600 bg-accent-50'
+                  ? 'text-primary-700 bg-primary-50'
                   : 'text-neutral-700 hover:bg-primary-50 hover:text-primary-600'
               }`}
             >

@@ -17,6 +17,7 @@ import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { calcFederalTax, calcFICA } from '../../lib/us-tax-calc';
 import { US_TAX_YEAR, US_401K, type FilingStatus } from '../../lib/us-rates';
+import { useChartTheme } from '../../lib/useChartTheme';
 
 type InputMode = 'annual' | 'hourly';
 
@@ -26,8 +27,6 @@ const FILING_LABELS: Record<FilingStatus, string> = {
   married: 'Married Filing Jointly',
   head: 'Head of Household',
 };
-
-const PIE_COLORS = ['#0B6E6E', '#F59E0B', '#22A06B', '#7C3AED', '#EF4444', '#EC4899'];
 
 const DEFAULTS = {
   salary: 75000,
@@ -41,6 +40,7 @@ const DEFAULTS = {
 };
 
 export default function SalaryCalc() {
+  const ct = useChartTheme();
   const [inputMode, setInputMode] = useState<InputMode>('annual');
   const [salary, setSalary] = useState(DEFAULTS.salary);
   const [hourlyRate, setHourlyRate] = useState(DEFAULTS.hourlyRate);
@@ -158,6 +158,22 @@ export default function SalaryCalc() {
     { name: 'Medicare', value: result.fica.medicare },
     ...(result.retirement401kAmount > 0 ? [{ name: '401(k)', value: result.retirement401kAmount }] : []),
   ].filter((d) => d.value > 0), [result]);
+
+  // Semantic slice colors: take-home = primary teal, 401(k) = money kept
+  // (gain), taxes/FICA = cost family differentiated by opacity steps.
+  const sliceStyle = (name: string): { fill: string; opacity: number } => {
+    switch (name) {
+      case 'Take-Home Pay': return { fill: ct.series1, opacity: 1 };
+      case 'Federal Tax': return { fill: ct.cost, opacity: 1 };
+      case 'State Tax': return { fill: ct.cost, opacity: 0.7 };
+      case 'Social Security': return { fill: ct.cost, opacity: 0.5 };
+      case 'Medicare': return { fill: ct.cost, opacity: 0.32 };
+      case '401(k)': return { fill: ct.gain, opacity: 1 };
+      default: return { fill: ct.segments[1], opacity: 1 };
+    }
+  };
+
+  const pctKept = result.grossAnnual > 0 ? Math.round((result.netAnnual / result.grossAnnual) * 100) : 0;
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -324,7 +340,7 @@ export default function SalaryCalc() {
           {/* Pie chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Income Breakdown</h3>
-            <div className="h-[240px]">
+            <div className="relative h-[240px]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie
@@ -337,23 +353,32 @@ export default function SalaryCalc() {
                     dataKey="value"
                     animationDuration={600}
                   >
-                    {pieData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
+                    {pieData.map((d, i) => {
+                      const s = sliceStyle(d.name);
+                      return <Cell key={i} fill={s.fill} fillOpacity={s.opacity} />;
+                    })}
                   </Pie>
                   <Tooltip
                     content={<ChartTooltip labelPrefix="" />}
                   />
                 </PieChart>
               </ResponsiveContainer>
+              {/* Donut center KPI */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+                <span className="font-mono tabular-nums text-2xl font-semibold text-neutral-900">{pctKept}%</span>
+                <span className="text-[10px] uppercase tracking-wide text-neutral-500">kept</span>
+              </div>
             </div>
             <div className="flex flex-wrap justify-center gap-3 mt-2">
-              {pieData.map((d, i) => (
-                <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  {d.name}
-                </div>
-              ))}
+              {pieData.map((d) => {
+                const s = sliceStyle(d.name);
+                return (
+                  <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.fill, opacity: s.opacity }} />
+                    {d.name}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

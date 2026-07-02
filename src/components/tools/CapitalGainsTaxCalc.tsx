@@ -2,12 +2,12 @@ import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { RotateCcw, Percent, TrendingUp, DollarSign, PoundSterling } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
@@ -528,8 +528,6 @@ export default function CapitalGainsTaxCalc() {
             <ExportPdfButton toolName="Capital Gains Tax Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          <ResultAffiliate toolSlug="capital-gains-tax" />
-
           {/* US: Short vs Long term comparison */}
           {country === 'us' && comparisonData.length > 0 && gain > 0 && (
             <div data-pdf-section className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200/80 dark:border-neutral-700 p-4 mb-6">
@@ -539,24 +537,26 @@ export default function CapitalGainsTaxCalc() {
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={comparisonData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                    <CartesianGrid stroke={ct.grid} vertical={false} />
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 12, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={{ stroke: ct.axis }}
+                      interval="preserveStartEnd"
+                      minTickGap={24}
                     />
                     <YAxis
                       tickFormatter={(v: number) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`}
-                      tick={{ fontSize: 12, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={false}
                       width={55}
                     />
                     <Tooltip content={<ChartTooltip formatValue={(v) => fmtUSD(v as number)} />} />
-                    <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
-                    <Bar dataKey="Federal Tax" stackId="a" fill="#0B6E6E" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="NIIT" stackId="a" fill="#C4442A" radius={[4, 4, 0, 0]} />
+                    {/* Both segments are tax paid — cost family, NIIT lighter */}
+                    <Bar dataKey="Federal Tax" stackId="a" fill={ct.cost} radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="NIIT" stackId="a" fill={ct.cost} fillOpacity={0.55} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -584,29 +584,45 @@ export default function CapitalGainsTaxCalc() {
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                    <CartesianGrid stroke={ct.grid} vertical={false} />
                     <XAxis
                       type="number"
                       tickFormatter={(v: number) => v >= 1000 ? `£${(v / 1000).toFixed(0)}K` : `£${v}`}
-                      tick={{ fontSize: 11, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={{ stroke: ct.axis }}
+                      interval="preserveStartEnd"
+                      minTickGap={24}
                     />
                     <YAxis
                       type="category"
                       dataKey="name"
-                      tick={{ fontSize: 11, fill: ct.axisText }}
+                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
                       tickLine={false}
                       axisLine={false}
                       width={90}
                     />
                     <Tooltip content={<ChartTooltip formatValue={(v) => fmtGBP(v as number)} />} />
-                    <Bar dataKey="value" fill="#0B6E6E" radius={[0, 4, 4, 0]} animationDuration={600} />
+                    {/* Semantic per row: tax = cost, exempt/kept = gain/primary */}
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]} animationDuration={600}>
+                      {chartData.map((d, i) => {
+                        const isTax = d.name.startsWith('Tax') || d.name.startsWith('Federal') || d.name.startsWith('NIIT');
+                        const isExempt = d.name === 'Annual Exempt';
+                        return (
+                          <Cell
+                            key={i}
+                            fill={isTax ? ct.cost : isExempt ? ct.gain : ct.series1}
+                          />
+                        );
+                      })}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
           )}
+
+          <ResultAffiliate toolSlug="capital-gains-tax" />
         </div>
       </div>
     </div>
