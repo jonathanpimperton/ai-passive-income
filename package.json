@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "prebuild": "vitest run src/lib/rates-freshness.test.ts",
+    "prebuild": "node scripts/check-rates-freshness.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "check": "tsc --noEmit",
