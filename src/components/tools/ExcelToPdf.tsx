@@ -243,8 +243,8 @@ export default function ExcelToPdf() {
         {file && sheets.length > 0 && (
           <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-5 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent-50 flex items-center justify-center">
-                <Table size={20} className="text-accent-600" aria-hidden="true" />
+              <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
+                <Table size={20} className="text-primary-600" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-neutral-900 truncate">{file.name}</p>

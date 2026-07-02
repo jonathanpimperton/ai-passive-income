@@ -46,7 +46,7 @@ function calcMaxLoan(monthlyPI: number, annualRate: number, years: number): numb
   return monthlyPI * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
 }
 
-const PIE_COLORS = ['#0B6E6E', '#22A06B', '#F59E0B', '#E8604C', '#6366F1'];
+const PIE_COLORS = ['#0B6E6E', '#22A06B', '#F59E0B', '#C4442A', '#6366F1'];
 
 const DEFAULTS = {
   annualIncome: 80000,
@@ -184,13 +184,13 @@ export default function MortgageAffordabilityCalc() {
 
   // DTI color indicator
   const dtiColor = result.dtiRatio <= 28
-    ? 'text-green-600'
+    ? 'text-success-600'
     : result.dtiRatio <= 36
       ? 'text-amber-600'
       : 'text-red-600';
 
   const dtiBg = result.dtiRatio <= 28
-    ? 'bg-green-50 border-green-200'
+    ? 'bg-success-50 border-success-100'
     : result.dtiRatio <= 36
       ? 'bg-amber-50 border-amber-200'
       : 'bg-red-50 border-red-200';
@@ -473,7 +473,7 @@ export default function MortgageAffordabilityCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Percent size={16} aria-hidden="true" />
               </div>
               <div>
@@ -487,7 +487,7 @@ export default function MortgageAffordabilityCalc() {
           <div data-pdf-section className={`mb-6 p-4 rounded-xl border ${dtiBg}`}>
             <div className="flex items-center gap-2 mb-1">
               {result.dtiRatio <= 28 ? (
-                <ShieldCheck size={16} className="text-green-600" aria-hidden="true" />
+                <ShieldCheck size={16} className="text-success-600" aria-hidden="true" />
               ) : result.dtiRatio <= 36 ? (
                 <AlertTriangle size={16} className="text-amber-600" aria-hidden="true" />
               ) : (

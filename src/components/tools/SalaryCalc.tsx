@@ -264,7 +264,7 @@ export default function SalaryCalc() {
                   <tr key={row.label} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
                     <td className="py-2.5 px-4 font-medium text-neutral-700">{row.label}</td>
                     <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">{formatCurrency(row.gross)}</td>
-                    <td className="py-2.5 px-4 text-right font-semibold text-accent-600 tabular-nums">{formatCurrency(row.net)}</td>
+                    <td className="py-2.5 px-4 text-right font-semibold text-success-600 tabular-nums">{formatCurrency(row.net)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -303,11 +303,11 @@ export default function SalaryCalc() {
             </div>
             {result.retirement401kAmount > 0 && (
               <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-                <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><PiggyBank size={16} aria-hidden="true" /></div>
+                <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5"><PiggyBank size={16} aria-hidden="true" /></div>
                 <div>
                   <p className="text-xs text-neutral-500 mb-0.5">401(k)</p>
                   <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatCurrency(result.retirement401kAmount)}</p>
-                  <p className="text-xs text-accent-600 mt-0.5">Pre-tax</p>
+                  <p className="text-xs text-success-600 mt-0.5">Pre-tax</p>
                 </div>
               </div>
             )}

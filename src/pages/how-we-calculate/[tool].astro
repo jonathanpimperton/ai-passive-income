@@ -34,24 +34,24 @@ const breadcrumbs = [
   description={`Methodology and formulas behind the ${toolMeta?.name || slug} calculator on CalcRun. See the exact formula, variables, assumptions, and data sources.`}
   ogImage={`/og/${toolSlug}.png`}
 >
-  <!-- Dark header -->
-  <div class="bg-[#0F1B2D] text-white">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-      <Breadcrumb items={breadcrumbs} variant="dark" />
+  <!-- Page header -->
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <Breadcrumb items={breadcrumbs} />
 
-      <div class="flex items-start gap-4 mt-4 mb-6">
+      <div class="flex items-start gap-4">
         {toolMeta && (
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 text-white shrink-0 backdrop-blur-sm">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary-50 text-primary-600 shrink-0">
             <ToolIcon name={toolMeta.icon} size={24} />
           </div>
         )}
         <div>
-          <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">{title}</h1>
-          <p class="text-white/60 mt-2">Exact formulas, variables, and assumptions</p>
+          <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">{title}</h1>
+          <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">Exact formulas, variables, and assumptions</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <div id="main-content" class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">

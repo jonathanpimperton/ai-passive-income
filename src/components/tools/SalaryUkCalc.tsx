@@ -50,7 +50,8 @@ const STUDENT_LOAN_LABELS: Record<StudentLoanPlan, string> = {
   postgrad: 'Postgraduate Loan',
 };
 
-const PIE_COLORS = ['#0B6E6E', '#F59E0B', '#22A06B', '#7C3AED', '#E8604C', '#EC4899'];
+// Positional: Take-Home (teal), Income Tax (amber), NI (muted red — cost), Student Loan (purple), Pension (green — money kept)
+const PIE_COLORS = ['#0B6E6E', '#F59E0B', '#C4442A', '#7C3AED', '#22A06B', '#EC4899'];
 
 function formatGBP(value: number): string {
   return '£' + formatNumber(Math.round(value));
@@ -407,7 +408,7 @@ export default function SalaryUkCalc() {
               </button>
             </div>
             {pensionIsSacrifice && result.niSaving > 0 && (
-              <p className="text-xs text-accent-600 leading-relaxed">
+              <p className="text-xs text-success-600 leading-relaxed">
                 Salary sacrifice saves you {formatGBP(result.niSaving)}/year in NI compared to a standard pension deduction.
               </p>
             )}
@@ -456,7 +457,7 @@ export default function SalaryUkCalc() {
                   <tr key={row.label} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
                     <td className="py-2.5 px-4 font-medium text-neutral-700">{row.label}</td>
                     <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">{formatGBP(row.gross)}</td>
-                    <td className="py-2.5 px-4 text-right font-semibold text-accent-600 tabular-nums">{formatGBP(row.net)}</td>
+                    <td className="py-2.5 px-4 text-right font-semibold text-success-600 tabular-nums">{formatGBP(row.net)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -490,11 +491,11 @@ export default function SalaryUkCalc() {
               </div>
             )}
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><PiggyBank size={16} aria-hidden="true" /></div>
+              <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5"><PiggyBank size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Pension</p>
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatGBP(result.pensionAmount)}</p>
-                {pensionIsSacrifice && <p className="text-xs text-accent-600 mt-0.5">Salary sacrifice</p>}
+                {pensionIsSacrifice && <p className="text-xs text-success-600 mt-0.5">Salary sacrifice</p>}
               </div>
             </div>
           </div>

@@ -248,7 +248,7 @@ export default function RentVsBuyCalc() {
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
 
             {/* Rent section */}
-            <p className="text-xs font-semibold text-accent-600 uppercase tracking-wide">Renting</p>
+            <p className="text-xs font-semibold text-success-600 uppercase tracking-wide">Renting</p>
             <SliderInput label="Monthly Rent" id="rvb-rent" value={monthlyRent} min={500} max={5000} step={25} textMax={15000} minLabel={`${currencySymbol}500`} maxLabel={`${currencySymbol}5K`} onChange={setMonthlyRent} prefix={currencySymbol} formatDisplay={formatNumber} hint="What you'd pay monthly to rent a comparable home" />
             <SliderInput label="Annual Rent Increase" id="rvb-rent-inc" value={rentIncrease} min={0} max={10} step={0.5} onChange={setRentIncrease} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="How much rent goes up each year — ~3% is typical" />
 
@@ -321,12 +321,12 @@ export default function RentVsBuyCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5">
                 <TrendingUp size={16} aria-hidden="true" />
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Equity at Year {timeHorizon}</p>
-                <p className="text-lg font-semibold text-accent-600 tabular-nums">{fmt(animatedEquity)}</p>
+                <p className="text-lg font-semibold text-success-600 tabular-nums">{fmt(animatedEquity)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">

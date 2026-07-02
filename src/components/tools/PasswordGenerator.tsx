@@ -30,9 +30,9 @@ function getStrengthLevel(entropy: number): StrengthLevel {
     return { label: 'Good', colorClass: 'text-amber-600', barColor: 'bg-amber-500', percent: 55 };
   }
   if (entropy < 128) {
-    return { label: 'Strong', colorClass: 'text-accent-600', barColor: 'bg-accent-500', percent: 80 };
+    return { label: 'Strong', colorClass: 'text-success-600', barColor: 'bg-success-500', percent: 80 };
   }
-  return { label: 'Very Strong', colorClass: 'text-accent-700', barColor: 'bg-accent-700', percent: 100 };
+  return { label: 'Very Strong', colorClass: 'text-success-700', barColor: 'bg-success-600', percent: 100 };
 }
 
 /* ── Crypto-safe random int ───────────────────────────────── */
@@ -544,7 +544,7 @@ export default function PasswordGenerator() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Shuffle size={16} aria-hidden="true" />
               </div>
               <div>

@@ -155,10 +155,10 @@ function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: st
                       Year {row.year}
                     </span>
                   </td>
-                  <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums font-medium">
+                  <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums font-medium">
                     {fmtCell(row.totalPrincipal)}
                   </td>
-                  <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">
+                  <td className="py-2.5 px-4 text-right text-red-600 tabular-nums">
                     {fmtCell(row.totalInterest)}
                   </td>
                   <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
@@ -169,10 +169,10 @@ function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: st
                   row.months.map((mo) => (
                     <tr key={mo.month} className="bg-primary-50/20 border-b border-neutral-100/60 text-xs">
                       <td className="py-2 px-4 pl-10 text-neutral-500">Month {mo.month}</td>
-                      <td className="py-2 px-4 text-right text-accent-600 tabular-nums">
+                      <td className="py-2 px-4 text-right text-neutral-700 tabular-nums">
                         {fmtCell(mo.principal)}
                       </td>
-                      <td className="py-2 px-4 text-right text-neutral-500 tabular-nums">
+                      <td className="py-2 px-4 text-right text-red-600 tabular-nums">
                         {fmtCell(mo.interest)}
                       </td>
                       <td className="py-2 px-4 text-right text-neutral-500 tabular-nums hidden sm:table-cell">
@@ -400,12 +400,12 @@ export default function MortgagePaymentCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Percent size={16} aria-hidden="true" />
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Interest</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.totalInterest)}</p>
+                <p className="text-lg font-semibold text-red-600 tabular-nums">{fmt(result.totalInterest)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
@@ -438,11 +438,11 @@ export default function MortgagePaymentCalc() {
 
           {/* Extra payment savings */}
           {extraMonthly > 0 && result.interestSaved > 0 && (
-            <div data-pdf-section className="mb-6 p-4 rounded-xl border border-accent-200 bg-accent-50/50">
-              <p className="text-sm font-medium text-accent-700">
+            <div data-pdf-section className="mb-6 p-4 rounded-xl border border-success-100 bg-success-50/50">
+              <p className="text-sm font-medium text-success-700">
                 Extra {fmt(extraMonthly)}/month saves {fmt(result.interestSaved)} in interest
               </p>
-              <p className="text-xs text-accent-600 mt-1">
+              <p className="text-xs text-success-600 mt-1">
                 Loan paid off {Math.floor(result.monthsSaved / 12)} years and {result.monthsSaved % 12} months earlier
               </p>
             </div>

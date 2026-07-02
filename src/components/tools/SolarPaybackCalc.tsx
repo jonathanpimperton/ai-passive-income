@@ -126,7 +126,7 @@ export default function SolarPaybackCalc() {
     : `${analysisPeriod}+ years`;
 
   const paybackColor = result.reachesPayback && result.paybackYears < 10
-    ? 'text-green-600'
+    ? 'text-success-600'
     : result.reachesPayback && result.paybackYears < 15
       ? 'text-amber-600'
       : 'text-red-600';
@@ -450,7 +450,7 @@ export default function SolarPaybackCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Leaf size={16} aria-hidden="true" />
               </div>
               <div>
@@ -488,9 +488,9 @@ export default function SolarPaybackCalc() {
                   <Tooltip content={<ChartTooltip labelPrefix="Year " formatValue={fmt} />} />
                   <ReferenceLine
                     y={result.netCost}
-                    stroke="#E8604C"
+                    stroke="#C4442A"
                     strokeDasharray="5 5"
-                    label={{ value: 'System Cost', fill: '#E8604C', fontSize: 11 }}
+                    label={{ value: 'System Cost', fill: '#C4442A', fontSize: 11 }}
                   />
                   <Area
                     type="monotone"
@@ -533,7 +533,7 @@ export default function SolarPaybackCalc() {
                       <td className="py-2 px-3 text-right text-neutral-600 tabular-nums">{fmt(row.annualSavings)}</td>
                       <td
                         className={`py-2 px-3 text-right tabular-nums font-medium ${
-                          row.cumulativeSavings >= result.netCost ? 'text-green-600' : 'text-neutral-600'
+                          row.cumulativeSavings >= result.netCost ? 'text-success-600' : 'text-neutral-600'
                         }`}
                       >
                         {fmt(row.cumulativeSavings)}

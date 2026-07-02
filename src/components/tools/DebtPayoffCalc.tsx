@@ -564,10 +564,10 @@ export default function DebtPayoffCalc() {
 
               {/* ── Savings Banner ────────────────────── */}
               {savings > 0 && (
-                <div data-pdf-section className="mb-6 rounded-xl bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200/60 p-4">
+                <div data-pdf-section className="mb-6 rounded-xl bg-gradient-to-r from-primary-50 to-success-50 border border-primary-200/60 p-4">
                   <p className="text-sm font-medium text-primary-900">
                     <span className="font-bold">{betterStrategy === 'avalanche' ? 'Avalanche' : 'Snowball'}</span> saves you{' '}
-                    <span className="font-bold text-accent-600">{fmt(savings)}</span> in interest
+                    <span className="font-bold text-success-600">{fmt(savings)}</span> in interest
                     {monthsDiff > 0 && (
                       <> and pays off <span className="font-bold">{monthsDiff} month{monthsDiff !== 1 ? 's' : ''}</span> sooner</>
                     )}

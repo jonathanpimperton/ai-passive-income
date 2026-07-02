@@ -246,19 +246,19 @@ export default function SliderInput({
         onChange={handleRangeChange}
         onKeyDown={handleRangeKeyDown}
         style={trackStyle}
-        className="slider-track w-full h-2 mt-2 rounded-full appearance-none cursor-pointer
-          [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:rounded-full
+        className="slider-track w-full h-1.5 mt-2 rounded-full appearance-none cursor-pointer
+          [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full
           [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none
-          [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
+          [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
+          [&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-primary-600
           [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150
-          [&::-webkit-slider-thumb:hover]:scale-110 [&::-webkit-slider-thumb:active]:scale-95
+          [&::-webkit-slider-thumb:hover]:scale-125 [&::-webkit-slider-thumb:active]:scale-110
           [&::-webkit-slider-thumb:active]:bg-primary-700
-          [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:rounded-full
+          [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full
           [&::-moz-range-thumb]:bg-primary-600 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white
-          [&::-moz-range-thumb]:shadow-md
-          [&::-moz-range-thumb:hover]:scale-110 [&::-moz-range-thumb:active]:scale-95
+          [&::-moz-range-thumb:hover]:scale-125 [&::-moz-range-thumb:active]:scale-110
           [&::-moz-range-thumb:active]:bg-primary-700
-          [&::-moz-range-track]:bg-transparent [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full"
+          [&::-moz-range-track]:bg-transparent [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full"
         aria-label={`${label} slider`}
         aria-valuemin={min}
         aria-valuemax={max}

@@ -152,7 +152,7 @@ export default function JsonFormatter() {
               <h2 className="text-lg font-semibold text-neutral-900">Output</h2>
               {input.trim() && (
                 result.valid ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent-50 text-accent-700 text-xs font-medium rounded-full">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-success-50 text-success-700 text-xs font-medium rounded-full">
                     <CheckCircle size={12} aria-hidden="true" />
                     Valid
                   </span>
@@ -220,7 +220,7 @@ export default function JsonFormatter() {
                 </div>
               </div>
               <div className="bg-white rounded-xl border border-neutral-200/80 p-3 flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-7 h-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                   <FileText size={14} aria-hidden="true" />
                 </div>
                 <div>
@@ -229,7 +229,7 @@ export default function JsonFormatter() {
                 </div>
               </div>
               <div className="bg-white rounded-xl border border-neutral-200/80 p-3 flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-7 h-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                   <Minimize2 size={14} aria-hidden="true" />
                 </div>
                 <div>

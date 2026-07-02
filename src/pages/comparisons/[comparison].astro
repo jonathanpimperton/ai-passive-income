@@ -48,22 +48,22 @@ const breadcrumbs = [
   description={description}
   ogImage={`/og/comparisons/${slug}.png`}
 >
-  {/* Dark header */}
-  <div class="bg-[#0F1B2D] text-white">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-      <Breadcrumb items={breadcrumbs} variant="dark" />
+  {/* Page header */}
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <Breadcrumb items={breadcrumbs} />
 
-      <div class="flex items-start gap-4 mt-4 mb-6">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 text-white shrink-0 backdrop-blur-sm">
+      <div class="flex items-start gap-4">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary-50 text-primary-600 shrink-0">
           <ToolIcon name="scale" size={24} />
         </div>
         <div>
-          <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">{title}</h1>
-          <p class="text-white/60 text-sm mt-2 max-w-2xl leading-relaxed">{description}</p>
+          <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">{title}</h1>
+          <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">{description}</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">

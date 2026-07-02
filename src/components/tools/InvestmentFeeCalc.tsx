@@ -290,7 +290,7 @@ export default function InvestmentFeeCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-600 flex items-center justify-center shrink-0 mt-0.5">
                 <TrendingDown size={16} aria-hidden="true" />
               </div>
               <div className="min-w-0">
@@ -328,7 +328,7 @@ export default function InvestmentFeeCalc() {
                 <tr className="bg-neutral-50 border-b border-neutral-200/80">
                   <th className="text-left py-3 px-4 font-medium text-neutral-600"></th>
                   <th className="text-right py-3 px-4 font-medium text-primary-700">Your Fund ({yourFee}%)</th>
-                  <th className="text-right py-3 px-4 font-medium text-accent-700">Comparison ({comparisonFee}%)</th>
+                  <th className="text-right py-3 px-4 font-medium text-neutral-600">Comparison ({comparisonFee}%)</th>
                 </tr>
               </thead>
               <tbody>
@@ -349,8 +349,8 @@ export default function InvestmentFeeCalc() {
                 </tr>
                 <tr className="border-b border-neutral-100 bg-neutral-50/50">
                   <td className="py-2.5 px-4 text-neutral-700 font-medium">Total Earnings</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-primary-700">{fmt(results.yourEarnings)}</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-accent-700">{fmt(results.compEarnings)}</td>
+                  <td className="py-2.5 px-4 text-right tabular-nums text-success-600">{fmt(results.yourEarnings)}</td>
+                  <td className="py-2.5 px-4 text-right tabular-nums text-success-600">{fmt(results.compEarnings)}</td>
                 </tr>
                 <tr className="border-b border-neutral-100">
                   <td className="py-2.5 px-4 text-neutral-700 font-medium">Fees Paid (Lost Growth)</td>
@@ -432,7 +432,7 @@ export default function InvestmentFeeCalc() {
                   <tr className="bg-neutral-50 border-b border-neutral-200/80 sticky top-0 z-10">
                     <th className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
                     <th className="text-right py-3 px-4 font-medium text-primary-700">{yourFee}% Fee</th>
-                    <th className="text-right py-3 px-4 font-medium text-accent-700 hidden sm:table-cell">{comparisonFee}% Fee</th>
+                    <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">{comparisonFee}% Fee</th>
                     <th className="text-right py-3 px-4 font-medium text-red-600">Difference</th>
                   </tr>
                 </thead>

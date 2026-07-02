@@ -244,7 +244,7 @@ export default function StampDutyCalc() {
               </div>
             </div>
             <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200/80 dark:border-neutral-700 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 dark:bg-accent-900/40 text-accent-600 dark:text-accent-400 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Building2 size={16} aria-hidden="true" />
               </div>
               <div>

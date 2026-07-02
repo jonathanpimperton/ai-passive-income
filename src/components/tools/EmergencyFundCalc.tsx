@@ -203,7 +203,7 @@ export default function EmergencyFundCalc() {
                 </div>
                 <p className="text-xl font-bold text-neutral-900 tabular-nums">{fmt(t.target)}</p>
                 {t.pctFunded >= 1 ? (
-                  <p className="text-xs text-accent-600 font-medium mt-1">Fully funded</p>
+                  <p className="text-xs text-success-600 font-medium mt-1">Fully funded</p>
                 ) : (
                   <>
                     <div className="w-full h-1.5 bg-neutral-100 rounded-full mt-2 overflow-hidden">
@@ -242,10 +242,10 @@ export default function EmergencyFundCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
+              <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Current Progress</p>
-                <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                <p className="text-lg font-semibold text-success-600 tabular-nums">
                   {monthlyExpenses > 0 ? `${((currentSavings / (monthlyExpenses * 6)) * 100).toFixed(0)}%` : '—'}
                 </p>
                 <p className="text-xs text-neutral-500">of 6-month target</p>

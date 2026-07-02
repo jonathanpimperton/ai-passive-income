@@ -224,7 +224,7 @@ function ScheduleTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string
                 <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums">
                   {fmt(group.totalPrincipal)}
                 </td>
-                <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums">
+                <td className="py-2.5 px-4 text-right text-red-600 tabular-nums">
                   {fmt(group.totalInterest)}
                 </td>
                 <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums hidden sm:table-cell">
@@ -251,7 +251,7 @@ function ScheduleTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string
                               <td className="py-1.5 px-4 text-neutral-600 tabular-nums">{m.month}</td>
                               <td className="py-1.5 px-4 text-right text-neutral-900 tabular-nums">{fmt(m.payment)}</td>
                               <td className="py-1.5 px-4 text-right text-neutral-900 tabular-nums">{fmt(m.principal)}</td>
-                              <td className="py-1.5 px-4 text-right text-accent-600 tabular-nums">{fmt(m.interest)}</td>
+                              <td className="py-1.5 px-4 text-right text-red-600 tabular-nums">{fmt(m.interest)}</td>
                               <td className="py-1.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">{fmt(m.balance)}</td>
                             </tr>
                           ))}
@@ -604,7 +604,7 @@ export default function CreditCardPayoffCalc() {
                 </div>
                 <div>
                   <p className="text-xs text-neutral-500">Total Interest</p>
-                  <p className="text-sm font-semibold text-accent-600 tabular-nums">
+                  <p className="text-sm font-semibold text-red-600 tabular-nums">
                     {fmt(minOnlyResult.totalInterest)}
                   </p>
                 </div>
@@ -639,7 +639,7 @@ export default function CreditCardPayoffCalc() {
                   </div>
                   <div>
                     <p className="text-xs text-neutral-500">Total Interest</p>
-                    <p className="text-sm font-semibold text-accent-600 tabular-nums">
+                    <p className="text-sm font-semibold text-red-600 tabular-nums">
                       {fmt(withExtraResult.totalInterest)}
                     </p>
                   </div>
@@ -663,7 +663,7 @@ export default function CreditCardPayoffCalc() {
             <div data-pdf-section className="mb-6 rounded-xl bg-gradient-to-r from-primary-50 to-emerald-50 border border-primary-200/60 p-4">
               <p className="text-sm font-medium text-primary-900">
                 Adding <span className="font-bold">{fmt(extra)}/mo</span> extra saves you{' '}
-                <span className="font-bold text-accent-600">{fmt(interestSaved)}</span> in interest
+                <span className="font-bold text-success-600">{fmt(interestSaved)}</span> in interest
                 {monthsSaved > 0 && (
                   <> and pays off <span className="font-bold">{formatMonths(monthsSaved)}</span> sooner</>
                 )}
@@ -731,7 +731,7 @@ export default function CreditCardPayoffCalc() {
                     <Line
                       type="monotone"
                       dataKey="Minimum Only"
-                      stroke="#E8604C"
+                      stroke="#C4442A"
                       strokeWidth={2}
                       dot={false}
                       activeDot={{ r: 4 }}

@@ -326,15 +326,15 @@ export default function PdfCompress() {
 
         {result && file && (
           <div className="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6 text-center">
-            <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center mx-auto mb-3">
-              <Minimize2 size={24} className="text-accent-600" aria-hidden="true" />
+            <div className="w-12 h-12 rounded-xl bg-success-100 flex items-center justify-center mx-auto mb-3">
+              <Minimize2 size={24} className="text-success-600" aria-hidden="true" />
             </div>
             <p className="text-lg font-bold text-neutral-900">
               {savingsPct > 0 ? `${savingsPct}% smaller` : 'Compression complete'}
             </p>
             <p className="text-sm text-neutral-600 mt-1">
               {formatSize(file.size)} → {formatSize(result.size)}
-              {savings > 0 && <span className="ml-1 text-accent-600 font-medium">(saved {formatSize(savings)})</span>}
+              {savings > 0 && <span className="ml-1 text-success-600 font-medium">(saved {formatSize(savings)})</span>}
             </p>
             {result.imageCount > 0 && (
               <p className="text-xs text-neutral-500 mt-1">

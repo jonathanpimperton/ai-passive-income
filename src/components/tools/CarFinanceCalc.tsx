@@ -345,7 +345,7 @@ export default function CarFinanceCalc() {
         >
           {/* Winner badge */}
           <div data-pdf-section className="mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-sm font-medium mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-100 text-success-700 text-sm font-medium mb-3">
               <Trophy size={14} aria-hidden="true" />
               {cheapest.label} has the lowest true cost
             </div>
@@ -362,12 +362,12 @@ export default function CarFinanceCalc() {
                 key={r.type}
                 className={`bg-white rounded-xl border p-4 relative overflow-hidden ${
                   r.type === cheapest.type
-                    ? 'border-green-300 ring-1 ring-green-200'
+                    ? 'border-emerald-300 ring-1 ring-emerald-200'
                     : 'border-neutral-200/80'
                 }`}
               >
                 {r.type === cheapest.type && (
-                  <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wide">
+                  <div className="absolute top-0 right-0 bg-success-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wide">
                     Best Value
                   </div>
                 )}
@@ -403,7 +403,7 @@ export default function CarFinanceCalc() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Interest</span>
-                    <span className={`font-medium tabular-nums ${r.totalInterest > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <span className={`font-medium tabular-nums ${r.totalInterest > 0 ? 'text-red-600' : 'text-success-600'}`}>
                       {fmt(Math.round(r.totalInterest))}
                     </span>
                   </div>
@@ -444,7 +444,7 @@ export default function CarFinanceCalc() {
                   <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="payments" name="Total Paid" stackId="a" fill="#0B6E6E" radius={[0, 0, 0, 0]} animationDuration={600} />
-                  <Bar dataKey="opportunity" name="Opportunity Cost" stackId="a" fill="#E8604C" radius={[4, 4, 0, 0]} animationDuration={600} />
+                  <Bar dataKey="opportunity" name="Opportunity Cost" stackId="a" fill="#C4442A" radius={[4, 4, 0, 0]} animationDuration={600} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -483,7 +483,7 @@ export default function CarFinanceCalc() {
                 <tr className="border-b border-neutral-100 bg-white">
                   <td className="py-2.5 px-3 font-medium text-neutral-700">Interest</td>
                   {results.map(r => (
-                    <td key={r.type} className={`py-2.5 px-3 text-right tabular-nums ${r.totalInterest > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <td key={r.type} className={`py-2.5 px-3 text-right tabular-nums ${r.totalInterest > 0 ? 'text-red-600' : 'text-success-600'}`}>
                       {fmt(Math.round(r.totalInterest))}
                     </td>
                   ))}
@@ -496,10 +496,10 @@ export default function CarFinanceCalc() {
                     </td>
                   ))}
                 </tr>
-                <tr className="border-b border-neutral-100 bg-green-50/50 font-semibold">
+                <tr className="border-b border-neutral-100 bg-success-50/50 font-semibold">
                   <td className="py-2.5 px-3 text-neutral-900">True Cost</td>
                   {results.map(r => (
-                    <td key={r.type} className={`py-2.5 px-3 text-right tabular-nums ${r.type === cheapest.type ? 'text-green-700' : 'text-neutral-900'}`}>
+                    <td key={r.type} className={`py-2.5 px-3 text-right tabular-nums ${r.type === cheapest.type ? 'text-success-700' : 'text-neutral-900'}`}>
                       {fmt(Math.round(r.trueCost))}
                     </td>
                   ))}

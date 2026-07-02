@@ -258,10 +258,10 @@ export default function InflationCalc() {
                   </div>
                 </div>
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-                  <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
+                  <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">{endYear} Purchasing Power</p>
-                    <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                    <p className="text-lg font-semibold text-red-600 tabular-nums">
                       {formatCurrency(historicalResult.purchasingPower)}
                     </p>
                     <p className="text-xs text-neutral-500">of original {formatCurrency(amount)}</p>
@@ -292,10 +292,10 @@ export default function InflationCalc() {
               </div>
               <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-                  <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
+                  <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Your {formatCurrency(amount)} Will Buy</p>
-                    <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                    <p className="text-lg font-semibold text-red-600 tabular-nums">
                       {formatCurrency(futureResult.purchasingPower)}
                     </p>
                     <p className="text-xs text-neutral-500">worth of today's goods</p>

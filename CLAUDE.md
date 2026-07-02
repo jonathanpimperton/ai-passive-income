@@ -379,14 +379,32 @@ Full design system defined: branding, colors, typography, calculator UI, navigat
 
 ## Design Quality Standards (MANDATORY for All Sprints)
 
-Every new component, page, or feature MUST meet these standards. This is not optional polish — it's the baseline quality bar.
+**REWRITTEN July 2026 for the "Precision Instrument" design system** (see
+`docs/plan-2026-07.md` Phase 2). The pre-July rules mandated gradient dividers, dark
+gradient page headers, and icon-chip-on-every-card — those patterns are now BANNED;
+they read as AI-generated. Every new component/page MUST follow the rules below.
 
-### Visual Richness
-- **Every card** must have a Lucide icon (use `ToolIcon.astro` for Astro, `lucide-react` for React). Never ship a text-only card.
-- **Card hover effects**: lift (`hover:-translate-y-0.5`), shadow deepening, icon color inversion (`bg-primary-50 text-primary-500` → `bg-primary-500 text-white`).
-- **Section dividers**: use gradient lines (`bg-gradient-to-r from-transparent via-primary-300/30 to-transparent`) not plain borders.
-- **Page headers** for non-tool pages: dark gradient background (`bg-[linear-gradient(135deg,#0A2540_0%,#1A3A5C_50%,#0A2540_100%)]`) with white text.
-- **Section backgrounds** alternate: white for primary content, `neutral-50` for secondary, `primary-50` for CTAs/related sections.
+### Precision Instrument system
+- **Type:** Space Grotesk (via `--font-display`; h1/h2 automatic) for display; DM Sans
+  for body/UI; **JetBrains Mono for EVERY financial figure** — any money/number display
+  gets `.tabular-nums` (which sets the mono face globally). This is the brand signature.
+- **Color:** ink `#14161A` on paper `#FCFCFA`; deep teal (`primary-*`) is the SOLE
+  accent — interactive elements, focus, primary data series. Semantic money colors:
+  gains/money-kept = `success-600`, costs/tax/interest-paid = `red-600`. Coral
+  (`accent-*`) must NEVER appear on numeric data; at most one coral CTA per page.
+- **Surfaces:** 1px borders (`border border-neutral-200/80`) over drop shadows;
+  `rounded-lg` on cards, `rounded-lg`/`rounded-xl` max elsewhere; solid hairline
+  dividers (`bg-neutral-200/80` or `border-t`) — NO gradient dividers, NO gradient
+  text, NO aurora/radial glows, NO dark hero bands on interior pages.
+- **Page headers:** compact LIGHT headers on all interior pages (breadcrumb, H1,
+  one-line description, optional quiet meta row) — the site is one light product.
+- **Charts:** always through `useChartTheme()` (`src/lib/useChartTheme.ts`): solid
+  low-ink grid (no dashes), series1 = theme.series1 (teal, 2px), comparison series =
+  theme.series2 (neutral), gains/costs = theme.gain/theme.cost, mono axis ticks +
+  tooltip values, no default legend on 2-series charts — label directly or rely on
+  stat cards. Donuts use theme.segments and put a KPI in the center.
+- **Icons:** small, purposeful, sparse. No icon-in-teal-rounded-square chip on every
+  card/heading; a card earns an icon only when it aids recognition (tool cards).
 
 ### Calculator UI (Sprint 2+)
 - Two-column layout: inputs (40%) left, results (60%) right. Stacked on mobile.
@@ -420,11 +438,19 @@ Every new component, page, or feature MUST meet these standards. This is not opt
 - Form inputs have visible `<label>` elements, not just placeholders.
 
 ### What NOT to Do
-- No text-only cards or plain list items where cards should be.
+- No gradient text, gradient dividers, aurora glows, or dark interior hero bands
+  (the pre-July-2026 house style — now reads as AI-generated).
+- No coral/red on positive money figures; no decorative color on data.
+- No proportional-font numerals on money — every figure gets `.tabular-nums` (mono).
+- No default recharts styling (dashed grid, default legend dots, per-series tooltip
+  text colors) — always `useChartTheme()`.
+- No new badge/pill variants — one badge component, two variants max (neutral meta,
+  accent highlight).
 - No `display: none` toggling — always animate transitions.
-- No flat/borderless cards — always `border border-neutral-200/80 shadow-card`.
-- No pages with just a heading and text wall — use icons, cards, or visual elements.
+- No flat/borderless cards — `border border-neutral-200/80`, shadow optional and subtle.
 - No generic placeholder states — use shimmer skeletons matching real component dimensions.
+- More than one email-capture module per page is banned; affiliate cards never
+  interrupt the results flow (they sit after the user has their answer).
 
 ## Constraints
 

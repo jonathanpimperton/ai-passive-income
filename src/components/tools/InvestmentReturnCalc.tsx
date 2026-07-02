@@ -529,12 +529,12 @@ export default function InvestmentReturnCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Sparkles size={16} aria-hidden="true" />
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Earnings</p>
-                <p className="text-base sm:text-lg font-semibold text-accent-600 tabular-nums">
+                <p className="text-base sm:text-lg font-semibold text-success-600 tabular-nums">
                   {fmt(summary.totalEarnings)}
                 </p>
               </div>
@@ -689,7 +689,7 @@ function ScheduleTable({
                   <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">
                     {fmt(row.Contributions)}
                   </td>
-                  <td className="py-2.5 px-4 text-right text-accent-600 tabular-nums hidden sm:table-cell">
+                  <td className="py-2.5 px-4 text-right text-success-600 tabular-nums hidden sm:table-cell">
                     {fmt(earnings)}
                   </td>
                 </tr>
@@ -711,7 +711,7 @@ function ScheduleTable({
                         </div>
                         <div>
                           <p className="text-neutral-500 mb-0.5">Year Earnings</p>
-                          <p className="font-semibold text-accent-600 tabular-nums">
+                          <p className="font-semibold text-success-600 tabular-nums">
                             +{fmt(yearEarnings)}
                           </p>
                         </div>

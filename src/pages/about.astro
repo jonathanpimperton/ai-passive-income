@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
-import AuroraBackground from '@components/ui/AuroraBackground.astro';
 import { UK_TAX_YEAR } from '@lib/uk-rates';
 import { US_TAX_YEAR } from '@lib/us-rates';
 ---
@@ -11,11 +10,10 @@ import { US_TAX_YEAR } from '@lib/us-rates';
   description="CalcRun builds financial calculators with cited sources, current tax rates, and no signup. Learn how our tools work and how we're funded."
 >
   {/* Page header */}
-  <section class="relative overflow-hidden bg-[#0F1B2D] py-12 sm:py-16">
-    <AuroraBackground intensity="medium" />
-    <div class="relative z-10 max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8">
-      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3">About CalcRun</h1>
-      <p class="text-lg text-white/60">
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">About CalcRun</h1>
+      <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">
         Financial calculators that show their working.
       </p>
     </div>
@@ -44,8 +42,8 @@ import { US_TAX_YEAR } from '@lib/us-rates';
       </div>
     </section>
 
-    {/* Gradient divider */}
-    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-12"></div>
+    {/* Divider */}
+    <div class="h-px bg-neutral-200/80 mb-12"></div>
 
     {/* What we build */}
     <section class="mb-12">
@@ -62,8 +60,8 @@ import { US_TAX_YEAR } from '@lib/us-rates';
       </p>
     </section>
 
-    {/* Gradient divider */}
-    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-12"></div>
+    {/* Divider */}
+    <div class="h-px bg-neutral-200/80 mb-12"></div>
 
     {/* How privacy works */}
     <section class="mb-12">
@@ -105,8 +103,8 @@ import { US_TAX_YEAR } from '@lib/us-rates';
       </div>
     </section>
 
-    {/* Gradient divider */}
-    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-12"></div>
+    {/* Divider */}
+    <div class="h-px bg-neutral-200/80 mb-12"></div>
 
     {/* Editorial standards */}
     <section class="bg-neutral-50 border border-neutral-200/80 rounded-lg p-6 sm:p-8 mb-12">

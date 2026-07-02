@@ -2,7 +2,6 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
-import AuroraBackground from '@components/ui/AuroraBackground.astro';
 import { getCollection } from 'astro:content';
 
 const comparisons = await getCollection('comparisons');
@@ -17,17 +16,17 @@ const breadcrumbs = [
   title="Financial Comparisons — Side-by-Side Analysis"
   description="Compare financial options side by side. ISA vs general account, 15 vs 30-year mortgage, snowball vs avalanche, and more."
 >
-  {/* Dark header */}
-  <div class="relative overflow-hidden bg-[#0F1B2D] text-white">
-    <AuroraBackground intensity="medium" />
-    <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-      <Breadcrumb items={breadcrumbs} variant="dark" />
-      <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mt-4 mb-3">Financial Comparisons</h1>
-      <p class="text-lg text-white/70 max-w-2xl leading-relaxed">
+  {/* Page header */}
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <Breadcrumb items={breadcrumbs} />
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">Financial Comparisons</h1>
+      <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">
         Side-by-side breakdowns of common financial decisions. Data tables, expert analysis, and links to calculators so you can run the numbers yourself.
       </p>
+      <p class="mt-2 text-sm text-neutral-500"><span class="tabular-nums">{comparisons.length}</span> comparisons</p>
     </div>
-  </div>
+  </section>
 
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

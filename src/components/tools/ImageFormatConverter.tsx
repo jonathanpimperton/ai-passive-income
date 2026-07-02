@@ -177,7 +177,7 @@ export default function ImageFormatConverter() {
           <>
             <div className="flex items-center justify-between">
               <span className="text-sm text-neutral-600">
-                <span className="font-semibold text-accent-600">{results.length}</span> file{results.length !== 1 ? 's' : ''} converted
+                <span className="font-semibold text-neutral-900">{results.length}</span> file{results.length !== 1 ? 's' : ''} converted
               </span>
               <button onClick={clearAll} className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-red-600 transition-colors duration-150">
                 <Trash2 size={14} aria-hidden="true" />

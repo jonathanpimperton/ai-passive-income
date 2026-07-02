@@ -303,12 +303,12 @@ export default function LoanAmortizationCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Percent size={16} aria-hidden="true" />
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Interest</p>
-                <p className="text-base sm:text-lg font-semibold text-negative-600 tabular-nums">{fmt(totalInterest)}</p>
+                <p className="text-base sm:text-lg font-semibold text-red-600 tabular-nums">{fmt(totalInterest)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">

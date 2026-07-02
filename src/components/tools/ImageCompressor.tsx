@@ -195,9 +195,9 @@ export default function ImageCompressor() {
           <>
             <div className="flex items-center justify-between">
               <div className="text-sm text-neutral-600">
-                <span className="font-semibold text-accent-600">{results.length}</span> file{results.length !== 1 ? 's' : ''} compressed
+                <span className="font-semibold text-neutral-900">{results.length}</span> file{results.length !== 1 ? 's' : ''} compressed
                 {totalSaved > 0 && (
-                  <span className="ml-2 text-accent-600 font-medium">
+                  <span className="ml-2 text-success-600 font-medium">
                     — saved {formatSize(totalSaved)}
                   </span>
                 )}
@@ -227,7 +227,7 @@ export default function ImageCompressor() {
                       <p className="text-xs text-neutral-500 mt-0.5">
                         {formatSize(file.originalSize)} → {formatSize(file.compressedSize)}
                         {pct > 0 && (
-                          <span className="ml-1 text-accent-600 font-medium">(-{pct}%)</span>
+                          <span className="ml-1 text-success-600 font-medium">(-{pct}%)</span>
                         )}
                       </p>
                     </div>

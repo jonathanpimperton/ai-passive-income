@@ -240,7 +240,7 @@ export default function PercentageCalculator() {
           <div className="mb-8">
             <p className="text-sm text-neutral-500 mb-1">Result</p>
             <p className={`text-4xl sm:text-5xl font-bold tabular-nums ${
-              'isPositive' in result && result.isPositive ? 'text-accent-600' :
+              'isPositive' in result && result.isPositive ? 'text-success-600' :
               'isNegative' in result && result.isNegative ? 'text-red-600' :
               'result-number'
             }`}>
@@ -265,7 +265,7 @@ export default function PercentageCalculator() {
           {/* Helpful conversion card */}
           {mode === 'whatIsXofY' && a > 0 && b > 0 && (
             <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Percent size={16} aria-hidden="true" />
               </div>
               <div className="flex-1">
@@ -290,7 +290,7 @@ export default function PercentageCalculator() {
 
           {mode === 'xIsWhatPercent' && b > 0 && (
             <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Equal size={16} aria-hidden="true" />
               </div>
               <div className="flex-1">
@@ -311,7 +311,7 @@ export default function PercentageCalculator() {
 
           {mode === 'percentChange' && a !== 0 && (
             <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <ArrowUpDown size={16} aria-hidden="true" />
               </div>
               <div className="flex-1">

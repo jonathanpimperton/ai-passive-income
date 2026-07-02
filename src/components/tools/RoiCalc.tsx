@@ -194,10 +194,10 @@ export default function RoiCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultA.totalGain >= 0 ? 'bg-accent-50 text-accent-600' : 'bg-red-50 text-red-600'}`}><DollarSign size={16} aria-hidden="true" /></div>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultA.totalGain >= 0 ? 'bg-success-50 text-success-600' : 'bg-red-50 text-red-600'}`}><DollarSign size={16} aria-hidden="true" /></div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
-                <p className={`text-lg font-semibold tabular-nums ${resultA.totalGain >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
+                <p className={`text-lg font-semibold tabular-nums ${resultA.totalGain >= 0 ? 'text-success-600' : 'text-red-600'}`}>
                   {fmt(resultA.totalGain)}
                 </p>
               </div>
@@ -210,7 +210,7 @@ export default function RoiCalc() {
               <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-6" />
               <div className="mb-6">
                 <p className="text-sm text-neutral-500 mb-1">Investment B — Total Return</p>
-                <p className={`text-2xl font-bold tabular-nums ${resultB.totalReturn >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
+                <p className={`text-2xl font-bold tabular-nums ${resultB.totalReturn >= 0 ? 'text-success-600' : 'text-red-600'}`}>
                   {fmtPct(resultB.totalReturn)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1 leading-relaxed">
@@ -228,10 +228,10 @@ export default function RoiCalc() {
                   </div>
                 </div>
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultB.totalGain >= 0 ? 'bg-accent-50 text-accent-600' : 'bg-red-50 text-red-600'}`}><DollarSign size={16} aria-hidden="true" /></div>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultB.totalGain >= 0 ? 'bg-success-50 text-success-600' : 'bg-red-50 text-red-600'}`}><DollarSign size={16} aria-hidden="true" /></div>
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Total Gain / Loss</p>
-                    <p className={`text-lg font-semibold tabular-nums ${resultB.totalGain >= 0 ? 'text-accent-600' : 'text-red-600'}`}>
+                    <p className={`text-lg font-semibold tabular-nums ${resultB.totalGain >= 0 ? 'text-success-600' : 'text-red-600'}`}>
                       {fmt(resultB.totalGain)}
                     </p>
                   </div>

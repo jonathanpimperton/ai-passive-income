@@ -370,7 +370,7 @@ export default function SavingsGoalCalc() {
                   {!isFinite(timeToGoalMonths) ? (
                     <span className="text-negative-600">Not reachable</span>
                   ) : goalAmount <= currentSavings ? (
-                    <span className="text-accent-600">Already reached!</span>
+                    <span className="text-success-600">Already reached!</span>
                   ) : (
                     formatTimeResult(Math.round(animatedTimeMonths))
                   )}
@@ -400,12 +400,12 @@ export default function SavingsGoalCalc() {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Sparkles size={16} aria-hidden="true" />
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Interest Earned</p>
-                <p className="text-lg font-semibold text-accent-600 tabular-nums">
+                <p className="text-lg font-semibold text-success-600 tabular-nums">
                   {fmt(Math.max(0, summaryStats.interestEarned))}
                 </p>
               </div>

@@ -429,7 +429,7 @@ export default function CapitalGainsTaxCalc() {
               </div>
               <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200/80 dark:border-neutral-700 p-3">
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Percent size={14} className="text-accent-600 dark:text-accent-400" aria-hidden="true" />
+                  <Percent size={14} className="text-red-600" aria-hidden="true" />
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">Effective Rate</p>
                 </div>
                 <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
@@ -471,14 +471,14 @@ export default function CapitalGainsTaxCalc() {
                         <td className="py-2 px-4 text-neutral-600 dark:text-neutral-400">
                           Federal Tax ({holdingPeriod === 'long' ? 'long-term rates' : 'ordinary income rates'})
                         </td>
-                        <td className="py-2 px-4 text-right font-medium text-accent-600 dark:text-accent-400 tabular-nums">{fmt(usResult.federalTax)}</td>
+                        <td className="py-2 px-4 text-right font-medium text-red-600 tabular-nums">{fmt(usResult.federalTax)}</td>
                       </tr>
                       {usResult.niit > 0 && (
                         <tr className="border-b border-neutral-100 dark:border-neutral-700/50">
                           <td className="py-2 px-4 text-neutral-600 dark:text-neutral-400">
                             Net Investment Income Tax (3.8%)
                           </td>
-                          <td className="py-2 px-4 text-right font-medium text-accent-600 dark:text-accent-400 tabular-nums">{fmt(usResult.niit)}</td>
+                          <td className="py-2 px-4 text-right font-medium text-red-600 tabular-nums">{fmt(usResult.niit)}</td>
                         </tr>
                       )}
                     </>
@@ -499,13 +499,13 @@ export default function CapitalGainsTaxCalc() {
                       {ukResult.basicRateTax > 0 && (
                         <tr className="border-b border-neutral-100 dark:border-neutral-700/50">
                           <td className="py-2 px-4 text-neutral-600 dark:text-neutral-400">Tax at 18% (basic rate)</td>
-                          <td className="py-2 px-4 text-right font-medium text-accent-600 dark:text-accent-400 tabular-nums">{fmt(ukResult.basicRateTax)}</td>
+                          <td className="py-2 px-4 text-right font-medium text-red-600 tabular-nums">{fmt(ukResult.basicRateTax)}</td>
                         </tr>
                       )}
                       {ukResult.higherRateTax > 0 && (
                         <tr className="border-b border-neutral-100 dark:border-neutral-700/50">
                           <td className="py-2 px-4 text-neutral-600 dark:text-neutral-400">Tax at 24% (higher rate)</td>
-                          <td className="py-2 px-4 text-right font-medium text-accent-600 dark:text-accent-400 tabular-nums">{fmt(ukResult.higherRateTax)}</td>
+                          <td className="py-2 px-4 text-right font-medium text-red-600 tabular-nums">{fmt(ukResult.higherRateTax)}</td>
                         </tr>
                       )}
                     </>
@@ -554,7 +554,7 @@ export default function CapitalGainsTaxCalc() {
                     <Tooltip content={<ChartTooltip formatValue={(v) => fmtUSD(v as number)} />} />
                     <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={8} />
                     <Bar dataKey="Federal Tax" stackId="a" fill="#0B6E6E" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="NIIT" stackId="a" fill="#E8604C" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="NIIT" stackId="a" fill="#C4442A" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

@@ -192,7 +192,7 @@ export default function PdfToImage() {
           <>
             <div className="flex items-center justify-between">
               <span className="text-sm text-neutral-600">
-                <span className="font-semibold text-accent-600">{images.length}</span> page{images.length !== 1 ? 's' : ''} converted
+                <span className="font-semibold text-neutral-900">{images.length}</span> page{images.length !== 1 ? 's' : ''} converted
               </span>
               <div className="flex items-center gap-3">
                 <button onClick={downloadAll} className="inline-flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors duration-150">
