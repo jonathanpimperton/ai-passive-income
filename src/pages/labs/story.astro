@@ -16,6 +16,8 @@ import { calcIncomeTax, calcNI } from '@lib/uk-tax-calc';
 import { calcFederalTax, calcFICA } from '@lib/us-tax-calc';
 import { calculateSdlt } from '@lib/stamp-duty';
 import DecisionEngine from '@components/homepage/DecisionEngine.tsx';
+import Navigation from '@components/ui/Navigation.astro';
+import { TOOLS, CATEGORIES, getToolPath } from '@lib/tools-data';
 
 /* ── Live figures (the story never lies — same engines as the tools) ── */
 const grow500x10 = compoundInterest(0, 500, 0.07, 10, 12);
@@ -92,7 +94,31 @@ const DECISIONS = [
   { q: 'Wait five years before starting to invest £500/mo', n: Math.round(wait5), pre: '−£', suf: ' at year 30', kind: 'cost', href: '/tools/saving-and-growth/investment-return/' },
 ];
 
-const QUESTION = 'Every money decision has a number.';
+/* ── Bento: every category, engine-counted, with sample tools ── */
+const BENTO_ORDER = ['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic', 'utility', 'file-tools'] as const;
+const BENTO_META: Record<string, { size: string; tone: string; motif: string }> = {
+  'saving-and-growth': { size: 'lg', tone: 'grow', motif: 'growth' },
+  'debt-and-loans': { size: 'lg', tone: 'owe', motif: 'decline' },
+  'income-and-planning': { size: 'md', tone: 'keep', motif: 'bars' },
+  economic: { size: 'md', tone: 'keep', motif: 'steps' },
+  utility: { size: 'sm', tone: 'neutral', motif: 'none' },
+  'file-tools': { size: 'sm', tone: 'neutral', motif: 'none' },
+};
+const BENTO = BENTO_ORDER.map((slug) => {
+  const cat = CATEGORIES[slug];
+  const tools = TOOLS.filter((t) => t.category === slug);
+  return {
+    slug,
+    label: cat.label,
+    tagline: cat.tagline,
+    count: tools.length,
+    samples: tools.slice(0, 3).map((t) => ({ name: t.name.replace(/ Calculator$/, ''), href: getToolPath(t) })),
+    ...BENTO_META[slug],
+  };
+});
+const TOOL_COUNT = TOOLS.length;
+
+const QUESTION = 'Get clarity on your financial decisions';
 const questionWords = QUESTION.split(' ');
 ---
 
@@ -149,7 +175,7 @@ const questionWords = QUESTION.split(' ');
         </svg>
 
         {/* Act 0 — the question */}
-        <p class="dawn-hint" id="dawn-hint" aria-hidden="true">Now, run yours.</p>
+        <p class="dawn-hint" id="dawn-hint" aria-hidden="true">Run your numbers</p>
 
         <section class="act act-0" id="act-0" aria-label="Introduction">
           <h1 class="question" id="question">
@@ -161,8 +187,8 @@ const questionWords = QUESTION.split(' ');
             ))}
           </h1>
           <p class="question-sub" id="question-sub">
-            Salary, mortgage, investing, debt — see yours in seconds.
-            <span class="sub-quiet">Free calculators. No signup. No ads.</span>
+            CalcRun — salary, mortgage, investing and debt calculators.
+            <span class="sub-quiet">Answers in seconds. No signup. No ads.</span>
           </p>
           <div class="scroll-cue" id="scroll-cue" aria-hidden="true">
             <span class="cue-line"></span>
@@ -194,6 +220,10 @@ const questionWords = QUESTION.split(' ');
 
     {/* ── DAYLIGHT — the instrument room: same standard, full utility ── */}
     <main class="daylight" id="daylight">
+      {/* The real site navigation takes over from the story header here */}
+      <div id="daylight-nav">
+        <Navigation />
+      </div>
 
       {/* D1 — the live instrument */}
       <section class="d-section d-engine">
@@ -211,7 +241,7 @@ const questionWords = QUESTION.split(' ');
       <section class="d-section d-board">
         <div class="d-inner d-inner-narrow">
           <p class="d-kicker reveal">Live calculations</p>
-          <h2 class="d-title d-title-sm"><span class="d-mask"><span class="d-mask-inner">What a decision is worth</span></span></h2>
+          <h2 class="d-title d-title-sm"><span class="d-mask"><span class="d-mask-inner">Good financial decisions create value</span></span></h2>
           <p class="d-sub reveal">Each line is computed by the same engines as the tools. Open any of them with your own numbers.</p>
           <ul class="decision-rows">
             {DECISIONS.map((d) => (
@@ -223,6 +253,49 @@ const questionWords = QUESTION.split(' ');
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      {/* D2.5 — every category, bento */}
+      <section class="d-section d-bento">
+        <div class="d-inner">
+          <p class="d-kicker reveal">The full toolkit</p>
+          <h2 class="d-title d-title-sm"><span class="d-mask"><span class="d-mask-inner">Every corner of your money</span></span></h2>
+          <div class="bento">
+            {BENTO.map((b) => (
+              <a class={`bento-tile bento-${b.size} tone-${b.tone} reveal`} href={`/tools/#${b.slug}`}>
+                {b.motif === 'growth' && (
+                  <svg class="bento-motif" viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0,76 C60,74 120,60 200,8" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+                )}
+                {b.motif === 'decline' && (
+                  <svg class="bento-motif" viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0,8 C80,14 150,40 200,76" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+                )}
+                {b.motif === 'bars' && (
+                  <svg class="bento-motif" viewBox="0 0 200 80" aria-hidden="true"><g fill="currentColor"><rect x="18" y="46" width="22" height="34" rx="2"/><rect x="58" y="34" width="22" height="46" rx="2"/><rect x="98" y="22" width="22" height="58" rx="2"/><rect x="138" y="10" width="22" height="70" rx="2"/></g></svg>
+                )}
+                {b.motif === 'steps' && (
+                  <svg class="bento-motif" viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0,70 H50 V52 H100 V32 H150 V12 H200" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+                )}
+                <div class="bento-head">
+                  <h3 class="bento-label">{b.label}</h3>
+                  <span class="bento-count tabular-nums">{b.count} tools</span>
+                </div>
+                <p class="bento-tagline">{b.tagline}</p>
+                {b.size !== 'sm' && (
+                  <ul class="bento-samples">
+                    {b.samples.map((t) => <li>{t.name}</li>)}
+                  </ul>
+                )}
+                <span class="bento-go" aria-hidden="true">Explore →</span>
+              </a>
+            ))}
+          </div>
+          <div class="d-viewall reveal">
+            <a class="cta-viewall" href="/tools/">
+              View all <span class="tabular-nums">{TOOL_COUNT}</span> calculators
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
         </div>
       </section>
 
@@ -288,6 +361,8 @@ const questionWords = QUESTION.split(' ');
       .story-header.light .story-wordmark em { color: #0b6e6e; }
       .story-header.light .story-skip { color: #555a66; border-color: #e4e4e0; }
       .story-header.light .story-skip:hover { color: #14161a; }
+      .story-header { transition: background-color 0.4s ease, opacity 0.35s ease; }
+      .story-header.gone { opacity: 0; pointer-events: none; }
 
       /* ════ Stage ════ */
       .track { height: 700vh; position: relative; }
@@ -355,7 +430,7 @@ const questionWords = QUESTION.split(' ');
 
       .dawn-hint {
         position: absolute;
-        top: 58%;
+        top: 46%;
         left: 50%;
         transform: translateX(-50%);
         margin: 0;
@@ -585,7 +660,113 @@ const questionWords = QUESTION.split(' ');
       .kind-gain .decision-a { color: #14805a; }
       .kind-cost .decision-a { color: #c4442a; }
 
-            /* Close */
+            /* Bento — every category */
+      .d-bento { background: #fcfcfa; }
+      .bento {
+        margin-top: 44px;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+      }
+      .bento-tile {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 26px 26px 22px;
+        border: 1px solid #e4e4e0;
+        border-radius: 14px;
+        background: #ffffff;
+        text-decoration: none;
+        overflow: hidden;
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      }
+      .bento-tile:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 34px rgba(20, 22, 26, 0.07);
+      }
+      .bento-lg { grid-column: span 3; min-height: 250px; }
+      .bento-md { grid-column: span 3; min-height: 200px; }
+      .bento-sm { grid-column: span 3; min-height: 150px; }
+      @media (min-width: 900px) {
+        .bento-lg { grid-column: span 4; }
+        .bento-md { grid-column: span 2; }
+        .bento-sm { grid-column: span 3; }
+        .bento .bento-lg:nth-child(2) { grid-column: span 2; }
+      }
+      .tone-grow { --tone: #14805a; }
+      .tone-keep { --tone: #0b6e6e; }
+      .tone-owe { --tone: #c4442a; }
+      .tone-neutral { --tone: #555a66; }
+      .bento-tile:hover { border-color: var(--tone); }
+
+      .bento-motif {
+        position: absolute;
+        right: -6px;
+        bottom: -6px;
+        width: 52%;
+        height: 46%;
+        color: var(--tone);
+        opacity: 0.14;
+        pointer-events: none;
+      }
+      .bento-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+      .bento-label {
+        margin: 0;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 640;
+        font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+        letter-spacing: -0.02em;
+        color: #14161a;
+      }
+      .bento-count { font-size: 12.5px; font-weight: 600; color: var(--tone); white-space: nowrap; }
+      .bento-tagline { margin: 0; font-size: 14px; color: #555a66; line-height: 1.5; max-width: 34ch; }
+      .bento-samples {
+        list-style: none;
+        margin: auto 0 0;
+        padding: 10px 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+      }
+      .bento-samples li { font-size: 12.5px; color: #6b7280; }
+      .bento-samples li::before { content: '·'; margin-right: 6px; color: var(--tone); }
+      .bento-go {
+        margin-top: auto;
+        padding-top: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--tone);
+        opacity: 0;
+        transform: translateX(-4px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+      .bento-sm .bento-go, .bento-md .bento-go { padding-top: 6px; }
+      .bento-tile:hover .bento-go { opacity: 1; transform: translateX(0); }
+
+      /* Prominent view-all */
+      .d-viewall { margin-top: 34px; text-align: center; }
+      .cta-viewall {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: #0b6e6e;
+        color: #ffffff;
+        text-decoration: none;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 640;
+        font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+        letter-spacing: -0.01em;
+        padding: 18px 34px;
+        border-radius: 14px;
+        transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 10px 28px rgba(11, 110, 110, 0.22);
+      }
+      .cta-viewall:hover { background: #0a5555; transform: translateY(-2px); box-shadow: 0 16px 36px rgba(11, 110, 110, 0.28); }
+      .cta-viewall svg { transition: transform 0.2s ease; }
+      .cta-viewall:hover svg { transform: translateX(3px); }
+
+      /* Close */
       .d-close { text-align: center; }
       .d-trust {
         margin: 0 auto 30px;
@@ -621,6 +802,8 @@ const questionWords = QUESTION.split(' ');
         .figure-row { padding: 13px 2px; }
         .chapter-index { font-size: 8rem; left: 6px; bottom: 2vh; }
         .decision-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+        .bento { grid-template-columns: 1fr; gap: 12px; }
+        .bento-lg, .bento-md, .bento-sm { grid-column: span 1; min-height: 0; }
         .line-stage { inset: 6% 0 4% 0; height: 90%; opacity: 0.6; }
         .story-skip { font-size: 13px; padding: 7px 11px; }
 
@@ -774,8 +957,11 @@ const questionWords = QUESTION.split(' ');
         tl.to(['#line-glow'], { duration: 4, opacity: 0 }, 60);
         tl.to(['#line-core'], { duration: 6, stroke: '#0B6E6E', opacity: 0.5 }, 60);
         tl.to('.story-body', { duration: 10, backgroundColor: '#FCFCFA', ease: 'power1.inOut' }, 60);
-        tl.to('#dawn-hint', { duration: 4, opacity: 1, ease: 'power2.out' }, 67);
-        tl.to({}, { duration: 2 }); // settle
+        tl.to('#dawn-hint', { duration: 2.5, opacity: 1, ease: 'power2.out' }, 65.5);
+        // The baton pass: "Run your numbers" sinks and grows toward the static
+        // daylight heading of the same words, which reveals as it enters.
+        tl.to('#dawn-hint', { duration: 3.5, y: '30vh', scale: 1.6, opacity: 0, ease: 'power2.in' }, 68.5);
+        tl.to({}, { duration: 1 }); // settle
 
         /* Header flip that works in both scroll directions */
         ScrollTrigger.create({
@@ -783,6 +969,14 @@ const questionWords = QUESTION.split(' ');
           start: '93% bottom',
           onEnter: () => document.getElementById('story-header')?.classList.add('light'),
           onLeaveBack: () => document.getElementById('story-header')?.classList.remove('light'),
+        });
+
+        /* Real site navigation takes over in daylight; the story header bows out */
+        ScrollTrigger.create({
+          trigger: '#daylight',
+          start: 'top 70px',
+          onEnter: () => document.getElementById('story-header')?.classList.add('gone'),
+          onLeaveBack: () => document.getElementById('story-header')?.classList.remove('gone'),
         });
 
         /* Gentle chapter snapping — desktop pointers only (?nosnap disables for QA) */
