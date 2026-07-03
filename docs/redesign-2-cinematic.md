@@ -7,8 +7,27 @@
 > instant-utility). Owner requirement: the ENTIRE homepage must hold the cinematic
 > standard — the daylight below the dawn is a designed continuation (live engine,
 > chapter-coded count-up answer board, trust close), never the old page stapled on.
-> **R2.0 PROTOTYPE DELIVERED at /labs/story (noindex)** — full journey incl.
+> **R2.0 PROTOTYPE v5 DELIVERED at /labs/story (noindex)** — full journey incl.
 > designed daylight; awaiting owner verdict before R2.1 (production homepage).
+> v5 (post ultracode critique, 2 adversarial design agents over 15 frames): fixed
+> hero word-spacing (real text spaces, no q-space blocks), ghost-hint race (hint
+> opacity single-owner scrubbed trigger, not the smoothed master timeline), double
+> headers at baton (theater header bows out when daylight peeks over the fold),
+> line-through-ledger (KEEP path re-routed to lower band + blurred obsidian scrim
+> behind every figure row), dead-grey dawn (warm umber keyframes + coral horizon
+> glow + earlier hint entrance), UK/US region pills on all mixed-currency ledger
+> rows (theater + daylight board), ledger locked to a shared 6/6 grid with
+> phrase-value size step-down, bento motifs masked away from tool links + icons on
+> Utility/File minis, CTA "View all 46 tools" as one span (flex gap was splitting
+> it), trust line wraps whole-phrase, count-up selector fixed (.decision-a).
+> SITEWIDE BUGFIX found by critique: Footer.astro scoped `footer ul a
+> {display:inline-block}` out-cascaded the layered .inline-flex utility → footer
+> "View all tools" arrows wrapped onto their own line on EVERY page; fixed with a
+> scoped a.inline-flex re-override + unified both footer view-all labels.
+> DISMISSED findings: "daylight H1s should be Libre Baskerville" (site's heading
+> voice is Space Grotesk since R1 — critics assumed stale CLAUDE.md); board title
+> stays "Good financial decisions create value" (owner's requested copy); chapter
+> accent trio kept (it IS the semantic money-color system lifted for dark).
 > Companion docs: `docs/plan-2026-07.md` (tracker), CLAUDE.md standards.
 
 ---

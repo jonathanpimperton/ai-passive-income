@@ -17,6 +17,7 @@ import { calcFederalTax, calcFICA } from '@lib/us-tax-calc';
 import { calculateSdlt } from '@lib/stamp-duty';
 import DecisionEngine from '@components/homepage/DecisionEngine.tsx';
 import Navigation from '@components/ui/Navigation.astro';
+import Footer from '@components/ui/Footer.astro';
 import { TOOLS, CATEGORIES, getToolPath } from '@lib/tools-data';
 
 /* ── Live figures (the story never lies — same engines as the tools) ── */
@@ -42,9 +43,9 @@ const CHAPTERS = [
     title: 'Grow it.',
     lede: 'What steady monthly amounts become over ten, twenty, forty years.',
     figures: [
-      { label: '£500/mo invested for 10 years', value: `£${formatNumber(Math.round(grow500x10))}`, href: '/scenarios/500-per-month-10-years/' },
-      { label: '$10,000 + $200/mo for 20 years', value: `$${formatNumber(Math.round(grow10kPlus200))}`, href: '/tools/saving-and-growth/compound-interest/' },
-      { label: '£1,000/mo invested for 20 years', value: `£${formatNumber(Math.round(grow1000x20))}`, href: '/tools/saving-and-growth/investment-return/' },
+      { region: 'UK', label: '£500/mo for 10 yrs', value: `£${formatNumber(Math.round(grow500x10))}`, phrase: false, href: '/scenarios/500-per-month-10-years/' },
+      { region: 'US', label: '$10,000 + $200/mo for 20 yrs', value: `$${formatNumber(Math.round(grow10kPlus200))}`, phrase: false, href: '/tools/saving-and-growth/compound-interest/' },
+      { region: 'UK', label: '£1,000/mo for 20 yrs', value: `£${formatNumber(Math.round(grow1000x20))}`, phrase: false, href: '/tools/saving-and-growth/investment-return/' },
     ],
   },
   {
@@ -54,9 +55,9 @@ const CHAPTERS = [
     title: 'Keep it.',
     lede: 'Tax, National Insurance, deductions — what is actually left, to the pound.',
     figures: [
-      { label: `£50,000 UK salary — you keep ${ukKeptPct}%`, value: `£${formatNumber(Math.round(ukTakeHome50k / 12))}/mo`, href: '/tools/income-and-planning/salary-uk/' },
-      { label: '$100,000 US salary, single filer', value: `$${formatNumber(Math.round(usTakeHome100k / 12))}/mo`, href: '/tools/income-and-planning/salary-us/' },
-      { label: 'Stamp duty, £450K first home', value: `£${formatNumber(Math.round(sdltFtb450))}`, href: '/tools/economic/stamp-duty/' },
+      { region: 'UK', label: `£50,000 salary — you keep ${ukKeptPct}%`, value: `£${formatNumber(Math.round(ukTakeHome50k / 12))}/mo`, phrase: false, href: '/tools/income-and-planning/salary-uk/' },
+      { region: 'US', label: '$100,000 salary, single filer', value: `$${formatNumber(Math.round(usTakeHome100k / 12))}/mo`, phrase: false, href: '/tools/income-and-planning/salary-us/' },
+      { region: 'UK', label: 'Stamp duty, £450K first home', value: `£${formatNumber(Math.round(sdltFtb450))}`, phrase: false, href: '/tools/economic/stamp-duty/' },
     ],
   },
   {
@@ -66,9 +67,9 @@ const CHAPTERS = [
     title: 'Owe it.',
     lede: 'What borrowing costs month by month, and what one percent changes.',
     figures: [
-      { label: '$300K mortgage at 6.5%, 30 years', value: `$${formatNumber(Math.round(mortgage300k))}/mo`, href: '/tools/debt-and-loans/mortgage-payment/' },
-      { label: '£5,000 card at 22%, £250/mo', value: `debt-free in ${cardPayoff.months} mo`, href: '/tools/debt-and-loans/credit-card-payoff/' },
-      { label: 'Same mortgage at 5.5% instead', value: `saves $${formatNumber(rateSaving)}/mo`, href: '/tools/debt-and-loans/loan-amortization/' },
+      { region: 'US', label: '$300K mortgage at 6.5%, 30 yrs', value: `$${formatNumber(Math.round(mortgage300k))}/mo`, phrase: false, href: '/tools/debt-and-loans/mortgage-payment/' },
+      { region: 'UK', label: '£5,000 card at 22%, £250/mo', value: `debt-free in ${cardPayoff.months} mo`, phrase: true, href: '/tools/debt-and-loans/credit-card-payoff/' },
+      { region: 'US', label: 'Same mortgage at 5.5% instead', value: `saves $${formatNumber(rateSaving)}/mo`, phrase: true, href: '/tools/debt-and-loans/loan-amortization/' },
     ],
   },
 ];
@@ -86,12 +87,12 @@ const cardMonthsSooner = card150.months - card250.months;
 const wait5 = compoundInterest(0, 500, 0.07, 30, 12) - compoundInterest(0, 500, 0.07, 25, 12);
 
 const DECISIONS = [
-  { q: 'Start investing at 25 instead of 35 — £250 a month at 7%', n: Math.round(startEarlyDelta), pre: '+£', suf: ' by 65', kind: 'gain', href: '/tools/saving-and-growth/compound-interest/' },
-  { q: 'Put £100 more into your pension every month', n: Math.round(pension100x30), pre: '+£', suf: ' after 30 years', kind: 'gain', href: '/tools/income-and-planning/retirement-savings/' },
-  { q: 'Negotiate one percent off a $300K mortgage', n: Math.round(mortgageRateTotal), pre: '−$', suf: ' over the loan', kind: 'gain', href: '/tools/debt-and-loans/mortgage-payment/' },
-  { q: 'The taxman’s share of a £50,000 salary', n: Math.round(ukTax50k), pre: '£', suf: ' a year', kind: 'cost', href: '/tools/income-and-planning/salary-uk/' },
-  { q: 'Pay £250 a month on a £5,000 card instead of £150', n: cardMonthsSooner, pre: 'debt-free ', suf: ' months sooner', kind: 'gain', href: '/tools/debt-and-loans/credit-card-payoff/' },
-  { q: 'Wait five years before starting to invest £500/mo', n: Math.round(wait5), pre: '−£', suf: ' at year 30', kind: 'cost', href: '/tools/saving-and-growth/investment-return/' },
+  { region: 'UK', q: 'Start investing at 25 instead of 35 — £250 a month at 7%', n: Math.round(startEarlyDelta), pre: '+£', suf: ' by 65', kind: 'gain', href: '/tools/saving-and-growth/compound-interest/' },
+  { region: 'UK', q: 'Put £100 more into your pension every month', n: Math.round(pension100x30), pre: '+£', suf: ' after 30 years', kind: 'gain', href: '/tools/income-and-planning/retirement-savings/' },
+  { region: 'US', q: 'Negotiate one percent off a $300K mortgage', n: Math.round(mortgageRateTotal), pre: '−$', suf: ' over the loan', kind: 'gain', href: '/tools/debt-and-loans/mortgage-payment/' },
+  { region: 'UK', q: 'The taxman’s share of a £50,000 salary', n: Math.round(ukTax50k), pre: '£', suf: ' a year', kind: 'cost', href: '/tools/income-and-planning/salary-uk/' },
+  { region: 'UK', q: 'Pay £250/mo on a £5,000 card instead of £150', n: cardMonthsSooner, pre: 'debt-free ', suf: ' months sooner', kind: 'gain', href: '/tools/debt-and-loans/credit-card-payoff/' },
+  { region: 'UK', q: 'Wait five years before starting to invest £500/mo', n: Math.round(wait5), pre: '−£', suf: ' at year 30', kind: 'cost', href: '/tools/saving-and-growth/investment-return/' },
 ];
 
 /* ── Bento: every category, engine-counted, with sample tools ── */
@@ -157,6 +158,8 @@ const questionWords = QUESTION.split(' ');
         <div class="wash" id="wash-grow"></div>
         <div class="wash" id="wash-keep"></div>
         <div class="wash" id="wash-owe"></div>
+        {/* Warm horizon glow — keeps the dawn transit atmospheric, never flat grey */}
+        <div class="wash dawn-glow" id="dawn-glow"></div>
 
         {/* The data line (0.8× layer) */}
         <svg class="line-stage" id="line-stage" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-hidden="true">
@@ -175,15 +178,12 @@ const questionWords = QUESTION.split(' ');
         </svg>
 
         {/* Act 0 — the question */}
-        <p class="dawn-hint" id="dawn-hint" aria-hidden="true">Run your numbers</p>
-
         <section class="act act-0" id="act-0" aria-label="Introduction">
+          {/* Word spans on one template line with explicit string spaces between
+              them — any extra markup inside the h1 shows up as doubled word gaps */}
           <h1 class="question" id="question">
             {questionWords.map((word, wi) => (
-              <span class="q-word">
-                {word.split('').map((ch) => <span class="q-char" data-wi={wi}>{ch}</span>)}
-                {wi < questionWords.length - 1 && <span class="q-space"> </span>}
-              </span>
+              <Fragment><span class={word === 'clarity' ? 'q-word q-accent' : 'q-word'}>{word.split('').map((ch) => <span class="q-char" data-wi={wi}>{ch}</span>)}</span>{wi < questionWords.length - 1 ? ' ' : ''}</Fragment>
             ))}
           </h1>
           <p class="question-sub" id="question-sub">
@@ -208,8 +208,8 @@ const questionWords = QUESTION.split(' ');
             <div class="chapter-figures">
               {c.figures.map((f) => (
                 <a class="figure-row" href={f.href}>
-                  <span class="figure-label">{f.label}</span>
-                  <span class="figure-value tabular-nums">{f.value}<span class="figure-arrow" aria-hidden="true"> →</span></span>
+                  <span class="figure-label"><span class="figure-region" aria-hidden="true">{f.region}</span>{f.label}</span>
+                  <span class={`figure-value tabular-nums${f.phrase ? ' is-phrase' : ''}`}>{f.value}<span class="figure-arrow" aria-hidden="true"> →</span></span>
                 </a>
               ))}
             </div>
@@ -218,18 +218,18 @@ const questionWords = QUESTION.split(' ');
       </div>
     </div>
 
+    <p class="dawn-hint" id="dawn-hint" aria-hidden="true">Run your numbers</p>
+
     {/* ── DAYLIGHT — the instrument room: same standard, full utility ── */}
     <main class="daylight" id="daylight">
       {/* The real site navigation takes over from the story header here */}
-      <div id="daylight-nav">
-        <Navigation />
-      </div>
+      <Navigation />
 
       {/* D1 — the live instrument */}
       <section class="d-section d-engine">
         <div class="d-inner">
           <p class="d-kicker reveal">Your turn</p>
-          <h2 class="d-title"><span class="d-mask"><span class="d-mask-inner">Run your numbers</span></span></h2>
+          <h2 class="d-title" id="daylight-title">Run your numbers</h2>
           <p class="d-sub reveal">The same questions, live — answers as you type. No signup, no ads.</p>
           <div class="d-engine-wrap reveal">
             <DecisionEngine client:visible />
@@ -242,12 +242,12 @@ const questionWords = QUESTION.split(' ');
         <div class="d-inner d-inner-narrow">
           <p class="d-kicker reveal">Live calculations</p>
           <h2 class="d-title d-title-sm"><span class="d-mask"><span class="d-mask-inner">Good financial decisions create value</span></span></h2>
-          <p class="d-sub reveal">Each line is computed by the same engines as the tools. Open any of them with your own numbers.</p>
+          <p class="d-sub reveal">Every number below comes from a CalcRun calculator. Open one and run your own.</p>
           <ul class="decision-rows">
             {DECISIONS.map((d) => (
               <li>
                 <a class={`decision-row reveal kind-${d.kind}`} href={d.href}>
-                  <span class="decision-q">{d.q}</span>
+                  <span class="decision-q"><span class="d-region" aria-hidden="true">{d.region}</span>{d.q}</span>
                   <span class="decision-a tabular-nums" data-count={d.n} data-pre={d.pre} data-suf={d.suf}>{d.pre}{formatNumber(d.n)}{d.suf}</span>
                 </a>
               </li>
@@ -262,37 +262,57 @@ const questionWords = QUESTION.split(' ');
           <p class="d-kicker reveal">The full toolkit</p>
           <h2 class="d-title d-title-sm"><span class="d-mask"><span class="d-mask-inner">Every corner of your money</span></span></h2>
           <div class="bento">
-            {BENTO.map((b) => (
-              <a class={`bento-tile bento-${b.size} tone-${b.tone} reveal`} href={`/tools/#${b.slug}`}>
+            {BENTO.filter((b) => b.size !== 'sm').map((b) => (
+              <a class={`bento-tile area-${b.slug} tone-${b.tone} reveal`} href={`/tools/#${b.slug}`}>
                 {b.motif === 'growth' && (
-                  <svg class="bento-motif" viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0,76 C60,74 120,60 200,8" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+                  <svg class="bento-motif" viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true"><path d="M0,132 C90,128 190,96 300,10" fill="none" stroke="currentColor" stroke-width="2.5" /><path d="M0,132 C90,128 190,96 300,10 L300,140 L0,140 Z" fill="currentColor" opacity="0.18" stroke="none" /></svg>
                 )}
                 {b.motif === 'decline' && (
-                  <svg class="bento-motif" viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0,8 C80,14 150,40 200,76" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+                  <svg class="bento-motif" viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true"><path d="M0,12 C110,20 210,70 300,132" fill="none" stroke="currentColor" stroke-width="2.5" /><path d="M0,12 C110,20 210,70 300,132 L300,140 L0,140 Z" fill="currentColor" opacity="0.12" stroke="none" /></svg>
                 )}
                 {b.motif === 'bars' && (
-                  <svg class="bento-motif" viewBox="0 0 200 80" aria-hidden="true"><g fill="currentColor"><rect x="18" y="46" width="22" height="34" rx="2"/><rect x="58" y="34" width="22" height="46" rx="2"/><rect x="98" y="22" width="22" height="58" rx="2"/><rect x="138" y="10" width="22" height="70" rx="2"/></g></svg>
+                  <svg class="bento-motif bento-motif-bars" viewBox="0 0 300 140" aria-hidden="true"><g fill="currentColor"><rect x="30" y="86" width="36" height="54" rx="3" opacity="0.55"/><rect x="96" y="64" width="36" height="76" rx="3" opacity="0.7"/><rect x="162" y="40" width="36" height="100" rx="3" opacity="0.85"/><rect x="228" y="14" width="36" height="126" rx="3"/></g></svg>
                 )}
                 {b.motif === 'steps' && (
-                  <svg class="bento-motif" viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0,70 H50 V52 H100 V32 H150 V12 H200" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+                  <svg class="bento-motif" viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true"><path d="M0,124 H75 V94 H150 V60 H225 V22 H300" fill="none" stroke="currentColor" stroke-width="2.5" /></svg>
                 )}
                 <div class="bento-head">
                   <h3 class="bento-label">{b.label}</h3>
-                  <span class="bento-count tabular-nums">{b.count} tools</span>
+                  <span class="bento-count tabular-nums">{b.count}</span>
                 </div>
                 <p class="bento-tagline">{b.tagline}</p>
-                {b.size !== 'sm' && (
-                  <ul class="bento-samples">
-                    {b.samples.map((t) => <li>{t.name}</li>)}
-                  </ul>
-                )}
+                <ul class="bento-samples">
+                  {b.samples.map((t) => <li>{t.name}</li>)}
+                </ul>
                 <span class="bento-go" aria-hidden="true">Explore →</span>
               </a>
             ))}
+            <div class="bento-stack">
+              {BENTO.filter((b) => b.size === 'sm').map((b) => (
+                <a class={`bento-tile bento-mini tone-${b.tone} reveal`} href={`/tools/#${b.slug}`}>
+                  <div class="bento-head">
+                    <h3 class="bento-label bento-label-sm">
+                      <span class="bento-mini-icon" aria-hidden="true">
+                        {b.slug === 'utility' ? (
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        ) : (
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                        )}
+                      </span>{b.label}
+                    </h3>
+                    <span class="bento-count tabular-nums">{b.count}</span>
+                  </div>
+                  <p class="bento-tagline bento-tagline-sm">{b.tagline}</p>
+                  <span class="bento-go" aria-hidden="true">Explore →</span>
+                </a>
+              ))}
+            </div>
           </div>
           <div class="d-viewall reveal">
+            {/* Single span for the label — flex gap between text fragments would
+                otherwise split "View all | 46 | tools" into gapped pieces */}
             <a class="cta-viewall" href="/tools/">
-              View all <span class="tabular-nums">{TOOL_COUNT}</span> calculators
+              <span>View all <span class="tabular-nums">{TOOL_COUNT}</span> tools</span>
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
             </a>
           </div>
@@ -303,16 +323,15 @@ const questionWords = QUESTION.split(' ');
       <section class="d-section d-close">
         <div class="d-inner">
           <p class="d-trust reveal">
-            Built by an ACA-qualified accountant&ensp;·&ensp;Tax rates verified for
-            <span class="tabular-nums"> 2026/27</span> (UK) &amp; <span class="tabular-nums">2026</span> (US)&ensp;·&ensp;Every calculator documents its formula
+            <span class="trust-item">Built by an ACA-qualified accountant</span>
+            <span class="trust-item">Tax rates verified for <span class="tabular-nums">2026/27</span> (UK) &amp; <span class="tabular-nums">2026</span> (US)</span>
+            <span class="trust-item">Every calculator documents its formula</span>
           </p>
-          <div class="daylight-ctas reveal">
-            <a class="cta-primary" href="/tools/">Explore all 46 calculators</a>
-            <a class="cta-quiet" href="/scenarios/">Browse instant answers →</a>
-          </div>
+          <p class="d-close-link reveal"><a href="/scenarios/">Browse 100+ instant answers →</a></p>
         </div>
       </section>
     </main>
+    <Footer />
 
     <style>
       /* ════ Theater base ════ */
@@ -362,7 +381,12 @@ const questionWords = QUESTION.split(' ');
       .story-header.light .story-skip { color: #555a66; border-color: #e4e4e0; }
       .story-header.light .story-skip:hover { color: #14161a; }
       .story-header { transition: background-color 0.4s ease, opacity 0.35s ease; }
-      .story-header.gone { opacity: 0; pointer-events: none; }
+      .story-header.gone {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.35s ease, visibility 0s 0.35s;
+      }
 
       /* ════ Stage ════ */
       .track { height: 700vh; position: relative; }
@@ -382,6 +406,9 @@ const questionWords = QUESTION.split(' ');
       #wash-grow { background: radial-gradient(90% 70% at 30% 85%, rgba(24, 138, 96, 0.22), transparent 70%); }
       #wash-keep { background: radial-gradient(90% 70% at 70% 80%, rgba(56, 174, 174, 0.20), transparent 70%); }
       #wash-owe  { background: radial-gradient(90% 70% at 35% 80%, rgba(200, 74, 48, 0.17), transparent 70%); }
+      .dawn-glow {
+        background: radial-gradient(110% 58% at 50% 64%, rgba(232, 96, 76, 0.20), rgba(240, 138, 112, 0.06) 52%, transparent 76%);
+      }
 
       .line-stage {
         position: absolute;
@@ -409,15 +436,20 @@ const questionWords = QUESTION.split(' ');
       .question {
         margin: 0;
         font-family: 'Space Grotesk', sans-serif;
-        font-weight: 640;
-        font-size: clamp(2.6rem, 7.5vw, 5.6rem);
-        letter-spacing: -0.03em;
-        line-height: 1.04;
-        max-width: 14ch;
+        font-weight: 560;
+        font-size: clamp(2.9rem, 7.8vw, 6.2rem);
+        letter-spacing: -0.045em;
+        line-height: 1.03;
+        max-width: 15ch;
+        text-wrap: balance;
+      }
+      .q-accent .q-char {
+        color: #5fd3d3;
+        /* tight halo hugging the letterforms + faint ambient bloom */
+        text-shadow: 0 0 16px rgba(95, 211, 211, 0.5), 0 0 44px rgba(56, 174, 174, 0.26);
       }
       .q-word { display: inline-block; white-space: nowrap; }
       .q-char { display: inline-block; will-change: transform, opacity; }
-      .q-space { display: inline-block; width: 0.28em; }
 
       .question-sub {
         margin: 26px 0 0;
@@ -429,19 +461,23 @@ const questionWords = QUESTION.split(' ');
       .question-sub .sub-quiet { display: block; color: #6b7280; font-size: 0.88em; margin-top: 6px; }
 
       .dawn-hint {
-        position: absolute;
-        top: 46%;
+        position: fixed;
+        top: 44%;
         left: 50%;
-        transform: translateX(-50%);
         margin: 0;
+        z-index: 40;
         font-family: 'Space Grotesk', sans-serif;
-        font-weight: 600;
-        font-size: clamp(1.3rem, 2.4vw, 1.9rem);
-        letter-spacing: -0.02em;
+        font-weight: 640;
+        font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+        letter-spacing: -0.03em;
         color: #0b6e6e;
         opacity: 0;
         pointer-events: none;
+        white-space: nowrap;
+        will-change: transform, opacity;
       }
+      .static-story .dawn-hint { display: none; }
+      .static-story .story-header { position: absolute; }
 
       .scroll-cue {
         position: absolute;
@@ -534,13 +570,14 @@ const questionWords = QUESTION.split(' ');
       .chapter-figures {
         display: flex;
         flex-direction: column;
-        width: min(460px, 38vw);
+        width: min(500px, 40vw);
       }
       .figure-row {
-        display: flex;
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
         align-items: baseline;
-        justify-content: space-between;
-        gap: 18px;
+        column-gap: 18px;
         padding: 19px 2px;
         border-top: 1px solid rgba(139, 147, 161, 0.18);
         text-decoration: none;
@@ -549,15 +586,37 @@ const questionWords = QUESTION.split(' ');
         will-change: transform, opacity;
         transition: border-color 0.3s ease;
       }
+      /* Soft obsidian scrim behind each row — the data line passes beneath the
+         ledger without ever striking through its text */
+      .figure-row::before {
+        content: '';
+        position: absolute;
+        inset: -4px -16px;
+        background: rgba(10, 11, 13, 0.78);
+        filter: blur(9px);
+        border-radius: 14px;
+        z-index: -1;
+      }
       .figure-row:last-child { border-bottom: 1px solid rgba(139, 147, 161, 0.18); }
       .figure-row:hover { border-top-color: rgba(56, 174, 174, 0.55); }
       .figure-label {
-        font-size: 14px;
+        font-size: 13.5px;
         color: #8b93a1;
         line-height: 1.45;
-        max-width: 24ch;
         transition: color 0.25s ease;
         text-shadow: 0 2px 14px rgba(10, 11, 13, 0.9);
+      }
+      .figure-region {
+        display: inline-block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.14em;
+        color: #8b93a1;
+        border: 1px solid rgba(139, 147, 161, 0.35);
+        border-radius: 5px;
+        padding: 2px 6px 1px;
+        margin-right: 9px;
+        vertical-align: 2px;
       }
       .figure-row:hover .figure-label { color: #d7dbe1; }
       .figure-value {
@@ -566,9 +625,13 @@ const questionWords = QUESTION.split(' ');
         color: #fcfcfa;
         letter-spacing: -0.02em;
         white-space: nowrap;
+        justify-self: end;
+        text-align: right;
         /* keeps numerals crisp where the glowing line passes behind the ledger */
         text-shadow: 0 2px 20px rgba(10, 11, 13, 0.95), 0 0 6px rgba(10, 11, 13, 0.8);
       }
+      /* Phrase-length values step down so the row grid never collapses */
+      .figure-value.is-phrase { font-size: clamp(1.15rem, 1.7vw, 1.5rem); }
       .figure-arrow {
         color: #38aeae;
         opacity: 0;
@@ -613,6 +676,7 @@ const questionWords = QUESTION.split(' ');
         max-width: 46ch;
         line-height: 1.6;
       }
+      .d-board .d-sub { max-width: 42ch; }
       .d-mask { display: block; overflow: hidden; }
       .d-mask-inner { display: block; }
 
@@ -648,7 +712,20 @@ const questionWords = QUESTION.split(' ');
         font-size: clamp(0.95rem, 1.3vw, 1.05rem);
         color: #3a3e48;
         line-height: 1.5;
-        max-width: 40ch;
+        max-width: 42ch;
+      }
+      .d-region {
+        display: inline-block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.14em;
+        color: #6b7280;
+        border: 1px solid #dcdcd8;
+        border-radius: 5px;
+        padding: 2px 6px 1px;
+        margin-right: 9px;
+        vertical-align: 2px;
+        background: #ffffff;
       }
       .decision-a {
         font-size: clamp(1.2rem, 2vw, 1.6rem);
@@ -660,22 +737,31 @@ const questionWords = QUESTION.split(' ');
       .kind-gain .decision-a { color: #14805a; }
       .kind-cost .decision-a { color: #c4442a; }
 
-            /* Bento — every category */
+            /* Bento — composed grid: two heroes, two mids, stacked minis */
       .d-bento { background: #fcfcfa; }
       .bento {
         margin-top: 44px;
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
         gap: 16px;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-areas:
+          "sg sg sg sg dl dl"
+          "ip ip ec ec mini mini";
       }
+      .area-saving-and-growth { grid-area: sg; min-height: 280px; }
+      .area-debt-and-loans { grid-area: dl; min-height: 280px; }
+      .area-income-and-planning { grid-area: ip; min-height: 220px; }
+      .area-economic { grid-area: ec; min-height: 220px; }
+      .bento-stack { grid-area: mini; display: grid; grid-template-rows: 1fr 1fr; gap: 16px; }
+
       .bento-tile {
         position: relative;
         display: flex;
         flex-direction: column;
         gap: 8px;
-        padding: 26px 26px 22px;
+        padding: 28px 28px 24px;
         border: 1px solid #e4e4e0;
-        border-radius: 14px;
+        border-radius: 16px;
         background: #ffffff;
         text-decoration: none;
         overflow: hidden;
@@ -683,57 +769,86 @@ const questionWords = QUESTION.split(' ');
       }
       .bento-tile:hover {
         transform: translateY(-3px);
-        box-shadow: 0 14px 34px rgba(20, 22, 26, 0.07);
+        box-shadow: 0 16px 38px rgba(20, 22, 26, 0.08);
+        border-color: var(--tone);
       }
-      .bento-lg { grid-column: span 3; min-height: 250px; }
-      .bento-md { grid-column: span 3; min-height: 200px; }
-      .bento-sm { grid-column: span 3; min-height: 150px; }
-      @media (min-width: 900px) {
-        .bento-lg { grid-column: span 4; }
-        .bento-md { grid-column: span 2; }
-        .bento-sm { grid-column: span 3; }
-        .bento .bento-lg:nth-child(2) { grid-column: span 2; }
-      }
+      .bento-mini { padding: 20px 22px 16px; }
+
       .tone-grow { --tone: #14805a; }
       .tone-keep { --tone: #0b6e6e; }
       .tone-owe { --tone: #c4442a; }
       .tone-neutral { --tone: #555a66; }
-      .bento-tile:hover { border-color: var(--tone); }
 
       .bento-motif {
         position: absolute;
-        right: -6px;
-        bottom: -6px;
-        width: 52%;
-        height: 46%;
+        right: 0;
+        bottom: 0;
+        width: 62%;
+        height: 58%;
         color: var(--tone);
-        opacity: 0.14;
+        opacity: 0.11;
         pointer-events: none;
+        transition: opacity 0.3s ease;
+        /* fade the art out of the bottom strip where the tool links sit */
+        mask-image: linear-gradient(to top, transparent 6%, black 52%);
+        -webkit-mask-image: linear-gradient(to top, transparent 6%, black 52%);
       }
+      .bento-motif-bars { width: 46%; height: 52%; right: 14px; bottom: 0; }
+      .bento-tile:hover .bento-motif { opacity: 0.19; }
+
       .bento-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
       .bento-label {
         margin: 0;
         font-family: 'Space Grotesk', sans-serif;
         font-weight: 640;
-        font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+        font-size: clamp(1.3rem, 1.9vw, 1.65rem);
         letter-spacing: -0.02em;
         color: #14161a;
       }
-      .bento-count { font-size: 12.5px; font-weight: 600; color: var(--tone); white-space: nowrap; }
-      .bento-tagline { margin: 0; font-size: 14px; color: #555a66; line-height: 1.5; max-width: 34ch; }
+      .bento-label-sm { font-size: 1.1rem; }
+      .bento-mini-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: color-mix(in srgb, var(--tone) 10%, #ffffff);
+        border: 1px solid color-mix(in srgb, var(--tone) 18%, #ffffff);
+        color: var(--tone);
+        margin-right: 9px;
+        vertical-align: -6px;
+      }
+      .bento-count {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--tone);
+        background: color-mix(in srgb, var(--tone) 9%, #ffffff);
+        border: 1px solid color-mix(in srgb, var(--tone) 22%, #ffffff);
+        padding: 3px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .bento-tagline { margin: 0; font-size: 14.5px; color: #555a66; line-height: 1.5; max-width: 36ch; }
+      .bento-tagline-sm { font-size: 13px; max-width: none; }
       .bento-samples {
         list-style: none;
         margin: auto 0 0;
-        padding: 10px 0 0;
+        padding: 12px 0 0;
         display: flex;
         flex-wrap: wrap;
-        gap: 6px 14px;
+        gap: 6px 16px;
+        position: relative;
+        z-index: 1;
+        /* solid ground under the links — card art always fades before text */
+        background: linear-gradient(to top, #ffffff 72%, rgba(255, 255, 255, 0));
       }
-      .bento-samples li { font-size: 12.5px; color: #6b7280; }
+      .bento-samples li { font-size: 13px; color: #6b7280; }
       .bento-samples li::before { content: '·'; margin-right: 6px; color: var(--tone); }
       .bento-go {
-        margin-top: auto;
-        padding-top: 10px;
+        position: absolute;
+        top: 31px;
+        right: 28px;
         font-size: 13.5px;
         font-weight: 600;
         color: var(--tone);
@@ -741,10 +856,16 @@ const questionWords = QUESTION.split(' ');
         transform: translateX(-4px);
         transition: opacity 0.25s ease, transform 0.25s ease;
       }
-      .bento-sm .bento-go, .bento-md .bento-go { padding-top: 6px; }
+      .bento-mini .bento-go { top: 22px; right: 22px; }
       .bento-tile:hover .bento-go { opacity: 1; transform: translateX(0); }
+      .bento-tile:hover .bento-count { opacity: 0; }
+      .bento-count { transition: opacity 0.2s ease; }
 
-      /* Prominent view-all */
+      .d-close-link { margin: 0; }
+      .d-close-link a { color: #0b6e6e; font-weight: 600; text-decoration: none; }
+      .d-close-link a:hover { text-decoration: underline; }
+
+            /* Prominent view-all */
       .d-viewall { margin-top: 34px; text-align: center; }
       .cta-viewall {
         display: inline-flex;
@@ -774,7 +895,13 @@ const questionWords = QUESTION.split(' ');
         color: #555a66;
         max-width: 72ch;
         line-height: 1.8;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px 14px;
       }
+      /* Trust items wrap whole, never mid-phrase */
+      .trust-item { white-space: nowrap; }
       .daylight-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
       .cta-primary {
         background: #0b6e6e;
@@ -800,10 +927,14 @@ const questionWords = QUESTION.split(' ');
         .chapter-lede { margin-inline: auto; }
         .chapter-figures { width: 100%; max-width: 440px; }
         .figure-row { padding: 13px 2px; }
+        .figure-label { text-align: left; }
+        .figure-value { font-size: 1.3rem; }
+        .figure-value.is-phrase { font-size: 1.05rem; }
         .chapter-index { font-size: 8rem; left: 6px; bottom: 2vh; }
         .decision-row { flex-direction: column; align-items: flex-start; gap: 6px; }
-        .bento { grid-template-columns: 1fr; gap: 12px; }
-        .bento-lg, .bento-md, .bento-sm { grid-column: span 1; min-height: 0; }
+        .bento { grid-template-columns: 1fr; grid-template-areas: "sg" "dl" "ip" "ec" "mini"; gap: 12px; }
+        .area-saving-and-growth, .area-debt-and-loans { min-height: 210px; }
+        .area-income-and-planning, .area-economic { min-height: 170px; }
         .line-stage { inset: 6% 0 4% 0; height: 90%; opacity: 0.6; }
         .story-skip { font-size: 13px; padding: 7px 11px; }
 
@@ -842,7 +973,8 @@ const questionWords = QUESTION.split(' ');
 
         const FLAT = pts(() => 310);
         const GROW = pts((t) => 340 - (300 * (Math.exp(2.8 * t) - 1)) / (Math.exp(2.8) - 1));
-        const KEEP = pts((t) => 185 - 55 * t); // income line, rising gently
+        // income line rides the lower band — clear of the headline and ledger text
+        const KEEP = pts((t) => 322 - 72 * t);
         const OWE = pts((t) => 62 + 258 * Math.pow(t, 1.85));
         const HAIR = pts(() => 200);
 
@@ -952,16 +1084,17 @@ const questionWords = QUESTION.split(' ');
         chapterIn('owe', 45);
         chapterOut('owe', 56);
 
-        /* DAWN (58–74): line flattens to a hairline, obsidian → paper */
+        /* DAWN (58–74): line flattens to a hairline; obsidian grades through a
+           warm horizon into paper — no scroll position parks on flat grey */
         tl.add(morph(OWE, HAIR).duration(6), 57);
         tl.to(['#line-glow'], { duration: 4, opacity: 0 }, 60);
         tl.to(['#line-core'], { duration: 6, stroke: '#0B6E6E', opacity: 0.5 }, 60);
-        tl.to('.story-body', { duration: 10, backgroundColor: '#FCFCFA', ease: 'power1.inOut' }, 60);
-        tl.to('#dawn-hint', { duration: 2.5, opacity: 1, ease: 'power2.out' }, 65.5);
-        // The baton pass: "Run your numbers" sinks and grows toward the static
-        // daylight heading of the same words, which reveals as it enters.
-        tl.to('#dawn-hint', { duration: 3.5, y: '30vh', scale: 1.6, opacity: 0, ease: 'power2.in' }, 68.5);
-        tl.to({}, { duration: 1 }); // settle
+        tl.to('.story-body', { duration: 4.5, backgroundColor: '#2E2724', ease: 'power1.in' }, 60);
+        tl.to('.story-body', { duration: 3.5, backgroundColor: '#EFE9E1', ease: 'none' }, 64.5);
+        tl.to('.story-body', { duration: 3, backgroundColor: '#FCFCFA', ease: 'power1.out' }, 68);
+        tl.to('#dawn-glow', { duration: 5, opacity: 0.6, ease: 'sine.in' }, 61);
+        tl.to('#dawn-glow', { duration: 4.5, opacity: 0, ease: 'sine.out' }, 66.5);
+        tl.to({}, { duration: 3.5 }); // hold through the dawn settle
 
         /* Header flip that works in both scroll directions */
         ScrollTrigger.create({
@@ -971,17 +1104,76 @@ const questionWords = QUESTION.split(' ');
           onLeaveBack: () => document.getElementById('story-header')?.classList.remove('light'),
         });
 
-        /* Real site navigation takes over in daylight; the story header bows out */
+        /* ── The baton pass: the fixed "Run your numbers" hint travels into the
+           static daylight heading of the same words, tracking its live position
+           every frame, then swaps with it. Scrubbed — reverses cleanly. ── */
+        const hint = document.getElementById('dawn-hint')!;
+        const batonTarget = document.getElementById('daylight-title')!;
+        gsap.set(hint, { xPercent: -50, yPercent: -50 });
+        gsap.set(batonTarget, { opacity: 0 });
+
+        /* Hint fade-in owns its own scrubbed trigger (NOT the master timeline —
+           the timeline's scrub smoothing would re-write opacity after the baton
+           trigger hides it on fast scrolls, leaving a ghost over the daylight) */
+        gsap.fromTo(hint, { opacity: 0 }, {
+          opacity: 1,
+          ease: 'none',
+          scrollTrigger: { trigger: '#track', start: '86% bottom', end: '92% bottom', scrub: true },
+        });
+        const inkMix = gsap.utils.interpolate('#0B6E6E', '#14161A');
+        let hintBase: DOMRect | null = null;
+
+        ScrollTrigger.create({
+          trigger: batonTarget,
+          start: 'top bottom',
+          end: 'top 25%',
+          scrub: true,
+          invalidateOnRefresh: true,
+          onRefresh: () => { hintBase = null; },
+          onUpdate: (self) => {
+            const t = self.progress;
+            if (!hintBase) {
+              gsap.set(hint, { x: 0, y: 0, scale: 1 });
+              hintBase = hint.getBoundingClientRect();
+            }
+            const tr = batonTarget.getBoundingClientRect();
+            const scaleTarget = tr.height / hintBase.height;
+            const dx = tr.left + tr.width / 2 - (hintBase.left + hintBase.width / 2);
+            const dy = tr.top + tr.height / 2 - (hintBase.top + hintBase.height / 2);
+            const eased = gsap.parseEase('power2.inOut')(t);
+            if (t >= 0.985) {
+              gsap.set(batonTarget, { opacity: 1 });
+              gsap.set(hint, { opacity: 0 });
+            } else {
+              gsap.set(batonTarget, { opacity: 0 });
+              gsap.set(hint, {
+                x: dx * eased,
+                y: dy * eased,
+                scale: 1 + (scaleTarget - 1) * eased,
+                color: inkMix(eased),
+                opacity: 1,
+              });
+            }
+          },
+          onLeave: () => {
+            gsap.set(batonTarget, { opacity: 1 });
+            gsap.set(hint, { opacity: 0 });
+          },
+        });
+
+        /* Real site navigation takes over in daylight; the story header bows out
+           the moment daylight first peeks over the fold — one brand header on
+           screen at any scroll position, never two */
         ScrollTrigger.create({
           trigger: '#daylight',
-          start: 'top 70px',
+          start: 'top bottom',
           onEnter: () => document.getElementById('story-header')?.classList.add('gone'),
           onLeaveBack: () => document.getElementById('story-header')?.classList.remove('gone'),
         });
 
         /* Gentle chapter snapping — desktop pointers only (?nosnap disables for QA) */
         if (window.matchMedia('(pointer: fine)').matches && !location.search.includes('nosnap')) {
-          const total = 72;
+          const total = tl.duration();
           ScrollTrigger.create({
             trigger: '#track',
             start: 'top top',
@@ -1016,7 +1208,7 @@ const questionWords = QUESTION.split(' ');
           });
         });
 
-        gsap.utils.toArray<HTMLElement>('.board-a').forEach((el) => {
+        gsap.utils.toArray<HTMLElement>('.decision-a').forEach((el) => {
           const target = parseFloat(el.dataset.count || '0');
           if (!target) return;
           const pre = el.dataset.pre || '';

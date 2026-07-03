@@ -53,7 +53,7 @@ const moreTools = [
           ))}
           <li>
             <a href="/tools/" class="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150">
-              All tools
+              View all tools
               <ToolIcon name="arrow-right" size={14} />
             </a>
           </li>
@@ -93,5 +93,11 @@ const moreTools = [
   footer ul a {
     display: inline-block;
     padding-block: 0.375rem;
+  }
+  /* Scoped rules out-cascade layered utilities — restore flex on the
+     view-all links so the arrow glyph can never wrap onto its own line */
+  footer ul a.inline-flex {
+    display: inline-flex;
+    white-space: nowrap;
   }
 </style>
