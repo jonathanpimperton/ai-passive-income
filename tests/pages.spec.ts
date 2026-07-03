@@ -19,27 +19,45 @@ const mainH1 = '#main-content h1';
 // ════════════════════════════════════════════════════════════════
 
 test.describe('Homepage', () => {
-  test('loads with decision engine h1 and discovery links', async ({ page }) => {
+  test('first visit opens the theater with the question h1 and discovery links', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
+    // Fresh session: the scroll theater plays, h1 is the brand question
     const h1 = page.locator(mainH1).first();
-    await expect(h1).toBeVisible();
-    await expect(h1).toContainText('Run your numbers');
+    await expect(h1).toContainText('Get clarity on your financial decisions');
+    await expect(page.locator('#track')).toBeVisible();
 
-    // Discovery section has visible tool links (scope to the bg-neutral-50 discovery section)
+    // Discovery section has tool links in the DOM (below the fold pre-reveal)
     const discoverySection = page.locator('section.bg-neutral-50');
     const toolLinks = discoverySection.locator('a[href*="/tools/"]');
-    await expect(toolLinks.first()).toBeVisible();
     expect(await toolLinks.count()).toBeGreaterThanOrEqual(6);
 
     // Comparison links present in discovery section
     const compLinks = discoverySection.locator('a[href*="/comparisons/"]');
-    await expect(compLinks.first()).toBeVisible();
     expect(await compLinks.count()).toBeGreaterThanOrEqual(3);
   });
 
+  test('returning visit in the same session skips the theater', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    // Second navigation in the same session — the intro must not replay
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    expect(
+      await page.evaluate(() => document.documentElement.classList.contains('intro-seen'))
+    ).toBe(true);
+    await expect(page.locator('#track')).toBeHidden();
+    await expect(page.locator('#daylight-title')).toBeVisible();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    // The replay control is offered
+    await expect(page.locator('#replay-intro')).toBeAttached();
+  });
+
   test('decision engine renders with calculator result', async ({ page }) => {
+    // Land directly in daylight so the engine is at the top
+    await page.addInitScript(() => sessionStorage.setItem('calcrun.introSeen', '1'));
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -211,6 +229,8 @@ test.describe('Static pages', () => {
 
 test.describe('Navigation', () => {
   test('desktop dropdown shows tool links', async ({ page }) => {
+    // Land in daylight — the site nav lives there on the homepage
+    await page.addInitScript(() => sessionStorage.setItem('calcrun.introSeen', '1'));
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -232,6 +252,8 @@ test.describe('Navigation', () => {
 
 test.describe('Dark mode', () => {
   test('toggle adds data-theme="dark" to html', async ({ page }) => {
+    // Land in daylight — the theme toggle lives in the site nav there
+    await page.addInitScript(() => sessionStorage.setItem('calcrun.introSeen', '1'));
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 

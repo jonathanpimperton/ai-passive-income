@@ -11,6 +11,8 @@ interface Props {
   ogImage?: string;
   structuredData?: string[];
   noindex?: boolean;
+  /** Page renders its own <Navigation /> (e.g. the homepage theater's daylight) */
+  hideNav?: boolean;
 }
 
 const {
@@ -20,6 +22,7 @@ const {
   ogImage = '/og/default.png',
   structuredData = [],
   noindex = false,
+  hideNav = false,
 } = Astro.props;
 
 const SITE_URL = 'https://www.calcrun.com';
@@ -80,6 +83,9 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
       <script is:inline type="application/ld+json" set:html={data} />
     ))}
 
+    <!-- Page-specific pre-paint head additions (e.g. homepage intro-seen flag) -->
+    <slot name="head" />
+
     <!-- Google Analytics with Consent Mode v2: analytics_storage defaults to
          DENIED and is only granted when the visitor has accepted the cookie
          banner (stored consent honored on subsequent visits). Loaded at the
@@ -133,7 +139,7 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
         tableResizeTimer = setTimeout(wrapWideTables, 250);
       }, { passive: true });
     </script>
-    <Navigation />
+    {!hideNav && <Navigation />}
     <main id="main-content" class="flex-1">
       <slot />
     </main>

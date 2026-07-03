@@ -7,8 +7,15 @@
 > instant-utility). Owner requirement: the ENTIRE homepage must hold the cinematic
 > standard — the daylight below the dawn is a designed continuation (live engine,
 > chapter-coded count-up answer board, trust close), never the old page stapled on.
-> **R2.0 PROTOTYPE v5 DELIVERED at /labs/story (noindex)** — full journey incl.
-> designed daylight; awaiting owner verdict before R2.1 (production homepage).
+> **R2.1 SHIPPED — the Number Theater IS the production homepage** (3 Jul 2026).
+> /labs/story deleted; astro.config 301s it to /. Intro plays once per session
+> (sessionStorage `calcrun.introSeen`, pre-paint head script, "Watch the intro
+> again" control in the close). Daylight tokenized for dark mode; discovery
+> columns + newsletter ported from the old homepage for internal-link equity;
+> BaseLayout provides head SEO/GA4/consent + footer (new `hideNav` prop + head
+> slot). See plan-2026-07.md "R2.1 PRODUCTION FACTS" for the load-bearing
+> implementation details (ScrollTrigger refresh on skeleton collapse, etc.).
+> Prototype history below (v5 critique fixes) retained for reference.
 > v5 (post ultracode critique, 2 adversarial design agents over 15 frames): fixed
 > hero word-spacing (real text spaces, no q-space blocks), ghost-hint race (hint
 > opacity single-owner scrubbed trigger, not the smoothed master timeline), double

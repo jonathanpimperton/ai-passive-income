@@ -30,6 +30,8 @@ const lastmodMap = buildLastmodMap();
 export default defineConfig({
   site: 'https://www.calcrun.com',
   trailingSlash: 'always',
+  // The Number Theater prototype was promoted to the production homepage
+  redirects: { '/labs/story/': '/' },
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'viewport',

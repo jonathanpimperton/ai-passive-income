@@ -479,7 +479,20 @@ When starting a new session on this project:
    quiet affiliate rows, homepage rebuilt (take-home tab, trust strip, instant answers),
    type-set logo, brand OG images, light footer, TOC rail, and a perf pass (React
    removed from all non-island pages via vanilla CookieBanner.astro, hero at
-   client:idle, Turnstile deferred, nav SVG sprite, Astro prefetch). **Next: Phase 3**
+   client:idle, Turnstile deferred, nav SVG sprite, Astro prefetch).
+   **R2 complete ("Number Theater" homepage, 3 Jul 2026):** the production
+   homepage is a scroll-driven cinematic opening (obsidian theater →
+   Grow/Keep/Owe chapters told by one morphing glowing line → warm dawn →
+   light product: live engine, decision board, bento, discovery, newsletter,
+   trust close). The intro plays ONCE per browsing session (sessionStorage
+   `calcrun.introSeen`, pre-paint head script adds `.intro-seen` to <html>;
+   returning navigations land directly in daylight; "Watch the intro again"
+   control replays). GSAP + ScrollTrigger, homepage-only bundle; dark-mode
+   aware; reduced-motion renders settled; no-JS collapses to daylight;
+   /labs/story 301s to /. Load-bearing: ScrollTrigger.refresh() fires via
+   MutationObserver when the engine's SSR skeleton collapses on hydration —
+   read plan doc "R2.1 PRODUCTION FACTS" before touching homepage scroll
+   logic. **Next: Phase 3**
    (SEO restructure — scenario hub consolidation + 301s, E-E-A-T bylines/schema,
    internal-link ladders) per the plan doc; a post-deploy maintenance list
    (CalculatorShell dedup, lazy recharts) is also in the plan doc.

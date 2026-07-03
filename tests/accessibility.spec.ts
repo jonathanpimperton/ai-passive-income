@@ -93,6 +93,8 @@ test.describe('Accessibility — Scenarios Index', () => {
 
 test.describe('Accessibility — Dark Mode', () => {
   test('homepage in dark mode passes WCAG AA checks', async ({ page }) => {
+    // Land in daylight — the theme toggle lives in the site nav there
+    await page.addInitScript(() => sessionStorage.setItem('calcrun.introSeen', '1'));
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
