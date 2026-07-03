@@ -1,8 +1,15 @@
 # Redesign 2.0 — "The Number Theater"
 ### A scroll-driven, cinematic redesign plan for CalcRun
 
-> Status: PLAN FOR OWNER REVIEW — not started. Companion docs: `docs/plan-2026-07.md`
-> (execution tracker), CLAUDE.md Design Quality Standards (current system rules).
+> Status: OWNER DECISIONS LOCKED (3 Jul 2026): Dawn Handoff · three chapters ·
+> "What is your number?" WITH instant clarity subline · prototype-first · NO
+> scroll-staging on calculator pages (theater is homepage-only; calculators stay
+> instant-utility). Owner requirement: the ENTIRE homepage must hold the cinematic
+> standard — the daylight below the dawn is a designed continuation (live engine,
+> chapter-coded count-up answer board, trust close), never the old page stapled on.
+> **R2.0 PROTOTYPE DELIVERED at /labs/story (noindex)** — full journey incl.
+> designed daylight; awaiting owner verdict before R2.1 (production homepage).
+> Companion docs: `docs/plan-2026-07.md` (tracker), CLAUDE.md standards.
 
 ---
 

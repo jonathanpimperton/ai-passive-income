@@ -41,6 +41,8 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
+      // /labs/ pages are prototypes — noindex'd and kept out of the sitemap
+      filter: (page) => !new URL(page).pathname.startsWith('/labs/'),
       serialize(item) {
         const lastmod = lastmodMap.get(new URL(item.url).pathname);
         if (lastmod) item.lastmod = lastmod;
