@@ -491,8 +491,13 @@ When starting a new session on this project:
    tables: `docs/tax-values-2026.json`. Owner has deferred distribution + revenue work.
    Sprint log above (1-36) is historical record. Tests: 301 unit + 74 E2E.
 4. **Git workflow:** Work on `claude/master`. Pushing auto-deploys to production via
-   Cloudflare Pages — get owner approval before pushing unless a standing instruction
-   says otherwise. Local checkpoint commits at milestones are approved practice.
+   the GitHub → Cloudflare (Workers Builds) integration — builds take **~20-30
+   minutes** to reach the live site (npm install + 197 pages + OG generation), so
+   don't diagnose a "failed deploy" before ~30 min have passed. Local wrangler is
+   NOT authenticated (deploys happen CF-side only). Get owner approval before
+   pushing unless a standing instruction says otherwise. Local checkpoint commits
+   at milestones are approved practice. The build runs `npm run build`, whose
+   prebuild hook is the dependency-free `scripts/check-rates-freshness.mjs` guard.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
 
