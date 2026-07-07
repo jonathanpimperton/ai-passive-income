@@ -2,7 +2,7 @@
 name: "Image Format Converter"
 slug: "image-format-converter"
 category: "file-tools"
-description: "Convert between PNG, JPG, and WebP instantly in your browser."
+description: "PNG to JPG, JPG to PNG, and WebP converter — switch image formats in seconds, right in your browser. Files never leave your device."
 keywords:
   - "PNG to JPG"
   - "JPG to PNG"

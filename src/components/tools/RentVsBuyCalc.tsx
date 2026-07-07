@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   AreaChart,
   Area,
@@ -46,6 +46,15 @@ export default function RentVsBuyCalc() {
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
+  const region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
+  const currencyWord = currency === 'GBP' ? 'pounds' : currency === 'EUR' ? 'euros' : 'dollars';
+  const propertyChargesLabel = region === 'us' ? 'Property Tax Rate' : 'Annual property charges (% of home value)';
+  const propertyChargesHint = region === 'us'
+    ? "Annual tax as % of home value — check your county assessor's site"
+    : region === 'uk'
+      ? 'Council tax and other annual property charges as a % of home value'
+      : 'Property taxes and other annual charges as a % of home value';
+  const hoaLabel = region === 'us' ? 'HOA / Month' : region === 'uk' ? 'Service charge / ground rent (monthly)' : 'Monthly service charges';
   const [homePrice, setHomePrice] = useState(DEFAULTS.homePrice);
   const [downPaymentPct, setDownPaymentPct] = useState(DEFAULTS.downPaymentPct);
   const [mortgageRate, setMortgageRate] = useState(DEFAULTS.mortgageRate);
@@ -63,11 +72,28 @@ export default function RentVsBuyCalc() {
   const [timeHorizon, setTimeHorizon] = useState(DEFAULTS.timeHorizon);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // Region default: UK mortgages are typically 25 years. Only applied while the user
+  // hasn't touched the loan term — never stomp user input on currency switch.
+  const regionTermDefault = region === 'uk' ? 25 : DEFAULTS.loanTermYears;
+  const loanTermTouched = useRef(false);
+
+  useEffect(() => {
+    if (!loanTermTouched.current) {
+      setLoanTermYears(regionTermDefault);
+    }
+  }, [regionTermDefault]);
+
+  const handleLoanTermChange = useCallback((v: number) => {
+    loanTermTouched.current = true;
+    setLoanTermYears(v);
+  }, []);
+
   const handleReset = useCallback(() => {
     setHomePrice(DEFAULTS.homePrice);
     setDownPaymentPct(DEFAULTS.downPaymentPct);
     setMortgageRate(DEFAULTS.mortgageRate);
-    setLoanTermYears(DEFAULTS.loanTermYears);
+    loanTermTouched.current = false;
+    setLoanTermYears(regionTermDefault);
     setPropertyTaxRate(DEFAULTS.propertyTaxRate);
     setHomeInsurance(DEFAULTS.homeInsurance);
     setHoaMonthly(DEFAULTS.hoaMonthly);
@@ -80,7 +106,7 @@ export default function RentVsBuyCalc() {
     setMarginalTaxRate(DEFAULTS.marginalTaxRate);
     setTimeHorizon(DEFAULTS.timeHorizon);
     setShowAdvanced(false);
-  }, []);
+  }, [regionTermDefault]);
 
   const analysis = useMemo(() => {
     const downPayment = homePrice * (downPaymentPct / 100);
@@ -113,8 +139,9 @@ export default function RentVsBuyCalc() {
         loanBalance = Math.max(0, loanBalance - principalPayment);
         totalInterestPaid += interestPayment;
 
-        // Tax deduction on mortgage interest (simplified)
-        const taxSavings = interestPayment * (marginalTaxRate / 100);
+        // Tax deduction on mortgage interest (simplified, US only — the UK
+        // abolished mortgage-interest relief in 2000; not applied for EUR either)
+        const taxSavings = region === 'us' ? interestPayment * (marginalTaxRate / 100) : 0;
 
         const monthBuyCost = monthlyMortgage + monthlyPropertyTax + monthlyInsurance + hoaMonthly + monthlyMaintenance - taxSavings;
         yearBuyCost += monthBuyCost;
@@ -184,7 +211,7 @@ export default function RentVsBuyCalc() {
       finalEquity: finalYear?.equity ?? 0,
       totalInterestPaid: Math.round(totalInterestPaid),
     };
-  }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, propertyTaxRate, homeInsurance, hoaMonthly, maintenanceRate, homeAppreciation, monthlyRent, rentIncrease, rentersInsurance, investmentReturn, marginalTaxRate, timeHorizon]);
+  }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, propertyTaxRate, homeInsurance, hoaMonthly, maintenanceRate, homeAppreciation, monthlyRent, rentIncrease, rentersInsurance, investmentReturn, marginalTaxRate, timeHorizon, region]);
 
   const animatedSavings = useAnimatedNumber(analysis.savings);
   const animatedMortgage = useAnimatedNumber(analysis.monthlyMortgage);
@@ -202,7 +229,7 @@ export default function RentVsBuyCalc() {
       { label: 'Monthly Rent', value: fmt(monthlyRent) },
       { label: 'Rent Increase', value: `${rentIncrease.toFixed(1)}%/yr` },
       { label: 'Home Appreciation', value: `${homeAppreciation.toFixed(1)}%/yr` },
-      { label: 'Property Tax Rate', value: `${propertyTaxRate.toFixed(1)}%` },
+      { label: propertyChargesLabel, value: `${propertyTaxRate.toFixed(1)}%` },
       { label: 'Home Insurance', value: `${fmt(homeInsurance)}/yr` },
       { label: 'Maintenance Rate', value: `${maintenanceRate.toFixed(1)}%` },
       { label: 'Time Horizon', value: `${timeHorizon} years` },
@@ -240,9 +267,9 @@ export default function RentVsBuyCalc() {
             {/* Buy section */}
             <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Buying</p>
             <SliderInput label="Home Price" id="rvb-price" value={homePrice} min={50000} max={2000000} step={5000} textMax={10000000} minLabel={`${currencySymbol}50K`} maxLabel={`${currencySymbol}2M`} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
-            <SliderInput label="Down Payment" id="rvb-down" value={downPaymentPct} min={0} max={100} step={1} onChange={setDownPaymentPct} suffix="%" formatDisplay={(v) => `${v.toFixed(0)} (${fmt(homePrice * v / 100)})`} hint="Percentage of the price you'll pay upfront — shown in dollars below" />
-            <SliderInput label="Mortgage Rate" id="rvb-rate" value={mortgageRate} min={2} max={12} step={0.125} onChange={setMortgageRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} hint="Current mortgage interest rates — check bankrate.com" />
-            <SliderInput label="Loan Term (Years)" id="rvb-term" value={loanTermYears} min={10} max={30} step={1} onChange={setLoanTermYears} />
+            <SliderInput label="Down Payment" id="rvb-down" value={downPaymentPct} min={0} max={100} step={1} onChange={setDownPaymentPct} suffix="%" formatDisplay={(v) => `${v.toFixed(0)} (${fmt(homePrice * v / 100)})`} hint={`Percentage of the price you'll pay upfront — shown in ${currencyWord} below`} />
+            <SliderInput label="Mortgage Rate" id="rvb-rate" value={mortgageRate} min={2} max={12} step={0.125} onChange={setMortgageRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} hint={region === 'us' ? 'Current mortgage interest rates — check bankrate.com' : 'Check current mortgage rates'} />
+            <SliderInput label="Loan Term (Years)" id="rvb-term" value={loanTermYears} min={10} max={30} step={1} onChange={handleLoanTermChange} />
 
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
 
@@ -267,14 +294,16 @@ export default function RentVsBuyCalc() {
 
             {showAdvanced && (
               <div className="space-y-5 pt-1">
-                <SliderInput label="Property Tax Rate" id="rvb-ptax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Annual tax as % of home value — check your county assessor's site" />
+                <SliderInput label={propertyChargesLabel} id="rvb-ptax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint={propertyChargesHint} />
                 <SliderInput label="Home Insurance (Annual)" id="rvb-hins" value={homeInsurance} min={0} max={10000} step={100} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}10K`} onChange={setHomeInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
-                <SliderInput label="HOA / Month" id="rvb-hoa" value={hoaMonthly} min={0} max={2000} step={25} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}2K`} onChange={setHoaMonthly} prefix={currencySymbol} formatDisplay={formatNumber} />
+                <SliderInput label={hoaLabel} id="rvb-hoa" value={hoaMonthly} min={0} max={2000} step={25} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}2K`} onChange={setHoaMonthly} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Maintenance Rate" id="rvb-maint" value={maintenanceRate} min={0} max={3} step={0.1} onChange={setMaintenanceRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Rule of thumb: 1% of home value per year for upkeep" />
                 <SliderInput label="Home Appreciation" id="rvb-appr" value={homeAppreciation} min={-5} max={10} step={0.5} onChange={setHomeAppreciation} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
                 <SliderInput label="Renter's Insurance / Month" id="rvb-rins" value={rentersInsurance} min={0} max={100} step={5} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}100`} onChange={setRentersInsurance} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Investment Return (Renter)" id="rvb-inv" value={investmentReturn} min={0} max={15} step={0.5} onChange={setInvestmentReturn} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="If renting, what return you'd earn investing the difference — ~7% for index funds" />
-                <SliderInput label="Marginal Tax Rate" id="rvb-tax" value={marginalTaxRate} min={0} max={55} step={1} onChange={setMarginalTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint="Your highest combined federal + state tax bracket — 22% is common for middle incomes" />
+                {region === 'us' && (
+                  <SliderInput label="Marginal Tax Rate" id="rvb-tax" value={marginalTaxRate} min={0} max={55} step={1} onChange={setMarginalTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint="Your highest combined federal + state tax bracket — 22% is common for middle incomes" />
+                )}
               </div>
             )}
           </div>

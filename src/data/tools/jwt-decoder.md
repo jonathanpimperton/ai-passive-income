@@ -2,7 +2,7 @@
 name: "JWT Decoder"
 slug: "jwt-decoder"
 category: "utility"
-description: "Decode JWT tokens to inspect header, payload, and expiration."
+description: "JWT decoder — inspect a token's header, payload, claims, and expiration right in your browser. Tokens never leave your device."
 keywords:
   - "JWT decoder"
   - "JWT parser"

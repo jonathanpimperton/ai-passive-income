@@ -2,7 +2,7 @@
 name: "Solar Panel Payback Calculator"
 slug: "solar-payback"
 category: "saving-and-growth"
-description: "Estimate how long solar panels take to pay for themselves — with or without a battery, based on your tariff and usage."
+description: "Solar panel payback calculator — estimate how long panels take to pay for themselves, with or without a battery, from your tariff and usage."
 keywords:
   - "solar panel payback period"
   - "solar panel ROI calculator"

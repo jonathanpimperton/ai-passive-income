@@ -2,7 +2,7 @@
 name: "PDF Merge"
 slug: "pdf-merge"
 category: "file-tools"
-description: "Combine multiple PDF files into one document. Files stay in your browser."
+description: "Merge PDF files into a single document — reorder files before combining, right in your browser. Files never leave your device."
 keywords:
   - "merge PDF online"
   - "combine PDF files"

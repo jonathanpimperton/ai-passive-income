@@ -2,7 +2,7 @@
 name: "ROI Calculator"
 slug: "roi"
 category: "saving-and-growth"
-description: "Calculate return on investment with initial cost, final value, and holding period."
+description: "ROI calculator — work out return on investment from initial cost and final value, including annualized return over the holding period."
 keywords:
   - "ROI calculator"
   - "return on investment calculator"

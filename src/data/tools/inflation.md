@@ -2,7 +2,7 @@
 name: "Inflation Calculator"
 slug: "inflation"
 category: "economic"
-description: "See how inflation erodes purchasing power over time using historical CPI data."
+description: "Inflation calculator using historical CPI data — see what money from any year is worth today and how inflation erodes purchasing power."
 keywords:
   - "inflation calculator"
   - "CPI calculator"

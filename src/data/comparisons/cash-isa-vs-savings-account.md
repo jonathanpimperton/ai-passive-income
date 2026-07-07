@@ -37,6 +37,15 @@ affiliateContext: "Open a Stocks & Shares ISA instead"
 affiliatePrograms:
   - "InvestEngine"
   - "Nutmeg"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "GOV.UK — Individual Savings Accounts"
+    url: "https://www.gov.uk/individual-savings-accounts"
+  - name: "GOV.UK — Money and tax"
+    url: "https://www.gov.uk/browse/tax"
+  - name: "Bank of England — Monetary policy"
+    url: "https://www.bankofengland.co.uk/monetary-policy"
 ---
 
 ## The Personal Savings Allowance changed everything
@@ -53,7 +62,7 @@ At a 4.5% interest rate, a basic rate taxpayer would need over **£22,000** in s
 
 **Additional rate taxpayers.** No PSA at all. Every pound of interest is taxed at 45%. A Cash ISA is worth it from the first penny.
 
-**Large emergency funds.** If you keep £30,000-£50,000 in cash (perhaps saving for a home deposit while maintaining an emergency fund), even basic rate taxpayers will exceed their PSA. A Cash ISA shelters the excess.
+**Large emergency funds.** If you keep £30,000-£50,000 in cash (perhaps [saving for a home deposit](/scenarios/save-for-house-deposit/) while maintaining an [emergency fund](/tools/income-and-planning/emergency-fund/)), even basic rate taxpayers will exceed their PSA. A Cash ISA shelters the excess.
 
 **Rate drops.** If savings rates fall below 3%, the PSA covers a larger balance before tax kicks in. But the Cash ISA rates also tend to be lower in that environment, so the benefit is smaller.
 
@@ -67,7 +76,7 @@ That rate difference matters. On £15,000, an extra 0.5% is £75 per year — mo
 
 ## The real cost: wasting your ISA allowance
 
-This is the argument most people miss. Your £20,000 annual ISA allowance is shared across all ISA types — Cash, Stocks & Shares, and Lifetime. Every pound in a Cash ISA is a pound not in a Stocks & Shares ISA.
+This is the argument most people miss. Your £20,000 annual ISA allowance is shared across all ISA types — Cash, Stocks & Shares, and [Lifetime](/comparisons/lisa-vs-regular-isa/). Every pound in a Cash ISA is a pound not in a [Stocks & Shares ISA](/comparisons/isa-vs-general-investment/).
 
 Over 20 years, a Stocks & Shares ISA invested in a global index fund has historically returned 7-10% annually (before inflation). A Cash ISA at 4% doesn't come close to that over the long term. The tax-free shelter is far more valuable on investment growth — where you'd otherwise pay capital gains tax and dividend tax — than on cash interest, which the PSA already covers.
 

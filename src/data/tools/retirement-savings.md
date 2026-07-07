@@ -2,7 +2,7 @@
 name: "Retirement Savings Calculator"
 slug: "retirement-savings"
 category: "income-and-planning"
-description: "Project your retirement balance with contributions, returns, and inflation adjustment."
+description: "Retirement savings calculator — project your balance at retirement from contributions, returns, and inflation-adjusted growth."
 keywords:
   - "retirement calculator"
   - "retirement savings calculator"

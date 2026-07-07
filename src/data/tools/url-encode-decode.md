@@ -2,7 +2,7 @@
 name: "URL Encode/Decode"
 slug: "url-encode-decode"
 category: "utility"
-description: "URL-encode and decode text instantly. Supports component and full URI modes."
+description: "URL encoder and decoder — percent-encode or decode text with component and full-URI modes, instantly and entirely in your browser."
 keywords:
   - "URL encoder"
   - "URL decoder"

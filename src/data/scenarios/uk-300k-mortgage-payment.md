@@ -13,6 +13,8 @@ resultSummary: "£1,842/month (£252,600 total interest)"
 affiliateContext: "Compare mortgage rates from multiple lenders"
 affiliatePrograms:
   - "LendingTree"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## Your monthly payment is £1,842 — and you pay £252,600 in interest

@@ -286,6 +286,9 @@ export default function CreditCardPayoffCalc() {
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const ct = useChartTheme();
+  // Percentage-mode minimum payment floor: US cards typically use $25, UK
+  // cards £5. Not user-editable, so it flips safely with the currency selector.
+  const minFloor = currency === 'GBP' ? 5 : DEFAULTS.minFloor;
 
   const [balance, setBalance] = useState(DEFAULTS.balance);
   const [apr, setApr] = useState(DEFAULTS.apr);
@@ -296,14 +299,14 @@ export default function CreditCardPayoffCalc() {
 
   /* ── Compute payoff: minimum only ────────────────────── */
   const minOnlyResult = useMemo(
-    () => simulatePayoff(balance, apr, minType, minFixed, minPercent, DEFAULTS.minFloor, 0),
-    [balance, apr, minType, minFixed, minPercent]
+    () => simulatePayoff(balance, apr, minType, minFixed, minPercent, minFloor, 0),
+    [balance, apr, minType, minFixed, minPercent, minFloor]
   );
 
   /* ── Compute payoff: with extra payments ─────────────── */
   const withExtraResult = useMemo(
-    () => simulatePayoff(balance, apr, minType, minFixed, minPercent, DEFAULTS.minFloor, extra),
-    [balance, apr, minType, minFixed, minPercent, extra]
+    () => simulatePayoff(balance, apr, minType, minFixed, minPercent, minFloor, extra),
+    [balance, apr, minType, minFixed, minPercent, minFloor, extra]
   );
 
   const hasExtra = extra > 0;
@@ -358,8 +361,8 @@ export default function CreditCardPayoffCalc() {
   /* ── Current monthly payment display ─────────────────── */
   const currentMinPayment = useMemo(() => {
     if (minType === 'fixed') return minFixed;
-    return Math.max(balance * (minPercent / 100), DEFAULTS.minFloor);
-  }, [balance, minType, minFixed, minPercent]);
+    return Math.max(balance * (minPercent / 100), minFloor);
+  }, [balance, minType, minFixed, minPercent, minFloor]);
 
   /* ── Handlers ────────────────────────────────────────── */
   const handleReset = useCallback(() => {
@@ -379,11 +382,11 @@ export default function CreditCardPayoffCalc() {
     if (minType === 'fixed') {
       inputs.push({ label: 'Minimum Payment (Fixed)', value: fmt(minFixed) });
     } else {
-      inputs.push({ label: 'Minimum Payment (%)', value: `${minPercent}% (min ${fmt(DEFAULTS.minFloor)})` });
+      inputs.push({ label: 'Minimum Payment (%)', value: `${minPercent}% (min ${fmt(minFloor)})` });
     }
     inputs.push({ label: 'Extra Monthly Payment', value: fmt(extra) });
     return inputs;
-  }, [balance, apr, minType, minFixed, minPercent, extra, currency]);
+  }, [balance, apr, minType, minFixed, minPercent, minFloor, extra, currency]);
 
   const getResults = useCallback((): ResultItem[] => {
     const results: ResultItem[] = [
@@ -500,7 +503,7 @@ export default function CreditCardPayoffCalc() {
             ) : (
               <SliderInput
                 label="Minimum Payment Percentage"
-                hint={`Percentage of balance (min ${currencySymbol}${DEFAULTS.minFloor} floor)`}
+                hint={`Percentage of balance (min ${currencySymbol}${minFloor} floor)`}
                 id="cc-min-pct"
                 value={minPercent}
                 min={1}

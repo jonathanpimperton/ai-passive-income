@@ -5,6 +5,8 @@
  * Only shows for calculators with a natural affiliate fit.
  */
 
+import { getSavedCurrency } from '@lib/currency';
+
 interface PartnerConfig {
   name: string;
   tagline: string;
@@ -16,11 +18,14 @@ interface PartnerConfig {
 interface ToolAffiliateConfig {
   cta: string;
   partners: PartnerConfig[];
+  /** US-only partners (e.g. LendingTree) — hidden when display currency isn't USD. */
+  usOnly?: boolean;
 }
 
 const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
   'mortgage-payment': {
     cta: 'Compare rates from multiple lenders',
+    usOnly: true,
     partners: [{
       name: 'LendingTree',
       tagline: 'See personalised mortgage rates in minutes',
@@ -102,6 +107,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
   },
   'loan-amortization': {
     cta: 'Compare loan rates',
+    usOnly: true,
     partners: [{
       name: 'LendingTree',
       tagline: 'See personalised loan rates in minutes',
@@ -111,6 +117,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
   },
   'rent-vs-buy': {
     cta: 'Get pre-approved for a mortgage',
+    usOnly: true,
     partners: [{
       name: 'LendingTree',
       tagline: 'Compare mortgage rates from multiple lenders',
@@ -120,6 +127,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
   },
   'mortgage-affordability': {
     cta: 'Get pre-approved and see your rate',
+    usOnly: true,
     partners: [{
       name: 'LendingTree',
       tagline: 'Compare mortgage rates from multiple lenders',
@@ -138,6 +146,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
   },
   'car-finance': {
     cta: 'Compare auto loan rates',
+    usOnly: true,
     partners: [{
       name: 'LendingTree',
       tagline: 'Compare car loan rates from multiple lenders in minutes',
@@ -147,6 +156,7 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
   },
   'stamp-duty': {
     cta: 'Compare mortgage rates for your purchase',
+    usOnly: true,
     partners: [{
       name: 'LendingTree',
       tagline: 'Compare mortgage rates from multiple lenders in minutes',
@@ -178,6 +188,9 @@ interface ResultAffiliateProps {
 export default function ResultAffiliate({ toolSlug }: ResultAffiliateProps) {
   const config = RESULT_AFFILIATES[toolSlug];
   if (!config) return null;
+
+  // US-only partners are irrelevant to GBP/EUR users — hide entirely.
+  if (config.usOnly && getSavedCurrency() !== 'USD') return null;
 
   const partner = config.partners[0];
   if (!partner) return null;

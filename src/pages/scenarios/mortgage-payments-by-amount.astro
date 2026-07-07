@@ -1,0 +1,287 @@
+---
+/**
+ * Phase 3 hub page: mortgage payments by loan amount.
+ * Consolidates the retired per-amount mortgage doorway scenarios ($150k-$750k)
+ * into one reference matrix. Every figure is computed AT BUILD TIME with
+ * loanMonthlyPayment() from calculator-utils — the same function the Mortgage
+ * Payment Calculator uses (unit-tested in financial.test.ts).
+ *
+ * Retired scenario URLs 301 here with row anchors (e.g. /#300k) via
+ * public/_redirects.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import Byline from '@components/ui/Byline.astro';
+import MortgagePaymentCalc from '@components/tools/MortgagePaymentCalc.tsx';
+import { buildArticleSchema } from '@lib/seo';
+import { loanMonthlyPayment } from '@lib/calculator-utils';
+
+const DATE_PUBLISHED = '2026-07-07';
+const DATE_MODIFIED = '2026-07-07';
+
+const AMOUNTS = [
+  150000, 175000, 200000, 250000, 300000, 350000, 400000, 450000, 500000,
+  550000, 600000, 650000, 700000, 750000,
+];
+const RATES = [0.05, 0.055, 0.06, 0.065, 0.07];
+const TERM_MONTHS = 360; // 30 years
+
+const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+const gbp = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
+
+const rows = AMOUNTS.map((amount) => ({
+  amount,
+  anchor: `${amount / 1000}k`,
+  payments: RATES.map((rate) => loanMonthlyPayment(amount, rate, TERM_MONTHS)),
+}));
+
+// Total interest over the full 30-year term at 6.5%
+const INTEREST_AMOUNTS = [200000, 300000, 400000, 500000];
+const interestRows = INTEREST_AMOUNTS.map((amount) => {
+  const monthly = loanMonthlyPayment(amount, 0.065, TERM_MONTHS);
+  return { amount, monthly, totalInterest: monthly * TERM_MONTHS - amount };
+});
+
+// Figures used in prose — all computed, never hand-typed
+const pay300at65 = loanMonthlyPayment(300000, 0.065, TERM_MONTHS);
+const pay300at65_15yr = loanMonthlyPayment(300000, 0.065, 180);
+const interest300_30yr = pay300at65 * TERM_MONTHS - 300000;
+const interest300_15yr = pay300at65_15yr * 180 - 300000;
+const rateSwing400 = loanMonthlyPayment(400000, 0.07, TERM_MONTHS) - loanMonthlyPayment(400000, 0.05, TERM_MONTHS);
+const pay400at6 = loanMonthlyPayment(400000, 0.06, TERM_MONTHS);
+const ukPay300 = loanMonthlyPayment(300000, 0.055, 300); // 25-year UK worked example
+const interest300Pct = Math.round((interest300_30yr / 300000) * 100);
+
+const title = 'Mortgage Payments by Amount: $150,000 to $750,000 at 5-7%';
+const description =
+  'Monthly mortgage payments for loan amounts from $150,000 to $750,000 at 5%, 5.5%, 6%, 6.5%, and 7% over 30 years — plus total interest and a UK guide.';
+
+const articleSchema = buildArticleSchema({
+  headline: title,
+  description,
+  path: '/scenarios/mortgage-payments-by-amount/',
+  datePublished: DATE_PUBLISHED,
+  dateModified: DATE_MODIFIED,
+  ogImagePath: '/og/hubs/mortgage-payments-by-amount.png',
+});
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Scenarios', url: '/scenarios/' },
+  { name: 'Mortgage Payments by Amount', url: '/scenarios/mortgage-payments-by-amount/' },
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  ogImage="/og/hubs/mortgage-payments-by-amount.png"
+  structuredData={[articleSchema]}
+>
+  {/* Page header */}
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <Breadcrumb items={breadcrumbs} />
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
+        Mortgage payments by amount <span class="text-neutral-500 font-normal">($150,000&ndash;$750,000)</span>
+      </h1>
+      <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
+      <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">
+        The monthly payment on every common loan amount from $150,000 to $750,000, at rates from
+        5% to 7% — 30-year term, principal and interest. The amortization math is
+        currency-agnostic: a &pound;300,000 loan at the same rate and term costs the same figure
+        in pounds.
+      </p>
+    </div>
+  </section>
+
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    {/* The matrix */}
+    <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-neutral-50 border-b border-neutral-200/80">
+              <th class="text-left px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Loan amount</th>
+              {RATES.map((rate) => (
+                <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700 tabular-nums">{(rate * 100).toFixed(1)}%</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr
+                id={row.anchor}
+                class:list={[
+                  'border-b border-neutral-100 last:border-b-0 scroll-mt-24 target:bg-primary-50',
+                  i % 2 === 1 ? 'bg-neutral-50/50' : '',
+                ]}
+              >
+                <td class="px-4 sm:px-5 py-3 font-semibold text-neutral-900 tabular-nums">{usd(row.amount)}</td>
+                {row.payments.map((payment) => (
+                  <td class="px-4 sm:px-5 py-3 text-right text-neutral-900 tabular-nums">{usd(payment)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="mt-3 text-xs text-neutral-500">
+      Monthly payment, 30-year (360-payment) repayment term, principal and interest only.
+      US buyers typically add property tax, homeowners insurance, and PMI — the
+      <a href="#calculator" class="underline decoration-neutral-300 underline-offset-2 hover:text-primary-700 transition-colors duration-150">full calculator</a> below prices those in.
+    </p>
+
+    {/* Reading the table */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-6">Reading the table</h2>
+      <div class="space-y-6 text-neutral-700 leading-relaxed">
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">It's pure principal and interest</h3>
+          <p>
+            Each figure is the fixed monthly repayment that clears the loan in exactly 30 years —
+            the standard amortization formula, nothing else. A $300,000 loan at 6.5% costs
+            {' '}<span class="tabular-nums">{usd(pay300at65)}</span> a month whether the property is
+            in Texas or Tyneside. In the US, the number on your statement will be higher, because
+            lenders escrow property tax and homeowners insurance on top, and add PMI when the down
+            payment is under 20%. None of that is in this table.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">The rate matters as much as the amount</h3>
+          <p>
+            Read across a row rather than down a column: on $400,000, moving from 5% to 7% adds
+            {' '}<span class="tabular-nums">{usd(rateSwing400)}</span> a month — roughly the same
+            damage as borrowing an extra $95,000 at the lower rate. When you compare lender quotes,
+            a quarter-point difference compounds over 360 payments.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">Dollars, pounds, or euros — same digits</h3>
+          <p>
+            The formula only sees the loan amount, the rate, and the term. &pound;400,000 at 6% over
+            30 years is <span class="tabular-nums">{gbp(pay400at6)}</span> a month — the same digits
+            as the dollar row above. What changes between countries is the market convention, not
+            the math; the UK section below covers the differences that actually matter.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {/* Total interest */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-4">What the interest adds up to</h2>
+      <p class="text-neutral-700 leading-relaxed mb-5">
+        Over a full 30-year term at 6.5%, the interest bill exceeds the amount you borrowed: on
+        $300,000 you repay <span class="tabular-nums text-red-600">{usd(interest300_30yr)}</span> in
+        interest — {interest300Pct}% of the original loan.
+      </p>
+      <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden max-w-[560px]">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-neutral-50 border-b border-neutral-200/80">
+                <th class="text-left px-5 py-3 font-semibold text-neutral-700">Loan amount</th>
+                <th class="text-right px-5 py-3 font-semibold text-neutral-700">Monthly at 6.5%</th>
+                <th class="text-right px-5 py-3 font-semibold text-neutral-700">Total interest (30 years)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {interestRows.map((row, i) => (
+                <tr class:list={['border-b border-neutral-100 last:border-b-0', i % 2 === 1 ? 'bg-neutral-50/50' : '']}>
+                  <td class="px-5 py-2.5 font-semibold text-neutral-900 tabular-nums">{usd(row.amount)}</td>
+                  <td class="px-5 py-2.5 text-right text-neutral-900 tabular-nums">{usd(row.monthly)}</td>
+                  <td class="px-5 py-2.5 text-right text-red-600 tabular-nums">{usd(row.totalInterest)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    {/* 15 vs 30 years */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-4">The 15-year alternative</h2>
+      <p class="text-neutral-700 leading-relaxed">
+        Halving the term costs less than you'd expect. On $300,000 at 6.5%, the 15-year payment is
+        {' '}<span class="tabular-nums">{usd(pay300at65_15yr)}</span> against
+        {' '}<span class="tabular-nums">{usd(pay300at65)}</span> on the 30 —
+        {' '}<span class="tabular-nums">{usd(pay300at65_15yr - pay300at65)}</span> more a month —
+        but lifetime interest falls from
+        {' '}<span class="tabular-nums text-red-600">{usd(interest300_30yr)}</span> to
+        {' '}<span class="tabular-nums text-red-600">{usd(interest300_15yr)}</span>, keeping
+        {' '}<span class="tabular-nums text-success-600">{usd(interest300_30yr - interest300_15yr)}</span> in
+        your pocket.
+        <a href="/comparisons/15-year-vs-30-year-mortgage/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">15-year vs 30-year mortgage</a> weighs
+        the trade-off in full — including when the 30 is the smarter choice.
+      </p>
+    </section>
+
+    {/* UK section */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-4">Borrowing in pounds</h2>
+      <p class="text-neutral-700 leading-relaxed mb-4">
+        The table applies to UK mortgages unchanged, but two conventions differ. UK terms usually
+        run 25 years rather than 30 — a shorter term means a higher monthly payment and less total
+        interest. And UK rates are typically fixed for only 2&ndash;5 years, after which you
+        remortgage or roll onto the lender's standard variable rate, so the payment you start with
+        is not the payment you keep for three decades.
+      </p>
+      <p class="text-neutral-700 leading-relaxed">
+        Worked example on UK conventions:
+        <a href="/scenarios/uk-300k-mortgage-payment/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">a &pound;300,000 mortgage at 5.5% over 25 years</a> comes
+        to <span class="tabular-nums">{gbp(ukPay300)}</span> a month, with a year-by-year breakdown
+        of how the interest/principal split shifts.
+      </p>
+    </section>
+
+    {/* Embedded calculator */}
+    <section class="mt-14" id="calculator">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-2">Price your own loan</h2>
+      <p class="text-neutral-600 leading-relaxed mb-6 max-w-[640px]">
+        Down payment, property tax, homeowners insurance, PMI, and extra monthly payments — the
+        full calculator, right here.
+      </p>
+      <MortgagePaymentCalc client:visible />
+    </section>
+
+    {/* Deep dives */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-5">Go deeper</h2>
+      <ul class="space-y-3">
+        <li>
+          <a href="/scenarios/300k-mortgage-7-percent/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">$300,000 at 7%</a>
+          <span class="text-neutral-600"> — a full worked example at the top of the rate range</span>
+        </li>
+        <li>
+          <a href="/tools/debt-and-loans/mortgage-affordability/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">Mortgage affordability calculator</a>
+          <span class="text-neutral-600"> — work backwards from your income to a loan amount</span>
+        </li>
+        <li>
+          <a href="/how-we-calculate/mortgage-payment/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">How we calculate mortgage payments</a>
+          <span class="text-neutral-600"> — the formula, assumptions, and sources</span>
+        </li>
+        <li>
+          <a href="/comparisons/fixed-vs-variable-rate-mortgage/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">Fixed vs variable rate mortgage</a>
+          <span class="text-neutral-600"> — which rate structure fits your plans</span>
+        </li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    const _gtag = (window as any).gtag as ((...a: unknown[]) => void) | undefined;
+    const _scrollFired = new Set<number>();
+    window.addEventListener('scroll', () => {
+      const scrollPct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
+      for (const depth of [50, 90]) {
+        if (scrollPct >= depth && !_scrollFired.has(depth)) {
+          _scrollFired.add(depth);
+          if (_gtag) _gtag('event', 'scroll_depth', { depth, page_type: 'hub' });
+        }
+      }
+    }, { passive: true });
+  </script>
+</BaseLayout>

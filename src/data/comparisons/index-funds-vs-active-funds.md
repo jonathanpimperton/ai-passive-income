@@ -36,18 +36,38 @@ affiliateContext: "Start investing with low fees"
 affiliatePrograms:
   - "Betterment"
   - "InvestEngine"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "IRS — Tax Topics"
+    url: "https://www.irs.gov/taxtopics"
+  - name: "FCA — Consumer information"
+    url: "https://www.fca.org.uk/consumers"
 ---
 
 ## The fee gap is the entire story
 
-The difference between a 0.10% and 1.00% expense ratio sounds small — it's $900/year on a $100,000 portfolio. But fees compound just like returns, except they compound *against* you.
+The difference between a 0.10% and 1.00% [expense ratio](/tools/saving-and-growth/investment-fee/) sounds small — it's $900/year on a $100,000 portfolio. But [fees compound just like returns](/tools/saving-and-growth/compound-interest/), except they compound *against* you.
 
-Over 30 years, investing $500/month at 7% gross returns:
+Over 30 years, [investing $500/month](/scenarios/500-per-month-investment-25-years/) at 7% gross returns:
 
 - **Index fund (0.10% fee):** $566,400
 - **Active fund (1.00% fee):** $498,200
 
 That 0.90% annual fee difference costs you **$68,200** — money the fund company earned, not you. And this assumes the active fund matches the index before fees, which most don't.
+
+## The fees you don't see
+
+The expense ratio is only the first layer. Add an adviser and a workplace plan, and the layers stack:
+
+| Fee layer | Typical range | On a $500,000 portfolio |
+|---|---|---|
+| Fund expense ratio | 0.03–1.5% | $150–$7,500/year |
+| Financial adviser | 0.5–1.0% | $2,500–$5,000/year |
+| 401(k) plan admin | 0.1–0.5% | $500–$2,500/year |
+| **Combined** | **0.63–3.0%** | **$3,150–$15,000/year** |
+
+At the top of that range — 3% in total fees — a $500,000 portfolio pays **$15,000 every year** before you earn a penny. A sensible target is to keep your all-in cost under **0.5%**: that's $2,500 a year on the same portfolio, leaving the other $12,500 compounding for you. [Check what your funds actually charge](/tools/saving-and-growth/investment-fee/).
 
 ## The SPIVA scorecard
 

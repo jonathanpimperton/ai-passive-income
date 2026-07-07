@@ -2,7 +2,7 @@
 name: "Password Generator"
 slug: "password-generator"
 category: "utility"
-description: "Generate strong, random passwords with customizable options."
+description: "Password generator — create strong random passwords with adjustable length, letter case, numbers, and special characters."
 keywords:
   - "password generator"
   - "random password generator"

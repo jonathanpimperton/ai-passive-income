@@ -2,7 +2,7 @@
 name: "Mortgage Affordability Calculator"
 slug: "mortgage-affordability"
 category: "debt-and-loans"
-description: "Enter your income, debts, and down payment to see how much house you can afford and what your payment would be."
+description: "Mortgage affordability calculator — enter income, debts, and down payment to see how much house you can afford and the monthly payment."
 keywords:
   - "how much house can I afford"
   - "mortgage affordability calculator"

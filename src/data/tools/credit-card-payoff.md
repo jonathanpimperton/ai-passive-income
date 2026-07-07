@@ -2,7 +2,7 @@
 name: "Credit Card Payoff Calculator"
 slug: "credit-card-payoff"
 category: "debt-and-loans"
-description: "See how long to pay off your credit card and how extra payments save you thousands in interest."
+description: "Credit card payoff calculator — see how long your balance takes to clear and how much interest extra monthly payments save you."
 keywords:
   - "credit card payoff calculator"
   - "minimum payment calculator"

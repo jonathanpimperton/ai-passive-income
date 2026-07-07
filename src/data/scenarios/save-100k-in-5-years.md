@@ -14,6 +14,8 @@ resultSummary: "$1,393/month needed"
 affiliateContext: "Earn more on your savings"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-02"
+dateModified: "2026-07-02"
 ---
 
 ## You need $1,393 per month

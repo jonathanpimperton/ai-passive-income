@@ -1,0 +1,272 @@
+---
+/**
+ * Phase 3 hub page: US take-home pay by salary (2026).
+ * Consolidates the retired per-salary doorway scenarios ($40k-$200k) into one
+ * interactive reference. Every figure is computed AT BUILD TIME from the
+ * central rates libs — the same functions the US Salary Calculator uses,
+ * cross-checked against docs/tax-values-2026.json by
+ * src/lib/tax-values-crosscheck.test.ts.
+ *
+ * Retired scenario URLs 301 here with row anchors (e.g. /#80k) via
+ * public/_redirects.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import Byline from '@components/ui/Byline.astro';
+import SalaryCalc from '@components/tools/SalaryCalc.tsx';
+import { buildArticleSchema } from '@lib/seo';
+import { calcFederalTax, calcFICA } from '@lib/us-tax-calc';
+import {
+  US_TAX_YEAR,
+  US_RATES_LAST_CHECKED,
+  US_BRACKETS,
+  US_STANDARD_DEDUCTION,
+  US_SOCIAL_SECURITY,
+  US_MEDICARE,
+  US_401K,
+} from '@lib/us-rates';
+
+const DATE_PUBLISHED = '2026-07-07';
+const DATE_MODIFIED = '2026-07-07';
+
+const SALARIES = [
+  40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000,
+  140000, 150000, 160000, 170000, 180000, 190000, 200000, 250000,
+];
+
+const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+
+const rows = SALARIES.map((salary) => {
+  const federalTax = calcFederalTax(salary, 'single');
+  const fica = calcFICA(salary, 'single');
+  const takeHome = salary - federalTax - fica.total;
+  return {
+    salary,
+    anchor: `${salary / 1000}k`,
+    federalTax,
+    ss: fica.ss,
+    medicare: fica.medicare,
+    takeHome,
+    monthly: takeHome / 12,
+    effectiveRate: ((federalTax + fica.total) / salary) * 100,
+  };
+});
+
+const sd = US_STANDARD_DEDUCTION.single;
+const brackets = US_BRACKETS.single;
+const rate10 = (brackets[0][1] * 100).toFixed(0);
+const rate12 = (brackets[1][1] * 100).toFixed(0);
+const rate22 = (brackets[2][1] * 100).toFixed(0);
+const rate24 = (brackets[3][1] * 100).toFixed(0);
+const taxable12From = brackets[1][0];
+const taxable22From = brackets[2][0];
+const gross22From = brackets[2][0] + sd;
+const gross24From = brackets[3][0] + sd;
+const ssCap = US_SOCIAL_SECURITY.wageCap;
+const ssRate = (US_SOCIAL_SECURITY.rate * 100).toFixed(1);
+const maxSS = ssCap * US_SOCIAL_SECURITY.rate;
+const medicareRate = (US_MEDICARE.rate * 100).toFixed(2);
+const addlMedicareRate = (US_MEDICARE.additionalRate * 100).toFixed(1);
+const addlMedicareFrom = US_MEDICARE.additionalThreshold.single;
+
+const title = `US Take-Home Pay by Salary: $40,000 to $250,000 (${US_TAX_YEAR})`;
+const description = `US take-home pay for every salary from $40,000 to $250,000 — federal tax, Social Security, Medicare, and monthly net pay for ${US_TAX_YEAR}, verified against IRS rates.`;
+
+const articleSchema = buildArticleSchema({
+  headline: title,
+  description,
+  path: '/scenarios/us-take-home-pay/',
+  datePublished: DATE_PUBLISHED,
+  dateModified: DATE_MODIFIED,
+  ogImagePath: '/og/hubs/us-take-home-pay.png',
+});
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Scenarios', url: '/scenarios/' },
+  { name: 'US Take-Home Pay', url: '/scenarios/us-take-home-pay/' },
+];
+
+const lastChecked = new Date(US_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateString('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  ogImage="/og/hubs/us-take-home-pay.png"
+  structuredData={[articleSchema]}
+>
+  {/* Page header */}
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <Breadcrumb items={breadcrumbs} />
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
+        US take-home pay by salary <span class="text-neutral-500 font-normal">({US_TAX_YEAR})</span>
+      </h1>
+      <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
+      <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">
+        What every salary from $40,000 to $250,000 is actually worth after federal income tax,
+        Social Security, and Medicare — single filer, standard deduction, verified against IRS
+        figures on {lastChecked}.
+      </p>
+    </div>
+  </section>
+
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    {/* The table */}
+    <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-neutral-50 border-b border-neutral-200/80">
+              <th class="text-left px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Salary</th>
+              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Federal tax</th>
+              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Social Security</th>
+              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Medicare</th>
+              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Take-home (year)</th>
+              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Take-home (month)</th>
+              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Effective rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr
+                id={row.anchor}
+                class:list={[
+                  'border-b border-neutral-100 last:border-b-0 scroll-mt-24 target:bg-primary-50',
+                  i % 2 === 1 ? 'bg-neutral-50/50' : '',
+                ]}
+              >
+                <td class="px-4 sm:px-5 py-3 font-semibold text-neutral-900 tabular-nums">{usd(row.salary)}</td>
+                <td class="px-4 sm:px-5 py-3 text-right text-red-600 tabular-nums">{usd(row.federalTax)}</td>
+                <td class="px-4 sm:px-5 py-3 text-right text-red-600 tabular-nums">{usd(row.ss)}</td>
+                <td class="px-4 sm:px-5 py-3 text-right text-red-600 tabular-nums">{usd(row.medicare)}</td>
+                <td class="px-4 sm:px-5 py-3 text-right font-semibold text-success-600 tabular-nums">{usd(row.takeHome)}</td>
+                <td class="px-4 sm:px-5 py-3 text-right font-semibold text-neutral-900 tabular-nums">{usd(row.monthly)}</td>
+                <td class="px-4 sm:px-5 py-3 text-right text-neutral-600 tabular-nums">{row.effectiveRate.toFixed(1)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="mt-3 text-xs text-neutral-500">
+      Single filer, standard deduction, federal income tax and FICA only — no state tax (varies
+      by state), no 401(k) contributions. For those, use the
+      <a href="/tools/income-and-planning/salary-us/" class="underline decoration-neutral-300 underline-offset-2 hover:text-primary-700 transition-colors duration-150">full calculator</a> below.
+    </p>
+
+    {/* What changes as salary rises */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-6">Where the jumps happen</h2>
+      <div class="space-y-6 text-neutral-700 leading-relaxed">
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">The first {usd(sd)} — the standard deduction</h3>
+          <p>
+            The standard deduction shields the first {usd(sd)} of income from federal income tax.
+            Social Security and Medicare have no such floor — they take {ssRate}% and
+            {' '}{medicareRate}% from the very first dollar, which is why even the {usd(SALARIES[0])} row
+            still loses {rows[0].effectiveRate.toFixed(1)}% overall.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">{usd(gross22From)} — the {rate22}% bracket</h3>
+          <p>
+            Federal brackets apply to <em>taxable</em> income, after the deduction. The {rate10}% rate
+            covers the first {usd(taxable12From)} of taxable income, {rate12}% runs up to
+            {' '}{usd(taxable22From)}, and {rate22}% starts beyond that — a gross salary of about
+            {' '}{usd(gross22From)} for a single filer. Only the dollars inside each band are taxed at
+            that band's rate, which is why the effective rate climbs gradually rather than jumping.
+            The {rate24}% band begins around {usd(gross24From)} gross.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">{usd(ssCap)} — Social Security stops</h3>
+          <p>
+            Social Security's {ssRate}% only applies to wages up to {usd(ssCap)}, so the deduction
+            maxes out at {usd(maxSS)} a year. You can see it in the table: the {usd(190000)} and
+            {' '}{usd(200000)} rows show the same Social Security figure, and the effective rate
+            nearly flattens between them.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">{usd(addlMedicareFrom)} — the extra Medicare</h3>
+          <p>
+            Above {usd(addlMedicareFrom)}, an Additional Medicare Tax of {addlMedicareRate}% applies
+            on top of the standard {medicareRate}% — one levy that never caps out. The {usd(250000)} row
+            includes it, which is part of why its Medicare figure outpaces the salary step.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {/* 401(k) */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-4">With a 401(k)</h2>
+      <p class="text-neutral-700 leading-relaxed">
+        Traditional 401(k) contributions come out of your paycheck before federal income tax is
+        calculated, so every dollar you put in shrinks the federal-tax column above — though not
+        Social Security or Medicare, which are charged on gross wages. The employee limit for
+        {' '}{US_TAX_YEAR} is {usd(US_401K.limit)}.
+        {' '}<a href="/scenarios/60k-salary-with-401k/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">$60,000 with a 10% 401(k) contribution</a> works
+        through a full example: what goes in, what the tax saving is, and what actually lands in
+        your account each month.
+      </p>
+    </section>
+
+    {/* Embedded calculator */}
+    <section class="mt-14" id="calculator">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-2">Check your exact numbers</h2>
+      <p class="text-neutral-600 leading-relaxed mb-6 max-w-[640px]">
+        State tax, filing status, 401(k) contributions, and hourly pay — the full calculator,
+        right here.
+      </p>
+      <SalaryCalc client:visible />
+    </section>
+
+    {/* Deep dives */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-5">Go deeper</h2>
+      <ul class="space-y-3">
+        <li>
+          <a href="/scenarios/100k-salary-take-home/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">Take-home on $100,000</a>
+          <span class="text-neutral-600"> — the six-figure paycheck, in detail</span>
+        </li>
+        <li>
+          <a href="/scenarios/75k-salary-after-taxes/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">$75,000 after taxes</a>
+          <span class="text-neutral-600"> — a full deduction-by-deduction breakdown</span>
+        </li>
+        <li>
+          <a href="/scenarios/50k-salary-hourly-rate/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">$50,000 as an hourly rate</a>
+          <span class="text-neutral-600"> — what a salary means per hour worked</span>
+        </li>
+        <li>
+          <a href="/how-we-calculate/salary-us/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">How we calculate US take-home pay</a>
+          <span class="text-neutral-600"> — formulas, assumptions, and sources</span>
+        </li>
+        <li>
+          <a href="/scenarios/uk-take-home-pay/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">UK take-home pay by salary</a>
+          <span class="text-neutral-600"> — the British equivalent of this table</span>
+        </li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    const _gtag = (window as any).gtag as ((...a: unknown[]) => void) | undefined;
+    const _scrollFired = new Set<number>();
+    window.addEventListener('scroll', () => {
+      const scrollPct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
+      for (const depth of [50, 90]) {
+        if (scrollPct >= depth && !_scrollFired.has(depth)) {
+          _scrollFired.add(depth);
+          if (_gtag) _gtag('event', 'scroll_depth', { depth, page_type: 'hub' });
+        }
+      }
+    }, { passive: true });
+  </script>
+</BaseLayout>

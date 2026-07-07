@@ -2,7 +2,7 @@
 name: "PDF to Image Converter"
 slug: "pdf-to-image"
 category: "file-tools"
-description: "Convert PDF pages to JPG or PNG images in your browser."
+description: "PDF to JPG and PDF to PNG converter — turn PDF pages into image files, right in your browser. Your files never leave your device."
 keywords:
   - "PDF to JPG"
   - "PDF to PNG"

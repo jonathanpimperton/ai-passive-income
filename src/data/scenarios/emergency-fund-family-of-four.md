@@ -12,6 +12,8 @@ resultSummary: "$39,000 for 6 months of family expenses"
 affiliateContext: "Earn more on your savings"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## A family of four needs about $39,000 for 6 months

@@ -35,11 +35,20 @@ comparisonTable:
 affiliateContext: "Compare mortgage rates"
 affiliatePrograms:
   - "LendingTree"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "Bank of England — Monetary policy"
+    url: "https://www.bankofengland.co.uk/monetary-policy"
+  - name: "CFPB — Owning a Home"
+    url: "https://www.consumerfinance.gov/owning-a-home/"
+  - name: "FCA — Consumer information"
+    url: "https://www.fca.org.uk/consumers"
 ---
 
 ## How each rate type works
 
-**Fixed rate:** Your interest rate stays the same for an agreed period — typically 2 or 5 years in the UK, or 15 to 30 years in the US. If you fix at 4.5%, you pay 4.5% regardless of what happens to central bank rates. When the fix ends (in the UK), you move to the lender's standard variable rate unless you remortgage.
+**Fixed rate:** Your interest rate stays the same for an agreed period — typically 2 or 5 years in the UK, or [15 to 30 years in the US](/comparisons/15-year-vs-30-year-mortgage/). If you fix at 4.5%, you pay 4.5% regardless of what happens to central bank rates. When the fix ends (in the UK), you move to the lender's standard variable rate unless you remortgage.
 
 **Variable rate:** Your rate moves with the market. In the UK, this means a tracker (Bank of England base rate + a set margin) or a standard variable rate (SVR) set by the lender. In the US, adjustable-rate mortgages (ARMs) typically fix for 5 or 7 years, then adjust annually based on an index like SOFR.
 
@@ -69,7 +78,7 @@ To determine your break-even point:
 2. Calculate how much rates would need to rise before the variable rate exceeds the fixed rate — in this case, any rise above 0.5%
 3. Estimate how long rates need to stay elevated to wipe out the early savings from the lower variable rate
 
-Use a mortgage payment calculator to model 3 scenarios: rates stay flat, rates rise 1%, and rates fall 1%. Compare total interest paid across the full term. The scenario where the difference is smallest tells you this decision matters less than you think — and the one where it's largest tells you how much you're gambling.
+Use a [mortgage payment calculator](/tools/debt-and-loans/mortgage-payment/) to model 3 scenarios: rates stay flat, rates rise 1%, and rates fall 1%. [Compare total interest paid](/tools/debt-and-loans/loan-amortization/) across the full term. The scenario where the difference is smallest tells you this decision matters less than you think — and the one where it's largest tells you how much you're gambling.
 
 ## When to choose fixed
 

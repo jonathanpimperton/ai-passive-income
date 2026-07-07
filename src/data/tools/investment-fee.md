@@ -2,7 +2,7 @@
 name: "Investment Fee Calculator"
 slug: "investment-fee"
 category: "saving-and-growth"
-description: "See how fund fees eat into your returns. Compare expense ratios side by side over 10, 20, or 30 years."
+description: "Investment fee calculator — compare expense ratios side by side and see what fund fees cost you over 10, 20, or 30 years."
 keywords:
   - "investment fee calculator"
   - "expense ratio calculator"

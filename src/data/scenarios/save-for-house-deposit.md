@@ -14,6 +14,8 @@ resultSummary: "~$1,423/month (starting with $5,000)"
 affiliateContext: "Earn more on your savings"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## You need to save about $1,423 per month for 3 years

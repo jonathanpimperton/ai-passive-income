@@ -54,6 +54,24 @@ export const UK_STATE_PENSION = {
   source: 'https://www.gov.uk/new-state-pension/what-youll-get',
 };
 
+/* ── Pension Ages ────────────────────────────────────────── */
+/**
+ * Legislated pension age milestones — stable facts, not annual rates.
+ * - Normal minimum pension age (private/workplace pension access):
+ *   https://www.gov.uk/government/publications/increasing-normal-minimum-pension-age
+ * - State Pension age: https://www.gov.uk/state-pension-age
+ */
+export const UK_PENSION_AGES = {
+  /** Earliest age most private/workplace pensions can be accessed */
+  normalMinimumPensionAge: 55,
+  /** Rises to 57 on 6 April 2028 (Finance Act 2022) */
+  normalMinimumPensionAgeFrom2028: 57,
+  /** Current State Pension age */
+  statePensionAge: 66,
+  /** Rises to 67 by April 2028 (Pensions Act 2014 phased increase) */
+  statePensionAgeFrom2028: 67,
+};
+
 /* ── Student Loans (thresholds from 6 April 2026) ────────── */
 export const UK_STUDENT_LOANS = {
   plan1: { threshold: 26_900, rate: 0.09 },
@@ -84,6 +102,17 @@ export const UK_SDLT = {
   /** Additional property surcharge (from 31 Oct 2024) */
   additionalSurcharge: 0.05,
   source: 'https://www.gov.uk/stamp-duty-land-tax/residential-property-rates',
+};
+
+/* ── Mortgage lending (loan-to-income convention) ─────────── */
+export const UK_MORTGAGE = {
+  /**
+   * Typical lender cap on borrowing as a multiple of gross income.
+   * The Bank of England FPC's loan-to-income flow limit restricts lending at or
+   * above 4.5x income to 15% of a lender's new mortgages, so most UK lenders
+   * cap around 4.5x and stress-test affordability on top.
+   */
+  incomeMultipleCap: 4.5,
 };
 
 /* ── Capital Gains Tax (UK, 2026/27) ──────────────────────── */

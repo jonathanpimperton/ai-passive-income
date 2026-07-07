@@ -2,7 +2,7 @@
 name: "PDF Compress"
 slug: "pdf-compress"
 category: "file-tools"
-description: "Reduce PDF file size by optimizing embedded images."
+description: "Compress PDF files in your browser — reduce PDF file size by optimizing embedded images. Your files never leave your device."
 keywords:
   - "compress PDF online"
   - "reduce PDF file size"

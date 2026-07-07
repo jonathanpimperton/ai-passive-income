@@ -33,6 +33,13 @@ comparisonTable:
 affiliateContext: "Consolidate at a lower rate"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "FCA — Consumer information"
+    url: "https://www.fca.org.uk/consumers"
+  - name: "Bank of England — Monetary policy"
+    url: "https://www.bankofengland.co.uk/monetary-policy"
 ---
 
 ## How each method works
@@ -41,12 +48,12 @@ affiliatePrograms:
 
 **Avalanche:** List debts from highest interest rate to lowest. Pay minimums on everything, throw all extra money at the highest-rate debt. When it's gone, move to the next highest rate.
 
-Both methods use the same total monthly payment. The only difference is which debt gets the extra money first.
+Both methods use the same total monthly payment. The only difference is which debt gets the extra money first. (Whether that extra money should go to debt at all — rather than [toward investing](/comparisons/pay-off-debt-vs-invest/) — is its own question.)
 
 ## The math favours avalanche
 
 Consider three debts:
-- Credit card: $5,000 at 22% APR
+- [Credit card](/tools/debt-and-loans/credit-card-payoff/): $5,000 at 22% APR
 - Car loan: $8,000 at 6% APR
 - Student loan: $3,000 at 5% APR
 
@@ -74,7 +81,13 @@ The snowball vs avalanche gap depends on two things:
 
 2. **Balance distribution.** If your smallest debt is also high-interest, both methods agree — pay it first. The methods only diverge when small balances have low rates.
 
-Run your specific debts through a debt payoff calculator to see the actual dollar difference. If it's under $200, pick whichever method you'll stick with. If it's over $1,000, the avalanche savings are worth the slower start.
+Run your specific debts through a [debt payoff calculator](/tools/debt-and-loans/debt-payoff/) to see the actual dollar difference. If it's under $200, pick whichever method you'll stick with. If it's over $1,000, the avalanche savings are worth the slower start.
+
+## Two numbers that dwarf the snowball-vs-avalanche gap
+
+**The minimums-only baseline.** Debate payoff order all you like — the real enemy is doing neither. Keep paying just the $305 of minimums on the three debts above (rolling each freed-up payment into the rest), and the debt hangs around for **78 months** and costs about **$7,600 in interest** — six times the avalanche figure. The $495 of extra payment matters vastly more than which debt it goes to first.
+
+**The consolidation angle.** The other lever is the rate itself. Consolidate the $5,000 credit card at 22% into a 10% personal loan (keeping the same $100 minimum) and the avalanche plan's total interest drops from $1,235 to about **$943** — roughly **$290 saved** with no change in monthly budget. Consolidation doesn't repay anything by itself, but pairing a lower rate with the same $800/month makes every month of the plan cheaper.
 
 ## The hybrid approach
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { UK_TAX_YEAR, UK_INCOME_TAX, UK_NI, UK_EMPLOYER_NI, UK_STUDENT_LOANS, UK_STATE_PENSION, UK_SCOTTISH_TAX } from './uk-rates';
+import { UK_TAX_YEAR, UK_INCOME_TAX, UK_NI, UK_EMPLOYER_NI, UK_STUDENT_LOANS, UK_STATE_PENSION, UK_PENSION_AGES, UK_SCOTTISH_TAX } from './uk-rates';
 import { US_TAX_YEAR, US_BRACKETS, US_STANDARD_DEDUCTION, US_SOCIAL_SECURITY, US_MEDICARE, US_401K } from './us-rates';
 
 describe('UK tax rates (2026/27)', () => {
@@ -33,6 +33,13 @@ describe('UK tax rates (2026/27)', () => {
 
   it('has correct State Pension weekly rate (April 2026 uprating)', () => {
     expect(UK_STATE_PENSION.weeklyRate).toBe(241.30);
+  });
+
+  it('has correct legislated pension ages', () => {
+    expect(UK_PENSION_AGES.normalMinimumPensionAge).toBe(55);
+    expect(UK_PENSION_AGES.normalMinimumPensionAgeFrom2028).toBe(57);
+    expect(UK_PENSION_AGES.statePensionAge).toBe(66);
+    expect(UK_PENSION_AGES.statePensionAgeFrom2028).toBe(67);
   });
 
   it('has correct Scottish bands (2026/27 — Starter/Basic widened 7.4%)', () => {

@@ -10,6 +10,8 @@ inputs:
   Filing Status: "Single"
   401(k) Contribution: "10%"
 resultSummary: "$3,743/month take-home ($720/year in tax savings)"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## You take home $3,743/month — and save $720 in taxes

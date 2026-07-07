@@ -38,6 +38,15 @@ affiliateContext: "Where to open an ISA or SIPP"
 affiliatePrograms:
   - "Nutmeg"
   - "InvestEngine"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "GOV.UK — Individual Savings Accounts"
+    url: "https://www.gov.uk/individual-savings-accounts"
+  - name: "GOV.UK — Income Tax rates"
+    url: "https://www.gov.uk/income-tax-rates"
+  - name: "GOV.UK — Lifetime ISA"
+    url: "https://www.gov.uk/lifetime-isa"
 ---
 
 ## The order matters more than the choice
@@ -50,11 +59,22 @@ The answer depends on three things: whether your employer matches contributions,
 
 When your employer matches pension contributions, skipping that match is leaving money on the table. Under auto-enrolment, most employers contribute at least 3% of qualifying earnings. Some match up to 5% or more.
 
-If you earn £35,000 and your employer matches 5%, that's £1,750 per year in extra money — before any investment growth. No ISA gives you a guaranteed 100% return on day one.
+If you [earn £35,000](/scenarios/uk-take-home-pay/) and your employer matches 5%, that's £1,750 per year in extra money — before any investment growth. No ISA gives you a guaranteed 100% return on day one.
 
 On top of the employer match, you get tax relief. A basic rate taxpayer putting £100 into their pension only costs £80 out of pocket — HMRC adds £20. For higher rate taxpayers, the effective cost drops to £60 per £100 contributed (claim the extra through self-assessment). Additional rate taxpayers pay just £55 per £100.
 
-Over a 30-year career, the combination of employer match plus tax relief can add tens of thousands of pounds to your retirement pot compared to saving the same amount in an ISA.
+Over a 30-year career, the combination of employer match plus tax relief can add tens of thousands of pounds to your [retirement pot](/tools/income-and-planning/retirement-savings/) compared to saving the same amount in an ISA.
+
+## The same £300 a month, 25 years later
+
+Put numbers on it. Take a basic-rate taxpayer with £300 a month of take-home pay to save, 7% average annual growth (compounded monthly), and an employer who adds £150 a month when they contribute:
+
+- **In a pension:** the £300 becomes £375 after basic-rate relief, plus the £150 from the employer — £525 a month invested. After 25 years: **about £425,000**.
+- **In an ISA:** £300 a month invested. After 25 years: **about £243,000**.
+
+The pension pot isn't all yours to spend. 25% (about £106,000) comes out tax-free; the rest is taxed as income when you draw it. Even if every pound of the remaining 75% were taxed at basic rate — ignoring the personal allowance, which makes it better still — you'd keep **around £361,000**. That's nearly £120,000 more than the ISA, from the same £300 of take-home pay. The relief and the employer money do the heavy lifting; the ISA's advantage is purely access and flexibility.
+
+**Salary sacrifice widens the gap further.** If your employer offers it, contributions come out of gross pay before National Insurance as well as income tax. A £50,000 earner sits below the £50,270 NI upper earnings limit, so their marginal NI rate is 8% — sacrifice £100 of salary into the pension and the net cost is just **£72** (£20 income tax plus £8 NI saved). For a higher-rate earner above £50,270, it's **£58 per £100** (40% tax plus 2% NI). Some employers also pass on part of their own 15% employer-NI saving, cheapening it further.
 
 ## Why the ISA comes second, not never
 
@@ -70,14 +90,14 @@ For most UK workers, the optimal approach is:
 
 1. **Workplace pension up to the full employer match.** Anything less is refusing part of your salary.
 2. **Stocks & Shares ISA up to £20,000.** Tax-free growth with full access.
-3. **Additional pension contributions.** If you've maxed the ISA and won't need the money before 57, more pension is efficient for higher-rate taxpayers.
+3. **[Additional pension contributions.](/tools/income-and-planning/retirement-contribution/)** If you've maxed the ISA and won't need the money before 57, more pension is efficient for higher-rate taxpayers.
 4. **General investment account.** Only needed if you're investing more than £80,000 per year (£60k pension + £20k ISA).
 
 ## When to break the rules
 
 **If you're a higher or additional rate taxpayer**, extra pension contributions beyond the match are very attractive. The 40-45% tax relief means every £1,000 costs you £600 or less. Some people prioritise pension over ISA in this situation, accepting the locked access for the stronger tax benefit.
 
-**If you're saving for a first home**, a Lifetime ISA (LISA) gives you a 25% government bonus on up to £4,000 per year, but it counts toward your £20,000 ISA allowance and has withdrawal penalties for non-property purchases before age 60.
+**If you're saving for a first home**, a [Lifetime ISA (LISA)](/comparisons/lisa-vs-regular-isa/) gives you a 25% government bonus on up to £4,000 per year, but it counts toward your £20,000 ISA allowance and has withdrawal penalties for non-property purchases before age 60.
 
 **If you're self-employed**, you have no employer match, so the pension's main advantage is tax relief alone. A SIPP (Self-Invested Personal Pension) still gets tax relief, but the ISA's flexibility becomes relatively more valuable.
 

@@ -2,7 +2,7 @@
 name: "HEIC to JPG Converter"
 slug: "heic-to-jpg"
 category: "file-tools"
-description: "Convert iPhone HEIC photos to JPG. Files stay in your browser."
+description: "HEIC to JPG converter — turn iPhone photos into JPG with adjustable quality, right in your browser. Files never leave your device."
 keywords:
   - "HEIC to JPG converter"
   - "convert HEIC to JPG"

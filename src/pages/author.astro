@@ -1,0 +1,113 @@
+---
+/**
+ * Author page (Phase 3 E-E-A-T): the byline on every scenario and comparison
+ * links here. Person JSON-LD + credentials + editorial standards, built from
+ * the same owner-approved claims as the About page.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import { AUTHOR } from '@lib/seo';
+import { UK_TAX_YEAR, UK_RATES_LAST_CHECKED } from '@lib/uk-rates';
+import { US_TAX_YEAR } from '@lib/us-rates';
+
+const personSchema = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  mainEntity: {
+    '@type': 'Person',
+    name: AUTHOR.name,
+    url: AUTHOR.url,
+    jobTitle: 'Chartered Accountant (ACA)',
+    description:
+      'ACA-qualified accountant (ICAEW) writing and reviewing every calculator, scenario, and comparison on CalcRun.',
+    worksFor: {
+      '@type': 'Organization',
+      name: 'CalcRun',
+      url: 'https://www.calcrun.com',
+    },
+    knowsAbout: ['UK tax', 'US tax', 'personal finance', 'financial planning', 'compound interest', 'mortgages'],
+  },
+});
+---
+
+<BaseLayout
+  title={`${AUTHOR.name}, ACA — Author at CalcRun`}
+  description="Who writes and reviews CalcRun's calculators, scenarios, and comparisons: an ACA-qualified accountant with experience across UK, US, and Australian tax systems."
+  structuredData={[personSchema]}
+>
+  <section class="border-b border-neutral-200/80 bg-surface">
+    <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
+      <Breadcrumb items={[{ name: 'Home', url: '/' }, { name: 'About', url: '/about/' }, { name: AUTHOR.name, url: '/author/' }]} />
+      <h1 class="mt-4 text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
+        {AUTHOR.name} <span class="text-neutral-500 font-normal">ACA</span>
+      </h1>
+      <p class="mt-3 text-neutral-600 leading-relaxed">
+        Every calculator, scenario, and comparison on CalcRun is written and reviewed by one person —
+        here is who, and how.
+      </p>
+    </div>
+  </section>
+
+  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-neutral-900 mb-4">Background</h2>
+      <p class="text-neutral-700 leading-relaxed mb-4">
+        I'm Jonathan, an ACA-qualified accountant — the chartered qualification awarded by the
+        Institute of Chartered Accountants in England and Wales (ICAEW) — with professional
+        experience across UK, US, and Australian tax systems. I built CalcRun because most
+        online calculators are ad-heavy, outdated, or won't show their working.
+      </p>
+      <p class="text-neutral-700 leading-relaxed">
+        That background matters for a site like this: take-home pay, mortgage amortisation, and
+        investment growth all hinge on rates and thresholds that change every year, and a wrong
+        figure is worse than no figure. Treating rate verification as an accounting exercise —
+        source, check, date-stamp — is the core of how this site is run.
+      </p>
+    </section>
+
+    <div class="h-px bg-neutral-200/80 mb-12"></div>
+
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-neutral-900 mb-4">Editorial standards</h2>
+      <ul class="space-y-3 text-neutral-700 leading-relaxed list-disc pl-5">
+        <li>
+          Every tax rate and threshold is sourced from official data — HMRC and GOV.UK for the
+          UK, the IRS and SSA for the US — and each rate-dependent calculator shows its sources
+          and the date they were last verified (UK rates: {UK_TAX_YEAR}, last checked
+          {new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })};
+          US rates: {US_TAX_YEAR}).
+        </li>
+        <li>
+          Formulas are documented on public methodology pages — every financial calculator
+          links to its own "How we calculate this" page (for example,
+          <a href="/how-we-calculate/compound-interest/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">compound interest</a>) —
+          so every result can be checked by hand.
+        </li>
+        <li>
+          Scenario and comparison figures are computed with the same engines that power the
+          calculators, not copied from third-party articles.
+        </li>
+        <li>
+          An automated freshness guard fails the site build when a tax year rolls over, so stale
+          rates cannot silently ship.
+        </li>
+        <li>
+          Affiliate partnerships never change a number. Recommendations sit after the answer,
+          are labelled, and are covered by the
+          <a href="/disclosure/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">affiliate disclosure</a>.
+        </li>
+      </ul>
+    </section>
+
+    <div class="h-px bg-neutral-200/80 mb-12"></div>
+
+    <section>
+      <h2 class="text-xl font-bold text-neutral-900 mb-4">Corrections</h2>
+      <p class="text-neutral-700 leading-relaxed">
+        If you find an error — a figure, a threshold, a formula — email
+        <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">hello@calcrun.com</a>
+        and I'll verify it against the primary source and fix it.
+      </p>
+    </section>
+  </div>
+</BaseLayout>

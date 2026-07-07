@@ -2,7 +2,7 @@
 name: "QR Code Generator"
 slug: "qr-code"
 category: "utility"
-description: "Create QR codes for URLs, text, Wi-Fi, and more."
+description: "QR code generator — create QR codes for URLs or any text, set the size, and download as PNG or SVG, right in your browser."
 keywords:
   - "QR code generator"
   - "free QR code generator"

@@ -1,0 +1,295 @@
+---
+/**
+ * Phase 3 hub page: investment growth by amount.
+ * Consolidates the retired per-amount investment doorway scenarios
+ * (monthly-contribution and lump-sum variants) into one reference table.
+ * Every figure is computed AT BUILD TIME via compoundInterest() from
+ * src/lib/calculator-utils.ts — the same function the Compound Interest
+ * Calculator uses (0.07 annual rate, monthly compounding, end-of-period
+ * contributions).
+ *
+ * Retired scenario URLs 301 here with row anchors (e.g. /#500-per-month,
+ * /#100000) via public/_redirects.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import Byline from '@components/ui/Byline.astro';
+import CompoundInterestCalc from '@components/tools/CompoundInterestCalc.tsx';
+import { buildArticleSchema } from '@lib/seo';
+import { compoundInterest, compoundInterestSchedule } from '@lib/calculator-utils';
+
+const DATE_PUBLISHED = '2026-07-07';
+const DATE_MODIFIED = '2026-07-07';
+
+const RATE = 0.07; // 7% annual, as a decimal — compoundInterest() expects decimals
+const YEARS = [10, 20, 30];
+
+const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+
+// Table 1: monthly contributions, $0 starting balance, end-of-period timing
+const MONTHLY_AMOUNTS = [100, 200, 250, 500, 1000, 2000];
+const monthlyRows = MONTHLY_AMOUNTS.map((monthly) => ({
+  monthly,
+  anchor: `${monthly}-per-month`,
+  balances: YEARS.map((y) => compoundInterest(0, monthly, RATE, y, 12, 'end')),
+}));
+
+// Table 2: one-off lump sums, no further contributions
+const LUMP_SUMS = [5000, 10000, 25000, 50000, 100000, 500000];
+const lumpRows = LUMP_SUMS.map((principal) => ({
+  principal,
+  anchor: `${principal}`,
+  balances: YEARS.map((y) => compoundInterest(principal, 0, RATE, y, 12)),
+}));
+
+// Insight: $500/month for 30 years — contributions vs growth split.
+// totalContributions comes from compoundInterestSchedule; the balance is taken
+// from the same un-rounded compoundInterest() call as the table cell so the
+// two figures always agree on the page.
+const sched500 = compoundInterestSchedule(0, 500, RATE, 30, 12, 'end');
+const contrib500 = sched500[sched500.length - 1].totalContributions;
+const balance500 = compoundInterest(0, 500, RATE, 30, 12, 'end');
+const growth500 = balance500 - contrib500;
+const growthShare500 = Math.round((growth500 / balance500) * 100);
+
+// Insight: $100,000 lump sum — the doubling-per-decade story
+const lump100k = YEARS.map((y) => compoundInterest(100000, 0, RATE, y, 12));
+const multiple30 = compoundInterest(1, 0, RATE, 30, 12);
+
+const title = 'Investment Growth by Amount: What Monthly Investing and Lump Sums Become';
+const description =
+  'What monthly investing from $100 to $2,000 — and lump sums from $5,000 to $500,000 — grow to over 10, 20, and 30 years at a 7% average annual return.';
+
+const articleSchema = buildArticleSchema({
+  headline: title,
+  description,
+  path: '/scenarios/investment-growth/',
+  datePublished: DATE_PUBLISHED,
+  dateModified: DATE_MODIFIED,
+  ogImagePath: '/og/hubs/investment-growth.png',
+});
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Scenarios', url: '/scenarios/' },
+  { name: 'Investment Growth', url: '/scenarios/investment-growth/' },
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  ogImage="/og/hubs/investment-growth.png"
+  structuredData={[articleSchema]}
+>
+  {/* Page header */}
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <Breadcrumb items={breadcrumbs} />
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
+        Investment growth by amount <span class="text-neutral-500 font-normal">(7% average return)</span>
+      </h1>
+      <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
+      <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">
+        What regular monthly investing and one-off lump sums actually become over 10, 20, and
+        30 years at a 7% average annual return, compounded monthly — every figure computed,
+        not estimated.
+      </p>
+    </div>
+  </section>
+
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    {/* Table 1: monthly investing */}
+    <section>
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-4">Monthly investing</h2>
+      <p class="text-neutral-700 leading-relaxed mb-5 max-w-[720px]">
+        Starting from zero and investing the same amount every month, at a 7% annual return
+        compounded monthly with contributions at the end of each month:
+      </p>
+      <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden max-w-[720px]">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-neutral-50 border-b border-neutral-200/80">
+                <th class="text-left px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Monthly amount</th>
+                <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">10 years</th>
+                <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">20 years</th>
+                <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">30 years</th>
+              </tr>
+            </thead>
+            <tbody>
+              {monthlyRows.map((row, i) => (
+                <tr
+                  id={row.anchor}
+                  class:list={[
+                    'border-b border-neutral-100 last:border-b-0 scroll-mt-24 target:bg-primary-50',
+                    i % 2 === 1 ? 'bg-neutral-50/50' : '',
+                  ]}
+                >
+                  <td class="px-4 sm:px-5 py-3 font-semibold text-neutral-900 tabular-nums">{usd(row.monthly)}/month</td>
+                  <td class="px-4 sm:px-5 py-3 text-right text-neutral-900 tabular-nums">{usd(row.balances[0])}</td>
+                  <td class="px-4 sm:px-5 py-3 text-right text-neutral-900 tabular-nums">{usd(row.balances[1])}</td>
+                  <td class="px-4 sm:px-5 py-3 text-right font-semibold text-success-600 tabular-nums">{usd(row.balances[2])}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="mt-4 text-neutral-700 leading-relaxed max-w-[720px]">
+        The long timeframes do most of the work: invest {usd(500)} a month for 30 years and
+        you deposit <span class="font-semibold tabular-nums">{usd(contrib500)}</span> in total —
+        compounding adds another <span class="font-semibold text-success-600 tabular-nums">{usd(growth500)}</span>,
+        for a final balance of <span class="font-semibold tabular-nums">{usd(balance500)}</span>.
+        That means {growthShare500}% of the end result is growth, not deposits.
+      </p>
+      <p class="mt-3 text-xs text-neutral-500 max-w-[720px]">
+        Figures are shown in dollars, but the maths is currency-agnostic — read them as pounds
+        or euros and every number is identical.
+      </p>
+    </section>
+
+    {/* Table 2: lump sums */}
+    <section class="mt-14">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-4">Lump sums</h2>
+      <p class="text-neutral-700 leading-relaxed mb-5 max-w-[720px]">
+        A one-off amount invested once and left alone — no further contributions — at the same
+        7% annual return compounded monthly:
+      </p>
+      <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden max-w-[720px]">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-neutral-50 border-b border-neutral-200/80">
+                <th class="text-left px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Lump sum</th>
+                <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">10 years</th>
+                <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">20 years</th>
+                <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">30 years</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lumpRows.map((row, i) => (
+                <tr
+                  id={row.anchor}
+                  class:list={[
+                    'border-b border-neutral-100 last:border-b-0 scroll-mt-24 target:bg-primary-50',
+                    i % 2 === 1 ? 'bg-neutral-50/50' : '',
+                  ]}
+                >
+                  <td class="px-4 sm:px-5 py-3 font-semibold text-neutral-900 tabular-nums">{usd(row.principal)}</td>
+                  <td class="px-4 sm:px-5 py-3 text-right text-neutral-900 tabular-nums">{usd(row.balances[0])}</td>
+                  <td class="px-4 sm:px-5 py-3 text-right text-neutral-900 tabular-nums">{usd(row.balances[1])}</td>
+                  <td class="px-4 sm:px-5 py-3 text-right font-semibold text-success-600 tabular-nums">{usd(row.balances[2])}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="mt-4 text-neutral-700 leading-relaxed max-w-[720px]">
+        At 7% compounded monthly, a lump sum roughly doubles every decade:
+        {' '}{usd(100000)} left untouched becomes
+        <span class="font-semibold tabular-nums"> {usd(lump100k[0])}</span> in 10 years,
+        <span class="font-semibold tabular-nums"> {usd(lump100k[1])}</span> in 20, and
+        <span class="font-semibold text-success-600 tabular-nums"> {usd(lump100k[2])}</span> in 30 —
+        a <span class="font-semibold tabular-nums">{multiple30.toFixed(1)}&times;</span> multiple
+        without a single further deposit.
+      </p>
+    </section>
+
+    {/* Assumptions */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-6">The assumptions behind these numbers</h2>
+      <div class="space-y-6 text-neutral-700 leading-relaxed">
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">Why 7%?</h3>
+          <p>
+            7% is a planning figure for long-run equity returns before inflation. Broad,
+            diversified stock index funds have historically averaged around 7&ndash;10% a year
+            nominal over multi-decade periods, so 7% sits at the cautious end — leaving some
+            margin for fund fees and imperfect timing. It is an assumption, not a promise:
+            change it in the calculator below and watch how sensitive the 30-year numbers are.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">Real returns are not a smooth line</h3>
+          <p>
+            No portfolio grows by 0.58% every month. The 7% average is built from years that
+            gain 20% and years that lose 20%, and your actual balance will swing well above and
+            below these curves along the way. Over 10+ year horizons the average tends to
+            reassert itself, but over any single year these tables say nothing about what will
+            happen.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">Inflation eats purchasing power</h3>
+          <p>
+            These are nominal figures. At 2&ndash;3% inflation, prices roughly double over
+            30 years — so a {usd(lump100k[2])} balance in 2056 buys closer to what half that
+            amount buys today. To translate a future balance into today&rsquo;s money, run it
+            through the
+            <a href="/tools/economic/inflation/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">inflation calculator</a>.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral-900 mb-1.5">Currency doesn&rsquo;t change the maths</h3>
+          <p>
+            Compounding is unit-free: &pound;500 a month at 7% produces exactly the same numbers
+            as $500 a month at 7%. Use whichever currency you think in.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {/* Embedded calculator */}
+    <section class="mt-14" id="calculator">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-2">Run your own numbers</h2>
+      <p class="text-neutral-600 leading-relaxed mb-6 max-w-[640px]">
+        Your starting balance, your monthly amount, your return assumption — with a year-by-year
+        table and the contributions/growth split, right here.
+      </p>
+      <CompoundInterestCalc client:visible />
+    </section>
+
+    {/* Deep dives */}
+    <section class="mt-14 max-w-[768px]">
+      <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-5">Go deeper</h2>
+      <ul class="space-y-3">
+        <li>
+          <a href="/scenarios/500-per-month-investment-25-years/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">$500 a month for 25 years</a>
+          <span class="text-neutral-600"> — one contribution level, worked through in full</span>
+        </li>
+        <li>
+          <a href="/scenarios/100000-invested-30-years/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">$100,000 invested for 30 years</a>
+          <span class="text-neutral-600"> — the flagship lump-sum scenario in detail</span>
+        </li>
+        <li>
+          <a href="/scenarios/100k-investment-dividend-reinvest/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">$100k with dividends reinvested</a>
+          <span class="text-neutral-600"> — why reinvesting payouts changes the curve</span>
+        </li>
+        <li>
+          <a href="/comparisons/lump-sum-vs-dollar-cost-averaging/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">Lump sum vs dollar-cost averaging</a>
+          <span class="text-neutral-600"> — got a lump sum? Whether to invest it all at once</span>
+        </li>
+        <li>
+          <a href="/how-we-calculate/compound-interest/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">How we calculate compound interest</a>
+          <span class="text-neutral-600"> — formulas, assumptions, and sources</span>
+        </li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    const _gtag = (window as any).gtag as ((...a: unknown[]) => void) | undefined;
+    const _scrollFired = new Set<number>();
+    window.addEventListener('scroll', () => {
+      const scrollPct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
+      for (const depth of [50, 90]) {
+        if (scrollPct >= depth && !_scrollFired.has(depth)) {
+          _scrollFired.add(depth);
+          if (_gtag) _gtag('event', 'scroll_depth', { depth, page_type: 'hub' });
+        }
+      }
+    }, { passive: true });
+  </script>
+</BaseLayout>

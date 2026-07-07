@@ -14,6 +14,8 @@ resultSummary: "~$774/month (starting with $500)"
 affiliateContext: "Earn more on your savings"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## You need to save about $774 per month — roughly $178 per week

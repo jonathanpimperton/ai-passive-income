@@ -11,6 +11,8 @@ inputs:
   Student Loan: "Plan 2"
   Tax Year: "2026/27"
 resultSummary: "£25,064/year (£2,089/month)"
+datePublished: "2026-03-04"
+dateModified: "2026-07-07"
 ---
 
 ## You take home £25,064 — about £2,089 per month
@@ -63,6 +65,12 @@ Whether to make voluntary overpayments depends on your balance and expected care
 - **£50,000:** £1,855/year (£155/month)
 
 Each £1,000 pay rise above the threshold adds £90/year (£7.50/month) in student loan repayments on top of the 28% income tax and NI you already pay. The effective marginal rate for someone with a Plan 2 loan earning between £29,385 and £50,270 is 37% (20% tax + 8% NI + 9% student loan).
+
+## Nearby salaries
+
+At £25,000 you would be below the £29,385 Plan 2 threshold entirely — no repayment at all, and take-home of £21,520 (£1,793 per month) after just tax and NI. At £35,000 the deduction starts to register: you keep £28,720 (£2,393 per month) before the loan, and Plan 2 takes another £505 a year. The pattern is worth knowing when weighing a pay rise: the first £615 above the threshold costs you pennies, but every pound after that carries the full 37% marginal rate.
+
+Every salary from £20,000 to £150,000 — including a dedicated student loan table showing Plan 2 and Plan 5 side by side — is in our [UK take-home pay reference](/scenarios/uk-take-home-pay/#25k).
 
 ## Plan 1 vs Plan 2 comparison
 

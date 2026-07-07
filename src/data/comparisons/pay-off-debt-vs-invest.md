@@ -37,13 +37,20 @@ affiliateContext: "Start investing once debt is cleared"
 affiliatePrograms:
   - "Betterment"
   - "SoFi"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "IRS — 401(k) plans"
+    url: "https://www.irs.gov/retirement-plans/401k-plans"
+  - name: "GOV.UK — Individual Savings Accounts"
+    url: "https://www.gov.uk/individual-savings-accounts"
 ---
 
 ## The simple math
 
 The decision comes down to one comparison: your debt's interest rate versus your expected investment return after tax.
 
-Credit card at 22% APR? Pay it off. No legal investment reliably returns 22% per year. That debt is costing you more than any portfolio could earn.
+[Credit card at 22% APR](/tools/debt-and-loans/credit-card-payoff/)? Pay it off. No legal investment reliably returns 22% per year. That debt is costing you more than any portfolio could earn.
 
 Mortgage at 3.5%? Invest. The stock market's historical average return of 7-10% per year comfortably beats that rate. Your money works harder in a brokerage account than it does paying down cheap debt.
 
@@ -55,7 +62,19 @@ Take your debt interest rate and compare it to your expected after-tax investmen
 
 That means any debt above 6.2% should be paid first — not just credit cards. A 7% car loan beats the risk-adjusted return of taxable investing.
 
-Run both scenarios through a debt payoff calculator and an investment return calculator to see the exact numbers for your situation. The dollar difference over 5-10 years often surprises people.
+Run both scenarios through a [debt payoff calculator](/tools/debt-and-loans/debt-payoff/) and an [investment return calculator](/tools/saving-and-growth/investment-return/) to see the exact numbers for your situation. The dollar difference over 5-10 years often surprises people.
+
+## Three rates, one budget: a worked example
+
+Say you have $20,000 of debt and $500 a month to work with over a 5-year horizon. Compare sending the full $500 at the debt first (then investing it once the debt clears) against servicing the debt's interest and investing everything left over at 7%:
+
+**At 22% APR (credit card):** $500/month doesn't even clear the debt within 5 years — payoff takes 73 months and about **$16,400 in interest**, and at the 5-year mark you'd still owe $5,641. Investing instead is worse: after covering the $367 of monthly interest, only $133 is left to invest, leaving you roughly **$4,800 further behind** than attacking the debt. Pay it off. Decisively.
+
+**At 7% APR (typical car loan):** the debt clears in 46 months at a cost of $2,841 in interest, and 14 months of investing the freed-up $500 leaves about $7,444. Investing from day one while servicing the interest leaves… also about $7,444. When the debt rate equals your expected return, it's a dead heat on paper — which is why the guaranteed, tax-free "return" of paying debt usually wins the tiebreak.
+
+**At 3.5% APR:** paying the debt first ends the 5 years with about $9,132 invested. Investing first ends with $31,620 invested against the $20,000 still owed — a net position of $11,620, roughly **$2,500 ahead**. Cheap debt loses to the market.
+
+There's one more force on investing's side: time. [$500/month at 7% for 30 years](/tools/saving-and-growth/compound-interest/) grows to **$609,986**. Spend the first 5 years paying down a 4% loan instead, and the same $500/month has only 25 years to compound — **$405,036**. That 5-year delay costs about **$205,000**, which is why low-rate debt rarely justifies postponing investing entirely.
 
 ## The exception that changes everything: employer match
 
@@ -67,7 +86,7 @@ The order for most people with debt:
 
 1. Contribute to 401(k)/pension up to the employer match
 2. Build a small emergency buffer ($1,000-$2,000)
-3. Attack high-interest debt (above 7%) aggressively
+3. [Attack high-interest debt (above 7%) aggressively](/comparisons/snowball-vs-avalanche-debt/)
 4. Once high-interest debt is gone, split extra money between medium-rate debt and investing
 
 In the UK, workplace pension auto-enrolment works the same way. Your employer contributes 3% minimum on top of your 5%. Don't opt out to pay debt — you're turning down a pay rise.

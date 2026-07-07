@@ -2,7 +2,7 @@
 name: "Car Finance Comparison Calculator"
 slug: "car-finance"
 category: "debt-and-loans"
-description: "Compare PCP, HP, personal loan, and cash purchase side by side — monthly payments, total cost, and which option saves the most."
+description: "Car finance calculator comparing PCP, HP, personal loan, and cash side by side — monthly payments, total cost, and which is cheapest."
 keywords:
   - "car finance calculator"
   - "PCP vs HP calculator"

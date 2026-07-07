@@ -10,6 +10,8 @@ inputs:
   Filing Status: "Single"
   State: "No state income tax (TX/FL)"
 resultSummary: "$24.04/hour (gross) · ~$19.05/hour (net)"
+datePublished: "2026-03-02"
+dateModified: "2026-07-02"
 ---
 
 ## $24.04/hour gross, roughly $19.05 after taxes

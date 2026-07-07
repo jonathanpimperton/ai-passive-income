@@ -15,6 +15,8 @@ affiliateContext: "Start investing with low fees"
 affiliatePrograms:
   - "Betterment"
   - "InvestEngine"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## $100,000 becomes $403,870 with dividends reinvested

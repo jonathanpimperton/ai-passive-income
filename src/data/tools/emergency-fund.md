@@ -2,7 +2,7 @@
 name: "Emergency Fund Calculator"
 slug: "emergency-fund"
 category: "income-and-planning"
-description: "See how much emergency savings you need based on your monthly expenses and savings rate."
+description: "Emergency fund calculator — work out how many months of expenses to save and how long it takes at your current savings rate."
 keywords:
   - "emergency fund calculator"
   - "how much emergency fund"

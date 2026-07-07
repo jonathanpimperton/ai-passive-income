@@ -14,6 +14,8 @@ affiliateContext: "Start investing with low fees"
 affiliatePrograms:
   - "Betterment"
   - "InvestEngine"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## You recover about 75 cents on the dollar — a net loss of $12,500

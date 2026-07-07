@@ -2,7 +2,7 @@
 name: "Retirement Contribution Calculator"
 slug: "retirement-contribution"
 category: "income-and-planning"
-description: "Find out how much to save each month to hit your retirement goal, with inflation adjustment."
+description: "Retirement contribution calculator — see how much to save each month to hit your retirement goal, with inflation adjustment built in."
 keywords:
   - "how much to save for retirement"
   - "retirement contribution calculator"

@@ -24,6 +24,7 @@ import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import { getCurrencyConfig } from '../../lib/currency';
+import { UK_PENSION_AGES } from '../../lib/uk-rates';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
@@ -38,13 +39,34 @@ interface ChartDataPoint {
   Contributions: number;
 }
 
-/* ── Milestone Markers ─────────────────────────────────────── */
-const MILESTONES = [
-  { age: 50, label: 'Catch-up eligible' },
-  { age: 59.5, label: '401(k) penalty-free' },
-  { age: 62, label: 'Early Social Security' },
-  { age: 67, label: 'Full Social Security' },
-] as const;
+/* ── Milestone Markers (region-aware) ──────────────────────── */
+type Region = 'us' | 'uk' | 'eur';
+
+const MILESTONES: Record<Region, { age: number; label: string }[]> = {
+  us: [
+    { age: 50, label: 'Catch-up eligible' },
+    { age: 59.5, label: '401(k) penalty-free' },
+    { age: 62, label: 'Early Social Security' },
+    { age: 67, label: 'Full Social Security' },
+  ],
+  uk: [
+    {
+      age: UK_PENSION_AGES.normalMinimumPensionAge,
+      label: `Pension access (${UK_PENSION_AGES.normalMinimumPensionAgeFrom2028} from 2028)`,
+    },
+    {
+      age: UK_PENSION_AGES.statePensionAge,
+      label: `State Pension age (${UK_PENSION_AGES.statePensionAgeFrom2028} from 2028)`,
+    },
+  ],
+  eur: [],
+};
+
+const SAVINGS_HINTS: Record<Region, string> = {
+  us: 'Total saved for retirement so far (401k, IRA, etc.)',
+  uk: 'Total saved for retirement so far (pension, SIPP, ISA, etc.)',
+  eur: 'Total saved for retirement so far (pension accounts, etc.)',
+};
 
 /* ── Defaults ──────────────────────────────────────────────── */
 const DEFAULTS = {
@@ -62,6 +84,7 @@ export default function RetirementSavingsCalc() {
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
+  const region: Region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
   const [currentAge, setCurrentAge] = useState(DEFAULTS.currentAge);
   const [retirementAge, setRetirementAge] = useState(DEFAULTS.retirementAge);
   const [currentSavings, setCurrentSavings] = useState(DEFAULTS.currentSavings);
@@ -118,8 +141,8 @@ export default function RetirementSavingsCalc() {
   /* ── Milestone filtering ─────────────────────────────────── */
   const visibleMilestones = useMemo(() => {
     const maxAge = currentAge + yearsToRetirement;
-    return MILESTONES.filter((m) => m.age > currentAge && m.age <= maxAge);
-  }, [currentAge, yearsToRetirement]);
+    return MILESTONES[region].filter((m) => m.age > currentAge && m.age <= maxAge);
+  }, [region, currentAge, yearsToRetirement]);
 
   /* ── PDF Export ──────────────────────────────────────────── */
   const getInputs = useCallback(() => [
@@ -202,7 +225,7 @@ export default function RetirementSavingsCalc() {
 
             <SliderInput
               label="Current Savings"
-              hint="Total saved for retirement so far (401k, IRA, etc.)"
+              hint={SAVINGS_HINTS[region]}
               id="ret-current-savings"
               value={currentSavings}
               min={0}

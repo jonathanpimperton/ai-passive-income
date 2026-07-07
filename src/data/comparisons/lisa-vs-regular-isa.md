@@ -37,11 +37,18 @@ affiliateContext: "Where to open a LISA or ISA"
 affiliatePrograms:
   - "InvestEngine"
   - "Nutmeg"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "GOV.UK — Lifetime ISA"
+    url: "https://www.gov.uk/lifetime-isa"
+  - name: "GOV.UK — Individual Savings Accounts"
+    url: "https://www.gov.uk/individual-savings-accounts"
 ---
 
 ## How the Lifetime ISA works
 
-The Lifetime ISA (LISA) lets you save up to £4,000 per year and receive a 25% government bonus — that's up to £1,000 of free money annually. You can use the funds for two purposes: buying your first home (property valued under £450,000) or retirement income after age 60.
+The Lifetime ISA (LISA) lets you save up to £4,000 per year and receive a 25% government bonus — that's up to £1,000 of free money annually. You can use the funds for two purposes: [buying your first home](/tools/economic/stamp-duty/) (property valued under £450,000) or retirement income after age 60.
 
 You must be between 18 and 39 to open a LISA. You can keep contributing until you turn 50. After that, the account stays open and continues to grow tax-free, but no new contributions or bonuses are added.
 
@@ -59,7 +66,7 @@ The penalty was temporarily reduced to 20% during COVID (making it break-even), 
 
 ## First-time buyer: LISA almost always wins
 
-If you're under 40 and saving for your first property valued under £450,000, the LISA is a clear winner. The 25% bonus on every contribution is an instant, guaranteed return that no other investment can match.
+If you're under 40 and [saving for your first property](/scenarios/save-for-house-deposit/) valued under £450,000, the LISA is a clear winner. The 25% bonus on every contribution is an instant, guaranteed return that no other investment can match.
 
 Saving £4,000 per year for 5 years gives you £20,000 of your own money plus £5,000 in bonuses = £25,000 before any investment growth. In a Stocks & Shares LISA earning 6% annually, that grows to roughly £28,900.
 
@@ -82,7 +89,7 @@ For retirement, the comparison gets more complex. The LISA bonus (25%) looks sim
 - Higher-rate taxpayers get 40%+ relief, far exceeding the LISA's 25%
 - No withdrawal penalty for non-qualifying purposes (just income tax)
 
-For most employees, the priority should be: workplace pension up to the employer match first, then LISA (up to £4,000), then additional pension or ISA contributions.
+For most employees, the priority should be: [workplace pension up to the employer match](/comparisons/pension-vs-isa-uk/) first, then LISA (up to £4,000), then additional pension or ISA contributions.
 
 If you're a higher-rate (40%) taxpayer, the pension gives you 40% tax relief versus the LISA's 25% bonus. The pension wins on the way in, even though it's taxed on the way out — assuming you'll be a basic-rate taxpayer in retirement, which most people are.
 
@@ -100,4 +107,4 @@ A Stocks & Shares ISA beats the LISA when:
 
 If you can afford it, do both. Contribute £4,000 to a LISA to capture the full £1,000 bonus, then put additional savings into a regular ISA. Your £20,000 total ISA allowance covers £4,000 LISA + £16,000 regular ISA. One thing to plan for: from April 2027 the Cash ISA limit is due to drop to £12,000 for under-65s, so if that £16,000 would sit in cash rather than stocks and shares, the split changes.
 
-This gives you the guaranteed 25% bonus on the first £4,000, plus full flexibility on the remaining £16,000. Run the numbers through a compound interest calculator to see what the combined approach looks like over your specific time horizon.
+This gives you the guaranteed 25% bonus on the first £4,000, plus full flexibility on the remaining £16,000. Run the numbers through a [compound interest calculator](/tools/saving-and-growth/compound-interest/) to see what the combined approach looks like over your specific time horizon.

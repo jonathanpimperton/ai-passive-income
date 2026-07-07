@@ -4,7 +4,9 @@ import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection, render } from 'astro:content';
 import AffiliateLinks from '@components/ui/AffiliateLinks.astro';
+import Byline from '@components/ui/Byline.astro';
 import { TOOLS, getToolPath, type ToolMeta } from '@lib/tools-data';
+import { buildArticleSchema, buildFaqSchema } from '@lib/seo';
 
 export async function getStaticPaths() {
   const scenarios = await getCollection('scenarios');
@@ -15,11 +17,21 @@ export async function getStaticPaths() {
 }
 
 const { scenario } = Astro.props;
-const { title, slug, description, keywords, toolSlug, toolCategory, inputs, resultSummary, affiliateContext, affiliatePrograms } = scenario.data;
+const { title, slug, description, keywords, toolSlug, toolCategory, inputs, resultSummary, datePublished, dateModified, faq, affiliateContext, affiliatePrograms } = scenario.data;
 const { Content } = await render(scenario);
 
 const toolMeta = TOOLS.find((t) => t.slug === toolSlug);
 const toolPath = toolMeta ? getToolPath(toolMeta) : `/tools/${toolCategory}/${toolSlug}/`;
+
+const articleSchema = buildArticleSchema({
+  headline: title,
+  description,
+  path: `/scenarios/${slug}/`,
+  datePublished,
+  dateModified,
+  ogImagePath: `/og/scenarios/${slug}.png`,
+});
+const structuredData = faq && faq.length > 0 ? [articleSchema, buildFaqSchema(faq)] : [articleSchema];
 
 // Get related scenarios (same tool, excluding current)
 const allScenarios = await getCollection('scenarios');
@@ -39,6 +51,7 @@ const breadcrumbs = [
   title={title}
   description={description}
   ogImage={`/og/scenarios/${slug}.png`}
+  structuredData={structuredData}
 >
   {/* Page header */}
   <section class="border-b border-neutral-200/80 bg-bg">
@@ -53,6 +66,7 @@ const breadcrumbs = [
         )}
         <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">{title}</h1>
       </div>
+      <Byline datePublished={datePublished} dateModified={dateModified} />
     </div>
   </section>
 
@@ -92,6 +106,21 @@ const breadcrumbs = [
         <div class="prose max-w-none">
           <Content />
         </div>
+
+        {/* FAQ (rendered on-page — the same items feed FAQPage JSON-LD) */}
+        {faq && faq.length > 0 && (
+          <section class="mt-10">
+            <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-5">Common questions</h2>
+            <div class="divide-y divide-neutral-200/80 border-t border-b border-neutral-200/80">
+              {faq.map((item) => (
+                <div class="py-5">
+                  <h3 class="font-bold text-neutral-900 mb-1.5">{item.question}</h3>
+                  <p class="text-neutral-700 leading-relaxed">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Affiliate section */}
         {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (

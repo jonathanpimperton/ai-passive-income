@@ -12,6 +12,20 @@ const scenarios = defineCollection({
     toolCategory: z.string(),
     inputs: z.record(z.string(), z.union([z.string(), z.number()])),
     resultSummary: z.string(),
+    // E-E-A-T (Phase 3): ISO dates rendered in the byline and emitted in
+    // Article JSON-LD. datePublished is backfilled from git history.
+    datePublished: z.string(),
+    dateModified: z.string(),
+    // Optional real Q&A rendered on the page AND emitted as FAQPage JSON-LD.
+    // Only add when the questions genuinely exist on the page — never for schema alone.
+    faq: z
+      .array(
+        z.object({
+          question: z.string(),
+          answer: z.string(),
+        })
+      )
+      .optional(),
     affiliateContext: z.string().optional(),
     affiliatePrograms: z.array(z.string()).optional(),
   }),
@@ -77,8 +91,32 @@ const comparisons = defineCollection({
         feature: z.string(),
         option1: z.string(),
         option2: z.string(),
+        // Optional third column for three-way comparisons (e.g. PCP vs HP vs personal loan).
+        // When present on any row, the comparison template renders a third column.
+        option3: z.string().optional(),
       })
     ),
+    // E-E-A-T (Phase 3): byline dates + primary sources rendered on the page
+    // and emitted in Article JSON-LD.
+    datePublished: z.string(),
+    dateModified: z.string(),
+    // Optional real Q&A rendered on the page AND emitted as FAQPage JSON-LD.
+    faq: z
+      .array(
+        z.object({
+          question: z.string(),
+          answer: z.string(),
+        })
+      )
+      .optional(),
+    sources: z
+      .array(
+        z.object({
+          name: z.string(),
+          url: z.string(),
+        })
+      )
+      .optional(),
     affiliateContext: z.string().optional(),
     affiliatePrograms: z.array(z.string()).optional(),
   }),

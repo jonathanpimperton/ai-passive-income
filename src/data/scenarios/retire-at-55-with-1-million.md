@@ -15,6 +15,8 @@ resultSummary: "$1,214,400 by age 55"
 affiliateContext: "Open a retirement account"
 affiliatePrograms:
   - "Betterment"
+datePublished: "2026-03-02"
+dateModified: "2026-07-02"
 ---
 
 ## $1,214,400 by age 55 -- but is it enough?
@@ -55,4 +57,4 @@ A bridge strategy is essential: keep 3 to 5 years of expenses in cash or short-t
 - **Markets return 5% instead of 7%:** Your ending balance falls to approximately $911,200. A 2% difference in returns costs you over $300,000 — a reminder that fees and asset allocation matter enormously over long time horizons.
 - **You increase contributions by $100 each year:** Gradually ramping from $1,500 to $3,900 per month over 25 years could push your balance past $1.6 million, giving you a much more comfortable 4% withdrawal of $64,000 per year.
 
-Your personal numbers will differ based on your age, savings rate, and expected returns. Use the [Retirement Savings Calculator](/tools/saving-and-growth/retirement-savings/) to model your exact scenario — adjust your contribution amount, return rate, and retirement age to find the combination that gets you to financial independence on your timeline.
+Your personal numbers will differ based on your age, savings rate, and expected returns. Use the [Retirement Savings Calculator](/tools/income-and-planning/retirement-savings/) to model your exact scenario — adjust your contribution amount, return rate, and retirement age to find the combination that gets you to financial independence on your timeline.

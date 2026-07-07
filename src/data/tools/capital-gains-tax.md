@@ -2,7 +2,7 @@
 name: "Capital Gains Tax Calculator"
 slug: "capital-gains-tax"
 category: "economic"
-description: "Estimate US and UK capital gains tax on investments, property, and other assets."
+description: "Capital gains tax calculator for US and UK — estimate CGT on shares, property, and other assets with long-term and short-term rates."
 keywords:
   - "capital gains tax calculator"
   - "capital gains tax rate"

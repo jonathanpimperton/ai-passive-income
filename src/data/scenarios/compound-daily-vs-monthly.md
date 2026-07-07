@@ -15,6 +15,8 @@ affiliateContext: "Start investing today"
 affiliatePrograms:
   - "Betterment"
   - "InvestEngine"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## The difference is $172 on $100,000 — barely noticeable

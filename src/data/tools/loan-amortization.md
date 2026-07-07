@@ -2,7 +2,7 @@
 name: "Loan Amortization Calculator"
 slug: "loan-amortization"
 category: "debt-and-loans"
-description: "See your monthly payment, total interest, and a full payment schedule for any fixed-rate loan."
+description: "Loan amortization calculator — see your monthly payment, total interest, and a full payment schedule for any fixed-rate loan."
 keywords:
   - "loan amortization calculator"
   - "amortization schedule calculator"

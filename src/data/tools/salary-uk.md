@@ -2,7 +2,7 @@
 name: "UK Salary & Take-Home Calculator"
 slug: "salary-uk"
 category: "income-and-planning"
-description: "2026/27 income tax, National Insurance, student loans, and pension — gross to net breakdown."
+description: "UK salary calculator for 2026/27 — income tax, National Insurance, student loans, and pension in a full gross-to-net breakdown."
 keywords:
   - "UK salary calculator"
   - "UK take-home pay calculator"

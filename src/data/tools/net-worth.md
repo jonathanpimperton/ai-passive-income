@@ -2,7 +2,7 @@
 name: "Net Worth Calculator"
 slug: "net-worth"
 category: "income-and-planning"
-description: "Add up your assets and liabilities to calculate total net worth with a visual breakdown."
+description: "Net worth calculator — add up your assets and liabilities to calculate total net worth, with a visual breakdown of both sides."
 keywords:
   - "net worth calculator"
   - "how to calculate net worth"

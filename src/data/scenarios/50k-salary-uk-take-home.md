@@ -11,6 +11,8 @@ inputs:
   Student Loan: "None"
   Pension: "0%"
 resultSummary: "£3,293/month"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
 ---
 
 ## You take home £39,520 — about £3,293 per month
@@ -56,6 +58,12 @@ A rough monthly budget for a medium-cost UK area:
 - **Food:** £250-£320
 - **Transport:** £100-£200
 - **Remaining:** £1,000-£1,600 for savings, holidays, and entertainment
+
+## How £50,000 compares with nearby salaries
+
+A £5,000 step below £50,000 changes your monthly pay by exactly £300: on £45,000 you keep £35,920 a year (£2,993 per month), because every pound between £12,570 and £50,270 loses the same 28% to tax and NI. A £5,000 step upward is worth less. On £55,000 you keep £42,457 (£3,538 per month) — only £245 more per month per £5,000, because the slice above £50,270 is taxed at the 42% combined marginal rate. £50,000 is the last salary where the simple 28% rule still describes your entire payslip.
+
+Every salary from £20,000 to £150,000 is tabulated in our [UK take-home pay reference](/scenarios/uk-take-home-pay/#45k), computed from the same HMRC 2026/27 rates as this page.
 
 ## What could change your take-home
 

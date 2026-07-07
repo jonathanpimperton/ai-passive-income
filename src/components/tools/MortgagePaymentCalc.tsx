@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef, Fragment } from 'react';
 import {
   AreaChart,
   Area,
@@ -200,12 +200,16 @@ const DEFAULTS = {
 export default function MortgagePaymentCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
+  const region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
+  const downLabel = region === 'uk' ? 'Deposit' : 'Down Payment';
+  const piLabel = region === 'us' ? 'Monthly Payment (P&I)' : 'Monthly Payment';
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const [homePrice, setHomePrice] = useState(DEFAULTS.homePrice);
   const [downPaymentPercent, setDownPaymentPercent] = useState(DEFAULTS.downPaymentPercent);
   const [interestRate, setInterestRate] = useState(DEFAULTS.interestRate);
   const [loanTerm, setLoanTerm] = useState(DEFAULTS.loanTerm);
+  const [termTouched, setTermTouched] = useState(false);
   const [extraMonthly, setExtraMonthly] = useState(DEFAULTS.extraMonthly);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [propertyTaxRate, setPropertyTaxRate] = useState(DEFAULTS.propertyTaxRate);
@@ -213,24 +217,33 @@ export default function MortgagePaymentCalc() {
   const [showSchedule, setShowSchedule] = useState(false);
   const ct = useChartTheme();
 
+  // Regional term default (UK mortgages typically run 25 years) — only applied
+  // while the user hasn't picked a term themselves.
+  useEffect(() => {
+    if (!termTouched) setLoanTerm(region === 'uk' ? 25 : DEFAULTS.loanTerm);
+  }, [region, termTouched]);
+
   const handleReset = useCallback(() => {
     setHomePrice(DEFAULTS.homePrice);
     setDownPaymentPercent(DEFAULTS.downPaymentPercent);
     setInterestRate(DEFAULTS.interestRate);
-    setLoanTerm(DEFAULTS.loanTerm);
+    setLoanTerm(region === 'uk' ? 25 : DEFAULTS.loanTerm);
+    setTermTouched(false);
     setExtraMonthly(DEFAULTS.extraMonthly);
     setPropertyTaxRate(DEFAULTS.propertyTaxRate);
     setInsuranceAnnual(DEFAULTS.insuranceAnnual);
-  }, []);
+  }, [region]);
 
   const result = useMemo(() => {
     const downPayment = homePrice * (downPaymentPercent / 100);
     const principal = homePrice - downPayment;
     const monthlyPI = calcMonthlyPayment(principal, interestRate, loanTerm);
 
-    const monthlyTax = homePrice * (propertyTaxRate / 100) / 12;
-    const monthlyInsurance = insuranceAnnual / 12;
-    const needsPMI = downPaymentPercent < 20;
+    // Property tax, insurance, and PMI are US concepts — zeroed elsewhere so
+    // hidden inputs never pollute non-US results.
+    const monthlyTax = region === 'us' ? homePrice * (propertyTaxRate / 100) / 12 : 0;
+    const monthlyInsurance = region === 'us' ? insuranceAnnual / 12 : 0;
+    const needsPMI = region === 'us' && downPaymentPercent < 20;
     const monthlyPMI = needsPMI ? (principal * 0.007) / 12 : 0; // ~0.7% PMI estimate
     const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + monthlyPMI;
 
@@ -268,21 +281,21 @@ export default function MortgagePaymentCalc() {
       yearGroups: withExtra.yearGroups,
       chartData,
     };
-  }, [homePrice, downPaymentPercent, interestRate, loanTerm, extraMonthly, propertyTaxRate, insuranceAnnual]);
+  }, [homePrice, downPaymentPercent, interestRate, loanTerm, extraMonthly, propertyTaxRate, insuranceAnnual, region]);
 
   const animatedMonthlyPI = useAnimatedNumber(result.monthlyPI);
 
   const getInputs = useCallback(() => {
     const inputs = [
       { label: 'Home Price', value: fmt(homePrice) },
-      { label: 'Down Payment', value: `${downPaymentPercent}% (${fmt(homePrice * (downPaymentPercent / 100))})` },
+      { label: downLabel, value: `${downPaymentPercent}% (${fmt(homePrice * (downPaymentPercent / 100))})` },
       { label: 'Interest Rate', value: `${interestRate}%` },
       { label: 'Loan Term', value: `${loanTerm} years` },
     ];
     if (extraMonthly > 0) {
       inputs.push({ label: 'Extra Monthly Payment', value: fmt(extraMonthly) });
     }
-    if (showAdvanced) {
+    if (region === 'us' && showAdvanced) {
       inputs.push({ label: 'Property Tax Rate', value: `${propertyTaxRate}%` });
       inputs.push({ label: 'Annual Insurance', value: fmt(insuranceAnnual) });
     }
@@ -290,10 +303,10 @@ export default function MortgagePaymentCalc() {
   }, [homePrice, downPaymentPercent, interestRate, loanTerm, extraMonthly, showAdvanced, propertyTaxRate, insuranceAnnual, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
-    { label: 'Monthly Payment (P&I)', value: fmt(result.monthlyPI), highlight: true },
+    { label: piLabel, value: fmt(result.monthlyPI), highlight: true },
     { label: 'Total Interest', value: fmt(result.totalInterest) },
     { label: 'Total Cost', value: fmt(result.totalPaid) },
-    { label: 'Down Payment', value: fmt(result.downPayment) },
+    { label: downLabel, value: fmt(result.downPayment) },
   ], [result, currency]);
 
   const pieData = useMemo(
@@ -325,17 +338,17 @@ export default function MortgagePaymentCalc() {
 
           <div className="space-y-5">
             <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={2000000} step={5000} textMax={10000000} minLabel={`${currencySymbol}50K`} maxLabel={`${currencySymbol}2M`} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} />
-            <SliderInput label="Down Payment" id="mort-down" value={downPaymentPercent} min={0} max={90} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${fmt(homePrice * (downPaymentPercent / 100))} down`} />
+            <SliderInput label={downLabel} id="mort-down" value={downPaymentPercent} min={0} max={90} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${fmt(homePrice * (downPaymentPercent / 100))} ${region === 'uk' ? 'deposit' : 'down'}`} />
             <SliderInput label="Interest Rate" id="mort-rate" value={interestRate} min={1} max={15} step={0.125} onChange={setInterestRate} suffix="%" formatDisplay={(v) => v.toFixed(3)} />
 
             {/* Loan term selection */}
             <div>
               <label id="mort-term-label" className="block text-sm font-medium text-neutral-700 mb-2">Loan Term</label>
               <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-labelledby="mort-term-label">
-                {[15, 20, 30].map((term) => (
+                {(region === 'us' ? [15, 20, 30] : [20, 25, 30]).map((term) => (
                   <button
                     key={term}
-                    onClick={() => setLoanTerm(term)}
+                    onClick={() => { setTermTouched(true); setLoanTerm(term); }}
                     aria-pressed={loanTerm === term}
                     className={`py-2.5 rounded-lg text-sm font-medium transition-all duration-150 border ${
                       loanTerm === term
@@ -351,25 +364,29 @@ export default function MortgagePaymentCalc() {
 
             <SliderInput label="Extra Monthly Payment" id="mort-extra" value={extraMonthly} min={0} max={5000} step={25} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setExtraMonthly} prefix={currencySymbol} formatDisplay={formatNumber} hint="Additional principal paid each month" />
 
-            {/* Advanced toggle */}
-            <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              aria-expanded={showAdvanced}
-              className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150"
-            >
-              <ChevronDown
-                size={16}
-                className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
-                aria-hidden="true"
-              />
-              {showAdvanced ? 'Hide' : 'Show'} Taxes & Insurance
-            </button>
+            {/* Advanced toggle — US-only (property tax + insurance are US concepts) */}
+            {region === 'us' && (
+              <>
+                <button
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  aria-expanded={showAdvanced}
+                  className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150"
+                >
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                  />
+                  {showAdvanced ? 'Hide' : 'Show'} Taxes & Insurance
+                </button>
 
-            {showAdvanced && (
-              <div className="space-y-5 pt-1">
-                <SliderInput label="Property Tax Rate" id="mort-tax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
-                <SliderInput label="Annual Insurance" id="mort-ins" value={insuranceAnnual} min={0} max={10000} step={100} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}10K`} onChange={setInsuranceAnnual} prefix={currencySymbol} formatDisplay={formatNumber} />
-              </div>
+                {showAdvanced && (
+                  <div className="space-y-5 pt-1">
+                    <SliderInput label="Property Tax Rate" id="mort-tax" value={propertyTaxRate} min={0} max={5} step={0.1} onChange={setPropertyTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
+                    <SliderInput label="Annual Insurance" id="mort-ins" value={insuranceAnnual} min={0} max={10000} step={100} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}10K`} onChange={setInsuranceAnnual} prefix={currencySymbol} formatDisplay={formatNumber} />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -377,13 +394,15 @@ export default function MortgagePaymentCalc() {
         {/* Results */}
         <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite" ref={resultsRef}>
           <div data-pdf-section className="mb-6">
-            <p className="text-sm text-neutral-500 mb-1">Monthly Payment (P&I)</p>
-            <p data-headline-result data-headline-label="Monthly Payment (P&I)" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+            <p className="text-sm text-neutral-500 mb-1">{piLabel}</p>
+            <p data-headline-result data-headline-label={piLabel} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
               {fmt(animatedMonthlyPI)}
             </p>
-            <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              Total monthly (PITI{result.needsPMI ? '+PMI' : ''}): {fmt(result.totalMonthly)}
-            </p>
+            {region === 'us' && (
+              <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
+                Total monthly (PITI{result.needsPMI ? '+PMI' : ''}): {fmt(result.totalMonthly)}
+              </p>
+            )}
           </div>
 
           {/* Payment breakdown cards */}
@@ -411,7 +430,7 @@ export default function MortgagePaymentCalc() {
                 <Banknote size={16} aria-hidden="true" />
               </div>
               <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Down Payment</p>
+                <p className="text-xs text-neutral-500 mb-0.5">{downLabel}</p>
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.downPayment)}</p>
               </div>
             </div>
@@ -451,8 +470,8 @@ export default function MortgagePaymentCalc() {
             </div>
           )}
 
-          {/* PITI breakdown */}
-          {showAdvanced && (
+          {/* PITI breakdown — US-only */}
+          {region === 'us' && showAdvanced && (
             <div className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden mb-6">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

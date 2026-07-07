@@ -13,6 +13,8 @@ resultSummary: "6 years 7 months, ~$45,280 in interest"
 affiliateContext: "Consolidate your debt at a lower rate"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## 6 years 7 months at $1,200/month — and you pay $45,280 in interest

@@ -78,6 +78,55 @@ export function buildWebApplicationSchema(tool: {
   return JSON.stringify(schema);
 }
 
+/**
+ * Site author identity used in bylines and Article JSON-LD (E-E-A-T).
+ * Single source of truth — the byline component and author page import this.
+ */
+export const AUTHOR = {
+  name: 'Jonathan Pimperton',
+  credential: 'ACA-qualified accountant',
+  url: `${SITE_URL}/author/`,
+} as const;
+
+export function buildArticleSchema(article: {
+  headline: string;
+  description: string;
+  /** Path beginning with /, e.g. /scenarios/uk-take-home-pay/ */
+  path: string;
+  datePublished: string;
+  dateModified: string;
+  ogImagePath?: string;
+}): string {
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.headline,
+    description: article.description,
+    mainEntityOfPage: `${SITE_URL}${article.path}`,
+    datePublished: article.datePublished,
+    dateModified: article.dateModified,
+    author: {
+      '@type': 'Person',
+      name: AUTHOR.name,
+      description: AUTHOR.credential,
+      url: AUTHOR.url,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'CalcRun',
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/favicon.svg`,
+      },
+    },
+  };
+  if (article.ogImagePath) {
+    schema.image = `${SITE_URL}${article.ogImagePath}`;
+  }
+  return JSON.stringify(schema);
+}
+
 export function buildWebsiteSchema(): string {
   const schema = {
     '@context': 'https://schema.org',

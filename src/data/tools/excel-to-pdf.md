@@ -2,7 +2,7 @@
 name: "Excel to PDF Converter"
 slug: "excel-to-pdf"
 category: "file-tools"
-description: "Convert Excel spreadsheets and CSV files to PDF."
+description: "Excel to PDF converter — turn XLSX spreadsheets and CSV files into PDF documents right in your browser. Files never leave your device."
 keywords:
   - "Excel to PDF"
   - "XLSX to PDF"

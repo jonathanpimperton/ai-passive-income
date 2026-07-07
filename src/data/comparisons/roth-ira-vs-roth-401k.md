@@ -39,6 +39,13 @@ affiliateContext: "Open a Roth IRA"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "IRS — Roth IRAs"
+    url: "https://www.irs.gov/retirement-plans/roth-iras"
+  - name: "IRS — 401(k) plans"
+    url: "https://www.irs.gov/retirement-plans/401k-plans"
 ---
 
 ## Same Roth tax treatment, different wrappers
@@ -51,7 +58,7 @@ Where they differ is in who offers them, how much you can put in, and what happe
 
 The most obvious difference is how much you can contribute each year. A Roth IRA caps at $7,500 ($8,600 if you're 50 or older). A Roth 401(k) allows $24,500 ($32,500 if 50+) — more than three times the IRA limit.
 
-For aggressive savers who want to shelter as much as possible from future taxes, the Roth 401(k) is the bigger bucket. Contributing the maximum to both accounts would put $32,000 into Roth accounts annually ($41,100 if 50+).
+For aggressive savers who want to shelter as much as possible from future taxes, the Roth 401(k) is the bigger bucket. [Contributing the maximum to both accounts](/tools/income-and-planning/retirement-contribution/) would put $32,000 into Roth accounts annually ($41,100 if 50+).
 
 ## The income limit problem
 
@@ -65,13 +72,13 @@ High earners locked out of direct Roth IRA contributions can still use the "back
 
 A Roth IRA at a brokerage gives you access to thousands of ETFs, individual stocks, bonds, mutual funds, and REITs. You pick exactly what to buy and can change your allocation anytime.
 
-A Roth 401(k) limits you to whatever funds your employer's plan offers — often 15-30 mutual funds or target-date funds. Some plans have great options (low-cost index funds). Others are loaded with high-fee actively managed funds that eat into your returns.
+A Roth 401(k) limits you to whatever funds your employer's plan offers — often 15-30 mutual funds or target-date funds. Some plans have great options (low-cost index funds). Others are loaded with [high-fee actively managed funds](/comparisons/index-funds-vs-active-funds/) that eat into your returns.
 
-If your 401(k) fund menu is expensive (look for expense ratios above 0.50%), you might prefer contributing enough to get the employer match, then directing additional Roth savings to an IRA where you control costs.
+If your 401(k) fund menu is expensive (look for [expense ratios above 0.50%](/tools/saving-and-growth/investment-fee/)), you might prefer contributing enough to get the employer match, then directing additional Roth savings to an IRA where you control costs.
 
 ## The employer match catch
 
-When your employer matches Roth 401(k) contributions, the match itself goes into a *Traditional* (pre-tax) bucket — not Roth. This is a tax law requirement, not an employer choice. So even with a Roth 401(k), you'll have some pre-tax money in your plan that will be taxed on withdrawal.
+When your employer matches Roth 401(k) contributions, the match itself goes into a [*Traditional* (pre-tax) bucket](/comparisons/roth-vs-traditional-401k/) — not Roth. This is a tax law requirement, not an employer choice. So even with a Roth 401(k), you'll have some pre-tax money in your plan that will be taxed on withdrawal.
 
 This actually provides useful tax diversification. In retirement, you can withdraw from the Roth portion tax-free and the Traditional match portion at whatever your retirement tax rate is.
 

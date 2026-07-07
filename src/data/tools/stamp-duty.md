@@ -2,7 +2,7 @@
 name: "Stamp Duty Calculator"
 slug: "stamp-duty"
 category: "economic"
-description: "Calculate UK Stamp Duty Land Tax (SDLT) for first-time buyers, movers, and additional properties."
+description: "Stamp duty calculator for UK property — SDLT for first-time buyers, home movers, and additional properties at current rates."
 keywords:
   - "stamp duty calculator"
   - "SDLT calculator"

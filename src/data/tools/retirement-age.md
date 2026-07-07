@@ -2,7 +2,7 @@
 name: "Retirement Age Calculator"
 slug: "retirement-age"
 category: "income-and-planning"
-description: "Find out when you can afford to retire based on your savings, contributions, and target."
+description: "Retirement age calculator — find out when you can afford to retire based on your savings, contributions, and target amount."
 keywords:
   - "when can I retire"
   - "retirement age calculator"

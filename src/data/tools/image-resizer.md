@@ -2,7 +2,7 @@
 name: "Image Resizer"
 slug: "image-resizer"
 category: "file-tools"
-description: "Resize images by pixels or percentage. Maintains aspect ratio."
+description: "Image resizer — resize photos by pixel dimensions or percentage with aspect ratio maintained. Files stay in your browser."
 keywords:
   - "resize image online"
   - "image resizer"

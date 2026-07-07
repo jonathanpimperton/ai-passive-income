@@ -2,7 +2,7 @@
 name: "Investment Return Calculator"
 slug: "investment-return"
 category: "saving-and-growth"
-description: "Project returns with different rates, contributions and timelines. Solve for any variable."
+description: "Investment return calculator — project growth with different rates, contributions, and timelines, or solve for any single variable."
 keywords:
   - "investment calculator"
   - "investment return calculator"

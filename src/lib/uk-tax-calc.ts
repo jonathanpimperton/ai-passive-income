@@ -9,6 +9,7 @@
 import {
   UK_INCOME_TAX,
   UK_NI,
+  UK_STUDENT_LOANS,
 } from './uk-rates';
 
 const PERSONAL_ALLOWANCE = UK_INCOME_TAX.personalAllowance;
@@ -78,6 +79,19 @@ export function calcNI(grossIncome: number): number {
   const mainBand = Math.min(grossIncome, NI_UPPER_EARNINGS_LIMIT) - NI_PRIMARY_THRESHOLD;
   const upperBand = Math.max(0, grossIncome - NI_UPPER_EARNINGS_LIMIT);
   return mainBand * NI_MAIN_RATE + upperBand * NI_UPPER_RATE;
+}
+
+export type StudentLoanPlan = 'none' | 'plan1' | 'plan2' | 'plan4' | 'plan5' | 'postgrad';
+
+/**
+ * Calculate annual student loan repayment: a flat rate on income above the
+ * plan's threshold. Shared by the full UK salary calculator and the
+ * build-time take-home hub table.
+ */
+export function calcStudentLoan(grossIncome: number, plan: StudentLoanPlan): number {
+  if (plan === 'none') return 0;
+  const { threshold, rate } = UK_STUDENT_LOANS[plan];
+  return grossIncome > threshold ? (grossIncome - threshold) * rate : 0;
 }
 
 // Re-export band data so the full calculator can use the same constants

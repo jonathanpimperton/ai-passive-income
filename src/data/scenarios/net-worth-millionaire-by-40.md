@@ -14,6 +14,8 @@ resultSummary: "~$3,056/month at 7% returns for 15 years"
 affiliateContext: "Grow your net worth faster"
 affiliatePrograms:
   - "Betterment"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## You need to invest roughly $3,056 per month from age 25

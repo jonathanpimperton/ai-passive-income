@@ -44,6 +44,10 @@ export default function InvestmentFeeCalc() {
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const ct = useChartTheme();
+  // Region-aware fee terminology: US says expense ratio, UK says OCF/TER,
+  // EUR says ongoing charges.
+  const yourFeeLabel =
+    currency === 'GBP' ? 'Your Fund Fee (OCF/TER)' : currency === 'EUR' ? 'Your Fund Fee (ongoing charges)' : 'Your Fund Fee (Expense Ratio)';
 
   const [principal, setPrincipal] = useState(DEFAULTS.principal);
   const [monthly, setMonthly] = useState(DEFAULTS.monthly);
@@ -236,7 +240,7 @@ export default function InvestmentFeeCalc() {
             <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent my-2" />
 
             <SliderInput
-              label="Your Fund Fee (Expense Ratio)"
+              label={yourFeeLabel}
               hint="Annual fee charged by your fund"
               id="if-your-fee"
               value={yourFee}

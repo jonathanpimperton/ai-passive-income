@@ -10,6 +10,8 @@ inputs:
   Inflation Rate: "3%"
   Retirement Length: "30 years"
 resultSummary: "Buys only $412,000 worth of goods after 30 years"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## Your $1 million buys only $412,000 worth of goods after 30 years

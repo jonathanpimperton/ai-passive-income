@@ -2,7 +2,7 @@
 name: "Markdown ↔ HTML Converter"
 slug: "markdown-html"
 category: "file-tools"
-description: "Convert Markdown to HTML and back. Live preview included."
+description: "Markdown to HTML converter with live preview — convert Markdown to HTML and HTML back to Markdown, right in your browser."
 keywords:
   - "Markdown to HTML converter"
   - "Markdown preview online"

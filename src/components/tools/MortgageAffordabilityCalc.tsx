@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   PieChart,
   Pie,
@@ -16,6 +16,7 @@ import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
+import { UK_MORTGAGE } from '../../lib/uk-rates';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
@@ -65,11 +66,20 @@ export default function MortgageAffordabilityCalc() {
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
 
+  // Region follows the display currency — US-specific costs (property tax %,
+  // homeowners insurance, HOA, PMI) only apply in USD mode.
+  const region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
+  const isUS = region === 'us';
+  const depositLabel = region === 'uk' ? 'Deposit' : 'Down Payment';
+  const termOptions = isUS ? [15, 30] : [20, 25, 30];
+  const regionDefaultTerm = isUS ? DEFAULTS.loanTerm : 25;
+
   const [annualIncome, setAnnualIncome] = useState(DEFAULTS.annualIncome);
   const [monthlyDebt, setMonthlyDebt] = useState(DEFAULTS.monthlyDebt);
   const [downPayment, setDownPayment] = useState(DEFAULTS.downPayment);
   const [interestRate, setInterestRate] = useState(DEFAULTS.interestRate);
   const [loanTerm, setLoanTerm] = useState(DEFAULTS.loanTerm);
+  const [termTouched, setTermTouched] = useState(false);
   const [propertyTaxRate, setPropertyTaxRate] = useState(DEFAULTS.propertyTaxRate);
   const [insuranceAnnual, setInsuranceAnnual] = useState(DEFAULTS.insuranceAnnual);
   const [hoaMonthly, setHoaMonthly] = useState(DEFAULTS.hoaMonthly);
@@ -78,20 +88,34 @@ export default function MortgageAffordabilityCalc() {
   const [pmiRate, setPmiRate] = useState(DEFAULTS.pmiRate);
   const ct = useChartTheme();
 
+  // Regional default term (30yr US, 25yr UK/EUR) — only applies while the
+  // user hasn't picked a term themselves; never stomps an explicit choice.
+  useEffect(() => {
+    if (!termTouched) setLoanTerm(regionDefaultTerm);
+  }, [regionDefaultTerm, termTouched]);
+
   const handleReset = useCallback(() => {
     setAnnualIncome(DEFAULTS.annualIncome);
     setMonthlyDebt(DEFAULTS.monthlyDebt);
     setDownPayment(DEFAULTS.downPayment);
     setInterestRate(DEFAULTS.interestRate);
-    setLoanTerm(DEFAULTS.loanTerm);
+    setLoanTerm(regionDefaultTerm);
+    setTermTouched(false);
     setPropertyTaxRate(DEFAULTS.propertyTaxRate);
     setInsuranceAnnual(DEFAULTS.insuranceAnnual);
     setHoaMonthly(DEFAULTS.hoaMonthly);
     setDtiLimit(DEFAULTS.dtiLimit);
     setPmiRate(DEFAULTS.pmiRate);
-  }, []);
+  }, [regionDefaultTerm]);
 
   const result = useMemo(() => {
+    // Hidden inputs in UK/EUR mode must also contribute 0 to the solver —
+    // hiding the UI alone would leave stale US defaults polluting results.
+    const effPropertyTaxRate = isUS ? propertyTaxRate : 0;
+    const effInsuranceAnnual = isUS ? insuranceAnnual : 0;
+    const effHoaMonthly = isUS ? hoaMonthly : 0;
+    const effPmiRate = isUS ? pmiRate : 0;
+
     const grossMonthlyIncome = annualIncome / 12;
     const maxTotalHousing = grossMonthlyIncome * (dtiLimit / 100) - monthlyDebt;
 
@@ -103,7 +127,7 @@ export default function MortgageAffordabilityCalc() {
         monthlyTax: 0,
         monthlyInsurance: 0,
         monthlyPMI: 0,
-        monthlyHOA: hoaMonthly,
+        monthlyHOA: effHoaMonthly,
         totalMonthly: 0,
         dtiRatio: monthlyDebt / grossMonthlyIncome * 100,
         needsPMI: false,
@@ -119,11 +143,11 @@ export default function MortgageAffordabilityCalc() {
 
     for (let iteration = 0; iteration < 20; iteration++) {
       // Estimate monthly property tax based on current home price guess
-      const monthlyTaxEstimate = maxHomePrice * (propertyTaxRate / 100) / 12;
-      const monthlyInsurance = insuranceAnnual / 12;
+      const monthlyTaxEstimate = maxHomePrice * (effPropertyTaxRate / 100) / 12;
+      const monthlyInsurance = effInsuranceAnnual / 12;
 
       // Available for P&I after subtracting fixed costs
-      const availableForPI = maxTotalHousing - monthlyTaxEstimate - monthlyInsurance - monthlyPMI - hoaMonthly;
+      const availableForPI = maxTotalHousing - monthlyTaxEstimate - monthlyInsurance - monthlyPMI - effHoaMonthly;
 
       if (availableForPI <= 0) {
         maxHomePrice = downPayment;
@@ -137,7 +161,7 @@ export default function MortgageAffordabilityCalc() {
 
       // Check if PMI applies (down payment < 20% of home price)
       const downPaymentPct = newHomePrice > 0 ? (downPayment / newHomePrice) * 100 : 100;
-      const newPMI = downPaymentPct < 20 ? (newLoanAmount * (pmiRate / 100)) / 12 : 0;
+      const newPMI = downPaymentPct < 20 ? (newLoanAmount * (effPmiRate / 100)) / 12 : 0;
 
       // Check convergence
       if (Math.abs(newHomePrice - maxHomePrice) < 1) {
@@ -153,10 +177,10 @@ export default function MortgageAffordabilityCalc() {
     }
 
     const monthlyPI = calcMonthlyPI(maxLoanAmount, interestRate, loanTerm);
-    const monthlyTax = maxHomePrice * (propertyTaxRate / 100) / 12;
-    const monthlyInsurance = insuranceAnnual / 12;
-    const needsPMI = maxHomePrice > 0 && (downPayment / maxHomePrice) * 100 < 20;
-    const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + monthlyPMI + hoaMonthly;
+    const monthlyTax = maxHomePrice * (effPropertyTaxRate / 100) / 12;
+    const monthlyInsurance = effInsuranceAnnual / 12;
+    const needsPMI = isUS && maxHomePrice > 0 && (downPayment / maxHomePrice) * 100 < 20;
+    const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + monthlyPMI + effHoaMonthly;
 
     // Actual DTI ratio
     const dtiRatio = grossMonthlyIncome > 0
@@ -170,13 +194,13 @@ export default function MortgageAffordabilityCalc() {
       monthlyTax,
       monthlyInsurance,
       monthlyPMI,
-      monthlyHOA: hoaMonthly,
+      monthlyHOA: effHoaMonthly,
       totalMonthly,
       dtiRatio,
       needsPMI,
       grossMonthlyIncome,
     };
-  }, [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, dtiLimit, pmiRate]);
+  }, [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, dtiLimit, pmiRate, isUS]);
 
   const animatedHomePrice = useAnimatedNumber(result.maxHomePrice);
 
@@ -203,18 +227,25 @@ export default function MortgageAffordabilityCalc() {
     const inputs = [
       { label: 'Annual Gross Income', value: fmt(annualIncome) },
       { label: 'Monthly Debt Payments', value: fmt(monthlyDebt) },
-      { label: 'Down Payment', value: fmt(downPayment) },
+      { label: depositLabel, value: fmt(downPayment) },
       { label: 'Interest Rate', value: `${interestRate}%` },
       { label: 'Loan Term', value: `${loanTerm} years` },
-      { label: 'Property Tax Rate', value: `${propertyTaxRate}%` },
-      { label: 'Annual Insurance', value: fmt(insuranceAnnual) },
     ];
-    if (hoaMonthly > 0) {
-      inputs.push({ label: 'HOA Fees', value: `${fmt(hoaMonthly)}/mo` });
+    if (isUS) {
+      inputs.push({ label: 'Property Tax Rate', value: `${propertyTaxRate}%` });
+      inputs.push({ label: 'Annual Insurance', value: fmt(insuranceAnnual) });
+      if (hoaMonthly > 0) {
+        inputs.push({ label: 'HOA Fees', value: `${fmt(hoaMonthly)}/mo` });
+      }
     }
     if (showAdvanced) {
-      inputs.push({ label: 'DTI Limit', value: `${dtiLimit}%` });
-      inputs.push({ label: 'PMI Rate', value: `${pmiRate}%` });
+      inputs.push({
+        label: isUS ? 'DTI Limit' : 'Income Spent on Housing',
+        value: `${dtiLimit}%`,
+      });
+      if (isUS) {
+        inputs.push({ label: 'PMI Rate', value: `${pmiRate}%` });
+      }
     }
     return inputs;
   }, [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, showAdvanced, dtiLimit, pmiRate, currency]);
@@ -223,7 +254,10 @@ export default function MortgageAffordabilityCalc() {
     { label: 'Maximum Home Price', value: fmt(result.maxHomePrice), highlight: true },
     { label: 'Loan Amount', value: fmt(result.maxLoanAmount) },
     { label: 'Total Monthly Payment', value: fmt(result.totalMonthly) },
-    { label: 'Debt-to-Income Ratio', value: `${result.dtiRatio.toFixed(1)}%` },
+    {
+      label: isUS ? 'Debt-to-Income Ratio' : 'Share of Income on Housing & Debt',
+      value: `${result.dtiRatio.toFixed(1)}%`,
+    },
   ], [result, currency]);
 
   // Pie chart data for monthly payment breakdown
@@ -305,8 +339,8 @@ export default function MortgageAffordabilityCalc() {
               formatDisplay={formatNumber}
             />
             <SliderInput
-              label="Down Payment"
-              hint="Amount you have saved for the deposit"
+              label={depositLabel}
+              hint={region === 'uk' ? 'Amount you have saved for the deposit' : 'Amount you have saved to put down'}
               id="afford-down"
               value={downPayment}
               min={0}
@@ -334,11 +368,11 @@ export default function MortgageAffordabilityCalc() {
             {/* Loan term toggle */}
             <div>
               <label id="afford-term-label" className="block text-sm font-medium text-neutral-700 mb-2">Loan Term</label>
-              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="afford-term-label">
-                {[15, 30].map((term) => (
+              <div className={`grid ${termOptions.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2`} role="radiogroup" aria-labelledby="afford-term-label">
+                {termOptions.map((term) => (
                   <button
                     key={term}
-                    onClick={() => setLoanTerm(term)}
+                    onClick={() => { setLoanTerm(term); setTermTouched(true); }}
                     aria-pressed={loanTerm === term}
                     className={`py-2.5 rounded-lg text-sm font-medium transition-all duration-150 border ${
                       loanTerm === term
@@ -352,46 +386,50 @@ export default function MortgageAffordabilityCalc() {
               </div>
             </div>
 
-            <SliderInput
-              label="Property Tax Rate"
-              hint="Annual property tax as % of home value"
-              id="afford-tax"
-              value={propertyTaxRate}
-              min={0.1}
-              max={4}
-              step={0.1}
-              onChange={setPropertyTaxRate}
-              suffix="%"
-              formatDisplay={(v) => v.toFixed(1)}
-            />
-            <SliderInput
-              label="Homeowners Insurance"
-              hint="Annual homeowners insurance cost"
-              id="afford-ins"
-              value={insuranceAnnual}
-              min={0}
-              max={5000}
-              step={100}
-              minLabel={`${currencySymbol}0`}
-              maxLabel={`${currencySymbol}5K`}
-              onChange={setInsuranceAnnual}
-              prefix={currencySymbol}
-              formatDisplay={formatNumber}
-            />
-            <SliderInput
-              label="HOA Fees"
-              hint="Monthly homeowners association dues"
-              id="afford-hoa"
-              value={hoaMonthly}
-              min={0}
-              max={1000}
-              step={25}
-              minLabel={`${currencySymbol}0`}
-              maxLabel={`${currencySymbol}1K`}
-              onChange={setHoaMonthly}
-              prefix={currencySymbol}
-              formatDisplay={formatNumber}
-            />
+            {isUS && (
+              <>
+                <SliderInput
+                  label="Property Tax Rate"
+                  hint="Annual property tax as % of home value"
+                  id="afford-tax"
+                  value={propertyTaxRate}
+                  min={0.1}
+                  max={4}
+                  step={0.1}
+                  onChange={setPropertyTaxRate}
+                  suffix="%"
+                  formatDisplay={(v) => v.toFixed(1)}
+                />
+                <SliderInput
+                  label="Homeowners Insurance"
+                  hint="Annual homeowners insurance cost"
+                  id="afford-ins"
+                  value={insuranceAnnual}
+                  min={0}
+                  max={5000}
+                  step={100}
+                  minLabel={`${currencySymbol}0`}
+                  maxLabel={`${currencySymbol}5K`}
+                  onChange={setInsuranceAnnual}
+                  prefix={currencySymbol}
+                  formatDisplay={formatNumber}
+                />
+                <SliderInput
+                  label="HOA Fees"
+                  hint="Monthly homeowners association dues"
+                  id="afford-hoa"
+                  value={hoaMonthly}
+                  min={0}
+                  max={1000}
+                  step={25}
+                  minLabel={`${currencySymbol}0`}
+                  maxLabel={`${currencySymbol}1K`}
+                  onChange={setHoaMonthly}
+                  prefix={currencySymbol}
+                  formatDisplay={formatNumber}
+                />
+              </>
+            )}
 
             {/* Advanced toggle */}
             <button
@@ -410,8 +448,10 @@ export default function MortgageAffordabilityCalc() {
             {showAdvanced && (
               <div className="space-y-5 pt-1">
                 <SliderInput
-                  label="DTI Limit"
-                  hint="Max debt-to-income ratio your lender allows (28-45%)"
+                  label={isUS ? 'DTI Limit' : 'Income Spent on Housing'}
+                  hint={isUS
+                    ? 'Max debt-to-income ratio your lender allows (28-45%)'
+                    : 'Max share of gross income spent on housing and debts (28-45%)'}
                   id="afford-dti"
                   value={dtiLimit}
                   min={28}
@@ -422,7 +462,7 @@ export default function MortgageAffordabilityCalc() {
                   formatDisplay={(v) => v.toFixed(0)}
                 />
                 {/* Only show PMI rate if down payment could result in < 20% */}
-                {downPayment < (result.maxHomePrice * 0.2) && (
+                {isUS && downPayment < (result.maxHomePrice * 0.2) && (
                   <SliderInput
                     label="PMI Rate"
                     hint="Annual private mortgage insurance rate"
@@ -450,7 +490,7 @@ export default function MortgageAffordabilityCalc() {
               {fmt(animatedHomePrice)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              With a {fmt(downPayment)} down payment and {fmt(result.maxLoanAmount)} loan
+              With a {fmt(downPayment)} {region === 'uk' ? 'deposit' : 'down payment'} and {fmt(result.maxLoanAmount)} loan
             </p>
           </div>
 
@@ -479,7 +519,7 @@ export default function MortgageAffordabilityCalc() {
                 <DollarSign size={16} aria-hidden="true" />
               </div>
               <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Down Payment</p>
+                <p className="text-xs text-neutral-500 mb-0.5">{depositLabel}</p>
                 <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(downPayment)}</p>
               </div>
             </div>
@@ -505,17 +545,35 @@ export default function MortgageAffordabilityCalc() {
                 <AlertTriangle size={16} className="text-red-600" aria-hidden="true" />
               )}
               <p className={`text-sm font-semibold ${dtiColor}`}>
-                Debt-to-Income: {result.dtiRatio.toFixed(1)}% ({dtiLabel})
+                {isUS ? 'Debt-to-Income' : 'Income spent on housing & debts'}: {result.dtiRatio.toFixed(1)}% ({dtiLabel})
               </p>
             </div>
             <p className="text-xs text-neutral-600 leading-relaxed">
               {result.dtiRatio <= 28
-                ? 'Well within the recommended 28% housing DTI. You have room for other financial goals.'
+                ? (isUS
+                    ? 'Well within the recommended 28% housing DTI. You have room for other financial goals.'
+                    : 'A comfortable share of your gross income. You have room for other financial goals.')
                 : result.dtiRatio <= 36
-                  ? 'Within typical lender limits. Consider whether this leaves enough for savings and emergencies.'
-                  : 'Above the recommended 36% total DTI. Lenders may still approve, but this leaves little buffer.'}
+                  ? (isUS
+                      ? 'Within typical lender limits. Consider whether this leaves enough for savings and emergencies.'
+                      : 'A moderate share of your gross income. Consider whether this leaves enough for savings and emergencies.')
+                  : (isUS
+                      ? 'Above the recommended 36% total DTI. Lenders may still approve, but this leaves little buffer.'
+                      : 'A large share of your gross income. Lenders may still approve, but this leaves little buffer.')}
             </p>
           </div>
+
+          {/* UK income-multiple context */}
+          {region === 'uk' && (
+            <div data-pdf-section className="mb-6 p-3 rounded-xl border border-neutral-200/80 bg-white text-xs text-neutral-600 leading-relaxed">
+              UK lenders typically cap borrowing around {UK_MORTGAGE.incomeMultipleCap}x income and stress-test affordability.
+              {result.maxLoanAmount > annualIncome * UK_MORTGAGE.incomeMultipleCap && (
+                <span className="block mt-1 font-medium text-amber-700">
+                  This result is above the ~{UK_MORTGAGE.incomeMultipleCap}x income multiple most UK lenders allow.
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -545,8 +603,10 @@ export default function MortgageAffordabilityCalc() {
               <tbody>
                 {[
                   { label: 'Principal & Interest', value: result.monthlyPI },
-                  { label: 'Property Tax', value: result.monthlyTax },
-                  { label: 'Insurance', value: result.monthlyInsurance },
+                  ...(isUS ? [
+                    { label: 'Property Tax', value: result.monthlyTax },
+                    { label: 'Insurance', value: result.monthlyInsurance },
+                  ] : []),
                   ...(result.needsPMI ? [{ label: 'PMI (est.)', value: result.monthlyPMI }] : []),
                   ...(result.monthlyHOA > 0 ? [{ label: 'HOA', value: result.monthlyHOA }] : []),
                 ].map((row, i) => (
@@ -618,7 +678,7 @@ export default function MortgageAffordabilityCalc() {
                 <span className="font-medium text-neutral-900 tabular-nums">{fmt(result.grossMonthlyIncome)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Max housing payment ({dtiLimit}% DTI)</span>
+                <span className="text-neutral-600">Max housing payment ({dtiLimit}% {isUS ? 'DTI' : 'of income'})</span>
                 <span className="font-medium text-neutral-900 tabular-nums">{fmt(result.grossMonthlyIncome * (dtiLimit / 100))}</span>
               </div>
               <div className="flex justify-between text-sm">

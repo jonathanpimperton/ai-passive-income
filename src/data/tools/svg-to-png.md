@@ -2,7 +2,7 @@
 name: "SVG to PNG Converter"
 slug: "svg-to-png"
 category: "file-tools"
-description: "Convert SVG files to high-resolution PNG images. Adjustable scale."
+description: "SVG to PNG converter — export SVG files as high-resolution PNG images with an adjustable scale factor, entirely in your browser."
 keywords:
   - "SVG to PNG converter"
   - "convert SVG to PNG"

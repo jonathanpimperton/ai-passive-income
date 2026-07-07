@@ -37,6 +37,13 @@ affiliateContext: "Open a retirement account"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "IRS — 401(k) plans"
+    url: "https://www.irs.gov/retirement-plans/401k-plans"
+  - name: "IRS — Tax Topics"
+    url: "https://www.irs.gov/taxtopics"
 ---
 
 ## The real question: where will your tax rate be?
@@ -60,14 +67,14 @@ The Traditional 401(k) is better when:
 
 - You're in the **32% bracket or higher** and confident you'll be in a lower bracket in retirement
 - You need the tax deduction now to qualify for other benefits (child tax credit, education credits)
-- You're close to retirement with little time for Roth growth to compound
+- You're [close to retirement](/tools/income-and-planning/retirement-age/) with little time for Roth growth to compound
 - Your employer match goes into Traditional regardless — so having both provides tax diversification
 
-A $24,500 Traditional contribution saves someone in the 24% bracket **$5,880** in taxes this year. That's real money you can invest elsewhere.
+A $24,500 Traditional contribution saves someone [in the 24% bracket](/tools/income-and-planning/salary-us/) **$5,880** in taxes this year. That's real money you can invest elsewhere.
 
 ## The math on a $24,500 contribution
 
-Assume 7% annual growth over 25 years, 24% tax bracket now, 22% in retirement:
+Assume [7% annual growth over 25 years](/tools/saving-and-growth/compound-interest/), 24% tax bracket now, 22% in retirement:
 
 **Roth path:** $24,500 after-tax → grows to $132,972 → withdraw **$132,972 tax-free**
 
@@ -78,6 +85,14 @@ But the Traditional saver got a $5,880 tax refund upfront. Invested at 7% for 25
 Traditional total: $103,718 + $31,913 = **$135,631**. Slightly more than Roth — but only because the retirement tax rate was lower.
 
 If retirement and current rates are the same (24%), the Roth wins because there's no tax drag on the full balance.
+
+## Marginal rate in, effective rate out
+
+There's a structural asymmetry the simple bracket comparison hides. Traditional contributions save tax at your **top marginal rate** — for a single filer earning $85,000 in 2026, every dollar contributed avoids the 22% bracket. But withdrawals in retirement fill the brackets **from the bottom up**.
+
+The first **$16,100** of annual withdrawals is wiped out by the standard deduction — tax-free. The next $12,400 of taxable income is taxed at only 10%, then everything up to $50,400 at 12%. A retiree drawing **$60,000 a year** from a Traditional 401(k) pays about **$5,020** in federal tax — an effective rate of **8.4%**.
+
+Save at 22% going in, pay 8.4% coming out. That spread is the quiet argument for Traditional contributions, and it holds even when retirement income looks respectable. The Roth case rests on whatever erodes it: Social Security, pensions, and RMDs filling those low brackets first — or tax rates rising before you retire.
 
 ## The best answer: do both
 

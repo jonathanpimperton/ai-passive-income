@@ -2,7 +2,7 @@
 name: "Rent vs Buy Calculator"
 slug: "rent-vs-buy"
 category: "debt-and-loans"
-description: "Compare the true cost of renting vs buying over time, including equity, taxes, and appreciation."
+description: "Rent vs buy calculator — compare the true cost of renting and buying over time, including equity, taxes, and home appreciation."
 keywords:
   - "rent vs buy calculator"
   - "should I rent or buy"

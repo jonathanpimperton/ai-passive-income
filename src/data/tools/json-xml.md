@@ -2,7 +2,7 @@
 name: "JSON ↔ XML Converter"
 slug: "json-xml"
 category: "file-tools"
-description: "Convert between JSON and XML formats with attribute support."
+description: "JSON to XML and XML to JSON converter — paste your data and convert both directions with attribute support, entirely in your browser."
 keywords:
   - "JSON to XML converter"
   - "XML to JSON converter"

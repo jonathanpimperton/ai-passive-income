@@ -36,13 +36,20 @@ affiliateContext: "Open a high-yield savings or money market account"
 affiliatePrograms:
   - "SoFi"
   - "Ally"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "FDIC — Deposit insurance"
+    url: "https://www.fdic.gov/resources/deposit-insurance/"
+  - name: "IRS — Tax Topics"
+    url: "https://www.irs.gov/taxtopics"
 ---
 
 ## They're more alike than different
 
 High-yield savings accounts and money market accounts are often treated as distinct products, but in practice they overlap heavily. Both are federally insured up to $250,000. Both pay variable rates that track the federal funds rate. Both let you access your cash quickly.
 
-The differences are real but narrow — and for an emergency fund, the account type matters less than the rate and the ease of getting your money when you need it.
+The differences are real but narrow — and for an [emergency fund](/tools/income-and-planning/emergency-fund/), the account type matters less than the rate and the ease of getting your money when you need it.
 
 ## High-yield savings: the simple choice
 
@@ -64,7 +71,7 @@ Rates on money market accounts are competitive with savings accounts, though the
 
 **High-yield savings wins for most people** because:
 
-- No minimum balance means you can start with any amount and grow it
+- No minimum balance means you can [start with any amount and grow it](/scenarios/save-10k-emergency-in-1-year/)
 - No risk of fees reducing your emergency cushion
 - Top rates are equal to or slightly better than money market rates
 - Transfer to checking is fast enough for true emergencies (same-day at most banks)
@@ -85,7 +92,7 @@ For an emergency fund, stick with FDIC-insured accounts. The peace of mind is wo
 
 The account type is the least important decision. What matters:
 
-1. **Keep 3-6 months of essential expenses.** Not income — expenses. If you spend $4,000 per month on rent, food, insurance, and transport, target $12,000-$24,000.
+1. **Keep 3-6 months of essential expenses.** Not income — expenses. If you spend $4,000 per month on rent, food, insurance, and transport, [target $12,000-$24,000](/scenarios/6-month-emergency-fund/).
 2. **Keep it separate from your spending account.** A different bank entirely helps prevent casual dipping.
 3. **Make sure transfers are fast.** Test a transfer before you need it in an emergency. Same-day is ideal.
 4. **Don't chase the last 0.1% APY.** The difference between 4.5% and 4.6% on $15,000 is $15 per year. Pick a reliable bank with good mobile access and move on.

@@ -14,6 +14,8 @@ affiliateContext: "Start investing with low fees"
 affiliatePrograms:
   - "Betterment"
   - "InvestEngine"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## $10,000 becomes $25,937 at the historical average

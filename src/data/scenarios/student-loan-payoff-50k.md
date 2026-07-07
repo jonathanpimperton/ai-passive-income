@@ -13,6 +13,8 @@ resultSummary: "8 years 9 months, ~$13,060 in interest"
 affiliateContext: "Consolidate your debt at a lower rate"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## 8 years 9 months at $600/month — with $13,060 in interest

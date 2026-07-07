@@ -24,6 +24,31 @@ const breadcrumbs = [
   { name: 'Home', url: '/' },
   { name: 'Scenarios', url: '/scenarios/' },
 ];
+
+// Phase 3 hub pages — the consolidated reference tables sit above the
+// individual scenarios (they replaced ~70 retired per-value pages).
+const HUBS = [
+  {
+    href: '/scenarios/uk-take-home-pay/',
+    title: 'UK take-home pay by salary',
+    detail: '£20,000 to £150,000 · 2026/27 rates',
+  },
+  {
+    href: '/scenarios/us-take-home-pay/',
+    title: 'US take-home pay by salary',
+    detail: '$40,000 to $250,000 · 2026 rates',
+  },
+  {
+    href: '/scenarios/mortgage-payments-by-amount/',
+    title: 'Mortgage payments by amount',
+    detail: '$150K to $750K · rates from 5% to 7%',
+  },
+  {
+    href: '/scenarios/investment-growth/',
+    title: 'Investment growth by amount',
+    detail: 'Monthly investing and lump sums at 7%',
+  },
+];
 ---
 
 <BaseLayout
@@ -43,6 +68,29 @@ const breadcrumbs = [
   </section>
 
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    {/* Reference tables (hub pages) */}
+    <section class="mb-14">
+      <h2 class="text-xl font-bold text-neutral-900 mb-2">Reference tables</h2>
+      <p class="text-sm text-neutral-600 mb-5 max-w-[640px]">
+        Full lookup tables with an embedded calculator — every salary, loan amount, and
+        contribution level in one place.
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {HUBS.map((hub) => (
+          <a
+            href={hub.href}
+            class="group bg-white border border-neutral-200/80 rounded-lg p-5 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <h3 class="text-sm font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200 leading-snug">
+              {hub.title}
+            </h3>
+            <p class="mt-1.5 text-xs text-neutral-500 tabular-nums">{hub.detail}</p>
+          </a>
+        ))}
+      </div>
+      <div class="h-px bg-neutral-200/80 mt-10"></div>
+    </section>
+
     <div class="space-y-12">
       {[...groupedByTool.entries()].map(([toolSlug, { tool, scenarios: toolScenarios }]) => (
         <section>

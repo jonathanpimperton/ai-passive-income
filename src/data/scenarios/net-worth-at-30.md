@@ -13,6 +13,8 @@ resultSummary: "$76,300 average, $13,900 median (US under-35)"
 affiliateContext: "Grow your net worth faster"
 affiliatePrograms:
   - "Betterment"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## The average is $76,300 — but the median is only $13,900

@@ -13,6 +13,8 @@ resultSummary: "Paid off in ~4 years 8 months, $15,120 in interest"
 affiliateContext: "Consolidate your debt at a lower rate"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-02"
+dateModified: "2026-07-02"
 ---
 
 ## 4 years 8 months at $800/month

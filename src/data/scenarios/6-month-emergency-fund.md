@@ -12,6 +12,8 @@ resultSummary: "$27,000 target"
 affiliateContext: "Earn more on your savings"
 affiliatePrograms:
   - "SoFi"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## You need $27,000 for a 6-month emergency fund

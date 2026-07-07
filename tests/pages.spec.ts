@@ -167,9 +167,10 @@ test.describe('Scenarios Index', () => {
 });
 
 test.describe('Sample scenario pages', () => {
+  // Phase 3: doorway scenarios consolidated into hubs — sample one of each kind
   const sampleScenarios = [
-    '/scenarios/10k-investment-10-years/',
-    '/scenarios/200k-mortgage-5-percent/',
+    '/scenarios/uk-take-home-pay/',
+    '/scenarios/mortgage-payments-by-amount/',
     '/scenarios/100k-salary-take-home/',
   ];
 

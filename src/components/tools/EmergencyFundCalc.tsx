@@ -51,6 +51,16 @@ export default function EmergencyFundCalc() {
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
+  // Region-aware wording: US quotes APY, UK quotes AER, EUR stays generic.
+  const region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
+  const savingsRateLabel =
+    region === 'uk' ? 'Savings interest rate (AER)' : region === 'eur' ? 'Savings interest rate' : 'Savings interest rate (APY)';
+  const savingsRateHint =
+    region === 'uk'
+      ? 'Interest rate on your savings account — easy-access savings accounts offer ~4-5%'
+      : region === 'eur'
+        ? 'Interest rate on your savings account'
+        : 'Interest rate on your savings account — high-yield accounts offer ~4-5%';
   const [housing, setHousing] = useState(DEFAULTS.housing);
   const [food, setFood] = useState(DEFAULTS.food);
   const [transportation, setTransportation] = useState(DEFAULTS.transportation);
@@ -115,7 +125,7 @@ export default function EmergencyFundCalc() {
     { label: 'Total Monthly Expenses', value: fmt(monthlyExpenses) },
     { label: 'Current Emergency Savings', value: fmt(currentSavings) },
     { label: 'Monthly Savings Contribution', value: fmt(monthlySaving) },
-    { label: 'Savings Account APY', value: `${savingsRate.toFixed(1)}%` },
+    { label: savingsRateLabel, value: `${savingsRate.toFixed(1)}%` },
   ], [housing, food, transportation, utilities, insurance, debtPayments, other, monthlyExpenses, currentSavings, monthlySaving, savingsRate, currency]);
 
   const getResults = useCallback((): ResultItem[] => {
@@ -189,7 +199,7 @@ export default function EmergencyFundCalc() {
 
             <SliderInput label="Current Emergency Savings" id="ef-current" value={currentSavings} min={0} max={100000} step={250} textMax={500000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}100K`} onChange={setCurrentSavings} prefix={currencySymbol} formatDisplay={formatNumber} hint="Cash you have set aside for unexpected expenses" />
             <SliderInput label="Monthly Savings Contribution" id="ef-monthly" value={monthlySaving} min={0} max={5000} step={25} textMax={50000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setMonthlySaving} prefix={currencySymbol} formatDisplay={formatNumber} hint="Amount you can put toward your emergency fund each month" />
-            <SliderInput label="Savings Account APY" id="ef-rate" value={savingsRate} min={0} max={10} step={0.1} onChange={setSavingsRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Interest rate on your savings account — high-yield accounts offer ~4-5%" />
+            <SliderInput label={savingsRateLabel} id="ef-rate" value={savingsRate} min={0} max={10} step={0.1} onChange={setSavingsRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} hint={savingsRateHint} />
           </div>
         </div>
 

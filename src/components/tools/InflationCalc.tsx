@@ -212,6 +212,11 @@ export default function InflationCalc() {
               Reset
             </button>
           </div>
+          <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-200/60 mb-5">
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              Historical mode uses US CPI data ({MIN_YEAR}–{MAX_YEAR}); projections apply to any currency.
+            </p>
+          </div>
           <div className="space-y-5">
             <SliderInput label="Dollar Amount" id="inf-amount" value={amount} min={1} max={500000} step={1000} textMax={10000000} minLabel="$1" maxLabel="$500K" onChange={setAmount} prefix="$" formatDisplay={formatNumber} hint="The amount you want to check" />
 

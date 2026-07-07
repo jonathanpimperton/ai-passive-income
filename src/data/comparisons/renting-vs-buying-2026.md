@@ -34,6 +34,13 @@ comparisonTable:
 affiliateContext: "Get pre-approved for a mortgage"
 affiliatePrograms:
   - "LendingTree"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "CFPB — Owning a Home"
+    url: "https://www.consumerfinance.gov/owning-a-home/"
+  - name: "IRS — Tax Topics"
+    url: "https://www.irs.gov/taxtopics"
 ---
 
 ## The 2026 landscape
@@ -44,7 +51,7 @@ The key question isn't whether buying is *ever* better — it almost always is o
 
 ## The true monthly cost of owning
 
-Most buyers focus on the mortgage payment and forget the rest. For a $400,000 home with 10% down at 6%:
+Most buyers focus on the mortgage payment and forget the rest. For [a $400,000 home with 10% down at 6%](/scenarios/mortgage-payments-by-amount/):
 
 - **Mortgage:** $2,158/month (P&I)
 - **Property tax:** $417/month (1.25% annually)
@@ -59,15 +66,17 @@ If comparable rent is $2,200/month, the monthly gap is $1,025. That's the price 
 
 Buying typically breaks even at **5-7 years** when accounting for closing costs (purchase and eventual sale), transaction costs, and the opportunity cost of the down payment.
 
-With a $40,000 down payment invested at 7% instead of buying, you'd have $56,100 after 5 years. The home needs to appreciate enough to cover closing costs AND beat that return before buying wins.
+With a $40,000 down payment [invested at 7%](/tools/saving-and-growth/investment-return/) instead of buying, you'd have $56,100 after 5 years. The home needs to appreciate enough to cover closing costs AND beat that return before buying wins.
 
 In a market with 4% annual appreciation, a $400,000 home is worth $486,700 after 5 years — a $86,700 gain. Minus 6% selling costs ($29,200), closing costs paid ($12,000), and the investment alternative ($16,100 opportunity cost), buying is ahead by roughly $29,400 at the 5-year mark.
+
+For a faster gut check, use the **5% rule**: multiply the home price by 5% (a rough annual cost of ownership — maintenance, property tax, and cost of capital) and divide by 12. On a $400,000 home that's **$1,667/month**. If you can rent the equivalent home for less than that, renting likely wins; if rent is higher, buying deserves the [full comparison](/tools/debt-and-loans/rent-vs-buy/).
 
 ## When renting clearly wins
 
 - **You might move within 3 years.** Transaction costs make short-term ownership almost always a loss.
-- **Price-to-rent ratio above 20.** If a home costs $500,000 but rents for $2,000/month (ratio of 20.8), renting and investing the difference is likely better.
-- **You'd drain your emergency fund for the down payment.** Owning without reserves is dangerous — one major repair can force debt.
+- **Price-to-rent ratio above 20.** If a home costs $500,000 but rents for $2,000/month (ratio of 20.8), [renting and investing the difference](/tools/debt-and-loans/rent-vs-buy/) is likely better.
+- **You'd drain your [emergency fund](/tools/income-and-planning/emergency-fund/) for the down payment.** Owning without reserves is dangerous — one major repair can force debt.
 - **Your local market is overvalued.** If prices are at historic highs relative to local incomes, a correction could wipe out years of equity.
 
 ## When buying clearly wins

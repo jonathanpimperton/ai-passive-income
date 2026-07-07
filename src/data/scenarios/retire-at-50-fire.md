@@ -15,6 +15,8 @@ resultSummary: "~$1,781/month from age 25 (targeting $1.5M)"
 affiliateContext: "Open a retirement account"
 affiliatePrograms:
   - "Betterment"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## You need roughly $1,781/month from age 25 to retire at 50
@@ -83,4 +85,4 @@ With only 20 years to age 50, you would need approximately $2,870/month to reach
 
 Alternatively, target age 55 instead: from age 30, $1,781/month at 7% grows to roughly $1.04 million. That supports $41,600/year at 4% — Lean FIRE territory.
 
-Use the [Retirement Savings Calculator](/tools/saving-and-growth/retirement-savings/) to find the exact savings rate for your FIRE number, timeline, and starting balance.
+Use the [Retirement Savings Calculator](/tools/income-and-planning/retirement-savings/) to find the exact savings rate for your FIRE number, timeline, and starting balance.

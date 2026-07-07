@@ -2,7 +2,7 @@
 name: "Savings Goal Calculator"
 slug: "savings-goal"
 category: "saving-and-growth"
-description: "Calculate how much to save each month to hit a target amount by a specific date."
+description: "Savings goal calculator — work out how much to save each month to hit a target amount by a specific date, with interest included."
 keywords:
   - "savings calculator"
   - "savings goal calculator"

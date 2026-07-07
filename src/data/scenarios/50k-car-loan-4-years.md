@@ -14,6 +14,8 @@ affiliateContext: "Compare loan rates"
 affiliatePrograms:
   - "LendingTree"
   - "SoFi"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## $1,197 per month for 48 months — $7,441 in interest

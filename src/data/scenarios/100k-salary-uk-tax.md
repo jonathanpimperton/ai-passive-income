@@ -10,6 +10,8 @@ inputs:
   Tax Code: "1257L"
   Tax Year: "2026/27"
 resultSummary: "£68,557/year (£5,713/month)"
+datePublished: "2026-03-04"
+dateModified: "2026-07-07"
 ---
 
 ## You take home £68,557 — about £5,713 per month
@@ -70,7 +72,11 @@ If your salary is near the threshold, these approaches can bring your adjusted n
 | £125,000 | £78,057 | 37.6% |
 | £150,000 | £91,286 | 39.1% |
 
-The jump in effective rate between £100K and £125K is the steepest in the entire UK tax system. Above £125,140, the rate actually drops back down because the personal allowance taper is complete.
+The jump in effective rate between £100K and £125K is the steepest in the entire UK tax system. Above £125,140 the *marginal* rate actually falls back — to 47% (45% additional-rate tax plus 2% NI) — because the personal allowance taper is complete, though the effective rate on your whole salary keeps climbing.
+
+## Nearby salaries
+
+At £95,000 — the last round-number salary before the taper — take-home is £65,657 (£5,471 per month). At £110,000, £10,000 into the trap zone, you keep £72,357 (£6,030 per month): exactly £3,800 more per year than at £100,000, despite £10,000 more gross. That 38p-in-the-pound outcome is the taper doing its work. Every salary from £20,000 to £150,000 is tabulated in our [UK take-home pay reference](/scenarios/uk-take-home-pay/#95k), computed from the same HMRC 2026/27 rates as this page.
 
 ## Outside England: Scottish rates
 

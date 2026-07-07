@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   PieChart,
   Pie,
@@ -13,7 +13,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
-import { getCurrencyConfig } from '../../lib/currency';
+import { getCurrencyConfig, getSavedCurrency } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useChartTheme } from '../../lib/useChartTheme';
@@ -30,23 +30,32 @@ const LIABILITY_OPACITY = [1, 0.75, 0.55, 0.38, 0.25];
 let idCounter = 0;
 function newId() { return `item-${++idCounter}`; }
 
-const DEFAULT_ASSETS: Item[] = [
-  { id: newId(), name: 'Checking Account', value: 5000 },
-  { id: newId(), name: 'Savings Account', value: 15000 },
-  { id: newId(), name: '401(k)', value: 45000 },
-  { id: newId(), name: 'Home', value: 300000 },
-  { id: newId(), name: 'Car', value: 18000 },
-];
+// Two default item names are region-flavored: US gets "Checking Account" /
+// "401(k)", UK and EUR get "Current Account" / "Pension". Applied to initial
+// defaults only — items the user has edited are never renamed.
+function defaultAssets(currency: string = 'USD'): Item[] {
+  const region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
+  return [
+    { id: newId(), name: region === 'us' ? 'Checking Account' : 'Current Account', value: 5000 },
+    { id: newId(), name: 'Savings Account', value: 15000 },
+    { id: newId(), name: region === 'us' ? '401(k)' : 'Pension', value: 45000 },
+    { id: newId(), name: 'Home', value: 300000 },
+    { id: newId(), name: 'Car', value: 18000 },
+  ];
+}
 
-const DEFAULT_LIABILITIES: Item[] = [
-  { id: newId(), name: 'Mortgage', value: 240000 },
-  { id: newId(), name: 'Student Loans', value: 25000 },
-  { id: newId(), name: 'Auto Loan', value: 12000 },
-  { id: newId(), name: 'Credit Card', value: 3000 },
-];
+function defaultLiabilities(): Item[] {
+  return [
+    { id: newId(), name: 'Mortgage', value: 240000 },
+    { id: newId(), name: 'Student Loans', value: 25000 },
+    { id: newId(), name: 'Auto Loan', value: 12000 },
+    { id: newId(), name: 'Credit Card', value: 3000 },
+  ];
+}
 
-function ItemRow({ item, onChange, onRemove }: {
+function ItemRow({ item, symbol, onChange, onRemove }: {
   item: Item;
+  symbol: string;
   onChange: (id: string, field: 'name' | 'value', val: string | number) => void;
   onRemove: (id: string) => void;
 }) {
@@ -62,7 +71,7 @@ function ItemRow({ item, onChange, onRemove }: {
         aria-label="Item name"
       />
       <div className="relative w-32 shrink-0">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">$</span>
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">{symbol}</span>
         <input
           type="text"
           inputMode="decimal"
@@ -95,25 +104,31 @@ export default function NetWorthCalc() {
   const fmt = (v: number) => formatCurrency(v, currency);
   const fmtCompact = (v: number) =>
     `${currencySymbol}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : Math.round(v)}`;
-  const [assets, setAssets] = useState<Item[]>(DEFAULT_ASSETS);
-  const [liabilities, setLiabilities] = useState<Item[]>(DEFAULT_LIABILITIES);
+  const [assets, setAssets] = useState<Item[]>(() => defaultAssets());
+  const [liabilities, setLiabilities] = useState<Item[]>(defaultLiabilities);
+
+  // Region-flavor the default item names once on mount (client-only so SSR
+  // markup stays stable, mirroring useCurrency). Only untouched US defaults
+  // are renamed — anything the user has edited no longer matches and is left alone.
+  useEffect(() => {
+    const saved = getSavedCurrency();
+    if (saved !== 'GBP' && saved !== 'EUR') return;
+    setAssets((prev) =>
+      prev.map((item) =>
+        item.name === 'Checking Account'
+          ? { ...item, name: 'Current Account' }
+          : item.name === '401(k)'
+            ? { ...item, name: 'Pension' }
+            : item
+      )
+    );
+  }, []);
 
   const handleReset = useCallback(() => {
     idCounter = 0;
-    setAssets([
-      { id: newId(), name: 'Checking Account', value: 5000 },
-      { id: newId(), name: 'Savings Account', value: 15000 },
-      { id: newId(), name: '401(k)', value: 45000 },
-      { id: newId(), name: 'Home', value: 300000 },
-      { id: newId(), name: 'Car', value: 18000 },
-    ]);
-    setLiabilities([
-      { id: newId(), name: 'Mortgage', value: 240000 },
-      { id: newId(), name: 'Student Loans', value: 25000 },
-      { id: newId(), name: 'Auto Loan', value: 12000 },
-      { id: newId(), name: 'Credit Card', value: 3000 },
-    ]);
-  }, []);
+    setAssets(defaultAssets(currency));
+    setLiabilities(defaultLiabilities());
+  }, [currency]);
 
   const handleChange = (
     setter: React.Dispatch<React.SetStateAction<Item[]>>,
@@ -189,6 +204,7 @@ export default function NetWorthCalc() {
                 <ItemRow
                   key={item.id}
                   item={item}
+                  symbol={currencySymbol}
                   onChange={(id, field, val) => handleChange(setAssets, id, field, val)}
                   onRemove={(id) => handleRemove(setAssets, id)}
                 />
@@ -213,6 +229,7 @@ export default function NetWorthCalc() {
                 <ItemRow
                   key={item.id}
                   item={item}
+                  symbol={currencySymbol}
                   onChange={(id, field, val) => handleChange(setLiabilities, id, field, val)}
                   onRemove={(id) => handleRemove(setLiabilities, id)}
                 />

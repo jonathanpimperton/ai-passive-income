@@ -10,6 +10,8 @@ inputs:
   Inflation Rate: "5%"
   Time Period: "5 years"
 resultSummary: "£128/week after 5 years at 5% food inflation"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## Your £100 weekly shop becomes £128 in just 5 years

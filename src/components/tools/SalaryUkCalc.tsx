@@ -20,6 +20,8 @@ import {
   calcPersonalAllowance,
   calcIncomeTax as calcIncomeTaxShared,
   calcNI,
+  calcStudentLoan,
+  type StudentLoanPlan,
   UK_BANDS,
   PA_TAPER_THRESHOLD,
   PA_TAPER_LIMIT,
@@ -28,7 +30,6 @@ import {
   UK_TAX_YEAR,
   UK_INCOME_TAX,
   UK_NI,
-  UK_STUDENT_LOANS,
   UK_SCOTTISH_TAX,
 } from '../../lib/uk-rates';
 
@@ -37,10 +38,6 @@ import {
 const PERSONAL_ALLOWANCE = UK_INCOME_TAX.personalAllowance;
 
 const SCOTTISH_BANDS: [number, number][] = UK_SCOTTISH_TAX.bands.map(b => [b.from, b.rate]);
-
-type StudentLoanPlan = 'none' | 'plan1' | 'plan2' | 'plan4' | 'plan5' | 'postgrad';
-
-const STUDENT_LOAN_THRESHOLDS: Record<Exclude<StudentLoanPlan, 'none'>, { threshold: number; rate: number }> = UK_STUDENT_LOANS;
 
 const STUDENT_LOAN_LABELS: Record<StudentLoanPlan, string> = {
   none: 'No Student Loan',
@@ -122,12 +119,6 @@ function calcIncomeTaxFull(grossIncome: number, isScottish: boolean, taxCodePars
     tax += taxableInBand * rate;
   }
   return tax;
-}
-
-function calcStudentLoan(grossIncome: number, plan: StudentLoanPlan): number {
-  if (plan === 'none') return 0;
-  const { threshold, rate } = STUDENT_LOAN_THRESHOLDS[plan];
-  return grossIncome > threshold ? (grossIncome - threshold) * rate : 0;
 }
 
 const DEFAULTS = {

@@ -2,7 +2,7 @@
 name: "Debt Payoff Calculator"
 slug: "debt-payoff"
 category: "debt-and-loans"
-description: "Compare snowball vs avalanche payoff strategies. See total interest saved and payoff timeline."
+description: "Debt payoff calculator comparing snowball vs avalanche strategies — see your debt-free date, payoff timeline, and total interest saved."
 keywords:
   - "debt payoff calculator"
   - "debt repayment calculator"

@@ -492,17 +492,37 @@ When starting a new session on this project:
    /labs/story 301s to /. Load-bearing: ScrollTrigger.refresh() fires via
    MutationObserver when the engine's SSR skeleton collapses on hydration —
    read plan doc "R2.1 PRODUCTION FACTS" before touching homepage scroll
-   logic. **Next: Phase 3**
-   (SEO restructure — scenario hub consolidation + 301s, E-E-A-T bylines/schema,
-   internal-link ladders) per the plan doc; a post-deploy maintenance list
-   (CalculatorShell dedup, lazy recharts) is also in the plan doc.
+   logic. **PHASE 3 COMPLETE (7 Jul 2026):** SEO restructure — 68 doorway
+   scenarios 301'd (public/_redirects, anchor-targeted) into 4 build-time
+   computed hub pages (/scenarios/uk-take-home-pay/, us-take-home-pay/,
+   mortgage-payments-by-amount/, investment-growth/ — figures from the pure
+   libs, pinned by tax-values-crosscheck.test.ts + hub-figures-spotcheck.test.ts);
+   E-E-A-T layer (Byline + Article/FAQPage JSON-LD, required
+   datePublished/dateModified on scenarios+comparisons, sources[] on
+   comparisons, /author/ page); 46 tool meta descriptions rewritten
+   keyword-first; 8 new high-intent pages; cannibal-pair content folded into
+   comparisons with figures recomputed. **GEO-AWARE CALCULATORS (7 Jul):**
+   region keyed off the currency selector (USD/GBP/EUR) — mortgage,
+   affordability, rent-vs-buy (US tax-deduction math bug fixed for GBP),
+   retirement milestones (UK_PENSION_AGES in uk-rates.ts), label tier;
+   ResultAffiliate has usOnly flag (LendingTree hidden for GBP/EUR).
+   **GA4 FIXED (7 Jul):** CSP had blocked region1.google-analytics.com since
+   March (UK/EU hits lost); consent default now GRANTED with Decline opt-out
+   (owner decision — plan doc table #3 reversed); /tools/* stacked-CSP bug
+   fixed with `!` detach syntax (embeds work again). Site is 142 pages.
+   New QA gate: `node scripts/qa-link-check.mjs` after every build (link +
+   anchor + redirect-destination integrity — must exit 0). **Next:** Phase 5
+   flagship calculators (debt-vs-invest, UK salary sacrifice), post-deploy
+   maintenance list (CalculatorShell dedup, lazy recharts), open owner calls
+   (CarFinanceCalc US positioning, author-page LinkedIn, email currency field).
    `docs/design-system.md` is SUPERSEDED (banner added) — design rules live in this
    file's Design Quality Standards section. **Responsive QA gate:**
    `scripts/qa-responsive-sweep.mjs` checks every page at 360/768/1280 (must exit 0;
    run after UI changes with `npx astro preview --port 4399` serving dist) +
    `scripts/qa-shot-matrix.mjs` for visual-review captures. Authoritative take-home
    tables: `docs/tax-values-2026.json`. Owner has deferred distribution + revenue work.
-   Sprint log above (1-36) is historical record. Tests: 301 unit + 74 E2E.
+   Sprint log above (1-36) is historical record. Tests: 365 unit + 75 E2E
+   (incl. 59 tax-values cross-checks + 4 built-HTML hub spot-checks).
 4. **Git workflow:** Work on `claude/master`. Pushing auto-deploys to production via
    the GitHub → Cloudflare (Workers Builds) integration — builds take **~20-30
    minutes** to reach the live site (npm install + 197 pages + OG generation), so

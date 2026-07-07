@@ -2,7 +2,7 @@
 name: "Compound Interest Calculator"
 slug: "compound-interest"
 category: "saving-and-growth"
-description: "See growth over time — monthly contributions, compounding frequency, and a year-by-year table."
+description: "Compound interest calculator — see growth over time with monthly contributions, compounding frequency options, and a year-by-year table."
 keywords:
   - "compound interest calculator"
   - "how to calculate compound interest"

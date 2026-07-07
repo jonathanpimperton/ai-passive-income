@@ -10,11 +10,13 @@ inputs:
   Annual Interest Rate: "7%"
   Time Period: "30 years"
   Compounding Frequency: "Monthly"
-resultSummary: "$811,649.67"
+resultSummary: "$811,650"
 affiliateContext: "Start investing today"
 affiliatePrograms:
   - "Betterment"
   - "InvestEngine"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
 ---
 
 ## $100,000 grows to $811,650 — without adding a dollar
@@ -25,24 +27,24 @@ affiliatePrograms:
 
 The Rule of 72 says money doubles every 10.3 years at 7%. Over 30 years, that is roughly three doublings: $100K becomes $200K, then $400K, then $800K. The actual number ($811,650) tracks this estimate closely.
 
-- **After 5 years:** $141,762 (gained $41,762)
+- **After 5 years:** $141,763 (gained $41,763)
 - **After 10 years:** $200,966 (gained $100,966 — first double)
-- **After 15 years:** $284,954 (gained $184,954)
-- **After 20 years:** $403,873 (gained $303,873 — second double)
-- **After 25 years:** $572,354 (gained $472,354)
+- **After 15 years:** $284,895 (gained $184,895)
+- **After 20 years:** $403,874 (gained $303,874 — second double)
+- **After 25 years:** $572,542 (gained $472,542)
 - **After 30 years:** $811,650 (gained $711,650 — third double)
 
-You gain $41,762 in the first five years and $239,296 in the last five. The final five years produce nearly six times more growth than the first five — on the exact same investment, at the exact same rate. That is the compounding curve at full stretch.
+You gain $41,763 in the first five years and $239,108 in the last five. The final five years produce nearly six times more growth than the first five — on the exact same investment, at the exact same rate. That is the compounding curve at full stretch.
 
 ## Where $100,000 comes from and where it should go
 
 A $100,000 lump sum typically arrives from an inheritance, a home sale, a business exit, or years of accumulated savings. Most people who receive this kind of money feel pressure to "do something" with it — buy real estate, start a business, or spread it across multiple accounts.
 
-The simplest and historically most effective choice is a low-cost total stock market index fund inside a tax-advantaged account. If you are under 50, a Roth IRA (up to the annual limit, currently $7,000) plus a taxable brokerage account is a common split. The key is minimizing fees and taxes, which are the two biggest drags on long-term compounding.
+The simplest and historically most effective choice is a low-cost total stock market index fund inside a tax-advantaged account. If you are under 50, a Roth IRA (up to the annual limit, $7,500 for 2026) plus a taxable brokerage account is a common split. The key is minimizing fees and taxes, which are the two biggest drags on long-term compounding.
 
 ## How different rates change the picture
 
-- **At 5%:** $100,000 grows to $446,774 — still a 4.5x return, but $364,876 less than at 7%. Two percentage points costs you over $364,000.
+- **At 5%:** $100,000 grows to $446,774 — still a 4.5x return, but $364,875 less than at 7%. Two percentage points costs you over $364,000.
 - **At 7%:** $811,650 — the eight-fold return.
 - **At 10%:** $1,983,740 — nearly $2 million. At this rate, you become a millionaire from a single $100,000 deposit. The gap between 7% and 10% ($1,172,090) is enormous because higher rates compound on an ever-larger base.
 
@@ -50,14 +52,18 @@ This is why investment fees matter so much at this scale. A fund charging 1% in 
 
 ## Adding contributions turns this into serious wealth
 
-- **Add $500/month:** Final balance of $1,419,735. The $180,000 in contributions generates about $428,085 in additional growth beyond what the lump sum alone earns.
-- **Add $1,000/month:** Final balance of $2,027,820. You cross the $2 million mark — enough to support $81,113/year at a 4% withdrawal rate.
-- **Add $2,000/month:** Final balance of $3,243,990. At this level, the portfolio generates six-figure annual income in perpetuity.
+- **Add $500/month:** Final balance of $1,421,635. The $180,000 in contributions generates about $429,986 in additional growth beyond what the lump sum alone earns.
+- **Add $1,000/month:** Final balance of $2,031,621. You cross the $2 million mark — enough to support $81,265/year at a 4% withdrawal rate.
+- **Add $2,000/month:** Final balance of $3,251,592. At this level, the portfolio generates six-figure annual income in perpetuity.
 
 ## What $811,650 means for retirement
 
 At a 4% safe withdrawal rate, $811,650 supports $32,466 per year ($2,706/month). Combined with Social Security (average benefit: $1,907/month in 2025), that is a total of $4,613/month — enough for a comfortable retirement in most U.S. markets outside major coastal cities.
 
 If you invest $100,000 at age 35 and leave it alone until 65, you have $811,650 without contributing another dollar. That is the power of a large lump sum given enough time.
+
+## Nearby scenarios
+
+A lump sum is one starting point; steady contributions are the other. Our [investment growth reference](/scenarios/investment-growth/) puts the two side by side — different starting amounts, monthly contributions, and timeframes, all computed with the same monthly-compounding math as this page — so you can see where your own mix of lump sum and monthly saving lands.
 
 Use the [Compound Interest Calculator](/tools/saving-and-growth/compound-interest/) to model your own starting amount, contribution schedule, and expected return.

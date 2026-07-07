@@ -2,7 +2,7 @@
 name: "Images to PDF"
 slug: "images-to-pdf"
 category: "file-tools"
-description: "Combine multiple images into a single PDF. Reorder pages, set margins."
+description: "JPG to PDF and PNG to PDF converter — combine multiple images into one PDF, reorder pages, and set margins in your browser."
 keywords:
   - "JPG to PDF"
   - "PNG to PDF"

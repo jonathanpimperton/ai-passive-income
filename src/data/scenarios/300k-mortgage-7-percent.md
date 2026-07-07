@@ -14,6 +14,8 @@ resultSummary: "$1,995.91/month"
 affiliateContext: "Compare mortgage rates from multiple lenders"
 affiliatePrograms:
   - "LendingTree"
+datePublished: "2026-03-02"
+dateModified: "2026-07-07"
 ---
 
 ## $1,995.91 per month at 7%
@@ -22,7 +24,9 @@ affiliatePrograms:
 
 ## Where each dollar of your payment goes
 
-Your $1,995.91 monthly payment covers two components that shift over time. In the first month, about $1,750 goes to interest and only $246 toward principal. By year 15, the split is roughly even. In the final years, nearly all of your payment reduces the balance.
+Your $1,995.91 monthly payment covers two components that shift over time. In the first month, about $1,750 goes to interest and only $246 toward principal. At 7%, the split doesn't reach 50/50 until month 242 — just past year 20. In the final years, nearly all of your payment reduces the balance.
+
+The amortization schedule makes the slow start concrete. After five years of payments (nearly $120,000 out the door), you still owe about $282,395 — you've cleared less than $18,000 of principal. After ten years the balance is roughly $257,437, and even at the 20-year mark you still owe about $171,900. This is why extra principal payments are most powerful early in the loan: every dollar of principal you retire in year one stops compounding 7% interest against you for the next 29 years.
 
 Here's how the numbers add up over the full 30 years:
 
@@ -41,8 +45,12 @@ Don't forget to budget beyond principal and interest. Property taxes, homeowner'
 ## How rate changes and extra payments shift the cost
 
 - **You put 20% down on a $375,000 home:** Your loan amount stays $300,000, but you avoid PMI — saving $100–$200/month.
-- **Rates drop to 6%:** Your monthly payment falls to $1,798.65, saving $197/month or $70,920 over the life of the loan.
+- **Rates drop to 6%:** Your monthly payment falls to $1,798.65, saving $197/month or roughly $71,000 over the life of the loan.
 - **You choose a 15-year term:** Payments jump to $2,696.48, but total interest drops to $185,367 — saving $233,160.
-- **You make one extra payment per year:** You'd pay off the mortgage about 4–5 years early and save over $80,000 in interest.
+- **You make one extra payment per year:** Spreading a thirteenth payment across the year pays the mortgage off about six years early — in just under 24 years — and saves roughly $102,000 in interest.
+
+## Nearby loan amounts
+
+At the same 7% rate over 30 years, [a $250,000 loan](/scenarios/mortgage-payments-by-amount/#250k) costs $1,663.26 per month and [a $350,000 loan](/scenarios/mortgage-payments-by-amount/#350k) costs $2,328.56. The relationship is exactly linear: every $50,000 of borrowing adds $333 to the monthly payment at this rate, which makes it easy to translate a change in purchase price or down payment directly into your monthly budget.
 
 Every fraction of a percent matters at this loan size. Use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to model your exact scenario — adjust the rate, term, down payment, and see how extra payments change the total cost.

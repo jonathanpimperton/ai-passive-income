@@ -1,0 +1,37 @@
+---
+/**
+ * E-E-A-T byline (Phase 3): quiet single-line meta row rendered under the H1
+ * on scenario and comparison pages. Name links to the author page; dates are
+ * the same values emitted in the page's Article JSON-LD, so what Google sees
+ * matches what readers see.
+ */
+import { AUTHOR } from '@lib/seo';
+
+interface Props {
+  datePublished: string;
+  dateModified: string;
+}
+
+const { datePublished, dateModified } = Astro.props;
+
+const formatDate = (iso: string) =>
+  new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+const published = formatDate(datePublished);
+const modified = formatDate(dateModified);
+const showModified = dateModified !== datePublished;
+---
+
+<p class="mt-3 text-sm text-neutral-500">
+  By <a href="/author/" class="font-medium text-neutral-700 underline decoration-neutral-300 underline-offset-2 hover:text-primary-700 hover:decoration-primary-400 transition-all duration-150">{AUTHOR.name}</a>, {AUTHOR.credential}
+  <span aria-hidden="true" class="mx-1.5 text-neutral-300">&middot;</span>
+  {showModified ? (
+    <span>Updated <time datetime={dateModified}>{modified}</time></span>
+  ) : (
+    <span>Published <time datetime={datePublished}>{published}</time></span>
+  )}
+</p>

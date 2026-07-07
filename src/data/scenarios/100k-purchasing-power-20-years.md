@@ -10,6 +10,8 @@ inputs:
   Inflation Rate: "3%"
   Time Period: "20 years"
 resultSummary: "Worth only $55,368 in today's dollars"
+datePublished: "2026-03-04"
+dateModified: "2026-07-02"
 ---
 
 ## $100,000 will buy only $55,368 worth of today's goods

@@ -2,7 +2,7 @@
 name: "Mortgage Payment Calculator"
 slug: "mortgage-payment"
 category: "debt-and-loans"
-description: "Enter loan amount, rate, and term to see monthly repayments, total interest, and amortization."
+description: "Mortgage payment calculator — enter loan amount, rate, and term to see monthly repayments, total interest, and the amortization schedule."
 keywords:
   - "mortgage calculator"
   - "mortgage payment calculator"

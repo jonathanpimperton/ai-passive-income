@@ -36,6 +36,13 @@ affiliateContext: "Where to invest your windfall"
 affiliatePrograms:
   - "Betterment"
   - "InvestEngine"
+datePublished: "2026-03-05"
+dateModified: "2026-07-07"
+sources:
+  - name: "FCA — Consumer information"
+    url: "https://www.fca.org.uk/consumers"
+  - name: "Bank of England — Monetary policy"
+    url: "https://www.bankofengland.co.uk/monetary-policy"
 ---
 
 ## What the data actually says
@@ -48,7 +55,7 @@ Dimensional Fund Advisors confirmed similar results in a broader study. Across r
 
 ## When lump sum loses
 
-That 33% of the time matters. If you invested a £100,000 inheritance as a lump sum in October 2007, you watched it drop to £55,000 by March 2009. Dollar-cost averaging the same amount over 12 months would have bought more shares at lower prices and recovered faster.
+That 33% of the time matters. If you [invested a £100,000 inheritance as a lump sum](/scenarios/100000-invested-30-years/) in October 2007, you watched it drop to £55,000 by March 2009. Dollar-cost averaging the same amount over 12 months would have bought more shares at lower prices and recovered faster.
 
 The worst-case scenario for lump sum investing — putting everything in right before a major crash — is also the scenario most people imagine when they receive a large sum. The fear isn't irrational. A 40% drop on your entire windfall is psychologically devastating, even if the rational move is to hold.
 
@@ -62,13 +69,22 @@ The best strategy you'll actually follow beats the mathematically optimal strate
 
 ## How to run the numbers for your windfall
 
-Use an investment return calculator to model both approaches:
+Use an [investment return calculator](/tools/saving-and-growth/investment-return/) to model both approaches:
 
 **Lump sum:** Enter your full amount as the starting balance, £0 monthly contribution, and your expected return rate. Note the portfolio value after 10, 20, and 30 years.
 
 **DCA over 12 months:** Enter £0 starting balance, set your monthly contribution to the windfall divided by 12, and run for 1 year. Then take that end balance as a new starting amount with £0 monthly contribution for the remaining years.
 
 The lump sum total will almost always be higher. The question is whether the difference (typically 1-3% of the original amount per year of DCA) is worth the peace of mind.
+
+Here's what that looks like on a **$60,000 windfall** at 7% annual growth (compounded monthly) over 10 years, assuming the waiting cash earns nothing:
+
+- **Lump sum:** $60,000 invested on day one grows to **$120,580**.
+- **DCA over 12 months:** twelve $5,000 monthly purchases through year one, then the balance grows untouched for nine more years — **$116,129**.
+
+The expected cost of spreading it out: about **$4,450**.
+
+**The 50/50 hybrid** is the compromise that calms most nerves: invest $30,000 today and DCA the other $30,000 over 6 months. Run the same math and the hybrid finishes at $119,368 — an expected gap of only **about $1,200**, capturing nearly three-quarters of the lump-sum advantage while halving your day-one exposure. If a full lump sum feels impossible, this is a rational middle ground.
 
 ## A practical DCA schedule
 
@@ -95,5 +111,5 @@ Whatever schedule you pick, set it up as automatic transfers on specific dates. 
 - You'd rather slightly underperform on average than risk the worst-case scenario
 
 **Neither if:**
-- You have high-interest debt — pay that off first regardless of which investing strategy you prefer
-- You don't have an emergency fund — set aside 3-6 months of expenses before investing
+- You have high-interest debt — [pay that off first](/comparisons/pay-off-debt-vs-invest/) regardless of which investing strategy you prefer
+- You don't have an emergency fund — [set aside 3-6 months of expenses](/tools/income-and-planning/emergency-fund/) before investing

@@ -2,7 +2,7 @@
 name: "CSV ↔ JSON Converter"
 slug: "csv-json"
 category: "file-tools"
-description: "Convert between CSV and JSON formats. Paste or upload, download instantly."
+description: "CSV to JSON and JSON to CSV converter — paste or upload your data, convert both directions, and download the result instantly."
 keywords:
   - "CSV to JSON converter"
   - "JSON to CSV"
