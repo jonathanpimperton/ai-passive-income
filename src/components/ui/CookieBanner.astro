@@ -1,8 +1,9 @@
 ---
 /**
- * Cookie consent banner for EU compliance, paired with Google Consent Mode v2.
- * GA loads with analytics_storage DENIED by default (set in BaseLayout <head>);
- * Accept upgrades consent via gtag('consent','update'), Decline leaves it denied.
+ * Cookie notice banner, paired with Google Consent Mode v2.
+ * GA loads with analytics_storage GRANTED by default (set in BaseLayout <head>,
+ * owner decision Jul 2026); Decline is a genuine opt-out via
+ * gtag('consent','update'), Accept simply dismisses the banner.
  * Preference is stored in localStorage (not a cookie) and honored on later visits.
  *
  * Zero-React: plain markup + a tiny inline script. Hidden by default via the

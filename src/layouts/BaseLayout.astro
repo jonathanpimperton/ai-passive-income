@@ -87,10 +87,12 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
     <slot name="head" />
 
     <!-- Google Analytics with Consent Mode v2: analytics_storage defaults to
-         DENIED and is only granted when the visitor has accepted the cookie
-         banner (stored consent honored on subsequent visits). Loaded at the
-         end of <head> so it never competes with render-critical CSS/fonts. -->
-    <Fragment set:html={`<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});try{if(localStorage.getItem('calcrun-cookie-consent')==='accepted'){gtag('consent','update',{analytics_storage:'granted'});}}catch(e){}gtag('js',new Date());gtag('config','G-K0ZB3P48QG');</script><script async src="https://www.googletagmanager.com/gtag/js?id=G-K0ZB3P48QG"></script>`} />
+         GRANTED (owner decision, Jul 2026 — default-deny cratered measurement);
+         the cookie banner's Decline is honored as a genuine opt-out (stored
+         choice re-applied on later visits). Ad signals stay denied — no ads
+         product. Loaded at the end of <head> so it never competes with
+         render-critical CSS/fonts. -->
+    <Fragment set:html={`<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'granted'});try{if(localStorage.getItem('calcrun-cookie-consent')==='declined'){gtag('consent','update',{analytics_storage:'denied'});}}catch(e){}gtag('js',new Date());gtag('config','G-K0ZB3P48QG');</script><script async src="https://www.googletagmanager.com/gtag/js?id=G-K0ZB3P48QG"></script>`} />
   </head>
   <body class="min-h-screen flex flex-col bg-bg text-neutral-900 overflow-x-hidden">
     <script is:inline>
