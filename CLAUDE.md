@@ -411,7 +411,7 @@ they read as AI-generated. Every new component/page MUST follow the rules below.
 - Every numeric input gets **both** a slider and text field, synced together.
 - Results update in **real-time** — no submit button (key differentiator vs Calculator.net). `aria-live="polite"` on results.
 - Big number result: 30px+ font, bold, prominent. Context line below explaining what it means.
-- Charts use recharts with the color sequence from design-system.md Section 2.
+- Charts always go through `useChartTheme()` — see the Precision Instrument Charts rule above (design-system.md is superseded).
 - Progressive disclosure: 3–5 essential inputs visible, advanced collapsed behind toggle.
 - **"Solve for X" tabs** on investment + retirement calculators (user picks which variable to solve for).
 - **Collapsible schedule tables**: year-by-year default, click to expand monthly detail. Sticky headers, zebra striping. Never dump 120+ raw rows.
@@ -419,7 +419,7 @@ they read as AI-generated. Every new component/page MUST follow the rules below.
 - Skeleton shimmer (`.shimmer-line` class) while React islands hydrate.
 
 ### Typography & Spacing
-- **Fonts:** Libre Baskerville (serif) for H1-H2 headings, DM Sans (sans) for body/UI, JetBrains Mono for code.
+- **Fonts:** Space Grotesk (display, H1-H2 via `--font-display`), DM Sans (body/UI), JetBrains Mono (every financial figure via `.tabular-nums`). Libre Baskerville woff2 remains in public/fonts/ only for OG generation — not wired to headings.
 - `rounded-lg` on major cards, `rounded-xl` on smaller elements, `rounded-lg` on inputs/buttons.
 - Generous padding: `p-6` minimum on cards, `py-16 sm:py-20` on sections.
 - Body text never below 16px. Descriptions use `leading-relaxed`.
@@ -464,7 +464,7 @@ they read as AI-generated. Every new component/page MUST follow the rules below.
 When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
-2. **Read this file first**, then `docs/growth-plan.md` (active roadmap), then `docs/build-spec.md` and `docs/design-system.md` as needed.
+2. **Read this file first**, then `docs/plan-2026-07.md` (the ACTIVE plan — start at its Session Handoff State / RESUME POINT), then `docs/build-spec.md` as needed. `growth-plan.md` and `design-system.md` are superseded — history only.
 3. **Current status (July 2026):** Site live at `https://www.calcrun.com`, running the
    July 2026 overhaul (deployed 2 July 2026). A comprehensive review
    (`docs/review-2026-07.md`) drove a multi-phase overhaul tracked in
@@ -524,10 +524,11 @@ When starting a new session on this project:
    Sprint log above (1-36) is historical record. Tests: 365 unit + 75 E2E
    (incl. 59 tax-values cross-checks + 4 built-HTML hub spot-checks).
 4. **Git workflow:** Work on `claude/master`. Pushing auto-deploys to production via
-   the GitHub → Cloudflare (Workers Builds) integration — builds take **~20-30
-   minutes** to reach the live site (npm install + 197 pages + OG generation), so
-   don't diagnose a "failed deploy" before ~30 min have passed. Local wrangler is
-   NOT authenticated (deploys happen CF-side only). Get owner approval before
+   the GitHub → Cloudflare (Workers Builds) integration — deploys landed in
+   **~2-5 minutes** on both 7 Jul 2026 pushes (older docs claimed 20-30 min;
+   that no longer matches observation). Still allow ~30 min before diagnosing a
+   "failed deploy" — CF build queueing varies. Local wrangler is NOT
+   authenticated (deploys happen CF-side only). Get owner approval before
    pushing unless a standing instruction says otherwise. Local checkpoint commits
    at milestones are approved practice. The build runs `npm run build`, whose
    prebuild hook is the dependency-free `scripts/check-rates-freshness.mjs` guard.
@@ -536,16 +537,31 @@ When starting a new session on this project:
 
 ## Growth Roadmap
 
-See **`docs/implementation-plan.md`** for the active roadmap, split into 4 phases:
-- **Phase 1 (CODE COMPLETE):** Sprint 30 (data accuracy), Sprint 31 (trust layer), Sprint 36 (GA4 events). Manual items still needed: Cloudflare redirect, Turnstile secret key, affiliate follow-ups.
-- **Phase 2 (CODE COMPLETE):** Sprint 32 (affiliate flow), Sprint 33 (homepage UK prompts + non-finance separation).
-- **Decision Gate (2 items remain):** Cloudflare redirect ✅ done, Turnstile ✅ done. Still needed: (1) verify GA4 events in dashboard, (2) check affiliate partner status (CJ, Awin, Pro Affiliate Partner).
-- **Phase 3 (BLOCKED):** Sprint 34 (reframe top scenario titles + 5-8 new high-intent scenarios), Sprint 35 (salary sacrifice calculator + debt-vs-invest calculator)
-- **Phase 4:** Data-driven decisions based on GA4/GSC metrics
+**SUPERSEDED (Jul 2026): the roadmap below is the March 2026 plan from
+`docs/implementation-plan.md`, kept for history. The ACTIVE roadmap is
+`docs/plan-2026-07.md` (its "Phase 3" is the July SEO restructure, a different
+thing from the March "Phase 3" below).** Where things actually stand:
 
-**GSC status (3 Mar 2026):** 3 pages indexed, 37 discovered not indexed, 4 redirect errors (bare domain — no www redirect). Near-zero impressions.
+- **Done and live (7 Jul 2026):** July-plan Phases 1-3 (data correctness,
+  Precision Instrument redesign + R2.1 homepage, SEO restructure with hub
+  consolidation + 301s + E-E-A-T + geo-aware calculators). GA4 collection
+  fixed the same day (CSP region1 block + consent default reversed to granted).
+  The March plan's Sprint 34 intent (high-intent scenarios) shipped inside the
+  July Phase 3 (60% tax trap, pay-rise shock, childcare cliff, Plan 5, etc.).
+- **Next queued (July plan):** Phase 5 flagship calculators — Sprint 35's
+  salary-sacrifice + debt-vs-invest calculators live on there — and the
+  post-deploy maintenance list (CalculatorShell dedup, lazy recharts).
+- **Owner-manual next steps:** GSC — request indexing on the 4 hub pages + 8
+  new pages (last known GSC state, 3 Mar 2026: 3 pages indexed, near-zero
+  impressions; the doorway consolidation existed to fix exactly this); watch
+  GA4 recover over 48h; check affiliate dashboards (CJ, Awin, Pro Affiliate
+  Partner) for approvals; decide on distribution deferral once hubs index.
+- **Deferred by owner:** Phase 4 revenue plumbing + all distribution work
+  (decision 7, 2 Jul 2026).
 
-**Next steps:** Owner needs to (1) verify GA4 events firing in analytics.google.com → Realtime, (2) check affiliate dashboards for new approvals. Then decision gate passes → Phase 3 (Sprint 34 scenarios + Sprint 35 calculators).
+March-2026 phase log (historical): Phase 1 sprints 30/31/36 complete; Phase 2
+sprints 32/33 complete; decision gate items done except affiliate-dashboard
+check; Sprint 34 absorbed into July Phase 3; Sprint 35 moved to July Phase 5.
 
 ## Running
 
@@ -559,17 +575,23 @@ npm run dev
 # Build
 npm run build
 
-# Run unit tests (vitest — 228 tests)
+# Run unit tests (vitest — 365 tests, incl. tax-values cross-checks + hub spot-checks)
 npm test
 
-# Run E2E tests (playwright — 69 tests, auto-starts dev server)
+# Link/anchor/redirect integrity over the built site (run after npm run build; must exit 0)
+node scripts/qa-link-check.mjs
+
+# Responsive sweep — every page at 360/768/1280 (requires `npx astro preview --port 4399` serving dist; must exit 0)
+node scripts/qa-responsive-sweep.mjs
+
+# Run E2E tests (playwright — 75 tests, auto-starts dev server)
 npx playwright test
 
 # Run specific E2E test suites
-npx playwright test calculators   # 16 calculator interaction tests
-npx playwright test pages         # 29 page load/SEO/nav/dark mode tests
-npx playwright test accessibility # 8 axe-core WCAG AA tests
-npx playwright test file-converters # 17 file converter tests
+npx playwright test calculators   # calculator interaction tests
+npx playwright test pages         # page load/SEO/nav/dark mode tests
+npx playwright test accessibility # axe-core WCAG AA tests (mortgage-payment test can flake once; passes on re-run)
+npx playwright test file-converters # file converter tests
 ```
 
 ## Pre-Commit QA Checklist (MANDATORY)
@@ -579,6 +601,7 @@ Every session that writes code MUST run through this checklist before committing
 ### 1. Build & Tests
 - [ ] `npm run build` — 0 errors, all pages generated
 - [ ] `npm test` — all tests passing
+- [ ] `node scripts/qa-link-check.mjs` — 0 findings (validates every internal link, anchor target, and `_redirects` destination against the built dist; catches dead links, wrong tool categories, and redirect-to-404 before they ship)
 - [ ] No new `[WARN]` messages in build output (investigate any that appear)
 
 ### 2. SEO (every tool markdown file)
@@ -600,11 +623,11 @@ Every session that writes code MUST run through this checklist before committing
 
 ### 4. Design System (every new component/page)
 - [ ] **No duplicate icons** — Check `src/lib/tools-data.ts` before assigning a Lucide icon. Emergency Fund and Password Generator had the same icon once.
-- [ ] **Every card has**: `border border-neutral-200/80 shadow-card` + Lucide icon + hover effects (lift, shadow, icon color inversion)
-- [ ] **Section dividers** — gradient lines (`via-primary-300/30`), never plain `<hr>` or `border-b`
+- [ ] **Every card has**: `border border-neutral-200/80` (shadow optional and subtle) + hover effects (`hover:-translate-y-0.5`, shadow). Icons are SPARSE — a card earns an icon only when it aids recognition (tool cards); no icon chip on every card/heading.
+- [ ] **Section dividers** — solid hairlines (`bg-neutral-200/80` or `border-t`). Gradient dividers are BANNED (pre-July-2026 style, reads as AI-generated).
 - [ ] **No `display: none` in JS** — Use CSS classes for show/hide. Animate with opacity/transform first, then apply a `.card-hidden` class if needed for layout collapse.
 - [ ] **No inline styles in JS** — Use CSS classes toggled via `classList.add/remove`, not `el.style.x = y`
-- [ ] **Rounded corners** — `rounded-2xl` on major cards, `rounded-xl` on smaller elements, `rounded-lg` on inputs
+- [ ] **Rounded corners** — `rounded-lg` on cards and inputs; `rounded-xl` is the maximum anywhere; `rounded-2xl` is banned (pre-July-2026 style)
 - [ ] **Section backgrounds alternate** — white → neutral-50 → primary-50. Never two adjacent sections with the same background.
 
 ### 5. Tailwind v4 Tokens
