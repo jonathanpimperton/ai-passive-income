@@ -30,6 +30,7 @@ const structuredData = [webAppSchema, ...(faqSchema ? [faqSchema] : [])];
  * (LA-1). Dev serves source modules, so no hints there.
  */
 const preloads = import.meta.env.PROD ? islandPreloads(toolComponent(slug)) : [];
+// TODO(W1-SEO merge): import { toolPageTitle } from '@lib/seo' and pass title={toolPageTitle({ name, slug })} below (BaseLayout adds " | CalcRun").
 ---
 
 <BaseLayout
