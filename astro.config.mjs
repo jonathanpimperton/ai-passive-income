@@ -44,6 +44,8 @@ export default defineConfig({
   },
   integrations: [
     react(),
+    // sitemap-index.xml's own <lastmod> is set by the integration to the newest
+    // URL lastmod below, so it inherits the same honest dates (never build time).
     sitemap({
       filter: (page) => !isSitemapExcluded(new URL(page).pathname),
       serialize(item) {
