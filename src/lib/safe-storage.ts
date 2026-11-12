@@ -88,7 +88,8 @@ export const safeSessionRemove = (key: string): boolean => remove('sessionStorag
  * Keep it ES5 and dependency-free: it runs before anything else on the page.
  */
 export const SAFE_STORAGE_INLINE_JS =
-  'var calcrunStore=window.calcrunStore||(function(){' +
+  // typeof guard (not ||) so a DOM element with id="calcrunStore" is never taken as the store.
+  'var calcrunStore=window.calcrunStore&&typeof window.calcrunStore.get==="function"?window.calcrunStore:(function(){' +
   'function a(n){try{return window[n]||null}catch(e){return null}}' +
   'function g(n,k){try{var s=a(n);return s?s.getItem(k):null}catch(e){return null}}' +
   'function p(n,k,v){try{var s=a(n);if(!s)return false;s.setItem(k,v);return true}catch(e){return false}}' +
