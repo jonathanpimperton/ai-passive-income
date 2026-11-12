@@ -233,7 +233,13 @@ describe('parseNumericInput: range-aware disambiguation (min/max)', () => {
     expectFail('50,000', 'ambiguous', { currency: 'EUR', min: 200, max: 300 });
   });
   it('compares signed values against the range', () => {
-    expectValue('-6.125', -6.125, { currency: 'EUR', allowNegative: true, min: -15, max: 15 });
+    // Too large in magnitude for the range: returned as typed, never shrunk (R0 round 3).
+    expectValue('-6.125', -6125, { currency: 'EUR', allowNegative: true, min: -15, max: 15 });
+    expectValue('-60,000', -60000, { currency: 'USD', allowNegative: true, min: -50000, max: 50000 });
+    expectValue('-60.000', -60000, { currency: 'EUR', allowNegative: true, min: -50000, max: 50000 });
+    // Too small in magnitude: the larger alternate may win, for either sign.
+    expectValue('-52.000', -52000, { currency: 'USD', allowNegative: true, min: -1000000, max: -10000 });
+    expectValue('-6,5', -6.5, { currency: 'USD', allowNegative: true, min: -15, max: 15 }); // primary fails, alternate in range
     expectFail('-5', 'negative', { min: -10, max: 10 }); // range never overrides allowNegative
   });
   it('never replaces a valid reading above max with a smaller one (R0 re-review S1 repros)', () => {
@@ -257,6 +263,26 @@ describe('parseNumericInput: range-aware disambiguation (min/max)', () => {
           const r = parseNumericInput(text, { currency, min: 0, max });
           if (r.ok) expect(r.value, `${text} ${currency} max=${max}`).toBe(v);
           else expect(r.reason, `${text} ${currency} max=${max}`).toBe('ambiguous');
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBe(18000);
+  });
+  it('property (negative mirror): grouped text below min never comes back as a different number', () => {
+    const conventions: Array<[string, string]> = [['en-US', 'USD'], ['en-GB', 'GBP'], ['de-DE', 'EUR']];
+    const maxes = [15, 100, 5000, 10000, 50000, 1000000];
+    let seed = 1234;
+    const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    let checked = 0;
+    for (const max of maxes) {
+      for (let i = 0; i < 1000; i++) {
+        const v = -Math.round(max * (1 + rand() * 20));
+        for (const [locale, currency] of conventions) {
+          const text = new Intl.NumberFormat(locale, { useGrouping: true, maximumFractionDigits: 0 }).format(v);
+          const r = parseNumericInput(text, { currency, allowNegative: true, min: -max, max });
+          if (r.ok) expect(r.value, `${text} ${currency} min=${-max}`).toBe(v);
+          else expect(r.reason, `${text} ${currency} min=${-max}`).toBe('ambiguous');
           checked++;
         }
       }

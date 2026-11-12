@@ -40,12 +40,14 @@
  *    rate field -> 3.875).
  * 2. The primary reading fails (USD "12,34", EUR "1,000.50") and the
  *    alternate reading is in range.
- * 3. The primary reading is BELOW the minimum and the larger alternate
- *    reading is in range (USD "52.000" in a salary field -> 52000).
- * A valid primary reading that is ABOVE the maximum is returned as typed
- * (USD "50,000" in a 5,000-max field stays 50000, EUR "6.125" in a rate
- * field stays 6125) so the caller clamps and explains: a correctly written
- * number is never silently replaced by one 1000x smaller. The range never
+ * 3. The primary reading is out of range because its magnitude is too
+ *    SMALL and the alternate reading, larger in magnitude, is in range
+ *    (USD "52.000" in a salary field -> 52000).
+ * A valid primary reading whose magnitude is too LARGE (above max, or below
+ * min for a negative) is returned as typed (USD "50,000" in a 5,000-max
+ * field stays 50000; EUR "6.125" in a rate field stays 6125; "-60,000" with
+ * min -50,000 stays -60000) so the caller clamps and explains: a correctly
+ * written number is never silently replaced by one 1000x smaller. The range never
  * clamps anything.
  *
  * Failures carry `candidates` (the valid readings, if any) so the UI can
@@ -249,9 +251,11 @@ export function parseNumericInput(
       }
       return { ok: false, reason: 'ambiguous', candidates: [sp, sa as number] };
     }
-    // Situation 3: primary below min, larger alternate in range. A primary
-    // above max is NEVER replaced (the caller clamps and explains).
-    if (hasMin && sp < (min as number) && sa !== null && sa > sp && inRange(sa)) return ok(sa);
+    // Situation 3: the primary is out of range on the too-small-magnitude side
+    // and the alternate, LARGER in magnitude, is in range. The alternate may
+    // only ever grow the magnitude: a primary that is too large (above max,
+    // or below min for negatives) is NEVER replaced (the caller clamps and explains).
+    if (hasRange && !inRange(sp) && sa !== null && Math.abs(sa) > Math.abs(sp) && inRange(sa)) return ok(sa);
     return ok(sp);
   }
 
