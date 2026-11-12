@@ -196,7 +196,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
 ---
 
 <BaseLayout
-  title="UK & US Money Calculators: Salary, Mortgage, Tax | CalcRun"
+  title="CalcRun: UK & US Money Calculators - Salary, Mortgage, Tax"
   description="Salary, mortgage, compound interest, retirement and tax calculators for the UK and US, with charts and plain-English explanations. No signup, no ads."
   structuredData={[websiteSchema]}
   skipTo="daylight"
@@ -217,8 +217,15 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       var sameOrigin = false;
       try { sameOrigin = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) { sameOrigin = false; }
       var seen = calcrunStore.get(K) === '1' || calcrunStore.sget(K) === '1';
-      // This history entry already played the intro (reload/Back), or the visitor asked to replay it
-      var keep = !!(st && st.calcrunIntro === 1);
+      // Reload or Back/Forward into an entry that played the intro (or asked to replay it)
+      // keeps it, so the browser restores scroll into the same layout. A fresh
+      // navigation to "/" (even from "/" itself) does not.
+      var navType = '';
+      try {
+        var navEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        navType = navEntry ? navEntry.type : (performance.navigation && performance.navigation.type === 1 ? 'reload' : performance.navigation && performance.navigation.type === 2 ? 'back_forward' : '');
+      } catch (e) { navType = ''; }
+      var keep = !!(st && st.calcrunIntro === 1) && (navType === 'reload' || navType === 'back_forward');
       var play = !embed && (keep || (!seen && !sameOrigin && !standalone && !reduced && !location.hash));
       if (play) {
         d.classList.add('intro-play');
@@ -232,6 +239,14 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
         } catch (e) { /* history unavailable: reload simply shows the product */ }
       } else {
         d.classList.add('intro-seen');
+        // A same-URL navigation can carry the old entry's state: drop the intro mark
+        if (st && st.calcrunIntro === 1) {
+          try {
+            var kept = {};
+            for (var q in st) { if (q !== 'calcrunIntro' && Object.prototype.hasOwnProperty.call(st, q)) kept[q] = st[q]; }
+            history.replaceState(kept, '');
+          } catch (e) { /* history unavailable: nothing to clear */ }
+        }
         var r = calcrunStore.get('calcrun.recentTools');
         if (r && r.indexOf('"') >= 0) d.classList.add('has-recents');
       }
@@ -302,7 +317,9 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
             if (!d.classList.contains('has-recents')) return;
             var list = document.getElementById('hero-recents-list');
             var slugs = [];
-            try { slugs = JSON.parse(window.calcrunStore.get('calcrun.recentTools') || '[]'); } catch (e) { slugs = []; }
+            var store = window.calcrunStore && typeof window.calcrunStore.get === 'function' ? window.calcrunStore : null;
+            try { slugs = JSON.parse((store && store.get('calcrun.recentTools')) || '[]'); } catch (e) { slugs = []; }
+            if (!Array.isArray(slugs)) slugs = [];
             var n = 0;
             for (var i = 0; i < slugs.length && n < 4; i++) {
               var t = toolMap[slugs[i]];
@@ -1312,6 +1329,11 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       const dawnMid2 = isDark ? '#1A1B1E' : '#EFE9E1';
       const tealFinal = getComputedStyle(html).getPropertyValue('--color-primary-600').trim() || '#0B6E6E';
 
+      /* Progress at the current viewport width. A rotation first scrolls the page
+         (same pixels, new vh-based track), so progress read after the resize is
+         wrong; this anchor is only updated while the width is unchanged. */
+      const anchor = { p: 0, w: window.innerWidth };
+
       /* ── Master timeline, scrubbed over the track ── */
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
@@ -1320,6 +1342,9 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
           start: 'top top',
           end: 'bottom bottom',
           scrub: 1.1,
+          onUpdate: (self) => {
+            if (window.innerWidth === anchor.w) anchor.p = self.progress;
+          },
         },
       });
 
@@ -1473,14 +1498,17 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       let savedProgress: number | null = null;
       ScrollTrigger.addEventListener('refreshInit', () => {
         const st = tl.scrollTrigger;
-        savedProgress = st && st.progress > 0 && st.progress < 1 ? st.progress : null;
+        const p = window.innerWidth !== anchor.w ? anchor.p : st ? st.progress : 0;
+        savedProgress = p > 0 && p < 1 ? p : null;
       });
       ScrollTrigger.addEventListener('refresh', () => {
         const st = tl.scrollTrigger;
         if (savedProgress !== null && st) {
           const y = st.start + savedProgress * (st.end - st.start);
           if (Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y);
+          anchor.p = savedProgress;
         }
+        anchor.w = window.innerWidth;
         savedProgress = null;
       });
 

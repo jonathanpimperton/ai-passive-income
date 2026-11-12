@@ -59,7 +59,7 @@
       >
         Accept
       </button>
-      <a href="/privacy/#analytics" class="ml-auto text-sm text-primary-700 underline underline-offset-2 hover:text-primary-800 transition-colors duration-150">Privacy details</a>
+      <a href="/privacy/#analytics" data-astro-prefetch="hover" class="ml-auto text-sm text-primary-700 underline underline-offset-2 hover:text-primary-800 transition-colors duration-150">Privacy details</a>
     </div>
   </div>
 </div>
@@ -88,10 +88,13 @@
     .cookie-banner,
     .cookie-banner.is-open { transition: none; transform: none; }
   }
-  /* Keep focused controls clear of the open banner (WCAG 2.4.11) */
-  :global(html.cookie-banner-open) { scroll-padding-bottom: 10rem; }
+  /* Keep focused controls clear of the open banner (WCAG 2.4.11): scroll room at
+     the bottom of the page so the last links can rise above it (the focusin
+     handler below does the scrolling) */
+  :global(html.cookie-banner-open) { scroll-padding-bottom: 12rem; }
+  :global(html.cookie-banner-open body) { padding-bottom: 12rem; }
   @media (min-width: 640px) {
-    :global(html.cookie-banner-open) { scroll-padding-bottom: 12rem; }
+    :global(html.cookie-banner-open body) { padding-bottom: 11rem; }
   }
 </style>
 
@@ -99,7 +102,7 @@
   (function () {
     var banner = document.getElementById('cookie-banner');
     var c = window.calcrunConsent;
-    if (!banner || !c) return;
+    if (!banner || !c || typeof c.set !== 'function') return;
     var text = document.getElementById('cookie-banner-text');
     var status = document.getElementById('cookie-banner-status');
     var title = document.getElementById('cookie-banner-title');
@@ -145,6 +148,25 @@
     if (closeBtn) closeBtn.addEventListener('click', close);
     banner.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && banner.classList.contains('is-settings')) close();
+    });
+
+    // A control that receives focus under the open banner scrolls up above it
+    // (browsers only scroll focus into view when it is off screen)
+    function inFixedLayer(el) {
+      for (var n = el; n && n !== document.body; n = n.parentElement) {
+        var pos = getComputedStyle(n).position;
+        if (pos === 'fixed' || pos === 'sticky') return true;
+      }
+      return false;
+    }
+    document.addEventListener('focusin', function (e) {
+      if (!banner.classList.contains('is-open')) return;
+      var el = e.target;
+      if (!el || !el.getBoundingClientRect || banner.contains(el) || inFixedLayer(el)) return;
+      var r = el.getBoundingClientRect();
+      var b = banner.getBoundingClientRect();
+      if (r.bottom <= b.top || r.top >= b.bottom || r.right <= b.left || r.left >= b.right) return;
+      window.scrollBy({ top: r.bottom - b.top + 16, left: 0, behavior: 'instant' });
     });
 
     // Reopen from the footer (or anything with data-cookie-settings)
