@@ -245,11 +245,19 @@ describe('UK mode: income multiple + rate-rise check (D11)', () => {
     expect(r.maxPrice).toBeCloseTo(360_000 + 40_000, 6);
   });
 
-  it('stress check binds at today\'s rates: stressed payment + debts = 50% of take-home', () => {
-    const r = solveUkAffordability({ ...UK, monthlyDebts: 300 });
+  it('stress rate = max(product rate, revert-to rate) + margin', () => {
+    // Default: BoE average revert-to rate 6.58% + 1 point
+    expect(solveUkAffordability(UK).stressRatePct).toBeCloseTo(7.58, 9);
+    // A product rate above the revert-to rate is stressed from the product rate
+    expect(solveUkAffordability({ ...UK, ratePct: 7.2 }).stressRatePct).toBeCloseTo(8.2, 9);
+    expect(solveUkAffordability({ ...UK, revertRatePct: 6, stressMarginPct: 3 }).stressRatePct).toBeCloseTo(9, 9);
+  });
+
+  it('stress check binds with commitments: stressed payment + debts = 50% of take-home', () => {
+    const r = solveUkAffordability({ ...UK, monthlyDebts: 500 });
     expect(r.binding).toBe('stress');
-    expect(r.stressRatePct).toBeCloseTo(8.39, 9);
-    expect(r.stressedPayment + 300).toBeCloseTo(r.monthlyTakeHome * 0.5, 6);
+    expect(r.stressRatePct).toBeCloseTo(7.58, 9);
+    expect(r.stressedPayment + 500).toBeCloseTo(r.monthlyTakeHome * 0.5, 6);
     expect(r.stressedShareOfTakeHome).toBeCloseTo(50, 6);
     expect(r.shareOfTakeHome).toBeLessThan(50);
     expect(r.maxLoan).toBeLessThan(80_000 * 4.5);

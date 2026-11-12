@@ -9,7 +9,7 @@ import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { defaultMortgageRate, defaultMortgageRateInfo, rateAttribution, regionForCurrency } from '../../lib/market-rates';
+import { MARKET_RATES, defaultMortgageRate, defaultMortgageRateInfo, rateAttribution, regionForCurrency } from '../../lib/market-rates';
 import {
   AFFORDABILITY_DEFAULTS,
   LTI_RANGE,
@@ -40,7 +40,7 @@ export default function MortgageAffordabilityCalc() {
   const fmt = (v: number) => formatCurrency(v, currency);
 
   // Region follows the display currency: US 28/36 model, UK income multiple +
-  // rate-rise check, euro-area single limit (D11).
+  // stress-rate payment check, euro-area single limit (D11).
   const region = regionForCurrency(currency);
   const isUS = region === 'us';
   const isUK = region === 'uk';
@@ -73,7 +73,7 @@ export default function MortgageAffordabilityCalc() {
   useEffect(() => {
     if (!termTouched) setLoanTerm(regionDefaultTerm);
     else if (!(termOptions as readonly number[]).includes(loanTerm)) setLoanTerm(regionDefaultTerm);
-  }, [regionDefaultTerm, termTouched]);
+  }, [region, regionDefaultTerm, termTouched]);
   useEffect(() => {
     if (!rateTouched) setInterestRate(defaultMortgageRate(region, loanTerm));
   }, [region, loanTerm, rateTouched]);
@@ -173,12 +173,12 @@ export default function MortgageAffordabilityCalc() {
     } else if (isUK) {
       inputs.push({ label: 'Monthly Take-Home Pay', value: `${fmt(takeHome)}${takeHomeOverride === null ? ' (estimated)' : ''}` });
       inputs.push({ label: 'Income Multiple Cap', value: `${ltiCap}x` });
-      inputs.push({ label: 'Rate-Rise Check', value: `+${stressMargin} points, max ${maxShare}% of take-home pay` });
+      inputs.push({ label: 'Stress Test', value: `${uk.stressRatePct.toFixed(2)}% (max of your rate and ${D.revertRatePct}% SVR, + ${stressMargin} pt); max ${maxShare}% of take-home pay` });
     } else {
       inputs.push({ label: 'Max Share of Gross Income', value: `${eurLimit}%` });
     }
     return inputs;
-  }, [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, frontEndPct, backEndPct, pmiRate, takeHome, takeHomeOverride, ltiCap, stressMargin, maxShare, eurLimit, region, currency]);
+  }, [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, frontEndPct, backEndPct, pmiRate, takeHome, takeHomeOverride, ltiCap, stressMargin, maxShare, eurLimit, uk, region, currency]);
 
   const getResults = useCallback((): ResultItem[] => {
     if (!affordable) {
@@ -196,7 +196,7 @@ export default function MortgageAffordabilityCalc() {
       items.push({ label: 'Housing / All-Debt Ratios', value: `${fmtPct(us.frontEndRatio)} / ${fmtPct(us.backEndRatio)}` });
     } else if (isUK) {
       items.push({ label: `Monthly Payment at ${interestRate}%`, value: fmt(uk.monthlyPI) });
-      items.push({ label: `Payment if Rates Rise to ${uk.stressRatePct.toFixed(2)}%`, value: fmt(uk.stressedPayment) });
+      items.push({ label: `Payment at Stress Rate ${uk.stressRatePct.toFixed(2)}%`, value: fmt(uk.stressedPayment) });
       items.push({ label: 'Income Multiple', value: `${uk.incomeMultiple.toFixed(2)}x` });
     } else {
       items.push({ label: 'Monthly Payment', value: fmt(eur.monthlyPI) });
@@ -271,6 +271,7 @@ export default function MortgageAffordabilityCalc() {
                 value={takeHome}
                 min={500}
                 max={30000}
+                textMax={100000}
                 step={50}
                 minLabel={`${currencySymbol}500`}
                 maxLabel={`${currencySymbol}30K`}
@@ -412,7 +413,7 @@ export default function MortgageAffordabilityCalc() {
                 {isUK && (
                   <>
                     <SliderInput label="Income Multiple Cap" hint="Most lenders cap borrowing around 4.5x income; some go to 5-5.5x for higher earners" id="afford-lti" value={ltiCap} min={LTI_RANGE.min} max={LTI_RANGE.max} step={0.25} onChange={setLtiCap} suffix="x" formatDisplay={(v) => v.toFixed(2)} />
-                    <SliderInput label="Rate Rise to Test" hint="Checks the payment still fits if your rate rose this many points (MoneyHelper uses 3)" id="afford-stress" value={stressMargin} min={0} max={5} step={0.5} onChange={setStressMargin} suffix=" pts" formatDisplay={(v) => v.toFixed(1)} />
+                    <SliderInput label="Stress Test Margin" hint={`Added to the higher of your rate and lenders' average standard variable rate (${D.revertRatePct}%, ${rateAttribution(MARKET_RATES.uk.revertRate)})`} id="afford-stress" value={stressMargin} min={0} max={3} step={0.25} onChange={setStressMargin} suffix=" pts" formatDisplay={(v) => v.toFixed(2)} />
                     <SliderInput label="Max Share of Take-Home Pay" hint="Payments above half of take-home pay are high risk (MoneyHelper)" id="afford-share" value={maxShare} min={30} max={60} step={1} onChange={setMaxShare} suffix="%" formatDisplay={(v) => v.toFixed(0)} />
                   </>
                 )}
@@ -444,7 +445,7 @@ export default function MortgageAffordabilityCalc() {
               {region === 'eur' && card(<Banknote size={16} aria-hidden="true" />, 'Monthly Payment', fmt(eur.monthlyPI))}
               {card(<DollarSign size={16} aria-hidden="true" />, depositLabel, fmt(downPayment))}
               {isUS && card(<Percent size={16} aria-hidden="true" />, 'Monthly P&I', fmt(us.monthlyPI))}
-              {isUK && card(<Percent size={16} aria-hidden="true" />, `If Rates Rise ${stressMargin} pts`, fmt(uk.stressedPayment), 'text-red-600')}
+              {isUK && card(<Percent size={16} aria-hidden="true" />, `At Stress Rate ${uk.stressRatePct.toFixed(2)}%`, fmt(uk.stressedPayment))}
               {region === 'eur' && card(<Percent size={16} aria-hidden="true" />, 'Share of Income', fmtPct(eur.debtServiceRatio))}
             </div>
           )}
@@ -458,7 +459,7 @@ export default function MortgageAffordabilityCalc() {
                   : <AlertTriangle size={16} className={bandStyle.text} aria-hidden="true" />}
                 <p className={`text-sm font-semibold ${bandStyle.text}`}>
                   {isUS && <>Housing {fmtPct(us.frontEndRatio)} · All debts {fmtPct(us.backEndRatio)} of gross income ({bandStyle.label})</>}
-                  {isUK && <>Rate-rise check: {fmtPct(uk.stressedShareOfTakeHome)} of take-home pay ({bandStyle.label})</>}
+                  {isUK && <>Stress test: {fmtPct(uk.stressedShareOfTakeHome)} of take-home pay ({bandStyle.label})</>}
                   {region === 'eur' && <>Loan and debt payments: {fmtPct(eur.debtServiceRatio)} of gross income ({bandStyle.label})</>}
                 </p>
               </div>
@@ -470,7 +471,7 @@ export default function MortgageAffordabilityCalc() {
                   {us.needsPMI ? '' : us.maxLoan > 0 && Math.abs(us.maxLoan - downPayment * 4) < 1 ? ' Stopping at exactly 20% down avoids PMI.' : ''}</>
                 )}
                 {isUK && (
-                  <>If your rate rose {stressMargin} points to {uk.stressRatePct.toFixed(2)}%, the payment would be {fmt(uk.stressedPayment)}
+                  <>Lenders check you could still pay at a higher rate. Here that is {uk.stressRatePct.toFixed(2)}% (the higher of your rate and the {D.revertRatePct}% average standard variable rate, plus {stressMargin} point{stressMargin === 1 ? '' : 's'}): {fmt(uk.stressedPayment)} a month
                   {monthlyDebt > 0 ? ` plus ${fmt(monthlyDebt)} of other commitments` : ''}. MoneyHelper treats more than half of take-home pay as high risk.</>
                 )}
                 {region === 'eur' && (
@@ -497,7 +498,7 @@ export default function MortgageAffordabilityCalc() {
                     <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums">{fmt(uk.ltiLimitLoan)}</td>
                   </tr>
                   <tr>
-                    <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">Rate-rise check ({maxShare}% of take-home at {uk.stressRatePct.toFixed(2)}%){uk.binding === 'stress' ? ' — sets your maximum' : ''}</th>
+                    <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">Stress test ({maxShare}% of take-home at {uk.stressRatePct.toFixed(2)}%){uk.binding === 'stress' ? ' — sets your maximum' : ''}</th>
                     <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums">{fmt(uk.stressLimitLoan)}</td>
                   </tr>
                 </tbody>

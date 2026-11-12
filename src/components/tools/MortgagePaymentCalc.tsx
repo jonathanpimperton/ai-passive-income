@@ -146,7 +146,7 @@ export default function MortgagePaymentCalc({ defaults }: MortgagePaymentCalcPro
   useEffect(() => {
     if (!termTouched) setLoanTerm(regionDefaultTerm);
     else if (!(termOptions as readonly number[]).includes(loanTerm)) setLoanTerm(regionDefaultTerm);
-  }, [regionDefaultTerm, termTouched]);
+  }, [region, regionDefaultTerm, termTouched]);
   useEffect(() => {
     if (!rateTouched) setInterestRate(defaultMortgageRate(region, loanTerm));
   }, [region, loanTerm, rateTouched]);
