@@ -124,6 +124,8 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
     labels: [
       'Annual Salary', 'Filing Status', 'State Tax Rate', 'Hours / Week', 'Weeks / Year',
       'Overtime Hours / Week', '401(k) Contribution',
+      // W1-TAX (multi-year tax data, OBBBA deductions)
+      'Tax Year', 'Hourly Rate', 'Aged 65 or Older', 'Overtime Deduction', 'Senior Deduction',
       'Annual Take-Home Pay', 'Federal Tax', 'State Tax', 'Social Security', 'Medicare',
     ],
   },

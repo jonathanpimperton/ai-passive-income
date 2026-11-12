@@ -48,6 +48,8 @@ describe('isSafeValue accepts what the calculators really send', () => {
     '120 months', '$36.00/hr', '40 hrs', '40', '52', 'PCP', 'Hire Purchase', 'Personal Loan', 'Cash',
     'First-time buyer', 'Moving home', 'Additional property', '2000', '$1,000/mo', '1.5%/yr', '$1,200/yr',
     '6.500%', '15 yr 0 mo', '4 years, 2 months', '0 months',
+    // W1-TAX salary options
+    '2026 tax year (filing in 2027)', '2027 paychecks', 'Yes', 'One of us', 'Both of us',
   ];
   for (const v of ok) {
     it(JSON.stringify(v), () => expect(isSafeValue(cleanText(v))).toBe(true));
@@ -109,6 +111,9 @@ describe('matchLabel', () => {
     expect(matchLabel('roi', 'Final Value (C)', ctx)).toBeNull();
     expect(matchLabel('car-finance', 'Hire Purchase True Cost', ctx)).toBe('Hire Purchase True Cost');
     expect(matchLabel('car-finance', 'Evil True Cost', ctx)).toBeNull();
+    for (const l of ['Tax Year', 'Hourly Rate', 'Aged 65 or Older', 'Overtime Deduction', 'Senior Deduction']) {
+      expect(matchLabel('salary', l, ctx)).toBe(l);
+    }
   });
   it('stamp duty band labels', () => {
     const ctx = newLabelContext();

@@ -79,6 +79,8 @@ export const VALUE_WORDS = new Set<string>([
   'on', 'with', 'without', 'payment', 'payments', 'below', 'interest', 'covered', 'cover', 'does',
   'only', 'minimum', 'fixed', 'percent', 'total', 'free', 'debt', 'income', 'gain', 'loss', 'exempt',
   'allowance', 'taxable', 'tax', 'deposit', 'down',
+  // US salary tax-year and age options (W1-TAX)
+  'paycheck', 'paychecks', 'one', 'both',
 ]);
 
 /** Short alphanumeric codes such as UK tax codes (1257L, S1257L, K475, D0) or "28p". */
