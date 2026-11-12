@@ -1,29 +1,56 @@
+# Cloudflare static-assets headers (https://developers.cloudflare.com/workers/static-assets/headers/).
+# Every matching rule applies: values set by several rules are JOINED with ", ", and a
+# "! Header" line detaches a value set by an earlier rule. These headers also land on
+# _redirects responses and on the not_found_handling 404 page, but NOT on responses the
+# Worker generates itself (worker.ts sets its own API headers).
+# Limits: 100 rules, 2,000 characters per line.
+#
+# Content-Security-Policy notes (review EDGE-13, Nov 2026):
+#  - 'unsafe-inline' stays in script-src. The built pages carry about 15 distinct inline
+#    scripts (theme, consent, GA bootstrap, Astro island runtime) that a build step could
+#    hash, BUT Cloudflare Bot Fight Mode "JavaScript detections" injects its own inline
+#    script into every HTML response at the edge. That script can only be allowed by a
+#    per-request nonce, which needs a Worker in the HTML path (decision D5 keeps HTML on
+#    static assets). Hash-only CSP would block it on every page view. Revisit if the owner
+#    turns JS detections off (docs/owner-actions-2026-11.md).
+#  - Google Fonts hosts were removed: every font is self-hosted under /fonts/.
+#  - The /tools/* policy must stay identical to the site policy apart from frame-ancestors
+#    (tests/prod/headers.spec.ts checks this).
+
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   X-DNS-Prefetch-Control: off
 
-# Allow framing for embed mode — external sites can iframe calculators via ?embed.
+# Allow framing for embed mode -- external sites can iframe calculators via ?embed.
 # The "! Header" lines DETACH the /* values first: _headers rules accumulate (values
 # join, browsers enforce the strictest CSP), so without the detach, tool pages ship
-# BOTH frame-ancestors 'none' and * — and embedding stays blocked.
+# BOTH frame-ancestors 'none' and * -- and embedding stays blocked.
+# No X-Frame-Options here: frame-ancestors governs framing, and an XFO of SAMEORIGIN
+# alongside frame-ancestors * contradicts it (review EDGE-19).
 /tools/*
   ! Content-Security-Policy
   ! X-Frame-Options
-  X-Frame-Options: SAMEORIGIN
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; frame-ancestors *
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors *; upgrade-insecure-requests
 
-# Long-lived caching for immutable build assets (hashed filenames)
+# Long-lived caching for immutable build assets (hashed filenames).
+# Access-Control-Allow-Origin lets sandboxed (null-origin) embeds load module scripts and
+# fonts, which browsers fetch in CORS mode (review EDGE-07). These are public files.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
 
-# OG images are regenerated at build time — cache for a day
+# OG images are regenerated at build time -- cache for a day
 /og/*
   Cache-Control: public, max-age=86400
+
+# Route blocks added by other workstreams go BELOW this line, each wrapped in
+# "# BEGIN <WS>" / "# END <WS>" comments. Do not reorder the blocks above.
