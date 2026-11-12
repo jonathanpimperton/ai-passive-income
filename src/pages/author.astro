@@ -3,6 +3,10 @@
  * Author page (Phase 3 E-E-A-T): the byline on every scenario and comparison
  * links here. Person JSON-LD + credentials + editorial standards, built from
  * the same owner-approved claims as the About page.
+ *
+ * Honesty rules (Nov 2026 review, decision D3): state the AI assistance
+ * plainly, and claim only what the site actually does. Do not reinstate
+ * "written and reviewed by one person" or "stale rates cannot ship".
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
@@ -19,7 +23,7 @@ const personSchema = JSON.stringify({
     url: AUTHOR.url,
     jobTitle: 'Chartered Accountant (ACA)',
     description:
-      'ACA-qualified accountant (ICAEW) writing and reviewing every calculator, scenario, and comparison on CalcRun.',
+      'ACA-qualified accountant (ICAEW) who runs CalcRun and is responsible for its calculators, scenarios, and comparisons, which are built with AI assistance.',
     worksFor: {
       '@type': 'Organization',
       name: 'CalcRun',
@@ -32,7 +36,7 @@ const personSchema = JSON.stringify({
 
 <BaseLayout
   title={`${AUTHOR.name}, ACA — Author at CalcRun`}
-  description="Who writes and reviews CalcRun's calculators, scenarios, and comparisons: an ACA-qualified accountant with experience across UK, US, and Australian tax systems."
+  description="Who runs CalcRun and how its calculators and articles are made and checked: an ACA-qualified accountant working with AI assistance."
   structuredData={[personSchema]}
 >
   <section class="border-b border-neutral-200/80 bg-surface">
@@ -42,8 +46,8 @@ const personSchema = JSON.stringify({
         {AUTHOR.name} <span class="text-neutral-500 font-normal">ACA</span>
       </h1>
       <p class="mt-3 text-neutral-600 leading-relaxed">
-        Every calculator, scenario, and comparison on CalcRun is written and reviewed by one person —
-        here is who, and how.
+        CalcRun is run by one person, with AI assistance. Here is who, how the site is made, and
+        how it is checked.
       </p>
     </div>
   </section>
@@ -67,13 +71,31 @@ const personSchema = JSON.stringify({
 
     <div class="h-px bg-neutral-200/80 mb-12"></div>
 
+    <section class="mb-12" id="how-this-site-is-made">
+      <h2 class="text-xl font-bold text-neutral-900 mb-4">How this site is made</h2>
+      <p class="text-neutral-700 leading-relaxed mb-4">
+        CalcRun's code and most of its text are written with an AI assistant (Anthropic's Claude),
+        working to my instructions. I set the rules it works to, including which official sources
+        count, and I'm responsible for everything published here.
+      </p>
+      <p class="text-neutral-700 leading-relaxed">
+        AI assistance makes it possible for one person to build and maintain a site this size, but
+        it doesn't make the site error-free. Checks catch many mistakes before publication, not all
+        of them: a full review in November 2026 found errors in some article figures and calculator
+        rules, and those are being corrected. If something looks wrong, the corrections address
+        below is the fastest way to get it fixed.
+      </p>
+    </section>
+
+    <div class="h-px bg-neutral-200/80 mb-12"></div>
+
     <section class="mb-12">
       <h2 class="text-xl font-bold text-neutral-900 mb-4">Editorial standards</h2>
       <ul class="space-y-3 text-neutral-700 leading-relaxed list-disc pl-5">
         <li>
           Every tax rate and threshold is sourced from official data — HMRC and GOV.UK for the
-          UK, the IRS and SSA for the US — and each rate-dependent calculator shows its sources
-          and the date they were last verified (UK rates: {UK_TAX_YEAR}, last checked
+          UK, the IRS and SSA for the US — and each tax calculator shows its sources and the
+          date its rates were last checked (UK rates: {UK_TAX_YEAR}, last checked
           {new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })};
           US rates: {US_TAX_YEAR}).
         </li>
@@ -84,17 +106,22 @@ const personSchema = JSON.stringify({
           so every result can be checked by hand.
         </li>
         <li>
-          Scenario and comparison figures are computed with the same engines that power the
-          calculators, not copied from third-party articles.
+          The take-home pay, mortgage and investment-growth reference tables are generated from
+          the calculator engines when the site is built. Figures in other scenario and comparison
+          articles were worked out with those engines but typed into the text, so they can fall
+          behind; they are being moved to the same build-time system. If an article and a
+          calculator disagree, trust the calculator and tell me.
         </li>
         <li>
-          An automated freshness guard fails the site build when a tax year rolls over, so stale
-          rates cannot silently ship.
+          Tax tables carry a "last checked" date, and an automated check flags them when a new tax
+          year is due. It cannot see mid-year changes, such as a Budget announcement, or figures
+          written into article text. Those rely on manual review against the primary source.
         </li>
         <li>
-          Affiliate partnerships never change a number. Recommendations sit after the answer,
-          are labelled, and are covered by the
-          <a href="/disclosure/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">affiliate disclosure</a>.
+          Affiliate partnerships never change a number. Partner links sit below the result under
+          a disclosure note, and the
+          <a href="/disclosure/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">affiliate disclosure</a>
+          lists which links can earn a commission.
         </li>
       </ul>
     </section>
