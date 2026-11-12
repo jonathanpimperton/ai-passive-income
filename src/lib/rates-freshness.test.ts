@@ -1,43 +1,249 @@
-import { describe, it, expect } from 'vitest';
-import { UK_TAX_YEAR, UK_RATES_LAST_CHECKED } from './uk-rates';
-import { US_TAX_YEAR, US_RATES_LAST_CHECKED } from './us-rates';
-
 /**
- * Freshness guard — runs on every `npm test` AND every `npm run build` (prebuild).
+ * Freshness guard -- the vitest twin of scripts/check-rates-freshness.mjs
+ * (which runs before every build). Both use evaluateRatesFreshness() from
+ * tax-years.mjs, so the rules are tested here with injected dates.
  *
- * The site's core trust claim is "verified rates". These tests fail LOUDLY the
- * moment a new tax year begins without the central rates modules being updated,
- * so stale rates can never ship silently again (this happened once: the site
- * displayed "2025/26 verified" for 3 months into the 2026/27 tax year).
+ * Rules (decision D8): warn from 60 days before a rollover whose new year has
+ * no data; fail only when the default year for today has no dataset or its
+ * data is 400+ days unchecked.
  *
- * When these fail: research the new year's rates from primary sources
- * (GOV.UK / gov.scot / IRS / SSA), update src/lib/uk-rates.ts and us-rates.ts,
- * bump the LAST_CHECKED constants, and update dependent content
- * (see docs/plan-2026-07.md Phase 1A for the process used in July 2026).
+ * When the real-date test fails: add the missing year's rates from primary
+ * sources (IRS / SSA / GOV.UK / gov.scot) to us-rates.ts or uk-rates.ts, list
+ * the year in tax-years.mjs, and update docs/freshness-calendar.md.
  */
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { spawnSync } from 'node:child_process';
+import {
+  US_DATASETS,
+  UK_DATASETS,
+  evaluateRatesFreshness,
+  parseIsoDate,
+  ukTaxYearForDate,
+  usTaxYearForDate,
+  defaultUsTaxYear,
+  defaultUkTaxYear,
+  daysBetween,
+  toIsoDate,
+} from './tax-years.mjs';
+import { US_RATES_BY_YEAR, US_TAX_YEARS } from './us-rates';
+import { UK_RATES_BY_YEAR, UK_TAX_YEARS } from './uk-rates';
 
-/** UK tax year runs 6 April → 5 April, formatted like '2026/27' */
-function expectedUkTaxYear(now: Date): string {
-  const y = now.getFullYear();
-  const afterApril6 = now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 6);
-  const startYear = afterApril6 ? y : y - 1;
-  return `${startYear}/${String((startYear + 1) % 100).padStart(2, '0')}`;
-}
+const day = (iso: string) => {
+  const d = parseIsoDate(iso);
+  if (!d) throw new Error(`bad test date ${iso}`);
+  return d;
+};
 
-const MAX_UNCHECKED_DAYS = 400;
+describe('rates freshness on the real date (blocks the build when stale)', () => {
+  it('has a dataset for today\'s default years, checked within 400 days', () => {
+    const report = evaluateRatesFreshness(new Date());
+    expect(report.errors).toEqual([]);
+  });
+});
 
-describe('rates freshness guard', () => {
-  it('UK_TAX_YEAR matches the current UK tax year', () => {
-    expect(UK_TAX_YEAR).toBe(expectedUkTaxYear(new Date()));
+describe('dataset manifest matches the rate tables', () => {
+  it('US years and lastChecked agree', () => {
+    expect(Object.keys(US_RATES_BY_YEAR).map(Number).sort()).toEqual(Object.keys(US_DATASETS).map(Number).sort());
+    expect(US_TAX_YEARS).toEqual(Object.keys(US_DATASETS).map(Number).sort((a, b) => a - b));
+    for (const y of US_TAX_YEARS) {
+      expect(US_RATES_BY_YEAR[y].year).toBe(y);
+      expect(US_RATES_BY_YEAR[y].lastChecked).toBe(US_DATASETS[y].lastChecked);
+    }
   });
 
-  it('US_TAX_YEAR matches the current calendar year', () => {
-    expect(US_TAX_YEAR).toBe(String(new Date().getFullYear()));
+  it('UK years and lastChecked agree', () => {
+    expect(Object.keys(UK_RATES_BY_YEAR).sort()).toEqual(Object.keys(UK_DATASETS).sort());
+    for (const y of UK_TAX_YEARS) {
+      expect(UK_RATES_BY_YEAR[y].year).toBe(y);
+      expect(UK_RATES_BY_YEAR[y].lastChecked).toBe(UK_DATASETS[y].lastChecked);
+    }
   });
 
-  it('rates have been checked within the last 400 days', () => {
-    const days = (iso: string) => (Date.now() - new Date(iso + 'T00:00:00').getTime()) / 86_400_000;
-    expect(days(UK_RATES_LAST_CHECKED)).toBeLessThan(MAX_UNCHECKED_DAYS);
-    expect(days(US_RATES_LAST_CHECKED)).toBeLessThan(MAX_UNCHECKED_DAYS);
+  it('every lastChecked is a real YYYY-MM-DD date', () => {
+    for (const meta of [...Object.values(US_DATASETS), ...Object.values(UK_DATASETS)]) {
+      expect(parseIsoDate(meta.lastChecked)).not.toBeNull();
+    }
+  });
+});
+
+describe('tax-year calendar', () => {
+  it('UK tax year turns over on 6 April', () => {
+    expect(ukTaxYearForDate(day('2027-04-05'))).toBe('2026/27');
+    expect(ukTaxYearForDate(day('2027-04-06'))).toBe('2027/28');
+    expect(ukTaxYearForDate(day('2026-01-01'))).toBe('2025/26');
+    expect(ukTaxYearForDate(day('2099-12-31'))).toBe('2099/00');
+  });
+
+  it('US tax year is the calendar year', () => {
+    expect(usTaxYearForDate(day('2026-12-31'))).toBe(2026);
+    expect(usTaxYearForDate(day('2027-01-01'))).toBe(2027);
+  });
+
+  it('default year falls back to the newest earlier dataset', () => {
+    expect(defaultUsTaxYear(day('2028-06-01'), [2026, 2027])).toBe(2027);
+    expect(defaultUsTaxYear(day('2025-06-01'), [2026, 2027])).toBe(2026);
+    expect(defaultUkTaxYear(day('2027-05-01'), ['2026/27'])).toBe('2026/27');
+    expect(defaultUkTaxYear(day('2027-05-01'), ['2027/28', '2026/27'])).toBe('2027/28');
+  });
+
+  it('date helpers are exact across DST and leap days', () => {
+    expect(daysBetween(day('2026-03-28'), day('2026-03-30'))).toBe(2);
+    expect(daysBetween(day('2028-02-28'), day('2028-03-01'))).toBe(2);
+    expect(toIsoDate(day('2027-01-02'))).toBe('2027-01-02');
+    expect(parseIsoDate('2027-02-30')).toBeNull();
+    expect(parseIsoDate('2027-1-2')).toBeNull();
+  });
+});
+
+describe('guard rules with injected dates (D8)', () => {
+  const withoutUs = (year: number) => {
+    const us: Record<string, { lastChecked: string }> = { ...US_DATASETS };
+    delete us[String(year)];
+    return us;
+  };
+
+  it('passes today (12 Nov 2026) with no warnings', () => {
+    const r = evaluateRatesFreshness(day('2026-11-12'));
+    expect(r.errors).toEqual([]);
+    expect(r.warnings).toEqual([]);
+    expect(r.usDefault).toBe(2026);
+  });
+
+  it('passes on 2 Jan 2027 with TY2027 as the default (TX-3 acceptance)', () => {
+    const r = evaluateRatesFreshness(day('2027-01-02'));
+    expect(r.errors).toEqual([]);
+    expect(r.usDefault).toBe(2027);
+    expect(r.ukDefault).toBe('2026/27');
+  });
+
+  it('blocks on 2 Jan 2027 only if the 2027 dataset were missing', () => {
+    const r = evaluateRatesFreshness(day('2027-01-02'), { us: withoutUs(2027) });
+    expect(r.errors).toHaveLength(1);
+    expect(r.errors[0]).toMatch(/No US federal dataset for tax year 2027/);
+    expect(r.usDefault).toBe(2026);
+  });
+
+  it('warns (without failing) from 60 days before a rollover with no data', () => {
+    const before = evaluateRatesFreshness(day('2026-11-01'), { us: withoutUs(2027) }); // 61 days
+    expect(before.warnings).toEqual([]);
+    const at60 = evaluateRatesFreshness(day('2026-11-02'), { us: withoutUs(2027) }); // 60 days
+    expect(at60.errors).toEqual([]);
+    expect(at60.warnings.join('\n')).toMatch(/US tax year 2027 starts in 60 days/);
+  });
+
+  it('does not warn when the next year already has data', () => {
+    expect(evaluateRatesFreshness(day('2026-12-31')).warnings).toEqual([]);
+  });
+
+  it('UK: warns before 6 April 2027 and fails from 6 April 2027 until 2027/28 data lands', () => {
+    const feb = evaluateRatesFreshness(day('2027-02-10'));
+    expect(feb.errors).toEqual([]);
+    expect(feb.warnings.join('\n')).toMatch(/UK tax year 2027\/28 starts in 55 days/);
+
+    const lastDay = evaluateRatesFreshness(day('2027-04-05'));
+    expect(lastDay.errors).toEqual([]);
+
+    const rollover = evaluateRatesFreshness(day('2027-04-06'));
+    expect(rollover.errors.join('\n')).toMatch(/No UK dataset for tax year 2027\/28/);
+
+    const withNext = evaluateRatesFreshness(day('2027-04-06'), {
+      uk: { ...UK_DATASETS, '2027/28': { lastChecked: '2027-03-20' } },
+    });
+    expect(withNext.errors).toEqual([]);
+    expect(withNext.ukDefault).toBe('2027/28');
+  });
+
+  it('fails at 400 days unchecked and warns from 340', () => {
+    const us = { 2026: { lastChecked: '2025-11-01' }, 2027: { lastChecked: '2026-11-12' } };
+    const warn = evaluateRatesFreshness(day('2026-11-12'), { us });
+    expect(warn.errors).toEqual([]);
+    expect(warn.warnings.join('\n')).toMatch(/US 2026 rates were last checked 376 days ago/);
+    const under = evaluateRatesFreshness(day('2026-09-26'), { us }); // 330 days
+    expect(under.warnings).toEqual([]);
+    expect(evaluateRatesFreshness(day('2026-12-05'), { us }).errors).toEqual([]); // 399 days
+    expect(evaluateRatesFreshness(day('2026-12-06'), { us }).errors.join('\n')).toMatch(/last checked 400 days ago/);
+  });
+
+  it('flags a malformed lastChecked', () => {
+    const r = evaluateRatesFreshness(day('2026-11-12'), { us: { 2026: { lastChecked: '12/11/2026' } } });
+    expect(r.errors.join('\n')).toMatch(/not a YYYY-MM-DD date/);
+  });
+});
+
+describe('default year follows the date (aliases switch on 1 January)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('31 Dec 2026 -> 2026 values; 1 Jan 2027 -> 2027 values', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+
+    vi.setSystemTime(new Date(2026, 11, 31, 12));
+    vi.resetModules();
+    const dec = await import('./us-rates');
+    expect(dec.US_TAX_YEAR).toBe('2026');
+    expect(dec.US_STANDARD_DEDUCTION.single).toBe(16_100);
+
+    vi.setSystemTime(new Date(2027, 0, 1, 0, 0, 1));
+    vi.resetModules();
+    const jan = await import('./us-rates');
+    expect(jan.US_TAX_YEAR).toBe('2027');
+    expect(jan.US_STANDARD_DEDUCTION.single).toBe(16_600);
+    expect(jan.US_SOCIAL_SECURITY.wageCap).toBe(192_300);
+    const calc = await import('./us-tax-calc');
+    expect(calc.calcFederalTax(100_000, 'single')).toBeCloseTo(12_889.5, 2);
+  });
+
+  it('a stale deploy in 2028 keeps the newest data instead of crashing', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2028, 5, 1));
+    vi.resetModules();
+    const mod = await import('./us-rates');
+    expect(mod.US_TAX_YEAR).toBe('2027');
+  });
+
+  it('CALCRUN_TODAY pins the build clock for rollover rehearsals', async () => {
+    vi.stubEnv('CALCRUN_TODAY', '2027-01-02');
+    vi.resetModules();
+    const mod = await import('./us-rates');
+    expect(mod.US_DEFAULT_TAX_YEAR).toBe(2027);
+  });
+
+  it('an invalid CALCRUN_TODAY fails loudly', async () => {
+    vi.stubEnv('CALCRUN_TODAY', 'next tuesday');
+    vi.resetModules();
+    await expect(import('./us-rates')).rejects.toThrow(/CALCRUN_TODAY/);
+  });
+});
+
+describe('scripts/check-rates-freshness.mjs (prebuild guard CLI)', () => {
+  const run = (today: string) =>
+    spawnSync(process.execPath, ['scripts/check-rates-freshness.mjs', `--today=${today}`], {
+      encoding: 'utf8',
+      env: { ...process.env, CALCRUN_TODAY: '', GITHUB_ACTIONS: '' },
+    });
+
+  it('exits 0 on 2 Jan 2027 and reports TY2027 as the default', () => {
+    const r = run('2027-01-02');
+    expect(r.status).toBe(0);
+    expect(r.stdout).toMatch(/default years US 2027, UK 2026\/27/);
+  });
+
+  it('exits 0 with a loud warning ahead of the UK rollover', () => {
+    const r = run('2027-02-10');
+    expect(r.status).toBe(0);
+    expect(r.stderr).toMatch(/RATES FRESHNESS WARNING/);
+  });
+
+  it('exits 1 when the default year has no dataset', () => {
+    const r = run('2027-04-06');
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/GUARD FAILED/);
+  });
+
+  it('rejects a malformed --today', () => {
+    expect(run('2027-13-01').status).toBe(2);
   });
 });
