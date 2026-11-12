@@ -212,6 +212,14 @@ describe('POST /api/subscribe gate (EDGE-01)', () => {
     expect(res.status).toBe(200);
     expect(calls).toHaveLength(0);
   });
+  it('refuses a missing token before validating fields (safe live probe with an invalid address)', async () => {
+    const { res, data } = await call(post('/api/subscribe', { email: 'x@invalid' }));
+    expect(res.status).toBe(403);
+    expect(data.code).toBe('verification_required');
+    const r2 = await call(post('/api/email-results', { email: 'x@invalid', toolSlug: 'nope', results: [] }));
+    expect(r2.res.status).toBe(403);
+    expect(calls).toHaveLength(0);
+  });
   it('requires a Turnstile token', async () => {
     const { res, data } = await call(post('/api/subscribe', subscribeBody({ turnstileToken: '' })));
     expect(res.status).toBe(403);

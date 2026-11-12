@@ -15,7 +15,8 @@
  *     localhost/127.0.0.1 origins are accepted ONLY when env.ALLOW_DEV_ORIGINS is set
  *     (local wrangler dev or scripts/serve-prod.mjs), never in production;
  *   - 20 KB body cap, enforced while streaming (413);
- *   - Cloudflare Turnstile token required; siteverify must succeed AND report one of our
+ *   - Cloudflare Turnstile token required (a missing token is refused before any field
+ *     validation); siteverify must succeed AND report one of our
  *     hostnames (and the expected action when present). Fails closed when the secret is
  *     missing (503);
  *   - results-email rows are rebuilt from a server-side allowlist (src/lib/tool-registry.ts
@@ -720,6 +721,15 @@ async function readApiRequest(request: Request, env: Env, cors: Record<string, s
 }
 
 const VERIFICATION_REQUIRED = { error: 'Verification required. Please try again.', code: 'verification_required' };
+
+/**
+ * True when the parsed body carries a non-empty Turnstile token. Checked BEFORE field
+ * validation so unverified clients learn nothing about what the validator accepts.
+ */
+function hasToken(body: unknown): boolean {
+  return typeof body === 'object' && body !== null && !Array.isArray(body)
+    && readToken(body as Record<string, unknown>) !== '';
+}
 const VERIFICATION_FAILED = { error: 'Verification failed. Please try again.', code: 'verification_failed' };
 
 /* -- POST /api/subscribe ----------------------------------------------------- */
@@ -734,6 +744,8 @@ async function handleSubscribe(request: Request, env: Env): Promise<Response> {
     return json(503, { error: 'Sign-up is temporarily unavailable. Please try again later.' }, cors);
   }
 
+  if (!hasToken(parsed.body)) return json(403, VERIFICATION_REQUIRED, cors);
+
   const validation = validateSubscribeBody(parsed.body);
   if (!validation.ok) return json(400, { error: validation.error }, cors);
   const body = validation.data;
@@ -741,7 +753,6 @@ async function handleSubscribe(request: Request, env: Env): Promise<Response> {
   // Honeypot filled = bot: pretend success, do nothing.
   if (body.honeypot) return json(200, { success: true }, cors);
 
-  if (!body.turnstileToken) return json(403, VERIFICATION_REQUIRED, cors);
   if (!(await verifyTurnstile(body.turnstileToken, request, env, TURNSTILE_ACTIONS.subscribe))) {
     return json(403, VERIFICATION_FAILED, cors);
   }
@@ -774,13 +785,14 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
     return json(503, { error: 'Email sending is temporarily unavailable. Please try again later.' }, cors);
   }
 
+  if (!hasToken(parsed.body)) return json(403, VERIFICATION_REQUIRED, cors);
+
   const validation = validateEmailResultsBody(parsed.body);
   if (!validation.ok) return json(400, { error: validation.error }, cors);
   const body = validation.data;
 
   if (body.honeypot) return json(200, { success: true }, cors);
 
-  if (!body.turnstileToken) return json(403, VERIFICATION_REQUIRED, cors);
   if (!(await verifyTurnstile(body.turnstileToken, request, env, TURNSTILE_ACTIONS.emailResults))) {
     return json(403, VERIFICATION_FAILED, cors);
   }
