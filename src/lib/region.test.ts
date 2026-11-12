@@ -169,6 +169,14 @@ describe('REGION_INLINE_JS (head-script twin)', () => {
       { languages: [] },
     );
     expect(win.calcrunRegion).toBe('US');
+    // A truthy non-string (e.g. a DOM element exposed by id) is replaced, not trusted.
+    const win2: Record<string, unknown> = { calcrunRegion: { tagName: 'DIV' } };
+    new Function('window', 'Intl', 'navigator', REGION_INLINE_JS)(
+      win2,
+      { DateTimeFormat: () => ({ resolvedOptions: () => ({ timeZone: 'Europe/Paris' }) }) },
+      { languages: [] },
+    );
+    expect(win2.calcrunRegion).toBe('EEA');
     expect(REGION_INLINE_JS.length).toBeLessThan(4096);
     expect(REGION_INLINE_JS).not.toMatch(/__name|=>|`/); // no bundler helpers / modern syntax leaked
   });
