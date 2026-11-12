@@ -39,9 +39,9 @@ faq:
   - question: "Why convert HTML to Markdown?"
     answer: "Converting HTML to Markdown is useful when you want to edit web content in a plain text editor, migrate content from a website to a Markdown-based system (like a static site generator), or simplify complex HTML into clean, readable text. The conversion strips out HTML complexity and gives you clean, editable markup."
   - question: "Does the HTML to Markdown conversion handle all HTML tags?"
-    answer: "The converter handles common HTML elements: headings (h1-h6), paragraphs, bold, italic, code, links, images, lists, blockquotes, and horizontal rules. Complex HTML features like tables, forms, iframes, and custom CSS won't convert to Markdown equivalents because Markdown doesn't support them. Any unrecognized tags are stripped."
+    answer: "The converter handles common HTML elements: headings (h1-h6), paragraphs, bold, italic, code, links, images, lists, blockquotes, and horizontal rules. Tables become GFM Markdown tables. Forms, iframes and custom CSS have no Markdown equivalent, so their text is kept and the markup is dropped."
   - question: "Can I use this as a Markdown preview tool?"
-    answer: "Yes — click the 'Preview' button to see a rendered preview of your Markdown alongside the source code. This makes it a quick way to check how your Markdown will look when rendered, without needing a full editor like VS Code or Typora."
+    answer: "Yes — click the 'Preview' button to see a rendered preview of your Markdown alongside the source code. This makes it a quick way to check how your Markdown will look when rendered, without needing a full editor like VS Code or Typora. The preview is isolated from the rest of the page: scripts in the Markdown never run, links are not followed and remote images are not loaded, so it is safe to preview files you did not write."
 ---
 
 ## What Is Markdown?
@@ -66,7 +66,7 @@ It's the standard for technical documentation, GitHub READMEs, blog platforms li
 
 ## How This Tool Works
 
-**Markdown → HTML** uses the [marked](https://github.com/markedjs/marked) library (loaded on demand) to parse Markdown syntax and generate standards-compliant HTML. The library handles all CommonMark syntax plus common extensions like tables and task lists.
+**Markdown → HTML** uses the [marked](https://github.com/markedjs/marked) library (loaded on demand) to parse Markdown syntax and generate standards-compliant HTML. The library handles all CommonMark syntax plus common extensions like tables and task lists. By default, unsafe HTML inside the Markdown (scripts, styles, forms and event handlers) is removed from the HTML output, and the tool lists exactly what it removed; untick the option to keep your HTML as written.
 
 **HTML → Markdown** uses a rule-based converter that recognizes common HTML patterns and translates them back to Markdown syntax. It handles headings, paragraphs, emphasis, links, images, lists, blockquotes, code blocks, and horizontal rules.
 

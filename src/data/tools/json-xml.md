@@ -26,7 +26,7 @@ workedExamples:
     inputs:
       mode: "XML to JSON"
       inputFile: "config.xml"
-    description: "An application uses an XML configuration file with attributes like '<database host=\"localhost\" port=\"5432\"/>'. Converting to JSON produces '{\"database\": {\"@_host\": \"localhost\", \"@_port\": 5432}}'. The @_ prefix convention clearly distinguishes attributes from child elements, and numeric values are automatically parsed."
+    description: "An application uses an XML configuration file with attributes like '<database host=\"localhost\" port=\"5432\"/>'. Converting to JSON produces '{\"database\": {\"@_host\": \"localhost\", \"@_port\": \"5432\"}}'. The @_ prefix convention clearly distinguishes attributes from child elements. Values stay as text, because XML has no number type: a port of 5432 or a zip code of 02134 comes through exactly as written."
   - title: "Converting an RSS feed to JSON for a dashboard"
     inputs:
       mode: "XML to JSON"
@@ -40,11 +40,11 @@ faq:
   - question: "What about CDATA sections?"
     answer: "CDATA sections ('<![CDATA[content]]>') are handled correctly. The content inside CDATA is treated as raw text and preserved in the JSON output. This is useful for XML documents that contain HTML fragments or other text that shouldn't be parsed as XML."
   - question: "Is the conversion lossless?"
-    answer: "XML to JSON conversion can lose some information: XML processing instructions, comments, and namespace declarations are not preserved in JSON. The order of elements is preserved for arrays but may not be guaranteed for object keys (though modern JavaScript engines preserve insertion order). JSON to XML conversion preserves all data but may not reproduce the exact original formatting."
+    answer: "Not completely. XML to JSON keeps every value as text exactly as written, but drops comments and processing instructions, and cannot record where text sat between child elements (mixed content such as <p>Hello <b>world</b></p>); the tool warns when that happens. JSON to XML renames keys that are not valid XML element names (\"first name\" becomes <first_name>), leaves out empty arrays, and writes null and empty strings the same way; the tool lists any of these changes. Broken XML is reported with its line and column instead of being converted."
   - question: "What about XML namespaces?"
     answer: "XML namespaces (xmlns declarations) are preserved as attributes in the JSON output. For example, '<root xmlns:ns=\"http://example.com\">' will include the namespace as an attribute. However, namespace-prefixed element names are kept as-is (e.g., 'ns:element' becomes a JSON key 'ns:element'), which may require special handling in your code."
   - question: "Can I convert large XML files?"
-    answer: "Yes, within browser memory limits. Files up to 10MB typically convert instantly on modern devices. For very large XML files (50MB+), you may experience slowness or memory issues. The fast-xml-parser library used by this tool is one of the fastest XML parsers available — benchmarks show it parsing 1MB of XML in under 50ms."
+    answer: "Yes, within browser memory limits. Files of a few megabytes usually convert in a second or two on a modern computer, and large pastes are converted once you stop typing so the page stays responsive. Very large files (tens of megabytes) may be slow or run out of memory, especially on phones; for those, a command-line tool is a better fit."
 ---
 
 ## When to Convert JSON to XML
