@@ -1,0 +1,62 @@
+# CI early-warning system (plan-2026-11 PL-9, review RC3/RC6).
+# Cloudflare Workers Builds still deploys on push independently; this workflow does NOT
+# gate or perform deploys. It needs no secrets.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      # prebuild runs scripts/check-rates-freshness.mjs, so stale tax data fails here too.
+      - name: Build
+        run: npm run build
+
+      - name: Link, anchor and redirect integrity
+        run: node scripts/qa-link-check.mjs
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Production-config E2E: serve-prod.mjs emulates Cloudflare _headers, _redirects,
+      # trailing slashes and the 404 page; /api/* runs the real worker with mocked
+      # third parties; GA requests are aborted by tests/prod/fixtures.ts.
+      - name: Production-config E2E (Chromium)
+        run: npm run test:prod -- --project=chromium
+        env:
+          PORT: '4390'
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-prod-report
+          path: |
+            playwright-report/prod
+            test-results/prod
+          retention-days: 14
