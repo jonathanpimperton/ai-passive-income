@@ -30,6 +30,10 @@ const lastmodMap = buildLastmodMap();
 export default defineConfig({
   site: 'https://www.calcrun.com',
   trailingSlash: 'always',
+  // Per-checkout caches. The default (node_modules/.astro) holds the content-layer
+  // data store; git worktrees share node_modules through a junction, so a shared
+  // cache would let one checkout's content leak into another's build.
+  cacheDir: './.astro-cache',
   // The Number Theater prototype was promoted to the production homepage
   redirects: { '/labs/story/': '/' },
   prefetch: {
@@ -53,6 +57,7 @@ export default defineConfig({
     }),
   ],
   vite: {
+    cacheDir: './.astro-cache/vite',
     plugins: [tailwindcss()],
     ssr: {
       noExternal: ['pdfjs-dist'],
