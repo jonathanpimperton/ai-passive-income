@@ -10,7 +10,9 @@
     "preview": "astro preview",
     "check": "tsc --noEmit",
     "check:astro": "astro check",
-    "test": "vitest run"
+    "test": "vitest run",
+    "serve:prod": "node scripts/serve-prod.mjs --worker",
+    "test:prod": "playwright test -c playwright.prod.config.ts"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
