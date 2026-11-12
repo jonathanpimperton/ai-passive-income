@@ -4,6 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { readdirSync, readFileSync } from 'node:fs';
 import rehypeMonoFigures from './src/lib/rehype-mono-figures.mjs';
+import { remarkFiguresPlugin } from './src/lib/remark-figures.mjs';
 
 /**
  * Map of page pathname -> lastUpdated date, sourced from tool markdown
@@ -41,6 +42,8 @@ export default defineConfig({
     defaultStrategy: 'viewport',
   },
   markdown: {
+    // Build-time figure tokens {{ ... }} resolved from the src/lib engines (docs/figures.md)
+    remarkPlugins: [remarkFiguresPlugin],
     // Mono numerals on financial figures inside markdown tables + bold stats
     rehypePlugins: [rehypeMonoFigures],
   },
