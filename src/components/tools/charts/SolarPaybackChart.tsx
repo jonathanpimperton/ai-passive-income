@@ -57,6 +57,7 @@ export default function SolarPaybackChart({ rows, netCost, currency, ariaLabel, 
           {netCost > 0 && (
             <ReferenceLine
               y={netCost}
+              ifOverflow="extendDomain"
               stroke={ct.cost}
               strokeWidth={1.5}
               label={{ value: 'Net system cost', position: 'insideTopLeft', fill: ct.cost, fontSize: 11 }}

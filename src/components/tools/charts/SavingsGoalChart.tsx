@@ -64,6 +64,7 @@ export default function SavingsGoalChart({ rows, goal, currency, ariaLabel, heig
           />
           <ReferenceLine
             y={goal}
+            ifOverflow="extendDomain"
             stroke={ct.series1}
             strokeWidth={1}
             strokeOpacity={0.8}

@@ -99,7 +99,7 @@ export default function RetirementProjectionChart({
             />
           ))}
           {typeof target === 'number' && target > 0 && (
-            <ReferenceLine y={target} stroke={ct.series1} strokeWidth={1} strokeOpacity={0.7} />
+            <ReferenceLine y={target} ifOverflow="extendDomain" stroke={ct.series1} strokeWidth={1} strokeOpacity={0.7} />
           )}
 
           <Area type="monotone" dataKey="nominal" name="Balance" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} isAnimationActive={false} />

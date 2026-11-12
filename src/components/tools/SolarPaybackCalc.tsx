@@ -185,7 +185,18 @@ export default function SolarPaybackCalc() {
     : 'Any grant or rebate that reduces the upfront cost';
   const costHint = region === 'uk'
     ? 'Total installation cost before incentives (0% VAT on installation until 31 Mar 2027, then 5%)'
-    : 'Total installation cost before incentives';
+    : region === 'eur'
+      ? 'Total installation cost before incentives — enter your quote'
+      : 'Total installation cost before incentives';
+  // Defaults with no single official figure behind them are labelled as estimates.
+  const batteryCostHint = region === 'us'
+    ? 'Installed cost (default: Berkeley Lab 2025 price premium for solar plus storage)'
+    : 'Installed cost of battery system (default is our estimate, not an official figure — enter your quote)';
+  const maintenanceHint = region === 'us'
+    ? 'Cleaning, inspection, insurance and repairs (default: NREL estimate of $30 per kW a year)'
+    : 'Cleaning, inspection, insurance and minor repairs (default is our estimate, not an official figure)';
+  // Under 1:1 net metering an exported kWh is worth as much as a self-used one.
+  const batteryAddsNothing = includeBattery && exportTariff >= electricityTariff;
 
   /* ── Callbacks for PDF / Email ──────────────────────────── */
   const getInputs = useCallback(() => {
@@ -231,6 +242,13 @@ export default function SolarPaybackCalc() {
 
           <CurrencySelector value={currency} onChange={setCurrency} />
 
+          {region === 'eur' && (
+            <p className="text-xs text-neutral-500 leading-relaxed mb-4">
+              Euro defaults: only the electricity price is an EU average (Eurostat). System cost, size, yield, export rate,
+              battery and maintenance start from UK-based estimates — replace them with your own figures.
+            </p>
+          )}
+
           <div className="space-y-5">
             <SliderInput
               label="System Cost"
@@ -242,6 +260,7 @@ export default function SolarPaybackCalc() {
               step={500}
               minLabel={`${currencySymbol}2K`}
               maxLabel={`${currencySymbol}50K`}
+              textMax={200000}
               onChange={userSet('systemCost')}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
@@ -293,7 +312,7 @@ export default function SolarPaybackCalc() {
                 />
                 <SliderInput
                   label="Battery Cost"
-                  hint="Installed cost of battery system"
+                  hint={batteryCostHint}
                   id="solar-battery"
                   value={batteryCost}
                   min={1000}
@@ -301,6 +320,7 @@ export default function SolarPaybackCalc() {
                   step={500}
                   minLabel={`${currencySymbol}1K`}
                   maxLabel={`${currencySymbol}20K`}
+                  textMax={60000}
                   onChange={userSet('batteryCost')}
                   prefix={currencySymbol}
                   formatDisplay={formatNumber}
@@ -309,6 +329,12 @@ export default function SolarPaybackCalc() {
                   Battery boosts self-consumption from {baseSelfConsumption}% to <strong className="text-primary-700">{effectiveSelfConsumption}%</strong> in year 1 by
                   storing up to {batteryCapacity} kWh of surplus a day for evening use. The share is recalculated each year as panel output declines.
                 </p>
+                {batteryAddsNothing && (
+                  <p className="text-xs text-neutral-600 leading-relaxed">
+                    Your export rate is at least your import rate (as with 1:1 net metering), so storing power saves nothing extra:
+                    the battery adds cost but no savings here.
+                  </p>
+                )}
               </div>
             )}
 
@@ -405,7 +431,7 @@ export default function SolarPaybackCalc() {
                 />
                 <SliderInput
                   label="Annual Maintenance"
-                  hint="Cleaning, inspection, insurance and minor repairs"
+                  hint={maintenanceHint}
                   id="solar-maint"
                   value={maintenanceCost}
                   min={0}
@@ -427,6 +453,7 @@ export default function SolarPaybackCalc() {
                   step={500}
                   minLabel={`${currencySymbol}0`}
                   maxLabel={`${currencySymbol}20K`}
+                  textMax={260000}
                   onChange={setTaxCredit}
                   prefix={currencySymbol}
                   formatDisplay={formatNumber}
@@ -530,10 +557,10 @@ export default function SolarPaybackCalc() {
                 <caption className="sr-only">Solar output and savings by year</caption>
                 <thead>
                   <tr className="bg-neutral-50 border-b border-neutral-200/60">
-                    <th scope="col" className="text-left py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Year</th>
-                    <th scope="col" className="text-right py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Output</th>
-                    <th scope="col" className="text-right py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Savings</th>
-                    <th scope="col" className="text-right py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Cumulative</th>
+                    <th scope="col" className="text-left py-2.5 px-3 whitespace-nowrap text-xs font-semibold text-neutral-500 uppercase tracking-wide">Year</th>
+                    <th scope="col" className="text-right py-2.5 px-3 whitespace-nowrap text-xs font-semibold text-neutral-500 uppercase tracking-wide">Output</th>
+                    <th scope="col" className="text-right py-2.5 px-3 whitespace-nowrap text-xs font-semibold text-neutral-500 uppercase tracking-wide">Savings</th>
+                    <th scope="col" className="text-right py-2.5 px-3 whitespace-nowrap text-xs font-semibold text-neutral-500 uppercase tracking-wide">Cumulative</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -541,10 +568,10 @@ export default function SolarPaybackCalc() {
                     .filter((_, i) => i < 10 || (i + 1) % 5 === 0)
                     .map((row, i) => (
                       <tr key={row.year} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
-                        <th scope="row" className="py-2 px-3 text-left font-medium text-neutral-700 tabular-nums">{row.year}</th>
-                        <td className="py-2 px-3 text-right text-neutral-600 tabular-nums">{formatNumber(row.generation)} kWh</td>
-                        <td className="py-2 px-3 text-right text-neutral-600 tabular-nums">{fmt(row.annualSavings)}</td>
-                        <td className={`py-2 px-3 text-right tabular-nums font-medium ${row.cumulativeSavings >= result.netCost ? 'text-success-600' : 'text-neutral-600'}`}>
+                        <th scope="row" className="py-2 px-3 whitespace-nowrap text-left font-medium text-neutral-700 tabular-nums">{row.year}</th>
+                        <td className="py-2 px-3 whitespace-nowrap text-right text-neutral-600 tabular-nums">{formatNumber(row.generation)} kWh</td>
+                        <td className="py-2 px-3 whitespace-nowrap text-right text-neutral-600 tabular-nums">{fmt(row.annualSavings)}</td>
+                        <td className={`py-2 px-3 whitespace-nowrap text-right tabular-nums font-medium ${row.cumulativeSavings >= result.netCost ? 'text-success-600' : 'text-neutral-600'}`}>
                           {fmt(row.cumulativeSavings)}
                         </td>
                       </tr>

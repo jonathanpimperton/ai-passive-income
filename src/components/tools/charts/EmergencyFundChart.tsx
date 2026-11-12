@@ -62,6 +62,7 @@ export default function EmergencyFundChart({ rows, targets, currency, ariaLabel,
             <ReferenceLine
               key={t.coverMonths}
               y={t.target}
+              ifOverflow="extendDomain"
               stroke={colors[t.coverMonths]}
               strokeWidth={1.5}
               label={{ value: `${t.coverMonths} months`, position: 'insideTopRight', fill: ct.axisText, fontSize: 10 }}
