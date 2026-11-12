@@ -81,6 +81,8 @@ export const VALUE_WORDS = new Set<string>([
   'allowance', 'taxable', 'tax', 'deposit', 'down',
   // US salary tax-year and age options (W1-TAX)
   'paycheck', 'paychecks', 'one', 'both',
+  // UK salary and stamp duty options (W1-UK)
+  'arrangement', 'recognised', 'used', 'less',
 ]);
 
 /** Short alphanumeric codes such as UK tax codes (1257L, S1257L, K475, D0) or "28p". */

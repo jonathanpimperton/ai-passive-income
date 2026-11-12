@@ -50,6 +50,8 @@ describe('isSafeValue accepts what the calculators really send', () => {
     '6.500%', '15 yr 0 mo', '4 years, 2 months', '0 months',
     // W1-TAX salary options
     '2026 tax year (filing in 2027)', '2027 paychecks', 'Yes', 'One of us', 'Both of us',
+    // W1-UK option words
+    'Salary sacrifice arrangement', 'Not recognised', 'Allowance used', 'Less than 1 year',
   ];
   for (const v of ok) {
     it(JSON.stringify(v), () => expect(isSafeValue(cleanText(v))).toBe(true));
@@ -114,6 +116,8 @@ describe('matchLabel', () => {
     for (const l of ['Tax Year', 'Hourly Rate', 'Aged 65 or Older', 'Overtime Deduction', 'Senior Deduction']) {
       expect(matchLabel('salary', l, ctx)).toBe(l);
     }
+    for (const l of ['Into Your Pension', 'Adjusted Net Income']) expect(matchLabel('salary-uk', l, ctx)).toBe(l);
+    for (const l of ['Non-UK Resident', 'Total Cost (Price + SDLT)']) expect(matchLabel('stamp-duty', l, ctx)).toBe(l);
   });
   it('stamp duty band labels', () => {
     const ctx = newLabelContext();

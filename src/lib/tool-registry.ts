@@ -136,6 +136,8 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
     labels: [
       'Annual Salary', 'Tax Code', 'Tax Region', 'Student Loan', 'Pension Contribution', 'Pension Type',
       'Annual Take-Home Pay', 'Income Tax', 'National Insurance', 'Pension',
+      // W1-UK
+      'Into Your Pension', 'Adjusted Net Income',
     ],
   },
   'mortgage-payment': {
@@ -252,9 +254,10 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
     path: '/tools/economic/stamp-duty/',
     component: 'StampDutyCalc.tsx',
     labels: [
-      'Property Price', 'Buyer Type',
-      'Stamp Duty (SDLT)', 'Effective Tax Rate',
+      'Property Price', 'Buyer Type', 'Non-UK Resident',
+      'Stamp Duty (SDLT)', 'Effective Tax Rate', 'Total Cost (Price + SDLT)',
       // Band rows (en dash), for example "<from> - <to> (2%)" and "<from> - ... (12%)".
+      // Sent before the W1-UK change; harmless to keep.
       '{n} \u2013 {n} ({n})', '{n} \u2013 ... ({n})',
     ],
   },
