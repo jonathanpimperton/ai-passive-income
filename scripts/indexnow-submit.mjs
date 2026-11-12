@@ -126,7 +126,8 @@ function lastmodMapAt(sha, git) {
   try {
     const tarPath = join(dir, 'src.tar');
     writeFileSync(tarPath, execFileSync('git', ['archive', '--format=tar', sha, 'src'], { maxBuffer: 256 * 1024 * 1024 }));
-    execFileSync('tar', ['-xf', tarPath, '-C', dir]);
+    // Relative path + cwd: GNU tar (Git Bash) reads "C:\..." as a remote host.
+    execFileSync('tar', ['-xf', 'src.tar'], { cwd: dir });
     const gitDates = parseGitLog(git(['log', '--format=%x00%H %cs', '--name-only', sha, '--', 'src']));
     return buildLastmodMap({ root: dir, gitDates });
   } finally {
