@@ -95,7 +95,11 @@ export function ensureFullHistory(root, log = console.log) {
   if (process.env.CALCRUN_NO_UNSHALLOW) return 'shallow';
   log('[sitemap-lastmod] shallow clone: fetching full git history for honest <lastmod> dates');
   try {
-    git(root, ['fetch', '--unshallow', '--quiet'], { timeout: 120_000 });
+    // Never prompt for credentials on a builder; a real unshallow takes seconds.
+    git(root, ['fetch', '--unshallow', '--quiet'], {
+      timeout: 60_000,
+      env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' },
+    });
     return isShallow(root) ? 'shallow' : 'unshallowed';
   } catch (err) {
     log(`[sitemap-lastmod] could not fetch full history (${String(err.message).split('\n')[0]}); dates outside the shallow history are omitted`);
@@ -187,13 +191,36 @@ function readMarkdownDir(root, dir) {
     .map((f) => ({ file: `${dir}/${f}`, raw: readFileSync(join(abs, f), 'utf8') }));
 }
 
-/** tool slug -> calculator component name, from the literal CALCULATOR_MAP in the tool route. */
-export function parseCalculatorMap(routeSource) {
+/**
+ * tool slug -> calculator component name from a literal object map such as
+ * `const NAME: Record<string, string> = { 'slug': 'Component', ... };`.
+ */
+export function parseComponentMap(source, constName) {
   const map = new Map();
-  const block = routeSource.match(/CALCULATOR_MAP[^{]*\{([\s\S]*?)\};/);
+  // Anchored on the declaration, so earlier mentions of the name don't match.
+  const block = source.match(new RegExp(`\\b(?:const|let|var)\\s+${constName}\\b[^=]*=\\s*\\{([\\s\\S]*?)\\};`));
   if (!block) return map;
-  for (const m of block[1].matchAll(/'([a-z0-9-]+)'\s*:\s*'([A-Za-z0-9]+)'/g)) map.set(m[1], m[2]);
+  for (const m of block[1].matchAll(/['"]([a-z0-9-]+)['"]\s*:\s*['"]([A-Za-z0-9]+)['"]/g)) map.set(m[1], m[2]);
   return map;
+}
+
+/** The pre-November-2026 location: CALCULATOR_MAP inside the tool route. */
+export function parseCalculatorMap(routeSource) {
+  return parseComponentMap(routeSource, 'CALCULATOR_MAP');
+}
+
+/**
+ * Where each tool's calculator component is declared. Current trees keep it in
+ * src/lib/tool-islands.ts (TOOL_COMPONENTS); older trees, which the IndexNow
+ * script rebuilds for --since, kept CALCULATOR_MAP in the tool route.
+ * Returns an empty map only when neither exists (tests treat that as a failure).
+ */
+export function readComponentMap(root) {
+  const islands = join(root, 'src/lib/tool-islands.ts');
+  if (existsSync(islands)) return parseComponentMap(readFileSync(islands, 'utf8'), 'TOOL_COMPONENTS');
+  const route = join(root, 'src/pages/tools/[category]/[tool].astro');
+  if (existsSync(route)) return parseCalculatorMap(readFileSync(route, 'utf8'));
+  return new Map();
 }
 
 /**
@@ -208,9 +235,7 @@ export function buildLastmodMap({ root, gitDates = readGitDates(root) }) {
   };
 
   // Tools: frontmatter lastUpdated, markdown commit, calculator component commit.
-  const routeFile = 'src/pages/tools/[category]/[tool].astro';
-  const routePath = join(root, routeFile);
-  const calcMap = existsSync(routePath) ? parseCalculatorMap(readFileSync(routePath, 'utf8')) : new Map();
+  const calcMap = readComponentMap(root);
   for (const { file, raw } of readMarkdownDir(root, 'src/data/tools')) {
     const slug = frontmatterValue(raw, 'slug');
     const category = frontmatterValue(raw, 'category');

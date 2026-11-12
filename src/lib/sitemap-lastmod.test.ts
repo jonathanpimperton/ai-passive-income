@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import {
   maxDate,
@@ -10,6 +11,8 @@ import {
   gitDateOf,
   frontmatterValue,
   parseCalculatorMap,
+  parseComponentMap,
+  readComponentMap,
   buildLastmodMap,
   readGitDates,
 } from './sitemap-lastmod.mjs';
@@ -100,13 +103,100 @@ describe('frontmatterValue', () => {
   });
 });
 
-describe('parseCalculatorMap', () => {
-  it('reads the literal map from the tool route', () => {
-    const src = readFileSync(join(ROOT, 'src/pages/tools/[category]/[tool].astro'), 'utf8');
-    const map = parseCalculatorMap(src);
-    expect(map.get('salary-uk')).toBe('SalaryUkCalc');
-    expect(map.get('compound-interest')).toBe('CompoundInterestCalc');
+// The tool -> calculator component map has lived in two places: CALCULATOR_MAP
+// inside the tool route (up to Nov 2026, still read when the IndexNow script
+// rebuilds an old tree) and TOOL_COMPONENTS in src/lib/tool-islands.ts.
+const ROUTE_FIXTURE = `---
+import ToolPageLayout from '@components/ui/ToolPageLayout.astro';
+const CALCULATOR_MAP: Record<string, string> = {
+  'compound-interest': 'CompoundInterestCalc',
+  'salary-uk': 'SalaryUkCalc',
+};
+const hasCalculator = slug in CALCULATOR_MAP;
+---`;
+const ISLANDS_FIXTURE = `/** TOOL_COMPONENTS: one source for three consumers. */
+import type { CategorySlug } from './tools-data';
+
+export const TOOL_COMPONENTS: Record<string, string> = {
+  'compound-interest': 'CompoundInterestCalc',
+  'salary-uk': 'SalaryUkCalc',
+  "capital-gains-tax": "CapitalGainsTaxCalc",
+};
+
+export function isEmbeddable(category: CategorySlug, slug: string): boolean {
+  return slug in TOOL_COMPONENTS;
+}`;
+
+describe('component map parsing (both formats)', () => {
+  it('reads CALCULATOR_MAP from a tool route', () => {
+    const map = parseCalculatorMap(ROUTE_FIXTURE);
+    expect([...map]).toEqual([
+      ['compound-interest', 'CompoundInterestCalc'],
+      ['salary-uk', 'SalaryUkCalc'],
+    ]);
+  });
+
+  it('reads TOOL_COMPONENTS from tool-islands.ts, anchored on the declaration', () => {
+    const map = parseComponentMap(ISLANDS_FIXTURE, 'TOOL_COMPONENTS');
+    expect(map.size).toBe(3);
+    expect(map.get('capital-gains-tax')).toBe('CapitalGainsTaxCalc');
+  });
+
+  it('returns an empty map for a missing constant', () => {
+    expect(parseComponentMap(ISLANDS_FIXTURE, 'NOPE').size).toBe(0);
+  });
+});
+
+describe('readComponentMap (file precedence)', () => {
+  const make = (files: Record<string, string>) => {
+    const dir = mkdtempSync(join(tmpdir(), 'calcrun-lastmod-'));
+    for (const [rel, body] of Object.entries(files)) {
+      mkdirSync(join(dir, rel, '..'), { recursive: true });
+      writeFileSync(join(dir, rel), body);
+    }
+    return dir;
+  };
+  const ROUTE = 'src/pages/tools/[category]/[tool].astro';
+  const ISLANDS = 'src/lib/tool-islands.ts';
+
+  it('prefers src/lib/tool-islands.ts when it exists', () => {
+    const dir = make({ [ISLANDS]: ISLANDS_FIXTURE, [ROUTE]: '---\nconst x = 1;\n---' });
+    try {
+      expect(readComponentMap(dir).size).toBe(3);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('falls back to the route CALCULATOR_MAP (older trees)', () => {
+    const dir = make({ [ROUTE]: ROUTE_FIXTURE });
+    try {
+      expect(readComponentMap(dir).get('salary-uk')).toBe('SalaryUkCalc');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('is empty when neither exists', () => {
+    const dir = make({ 'src/x.txt': '' });
+    try {
+      expect(readComponentMap(dir).size).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // Fails loudly if the map moves or is renamed again: tool lastmods would
+  // otherwise silently lose the calculator's commit date.
+  it('finds a component for every calculator tool in this tree, each file present', () => {
+    const map = readComponentMap(ROOT);
     expect(map.size).toBeGreaterThanOrEqual(40);
+    for (const { raw } of mdFiles('src/data/tools')) {
+      const slug = frontmatterValue(raw, 'slug')!;
+      const component = map.get(slug);
+      expect(component, `no calculator component mapped for ${slug}`).toBeTruthy();
+      expect(existsSync(join(ROOT, 'src/components/tools', `${component}.tsx`)), component).toBe(true);
+    }
   });
 });
 
