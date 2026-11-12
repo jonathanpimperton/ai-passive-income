@@ -139,7 +139,7 @@ function ScheduleTable({ data, cc }: { data: YearRowData[]; cc: string }) {
   );
 }
 
-/* ── Inputs and defaults ──────────────────────────────────── */
+/* -- Inputs and defaults ------------------------------------ */
 export interface CompoundInterestInputs {
   principal: number;
   monthlyContribution: number;
