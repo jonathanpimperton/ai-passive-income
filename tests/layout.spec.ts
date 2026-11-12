@@ -70,19 +70,18 @@ test.describe('Embed v2', () => {
   });
 
   test('posts its height to the parent and honours ?theme', async ({ page }) => {
-    // Any same-site page works as the parent; the embed posts to window.parent.
-    await page.goto('/embed/');
-    await page.evaluate(() => {
-      (window as unknown as { heights: number[] }).heights = [];
-      window.addEventListener('message', (e) => {
-        if (e.data && e.data.type === 'calcrun:height') (window as unknown as { heights: number[] }).heights.push(e.data.height);
-      });
-      const f = document.createElement('iframe');
-      f.id = 'probe';
-      f.src = '/embed/compound-interest/?theme=dark';
-      f.style.cssText = 'width:360px;height:700px;border:0';
-      document.body.appendChild(f);
-    });
+    // A stub host page served by the test (no site CSP: our own pages only
+    // allow framing Turnstile) that records the embed's height messages.
+    await page.route('**/__embed-host__', (route) =>
+      route.fulfill({
+        contentType: 'text/html',
+        body:
+          '<!doctype html><script>window.heights=[];addEventListener("message",function(e){' +
+          'if(e.data&&e.data.type==="calcrun:height")heights.push(e.data.height)})</script>' +
+          '<iframe id="probe" src="/embed/compound-interest/?theme=dark" style="width:360px;height:700px;border:0"></iframe>',
+      }),
+    );
+    await page.goto('/__embed-host__');
     await page.waitForFunction(() => (window as unknown as { heights: number[] }).heights.length > 0, null, { timeout: 30000 });
     const heights = await page.evaluate(() => (window as unknown as { heights: number[] }).heights);
     expect(Math.max(...heights)).toBeGreaterThan(700);
