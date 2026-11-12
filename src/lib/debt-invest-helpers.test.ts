@@ -207,7 +207,20 @@ describe('numeric text fields (DB-4: CALC-UX-B-04)', () => {
     expect(interpretNumericText(textForEditing(1234.5, 'EUR'), { currency: 'EUR' })).toEqual({ kind: 'value', value: 1234.5 });
   });
 
-  it('range disambiguates EUR "6.125" as an APR', () => {
-    expect(interpretNumericText('6.125', { currency: 'EUR', min: 0, max: 100 })).toEqual({ kind: 'value', value: 6.125 });
+  it('range picks the reading for an ambiguous EUR "3,875" in an APR field', () => {
+    expect(interpretNumericText('3,875', { currency: 'EUR', min: 0, max: 100 })).toEqual({ kind: 'value', value: 3.875 });
+  });
+
+  it('a correctly written number above the range is explained, never shrunk (EUR "6.125" = 6125)', () => {
+    expect(interpretNumericText('6.125', { currency: 'EUR', min: 0, max: 1000, suffix: '%' })).toEqual({
+      kind: 'error',
+      message: 'The maximum is 1.000%.',
+    });
+  });
+
+  it('ambiguous input with no range asks "Did you mean ...?"', () => {
+    const r = interpretNumericText('50,000', { currency: 'EUR' });
+    expect(r.kind).toBe('error');
+    if (r.kind === 'error') expect(r.message).toMatch(/^Did you mean 50 or 50\.000\?/);
   });
 });

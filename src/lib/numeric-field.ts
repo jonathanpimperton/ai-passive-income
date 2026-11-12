@@ -82,6 +82,11 @@ export function interpretNumericText(text: string, rules: NumericFieldRules = {}
   });
   if (!parsed.ok) {
     if (parsed.reason === 'empty' && allowEmpty) return { kind: 'empty' };
+    const options = (parsed.candidates ?? []).filter((c) => Number.isFinite(c));
+    if (parsed.reason === 'ambiguous' && options.length > 1) {
+      const list = options.map((c) => formatEditableNumber(c, rules.currency, 6));
+      return { kind: 'error', message: `Did you mean ${list.slice(0, -1).join(', ')} or ${list[list.length - 1]}? Type it without separators to be sure.` };
+    }
     return { kind: 'error', message: failureMessage(parsed.reason, rules) };
   }
   const unit = (v: number) => `${rules.prefix ?? ''}${formatEditableNumber(v, rules.currency)}${rules.suffix ?? ''}`;
