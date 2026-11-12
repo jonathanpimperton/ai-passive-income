@@ -21,7 +21,12 @@ const { class: className } = Astro.props;
     />
     <path d="M18 8.5 h-3.2 M18 8.5 v3.2" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" />
   </svg>
-  <span class="font-display text-[22px] font-bold tracking-[-0.02em] leading-none text-neutral-900">
-    Calc<span style="color: var(--color-primary-600)">Run</span>
+  <span class="logo-word font-display text-[22px] font-bold tracking-[-0.02em] leading-none text-neutral-900">
+    Calc<span class="logo-accent">Run</span>
   </span>
 </a>
+
+<style>
+  /* A class (not an inline style) so the homepage's night header can recolour it */
+  .logo-accent { color: var(--color-primary-600); }
+</style>

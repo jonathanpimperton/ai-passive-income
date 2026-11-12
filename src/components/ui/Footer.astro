@@ -1,75 +1,95 @@
 ---
+/**
+ * Site footer (plan HO-6; HOME-CHROME-04/13/15).
+ * - Guides column: answer tables, scenarios, comparisons, methodology, author.
+ * - Calculators first; file and developer tools in their own column instead
+ *   of sitting next to tax tools.
+ * - "Cookie settings" reopens the analytics choice at any time (plan D1).
+ */
 import Logo from './Logo.astro';
 import ToolIcon from './ToolIcon.astro';
-import { TOOLS, getToolPath } from '@lib/tools-data';
+import { TOOL_COUNT, getToolBySlug, getToolPath, type ToolMeta } from '@lib/tools-data';
 
 const currentYear = new Date().getFullYear();
 
-const footerCalcs = ['compound-interest', 'loan-amortization', 'retirement-savings', 'investment-return']
-  .map((slug) => TOOLS.find((t) => t.slug === slug))
-  .filter((t) => t !== undefined);
+const pick = (slugs: string[]) => slugs.map((s) => getToolBySlug(s)).filter((t): t is ToolMeta => t !== undefined);
+const shortName = (t: ToolMeta) => t.name.replace(/ Calculator$/, '').replace(/ Converter$/, '');
 
-const moreTools = [
-  ...TOOLS.filter((t) => t.category === 'economic').slice(0, 2),
-  ...TOOLS.filter((t) => t.category === 'utility').slice(0, 2),
+const calculators = pick(['salary-uk', 'salary-us', 'mortgage-payment', 'compound-interest', 'stamp-duty', 'retirement-savings']);
+const otherTools = pick(['pdf-compress', 'heic-to-jpg', 'image-compressor', 'json-formatter']);
+
+const guides = [
+  { label: 'UK take-home pay table', href: '/scenarios/uk-take-home-pay/' },
+  { label: 'US take-home pay table', href: '/scenarios/us-take-home-pay/' },
+  { label: 'Worked scenarios', href: '/scenarios/' },
+  { label: 'Comparisons', href: '/comparisons/' },
+  { label: 'How we calculate UK pay', href: '/how-we-calculate/salary-uk/' },
+  { label: 'Who builds CalcRun', href: '/author/' },
 ];
 ---
 
 <footer class="mt-auto bg-surface-alt border-t border-neutral-200/80">
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-10">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-10 lg:gap-10 mb-10">
       {/* Brand */}
-      <div>
+      <div class="col-span-2 lg:col-span-1">
         <div class="mb-4">
           <Logo />
         </div>
-        <p class="text-sm text-neutral-600 max-w-[240px] leading-relaxed">
-          Financial calculators with interactive charts and cited sources.
+        <p class="text-sm text-neutral-600 max-w-[260px] leading-relaxed">
+          UK and US money calculators with cited sources and published formulas.
         </p>
       </div>
 
-      {/* Calculators */}
       <div>
-        <h3 class="text-sm font-semibold text-neutral-900 mb-4">Calculators</h3>
-        <ul class="space-y-2.5 text-sm">
-          {footerCalcs.map((tool) => (
-            <li><a href={getToolPath(tool)} class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">{tool.name.replace(' Calculator', '')}</a></li>
+        <h2 class="text-sm font-semibold text-neutral-900 mb-4">Calculators</h2>
+        <ul class="space-y-1 text-sm">
+          {calculators.map((tool) => (
+            <li><a href={getToolPath(tool)} class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">{shortName(tool)}</a></li>
           ))}
           <li>
-            <a href="/tools/" class="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150">
-              View all tools
+            <a href="/tools/" class="inline-flex items-center gap-1 text-primary-700 hover:text-primary-800 font-medium transition-colors duration-150" data-astro-prefetch="hover">
+              All {TOOL_COUNT} tools
               <ToolIcon name="arrow-right" size={14} />
             </a>
           </li>
         </ul>
       </div>
 
-      {/* More Tools */}
       <div>
-        <h3 class="text-sm font-semibold text-neutral-900 mb-4">More Tools</h3>
-        <ul class="space-y-2.5 text-sm">
-          {moreTools.map((tool) => (
-            <li><a href={getToolPath(tool)} class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">{tool.name}</a></li>
+        <h2 class="text-sm font-semibold text-neutral-900 mb-4">Guides</h2>
+        <ul class="space-y-1 text-sm">
+          {guides.map((g) => (
+            <li><a href={g.href} class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">{g.label}</a></li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-sm font-semibold text-neutral-900 mb-4">File &amp; developer tools</h2>
+        <ul class="space-y-1 text-sm">
+          {otherTools.map((tool) => (
+            <li><a href={getToolPath(tool)} class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">{shortName(tool)}</a></li>
           ))}
           <li>
-            <a href="/tools/" class="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150">
-              View all tools
+            <a href="/tools/#file-tools" class="inline-flex items-center gap-1 text-primary-700 hover:text-primary-800 font-medium transition-colors duration-150" data-astro-prefetch="hover">
+              More tools
               <ToolIcon name="arrow-right" size={14} />
             </a>
           </li>
         </ul>
       </div>
 
-      {/* Company */}
       <div>
-        <h3 class="text-sm font-semibold text-neutral-900 mb-4">Company</h3>
-        <ul class="space-y-2.5 text-sm">
-          <li><a href="/about/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">About</a></li>
-          <li><a href="/privacy/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Privacy Policy</a></li>
-          <li><a href="/terms/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Terms of Use</a></li>
-          <li><a href="/disclosure/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Affiliate Disclosure</a></li>
-          <li><a href="/accessibility/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Accessibility</a></li>
-          <li><a href="/embed/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150">Embed Our Tools</a></li>
+        <h2 class="text-sm font-semibold text-neutral-900 mb-4">Company</h2>
+        <ul class="space-y-1 text-sm">
+          <li><a href="/about/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">About</a></li>
+          <li><a href="/privacy/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">Privacy policy</a></li>
+          <li class="footer-js-only"><button type="button" class="footer-link-btn text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-cookie-settings>Cookie settings</button></li>
+          <li><a href="/terms/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">Terms of use</a></li>
+          <li><a href="/disclosure/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">Affiliate disclosure</a></li>
+          <li><a href="/accessibility/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">Accessibility</a></li>
+          <li><a href="/embed/" class="text-neutral-600 hover:text-primary-700 transition-colors duration-150" data-astro-prefetch="hover">Embed our tools</a></li>
         </ul>
       </div>
     </div>
@@ -78,10 +98,10 @@ const moreTools = [
     <div class="border-t border-neutral-200/80 mb-6"></div>
 
     <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p class="text-xs text-neutral-500">
+      <p class="text-xs text-neutral-600">
         &copy; {currentYear} CalcRun. All rights reserved.
       </p>
-      <p class="text-xs text-neutral-500">
+      <p class="text-xs text-neutral-600">
         CalcRun provides educational tools, not financial advice.
       </p>
     </div>
@@ -90,9 +110,11 @@ const moreTools = [
 
 <style>
   /* Comfortable touch targets on footer links */
-  footer ul a {
+  footer ul a,
+  .footer-link-btn {
     display: inline-block;
     padding-block: 0.375rem;
+    text-align: left;
   }
   /* Scoped rules out-cascade layered utilities — restore flex on the
      view-all links so the arrow glyph can never wrap onto its own line */
@@ -100,4 +122,7 @@ const moreTools = [
     display: inline-flex;
     white-space: nowrap;
   }
+  /* Cookie settings needs JavaScript (so does analytics) */
+  .footer-js-only { display: none; }
+  :global(html.js) .footer-js-only { display: list-item; }
 </style>

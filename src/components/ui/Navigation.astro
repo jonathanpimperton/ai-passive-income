@@ -1,347 +1,234 @@
 ---
+/**
+ * Site header: logo, Tools and Guides menus, search, theme toggle, and the
+ * mobile menu dialog.
+ *
+ * November 2026 rework (plan HO-4/HO-5/HO-9):
+ * - The Tools menu is one row of columns and fits a 1280x800 screen; the panel
+ *   scrolls internally if a short screen needs it (HOME-CHROME-04).
+ * - A top-level Guides menu reaches the answer tables, scenarios, comparisons,
+ *   methodology and author pages (HOME-CHROME-04).
+ * - Search is in the header at every width (HOME-CHROME-05).
+ * - Keyboard: Enter/Space opens a menu and moves focus into it, Escape closes
+ *   it from the button or from inside and returns focus, and a hover-opened
+ *   menu also closes on Escape (HOME-CHROME-08, WCAG 1.4.13).
+ * - Mobile menu: a modal dialog with an inert background; closing it never
+ *   scrolls the page (HOME-CHROME-09, F-24); categories collapse so the menu
+ *   is short.
+ * - Links prefetch on hover/focus, not when merely "in view" inside a hidden
+ *   panel (A11Y-PERF-08).
+ * - No gradient dividers, no icon chips (HOME-CHROME-17).
+ */
 import Logo from './Logo.astro';
 import ThemeToggle from './ThemeToggle.astro';
-import { CATEGORIES, TOOLS, getToolPath } from '@lib/tools-data';
-import { ICON_PATHS } from '@lib/icon-paths';
+import SiteSearch from './SiteSearch.astro';
+import { CATEGORIES, TOOLS, TOOL_COUNT, getToolPath, getToolBySlug, type ToolMeta } from '@lib/tools-data';
 
 const currentPath = Astro.url.pathname;
+const isCurrent = (href: string) => currentPath === href;
 
-// Group tools by category for dropdown
-const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic'] as const)
-  .map((cat) => ({
-    ...CATEGORIES[cat],
-    tools: TOOLS.filter((t) => t.category === cat),
-  }));
+/** Menu label: drop the redundant suffixes. */
+const shortName = (t: ToolMeta) =>
+  t.name.replace(/ Calculator$/, '').replace(/ Converter$/, '').replace(/ Comparison$/, '').replace(/ Generator$/, '');
 
-// Utility and file tool categories for the "More Tools" column
-const utilityTools = TOOLS.filter((t) => t.category === 'utility').slice(0, 4);
-const fileTools = TOOLS.filter((t) => t.category === 'file-tools').slice(0, 4);
-const allUtilityTools = TOOLS.filter((t) => t.category === 'utility');
-const allFileTools = TOOLS.filter((t) => t.category === 'file-tools');
-
-// SVG sprite: the nav renders most tool icons twice per page (desktop dropdown
-// + mobile menu). Each distinct icon is emitted ONCE as a <symbol> below and
-// referenced via <use href="#icon-{name}">, instead of inlining full path data
-// at every occurrence (~70+ inline SVGs per page before this).
-const navIconNames = [
-  ...new Set([
-    ...TOOLS.map((t) => t.icon),
-    'calculator', // Scenarios link
-    'scale', // Comparisons link
-    'home', // mobile Home link
-    'search', // mobile All Tools link
-    'info', // mobile About link
-  ]),
-];
-const navIcons = navIconNames.map((name) => ({
-  name,
-  // Same fallback as ToolIcon.astro: unknown names render the calculator icon
-  paths: ICON_PATHS[name] || ICON_PATHS['calculator'],
+const financialCategories = (['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic'] as const).map((cat) => ({
+  ...CATEGORIES[cat],
+  tools: TOOLS.filter((t) => t.category === cat),
 }));
+const utilityTools = TOOLS.filter((t) => t.category === 'utility');
+const fileTools = TOOLS.filter((t) => t.category === 'file-tools');
+const otherCount = utilityTools.length + fileTools.length;
+
+const pick = (slugs: string[]) => slugs.map((s) => getToolBySlug(s)).filter((t): t is ToolMeta => t !== undefined);
+const otherPicks = pick(['pdf-compress', 'heic-to-jpg', 'image-compressor', 'pdf-merge', 'json-formatter', 'qr-code', 'password-generator']);
+const mobilePopular = pick(['salary-uk', 'salary-us', 'mortgage-payment', 'mortgage-affordability', 'compound-interest', 'stamp-duty']);
+
+const mobileGroups = [
+  ...financialCategories.map((c) => ({ slug: c.slug, label: c.label, tools: c.tools })),
+  { slug: 'utility', label: CATEGORIES.utility.label, tools: utilityTools },
+  { slug: 'file-tools', label: CATEGORIES['file-tools'].label, tools: fileTools },
+];
+
+const guideColumns = [
+  {
+    heading: 'Answer tables',
+    links: [
+      { label: 'UK take-home pay by salary', href: '/scenarios/uk-take-home-pay/' },
+      { label: 'US take-home pay by salary', href: '/scenarios/us-take-home-pay/' },
+      { label: 'Mortgage payments by amount', href: '/scenarios/mortgage-payments-by-amount/' },
+      { label: 'Investment growth by amount', href: '/scenarios/investment-growth/' },
+    ],
+    more: { label: 'All worked scenarios', href: '/scenarios/' },
+  },
+  {
+    heading: 'Comparisons',
+    links: [
+      { label: 'Pension vs ISA (UK)', href: '/comparisons/pension-vs-isa-uk/' },
+      { label: 'Cash ISA vs savings account (UK)', href: '/comparisons/cash-isa-vs-savings-account/' },
+      { label: 'Roth vs Traditional 401(k) (US)', href: '/comparisons/roth-vs-traditional-401k/' },
+      { label: '15-year vs 30-year mortgage', href: '/comparisons/15-year-vs-30-year-mortgage/' },
+    ],
+    more: { label: 'All comparisons', href: '/comparisons/' },
+  },
+  {
+    heading: 'How we work',
+    links: [
+      { label: 'How we calculate UK take-home pay', href: '/how-we-calculate/salary-uk/' },
+      { label: 'How we calculate US take-home pay', href: '/how-we-calculate/salary-us/' },
+      { label: 'How we calculate mortgage payments', href: '/how-we-calculate/mortgage-payment/' },
+      { label: 'How we calculate compound interest', href: '/how-we-calculate/compound-interest/' },
+    ],
+    more: { label: 'Who builds CalcRun', href: '/author/' },
+  },
+];
+const mobileGuides = [
+  { label: 'UK take-home pay by salary', href: '/scenarios/uk-take-home-pay/' },
+  { label: 'US take-home pay by salary', href: '/scenarios/us-take-home-pay/' },
+  { label: 'Worked scenarios', href: '/scenarios/' },
+  { label: 'Comparisons', href: '/comparisons/' },
+  { label: 'How we calculate UK take-home pay', href: '/how-we-calculate/salary-uk/' },
+  { label: 'Who builds CalcRun', href: '/author/' },
+];
+
+const inGuides = /^\/(scenarios|comparisons|how-we-calculate|author)\//.test(currentPath);
+const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
 ---
 
-{/* Icon sprite — presentation attributes live on each <symbol> (inherited by
-    its paths), matching the attrs ToolIcon.astro puts on its root <svg>. */}
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
-  {navIcons.map((icon) => (
-    <symbol
-      id={`icon-${icon.name}`}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      set:html={icon.paths}
-    />
-  ))}
-</svg>
-
-<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm">
-  <nav class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
-    <div class="flex items-center justify-between h-16">
+<header class="site-header sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm" id="site-header">
+  <nav class="relative max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main">
+    <div class="flex items-center justify-between gap-3 h-16">
       <Logo />
 
-      {/* Desktop navigation */}
-      <div class="hidden lg:flex items-center gap-8">
-        <a
-          href="/"
-          class:list={[
-            "text-sm font-medium transition-colors duration-150",
-            currentPath === '/' || currentPath === ''
-              ? "text-primary-600"
-              : "text-neutral-700 hover:text-primary-600",
-          ]}
-        >
-          Home
-        </a>
-
-        {/* Calculators dropdown */}
-        <div class="relative group" id="desktop-dropdown">
+      {/* Desktop menus */}
+      <ul class="hidden lg:flex items-center gap-1 mr-auto ml-6">
+        <li class="nav-item" data-nav-item>
           <button
-            id="desktop-dropdown-btn"
-            class="flex items-center gap-1.5 text-sm font-medium text-neutral-700 hover:text-primary-600 transition-colors duration-150 py-2"
+            type="button"
+            class:list={['nav-trigger', { 'is-section': inTools }]}
+            id="nav-trigger-tools"
             aria-expanded="false"
-            aria-haspopup="true"
-            aria-controls="desktop-dropdown-panel"
+            aria-controls="nav-panel-tools"
           >
             Tools
-            <svg class="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
+            <svg class="nav-chevron w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
           </button>
-
-          {/* Dropdown panel */}
-          <div id="desktop-dropdown-panel" class="nav-dropdown absolute left-1/2 -translate-x-1/2 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 group-hover:translate-y-0 translate-y-1">
-            <div class="bg-white rounded-xl shadow-lg border border-neutral-200/80 p-5 min-w-[740px] grid grid-cols-3 gap-5">
-              {/* Financial calculator categories — 2 columns */}
-              {financialCategories.map((cat) => (
-                <div>
-                  <h3 class="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2.5 px-2">
-                    {cat.label}
-                  </h3>
-                  <ul class="space-y-0.5">
-                    {cat.tools.map((tool) => (
+          <div class="nav-panel" id="nav-panel-tools" data-nav-panel>
+            <div class="nav-panel-inner">
+              <div class="nav-tools-grid">
+                {financialCategories.map((cat) => (
+                  <div>
+                    <p class="nav-col-heading">{cat.label}</p>
+                    <ul>
+                      {cat.tools.map((tool) => (
+                        <li>
+                          <a href={getToolPath(tool)} class="nav-panel-link" aria-current={isCurrent(getToolPath(tool)) ? 'page' : undefined} data-astro-prefetch="hover">{shortName(tool)}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+                <div class="nav-col-other">
+                  <p class="nav-col-heading">File &amp; developer tools</p>
+                  <ul>
+                    {otherPicks.map((tool) => (
                       <li>
-                        <a
-                          href={getToolPath(tool)}
-                          class:list={[
-                            "flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition-all duration-150",
-                            currentPath === getToolPath(tool)
-                              ? "text-primary-600 bg-primary-50 font-medium"
-                              : "text-neutral-700 hover:text-primary-600 hover:bg-neutral-50",
-                          ]}
-                        >
-                          <div class:list={[
-                            "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0 transition-colors duration-150",
-                            currentPath === getToolPath(tool)
-                              ? "bg-primary-100 text-primary-600"
-                              : "bg-neutral-100 text-neutral-500",
-                          ]}>
-                            <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
-                          </div>
-                          {tool.name.replace(' Calculator', '')}
-                        </a>
+                        <a href={getToolPath(tool)} class="nav-panel-link" aria-current={isCurrent(getToolPath(tool)) ? 'page' : undefined} data-astro-prefetch="hover">{shortName(tool)}</a>
                       </li>
                     ))}
-                  </ul>
-                </div>
-              ))}
-
-              {/* Utility & File Tools — 3rd column */}
-              <div class="space-y-5">
-                <div>
-                  <h3 class="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2.5 px-2">
-                    Utility
-                  </h3>
-                  <ul class="space-y-0.5">
-                    {utilityTools.map((tool) => (
-                      <li>
-                        <a
-                          href={getToolPath(tool)}
-                          class:list={[
-                            "flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition-all duration-150",
-                            currentPath === getToolPath(tool)
-                              ? "text-primary-600 bg-primary-50 font-medium"
-                              : "text-neutral-700 hover:text-primary-600 hover:bg-neutral-50",
-                          ]}
-                        >
-                          <div class:list={[
-                            "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0 transition-colors duration-150",
-                            currentPath === getToolPath(tool)
-                              ? "bg-primary-100 text-primary-600"
-                              : "bg-neutral-100 text-neutral-500",
-                          ]}>
-                            <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
-                          </div>
-                          {tool.name.replace(' Converter', '').replace(' Generator', '')}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 class="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2.5 px-2">
-                    File Tools
-                  </h3>
-                  <ul class="space-y-0.5">
-                    {fileTools.map((tool) => (
-                      <li>
-                        <a
-                          href={getToolPath(tool)}
-                          class:list={[
-                            "flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition-all duration-150",
-                            currentPath === getToolPath(tool)
-                              ? "text-primary-600 bg-primary-50 font-medium"
-                              : "text-neutral-700 hover:text-primary-600 hover:bg-neutral-50",
-                          ]}
-                        >
-                          <div class:list={[
-                            "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0 transition-colors duration-150",
-                            currentPath === getToolPath(tool)
-                              ? "bg-primary-100 text-primary-600"
-                              : "bg-neutral-100 text-neutral-500",
-                          ]}>
-                            <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
-                          </div>
-                          {tool.name.replace(' Converter', '')}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div class="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent my-2"></div>
-                <div>
-                  <h3 class="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2.5 px-2">
-                    Articles
-                  </h3>
-                  <ul class="space-y-0.5">
                     <li>
-                      <a
-                        href="/scenarios/"
-                        class:list={[
-                          "flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition-all duration-150",
-                          currentPath.startsWith('/scenarios')
-                            ? "text-primary-600 bg-primary-50 font-medium"
-                            : "text-neutral-700 hover:text-primary-600 hover:bg-neutral-50",
-                        ]}
-                      >
-                        <div class:list={[
-                          "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0 transition-colors duration-150",
-                          currentPath.startsWith('/scenarios')
-                            ? "bg-primary-100 text-primary-600"
-                            : "bg-neutral-100 text-neutral-500",
-                        ]}>
-                          <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-calculator" /></svg>
-                        </div>
-                        Scenarios
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="/comparisons/"
-                        class:list={[
-                          "flex items-center gap-2.5 px-2 py-2 text-sm rounded-lg transition-all duration-150",
-                          currentPath.startsWith('/comparisons')
-                            ? "text-primary-600 bg-primary-50 font-medium"
-                            : "text-neutral-700 hover:text-primary-600 hover:bg-neutral-50",
-                        ]}
-                      >
-                        <div class:list={[
-                          "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0 transition-colors duration-150",
-                          currentPath.startsWith('/comparisons')
-                            ? "bg-primary-100 text-primary-600"
-                            : "bg-neutral-100 text-neutral-500",
-                        ]}>
-                          <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-scale" /></svg>
-                        </div>
-                        Comparisons
-                      </a>
+                      <a href="/tools/#file-tools" class="nav-panel-link nav-more" data-astro-prefetch="hover">All {otherCount} file &amp; developer tools</a>
                     </li>
                   </ul>
                 </div>
-                <a
-                  href="/tools/"
-                  class="flex items-center gap-2 px-2 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-all duration-150"
-                >
-                  View all 44+ tools
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+              </div>
+              <div class="nav-panel-foot">
+                <a href="/tools/" class="nav-more" data-astro-prefetch="hover">
+                  View all <span class="tabular-nums">{TOOL_COUNT}</span> tools
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </a>
               </div>
             </div>
           </div>
-        </div>
+        </li>
 
-        <a
-          href="/tools/"
-          class:list={[
-            "text-sm font-medium transition-colors duration-150",
-            currentPath === '/tools' || currentPath === '/tools/'
-              ? "text-primary-600"
-              : "text-neutral-700 hover:text-primary-600",
-          ]}
-        >
-          All Tools
-        </a>
-
-        <a
-          href="/about/"
-          class:list={[
-            "text-sm font-medium transition-colors duration-150",
-            currentPath === '/about' || currentPath === '/about/'
-              ? "text-primary-600"
-              : "text-neutral-700 hover:text-primary-600",
-          ]}
-        >
-          About
-        </a>
-
-        {/* Header search */}
-        <div class="relative" id="header-search-wrapper">
+        <li class="nav-item" data-nav-item>
           <button
-            id="header-search-btn"
-            class="w-11 h-11 flex items-center justify-center text-neutral-500 hover:text-primary-600 transition-colors duration-150 rounded-lg hover:bg-neutral-50"
-            aria-label="Search tools"
+            type="button"
+            class:list={['nav-trigger', { 'is-section': inGuides }]}
+            id="nav-trigger-guides"
+            aria-expanded="false"
+            aria-controls="nav-panel-guides"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            Guides
+            <svg class="nav-chevron w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
           </button>
-          <div id="header-search-dropdown" class="absolute right-0 top-full mt-2 w-[360px] bg-white rounded-xl shadow-xl border border-neutral-200/80 overflow-hidden hidden z-50">
-            <div class="p-3 border-b border-neutral-100">
-              <input
-                type="search"
-                id="header-search-input"
-                placeholder="Search tools..."
-                class="w-full px-3 py-2 text-sm rounded-lg bg-neutral-50 border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
-                autocomplete="off"
-              />
+          <div class="nav-panel" id="nav-panel-guides" data-nav-panel>
+            <div class="nav-panel-inner">
+              <div class="nav-guides-grid">
+                {guideColumns.map((col) => (
+                  <div>
+                    <p class="nav-col-heading">{col.heading}</p>
+                    <ul>
+                      {col.links.map((l) => (
+                        <li><a href={l.href} class="nav-panel-link" aria-current={isCurrent(l.href) ? 'page' : undefined} data-astro-prefetch="hover">{l.label}</a></li>
+                      ))}
+                      <li><a href={col.more.href} class="nav-panel-link nav-more" aria-current={isCurrent(col.more.href) ? 'page' : undefined} data-astro-prefetch="hover">{col.more.label}</a></li>
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div id="header-search-results" class="max-h-[320px] overflow-y-auto"></div>
           </div>
-        </div>
+        </li>
 
-        <ThemeToggle />
-      </div>
+        <li>
+          <a href="/tools/" class:list={['nav-link', { 'is-section': currentPath === '/tools/' }]} aria-current={currentPath === '/tools/' ? 'page' : undefined} data-astro-prefetch="hover">All tools</a>
+        </li>
+        <li>
+          <a href="/about/" class:list={['nav-link', { 'is-section': currentPath === '/about/' }]} aria-current={currentPath === '/about/' ? 'page' : undefined} data-astro-prefetch="hover">About</a>
+        </li>
+      </ul>
 
-      {/* Mobile: theme toggle + hamburger */}
-      <div class="flex items-center gap-1 lg:hidden">
+      <div class="flex items-center gap-1 -mr-2 lg:mr-0">
+        <SiteSearch id="site-search" variant="header" />
         <ThemeToggle />
         <button
+          type="button"
           id="mobile-menu-btn"
-          class="w-11 h-11 flex items-center justify-center -mr-2 text-neutral-700 hover:text-primary-600 transition-colors duration-150 rounded-lg"
+          class="menu-btn w-11 h-11 items-center justify-center text-neutral-700 hover:text-primary-600 transition-colors duration-150 rounded-lg lg:hidden"
           aria-label="Open menu"
           aria-expanded="false"
+          aria-controls="mobile-menu"
         >
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
+        {/* Without JavaScript the menu button cannot open anything: link to the full list instead */}
+        <a href="/tools/" class="nojs-menu-link px-3 py-2 text-sm font-medium text-neutral-700 lg:hidden">All tools</a>
       </div>
     </div>
   </nav>
 </header>
 
-{/* Mobile menu overlay — OUTSIDE header to avoid backdrop-filter containing block issue on mobile WebKit */}
+{/* Mobile menu dialog — OUTSIDE the header so the header's backdrop-filter is not its containing block (WebKit) */}
 <div
   id="mobile-menu"
-  class="mobile-menu fixed inset-0 z-50 hidden lg:hidden"
+  class="mobile-menu fixed inset-0 z-[60] hidden lg:hidden"
   role="dialog"
-  aria-label="Mobile navigation"
+  aria-modal="true"
+  aria-labelledby="mobile-menu-title"
 >
-  {/* Backdrop */}
   <div class="mobile-backdrop absolute inset-0 bg-black/20 backdrop-blur-sm" aria-hidden="true"></div>
 
-  {/* Menu panel */}
-  <div class="mobile-panel absolute top-0 right-0 bottom-0 w-full max-w-[340px] bg-white shadow-2xl overflow-y-auto">
+  <div class="mobile-panel absolute top-0 right-0 bottom-0 w-full max-w-[360px] bg-white shadow-2xl overflow-y-auto overscroll-contain">
     <div class="px-5 py-4">
-      <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center justify-between mb-6">
         <Logo />
         <button
+          type="button"
           id="mobile-menu-close"
-          class="p-2 -mr-2 text-neutral-700 hover:text-primary-600 rounded-lg hover:bg-neutral-50 transition-colors duration-150"
+          class="w-11 h-11 -mr-2 flex items-center justify-center text-neutral-700 hover:text-primary-600 rounded-lg hover:bg-neutral-50 transition-colors duration-150"
           aria-label="Close menu"
         >
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -349,288 +236,394 @@ const navIcons = navIconNames.map((name) => ({
           </svg>
         </button>
       </div>
+      <h2 id="mobile-menu-title" class="sr-only">Site menu</h2>
 
-      <nav class="space-y-7">
-        {financialCategories.map((cat) => (
-          <div>
-            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 px-2">
-              {cat.label}
-            </h3>
-            <ul class="space-y-0.5">
-              {cat.tools.map((tool) => (
-                <li>
-                  <a
-                    href={getToolPath(tool)}
-                    class:list={[
-                      "flex items-center gap-3 px-3 py-3 text-[15px] rounded-lg transition-colors duration-150",
-                      currentPath === getToolPath(tool)
-                        ? "text-primary-600 bg-primary-50 font-medium"
-                        : "text-neutral-700 hover:bg-neutral-50",
-                    ]}
-                  >
-                    <div class:list={[
-                      "inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-                      currentPath === getToolPath(tool)
-                        ? "bg-primary-100 text-primary-600"
-                        : "bg-neutral-100 text-neutral-500",
-                    ]}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
-                    </div>
-                    {tool.name.replace(' Calculator', '')}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-
-        {/* Scenarios & Comparisons — prominent, before utility tools */}
+      <nav aria-label="Mobile" class="space-y-6">
         <div>
-          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 px-2">
-            Guides
-          </h3>
-          <ul class="space-y-0.5">
-            <li>
-              <a
-                href="/scenarios/"
-                class:list={[
-                  "flex items-center gap-3 px-3 py-3 text-[15px] rounded-lg transition-colors duration-150",
-                  currentPath.startsWith('/scenarios')
-                    ? "text-primary-600 bg-primary-50 font-medium"
-                    : "text-neutral-700 hover:bg-neutral-50",
-                ]}
-              >
-                <div class:list={[
-                  "inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-                  currentPath.startsWith('/scenarios')
-                    ? "bg-primary-100 text-primary-600"
-                    : "bg-neutral-100 text-neutral-500",
-                ]}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-calculator" /></svg>
-                </div>
-                Scenarios
-              </a>
-            </li>
-            <li>
-              <a
-                href="/comparisons/"
-                class:list={[
-                  "flex items-center gap-3 px-3 py-3 text-[15px] rounded-lg transition-colors duration-150",
-                  currentPath.startsWith('/comparisons')
-                    ? "text-primary-600 bg-primary-50 font-medium"
-                    : "text-neutral-700 hover:bg-neutral-50",
-                ]}
-              >
-                <div class:list={[
-                  "inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-                  currentPath.startsWith('/comparisons')
-                    ? "bg-primary-100 text-primary-600"
-                    : "bg-neutral-100 text-neutral-500",
-                ]}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-scale" /></svg>
-                </div>
-                Comparisons
-              </a>
-            </li>
+          <p class="m-heading">Popular</p>
+          <ul>
+            {mobilePopular.map((tool) => (
+              <li><a href={getToolPath(tool)} class="m-link" aria-current={isCurrent(getToolPath(tool)) ? 'page' : undefined}>{shortName(tool)}</a></li>
+            ))}
           </ul>
         </div>
 
-        {/* Utility Tools */}
         <div>
-          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 px-2">
-            Utility
-          </h3>
-          <ul class="space-y-0.5">
-            {allUtilityTools.map((tool) => (
-              <li>
-                <a
-                  href={getToolPath(tool)}
-                  class:list={[
-                    "flex items-center gap-3 px-3 py-3 text-[15px] rounded-lg transition-colors duration-150",
-                    currentPath === getToolPath(tool)
-                      ? "text-primary-600 bg-primary-50 font-medium"
-                      : "text-neutral-700 hover:bg-neutral-50",
-                  ]}
-                >
-                  <div class:list={[
-                    "inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-                    currentPath === getToolPath(tool)
-                      ? "bg-primary-100 text-primary-600"
-                      : "bg-neutral-100 text-neutral-500",
-                  ]}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
-                  </div>
-                  {tool.name.replace(' Generator', '').replace(' Converter', '')}
-                </a>
+          <p class="m-heading">All tools by category</p>
+          <ul class="border-t border-neutral-200/80">
+            {mobileGroups.map((g) => (
+              <li class="m-group border-b border-neutral-200/80" data-m-group>
+                <button type="button" class="m-group-btn" aria-expanded="false" aria-controls={`m-group-${g.slug}`}>
+                  <span>{g.label}</span>
+                  <span class="m-group-meta">
+                    <span class="tabular-nums">{g.tools.length}</span>
+                    <svg class="m-chevron w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                  </span>
+                </button>
+                <div class="m-group-body" id={`m-group-${g.slug}`} inert>
+                  <ul class="m-group-inner">
+                    {g.tools.map((tool) => (
+                      <li><a href={getToolPath(tool)} class="m-link m-link-sub" aria-current={isCurrent(getToolPath(tool)) ? 'page' : undefined}>{shortName(tool)}</a></li>
+                    ))}
+                  </ul>
+                </div>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* File Tools */}
         <div>
-          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 px-2">
-            File Tools
-          </h3>
-          <ul class="space-y-0.5">
-            {allFileTools.map((tool) => (
-              <li>
-                <a
-                  href={getToolPath(tool)}
-                  class:list={[
-                    "flex items-center gap-3 px-3 py-3 text-[15px] rounded-lg transition-colors duration-150",
-                    currentPath === getToolPath(tool)
-                      ? "text-primary-600 bg-primary-50 font-medium"
-                      : "text-neutral-700 hover:bg-neutral-50",
-                  ]}
-                >
-                  <div class:list={[
-                    "inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-                    currentPath === getToolPath(tool)
-                      ? "bg-primary-100 text-primary-600"
-                      : "bg-neutral-100 text-neutral-500",
-                  ]}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href={`#icon-${tool.icon}`} /></svg>
-                  </div>
-                  {tool.name.replace(' Converter', '')}
-                </a>
-              </li>
+          <p class="m-heading">Guides</p>
+          <ul>
+            {mobileGuides.map((l) => (
+              <li><a href={l.href} class="m-link" aria-current={isCurrent(l.href) ? 'page' : undefined}>{l.label}</a></li>
             ))}
           </ul>
         </div>
 
-        <div class="border-t border-neutral-200 pt-6 space-y-0.5">
-          <a href="/" class:list={[
-            "flex items-center gap-3 px-3 py-3 text-[15px] font-medium rounded-lg transition-colors duration-150",
-            currentPath === '/' || currentPath === ''
-              ? "text-primary-600 bg-primary-50"
-              : "text-neutral-700 hover:bg-neutral-50",
-          ]}>
-            <div class:list={[
-              "inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-              currentPath === '/' || currentPath === ''
-                ? "bg-primary-100 text-primary-600"
-                : "bg-neutral-100 text-neutral-500",
-            ]}>
-              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-home" /></svg>
-            </div>
-            Home
-          </a>
-          <a href="/tools/" class="flex items-center gap-3 px-3 py-3 text-[15px] font-medium text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors duration-150">
-            <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-100 text-neutral-500 shrink-0">
-              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search" /></svg>
-            </div>
-            All Tools
-          </a>
-          <a href="/about/" class="flex items-center gap-3 px-3 py-3 text-[15px] font-medium text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors duration-150">
-            <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-100 text-neutral-500 shrink-0">
-              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-info" /></svg>
-            </div>
-            About
-          </a>
-        </div>
+        <ul class="border-t border-neutral-200/80 pt-4">
+          <li><a href="/" class="m-link" aria-current={currentPath === '/' ? 'page' : undefined}>Home</a></li>
+          <li><a href="/tools/" class="m-link" aria-current={currentPath === '/tools/' ? 'page' : undefined}>All {TOOL_COUNT} tools</a></li>
+          <li><a href="/about/" class="m-link" aria-current={currentPath === '/about/' ? 'page' : undefined}>About</a></li>
+        </ul>
       </nav>
     </div>
   </div>
 </div>
 
 <style>
-  /* Mobile menu slide-in animation */
-  .mobile-menu.open .mobile-backdrop {
-    animation: fadeIn 200ms ease-out forwards;
+  /* ── Desktop menus ── */
+  .nav-trigger,
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-neutral-700);
+    transition: color 150ms ease, background-color 150ms ease;
   }
-  .mobile-menu.open .mobile-panel {
-    animation: slideIn 250ms ease-out forwards;
+  .nav-trigger:hover,
+  .nav-link:hover,
+  .nav-item.is-open .nav-trigger { color: var(--color-primary-600); background: var(--color-neutral-50); }
+  .nav-trigger.is-section,
+  .nav-link.is-section { color: var(--color-primary-600); }
+  .nav-chevron { transition: transform 200ms ease; }
+  .nav-item.is-open .nav-chevron { transform: rotate(180deg); }
+
+  .nav-panel {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    top: 100%;
+    padding-top: 0.5rem; /* hover bridge between button and panel */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
   }
-  .mobile-menu.closing .mobile-backdrop {
-    animation: fadeOut 200ms ease-in forwards;
+  /* Visibility flips instantly on open so focus can move into the panel at once */
+  .nav-item.is-open .nav-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 180ms ease, transform 180ms ease, visibility 0s;
   }
-  .mobile-menu.closing .mobile-panel {
-    animation: slideOut 200ms ease-in forwards;
+  /* No JavaScript: hover and keyboard focus still open the menus */
+  :global(html:not(.js)) .nav-item:hover .nav-panel,
+  :global(html:not(.js)) .nav-item:focus-within .nav-panel { opacity: 1; visibility: visible; transform: none; }
+  @media (min-width: 1024px) {
+    .nav-panel { left: 2rem; right: 2rem; }
   }
 
+  .nav-panel-inner {
+    max-height: calc(100vh - 5.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-card-hover);
+    padding: 1.25rem 1.25rem 0.75rem;
+  }
+  .nav-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.1fr);
+    gap: 1rem 1.25rem;
+  }
+  .nav-col-other { padding-left: 1.25rem; border-left: 1px solid var(--color-border); }
+  .nav-guides-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem 1.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .nav-col-heading {
+    margin: 0 0 0.375rem;
+    padding: 0 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-neutral-600);
+  }
+  .nav-panel-link {
+    display: block;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.3;
+    color: var(--color-neutral-800);
+    transition: color 150ms ease, background-color 150ms ease;
+  }
+  .nav-panel-link:hover { color: var(--color-primary-600); background: var(--color-neutral-50); }
+  .nav-panel-link[aria-current='page'] { color: var(--color-primary-700); background: var(--color-primary-50); font-weight: 500; }
+  .nav-more { color: var(--color-primary-700); font-weight: 600; }
+  .nav-panel-foot {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .nav-panel-foot .nav-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+  }
+  .nav-panel-foot .nav-more:hover { background: var(--color-primary-50); }
+
+  /* ── Header buttons that need JavaScript ── */
+  .menu-btn { display: none; }
+  :global(html.js) .menu-btn { display: inline-flex; }
+  :global(html.js) .nojs-menu-link { display: none; }
+  @media (min-width: 1024px) {
+    :global(html.js) .menu-btn,
+    .nojs-menu-link { display: none; }
+  }
+
+  /* ── Mobile menu ── */
+  .mobile-menu.open .mobile-backdrop { animation: fadeIn 200ms ease-out forwards; }
+  .mobile-menu.open .mobile-panel { animation: slideIn 250ms ease-out forwards; }
+  .mobile-menu.closing .mobile-backdrop { animation: fadeOut 200ms ease-in forwards; }
+  .mobile-menu.closing .mobile-panel { animation: slideOut 200ms ease-in forwards; }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
   @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
   @keyframes slideOut { from { transform: translateX(0); } to { transform: translateX(100%); } }
+  :global(html.menu-open) body { overflow: hidden; }
 
-  /* Desktop dropdown subtle slide */
-  .nav-dropdown {
-    transform: translateY(4px);
+  .m-heading {
+    margin: 0 0 0.25rem;
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-neutral-600);
   }
-
-  /* Keyboard-opened dropdown state */
-  .nav-dropdown.dropdown-open {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+  .m-link {
+    display: block;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    color: var(--color-neutral-800);
+    transition: background-color 150ms ease, color 150ms ease;
   }
+  .m-link:hover { background: var(--color-neutral-50); }
+  .m-link[aria-current='page'] { color: var(--color-primary-700); background: var(--color-primary-50); font-weight: 500; }
+  .m-link-sub { padding-left: 1.25rem; }
+  .m-group-btn {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-neutral-900);
+    text-align: left;
+  }
+  .m-group-meta { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--color-neutral-600); }
+  .m-chevron { transition: transform 200ms ease; }
+  .m-group.is-open .m-chevron { transform: rotate(180deg); }
+  .m-group-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 220ms ease, opacity 180ms ease;
+  }
+  .m-group.is-open .m-group-body { grid-template-rows: 1fr; opacity: 1; }
+  .m-group-inner { overflow: hidden; min-height: 0; padding-bottom: 0; }
+  .m-group.is-open .m-group-inner { padding-bottom: 0.5rem; }
 
   @media (prefers-reduced-motion: reduce) {
     .mobile-menu.open .mobile-backdrop,
     .mobile-menu.open .mobile-panel,
     .mobile-menu.closing .mobile-backdrop,
-    .mobile-menu.closing .mobile-panel {
-      animation-duration: 0.01ms;
-    }
-    .nav-dropdown { transform: none; }
+    .mobile-menu.closing .mobile-panel { animation-duration: 0.01ms; }
+    .nav-panel,
+    .nav-item.is-open .nav-panel { transform: none; transition: none; }
+    .m-group-body { transition: none; }
   }
 </style>
 
 <script>
+  /* ── Desktop menus: click, hover, keyboard ── */
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-item]'));
+  const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
+  let hoverSuppressed: HTMLElement | null = null;
+
+  const triggerOf = (item: HTMLElement) => item.querySelector<HTMLButtonElement>('.nav-trigger');
+
+  function closeItem(item: HTMLElement, restoreFocus = false) {
+    if (!item.classList.contains('is-open')) return;
+    item.classList.remove('is-open');
+    item.dataset.pinned = '';
+    const t = triggerOf(item);
+    t?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) t?.focus({ preventScroll: true });
+  }
+
+  function openItem(item: HTMLElement, opts: { pin?: boolean; focusFirst?: boolean } = {}) {
+    items.forEach((other) => other !== item && closeItem(other));
+    item.classList.add('is-open');
+    if (opts.pin) item.dataset.pinned = '1';
+    triggerOf(item)?.setAttribute('aria-expanded', 'true');
+    if (opts.focusFirst) item.querySelector<HTMLElement>('.nav-panel a[href]')?.focus({ preventScroll: true });
+  }
+
+  items.forEach((item) => {
+    const trigger = triggerOf(item);
+    if (!trigger) return;
+    let closeTimer: ReturnType<typeof setTimeout> | undefined;
+
+    trigger.addEventListener('click', (e) => {
+      const fromKeyboard = (e as MouseEvent).detail === 0;
+      if (item.classList.contains('is-open') && (item.dataset.pinned || fromKeyboard)) {
+        closeItem(item);
+      } else {
+        openItem(item, { pin: true, focusFirst: fromKeyboard });
+      }
+    });
+
+    item.addEventListener('mouseenter', () => {
+      if (!canHover.matches || hoverSuppressed === item) return;
+      clearTimeout(closeTimer);
+      if (!item.classList.contains('is-open')) openItem(item);
+    });
+    item.addEventListener('mouseleave', () => {
+      if (hoverSuppressed === item) hoverSuppressed = null;
+      if (item.dataset.pinned) return;
+      closeTimer = setTimeout(() => {
+        if (!item.contains(document.activeElement)) closeItem(item);
+      }, 150);
+    });
+
+    // Escape from the button or anywhere inside the panel
+    item.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !item.classList.contains('is-open')) return;
+      e.stopPropagation();
+      hoverSuppressed = item;
+      closeItem(item, true);
+    });
+
+    item.addEventListener('focusout', () => {
+      setTimeout(() => {
+        if (!item.contains(document.activeElement) && !item.matches(':hover')) closeItem(item);
+      }, 0);
+    });
+  });
+
+  // A hover-opened menu closes on Escape even when focus is elsewhere (WCAG 1.4.13)
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    items.forEach((item) => {
+      if (item.classList.contains('is-open')) {
+        hoverSuppressed = item;
+        closeItem(item, item.contains(document.activeElement));
+      }
+    });
+  });
+  document.addEventListener('click', (e) => {
+    items.forEach((item) => {
+      if (!item.contains(e.target as Node)) closeItem(item);
+    });
+  });
+
+  /* ── Mobile menu dialog ── */
   const menuBtn = document.getElementById('mobile-menu-btn');
   const closeBtn = document.getElementById('mobile-menu-close');
   const mobileMenu = document.getElementById('mobile-menu');
   const backdrop = mobileMenu?.querySelector('.mobile-backdrop');
+  let closeTimer: ReturnType<typeof setTimeout> | undefined;
+
+  /** Make everything except the dialog inert while it is open (F-24). */
+  function setBackgroundInert(on: boolean) {
+    Array.from(document.body.children).forEach((el) => {
+      if (el === mobileMenu || el.tagName === 'SCRIPT') return;
+      const h = el as HTMLElement;
+      if (on && !h.inert) {
+        h.inert = true;
+        h.dataset.menuInert = '1';
+      } else if (!on && h.dataset.menuInert) {
+        h.inert = false;
+        delete h.dataset.menuInert;
+      }
+    });
+  }
 
   function openMenu() {
     if (!mobileMenu) return;
+    clearTimeout(closeTimer);
     mobileMenu.classList.remove('hidden', 'closing');
     mobileMenu.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    document.documentElement.classList.add('menu-open');
     menuBtn?.setAttribute('aria-expanded', 'true');
-    closeBtn?.focus();
+    setBackgroundInert(true);
+    closeBtn?.focus({ preventScroll: true });
   }
 
   function closeMenu() {
-    if (!mobileMenu) return;
+    if (!mobileMenu || mobileMenu.classList.contains('hidden')) return;
     mobileMenu.classList.remove('open');
     mobileMenu.classList.add('closing');
-
-    // Wait for animation to complete
-    setTimeout(() => {
+    setBackgroundInert(false);
+    menuBtn?.setAttribute('aria-expanded', 'false');
+    // preventScroll: focusing the button must not scroll the page (HOME-CHROME-09)
+    menuBtn?.focus({ preventScroll: true });
+    closeTimer = setTimeout(() => {
       mobileMenu.classList.add('hidden');
       mobileMenu.classList.remove('closing');
-      document.body.style.overflow = '';
-      menuBtn?.setAttribute('aria-expanded', 'false');
-      menuBtn?.focus();
+      document.documentElement.classList.remove('menu-open');
     }, 200);
   }
 
   menuBtn?.addEventListener('click', openMenu);
   closeBtn?.addEventListener('click', closeMenu);
-
-  // Close on backdrop click
   backdrop?.addEventListener('click', closeMenu);
+  // Navigating to an anchor on the same page closes the menu first
+  mobileMenu?.addEventListener('click', (e) => {
+    if ((e.target as Element).closest?.('a[href]')) closeMenu();
+  });
 
-  // Close on Escape + focus trap
   document.addEventListener('keydown', (e) => {
-    if (!mobileMenu || mobileMenu.classList.contains('hidden')) return;
-
+    if (!mobileMenu || mobileMenu.classList.contains('hidden') || mobileMenu.classList.contains('closing')) return;
     if (e.key === 'Escape') {
       closeMenu();
       return;
     }
-
-    // Focus trap: keep Tab within the mobile menu when open
+    // Focus trap: keep Tab inside the dialog (skipping collapsed groups)
     if (e.key === 'Tab') {
-      const focusable = mobileMenu.querySelectorAll<HTMLElement>(
-        'a[href], button, [tabindex]:not([tabindex="-1"])'
-      );
+      const focusable = Array.from(
+        mobileMenu.querySelectorAll<HTMLElement>('a[href], button, [tabindex]:not([tabindex="-1"])')
+      ).filter((el) => !el.closest('[inert]'));
       if (focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
@@ -641,153 +634,16 @@ const navIcons = navIconNames.map((name) => ({
     }
   });
 
-  // === Header search ===
-  const headerSearchBtn = document.getElementById('header-search-btn');
-  const headerSearchDropdown = document.getElementById('header-search-dropdown');
-  const headerSearchInput = document.getElementById('header-search-input') as HTMLInputElement;
-  const headerSearchResults = document.getElementById('header-search-results');
-  const headerSearchWrapper = document.getElementById('header-search-wrapper');
-
-  // Build search index from all tools
-  const navTools: Array<{ name: string; description: string; path: string }> = [];
-  document.querySelectorAll('#mobile-menu nav a[href^="/tools/"]').forEach((el) => {
-    const a = el as HTMLAnchorElement;
-    navTools.push({
-      name: a.textContent?.trim() || '',
-      description: '',
-      path: a.pathname,
+  // Collapsible categories inside the mobile menu
+  document.querySelectorAll<HTMLElement>('[data-m-group]').forEach((group) => {
+    const btn = group.querySelector<HTMLButtonElement>('.m-group-btn');
+    const body = group.querySelector<HTMLElement>('.m-group-body');
+    if (!btn || !body) return;
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      group.classList.toggle('is-open', open);
+      body.inert = !open;
     });
   });
-
-  // If no tools from mobile menu, use a static list
-  if (navTools.length === 0) {
-    // Fallback — the search will still work on the homepage where tool cards exist
-  }
-
-  function renderNavSearch(query: string) {
-    if (!headerSearchResults || !headerSearchDropdown) return;
-    if (!query.trim()) {
-      headerSearchResults.innerHTML = '<div class="px-4 py-3 text-xs text-neutral-500">Type to search...</div>';
-      return;
-    }
-    const q = query.toLowerCase();
-    const matches = navTools.filter((t) => t.name.toLowerCase().includes(q)).slice(0, 6);
-    if (matches.length === 0) {
-      headerSearchResults.innerHTML = '<div class="px-4 py-3 text-sm text-neutral-500">No tools found</div>';
-      return;
-    }
-    headerSearchResults.innerHTML = matches.map((t) =>
-      `<a href="${t.path}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-100">
-        <svg class="w-4 h-4 text-neutral-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-        ${t.name}
-      </a>`
-    ).join('');
-  }
-
-  headerSearchBtn?.addEventListener('click', () => {
-    headerSearchDropdown?.classList.toggle('hidden');
-    if (!headerSearchDropdown?.classList.contains('hidden')) {
-      headerSearchInput?.focus();
-      renderNavSearch(headerSearchInput?.value || '');
-    }
-  });
-
-  headerSearchInput?.addEventListener('input', (e) => {
-    renderNavSearch((e.target as HTMLInputElement).value);
-  });
-
-  headerSearchInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      headerSearchDropdown?.classList.add('hidden');
-      headerSearchBtn?.focus();
-    }
-  });
-
-  // Close search on outside click
-  document.addEventListener('click', (e) => {
-    if (headerSearchWrapper && !headerSearchWrapper.contains(e.target as Node)) {
-      headerSearchDropdown?.classList.add('hidden');
-    }
-  });
-
-  // Desktop dropdown keyboard accessibility
-  const dropdownBtn = document.getElementById('desktop-dropdown-btn');
-  const dropdownPanel = document.getElementById('desktop-dropdown-panel');
-  const dropdownContainer = document.getElementById('desktop-dropdown');
-
-  if (dropdownBtn && dropdownPanel && dropdownContainer) {
-    let dropdownOpen = false;
-
-    function openDropdown() {
-      dropdownOpen = true;
-      dropdownBtn!.setAttribute('aria-expanded', 'true');
-      dropdownPanel!.classList.add('dropdown-open');
-    }
-
-    function closeDropdown() {
-      dropdownOpen = false;
-      dropdownBtn!.setAttribute('aria-expanded', 'false');
-      dropdownPanel!.classList.remove('dropdown-open');
-    }
-
-    // Toggle on click (needed for tablets in desktop view where hover doesn't work)
-    dropdownBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (dropdownOpen) {
-        closeDropdown();
-      } else {
-        openDropdown();
-      }
-    });
-
-    // Toggle on Enter/Space
-    dropdownBtn.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        if (dropdownOpen) {
-          closeDropdown();
-        } else {
-          openDropdown();
-          // Focus the first link in the dropdown
-          const firstLink = dropdownPanel!.querySelector<HTMLElement>('a[href]');
-          firstLink?.focus();
-        }
-      }
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (dropdownOpen && !dropdownContainer!.contains(e.target as Node)) {
-        closeDropdown();
-      }
-    });
-
-    // Close on Escape from within dropdown
-    dropdownPanel.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeDropdown();
-        dropdownBtn!.focus();
-      }
-    });
-
-    // Close when focus leaves the dropdown container
-    dropdownContainer.addEventListener('focusout', () => {
-      // Use setTimeout to let the new focus target settle
-      setTimeout(() => {
-        if (!dropdownContainer!.contains(document.activeElement)) {
-          closeDropdown();
-        }
-      }, 0);
-    });
-
-    // Sync aria-expanded on hover for screen readers
-    dropdownContainer.addEventListener('mouseenter', () => {
-      dropdownBtn!.setAttribute('aria-expanded', 'true');
-    });
-    dropdownContainer.addEventListener('mouseleave', () => {
-      if (!dropdownOpen) {
-        dropdownBtn!.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
 </script>
