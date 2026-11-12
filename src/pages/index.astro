@@ -555,7 +555,9 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
     /* ════ Every mode: the hero. Default (no class, no JS, returning visitor,
        reduced motion) is the compact light hero; html.intro-play below turns
        the same markup into the theater. ════ */
-    .track { position: relative; }
+    /* Outside intro mode the track is not a box at all: the hero inside it
+       sits in normal flow and #track itself is hidden */
+    .track { display: contents; }
     .stage { position: relative; }
     .wash,
     .line-stage,
@@ -623,7 +625,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       font-weight: 500;
       color: var(--color-neutral-800);
       background: var(--color-surface);
-      border: 1px solid var(--color-border);
+      border: 1px solid var(--color-neutral-200);
       border-radius: 8px;
       text-decoration: none;
       transition: border-color 150ms ease, color 150ms ease;
@@ -648,7 +650,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
     /* :has(#track) pins this to the homepage even if the bundler ever merges
        this stylesheet into a shared chunk */
     html.intro-play body:has(#track) { background: #0a0b0d; }
-    html.intro-play .track { height: 700vh; color: #fcfcfa; }
+    html.intro-play .track { display: block; position: relative; height: 700vh; color: #fcfcfa; }
     html.intro-play .stage {
       position: sticky;
       top: 0;
@@ -950,7 +952,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
     .d-section { padding: clamp(64px, 11vh, 130px) 24px; }
     .d-engine { padding-top: clamp(28px, 5vh, 56px); }
     html.intro-play .d-engine { padding-top: clamp(40px, 7vh, 80px); }
-    .d-board { background: var(--color-neutral-50); border-block: 1px solid var(--color-border); }
+    .d-board { background: var(--color-neutral-50); border-block: 1px solid var(--color-neutral-200); }
     .d-inner { max-width: 1100px; margin: 0 auto; }
 
     .d-kicker {
@@ -994,11 +996,11 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       justify-content: space-between;
       gap: 28px;
       padding: 21px 4px;
-      border-top: 1px solid var(--color-border);
+      border-top: 1px solid var(--color-neutral-200);
       text-decoration: none;
       transition: background-color 0.25s ease;
     }
-    .decision-rows li:last-child .decision-row { border-bottom: 1px solid var(--color-border); }
+    .decision-rows li:last-child .decision-row { border-bottom: 1px solid var(--color-neutral-200); }
     .decision-row:hover { background: rgba(11, 110, 110, 0.035); }
     [data-theme="dark"] .decision-row:hover { background: rgba(56, 174, 174, 0.07); }
     .decision-q {
@@ -1013,7 +1015,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       font-size: 9.5px;
       letter-spacing: 0.14em;
       color: var(--color-neutral-600);
-      border: 1px solid var(--color-border);
+      border: 1px solid var(--color-neutral-200);
       border-radius: 5px;
       padding: 2px 6px 1px;
       margin-right: 9px;
@@ -1054,7 +1056,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       flex-direction: column;
       gap: 8px;
       padding: 28px 28px 24px;
-      border: 1px solid var(--color-border);
+      border: 1px solid var(--color-neutral-200);
       border-radius: 12px;
       background: var(--color-surface);
       text-decoration: none;
@@ -1170,7 +1172,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
     .cta-viewall:hover svg { transform: translateX(3px); }
 
     /* Close */
-    .d-close { text-align: center; border-top: 1px solid var(--color-border); }
+    .d-close { text-align: center; border-top: 1px solid var(--color-neutral-200); }
     .d-trust {
       margin: 0 auto 30px;
       font-size: 14px;
