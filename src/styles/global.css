@@ -1165,6 +1165,17 @@ html.has-mini-bar {
   [role="switch"][aria-checked="true"] > span {
     background-color: HighlightText;
   }
+  /* Disabled switches (e.g. the Scottish toggle when an S tax code sets it) */
+  [role="switch"]:disabled {
+    border-color: GrayText;
+  }
+  [role="switch"]:disabled > span,
+  [role="switch"][aria-checked="true"]:disabled {
+    background-color: GrayText;
+  }
+  [role="switch"][aria-checked="true"]:disabled > span {
+    background-color: Canvas;
+  }
 
   /* Slider: the filled track is an inline gradient; draw a plain system
      track instead (!important beats the inline style) and a system thumb. */
