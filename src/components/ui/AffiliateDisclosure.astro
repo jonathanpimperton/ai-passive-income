@@ -2,19 +2,27 @@
 /**
  * FTC-compliant affiliate disclosure banner.
  * Appears at the top of any page with affiliate links (below H1, above calculator).
- * Not dismissible — FTC requires it to be visible.
+ * Not dismissible -- FTC requires it to be visible.
+ *
+ * Compact on purpose (one bordered line, no icon chip) so it doesn't push
+ * the calculator below the fold on phones. Pass `toolSlug` so secured-lending
+ * pages (mortgage payment, affordability, rent-vs-buy, mortgage comparisons)
+ * also carry the repossession warning; no other page does.
  */
-import ToolIcon from './ToolIcon.astro';
+import { isSecuredLendingPage, REPOSSESSION_WARNING } from '@lib/affiliate-data';
+
+interface Props {
+  toolSlug?: string;
+}
+
+const { toolSlug } = Astro.props;
+const secured = isSecuredLendingPage(toolSlug);
 ---
 
-<div class="bg-primary-50 border border-primary-200/60 rounded-xl px-5 py-4 my-4 flex items-start gap-3">
-  <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 text-primary-600 shrink-0 mt-0.5">
-    <ToolIcon name="info" size={16} />
-  </div>
-  <p class="text-sm text-neutral-700 leading-relaxed">
-    <span class="font-semibold">Disclosure:</span> Some links on this page are affiliate links. We may earn a commission at no extra cost to you.
-    <a href="/disclosure/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-200 ml-1">
-      Full disclosure &rarr;
-    </a>
-  </p>
-</div>
+<p class="affiliate-disclosure my-4 rounded-lg border border-primary-200/60 bg-primary-50 px-4 py-3 text-sm text-neutral-700 leading-relaxed">
+  <span class="font-semibold">Disclosure:</span> Some links on this page are affiliate links. We may earn a commission at no extra cost to you.
+  {secured && <> {REPOSSESSION_WARNING}</>}
+  <a href="/disclosure/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-200 ml-1">
+    Full disclosure &rarr;
+  </a>
+</p>
