@@ -919,6 +919,19 @@ html.has-mini-bar {
   color: var(--color-neutral-900);
 }
 
+/* --- Dark mode: teal highlight tints written as dark:bg-primary-900/NN ---
+   The dark theme INVERTS the primary scale (900 becomes the lightest teal),
+   so "primary-900 at 20%" lightened highlighted rows to a grey #424A50 and
+   failed contrast (A11Y-PERF-13, stamp-duty band row 3.55:1). Map these
+   variants to the dark teal tints they were written to mean. */
+[data-theme="dark"] .dark\:bg-primary-900\/20,
+[data-theme="dark"] .dark\:bg-primary-900\/30 {
+  background-color: var(--color-primary-50);
+}
+[data-theme="dark"] .dark\:bg-primary-900\/40 {
+  background-color: var(--color-primary-100);
+}
+
 /* --- Dark mode: amber warning callouts (A11Y-PERF F-23) ---
    Components use light-mode amber utilities (bg-amber-50, text-amber-800...)
    that stayed #FFFBEB in dark mode. Map them to a dark amber surface with
