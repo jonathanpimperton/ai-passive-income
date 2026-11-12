@@ -95,6 +95,6 @@ describe('figuresCacheKey', () => {
     expect(remarkFiguresPlugin[0]).toBe(remarkFigures);
     expect(remarkFiguresPlugin[1]).toEqual({ cacheKey: expect.stringMatching(/^[0-9a-f]{16}$/) });
     // JSON.stringify (how Astro digests the config) keeps the key and drops the function
-    expect(JSON.stringify(remarkFiguresPlugin)).toContain(remarkFiguresPlugin[1].cacheKey);
+    expect(JSON.stringify(remarkFiguresPlugin)).toContain((remarkFiguresPlugin[1] as { cacheKey: string }).cacheKey);
   });
 });
