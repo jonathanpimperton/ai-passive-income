@@ -14,7 +14,7 @@
  *
  * pdf-lib is imported lazily so it stays out of the initial page bundle.
  */
-import type { PDFDocument } from 'pdf-lib';
+import type { PDFDocument, PDFRef as PDFRefT, PDFDict as PDFDictT } from 'pdf-lib';
 import { looksLikePdf, hasEncryptDictionary, encryptedPdfMessage, unreadablePdfMessage } from './pdf-checks';
 
 export type PdfLoadResult =
@@ -56,7 +56,7 @@ export async function loadPdfForEditing(bytes: Uint8Array, fileName: string): Pr
 export async function rebuildAcroForm(target: PDFDocument, sources: PDFDocument[]): Promise<number> {
   const { PDFName, PDFDict, PDFRef, PDFString, PDFHexString, PDFObjectCopier } = await import('pdf-lib');
   const ctx = target.context;
-  const rootRefs: InstanceType<typeof PDFRef>[] = [];
+  const rootRefs: PDFRefT[] = [];
   const seen = new Set<string>();
 
   for (const page of target.getPages()) {
@@ -98,7 +98,7 @@ export async function rebuildAcroForm(target: PDFDocument, sources: PDFDocument[
     if (count > 1) field.set(PDFName.of('T'), PDFHexString.fromText(`${name}_${count}`));
   }
 
-  const acroForm = ctx.obj({}) as InstanceType<typeof PDFDict>;
+  const acroForm = ctx.obj({}) as PDFDictT;
   acroForm.set(PDFName.of('Fields'), ctx.obj(rootRefs));
   for (const src of sources) {
     const srcForm = src.catalog.lookupMaybe(PDFName.of('AcroForm'), PDFDict);
