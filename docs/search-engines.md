@@ -32,9 +32,11 @@ Source: Bing Webmaster blog, "Import sites from Search Console to Bing Webmaster
 
 ## 2. IndexNow (after a deploy that changed pages)
 
-`scripts/indexnow-submit.mjs` submits the URLs whose sitemap `<lastmod>` is on or after a given
-commit's date, plus any URL newly redirected in `public/_redirects` since that commit. It is a
-**dry run unless `--send` is passed**.
+`scripts/indexnow-submit.mjs` diffs the built sitemap against the sitemap the `--since` commit
+would have produced (rebuilt from that commit's tree with the same lastmod rules). It submits URLs
+that are new, whose `<lastmod>` moved, or that left the sitemap, plus any URL newly redirected in
+`public/_redirects`. It is a **dry run unless `--send` is passed**, and needs a full (not
+shallow) clone.
 
 ```bash
 npm run build

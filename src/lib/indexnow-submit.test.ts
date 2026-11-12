@@ -21,16 +21,28 @@ describe('selectUrls', () => {
     { loc: 'https://www.calcrun.com/d/', lastmod: null },
   ];
 
-  it('selects URLs changed on or after the commit date', () => {
-    const sel = selectUrls({ sitemapUrls, sinceDate: '2026-11-10' });
-    expect(sel.urls).toEqual(['https://www.calcrun.com/b/', 'https://www.calcrun.com/c/']);
+  // What the --since commit's tree would have put in the sitemap.
+  const oldMap = new Map([
+    ['/a/', '2026-07-07'], // unchanged
+    ['/b/', '2026-07-07'], // lastmod moved
+    ['/d/', '2026-07-07'], // now undated (e.g. shallow build)
+    ['/gone/', '2026-07-07'], // no longer in the sitemap
+  ]);
+
+  it('submits new, changed and removed URLs, not unchanged ones', () => {
+    const sel = selectUrls({ sitemapUrls, oldMap });
+    expect(sel.added).toEqual(['https://www.calcrun.com/c/']);
+    expect(sel.changed).toEqual(['https://www.calcrun.com/b/']);
+    expect(sel.removed).toEqual(['https://www.calcrun.com/gone/']);
     expect(sel.undated).toEqual(['https://www.calcrun.com/d/']);
+    expect(sel.urls).toEqual(['https://www.calcrun.com/b/', 'https://www.calcrun.com/c/', 'https://www.calcrun.com/gone/']);
   });
 
   it('adds undated URLs only on request, and newly redirected sources', () => {
-    const sel = selectUrls({ sitemapUrls, sinceDate: '2026-11-11', includeUndated: true, redirectSources: ['/old/', '/old/'] });
-    expect(sel.urls).toEqual(['https://www.calcrun.com/c/', 'https://www.calcrun.com/d/', 'https://www.calcrun.com/old/']);
+    const sel = selectUrls({ sitemapUrls, oldMap, includeUndated: true, redirectSources: ['/old/', '/old/'] });
+    expect(sel.urls).toContain('https://www.calcrun.com/d/');
     expect(sel.moved).toEqual(['https://www.calcrun.com/old/']);
+    expect(sel.urls.filter((u) => u.endsWith('/old/'))).toHaveLength(1);
   });
 });
 

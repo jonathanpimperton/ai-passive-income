@@ -1,23 +1,28 @@
 #!/usr/bin/env node
 /**
- * IndexNow submission for URLs that changed since a given commit.
+ * IndexNow submission for the URLs that changed since a given commit.
  *
  * DRY RUN BY DEFAULT: prints the URL list and the payload it would send.
  * Nothing leaves the machine unless --send is passed.
  *
- * Usage (after `npm run build`, from the repo root):
+ * Usage (after `npm run build`, from the repo root, in a full clone):
  *   node scripts/indexnow-submit.mjs --since <commit>            # dry run
  *   node scripts/indexnow-submit.mjs --since <commit> --send     # submit
  *
+ * How "changed" is decided: the built sitemap (dist) is diffed against the
+ * sitemap the --since commit would have produced. The old lastmod map is
+ * rebuilt from that commit's src/ tree and git history with the same rules
+ * (src/lib/sitemap-lastmod.mjs), so a URL is submitted when it is new, when its
+ * <lastmod> moved, or when it disappeared from the sitemap. Source paths added
+ * to public/_redirects since the commit are submitted too, so engines recrawl
+ * moved URLs and see the 301.
+ *
  * Options:
- *   --since <commit>     required; URLs whose sitemap <lastmod> is on or after
- *                        this commit's date are submitted, plus every source
- *                        path added to public/_redirects since it (moved or
- *                        retired URLs, so engines recrawl and see the 301)
+ *   --since <commit>     required (normally the last deployed commit)
  *   --dist <dir>         built site to read sitemaps from (default: dist)
- *   --include-undated    also submit sitemap URLs that have no <lastmod>
+ *   --include-undated    also submit current sitemap URLs that have no <lastmod>
  *   --endpoint <url>     IndexNow endpoint (default: https://api.indexnow.org/indexnow,
- *                        which shares submissions with Bing, Yandex, Seznam, Naver...)
+ *                        which shares submissions with the participating engines)
  *   --send               actually POST the list (after checking the live key file)
  *
  * The key is the file public/<key>.txt whose content is its own name, served
@@ -27,9 +32,11 @@
  * Exit codes: 0 ok (or nothing to send), 1 error, 2 bad arguments.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { buildLastmodMap, parseGitLog } from '../src/lib/sitemap-lastmod.mjs';
 
 const SITE = 'https://www.calcrun.com';
 const HOST = new URL(SITE).host;
@@ -77,7 +84,7 @@ export function readSitemaps(dist) {
   return urls;
 }
 
-/** Source paths of redirect rules added to public/_redirects since `since`. */
+/** Source paths of redirect rules added to public/_redirects in a diff. */
 export function redirectSourcesAddedSince(diffText) {
   const out = [];
   for (const line of diffText.split(/\r?\n/)) {
@@ -91,15 +98,40 @@ export function redirectSourcesAddedSince(diffText) {
 }
 
 /**
- * Pick the URLs to submit: sitemap URLs with lastmod on/after `sinceDate`,
- * plus newly redirected sources. Returns sorted, de-duplicated lists.
+ * Diff the current sitemap against the old pathname -> lastmod map.
+ * Returns sorted, de-duplicated lists; `urls` is what gets submitted.
  */
-export function selectUrls({ sitemapUrls, sinceDate, redirectSources = [], includeUndated = false, site = SITE }) {
-  const changed = sitemapUrls.filter((u) => u.lastmod && u.lastmod >= sinceDate).map((u) => u.loc);
-  const undated = sitemapUrls.filter((u) => !u.lastmod).map((u) => u.loc);
+export function selectUrls({ sitemapUrls, oldMap, redirectSources = [], includeUndated = false, site = SITE }) {
+  const current = new Set();
+  const added = [];
+  const changed = [];
+  const undated = [];
+  for (const { loc, lastmod } of sitemapUrls) {
+    const path = new URL(loc).pathname;
+    current.add(path);
+    if (!oldMap.has(path)) added.push(loc);
+    else if (!lastmod) undated.push(loc);
+    else if (oldMap.get(path) !== lastmod) changed.push(loc);
+  }
+  const removed = [...oldMap.keys()].filter((p) => !current.has(p)).map((p) => `${site}${p}`);
   const moved = redirectSources.map((p) => `${site}${p}`);
-  const all = [...new Set([...changed, ...moved, ...(includeUndated ? undated : [])])].sort();
-  return { urls: all, changed: changed.sort(), moved: [...new Set(moved)].sort(), undated: undated.sort() };
+  const urls = [...new Set([...added, ...changed, ...removed, ...moved, ...(includeUndated ? undated : [])])].sort();
+  const uniq = (a) => [...new Set(a)].sort();
+  return { urls, added: uniq(added), changed: uniq(changed), removed: uniq(removed), moved: uniq(moved), undated: uniq(undated) };
+}
+
+/** pathname -> lastmod map the given commit's tree produced (rebuilt with the current rules). */
+function lastmodMapAt(sha, git) {
+  const dir = mkdtempSync(join(tmpdir(), 'calcrun-indexnow-'));
+  try {
+    const tarPath = join(dir, 'src.tar');
+    writeFileSync(tarPath, execFileSync('git', ['archive', '--format=tar', sha, 'src'], { maxBuffer: 256 * 1024 * 1024 }));
+    execFileSync('tar', ['-xf', tarPath, '-C', dir]);
+    const gitDates = parseGitLog(git(['log', '--format=%x00%H %cs', '--name-only', sha, '--', 'src']));
+    return buildLastmodMap({ root: dir, gitDates });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 async function main() {
@@ -119,15 +151,17 @@ async function main() {
     process.exit(1);
   }
 
-  const git = (args) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-  let sinceDate;
+  const git = (args) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
   let sinceSha;
   try {
     sinceSha = git(['rev-parse', '--verify', `${opts.since}^{commit}`]).trim();
-    sinceDate = git(['show', '-s', '--format=%cs', sinceSha]).trim();
   } catch {
     console.error(`Unknown commit: ${opts.since}`);
     process.exit(2);
+  }
+  if (git(['rev-parse', '--is-shallow-repository']).trim() === 'true') {
+    console.error('Shallow clone: run `git fetch --unshallow` first (old lastmod dates need full history).');
+    process.exit(1);
   }
 
   const key = findKey('public');
@@ -135,12 +169,11 @@ async function main() {
     console.error(`Key file ${key}.txt is missing from ${opts.dist}: rebuild before submitting.`);
     process.exit(1);
   }
-  const redirectDiff = git(['diff', sinceSha, '--', 'public/_redirects']);
   const sitemapUrls = readSitemaps(opts.dist);
   const sel = selectUrls({
     sitemapUrls,
-    sinceDate,
-    redirectSources: redirectSourcesAddedSince(redirectDiff),
+    oldMap: lastmodMapAt(sinceSha, git),
+    redirectSources: redirectSourcesAddedSince(git(['diff', sinceSha, '--', 'public/_redirects'])),
     includeUndated: opts.includeUndated,
   });
   const foreign = sel.urls.filter((u) => new URL(u).host !== HOST);
@@ -150,9 +183,8 @@ async function main() {
   }
 
   console.log(`IndexNow ${opts.send ? 'SUBMISSION' : 'DRY RUN (nothing is sent; pass --send to submit)'}`);
-  console.log(`since ${opts.since} (${sinceSha.slice(0, 7)}, ${sinceDate}); sitemap URLs: ${sitemapUrls.length}`);
-  console.log(`changed (lastmod >= ${sinceDate}): ${sel.changed.length}`);
-  console.log(`redirected since: ${sel.moved.length}`);
+  console.log(`since ${opts.since} (${sinceSha.slice(0, 7)}); current sitemap URLs: ${sitemapUrls.length}`);
+  console.log(`new: ${sel.added.length}  lastmod changed: ${sel.changed.length}  gone from sitemap: ${sel.removed.length}  newly redirected: ${sel.moved.length}`);
   console.log(`no lastmod: ${sel.undated.length}${opts.includeUndated ? ' (included)' : ' (excluded; --include-undated to add)'}`);
   console.log(`to submit: ${sel.urls.length}`);
   for (const u of sel.urls) console.log(`  ${u}`);
@@ -178,7 +210,7 @@ async function main() {
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify({ host: HOST, key, keyLocation, urlList }),
     });
-    // 200 = received, 202 = received, key validation pending; anything else is a failure.
+    // 200 = received, 202 = received with key validation pending; anything else is a failure.
     console.log(`batch ${i / BATCH + 1}: ${urlList.length} URLs -> HTTP ${res.status}`);
     if (res.status !== 200 && res.status !== 202) {
       console.error(await res.text().catch(() => ''));
