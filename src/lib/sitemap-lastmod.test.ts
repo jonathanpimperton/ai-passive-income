@@ -5,6 +5,8 @@ import { join, resolve } from 'node:path';
 import {
   maxDate,
   parseGitLog,
+  parseGitLogFirstSeen,
+  gitFileDates,
   gitDateOf,
   frontmatterValue,
   parseCalculatorMap,
@@ -56,6 +58,14 @@ describe('parseGitLog', () => {
     expect(shallow.get('src/a.md')).toBe('2026-11-12'); // really changed inside the fetched history
     expect(shallow.get('src/b.md')).toBeNull(); // last change unknown
     expect(shallow.has('src/c.md')).toBe(false);
+  });
+
+  it('finds the creation date, unknown when it is a shallow boundary', () => {
+    const first = parseGitLogFirstSeen(log);
+    expect(first.get('src/a.md')).toBe('2026-07-07');
+    expect(first.get('src/b.md')).toBe('2026-03-01');
+    const shallow = parseGitLogFirstSeen(log.split('\u0000aaa')[0], new Set(['bbb']));
+    expect(shallow.get('src/a.md')).toBeNull();
   });
 
   it('handles CRLF output', () => {
@@ -166,6 +176,14 @@ describe('buildLastmodMap (real git history)', () => {
   } catch {
     shallow = true;
   }
+
+  it.skipIf(shallow)('gives methodology files a creation date no later than their last change', () => {
+    const d = gitFileDates(ROOT, 'src/data/methodologies/salary-uk.md');
+    expect(d.published).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(d.modified).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(d.published! <= d.modified!).toBe(true);
+    expect(gitFileDates(ROOT, 'src/data/nope.md')).toEqual({ published: undefined, modified: undefined });
+  });
 
   it.skipIf(shallow)('dates every generated page, none in the future', () => {
     const map = buildLastmodMap({ root: ROOT, gitDates: readGitDates(ROOT) });

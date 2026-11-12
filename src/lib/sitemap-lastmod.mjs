@@ -114,6 +114,53 @@ export function readGitDates(root) {
   }
 }
 
+/**
+ * Earliest commit date per path (the commit that created it), from the same
+ * log output. Null when that commit is a shallow boundary: the real creation
+ * date is outside the fetched history.
+ */
+export function parseGitLogFirstSeen(output, shallowCommits = new Set()) {
+  const first = new Map();
+  let date = null;
+  let boundary = false;
+  for (const raw of output.split(/\r?\n/)) {
+    if (raw.startsWith(COMMIT_MARK)) {
+      const [sha, d] = raw.slice(1).trim().split(/\s+/);
+      date = ISO_DATE.test(d ?? '') ? d : null;
+      boundary = shallowCommits.has(sha);
+      continue;
+    }
+    const path = raw.trim();
+    if (path) first.set(path, boundary ? null : date); // older commits overwrite newer
+  }
+  return first;
+}
+
+const fileDatesCache = new Map();
+
+/**
+ * Created/last-changed git dates of one repo-relative file, for pages that show
+ * them (methodology bylines). One git call per root, memoised; members are
+ * undefined when unknown, so callers omit the date rather than guess.
+ */
+export function gitFileDates(root, file) {
+  if (!fileDatesCache.has(root)) {
+    let latest = new Map();
+    let first = new Map();
+    try {
+      const shallow = isShallow(root) ? readShallowCommits(root) : new Set();
+      const out = git(root, ['log', '--format=%x00%H %cs', '--name-only', '--', 'src']);
+      latest = parseGitLog(out, shallow);
+      first = parseGitLogFirstSeen(out, shallow);
+    } catch {
+      // No git (e.g. a source tarball): every date stays unknown.
+    }
+    fileDatesCache.set(root, { latest, first });
+  }
+  const { latest, first } = fileDatesCache.get(root);
+  return { published: first.get(file) ?? undefined, modified: latest.get(file) ?? undefined };
+}
+
 /** Latest known date of any path equal to, or under, `prefix` (a directory ending in '/'). */
 export function gitDateOf(gitDates, path) {
   if (!path.endsWith('/')) return gitDates.get(path) ?? undefined;

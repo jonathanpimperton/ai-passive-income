@@ -9,6 +9,7 @@ import {
   buildBreadcrumbSchema,
   toolPageTitle,
   toolTaxYearLabel,
+  methodologyDescription,
   ORGANIZATION_ID,
 } from './seo';
 import { UK_TAX_YEAR } from './uk-rates';
@@ -126,5 +127,27 @@ describe('no hreflang (SE-10: UK and US pages are not equivalents)', () => {
     };
     walk(join(ROOT, 'src'));
     expect(hits).toEqual([]);
+  });
+});
+
+describe('methodologyDescription (MTH-26 template part)', () => {
+  it('is unique per methodology page and within 160 characters', () => {
+    const dir = join(ROOT, 'src/data/methodologies');
+    const toolDir = join(ROOT, 'src/data/tools');
+    const seen = new Set<string>();
+    for (const f of readdirSync(dir)) {
+      const raw = readFileSync(join(dir, f), 'utf8');
+      const toolSlug = raw.match(/^toolSlug:\s*"([^"]+)"/m)![1];
+      const toolRaw = readFileSync(join(toolDir, `${toolSlug}.md`), 'utf8');
+      const name = toolRaw.match(/^name:\s*"([^"]+)"/m)![1];
+      const d = methodologyDescription(name, toolSlug);
+      expect([...d].length, toolSlug).toBeLessThanOrEqual(160);
+      expect(seen.has(d), toolSlug).toBe(false);
+      seen.add(d);
+    }
+    expect(seen.size).toBe(23);
+  });
+  it('names the tax year for tax tools', () => {
+    expect(methodologyDescription('UK Salary & Take-Home Calculator', 'salary-uk')).toContain(UK_TAX_YEAR);
   });
 });

@@ -122,7 +122,7 @@ export function buildWebApplicationSchema(tool: {
 
 /**
  * Site author identity used in bylines and Article JSON-LD (E-E-A-T).
- * Single source of truth — the byline component and author page import this.
+ * Single source of truth -- the byline component and author page import this.
  */
 export const AUTHOR = {
   name: 'Jonathan Pimperton',
@@ -218,4 +218,17 @@ export function toolTaxYearLabel(slug: string): string | null {
     default:
       return null;
   }
+}
+
+/**
+ * Meta description for a methodology page. Every page used to share one
+ * identical description (MTH-26); this names the calculator and, for tax
+ * tools, the tax year it uses. Kept within 160 characters.
+ */
+export function methodologyDescription(toolName: string, slug: string): string {
+  const year = toolTaxYearLabel(slug);
+  const yearPart = year ? ` (${year})` : '';
+  const full = `How the ${toolName} works${yearPart}: the exact formula, every variable, its assumptions and limitations, and the sources behind it.`;
+  if ([...full].length <= 160) return full;
+  return `How the ${toolName} works${yearPart}: the formula, variables, assumptions and sources.`;
 }
