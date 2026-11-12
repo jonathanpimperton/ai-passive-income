@@ -33,23 +33,23 @@ workedExamples:
     inputs:
       type: "URL"
       content: "https://myrestaurant.com/menu"
-      size: 300
+      size: 512
       errorCorrection: "H"
-    description: "A restaurant creates a QR code linking to their online menu. Using high error correction (H) is recommended since printed codes may get smudged or damaged. At 300px, the code prints clearly on table tents or at the bottom of paper menus. The static code never expires and works even if scanned from an angle."
+    description: "A restaurant creates a QR code linking to their online menu. Using high error correction (H) is recommended since printed codes may get smudged or damaged. The Large (512 px) PNG, or the SVG for any print size, prints clearly on table tents or at the bottom of paper menus. The static code never expires and works even if scanned from an angle."
   - title: "Wi-Fi sharing at an event"
     inputs:
       type: "Wi-Fi"
-      content: "SSID:ConferenceWiFi;Password:welcome2026;"
-      size: 500
+      content: "WIFI:T:WPA;S:ConferenceWiFi;P:welcome2026;;"
+      size: 512
       errorCorrection: "M"
-    description: "Event organizers create a large QR code for the venue Wi-Fi. When attendees scan it, their phone automatically connects — no typing long passwords. At 500px and medium error correction, the code is scannable from several feet away on a projected slide or printed poster."
+    description: "Event organizers choose the Wi-Fi option and enter the network name and password; the tool writes them in the WIFI: format that phone cameras recognise. When attendees scan the code, their phone offers to join the network, with no long password to type. At the Large size and medium error correction, the code is scannable from several feet away on a projected slide or printed poster."
   - title: "Business card contact sharing"
     inputs:
-      type: "Text"
-      content: "BEGIN:VCARD\nFN:Jane Smith\nTEL:+15551234567\nEMAIL:jane@example.com\nEND:VCARD"
-      size: 200
+      type: "Contact (vCard)"
+      content: "BEGIN:VCARD\nVERSION:3.0\nN:Smith;Jane;;;\nFN:Jane Smith\nTEL;TYPE=CELL:+15551234567\nEMAIL:jane@example.com\nEND:VCARD"
+      size: 256
       errorCorrection: "M"
-    description: "A vCard QR code on a business card lets contacts save your details with one scan. At 200px it fits neatly in a corner of a standard business card. When scanned, the phone prompts the user to save the contact — no manual typing of phone numbers or email addresses."
+    description: "A vCard QR code on a business card lets contacts save your details with one scan. The Contact option builds the vCard 3.0 text for you from a name, phone number and email. Download the SVG and print it about 2 cm wide to fit a corner of a standard business card. When scanned, the phone prompts the user to save the contact, with no manual typing of phone numbers or email addresses."
 ---
 
 ## What Is a QR Code?
