@@ -13,6 +13,14 @@ export default defineConfig({
     headless: true,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
+    // Analytics must never be reached from tests (plan 2.4): the pages carry the
+    // production GA tag. Resolve the GA/GTM hosts to nothing in every context.
+    launchOptions: {
+      args: [
+        '--host-resolver-rules=MAP google-analytics.com ~NOTFOUND, MAP *.google-analytics.com ~NOTFOUND, ' +
+          'MAP googletagmanager.com ~NOTFOUND, MAP *.googletagmanager.com ~NOTFOUND',
+      ],
+    },
   },
   webServer: {
     command: 'npm run dev',
