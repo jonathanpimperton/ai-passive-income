@@ -10,18 +10,29 @@
  *   rate.
  * - US short-term: the gain is taxed as ordinary income — tax is the
  *   difference between bracket tax on (income + gain) and on income alone.
- * - NIIT: 3.8% on the lesser of the gain and the excess of (income + gain)
- *   over the filing-status threshold. Taxable income is used as a MAGI proxy.
- * - UK: the annual exempt amount is deducted first; a basic-rate taxpayer's
- *   gain fills whatever basic-rate band their income hasn't used (18%), with
- *   the remainder at 24%. Higher/additional-rate taxpayers pay 24% on it all.
+ * - NIIT: 3.8% of the lesser of the gain (net investment income) and the
+ *   excess of modified AGI over the filing-status threshold. MAGI is
+ *   estimated as taxable income + the standard deduction + the gain, i.e. it
+ *   assumes the standard deduction and no other above-the-line adjustments.
+ *   IRS: https://www.irs.gov/taxtopics/tc559 ; worked examples (Q&A
+ *   examples 19 and 20): https://www.irs.gov/newsroom/questions-and-answers-on-the-net-investment-income-tax
+ *   (accessed 12 Nov 2026).
+ * - UK: GOV.UK method (https://www.gov.uk/capital-gains-tax/rates, accessed
+ *   12 Nov 2026): taxable income = income minus the Personal Allowance; deduct
+ *   the annual exempt amount from the gains; gains that fit in the unused
+ *   basic rate band pay 18%, the rest 24%. The band is derived from the income
+ *   entered; there is no separate "taxpayer type" input that could contradict it.
+ *   CGT is UK-wide: the band test uses the UK basic rate band for Scottish
+ *   taxpayers too (secondary sources; see the copy REQUEST before stating it).
  */
 
-import { US_BRACKETS, US_CAPITAL_GAINS, type FilingStatus } from './us-rates';
+import { US_BRACKETS, US_CAPITAL_GAINS, US_STANDARD_DEDUCTION, type FilingStatus } from './us-rates';
 import { UK_CGT, UK_INCOME_TAX } from './uk-rates';
+import { calcPersonalAllowance } from './uk-tax-calc';
+import type { Region } from './region';
 
 export type HoldingPeriod = 'short' | 'long';
-export type UKTaxpayer = 'basic' | 'higher';
+export type CgtCountry = 'us' | 'uk';
 
 /* ── US CGT Calculation ──────────────────────────────────── */
 export interface USCgtResult {
@@ -29,6 +40,8 @@ export interface USCgtResult {
   taxableGain: number;
   federalTax: number;
   niit: number;
+  /** Estimated modified AGI used for the NIIT test (0 when there is no gain). */
+  magi: number;
   totalTax: number;
   effectiveRate: number;
   marginalRate: number;
@@ -47,6 +60,11 @@ function calcBracketTax(income: number, brackets: [number, number][]): number {
   return tax;
 }
 
+/** Estimated MAGI for the NIIT test: taxable income + standard deduction + gain. */
+export function estimateMagi(taxableIncome: number, gain: number, filing: FilingStatus): number {
+  return Math.max(0, taxableIncome) + US_STANDARD_DEDUCTION[filing] + Math.max(0, gain);
+}
+
 export function calculateUSCgt(
   purchasePrice: number,
   salePrice: number,
@@ -55,7 +73,7 @@ export function calculateUSCgt(
   taxableIncome: number,
 ): USCgtResult {
   const gain = salePrice - purchasePrice;
-  if (gain <= 0) return { gain, taxableGain: gain, federalTax: 0, niit: 0, totalTax: 0, effectiveRate: 0, marginalRate: 0 };
+  if (gain <= 0) return { gain, taxableGain: gain, federalTax: 0, niit: 0, magi: 0, totalTax: 0, effectiveRate: 0, marginalRate: 0 };
 
   const taxableGain = gain;
   let federalTax = 0;
@@ -98,22 +116,44 @@ export function calculateUSCgt(
     }
   }
 
-  // Net Investment Income Tax (NIIT)
-  const totalAgi = taxableIncome + gain;
+  // Net Investment Income Tax (NIIT), tested against estimated MAGI
+  const magi = estimateMagi(taxableIncome, gain, filing);
   const niitThreshold = US_CAPITAL_GAINS.niit.threshold[filing];
   let niit = 0;
-  if (totalAgi > niitThreshold) {
-    const niitableAmount = Math.min(gain, totalAgi - niitThreshold);
+  if (magi > niitThreshold) {
+    const niitableAmount = Math.min(gain, magi - niitThreshold);
     niit = niitableAmount * US_CAPITAL_GAINS.niit.rate;
   }
 
   const totalTax = federalTax + niit;
   const effectiveRate = gain > 0 ? (totalTax / gain) * 100 : 0;
 
-  return { gain, taxableGain, federalTax, niit, totalTax, effectiveRate, marginalRate };
+  return { gain, taxableGain, federalTax, niit, magi, totalTax, effectiveRate, marginalRate };
 }
 
 /* ── UK CGT Calculation ──────────────────────────────────── */
+export type UkIncomeBand = 'basic' | 'higher' | 'additional';
+
+export interface UkBandPosition {
+  /** Income after the (tapered) Personal Allowance. */
+  taxableIncome: number;
+  /** Basic rate band left for gains. */
+  unusedBasicBand: number;
+  /** Highest income tax band the income reaches (rest-of-UK bands). */
+  band: UkIncomeBand;
+}
+
+/** Where income sits in the UK bands, for the CGT rate test. */
+export function ukBandPosition(annualIncome: number): UkBandPosition {
+  const income = Math.max(0, annualIncome);
+  const taxableIncome = Math.max(0, income - calcPersonalAllowance(income));
+  const unusedBasicBand = Math.max(0, UK_CGT.basicRateBand - taxableIncome);
+  const additionalFrom = UK_INCOME_TAX.bands.find(b => b.name === 'Additional')!.from;
+  const band: UkIncomeBand =
+    taxableIncome > additionalFrom ? 'additional' : taxableIncome > UK_CGT.basicRateBand ? 'higher' : 'basic';
+  return { taxableIncome, unusedBasicBand, band };
+}
+
 export interface UKCgtResult {
   gain: number;
   annualExempt: number;
@@ -122,37 +162,59 @@ export interface UKCgtResult {
   higherRateTax: number;
   totalTax: number;
   effectiveRate: number;
+  /** Income band derived from the income entered. */
+  incomeBand: UkIncomeBand;
+  /** Basic rate band left after income, before the gain. */
+  unusedBasicBand: number;
+  /** Taxable gain charged at 18% / 24%. */
+  gainAtBasicRate: number;
+  gainAtHigherRate: number;
 }
 
 export function calculateUKCgt(
   purchasePrice: number,
   salePrice: number,
-  taxpayerType: UKTaxpayer,
   annualIncome: number,
 ): UKCgtResult {
   const gain = salePrice - purchasePrice;
-  if (gain <= 0) return { gain, annualExempt: UK_CGT.annualExempt, taxableGain: 0, basicRateTax: 0, higherRateTax: 0, totalTax: 0, effectiveRate: 0 };
-
-  const taxableGain = Math.max(0, gain - UK_CGT.annualExempt);
-  let basicRateTax = 0;
-  let higherRateTax = 0;
-
-  if (taxpayerType === 'basic') {
-    // Work out how much of the basic rate band is unused
-    const incomeAbovePA = Math.max(0, annualIncome - UK_INCOME_TAX.personalAllowance);
-    const unusedBasicBand = Math.max(0, UK_CGT.basicRateBand - incomeAbovePA);
-    const gainAtBasicRate = Math.min(taxableGain, unusedBasicBand);
-    const gainAtHigherRate = taxableGain - gainAtBasicRate;
-
-    basicRateTax = gainAtBasicRate * UK_CGT.basicRate;
-    higherRateTax = gainAtHigherRate * UK_CGT.higherRate;
-  } else {
-    // Higher/additional rate taxpayer — all gains at higher rate
-    higherRateTax = taxableGain * UK_CGT.higherRate;
+  const position = ukBandPosition(annualIncome);
+  const base = {
+    gain,
+    annualExempt: UK_CGT.annualExempt,
+    incomeBand: position.band,
+    unusedBasicBand: position.unusedBasicBand,
+  };
+  if (gain <= 0) {
+    return { ...base, taxableGain: 0, basicRateTax: 0, higherRateTax: 0, totalTax: 0, effectiveRate: 0, gainAtBasicRate: 0, gainAtHigherRate: 0 };
   }
 
+  const taxableGain = Math.max(0, gain - UK_CGT.annualExempt);
+  const gainAtBasicRate = Math.min(taxableGain, position.unusedBasicBand);
+  const gainAtHigherRate = taxableGain - gainAtBasicRate;
+  const basicRateTax = gainAtBasicRate * UK_CGT.basicRate;
+  const higherRateTax = gainAtHigherRate * UK_CGT.higherRate;
   const totalTax = basicRateTax + higherRateTax;
-  const effectiveRate = gain > 0 ? (totalTax / gain) * 100 : 0;
 
-  return { gain, annualExempt: UK_CGT.annualExempt, taxableGain, basicRateTax, higherRateTax, totalTax, effectiveRate };
+  return {
+    ...base,
+    taxableGain,
+    basicRateTax,
+    higherRateTax,
+    totalTax,
+    effectiveRate: (totalTax / gain) * 100,
+    gainAtBasicRate,
+    gainAtHigherRate,
+  };
+}
+
+/* ── Country tab default ─────────────────────────────────── */
+/**
+ * Which tab the CGT tool opens on. A valid stored currency choice wins
+ * (GBP -> UK, USD or EUR -> US); otherwise the detected region decides
+ * (UK -> UK, everywhere else -> US).
+ */
+export function defaultCgtCountry(storedCurrency: string | null, region: Region): CgtCountry {
+  if (storedCurrency === 'GBP') return 'uk';
+  if (storedCurrency === 'USD' || storedCurrency === 'EUR') return 'us';
+  return region === 'UK' ? 'uk' : 'us';
 }
