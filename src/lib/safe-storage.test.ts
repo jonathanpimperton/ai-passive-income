@@ -116,7 +116,7 @@ describe('SAFE_STORAGE_INLINE_JS (head-script twin)', () => {
     new Function('window', `${SAFE_STORAGE_INLINE_JS}; return calcrunStore;`)(win) as Store;
 
   it('is small and ES5-only (no arrow functions, let/const or template literals)', () => {
-    expect(SAFE_STORAGE_INLINE_JS.length).toBeLessThan(800);
+    expect(SAFE_STORAGE_INLINE_JS.length).toBeLessThan(900);
     expect(SAFE_STORAGE_INLINE_JS).not.toMatch(/=>|\blet\b|\bconst\b|`/);
   });
 
@@ -133,6 +133,9 @@ describe('SAFE_STORAGE_INLINE_JS (head-script twin)', () => {
     expect(s.sremove('b')).toBe(true);
     // A second inline script reuses the same object.
     expect(run(win)).toBe(s);
+    // A truthy non-store (e.g. a DOM element exposed by id) is replaced, not trusted.
+    const win2: Record<string, unknown> = { calcrunStore: { tagName: 'DIV' }, localStorage: memoryStorage() };
+    expect(typeof run(win2).get).toBe('function');
   });
 
   it('never throws when storage is blocked', () => {

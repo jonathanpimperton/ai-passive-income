@@ -21,6 +21,10 @@
  * - US: the US's America/* zones, Hawaii, US territories and legacy aliases.
  * - OTHER: everything else.
  *
+ * Usage note: detectRegion() returns 'OTHER' during SSR, so call it in an
+ * effect (or event handler), never for a component's initial render state,
+ * or the hydrated markup will not match the server markup.
+ *
  * One source, two runtimes: `regionCore` below is self-contained (no outer
  * references, no nested functions), so the head-script string
  * `REGION_INLINE_JS` is built from `regionCore.toString()` plus the same
@@ -156,8 +160,15 @@ export function consentRequired(region: Region): boolean {
  *   <script is:inline set:html={REGION_INLINE_JS} />
  *   ...later inline scripts read window.calcrunRegion.
  */
-export const REGION_INLINE_JS =
-  'window.calcrunRegion=window.calcrunRegion||(function(){var tz="",l=[];' +
-  'try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||""}catch(e){tz=""}' +
-  'try{l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""]}catch(e){l=[]}' +
-  `return(${regionCore.toString()})(tz,l,${JSON.stringify(REGION_TABLES)})})();`;
+function buildRegionInlineJs(): string {
+  return (
+    // A typeof guard (not ||) so a DOM element with id="calcrunRegion" is never taken as the value.
+    'window.calcrunRegion=typeof window.calcrunRegion==="string"?window.calcrunRegion:(function(){var tz="",l=[];' +
+    'try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||""}catch(e){tz=""}' +
+    'try{l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""]}catch(e){l=[]}' +
+    `return(${regionCore.toString()})(tz,l,${JSON.stringify(REGION_TABLES)})})();`
+  );
+}
+
+// Marked pure so bundles that only use detectRegion() can drop the ~2.7 KB string.
+export const REGION_INLINE_JS: string = /* @__PURE__ */ buildRegionInlineJs();

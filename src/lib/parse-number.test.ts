@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseNumericInput, type ParseFailureReason } from './parse-number';
+import { parseNumericInput, formatForInput, type ParseFailureReason } from './parse-number';
 
 type Ok = [input: string, expected: number];
 type Bad = [input: string, reason: ParseFailureReason];
@@ -10,7 +10,7 @@ function expectValue(input: string, expected: number, opts = {}) {
 }
 function expectFail(input: string, reason: ParseFailureReason, opts = {}) {
   const r = parseNumericInput(input, opts);
-  expect(r, `"${input}" ${JSON.stringify(opts)}`).toEqual({ ok: false, reason });
+  expect({ ok: r.ok, reason: r.ok ? undefined : r.reason }, `"${input}" ${JSON.stringify(opts)}`).toEqual({ ok: false, reason });
 }
 
 describe('parseNumericInput: review regressions (CALC-UX-A-01, CALC-UX-B-01)', () => {
@@ -195,5 +195,165 @@ describe('parseNumericInput: robustness', () => {
       // de-DE "50.000,00 €" is unambiguous because of the 2-digit decimals.
       expectValue(de, v, { currency: 'EUR' });
     }
+  });
+});
+
+describe('parseNumericInput: range-aware disambiguation (min/max)', () => {
+  const rate = { min: 0, max: 15 };
+  const salary = { min: 10000, max: 1000000 };
+  const price = { min: 0, max: 10000000 };
+  it('EUR rate fields read 3-decimal values as decimals when only that reading is in range', () => {
+    expectValue('6.125', 6125, { currency: 'EUR' }); // no range: plan rule (dot + 3 digits = thousands)
+    // A valid reading above max is returned as typed (caller clamps and explains), never shrunk 1000x.
+    expectValue('6.125', 6125, { currency: 'EUR', ...rate });
+    expectValue('4.125%', 4125, { currency: 'EUR', ...rate });
+    expectFail('3,875', 'ambiguous', { currency: 'EUR' });
+    expectValue('3,875', 3.875, { currency: 'EUR', ...rate });
+  });
+  it('EUR "50,000" resolves by range, stays ambiguous when both readings fit', () => {
+    expectValue('50,000', 50000, { currency: 'EUR', ...salary });
+    expectFail('50,000', 'ambiguous', { currency: 'EUR', ...price });
+    expectValue('50,000', 50, { currency: 'EUR', min: 0, max: 100 });
+  });
+  it('keeps the convention reading when both readings are in range', () => {
+    expectValue('450.000', 450000, { currency: 'EUR', ...price }); // plan-mandated
+    expectValue('1,500', 1500, { currency: 'USD', ...price });
+  });
+  it('USD/GBP fields accept a continental reading only when it alone is in range', () => {
+    expectValue('52.000', 52, { currency: 'GBP' });
+    expectValue('52.000', 52000, { currency: 'GBP', ...salary });
+    expectValue('6,125', 6125, { currency: 'USD', ...rate }); // valid USD reading above max: as typed
+    expectFail('12,34', 'ambiguous', { currency: 'USD' });
+    expectValue('12,34', 12.34, { currency: 'USD', min: 0, max: 100 });
+    expectValue('1,000.50', 1000.5, { currency: 'EUR', ...price }); // English format in EUR mode
+  });
+  it('returns the convention reading (for the caller to clamp) when neither reading is in range', () => {
+    expectValue('99', 99, { currency: 'USD', ...rate });
+    expectValue('450.000', 450000, { currency: 'EUR', ...rate });
+    expectFail('50,000', 'ambiguous', { currency: 'EUR', min: 200, max: 300 });
+  });
+  it('compares signed values against the range', () => {
+    // Too large in magnitude for the range: returned as typed, never shrunk (R0 round 3).
+    expectValue('-6.125', -6125, { currency: 'EUR', allowNegative: true, min: -15, max: 15 });
+    expectValue('-60,000', -60000, { currency: 'USD', allowNegative: true, min: -50000, max: 50000 });
+    expectValue('-60.000', -60000, { currency: 'EUR', allowNegative: true, min: -50000, max: 50000 });
+    // Too small in magnitude: the larger alternate may win, for either sign.
+    expectValue('-52.000', -52000, { currency: 'USD', allowNegative: true, min: -1000000, max: -10000 });
+    expectValue('-6,5', -6.5, { currency: 'USD', allowNegative: true, min: -15, max: 15 }); // primary fails, alternate in range
+    expectFail('-5', 'negative', { min: -10, max: 10 }); // range never overrides allowNegative
+  });
+  it('never replaces a valid reading above max with a smaller one (R0 re-review S1 repros)', () => {
+    expectValue('50,000', 50000, { currency: 'USD', min: 0, max: 5000 }); // affordability "monthly debts"
+    expectValue('$6,000', 6000, { currency: 'USD', min: 0, max: 5000 });
+    expectValue('12,000', 12000, { currency: 'GBP', min: 0, max: 10000 });
+    expectValue('75,000', 75000, { currency: 'USD', min: 0, max: 50000 });
+    expectValue('60.000', 60000, { currency: 'EUR', min: 0, max: 50000 });
+  });
+  it('property: grouped text above max in its own convention never comes back as a different number', () => {
+    const conventions: Array<[string, string]> = [['en-US', 'USD'], ['en-GB', 'GBP'], ['de-DE', 'EUR']];
+    const maxes = [15, 100, 5000, 10000, 50000, 1000000];
+    let seed = 99;
+    const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    let checked = 0;
+    for (const max of maxes) {
+      for (let i = 0; i < 1000; i++) {
+        const v = Math.round(max * (1 + rand() * 20));
+        for (const [locale, currency] of conventions) {
+          const text = new Intl.NumberFormat(locale, { useGrouping: true, maximumFractionDigits: 0 }).format(v);
+          const r = parseNumericInput(text, { currency, min: 0, max });
+          if (r.ok) expect(r.value, `${text} ${currency} max=${max}`).toBe(v);
+          else expect(r.reason, `${text} ${currency} max=${max}`).toBe('ambiguous');
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBe(18000);
+  });
+  it('property (negative mirror): grouped text below min never comes back as a different number', () => {
+    const conventions: Array<[string, string]> = [['en-US', 'USD'], ['en-GB', 'GBP'], ['de-DE', 'EUR']];
+    const maxes = [15, 100, 5000, 10000, 50000, 1000000];
+    let seed = 1234;
+    const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    let checked = 0;
+    for (const max of maxes) {
+      for (let i = 0; i < 1000; i++) {
+        const v = -Math.round(max * (1 + rand() * 20));
+        for (const [locale, currency] of conventions) {
+          const text = new Intl.NumberFormat(locale, { useGrouping: true, maximumFractionDigits: 0 }).format(v);
+          const r = parseNumericInput(text, { currency, allowNegative: true, min: -max, max });
+          if (r.ok) expect(r.value, `${text} ${currency} min=${-max}`).toBe(v);
+          else expect(r.reason, `${text} ${currency} min=${-max}`).toBe('ambiguous');
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBe(18000);
+  });
+  it('failures carry the valid readings as candidates for a "Did you mean" prompt', () => {
+    expect(parseNumericInput('50,000', { currency: 'EUR' })).toEqual({ ok: false, reason: 'ambiguous', candidates: [50, 50000] });
+    expect(parseNumericInput('12,34', { currency: 'USD' })).toEqual({ ok: false, reason: 'ambiguous', candidates: [12.34] });
+    expect(parseNumericInput('1,000.50', { currency: 'EUR' })).toEqual({ ok: false, reason: 'invalid', candidates: [1000.5] });
+    expect(parseNumericInput('1.2.3', { currency: 'USD' })).toEqual({ ok: false, reason: 'invalid' });
+    expect(parseNumericInput('abc')).toEqual({ ok: false, reason: 'invalid' });
+  });
+  it('ignores non-finite bounds', () => {
+    expectValue('6.125', 6125, { currency: 'EUR', min: Number.NaN, max: Infinity });
+  });
+});
+
+describe('formatForInput (inverse)', () => {
+  it('writes plain, ungrouped, exponent-free text in each convention', () => {
+    expect(formatForInput(50000, 'USD')).toBe('50000');
+    expect(formatForInput(6.125, 'USD')).toBe('6.125');
+    expect(formatForInput(6.125, 'EUR')).toBe('6,1250');
+    expect(formatForInput(6.12, 'EUR')).toBe('6,12');
+    expect(formatForInput(0.125, 'EUR')).toBe('0,125');
+    expect(formatForInput(-1234.5, 'EUR')).toBe('-1234,5');
+    expect(formatForInput(1e21, 'USD')).toBe('1000000000000000000000');
+    expect(formatForInput(1.5e-7, 'GBP')).toBe('0.00000015');
+    expect(formatForInput(-0, 'USD')).toBe('0');
+    expect(formatForInput(Number.NaN, 'USD')).toBe('');
+    expect(formatForInput(Infinity, 'EUR')).toBe('');
+  });
+  it('round-trips 30,000 values (0-6 decimals, +/-, USD/GBP/EUR), with and without a containing range', () => {
+    let seed = 7;
+    const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    for (let i = 0; i < 10000; i++) {
+      const decimals = Math.floor(rand() * 7);
+      const magnitude = 10 ** Math.floor(rand() * 10);
+      const v = (rand() < 0.2 ? -1 : 1) * Math.round(rand() * magnitude * 10 ** decimals) / 10 ** decimals;
+      for (const currency of ['USD', 'GBP', 'EUR']) {
+        const text = formatForInput(v, currency);
+        const plain = parseNumericInput(text, { currency, allowNegative: true });
+        expect(plain, `${v} ${currency} "${text}"`).toEqual({ ok: true, value: v === 0 ? 0 : v });
+        const ranged = parseNumericInput(text, { currency, allowNegative: true, min: Math.min(v, 0), max: Math.max(v, 15) });
+        expect(ranged, `ranged ${v} ${currency} "${text}"`).toEqual({ ok: true, value: v === 0 ? 0 : v });
+      }
+    }
+  });
+});
+
+describe('parseNumericInput: input hygiene', () => {
+  it('rejects over-long input quickly (no quadratic backtracking)', () => {
+    expectFail('1'.repeat(65), 'invalid');
+    const t0 = performance.now();
+    expectFail('1' + ' '.repeat(40000) + '1', 'invalid');
+    expect(performance.now() - t0).toBeLessThan(100);
+  });
+  it('reads full-width (IME) digits and drops zero-width marks', () => {
+    expectValue('５０,０００', 50000);
+    expectValue('￡５０ｋ', 50000);
+    expectValue('﻿50,000', 50000);
+    expectValue('50​000', 50000);
+  });
+  it('accepts apostrophe thousands separators (Swiss) when grouped', () => {
+    expectValue("50'000", 50000, { currency: 'EUR' });
+    expectValue("1'234'567", 1234567);
+    expectValue('50’000', 50000);
+    expectFail("50'00", 'invalid');
+  });
+  it('treats the currency option case-insensitively', () => {
+    expectValue('450.000', 450000, { currency: 'eur' });
+    expectFail('50,000', 'ambiguous', { currency: 'Eur' });
   });
 });

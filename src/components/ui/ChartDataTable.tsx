@@ -39,6 +39,9 @@
  * - The root carries `data-pdf-hide`: the chart image already represents
  *   the data in a PDF export, and the export's overflow neutralising would
  *   otherwise spill the full table into the capture.
+ * - When open, the scroll container is focusable (`tabIndex=0`) and is a
+ *   named region (labelled by the caption), so keyboard users can scroll a
+ *   long table.
  * - Safe for SSR: no window/document access during render.
  */
 import { useId, useState } from 'react';
@@ -97,6 +100,7 @@ export default function ChartDataTable({
   const baseId = id ?? autoId;
   const toggleId = `${baseId}-toggle`;
   const regionId = `${baseId}-region`;
+  const captionId = `${baseId}-caption`;
 
   const [open, setOpen] = useState(defaultOpen);
   // Mount the table on first open; keep it mounted afterwards so the close
@@ -142,9 +146,18 @@ export default function ChartDataTable({
       >
         <div className="min-h-0 min-w-0 overflow-hidden">
           {hasOpened && (
-            <div className="max-h-80 overflow-auto rounded-lg border border-neutral-200/80">
+            // The scroller is focusable and named so keyboard users can scroll a
+            // long table (WCAG 2.1.1; Safari never makes scrollers focusable).
+            <div
+              tabIndex={0}
+              role="region"
+              aria-labelledby={captionId}
+              className="max-h-80 overflow-auto rounded-lg border border-neutral-200/80"
+            >
               <table className="w-full text-sm border-separate border-spacing-0">
-                <caption className="sr-only">{caption}</caption>
+                <caption id={captionId} className="sr-only">
+                  {caption}
+                </caption>
                 <thead>
                   <tr>
                     {columns.map((column, c) => {
