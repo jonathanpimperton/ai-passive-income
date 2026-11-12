@@ -21,17 +21,20 @@ import Breadcrumb from './Breadcrumb.astro';
 import ToolIcon from './ToolIcon.astro';
 import AffiliateDisclosure from './AffiliateDisclosure.astro';
 import AffiliateLinks from './AffiliateLinks.astro';
-import ScrollEmailBar from './ScrollEmailBar.tsx';
 import FaqSection from './FaqSection.astro';
 import ScenarioLinks from './ScenarioLinks.astro';
 import RelatedTools from './RelatedTools.astro';
 import { getCollection } from 'astro:content';
 import { CATEGORIES, TOOLS, type CategorySlug } from '@lib/tools-data';
-import { UK_TAX_YEAR, UK_RATES_LAST_CHECKED } from '@lib/uk-rates';
-import { US_TAX_YEAR, US_RATES_LAST_CHECKED } from '@lib/us-rates';
-
-/** Financial tool categories that show the scroll-triggered email bar */
-const FINANCIAL_CATEGORIES = new Set<CategorySlug>(['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic']);
+import { isEmbeddable, embedPath } from '@lib/tool-islands';
+import { UK_TAX_YEAR, UK_RATES_LAST_CHECKED, UK_NI } from '@lib/uk-rates';
+import {
+  US_TAX_YEAR,
+  US_RATES_LAST_CHECKED,
+  US_STANDARD_DEDUCTION,
+  US_SOCIAL_SECURITY,
+  US_MEDICARE,
+} from '@lib/us-rates';
 
 interface WorkedExample {
   title: string;
@@ -70,7 +73,38 @@ const { name, slug, category, description, affiliateContext, affiliatePrograms, 
 const categoryLabel = CATEGORIES[category]?.label ?? category;
 const toolMeta = TOOLS.find((t) => t.slug === slug);
 
-const showEmailCapture = FINANCIAL_CATEGORIES.has(category);
+/**
+ * Legacy `?embed` iframes (pre-Nov 2026 snippets) are sent to the embed v2
+ * route for financial calculators (plan decision D6): minimal page, no GA,
+ * banner, affiliates or email. Other tools stay here, stripped by the
+ * `.embed-mode` CSS in global.css.
+ */
+const legacyEmbedTarget = isEmbeddable(category, slug) ? embedPath(slug) : '';
+
+/**
+ * Glossary tooltips for bolded terms in the guide. Figures that change with
+ * the tax year come from the rates modules, never typed here (they drifted:
+ * the standard deduction said "for 2024").
+ */
+const money = (n: number, symbol: string) => `${symbol}${n.toLocaleString('en-US')}`;
+const pct = (r: number) => `${+(r * 100).toFixed(2)}%`;
+const termDefinitions: Record<string, string> = {
+  'APR': 'Annual Percentage Rate — the yearly interest rate before compounding.',
+  'APY': 'Annual Percentage Yield — the effective yearly rate including compounding.',
+  'FICA': `Federal Insurance Contributions Act — Social Security (${pct(US_SOCIAL_SECURITY.rate)}) + Medicare (${pct(US_MEDICARE.rate)}) taxes.`,
+  'CAGR': 'Compound Annual Growth Rate — the smoothed annual return over a time period.',
+  'ROI': 'Return on Investment — the percentage gain or loss relative to the cost.',
+  'Rule of 72': 'Divide 72 by your interest rate to estimate years to double your money.',
+  'amortization': 'Spreading loan payments over time, with each payment covering interest and principal.',
+  'compound interest': 'Interest earned on both the original deposit and previously accumulated interest.',
+  '4% rule': 'Withdraw 4% of savings in year one of retirement, then adjust for inflation annually.',
+  'standard deduction': `Amount subtracted from income before federal tax is calculated (${money(US_STANDARD_DEDUCTION.single, '$')} single, ${money(US_STANDARD_DEDUCTION.married, '$')} married filing jointly for ${US_TAX_YEAR}).`,
+  'PAYE': 'Pay As You Earn — the UK system where employers deduct tax before paying your salary.',
+  'National Insurance': `UK payroll tax funding the State Pension and benefits. Employees pay ${pct(UK_NI.mainRate)} on earnings ${money(UK_NI.primaryThreshold, '£')}–${money(UK_NI.upperEarningsLimit, '£')} (${UK_TAX_YEAR}).`,
+  'PMI': 'Private Mortgage Insurance — required when your down payment is less than 20% of the home price.',
+  'DTI': 'Debt-to-Income ratio — your monthly debt payments divided by gross monthly income.',
+  'emergency fund': 'Savings covering 3–6 months of essential expenses for unexpected events.',
+};
 
 /**
  * Tax/rate-dependent tools show a tax-year badge DERIVED from the central rates
@@ -129,37 +163,56 @@ if (hasFaq) tabs.push({ id: 'faq', label: 'FAQ' });
 if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
 ---
 
-{/* Calculator section — subtle gradient header */}
-{/* Mobile sticky result mini-bar — mirrors the calculator's headline figure so
-    "results as you type" stays true on phones, where the results panel sits
-    below the inputs. Populated + toggled by the script at the bottom of this
-    layout; hidden on lg+ where the sticky results panel does the job. */}
-<div
-  id="mobile-result-bar"
-  class="lg:hidden fixed top-16 inset-x-0 z-30 hidden bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm"
-  aria-hidden="true"
->
+{/* Legacy ?embed snippets: hand financial calculators to the embed v2 route
+    before anything else renders (runs while the HTML is still parsing). Any
+    other tool stays, stripped, with every link opening a new tab so a click
+    can't navigate the frame to a page that refuses framing (EDGE-04). */}
+<script is:inline define:vars={{ legacyEmbedTarget }}>
+  if (new URLSearchParams(location.search).has('embed')) {
+    if (legacyEmbedTarget) {
+      location.replace(legacyEmbedTarget);
+    } else {
+      var embedBase = document.createElement('base');
+      embedBase.target = '_blank';
+      document.head.appendChild(embedBase);
+    }
+  }
+</script>
+
+{/* Mobile result mini-bar (LA-3). Mirrors the calculator's headline figure
+    under the sticky header on phones, where the results panel sits below the
+    inputs. It appears only after the visitor has changed an input (so it shows
+    the figure they asked for, not an unseen default), never while the real
+    headline is on screen, never over the focused control, and never on short
+    viewports / 400% zoom (CSS in global.css). Decorative duplicate of the
+    headline, so hidden from assistive tech; a tap scrolls to the full result.
+    Driven by the script at the bottom of this layout. */}
+<div id="mobile-result-bar" class="mini-bar lg:hidden hidden" aria-hidden="true" data-embed-hide>
   <div class="flex items-baseline justify-between gap-3 px-4 py-2">
-    <span id="mobile-result-label" class="text-xs text-neutral-500 truncate"></span>
-    <span id="mobile-result-value" class="tabular-nums text-base font-bold text-neutral-900"></span>
+    <span id="mobile-result-label" class="mini-bar-label text-xs truncate"></span>
+    <span id="mobile-result-value" class="mini-bar-value tabular-nums text-base font-bold shrink-0"></span>
   </div>
 </div>
 
-<div class="bg-white dark:bg-neutral-900 overflow-x-hidden" data-calc-section data-tool-slug={slug}>
-  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <Breadcrumb items={breadcrumbs} />
+<div class="bg-white dark:bg-neutral-900 overflow-x-hidden" data-calc-section data-tool-slug={slug} data-term-defs={JSON.stringify(termDefinitions)}>
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:py-8">
+    {/* Breadcrumb spacing tightened on phones so the inputs start higher (LA-4) */}
+    <div class="[&>nav]:mb-2 sm:[&>nav]:mb-4" data-embed-hide>
+      <Breadcrumb items={breadcrumbs} />
+    </div>
 
-    {/* Page header with tool icon */}
-    <div class="mb-6">
-      <div class="flex items-start gap-4 mb-3">
+    {/* Page header. The icon chip is a desktop nicety; on phones the space
+        goes to the calculator (LA-4). */}
+    <div class="mb-4 sm:mb-6">
+      <div class="flex items-start gap-4 mb-1 sm:mb-3">
         {toolMeta && (
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 shrink-0 shadow-sm">
+          <div class="hidden sm:inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 shrink-0 shadow-sm">
             <ToolIcon name={toolMeta.icon} size={24} />
           </div>
         )}
         <div>
-          <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-neutral-100">{name}</h1>
-          <p class="text-lg text-neutral-500 dark:text-neutral-500 mt-1">{description}</p>
+          <h1 class="text-[1.75rem] leading-tight sm:text-4xl font-bold text-neutral-900 dark:text-neutral-100">{name}</h1>
+          <p class="text-base sm:text-lg text-neutral-500 dark:text-neutral-500 mt-1">{description}</p>
           {/* Tax-year badge (only accent badge on the page header) */}
           {taxBadge && (
             <div class="mt-2">
@@ -169,19 +222,23 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
               </span>
             </div>
           )}
-          {/* Quiet meta line — no pill backgrounds */}
+          {/* Quiet meta line — no pill backgrounds. The truncated method
+              summary is desktop-only: it repeats the Sources tab, and on
+              phones it pushed the inputs below the fold (LA-4). */}
           {(metaDate || metaMethod || hasMethodology) && (
             <p class="mt-2 text-sm text-neutral-500">
               {metaDate && <span>{metaDate}</span>}
               {metaMethod && (
-                <>
+                <span class="hidden sm:inline">
                   {metaDate && <span class="mx-1.5" aria-hidden="true">·</span>}
                   <span>{metaMethod}</span>
-                </>
+                </span>
               )}
               {hasMethodology && (
                 <>
-                  {(metaDate || metaMethod) && <span class="mx-1.5" aria-hidden="true">·</span>}
+                  {(metaDate || metaMethod) && (
+                    <span class:list={['mx-1.5', !metaDate && 'hidden sm:inline']} aria-hidden="true">·</span>
+                  )}
                   <a href={`/how-we-calculate/${slug}/`} class="font-medium text-primary-600 hover:text-primary-700 hover:underline transition-colors duration-150">
                     How we calculate this &rarr;
                   </a>
@@ -194,7 +251,11 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
     </div>
 
     {/* Affiliate disclosure — only on pages with affiliate links */}
-    {affiliateContext && <AffiliateDisclosure />}
+    {affiliateContext && (
+      <div data-embed-hide>
+        <AffiliateDisclosure />
+      </div>
+    )}
 
     {/* Calculator component injected via default slot */}
     <div class="mb-8">
@@ -203,10 +264,12 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
 
     {/* Contextual affiliate recommendations — directly after calculator for max relevance */}
     {affiliateContext && affiliatePrograms && affiliatePrograms.length > 0 && (
-      <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={slug} category={category} />
+      <div data-embed-hide>
+        <AffiliateLinks context={affiliateContext} programIds={affiliatePrograms} toolSlug={slug} category={category} />
+      </div>
     )}
 
-    {/* Powered-by badge — visible only in embed mode */}
+    {/* Powered-by badge — visible only in legacy ?embed mode (non-financial tools) */}
     <div class="embed-badge items-center justify-center gap-1.5 pb-4 text-sm text-neutral-500">
       Powered by
       <a href={`https://www.calcrun.com/tools/${category}/${slug}/`} target="_blank" rel="noopener" class="font-semibold text-primary-600 hover:text-primary-500 transition-colors duration-150">
@@ -217,7 +280,7 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
 </div>
 
 {/* ── Tab navigation + content panels ──────────────────────── */}
-<div class="border-t border-neutral-200/50 dark:border-neutral-700/50 bg-neutral-50 dark:bg-neutral-800/50" id="tool-tabs-container">
+<div class="border-t border-neutral-200/50 dark:border-neutral-700/50 bg-neutral-50 dark:bg-neutral-800/50" id="tool-tabs-container" data-embed-hide>
   {/* Tab bar — hidden until JS enhances */}
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
     <nav class="tool-tab-nav flex gap-1 overflow-x-auto -mb-px pt-2" role="tablist" aria-label="Calculator information" style="display:none">
@@ -399,21 +462,19 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
 </div>
 
 {/* Scenario links + Related tools — always visible below tabs */}
-<div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 scroll-reveal">
+<div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 scroll-reveal" data-embed-hide>
   <ScenarioLinks toolSlug={slug} />
   {relatedTools.length > 0 && <RelatedTools slugs={relatedTools} />}
 </div>
 
-{/* Scroll-triggered email bar on financial calculator pages */}
-{showEmailCapture && (
-  <ScrollEmailBar client:idle toolSlug={slug} />
-)}
-
-{/* Back-to-calculator floating action button */}
+{/* Back-to-calculator floating action button. Hidden buttons are
+    visibility:hidden (global.css), so they leave the tab order (F-26). */}
 <button
   id="back-to-calc-btn"
+  type="button"
   class="back-to-calc fixed bottom-16 right-6 z-50 bg-primary-600 text-white rounded-full p-3.5 shadow-lg shadow-primary-600/25 hover:bg-primary-700 hover:shadow-primary-600/30"
   aria-label="Back to calculator"
+  data-embed-hide
 >
   <ToolIcon name="calculator" size={20} />
 </button>
@@ -630,23 +691,14 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
   }
 
   /* ── Financial term tooltip auto-detection ─────────────── */
-  const TERMS: Record<string, string> = {
-    'APR': 'Annual Percentage Rate — the yearly interest rate before compounding.',
-    'APY': 'Annual Percentage Yield — the effective yearly rate including compounding.',
-    'FICA': 'Federal Insurance Contributions Act — Social Security (6.2%) + Medicare (1.45%) taxes.',
-    'CAGR': 'Compound Annual Growth Rate — the smoothed annual return over a time period.',
-    'ROI': 'Return on Investment — the percentage gain or loss relative to the cost.',
-    'Rule of 72': 'Divide 72 by your interest rate to estimate years to double your money.',
-    'amortization': 'Spreading loan payments over time, with each payment covering interest and principal.',
-    'compound interest': 'Interest earned on both the original deposit and previously accumulated interest.',
-    '4% rule': 'Withdraw 4% of savings in year one of retirement, then adjust for inflation annually.',
-    'standard deduction': 'Amount subtracted from income before tax calculation ($14,600 single, $29,200 married for 2024).',
-    'PAYE': 'Pay As You Earn — the UK system where employers deduct tax before paying your salary.',
-    'National Insurance': 'UK payroll tax funding state pension and benefits. Employees pay 8% on earnings £12,570–£50,270.',
-    'PMI': 'Private Mortgage Insurance — required when your down payment is less than 20% of the home price.',
-    'DTI': 'Debt-to-Income ratio — your monthly debt payments divided by gross monthly income.',
-    'emergency fund': 'Savings covering 3–6 months of essential expenses for unexpected events.',
-  };
+  // Definitions are built at build time from the rates modules (frontmatter).
+  let TERMS: Record<string, string> = {};
+  try {
+    TERMS = JSON.parse(calcSection?.getAttribute('data-term-defs') || '{}');
+  } catch (err) {
+    // Malformed attribute: the guide still renders, just without tooltips.
+    console.error('[tool-page] term definitions unreadable', err);
+  }
 
   document.querySelectorAll('.prose strong').forEach(el => {
     const text = el.textContent?.trim();
@@ -710,28 +762,60 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
     }
   }, { passive: true });
 
-  /* ── Mobile sticky result mini-bar ─────────────────────────
+  /* ── Mobile result mini-bar (LA-3) ──────────────────────────
      Mirrors the calculator's headline figure (element marked with
      data-headline-result + data-headline-label) into a fixed bar under the
-     header, shown only while the user is inside the calculator section with
-     the real headline off-screen. Keeps "results as you type" true on phones. */
+     sticky header. Rules:
+     - armed only by a real input change inside the calculator, so it shows
+       the figure the visitor asked for (not an unseen default at load);
+     - shown only while the calculator is on screen and the real headline
+       isn't (and below lg, where the results panel isn't sticky);
+     - never on short viewports / 400% zoom (CSS hides it at max-height
+       500px; the JS check below keeps the state honest);
+     - never over the focused control: while it shows, <html> gets
+       .has-mini-bar (larger scroll-padding-top), and a focused element that
+       still ends up underneath is scrolled clear, or the bar steps aside. */
   const miniBar = document.getElementById('mobile-result-bar');
   const miniLabel = document.getElementById('mobile-result-label');
   const miniValue = document.getElementById('mobile-result-value');
-  if (miniBar && miniLabel && miniValue && calcSection) {
+  if (miniBar && miniLabel && miniValue && calcSection && !document.body.classList.contains('embed-mode')) {
+    const HEADER_PX = 64; // sticky site header (h-16)
+    const MIN_VIEWPORT_H = 500;
     let headlineEl: Element | null = null;
     let headlineVisible = true;
     let sectionVisible = false;
+    let armed = false;
+
+    const roomForBar = () => window.innerWidth < 1024 && window.innerHeight >= MIN_VIEWPORT_H;
+    // Height of the bar band; measured whenever the bar is visible.
+    let barHeight = 40;
+    const barBottom = () => HEADER_PX + barHeight;
+
+    /** True when the focused element sits (partly) under the bar's band. */
+    const focusUnderBar = () => {
+      const el = document.activeElement;
+      if (!el || el === document.body || el === document.documentElement) return false;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) return false;
+      return r.top < barBottom() && r.bottom > HEADER_PX;
+    };
+
+    const setShown = (show: boolean) => {
+      miniBar.classList.toggle('hidden', !show);
+      document.documentElement.classList.toggle('has-mini-bar', show);
+      if (show && miniBar.offsetHeight > 0) barHeight = miniBar.offsetHeight;
+    };
 
     const updateBar = () => {
-      const show = sectionVisible && !headlineVisible && headlineEl !== null && window.innerWidth < 1024;
-      miniBar.classList.toggle('hidden', !show);
+      const wanted = armed && sectionVisible && !headlineVisible && headlineEl !== null && roomForBar();
+      // Step aside rather than cover the control the visitor is using.
+      setShown(wanted && !focusUnderBar());
     };
 
     const headlineObserver = new IntersectionObserver(([e]) => {
       headlineVisible = e.isIntersecting;
       updateBar();
-    }, { rootMargin: '-64px 0px 0px 0px' });
+    }, { rootMargin: `-${HEADER_PX}px 0px 0px 0px` });
 
     const sectionObserver = new IntersectionObserver(([e]) => {
       sectionVisible = e.isIntersecting;
@@ -757,6 +841,45 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
       childList: true,
       characterData: true,
     });
+
+    // Arm on the visitor's own changes only (synthetic events don't count).
+    const arm = (e: Event) => {
+      if (!e.isTrusted || armed) return;
+      armed = true;
+      updateBar();
+    };
+    calcSection.addEventListener('input', arm);
+    calcSection.addEventListener('change', arm);
+    // Toggles, tabs and currency pills are buttons, which fire no input event.
+    calcSection.addEventListener('click', (e) => {
+      if ((e.target as Element).closest?.('astro-island button')) arm(e);
+    });
+
+    // Keep keyboard focus clear of the bar (WCAG 2.4.11): when focus lands
+    // under the visible bar, scroll it clear; if the page can't scroll that
+    // far, updateBar() hides the bar instead.
+    document.addEventListener('focusin', () => {
+      if (!miniBar.classList.contains('hidden') && focusUnderBar()) {
+        const el = document.activeElement as HTMLElement;
+        window.scrollBy({ top: el.getBoundingClientRect().top - barBottom() - 8, behavior: 'instant' as ScrollBehavior });
+      }
+      updateBar();
+    });
+    let scrollQueued = false;
+    window.addEventListener('scroll', () => {
+      if (scrollQueued) return;
+      scrollQueued = true;
+      requestAnimationFrame(() => {
+        scrollQueued = false;
+        updateBar();
+      });
+    }, { passive: true });
+
+    // A tap on the bar jumps to the full result.
+    miniBar.addEventListener('click', () => {
+      (headlineEl as HTMLElement | null)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
     window.addEventListener('resize', updateBar, { passive: true });
   }
 </script>
