@@ -15,6 +15,9 @@ import { buildLastmodMap, ensureFullHistory } from './src/lib/sitemap-lastmod.mj
  * git dates are real; dates that still can't be established are omitted.
  */
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
+// Pages that read git dates at build time (methodology bylines) use this root,
+// not whatever directory the build was started from.
+process.env.CALCRUN_ROOT = ROOT;
 ensureFullHistory(ROOT);
 const lastmodMap = buildLastmodMap({ root: ROOT });
 

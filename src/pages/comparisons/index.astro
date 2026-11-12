@@ -2,9 +2,10 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import { getCollection } from 'astro:content';
+import { compareSlugs } from '@lib/internal-links';
 
 // Slug order: the same HTML on every build (getCollection order follows the filesystem)
-const comparisons = (await getCollection('comparisons')).sort((a, b) => a.data.slug.localeCompare(b.data.slug));
+const comparisons = (await getCollection('comparisons')).sort((a, b) => compareSlugs(a.data.slug, b.data.slug));
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },

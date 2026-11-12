@@ -60,3 +60,16 @@ describe('redirectSourcesAddedSince', () => {
     expect(redirectSourcesAddedSince(diff)).toEqual(['/scenarios/old-page/']);
   });
 });
+
+describe('selectUrls --all', () => {
+  it('includes every current sitemap URL once', () => {
+    const sitemapUrls = [
+      { loc: 'https://www.calcrun.com/a/', lastmod: '2026-07-07' },
+      { loc: 'https://www.calcrun.com/b/', lastmod: '2026-11-12' },
+    ];
+    const oldMap = new Map([['/a/', '2026-07-07'], ['/b/', '2026-07-07']]);
+    const sel = selectUrls({ sitemapUrls, oldMap, all: true });
+    expect(sel.urls).toEqual(['https://www.calcrun.com/a/', 'https://www.calcrun.com/b/']);
+    expect(sel.changed).toEqual(['https://www.calcrun.com/b/']);
+  });
+});

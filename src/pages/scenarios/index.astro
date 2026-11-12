@@ -5,11 +5,12 @@ import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection } from 'astro:content';
 import { TOOLS, type ToolMeta } from '@lib/tools-data';
 import { UK_TAX_YEAR } from '@lib/uk-rates';
+import { compareSlugs } from '@lib/internal-links';
 import { US_TAX_YEAR } from '@lib/us-rates';
 
 // Slug order, then groups in the site's tool order: the same HTML on every
 // build (getCollection order follows the filesystem).
-const scenarios = (await getCollection('scenarios')).sort((a, b) => a.data.slug.localeCompare(b.data.slug));
+const scenarios = (await getCollection('scenarios')).sort((a, b) => compareSlugs(a.data.slug, b.data.slug));
 const toolOrder = (slug: string) => {
   const i = TOOLS.findIndex((t) => t.slug === slug);
   return i === -1 ? TOOLS.length : i;
@@ -27,7 +28,7 @@ for (const scenario of scenarios) {
   }
   groupedByTool.get(key)!.scenarios.push(scenario);
 }
-const toolGroups = [...groupedByTool.entries()].sort(([a], [b]) => toolOrder(a) - toolOrder(b) || a.localeCompare(b));
+const toolGroups = [...groupedByTool.entries()].sort(([a], [b]) => toolOrder(a) - toolOrder(b) || compareSlugs(a, b));
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },

@@ -40,7 +40,8 @@ const taxYear = toolTaxYearLabel(toolSlug);
 // Methodology markdown has no editorial dates, so the byline and Article
 // JSON-LD use its git history (created / last changed), the same source as the
 // sitemap lastmod. Unknown dates (shallow clone) are omitted, never guessed.
-const dates = gitFileDates(process.cwd(), methodology.filePath ?? `src/data/methodologies/${slug}.md`);
+// CALCRUN_ROOT is set by astro.config.mjs to the project root.
+const dates = gitFileDates(process.env.CALCRUN_ROOT ?? process.cwd(), methodology.filePath ?? `src/data/methodologies/${slug}.md`);
 const articleSchema = buildArticleSchema({
   type: 'TechArticle',
   headline: title,

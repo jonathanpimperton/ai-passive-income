@@ -21,6 +21,9 @@
  *   --since <commit>     required (normally the last deployed commit)
  *   --dist <dir>         built site to read sitemaps from (default: dist)
  *   --include-undated    also submit current sitemap URLs that have no <lastmod>
+ *   --all                submit every current sitemap URL (for changes that move
+ *                        no lastmod, e.g. a template-only change); still a dry
+ *                        run unless --send is given
  *   --endpoint <url>     IndexNow endpoint (default: https://api.indexnow.org/indexnow,
  *                        which shares submissions with the participating engines)
  *   --send               actually POST the list (after checking the live key file)
@@ -44,13 +47,14 @@ const BATCH = 10_000; // IndexNow maximum per POST
 const KEY_RE = /^[A-Za-z0-9-]{8,128}$/;
 
 function parseArgs(argv) {
-  const opts = { since: null, dist: 'dist', includeUndated: false, endpoint: 'https://api.indexnow.org/indexnow', send: false };
+  const opts = { since: null, dist: 'dist', includeUndated: false, all: false, endpoint: 'https://api.indexnow.org/indexnow', send: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--since') opts.since = argv[++i];
     else if (a === '--dist') opts.dist = argv[++i];
     else if (a === '--endpoint') opts.endpoint = argv[++i];
     else if (a === '--include-undated') opts.includeUndated = true;
+    else if (a === '--all') opts.all = true;
     else if (a === '--send') opts.send = true;
     else if (a === '--help' || a === '-h') opts.help = true;
     else throw new Error(`Unknown argument: ${a}`);
@@ -101,7 +105,7 @@ export function redirectSourcesAddedSince(diffText) {
  * Diff the current sitemap against the old pathname -> lastmod map.
  * Returns sorted, de-duplicated lists; `urls` is what gets submitted.
  */
-export function selectUrls({ sitemapUrls, oldMap, redirectSources = [], includeUndated = false, site = SITE }) {
+export function selectUrls({ sitemapUrls, oldMap, redirectSources = [], includeUndated = false, all = false, site = SITE }) {
   const current = new Set();
   const added = [];
   const changed = [];
@@ -115,7 +119,8 @@ export function selectUrls({ sitemapUrls, oldMap, redirectSources = [], includeU
   }
   const removed = [...oldMap.keys()].filter((p) => !current.has(p)).map((p) => `${site}${p}`);
   const moved = redirectSources.map((p) => `${site}${p}`);
-  const urls = [...new Set([...added, ...changed, ...removed, ...moved, ...(includeUndated ? undated : [])])].sort();
+  const everything = all ? sitemapUrls.map((u) => u.loc) : [];
+  const urls = [...new Set([...added, ...changed, ...removed, ...moved, ...(includeUndated ? undated : []), ...everything])].sort();
   const uniq = (a) => [...new Set(a)].sort();
   return { urls, added: uniq(added), changed: uniq(changed), removed: uniq(removed), moved: uniq(moved), undated: uniq(undated) };
 }
@@ -144,7 +149,7 @@ async function main() {
     process.exit(2);
   }
   if (opts.help || !opts.since) {
-    console.error('usage: node scripts/indexnow-submit.mjs --since <commit> [--dist dist] [--include-undated] [--send]');
+    console.error('usage: node scripts/indexnow-submit.mjs --since <commit> [--dist dist] [--include-undated] [--all] [--send]');
     process.exit(opts.help ? 0 : 2);
   }
   if (!existsSync(join(opts.dist, 'sitemap-index.xml'))) {
@@ -176,6 +181,7 @@ async function main() {
     oldMap: lastmodMapAt(sinceSha, git),
     redirectSources: redirectSourcesAddedSince(git(['diff', sinceSha, '--', 'public/_redirects'])),
     includeUndated: opts.includeUndated,
+    all: opts.all,
   });
   const foreign = sel.urls.filter((u) => new URL(u).host !== HOST);
   if (foreign.length) {
@@ -187,6 +193,7 @@ async function main() {
   console.log(`since ${opts.since} (${sinceSha.slice(0, 7)}); current sitemap URLs: ${sitemapUrls.length}`);
   console.log(`new: ${sel.added.length}  lastmod changed: ${sel.changed.length}  gone from sitemap: ${sel.removed.length}  newly redirected: ${sel.moved.length}`);
   console.log(`no lastmod: ${sel.undated.length}${opts.includeUndated ? ' (included)' : ' (excluded; --include-undated to add)'}`);
+  if (opts.all) console.log('--all: every current sitemap URL is included');
   console.log(`to submit: ${sel.urls.length}`);
   for (const u of sel.urls) console.log(`  ${u}`);
   const keyLocation = `${SITE}/${key}.txt`;

@@ -44,6 +44,12 @@ node scripts/indexnow-submit.mjs --since <last-deployed-sha>          # dry run:
 node scripts/indexnow-submit.mjs --since <last-deployed-sha> --send   # submits
 ```
 
+- Only URLs whose `<lastmod>` moved (or that are new, gone or newly redirected) are selected.
+  Editorial pages (scenarios, comparisons, hubs) move only when their `dateModified` /
+  `DATE_MODIFIED` is bumped, so a title or template-only change is not picked up: bump the
+  date when the change is significant, or pass `--all` (every sitemap URL) deliberately.
+- Git-dated lastmods (tools, methodology and template pages) move on any commit to their
+  source file, including trivial ones; review the dry-run list before sending.
 - Run `--send` only after the deploy is live: the script first checks that the key file is
   served at `https://www.calcrun.com/<key>.txt`, because the engines fetch it to verify.
 - The default endpoint `https://api.indexnow.org/indexnow` shares submissions with the

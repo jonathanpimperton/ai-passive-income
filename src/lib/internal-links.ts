@@ -37,9 +37,9 @@ export interface HubLink {
  * individual scenarios left.
  */
 const HUBS: Record<string, HubLink> = {
-  ukTakeHome: { href: '/scenarios/uk-take-home-pay/', label: 'UK take-home pay by salary (£20K to £150K)' },
-  usTakeHome: { href: '/scenarios/us-take-home-pay/', label: 'US take-home pay by salary ($40K to $250K)' },
-  mortgages: { href: '/scenarios/mortgage-payments-by-amount/', label: 'Mortgage payments by amount ($150K to $750K)' },
+  ukTakeHome: { href: '/scenarios/uk-take-home-pay/', label: 'UK take-home pay by salary (£20k to £150k)' },
+  usTakeHome: { href: '/scenarios/us-take-home-pay/', label: 'US take-home pay by salary ($40k to $250k)' },
+  mortgages: { href: '/scenarios/mortgage-payments-by-amount/', label: 'Mortgage payments by amount ($150,000 to $750,000)' },
   growth: { href: '/scenarios/investment-growth/', label: 'Investment growth by amount' },
 };
 
@@ -104,7 +104,12 @@ const regionOf = (item: { title: string; description: string }) => contentRegion
  * by slug first. Same input, same HTML, on every build.
  */
 export function bySlug<T extends { slug: string }>(items: T[]): T[] {
-  return [...items].sort((a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
+  return [...items].sort((a, b) => compareSlugs(a.slug, b.slug));
+}
+
+/** The one slug ordering used everywhere: plain code-point order (locale-independent). */
+export function compareSlugs(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 const conflicts = (a: Region, b: Region) => a !== 'ANY' && b !== 'ANY' && a !== b;
 
