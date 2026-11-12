@@ -328,7 +328,7 @@ describe('POST /api/email-results (EDGE-02, S1-16)', () => {
     expect(email.html).toContain('Final Balance');
     expect(email.html).toContain('$20,000');
   });
-  it('attacker-written labels and values are not rendered (relay payload)', async () => {
+  it('unlisted labels and free-text values are not rendered', async () => {
     const { res, data } = await call(post('/api/email-results', resultsBody({
       inputs: [
         { label: 'Visit', value: 'https://evil.example/login' },

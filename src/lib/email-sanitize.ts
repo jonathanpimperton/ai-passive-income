@@ -49,7 +49,7 @@ const VALUE_CHARS_RE = /^[A-Za-z0-9 \u00A3$\u20AC\u00A2%.,()+\-\u2013\u2014\u221
  * Every alphabetic word in a value must be one of these (lower-case). They cover units,
  * durations and the option labels the calculators send (strategy, filing status, tax band,
  * student-loan plan, buyer type, compounding, region...). Deliberately excludes anything a
- * phishing message needs (verify, click, login, account, call, visit, link, password...).
+ * general-purpose message needs (verify, click, login, account, call, visit, link...).
  */
 export const VALUE_WORDS = new Set<string>([
   // units and durations

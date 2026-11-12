@@ -47,7 +47,7 @@ test.describe('API gate through the real worker', () => {
     expect((await res.json()).code).toBe('verification_failed');
   });
 
-  test('email-results drops attacker rows; nothing from them reaches the email', async ({ request }) => {
+  test('email-results drops unlisted rows; nothing from them reaches the email', async ({ request }) => {
     const res = await request.post('/api/email-results', {
       headers: json({ Origin: origin }),
       data: {

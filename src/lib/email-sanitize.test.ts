@@ -54,7 +54,7 @@ describe('isSafeValue accepts what the calculators really send', () => {
   }
 });
 
-describe('isSafeValue rejects attacker text', () => {
+describe('isSafeValue rejects free text, links and addresses', () => {
   const bad = [
     'https://evil.example/login', 'Verify at https://evil.example', 'evil.example', 'evil . example',
     'www evil', 'visit us', 'Call 0800 now', 'a@b.c', 'probe@example', 'Account notice', 'click here',
@@ -96,7 +96,7 @@ describe('matchLabel', () => {
     expect(matchLabel('rent-vs-buy', 'Over 10 years, buying saves you', ctx)).toBe('Over 10 years, buying saves you');
     expect(matchLabel('rent-vs-buy', 'Over 10 years, renting saves you', ctx)).toBe('Over 10 years, renting saves you');
     expect(matchLabel('rent-vs-buy', 'Over evil.example years, buying saves you', ctx)).toBeNull();
-    expect(matchLabel('rent-vs-buy', 'Over 10 years, phishing saves you', ctx)).toBeNull();
+    expect(matchLabel('rent-vs-buy', 'Over 10 years, someone saves you', ctx)).toBeNull();
     expect(matchLabel('investment-fee', 'Balance at 1% fee', ctx)).toBe('Balance at 1% fee');
     expect(matchLabel('investment-fee', 'Balance at 0.05% fee', ctx)).toBe('Balance at 0.05% fee');
     expect(matchLabel('investment-fee', 'Balance at click here fee', ctx)).toBeNull();
@@ -134,7 +134,7 @@ describe('matchLabel', () => {
 });
 
 describe('sanitizeRows', () => {
-  it('drops the EDGE-02 style relay payload completely', () => {
+  it('drops unlisted labels and link values completely', () => {
     const out = sanitizeRows(
       'compound-interest',
       [{ label: 'Visit', value: 'https://evil.example/login' }],

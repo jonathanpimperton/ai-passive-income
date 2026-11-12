@@ -39,8 +39,7 @@ Cloudflare dashboard -> Turnstile -> the widget whose site key is `0x4AAAAAACnZP
 
 ## 3. MailerLite: double opt-in and clean-up (O-6)
 
-Until 12 Nov 2026 the newsletter endpoint had no bot check, so the group may contain
-addresses that never asked to join.
+Review the group for junk sign-ups and require confirmation for new ones.
 
 1. MailerLite -> Account settings -> Subscribe settings (sometimes shown under
    "Double opt-in") -> turn on **Double opt-in for API and integrations**. New sign-ups then
