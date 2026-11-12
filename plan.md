@@ -1,5 +1,8 @@
 # Plan: Build 6 New Developer/Utility Tools
 
+> **HISTORICAL (10 Nov 2026):** the 6-tool plan below was executed in early 2026. The active plan
+> is `docs/plan-2026-11.md` (see CLAUDE.md Read Order).
+
 ## Summary
 
 Add 6 new tools with provably perfect client-side output. All are text/data transformations where correctness is mathematically verifiable — no image rendering, no heuristics, no "looks about right."

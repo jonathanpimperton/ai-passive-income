@@ -4,11 +4,17 @@
 
 Before building anything, read these files in order:
 
-0. **`docs/plan-2026-07.md`** — **START HERE.** The ACTIVE plan (July 2026 overhaul):
-   owner decisions, phase-by-phase task lists, live progress, and a Session Handoff State
-   section describing exactly where work stopped. Companion: `docs/review-2026-07.md`
-   (the comprehensive 120-finding review that produced it). These supersede
-   `implementation-plan.md`/`growth-plan.md` as the source of truth.
+0. **`docs/plan-2026-11.md`** -- **START HERE.** The ACTIVE plan (November 2026), with the
+   owner's process rules, decisions D1-D12, workstream file ownership, wave-by-wave tasks,
+   gates, the tracker and a RESUME POINT (Section 0) saying exactly where work stopped.
+   Companion: `docs/review-2026-11.md`, the independent review of 9 Nov 2026 (16 S1, about 60 S2).
+   Its per-lens detail is in `docs/review-2026-11/<LENS>.md`, and small evidence files are in
+   `docs/review-2026-11/evidence/`. Until the plan's docs commit (plan Section 10, D1), these
+   files are deliberately UNTRACKED; see "Public repo" under For New Claude Code Sessions.
+0b. **`docs/plan-2026-07.md`** -- the July 2026 plan (Phases 1-3 shipped). It is history plus
+   its "R2.1 PRODUCTION FACTS" homepage notes. Its companion is `docs/review-2026-07.md`.
+   Several things it calls "fixed" were found broken in Nov 2026; trust `review-2026-11.md`
+   over it.
 1. **`docs/implementation-plan.md`** — the March 2026 plan (largely executed or superseded; useful history).
 1b. **`docs/growth-plan.md`** — Revenue model, human action plan (Reddit, Product Hunt, HN), revenue projections.
 2. **`docs/build-spec.md`** — Original spec: target audience, personas, value proposition, competitive positioning, customer journey, tools list, file structure, content schema, SEO, keyword targets, monetization, revenue targets, KPIs, post-launch operations. The sprint roadmap (Sprints 1-7) is complete — see growth-plan.md for what's next.
@@ -29,7 +35,10 @@ Build a zero-investment online business that generates passive income, built ent
 - **Lucide React** — consistent icon language across the site
 - **Zod** — schema validation for email API endpoint (worker.ts)
 - **Cloudflare Turnstile** — bot prevention on email endpoint (invisible CAPTCHA)
-- **Cloudflare Pages** (free tier) — hosting, CDN, unlimited bandwidth, commercial use allowed
+- **Cloudflare Workers + static assets** (free tier) -- hosting and CDN. `wrangler.toml`
+  `[assets]` serves `dist/`, and `worker.ts` handles `/api/*` and delegates everything else to
+  `env.ASSETS`. The deploy is Workers Builds from GitHub. (The site was originally on
+  Cloudflare Pages; the old `calcrun.pages.dev` project no longer resolves.)
 - **MailerLite** (free tier) — email capture, 500 subscribers, automations included, 12K emails/mo. Upgrade to Growing Business ($10/mo) at 500+ subs.
 - **Google Search Console / Analytics** — SEO tracking (free)
 - **Satori + Sharp** — build-time OG image generation
@@ -40,7 +49,8 @@ Build a zero-investment online business that generates passive income, built ent
 ## Site Identity
 
 - **Name:** CalcRun
-- **Domain:** `www.calcrun.com` (via Cloudflare Registrar). All canonical URLs use `www.`. `calcrun.pages.dev` redirects to it.
+- **Domain:** `www.calcrun.com` (via Cloudflare Registrar). All canonical URLs use `www.`. The apex 301s to www. `calcrun.pages.dev` is NXDOMAIN as of
+  Nov 2026: the Pages project appears to be deleted (owner item O-9 in plan-2026-11).
 - **Logo:** SVG wordmark — navy "Calc" + blue "Run" (built in code, no external tools)
 - **Tagline:** "See your numbers instantly — no signup, no ads." (USP; see build-spec.md Value Proposition section)
 
@@ -454,7 +464,7 @@ they read as AI-generated. Every new component/page MUST follow the rules below.
 
 ## Constraints
 
-- **$0 budget** — free tiers only (Cloudflare Pages, etc.)
+- **$0 budget** -- free tiers only (Cloudflare Workers + static assets, MailerLite, GA4, etc.)
 - **AI-built** — Claude Code does all development
 - **Low maintenance** — should run mostly unattended once live
 - **Legal/ethical** — no scraped content, no spam, proper attribution, FTC-compliant affiliate disclosures
@@ -464,8 +474,50 @@ they read as AI-generated. Every new component/page MUST follow the rules below.
 When starting a new session on this project:
 
 1. **Check you're on the default branch** — all completed work is merged here. Do NOT continue on old `claude/*` branches from previous sessions.
-2. **Read this file first**, then `docs/plan-2026-07.md` (the ACTIVE plan — start at its Session Handoff State / RESUME POINT), then `docs/build-spec.md` as needed. `growth-plan.md` and `design-system.md` are superseded — history only.
-3. **Current status (July 2026):** Site live at `https://www.calcrun.com`, running the
+2. **Read this file first**, then `docs/plan-2026-11.md` (the ACTIVE plan; start at its
+   Section 0 RESUME POINT), then `docs/review-2026-11.md`. Use `docs/build-spec.md` as needed.
+   `plan-2026-07.md`, `growth-plan.md` and `design-system.md` are history only.
+2b. **Current status (10 Nov 2026):**
+   - The site has run unattended since the 7 Jul 2026 deploy (about 40 visitors/day).
+   - An independent 11-lens review (9 Nov 2026, `docs/review-2026-11.md`) found that the
+     calculation engines are exact and the July SEO restructure worked. It also found 16 S1s,
+     among them:
+     - blank live 404s;
+     - "50,000" read as 50 in every calculator;
+     - input/result desync before hydration;
+     - UK student-loan and Scottish-code errors;
+     - rent-vs-buy, affordability and card-payoff logic errors;
+     - a frozen tab on the Investment Return Time tab;
+     - HEIC broken in production since March (CSP);
+     - encrypted PDFs giving corrupt output;
+     - security hardening needed in one developer tool and the email endpoints (details only
+       in the untracked review docs; see "Public repo" below);
+     - about 1 in 3 hand-written content figures wrong;
+     - a pre-ticked marketing opt-in.
+   - Facts have also moved: UK Budget 28 Oct 2026, BoE 4.00% on 5 Nov 2026, IRS TY2027 on
+     5 Nov 2026.
+   - The rates freshness guard will FAIL EVERY BUILD from 1 Jan 2027 until plan task TX-1/TX-3
+     lands.
+   - The fix plan is `docs/plan-2026-11.md`. **Status: plan written, execution not started.**
+     The owner will run it in a fresh session.
+2c. **Process rules (owner, 10 Nov 2026), binding for plan-2026-11:**
+   - Use parallel sub-agents (worktree per workstream, disjoint file ownership).
+   - Before anything goes live, it must be reviewed by a different sub-agent than the one that
+     wrote it.
+   - When the plan is complete, a single Fable sub-agent checks completeness, appropriateness
+     and effectiveness.
+   - Details are in plan Sections 2, 9 and 11.
+2d. **Claims in this file found FALSE in Nov 2026** (the sprint log below is a historical record
+   and is not edited):
+   - Sprint 15B: SliderInput does NOT correctly accept pasted values with commas (S1-2).
+   - Sprint 8: the SVG sanitiser strips `<style>`, so Illustrator SVGs render black (FILES-07).
+   - Sprint 20 / accessibility statement: there is no per-commit axe CI, and 7 calculators have
+     no data table beside their charts.
+   - "Known npm vulnerabilities: build-time only": `xlsx` IS shipped to users in the Excel->PDF
+     tool (FILES-21).
+   - "lazy recharts" was never done.
+   - `calcrun.pages.dev` no longer redirects (NXDOMAIN).
+3. **Status as of July 2026 (historical):** Site live at `https://www.calcrun.com`, running the
    July 2026 overhaul (deployed 2 July 2026). A comprehensive review
    (`docs/review-2026-07.md`) drove a multi-phase overhaul tracked in
    `docs/plan-2026-07.md` — read its Session Handoff State + RESUME POINT before doing
@@ -532,15 +584,39 @@ When starting a new session on this project:
    pushing unless a standing instruction says otherwise. Local checkpoint commits
    at milestones are approved practice. The build runs `npm run build`, whose
    prebuild hook is the dependency-free `scripts/check-rates-freshness.mjs` guard.
+   **Public repo:**
+   - `origin` is `https://github.com/jonathanpimperton/ai-passive-income`, and it is PUBLIC.
+     Its default branch is `claude/master`.
+   - Never commit or push vulnerability details (review docs, exploit payloads, repro steps for
+     unfixed security bugs) before the fix is live.
+   - Security-fix commit messages stay neutral.
+   - The Nov 2026 review docs stay untracked until plan-2026-11 step D1.
+   - As of 10 Nov 2026, local `claude/master` was 1 commit ahead of origin (`22976a0`, a
+     CLAUDE.md-only sync).
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
-6. **Known npm vulnerabilities (unfixable):** 5 moderate lodash issues deep in `@astrojs/check` dependency chain (fix requires breaking change), 1 high xlsx issue (no upstream fix). Both are build-time only — never shipped to users.
+6. **Known npm vulnerabilities:**
+   - 5 moderate lodash issues deep in the `@astrojs/check` dependency chain (build-time only;
+     the fix requires a breaking change).
+   - 1 high `xlsx` 0.18.5 issue. This one IS shipped to users in the Excel->PDF tool. The npm
+     registry has no fix; plan-2026-11 Wave 0 upgrades to the vendored SheetJS CE release from
+     cdn.sheetjs.com.
 
 ## Growth Roadmap
 
+**ACTIVE ROADMAP (Nov 2026): `docs/plan-2026-11.md`.**
+- Wave 0: foundation.
+- Wave 1: 14 parallel fix workstreams covering every S1/S2.
+- Wave 2: content regenerated from the engines through build-time figure tokens.
+- Wave 3: shareable result URLs and final truth/regression passes.
+- Then a single Fable completeness check.
+
+It absorbs the July plan's unfinished items: lazy recharts, the UK salary-sacrifice/£100k job
+(as UK-4), and author-page credentials (as owner item O-3).
+
 **SUPERSEDED (Jul 2026): the roadmap below is the March 2026 plan from
-`docs/implementation-plan.md`, kept for history. The ACTIVE roadmap is
+`docs/implementation-plan.md`, kept for history. The July roadmap was
 `docs/plan-2026-07.md` (its "Phase 3" is the July SEO restructure, a different
-thing from the March "Phase 3" below).** Where things actually stand:
+thing from the March "Phase 3" below).** Where things stood in July 2026:
 
 - **Done and live (7 Jul 2026):** July-plan Phases 1-3 (data correctness,
   Precision Instrument redesign + R2.1 homepage, SEO restructure with hub
@@ -584,7 +660,12 @@ node scripts/qa-link-check.mjs
 # Responsive sweep — every page at 360/768/1280 (requires `npx astro preview --port 4399` serving dist; must exit 0)
 node scripts/qa-responsive-sweep.mjs
 
-# Run E2E tests (playwright — 75 tests, auto-starts dev server)
+# Run E2E tests (playwright -- 75 tests, auto-starts dev server)
+# NOTE: runs against the DEV server, so it cannot see public/_headers, _redirects or
+# 404 handling. That gap is why production-only breakage shipped (review RC3). Only one
+# process may run this at a time (fixed dev port). Parallel agents must use their own
+# preview port instead. plan-2026-11 PL-3 adds `npm run test:prod`
+# (scripts/serve-prod.mjs + playwright.prod.config.ts), which emulates production config.
 npx playwright test
 
 # Run specific E2E test suites
