@@ -4,8 +4,16 @@ import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection } from 'astro:content';
 import { TOOLS, type ToolMeta } from '@lib/tools-data';
+import { UK_TAX_YEAR } from '@lib/uk-rates';
+import { US_TAX_YEAR } from '@lib/us-rates';
 
-const scenarios = await getCollection('scenarios');
+// Slug order, then groups in the site's tool order: the same HTML on every
+// build (getCollection order follows the filesystem).
+const scenarios = (await getCollection('scenarios')).sort((a, b) => a.data.slug.localeCompare(b.data.slug));
+const toolOrder = (slug: string) => {
+  const i = TOOLS.findIndex((t) => t.slug === slug);
+  return i === -1 ? TOOLS.length : i;
+};
 
 // Group scenarios by parent tool
 const groupedByTool = new Map<string, { tool: ToolMeta | undefined; scenarios: typeof scenarios }>();
@@ -19,6 +27,7 @@ for (const scenario of scenarios) {
   }
   groupedByTool.get(key)!.scenarios.push(scenario);
 }
+const toolGroups = [...groupedByTool.entries()].sort(([a], [b]) => toolOrder(a) - toolOrder(b) || a.localeCompare(b));
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },
@@ -31,12 +40,12 @@ const HUBS = [
   {
     href: '/scenarios/uk-take-home-pay/',
     title: 'UK take-home pay by salary',
-    detail: '£20,000 to £150,000 · 2026/27 rates',
+    detail: `£20,000 to £150,000 · ${UK_TAX_YEAR} rates`,
   },
   {
     href: '/scenarios/us-take-home-pay/',
     title: 'US take-home pay by salary',
-    detail: '$40,000 to $250,000 · 2026 rates',
+    detail: `$40,000 to $250,000 · ${US_TAX_YEAR} rates`,
   },
   {
     href: '/scenarios/mortgage-payments-by-amount/',
@@ -79,6 +88,7 @@ const HUBS = [
         {HUBS.map((hub) => (
           <a
             href={hub.href}
+            data-astro-prefetch
             class="group bg-white border border-neutral-200/80 rounded-lg p-5 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
           >
             <h3 class="text-sm font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200 leading-snug">
@@ -92,7 +102,7 @@ const HUBS = [
     </section>
 
     <div class="space-y-12">
-      {[...groupedByTool.entries()].map(([toolSlug, { tool, scenarios: toolScenarios }]) => (
+      {toolGroups.map(([toolSlug, { tool, scenarios: toolScenarios }]) => (
         <section>
           {/* Tool group header */}
           <div class="flex items-center gap-3 mb-5">
@@ -111,6 +121,7 @@ const HUBS = [
             {toolScenarios.map((scenario) => (
               <a
                 href={`/scenarios/${scenario.data.slug}/`}
+                data-astro-prefetch
                 class="group bg-white border border-neutral-200/80 rounded-xl p-5 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
               >
                 <h3 class="text-sm font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200 mb-2 leading-snug">

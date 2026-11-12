@@ -1,10 +1,10 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
-import ToolIcon from '@components/ui/ToolIcon.astro';
 import { getCollection } from 'astro:content';
 
-const comparisons = await getCollection('comparisons');
+// Slug order: the same HTML on every build (getCollection order follows the filesystem)
+const comparisons = (await getCollection('comparisons')).sort((a, b) => a.data.slug.localeCompare(b.data.slug));
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },
@@ -35,11 +35,9 @@ const breadcrumbs = [
         return (
           <a
             href={`/comparisons/${comparison.data.slug}/`}
+            data-astro-prefetch
             class="group bg-white border border-neutral-200/80 rounded-lg p-6 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
           >
-            <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-600 shrink-0 mb-4 group-hover:bg-primary-700 group-hover:text-white transition-colors duration-200">
-              <ToolIcon name="scale" size={20} />
-            </div>
             <h2 class="text-base font-bold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200 mb-2 leading-snug">
               {shortTitle}
             </h2>
