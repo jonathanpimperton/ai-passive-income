@@ -221,7 +221,7 @@ export default function JsonFormatter() {
                   <p className="text-sm text-red-700 mt-1">{error.message}.</p>
                   {error.hint && <p className="text-sm text-red-700 mt-1">{error.hint}</p>}
                   {excerpt && (
-                    <pre className="mt-3 text-sm font-mono text-red-800 bg-white/60 rounded-lg p-3 overflow-x-auto" aria-hidden="true">
+                    <pre className="mt-3 text-sm font-mono text-red-800 bg-neutral-50 rounded-lg p-3 overflow-x-auto" aria-hidden="true">
                       {excerpt.line}
                       {'\n'}
                       {excerpt.caret}
