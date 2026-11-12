@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useDeferredValue, Fragment, lazy } from 'react';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
-import { ChevronDown, RotateCcw, Banknote, Percent, DollarSign } from 'lucide-react';
+import { ChevronDown, RotateCcw, Banknote, Percent, Wallet } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
@@ -254,7 +254,7 @@ export default function LoanAmortizationCalc() {
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <DollarSign size={16} aria-hidden="true" />
+                <Wallet size={16} aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Cost</p>

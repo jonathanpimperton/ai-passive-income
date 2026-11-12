@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue, lazy } from 'react';
-import { RotateCcw, ChevronDown, Home, DollarSign, TrendingUp, Landmark } from 'lucide-react';
+import { RotateCcw, ChevronDown, Home, Wallet, TrendingUp, Landmark } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
@@ -202,7 +202,7 @@ export default function RentVsBuyCalc() {
 
   const getInputs = useCallback(() => {
     const inputs = [
-      { label: 'Home Price', value: fmt(homePrice) },
+      { label: region === 'uk' ? 'Property Price' : 'Home Price', value: fmt(homePrice) },
       { label: region === 'uk' ? 'Deposit' : 'Down Payment', value: `${downPaymentPct}% (${fmt(Math.round(homePrice * downPaymentPct / 100))})` },
       { label: 'Mortgage Rate', value: `${mortgageRate.toFixed(3)}%` },
       { label: 'Loan Term', value: `${loanTermYears} years` },
@@ -254,7 +254,7 @@ export default function RentVsBuyCalc() {
           <div className="space-y-5">
             {/* Buy section */}
             <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Buying</p>
-            <SliderInput label="Home Price" id="rvb-price" value={homePrice} min={50000} max={2000000} step={5000} textMax={10000000} minLabel={`${currencySymbol}50K`} maxLabel={`${currencySymbol}2M`} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
+            <SliderInput label={region === 'uk' ? 'Property Price' : 'Home Price'} id="rvb-price" value={homePrice} min={50000} max={2000000} step={5000} textMax={10000000} minLabel={`${currencySymbol}50K`} maxLabel={`${currencySymbol}2M`} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} hint="Purchase price of the home you're considering" />
             <SliderInput label={region === 'uk' ? 'Deposit' : 'Down Payment'} id="rvb-down" value={downPaymentPct} min={0} max={100} step={1} onChange={setDownPaymentPct} suffix="%" formatDisplay={(v) => `${v.toFixed(0)} (${fmt(homePrice * v / 100)})`} hint={`Percentage of the price you'll pay upfront — shown in ${currencyWord} below`} />
             <SliderInput label="Mortgage Rate" id="rvb-rate" value={mortgageRate} min={1} max={15} step={0.125} onChange={handleRateChange} suffix="%" formatDisplay={(v) => v.toFixed(3)} hint={rateHint} />
             <SliderInput label="Loan Term (Years)" id="rvb-term" value={loanTermYears} min={10} max={35} step={1} onChange={handleLoanTermChange} />
@@ -354,7 +354,7 @@ export default function RentVsBuyCalc() {
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <DollarSign size={16} aria-hidden="true" />
+                <Wallet size={16} aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Monthly Cost to Own</p>

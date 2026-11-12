@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef, lazy, type ReactNode } from 'react';
-import { ChevronDown, RotateCcw, Home, Percent, Banknote, DollarSign, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { ChevronDown, RotateCcw, Home, Percent, Banknote, PiggyBank, AlertTriangle, ShieldCheck } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
@@ -443,7 +443,7 @@ export default function MortgageAffordabilityCalc() {
               {isUS && card(<Banknote size={16} aria-hidden="true" />, 'Total Monthly', fmt(us.totalMonthly))}
               {isUK && card(<Banknote size={16} aria-hidden="true" />, 'Monthly Payment', fmt(uk.monthlyPI))}
               {region === 'eur' && card(<Banknote size={16} aria-hidden="true" />, 'Monthly Payment', fmt(eur.monthlyPI))}
-              {card(<DollarSign size={16} aria-hidden="true" />, depositLabel, fmt(downPayment))}
+              {card(<PiggyBank size={16} aria-hidden="true" />, depositLabel, fmt(downPayment))}
               {isUS && card(<Percent size={16} aria-hidden="true" />, 'Monthly P&I', fmt(us.monthlyPI))}
               {isUK && card(<Percent size={16} aria-hidden="true" />, `At Stress Rate ${uk.stressRatePct.toFixed(2)}%`, fmt(uk.stressedPayment))}
               {region === 'eur' && card(<Percent size={16} aria-hidden="true" />, 'Share of Income', fmtPct(eur.debtServiceRatio))}

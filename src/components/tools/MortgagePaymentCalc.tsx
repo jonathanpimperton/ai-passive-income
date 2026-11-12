@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useDeferredValue, Fragment, lazy } from 'react';
-import { ChevronDown, RotateCcw, Home, Percent, Banknote, DollarSign } from 'lucide-react';
+import { ChevronDown, RotateCcw, Home, Percent, Banknote, Wallet } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
@@ -122,6 +122,8 @@ export default function MortgagePaymentCalc({ defaults }: MortgagePaymentCalcPro
   const { currency, setCurrency } = useCurrency();
   const region = regionForCurrency(currency);
   const downLabel = region === 'uk' ? 'Deposit' : 'Down Payment';
+  const priceLabel = region === 'uk' ? 'Property Price' : 'Home Price';
+  const scheduleLabel = region === 'uk' ? 'Repayment Schedule' : 'Amortization Schedule';
   const piLabel = region === 'us' ? 'Monthly Payment (P&I)' : 'Monthly Payment';
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
@@ -189,7 +191,7 @@ export default function MortgagePaymentCalc({ defaults }: MortgagePaymentCalcPro
 
   const getInputs = useCallback(() => {
     const inputs = [
-      { label: 'Home Price', value: fmt(homePrice) },
+      { label: priceLabel, value: fmt(homePrice) },
       { label: downLabel, value: `${downPaymentPercent}% (${fmt(homePrice * (downPaymentPercent / 100))})` },
       { label: 'Interest Rate', value: `${interestRate}%` },
       { label: 'Loan Term', value: `${loanTerm} years` },
@@ -238,7 +240,7 @@ export default function MortgagePaymentCalc({ defaults }: MortgagePaymentCalcPro
           <CurrencySelector value={currency} onChange={setCurrency} />
 
           <div className="space-y-5">
-            <SliderInput label="Home Price" id="mort-price" value={homePrice} min={50000} max={2000000} step={5000} textMax={10000000} minLabel={`${currencySymbol}50K`} maxLabel={`${currencySymbol}2M`} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} hint={downPaymentPercent === 0 ? 'With 0% down, the price is the loan amount' : undefined} />
+            <SliderInput label={priceLabel} id="mort-price" value={homePrice} min={50000} max={2000000} step={5000} textMax={10000000} minLabel={`${currencySymbol}50K`} maxLabel={`${currencySymbol}2M`} onChange={setHomePrice} prefix={currencySymbol} formatDisplay={formatNumber} hint={downPaymentPercent === 0 ? 'With 0% down, the price is the loan amount' : undefined} />
             <SliderInput label={downLabel} id="mort-down" value={downPaymentPercent} min={0} max={90} step={1} onChange={setDownPaymentPercent} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint={`${fmt(homePrice * (downPaymentPercent / 100))} ${region === 'uk' ? 'deposit' : 'down'}`} />
             <SliderInput label="Interest Rate" id="mort-rate" value={interestRate} min={1} max={15} step={0.125} onChange={handleRateChange} suffix="%" formatDisplay={(v) => v.toFixed(3)} hint={rateHint} />
 
@@ -338,7 +340,7 @@ export default function MortgagePaymentCalc({ defaults }: MortgagePaymentCalcPro
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="hidden sm:flex w-8 h-8 rounded-lg bg-primary-50 text-primary-600 items-center justify-center shrink-0 mt-0.5">
-                <DollarSign size={16} aria-hidden="true" />
+                <Wallet size={16} aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Paid</p>
@@ -428,7 +430,7 @@ export default function MortgagePaymentCalc({ defaults }: MortgagePaymentCalcPro
               className="flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors duration-150 mb-4"
             >
               <ChevronDown size={16} className={`transition-transform duration-200 ${showSchedule ? 'rotate-180' : ''}`} aria-hidden="true" />
-              {showSchedule ? 'Hide' : 'Show'} Amortization Schedule
+              {showSchedule ? 'Hide' : 'Show'} {scheduleLabel}
             </button>
 
             {deferred.yearGroups.length > 0 && (
