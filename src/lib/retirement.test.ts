@@ -199,8 +199,14 @@ describe('retirementMilestones', () => {
     expect(ms.some((m) => m.age === 55 || m.age === 66)).toBe(false);
   });
 
-  it('UK milestones are cut off at the end age', () => {
-    expect(retirementMilestones('uk', 30, 65, TODAY).map((m) => m.age)).toEqual([57]);
+  it('UK milestones after the end age stay listed but are not drawn (State Pension 68 when retiring at 65)', () => {
+    const ms = retirementMilestones('uk', 30, 65, TODAY);
+    expect(ms.map((m) => [m.age, m.onChart])).toEqual([[57, true], [68, false]]);
+  });
+
+  it('milestones at or before the current age are dropped', () => {
+    expect(retirementMilestones('uk', 60, 90, TODAY).every((m) => m.age > 60)).toBe(true);
+    expect(retirementMilestones('us', 55, 90, TODAY).map((m) => m.age)).toEqual([59.5, 60, 62, 67]);
   });
 
   it('US: catch-up text uses the us-rates.ts limits, and FRA is 67 for a 30-year-old', () => {

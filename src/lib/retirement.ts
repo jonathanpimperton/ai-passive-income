@@ -265,6 +265,12 @@ export interface Milestone {
   text: string;
   /** Short marker label drawn on the chart. */
   marker: string;
+  /**
+   * False when the milestone falls after the end of the chart (e.g. a UK
+   * State Pension age of 68 for someone retiring at 65): it is still listed
+   * in the legend, because the gap matters, but no marker is drawn.
+   */
+  onChart: boolean;
 }
 
 /**
@@ -285,7 +291,8 @@ export function usFullRetirementAge(dob: CalendarDate): number {
 const fmtUsd = (v: number) => `$${Math.round(v).toLocaleString('en-US')}`;
 
 /**
- * Milestone ages to mark on a retirement chart, filtered to (currentAge, endAge].
+ * Milestone ages after currentAge for a retirement chart; those after endAge
+ * come back with onChart = false (listed in the legend, not drawn).
  * UK ages come from uk-pension-ages.ts (worked out from the current age, since
  * the calculators do not ask for a birth date); US contribution figures come
  * from us-rates.ts for the current default tax year.
@@ -296,7 +303,7 @@ export function retirementMilestones(
   endAge: number,
   today: CalendarDate = todayLocal(),
 ): Milestone[] {
-  const out: Milestone[] = [];
+  const out: Omit<Milestone, 'onChart'>[] = [];
 
   if (region === 'uk') {
     const ages = ukPensionAgesFromCurrentAge(currentAge, today);
@@ -356,7 +363,9 @@ export function retirementMilestones(
     });
   }
 
-  return out.filter((m) => m.age > currentAge && m.age <= endAge);
+  return out
+    .filter((m) => m.age > currentAge)
+    .map((m) => ({ ...m, onChart: m.age <= endAge + 1e-9 }));
 }
 
 /* ── US contribution limit check (SV-6 / MTH-21) ──────────── */

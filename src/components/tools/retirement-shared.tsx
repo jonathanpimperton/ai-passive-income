@@ -50,26 +50,50 @@ function formatAge(age: number): string {
   return `${whole}y ${months}m`;
 }
 
-/** Numbered list explaining the markers drawn on the chart. */
+/** Ages to draw as numbered markers (marker i is labelled i + 1, matching the legend). */
+export function chartMilestoneAges(milestones: Milestone[]): number[] {
+  return milestones.filter((m) => m.onChart).map((m) => m.age);
+}
+
+/**
+ * Numbered list explaining the markers drawn on the chart, followed by any
+ * milestones that fall after the chart ends (listed, not drawn).
+ */
 export function MilestoneLegend({ milestones, region }: { milestones: Milestone[]; region: RetirementRegion }) {
   if (milestones.length === 0) return null;
+  const onChart = milestones.filter((m) => m.onChart);
+  const later = milestones.filter((m) => !m.onChart);
   return (
     <div className="mt-3 border-t border-neutral-200/80 pt-3">
       <p className="text-xs font-medium text-neutral-600 mb-1.5">
-        {region === 'uk' ? 'UK pension ages on the chart' : 'Ages marked on the chart'}
+        {region === 'uk' ? 'UK pension ages' : 'Ages to know'}
       </p>
-      <ol className="space-y-1">
-        {milestones.map((m, i) => (
-          <li key={`${m.marker}-${m.age}`} className="flex gap-2 text-xs text-neutral-600 leading-relaxed">
-            <span className="shrink-0 w-4 h-4 rounded-full border border-neutral-300 text-[10px] leading-[14px] text-center text-neutral-600 tabular-nums" aria-hidden="true">
-              {i + 1}
-            </span>
-            <span>
-              <span className="font-medium text-neutral-800 tabular-nums">Age {formatAge(m.age)}:</span> {m.text}
-            </span>
-          </li>
-        ))}
-      </ol>
+      {onChart.length > 0 && (
+        <ol className="space-y-1">
+          {onChart.map((m, i) => (
+            <li key={`${m.marker}-${m.age}`} className="flex gap-2 text-xs text-neutral-600 leading-relaxed">
+              <span className="shrink-0 w-4 h-4 rounded-full border border-neutral-300 text-[10px] leading-[14px] text-center text-neutral-600 tabular-nums" aria-hidden="true">
+                {i + 1}
+              </span>
+              <span>
+                <span className="font-medium text-neutral-800 tabular-nums">Age {formatAge(m.age)}:</span> {m.text}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+      {later.length > 0 && (
+        <ul className={`space-y-1 ${onChart.length > 0 ? 'mt-1' : ''}`}>
+          {later.map((m) => (
+            <li key={`${m.marker}-${m.age}`} className="flex gap-2 text-xs text-neutral-600 leading-relaxed">
+              <span className="shrink-0 w-4 text-center text-neutral-400" aria-hidden="true">&rsaquo;</span>
+              <span>
+                <span className="font-medium text-neutral-800 tabular-nums">Age {formatAge(m.age)} (after this chart):</span> {m.text}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       {region === 'uk' && (
         <p className="mt-1.5 text-xs text-neutral-500 leading-relaxed">
           Worked out from your current age, as the calculator does not ask for your birth date. Check yours at{' '}

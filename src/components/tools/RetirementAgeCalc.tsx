@@ -25,6 +25,7 @@ import {
   todaysMoneyLabel,
   useClientToday,
   MilestoneLegend,
+  chartMilestoneAges,
   ProjectionSummaryTable,
 } from './retirement-shared';
 
@@ -383,7 +384,7 @@ export default function RetirementAgeCalc() {
               <Suspense fallback={<ChartSkeleton height={CHART_HEIGHT} />}>
                 <RetirementProjectionChart
                   rows={rows}
-                  milestoneAges={milestones.map((m) => m.age)}
+                  milestoneAges={chartMilestoneAges(milestones)}
                   currency={currency}
                   realLabel={realLabel}
                   target={targetBalance}
