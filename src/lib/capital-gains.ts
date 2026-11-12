@@ -1,5 +1,5 @@
 /**
- * Capital Gains Tax computation — US (federal + NIIT) and UK.
+ * Capital Gains Tax computation -- US (federal + NIIT) and UK.
  *
  * All rate/threshold DATA comes from the central rates modules
  * (us-rates.ts / uk-rates.ts). This module contains only the math.
@@ -8,7 +8,7 @@
  * - US long-term: the gain stacks on top of ordinary taxable income and fills
  *   the LTCG brackets from there upward. Each slice is taxed at its bracket's
  *   rate.
- * - US short-term: the gain is taxed as ordinary income — tax is the
+ * - US short-term: the gain is taxed as ordinary income -- tax is the
  *   difference between bracket tax on (income + gain) and on income alone.
  * - NIIT: 3.8% of the lesser of the gain (net investment income) and the
  *   excess of modified AGI over the filing-status threshold. MAGI is
@@ -34,7 +34,7 @@ import type { Region } from './region';
 export type HoldingPeriod = 'short' | 'long';
 export type CgtCountry = 'us' | 'uk';
 
-/* ── US CGT Calculation ──────────────────────────────────── */
+/* -- US CGT Calculation ------------------------------------ */
 export interface USCgtResult {
   gain: number;
   taxableGain: number;
@@ -98,7 +98,7 @@ export function calculateUSCgt(
       }
     }
   } else {
-    // Long-term: the gain occupies [taxableIncome, taxableIncome + gain] —
+    // Long-term: the gain occupies [taxableIncome, taxableIncome + gain] --
     // ordinary income fills the LTCG brackets first, then each slice of the
     // gain is taxed at the rate of the bracket it lands in.
     const ltBrackets = US_CAPITAL_GAINS.longTerm[filing];
@@ -131,7 +131,7 @@ export function calculateUSCgt(
   return { gain, taxableGain, federalTax, niit, magi, totalTax, effectiveRate, marginalRate };
 }
 
-/* ── UK CGT Calculation ──────────────────────────────────── */
+/* -- UK CGT Calculation ------------------------------------ */
 export type UkIncomeBand = 'basic' | 'higher' | 'additional';
 
 export interface UkBandPosition {
@@ -207,7 +207,7 @@ export function calculateUKCgt(
   };
 }
 
-/* ── Country tab default ─────────────────────────────────── */
+/* -- Country tab default ----------------------------------- */
 /**
  * Which tab the CGT tool opens on. A valid stored currency choice wins
  * (GBP -> UK, USD or EUR -> US); otherwise the detected region decides

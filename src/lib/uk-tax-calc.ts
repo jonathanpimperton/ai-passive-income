@@ -144,7 +144,7 @@ export function calcStudentLoan(nicPay: number, plan: StudentLoanPlan): number {
   return nicPay > threshold ? (nicPay - threshold) * rate : 0;
 }
 
-/* ── Full engine: tax codes, regions, pension methods ──────────────────── */
+/* -- Full engine: tax codes, regions, pension methods -------------------- */
 
 /** Personal Allowance after the £100,000 taper, from adjusted net income. */
 export function taperedPersonalAllowance(adjustedNetIncome: number): number {

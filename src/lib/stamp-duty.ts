@@ -1,5 +1,5 @@
 /**
- * Stamp Duty Land Tax (SDLT) calculation — England & Northern Ireland.
+ * Stamp Duty Land Tax (SDLT) calculation -- England & Northern Ireland.
  *
  * All band/rate DATA comes from the central UK rates module (uk-rates.ts).
  * This module contains only the band-by-band computation used by the
@@ -59,7 +59,7 @@ export const SDLT_NON_RESIDENT_SURCHARGE = 0.02;
  * Calculate SDLT for a residential property purchase.
  *
  * - First-time buyers use the relief bands, but only when the price is at or
- *   below the relief cap — above it, standard rates apply to the whole price.
+ *   below the relief cap -- above it, standard rates apply to the whole price.
  * - Additional properties add the 5% surcharge to every band's rate (even the
  *   0% band) when the price is £40,000 or more.
  * - Non-UK residents add a further 2% to every band (including 0% bands and on
