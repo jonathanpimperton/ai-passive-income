@@ -24,6 +24,11 @@ interface ChartTooltipProps {
   labelPrefix?: string;
   /** Custom formatter for values. Defaults to formatCurrency. */
   formatValue?: (value: number) => string;
+  /**
+   * Custom formatter for the label (e.g. a price axis: 400000 -> "£400,000").
+   * When given, it replaces `labelPrefix` + raw label.
+   */
+  formatLabel?: (label: string | number) => string;
 }
 
 export default function ChartTooltip({
@@ -32,12 +37,13 @@ export default function ChartTooltip({
   label,
   labelPrefix = 'Year',
   formatValue = formatCurrency,
+  formatLabel,
 }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-lg shadow-md px-3 py-2.5 text-sm">
       <p className="font-medium text-neutral-900 dark:text-neutral-100 mb-1.5">
-        {labelPrefix} {label}
+        {formatLabel && label !== undefined ? formatLabel(label) : `${labelPrefix} ${label ?? ''}`.trim()}
       </p>
       <div className="space-y-1">
         {payload.map((entry) => (
