@@ -25,6 +25,7 @@ import {
   useClientToday,
   MilestoneLegend,
   chartMilestoneAges,
+  Limit401kNote,
   ProjectionSummaryTable,
 } from './retirement-shared';
 
@@ -297,13 +298,7 @@ export default function RetirementSavingsCalc() {
             <ExportPdfButton toolName="Retirement Savings Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          {limitCheck?.exceeds && (
-            <p className="text-sm text-neutral-600 leading-relaxed border-l-2 border-neutral-300 pl-3 mb-4">
-              <span className="tabular-nums">{fmt(limitCheck.annualContribution)}</span> a year is more than the {limitCheck.year} 401(k) employee limit of{' '}
-              <span className="tabular-nums">{fmt(limitCheck.annualLimit)}</span>
-              {limitCheck.catchUpApplies ? ' (including the age-50+ catch-up)' : ''}. The rest would need to go into an IRA or a taxable account.
-            </p>
-          )}
+          {limitCheck && <Limit401kNote check={limitCheck} />}
 
           {/* Inflation Impact Note */}
           {inflationRate > 0 && (

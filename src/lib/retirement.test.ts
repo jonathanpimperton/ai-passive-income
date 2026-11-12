@@ -204,6 +204,19 @@ describe('retirementMilestones', () => {
     expect(ms.map((m) => [m.age, m.onChart])).toEqual([[57, true], [68, false]]);
   });
 
+  it('a 55-year-old who may be under 57 on 6 April 2028 still sees the rise to 57', () => {
+    // Born 13 Nov 1970 - 12 Nov 1971: some turn 57 after 6 April 2028.
+    const ms = retirementMilestones('uk', 55, 90, TODAY);
+    const access = ms.find((m) => m.marker === 'Pension access');
+    expect(access).toBeDefined();
+    expect(access!.age).toBe(57);
+    expect(access!.text).toContain('6 April 2028');
+  });
+
+  it('a 56-year-old (57 before April 2028) gets no pension-access item', () => {
+    expect(retirementMilestones('uk', 56, 90, TODAY).some((m) => m.marker === 'Pension access')).toBe(false);
+  });
+
   it('milestones at or before the current age are dropped', () => {
     expect(retirementMilestones('uk', 60, 90, TODAY).every((m) => m.age > 60)).toBe(true);
     expect(retirementMilestones('us', 55, 90, TODAY).map((m) => m.age)).toEqual([59.5, 60, 62, 67]);
@@ -232,14 +245,30 @@ describe('check401kLimit (SV-6)', () => {
   it('reads the limit and catch-up from us-rates.ts', () => {
     const under50 = check401kLimit(1_000, 40);
     expect(under50.annualLimit).toBe(US_401K.limit);
+    expect(under50.catchUpBand).toBe('none');
     const over50 = check401kLimit(1_000, 55);
     expect(over50.annualLimit).toBe(US_401K.limit + US_401K.catchUp);
+    expect(over50.catchUpBand).toBe('50+');
   });
 
   it('flags a monthly saving above the annual limit', () => {
-    expect(check401kLimit(US_401K.limit / 12, 40).exceeds).toBe(false);
-    expect(check401kLimit(US_401K.limit / 12 + 1, 40).exceeds).toBe(true);
-    expect(check401kLimit(US_401K.limit / 12 + 1, 50).exceeds).toBe(false);
+    expect(check401kLimit(US_401K.limit / 12, 40).status).toBe('within');
+    expect(check401kLimit(US_401K.limit / 12 + 1, 40).status).toBe('exceeds');
+    expect(check401kLimit(US_401K.limit / 12 + 1, 50).status).toBe('within');
+    expect(check401kLimit((US_401K.limit + US_401K.catchUp) / 12 + 1, 64).status).toBe('exceeds');
+  });
+
+  it('ages 60-63: never judged against the age-50 limit (higher catch-up applies)', () => {
+    // Reviewer repro: $33,523 a year at 61 is above $24,500 + $8,000 but within the 60-63 limit.
+    const r = check401kLimit(33_523 / 12, 61);
+    expect(r.catchUpBand).toBe('60-63');
+    expect(r.status).toBe('higher-catch-up');
+    expect(r.annualLimit).toBeNull();
+    for (const age of [60, 61, 62, 63]) {
+      expect(check401kLimit(5_000, age).status).not.toBe('exceeds');
+      expect(check401kLimit(2_000, age).status).toBe('within');
+    }
+    expect(check401kLimit(33_523 / 12, 59).status).toBe('exceeds');
   });
 });
 

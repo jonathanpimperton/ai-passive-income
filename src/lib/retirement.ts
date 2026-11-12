@@ -315,11 +315,21 @@ export function retirementMilestones(
         : acc.pausedFor2028
           ? 'the minimum is 55 until 5 April 2028, then 57 for anyone not yet 57'
           : 'the normal minimum pension age, rising to 57 on 6 April 2028';
-      out.push({
-        age: acc.max,
-        marker: 'Pension access',
-        text: `Private and workplace pensions: usually from age ${accAge} (${accNote}). Some schemes have a protected pension age.`,
-      });
+      if (acc.pausedFor2028 && acc.max <= currentAge) {
+        // Already past 55 but possibly still under 57 on 6 April 2028: the rise can
+        // still affect them, so mark their 57th birthday instead of dropping the item.
+        out.push({
+          age: NMPA_FROM_2028,
+          marker: 'Pension access',
+          text: 'Private and workplace pensions: you can usually take benefits from 55 now, but the normal minimum pension age rises to 57 on 6 April 2028. If you are under 57 on that date, you may have to wait until 57 to take benefits unless your scheme gives you a protected pension age; check with your scheme.',
+        });
+      } else {
+        out.push({
+          age: acc.max,
+          marker: 'Pension access',
+          text: `Private and workplace pensions: usually from age ${accAge} (${accNote}). Some schemes have a protected pension age.`,
+        });
+      }
       const sp = ages.statePension;
       const spAge = sp.exact ? formatYearsMonths(sp.max) : `${formatYearsMonths(sp.min)} to ${formatYearsMonths(sp.max)}`;
       out.push({
@@ -370,34 +380,66 @@ export function retirementMilestones(
 
 /* ── US contribution limit check (SV-6 / MTH-21) ──────────── */
 
+/**
+ * Higher catch-up for ages 60-63 (SECURE 2.0): $11,250 for 2026 (IRS Notice
+ * 2025-67). us-rates.ts does not carry it yet (REQUEST to W1-TAX); until it
+ * does this stays undefined and ages 60-63 get the 'higher-catch-up' status
+ * instead of being compared with the age-50 limit. When the field lands,
+ * this becomes: `const CATCH_UP_60_TO_63 = US_401K.catchUp60to63;`
+ */
+const CATCH_UP_60_TO_63: number | undefined = undefined;
+
+export type CatchUpBand = 'none' | '50+' | '60-63';
+
 export interface Us401kCheck {
   year: string;
-  /** Employee deferral limit that applies at this age. */
-  annualLimit: number;
   baseLimit: number;
+  /** Age-50+ catch-up from us-rates.ts. */
   catchUp: number;
-  catchUpApplies: boolean;
+  catchUpBand: CatchUpBand;
+  /** Employee deferral limit that applies at this age; null when it is not known (ages 60-63 without the data). */
+  annualLimit: number | null;
   annualContribution: number;
-  exceeds: boolean;
+  /**
+   * 'within': at or under the limit for this age.
+   * 'exceeds': over the limit for this age.
+   * 'higher-catch-up': ages 60-63, above the age-50 limit, but a higher
+   *   catch-up applies whose figure is not in us-rates.ts yet, so no verdict.
+   */
+  status: 'within' | 'exceeds' | 'higher-catch-up';
 }
 
 /**
  * Compares a planned monthly saving with the employee 401(k) deferral limit
- * for the current default tax year in us-rates.ts (catch-up from age 50).
- * Employer contributions do not count toward this limit.
+ * for the current default tax year in us-rates.ts (catch-up from age 50; a
+ * higher catch-up at 60-63). Employer contributions do not count toward this
+ * limit.
  */
 export function check401kLimit(monthlyContribution: number, age: number): Us401kCheck {
-  const catchUpApplies = age >= 50;
-  const annualLimit = US_401K.limit + (catchUpApplies ? US_401K.catchUp : 0);
+  const catchUpBand: CatchUpBand = age >= 60 && age <= 63 ? '60-63' : age >= 50 ? '50+' : 'none';
   const annualContribution = nonNeg(monthlyContribution) * 12;
+  const catchUp = catchUpBand === 'none'
+    ? 0
+    : catchUpBand === '60-63'
+      ? CATCH_UP_60_TO_63
+      : US_401K.catchUp;
+  const annualLimit = catchUp === undefined ? null : US_401K.limit + catchUp;
+  const regular50Limit = US_401K.limit + US_401K.catchUp;
+  let status: Us401kCheck['status'];
+  if (annualLimit !== null) {
+    status = annualContribution > annualLimit + 0.005 ? 'exceeds' : 'within';
+  } else {
+    // 60-63 without the figure: the higher catch-up is at least the age-50 one.
+    status = annualContribution > regular50Limit + 0.005 ? 'higher-catch-up' : 'within';
+  }
   return {
     year: US_TAX_YEAR,
-    annualLimit,
     baseLimit: US_401K.limit,
     catchUp: US_401K.catchUp,
-    catchUpApplies,
+    catchUpBand,
+    annualLimit,
     annualContribution,
-    exceeds: annualContribution > annualLimit + 0.005,
+    status,
   };
 }
 

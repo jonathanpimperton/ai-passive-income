@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 import { formatCurrency } from '../../lib/calculator-utils';
 import { todayLocal, type CalendarDate } from '../../lib/uk-pension-ages';
-import type { Milestone, ProjectionRow, RetirementRegion } from '../../lib/retirement';
+import type { Milestone, ProjectionRow, RetirementRegion, Us401kCheck } from '../../lib/retirement';
 
 export function regionFor(currency: string): RetirementRegion {
   return currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
@@ -112,6 +112,46 @@ export function MilestoneLegend({ milestones, region }: { milestones: Milestone[
   );
 }
 
+/**
+ * One-line comparison of a yearly saving with the 401(k) employee limit.
+ * `showWithin` also confirms when the amount fits (the contribution calculator).
+ */
+export function Limit401kNote({ check, showWithin = false }: { check: Us401kCheck; showWithin?: boolean }) {
+  const usd = (v: number) => formatCurrency(v, 'USD');
+  if (check.status === 'within' && !showWithin) return null;
+  const amount = <span className="tabular-nums">{usd(check.annualContribution)}</span>;
+  let body;
+  if (check.status === 'exceeds' && check.annualLimit !== null) {
+    body = (
+      <>
+        That is {amount} a year, more than the {check.year} 401(k) employee limit of{' '}
+        <span className="tabular-nums">{usd(check.annualLimit)}</span>
+        {check.catchUpBand === '50+' ? ' (including the age-50+ catch-up)' : ''}. The rest would need an IRA or a taxable
+        account; employer contributions do not count toward this limit.
+      </>
+    );
+  } else if (check.status === 'higher-catch-up') {
+    body = (
+      <>
+        That is {amount} a year. At ages 60 to 63 a higher {check.year} 401(k) catch-up limit applies, so check this
+        amount against your plan's limit; employer contributions do not count toward it.
+      </>
+    );
+  } else {
+    body = (
+      <>
+        That is {amount} a year, within the {check.year} 401(k) employee limit of{' '}
+        <span className="tabular-nums">{usd(check.baseLimit)}</span>
+        {check.catchUpBand === '60-63'
+          ? ' plus the higher catch-up for ages 60 to 63'
+          : <> (plus <span className="tabular-nums">{usd(check.catchUp)}</span> catch-up from age 50)</>}
+        .
+      </>
+    );
+  }
+  return <p className="text-sm text-neutral-600 leading-relaxed border-l-2 border-neutral-300 pl-3 mb-4">{body}</p>;
+}
+
 /** Every-5-years summary table under the chart (the chart's text equivalent). */
 export function ProjectionSummaryTable({
   rows,
@@ -133,24 +173,24 @@ export function ProjectionSummaryTable({
   return (
     <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
       <h3 className="text-sm font-medium text-neutral-700 p-4 pb-0 mb-3">Projection Summary</h3>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={caption}>
         <table className="w-full text-sm">
           <caption className="sr-only">{caption}</caption>
           <thead>
             <tr className="bg-neutral-50 border-b border-neutral-200/80">
-              <th scope="col" className="text-left py-3 px-4 font-medium text-neutral-600">Age</th>
-              <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600">Nominal</th>
-              <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600">{todaysMoneyLabel(currency)}</th>
-              <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Contributions</th>
+              <th scope="col" className="text-left py-3 px-3 sm:px-4 whitespace-nowrap font-medium text-neutral-600">Age</th>
+              <th scope="col" className="text-right py-3 px-3 sm:px-4 whitespace-nowrap font-medium text-neutral-600">Nominal</th>
+              <th scope="col" className="text-right py-3 px-3 sm:px-4 whitespace-nowrap font-medium text-neutral-600">{todaysMoneyLabel(currency)}</th>
+              <th scope="col" className="text-right py-3 px-3 sm:px-4 whitespace-nowrap font-medium text-neutral-600 hidden sm:table-cell">Contributions</th>
             </tr>
           </thead>
           <tbody>
             {shown.map((row, i) => (
               <tr key={row.month} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
-                <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-900 tabular-nums">{ageLabel(row.age)}</th>
-                <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">{fmt(row.nominal)}</td>
-                <td className="py-2.5 px-4 text-right text-primary-600 tabular-nums">{fmt(row.real)}</td>
-                <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums hidden sm:table-cell">{fmt(row.contributions)}</td>
+                <th scope="row" className="py-2.5 px-3 sm:px-4 whitespace-nowrap text-left font-medium text-neutral-900 tabular-nums">{ageLabel(row.age)}</th>
+                <td className="py-2.5 px-3 sm:px-4 whitespace-nowrap text-right font-semibold text-neutral-900 tabular-nums">{fmt(row.nominal)}</td>
+                <td className="py-2.5 px-3 sm:px-4 whitespace-nowrap text-right text-primary-600 tabular-nums">{fmt(row.real)}</td>
+                <td className="py-2.5 px-3 sm:px-4 whitespace-nowrap text-right text-neutral-600 tabular-nums hidden sm:table-cell">{fmt(row.contributions)}</td>
               </tr>
             ))}
           </tbody>
