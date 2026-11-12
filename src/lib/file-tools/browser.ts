@@ -140,6 +140,14 @@ export function downloadBlob(blob: Blob, name: string): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
+/**
+ * Wrap bytes in a Blob. (TypeScript's DOM types reject Uint8Array<ArrayBufferLike>
+ * as a BlobPart; every array here is backed by a plain ArrayBuffer.)
+ */
+export function bytesToBlob(bytes: Uint8Array, type: string): Blob {
+  return new Blob([bytes as Uint8Array<ArrayBuffer>], { type });
+}
+
 /** Read a Blob/File's bytes. */
 export async function readBytes(file: Blob): Promise<Uint8Array> {
   return new Uint8Array(await file.arrayBuffer());
