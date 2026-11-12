@@ -69,7 +69,7 @@ const medicareRate = (US_MEDICARE.rate * 100).toFixed(2);
 const addlMedicareRate = (US_MEDICARE.additionalRate * 100).toFixed(1);
 const addlMedicareFrom = US_MEDICARE.additionalThreshold.single;
 
-const title = `US Take-Home Pay by Salary: $40,000 to $250,000 (${US_TAX_YEAR})`;
+const title = `US Take-Home Pay by Salary: $40k-$250k (${US_TAX_YEAR})`;
 const description = `US take-home pay for every salary from $40,000 to $250,000 — federal tax, Social Security, Medicare, and monthly net pay for ${US_TAX_YEAR}, verified against IRS rates.`;
 
 const articleSchema = buildArticleSchema({
@@ -105,7 +105,7 @@ const lastChecked = new Date(US_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateSt
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
-        US take-home pay by salary <span class="text-neutral-500 font-normal">({US_TAX_YEAR})</span>
+        US take-home pay by salary: $40k&ndash;$250k <span class="text-neutral-500 font-normal">({US_TAX_YEAR})</span>
       </h1>
       <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
       <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">

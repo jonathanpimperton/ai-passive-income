@@ -1,5 +1,5 @@
 ---
-title: "The 60% Tax Trap: UK Take-Home from £100,000 to £125,140"
+title: "UK 60% Tax Trap: Take-Home £100,000 to £125,140"
 slug: "60-percent-tax-trap-uk"
 description: "60% tax trap UK: between £100,000 and £125,140 the Personal Allowance taper leaves you £380 from every extra £1,000. Exact take-home at each step, 2026/27."
 keywords: ["60 tax trap uk", "60 percent tax trap", "100k tax trap", "personal allowance taper", "marginal tax rate over 100k uk", "tax on 120k salary uk"]

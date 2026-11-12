@@ -52,7 +52,7 @@ const pay400at6 = loanMonthlyPayment(400000, 0.06, TERM_MONTHS);
 const ukPay300 = loanMonthlyPayment(300000, 0.055, 300); // 25-year UK worked example
 const interest300Pct = Math.round((interest300_30yr / 300000) * 100);
 
-const title = 'Mortgage Payments by Amount: $150,000 to $750,000 at 5-7%';
+const title = 'Mortgage Payments by Amount: $150,000 to $750,000';
 const description =
   'Monthly mortgage payments for loan amounts from $150,000 to $750,000 at 5%, 5.5%, 6%, 6.5%, and 7% over 30 years — plus total interest and a UK guide.';
 
@@ -83,7 +83,7 @@ const breadcrumbs = [
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
-        Mortgage payments by amount <span class="text-neutral-500 font-normal">($150,000&ndash;$750,000)</span>
+        Mortgage payments by amount: <span class="text-neutral-500 font-normal">$150,000 to $750,000</span>
       </h1>
       <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
       <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">

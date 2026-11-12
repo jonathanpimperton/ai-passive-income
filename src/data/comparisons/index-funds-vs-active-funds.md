@@ -1,5 +1,5 @@
 ---
-title: "Index Funds vs Active Funds: Where Should You Invest?"
+title: "Index Funds vs Active Funds: Where to Invest?"
 slug: "index-funds-vs-active-funds"
 description: "Compare index funds and actively managed funds. See the real impact of fees on long-term returns and which approach wins over 10, 20, and 30 years."
 keywords:

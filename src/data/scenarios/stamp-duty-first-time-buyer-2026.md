@@ -1,7 +1,7 @@
 ---
-title: "First-Time Buyer Stamp Duty in 2026: Where the Relief Ends"
+title: "First-Time Buyer Stamp Duty: Where the Relief Ends"
 slug: "stamp-duty-first-time-buyer-2026"
-description: "First-time buyer stamp duty in 2026: £0 up to £300,000, 5% to £500,000, then no relief at all. FTB vs standard SDLT at £300k, £425k, £500k and £625k."
+description: "First-time buyer stamp duty in England and NI: £0 up to £300,000, 5% to £500,000, then no relief. FTB vs standard SDLT at £300k, £425k, £500k and £625k."
 keywords: ["stamp duty first time buyer", "first time buyer stamp duty 2026", "first time buyer SDLT relief", "stamp duty relief threshold", "how much stamp duty first time buyer"]
 toolSlug: "stamp-duty"
 toolCategory: "economic"

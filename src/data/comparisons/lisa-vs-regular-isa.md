@@ -1,5 +1,5 @@
 ---
-title: "LISA vs Regular ISA: Which Should UK Savers Choose?"
+title: "LISA vs Regular ISA: Which Suits UK Savers?"
 slug: "lisa-vs-regular-isa"
 description: "Compare the Lifetime ISA and regular Stocks & Shares ISA. See the 25% bonus, withdrawal penalties, age limits, and which works for your goals."
 keywords:

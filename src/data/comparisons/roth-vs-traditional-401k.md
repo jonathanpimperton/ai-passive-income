@@ -1,5 +1,5 @@
 ---
-title: "Roth vs Traditional 401(k): Which Is Better for You?"
+title: "Roth vs Traditional 401(k): Which Is Better?"
 slug: "roth-vs-traditional-401k"
 description: "Compare Roth and Traditional 401(k) contributions. See which saves more based on your current tax bracket and expected retirement income."
 keywords:
