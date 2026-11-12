@@ -13,10 +13,9 @@ inputs:
 resultSummary: "~5.8% annual total return"
 affiliateContext: "Start investing with low fees"
 affiliatePrograms:
-  - "Betterment"
   - "InvestEngine"
 datePublished: "2026-03-04"
-dateModified: "2026-07-02"
+dateModified: "2026-11-12"
 ---
 
 ## Expect roughly 5.8% annual total return — 3.3% yield plus 2.5% appreciation
@@ -57,10 +56,12 @@ At 4% mortgage rates instead of 5%, the mortgage interest drops to £6,000, cash
 
 ## Tax implications for UK landlords
 
-Since April 2020, landlords can no longer deduct mortgage interest from rental income. Instead, you receive a 20% tax credit on mortgage interest payments. For higher-rate (40%) taxpayers, this significantly reduces the tax benefit:
+Since 6 April 2020 (after a phase-in from 2017), individual landlords can no longer deduct mortgage interest from rental income. You pay tax on your rental profit before interest, meaning rent minus allowable running costs, and then get a tax credit worth 20% of the interest. The credit is 20% of the lowest of three amounts: the interest, your property profit, and your taxable income above the personal allowance. Any interest it can't cover is carried forward to later years. For higher-rate (40%) taxpayers this significantly reduces the relief:
 
-- **Basic-rate taxpayer (20%):** No change — the 20% credit matches what you would have deducted.
-- **Higher-rate taxpayer (40%):** You pay tax on gross rent at 40% but only get 20% relief on mortgage interest. On £10,200 gross rent with £7,500 mortgage interest, your tax bill is roughly £3,030 instead of the £1,080 it would be under the old rules.
+- **Basic-rate taxpayer (20%):** Usually little change, because the 20% credit matches the 20% tax. The exception is when adding the rental profit before interest pushes your total income into the higher-rate band.
+- **Higher-rate taxpayer (40%):** On the leveraged example above, the profit before interest is £6,600 (£10,200 rent minus £3,600 costs), taxed at 40% = £2,640. The credit is 20% of £6,600 = £1,320, because the profit is lower than the £7,500 of interest; the other £900 of interest is carried forward. That leaves a tax bill of about £1,320 on a property that loses £900 a year in cash. Under the pre-2017 rules the interest was fully deductible, the property showed a £900 loss and there was no tax to pay.
+
+From 6 April 2027, rental profits in England, Wales and Northern Ireland are taxed at separate property income rates of 24%, 44% and 49% instead of 20%, 40% and 45%, so the same profit will cost more tax.
 
 Additionally, capital gains tax on property sales is 18% (basic rate) or 24% (higher rate) after a £3,000 annual allowance.
 
@@ -82,6 +83,6 @@ Index funds win on simplicity and liquidity. Property wins on leverage and the p
 - **Void periods:** Two months empty costs £1,700 and can turn a profitable year into a loss.
 - **Major repairs:** A new boiler (£3,000) or roof issue (£5,000+) can wipe out a year's profit.
 - **Interest rate rises:** A 2% rate increase on a £150,000 mortgage adds £3,000/year.
-- **Regulation:** Increased energy efficiency requirements (EPC C by 2028) may require capital expenditure.
+- **Regulation:** Private landlords in England and Wales must bring rented homes up to EPC C by 1 October 2030, with spending capped at £10,000 per property. In England, the Renters' Rights Act ended section 21 "no fault" evictions on 1 May 2026, so most tenancies now run as periodic tenancies and you need a specific legal ground to regain possession.
 
 Use the [ROI Calculator](/tools/saving-and-growth/roi/) to model your specific rental property numbers, including purchase costs, renovation, and expected rent.
