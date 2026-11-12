@@ -1,18 +1,15 @@
 import React, { useState, useRef } from 'react';
-
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}
+import type { SubscribeBody } from '../../lib/email-types';
+import { postJson, useTurnstile } from '../../lib/email-client';
 
 /**
  * Email capture component with two variants:
- * - "tool" (default): appears on financial calculator pages — "Get tips to grow your money"
- * - "newsletter": appears on homepage — general newsletter signup
+ * - "tool" (default): for financial calculator pages - "Get financial tips"
+ * - "newsletter": homepage newsletter signup
  *
- * Posts to /api/subscribe → Cloudflare Pages Function → MailerLite API.
- * Includes honeypot field for bot protection.
+ * Posts to /api/subscribe (Cloudflare Worker -> MailerLite). Bot protection: honeypot
+ * field plus a Cloudflare Turnstile token. Turnstile loads only when the visitor first
+ * focuses or hovers the form, so the page does not pay for it otherwise.
  */
 interface EmailCaptureProps {
   toolSlug?: string;
@@ -24,6 +21,7 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const turnstile = useTurnstile('subscribe');
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,49 +30,45 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
     setStatus('loading');
     setErrorMsg('');
 
+    let turnstileToken: string;
     try {
-      const response = await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          toolSlug: toolSlug || undefined,
-          honeypot: honeypotRef.current?.value || '',
-        }),
-      });
-
-      let data: { success?: boolean; error?: string };
-      try {
-        data = await response.json();
-      } catch {
-        setStatus('error');
-        setErrorMsg('Something went wrong. Please try again.');
-        return;
-      }
-
-      if (response.ok && data.success) {
-        setStatus('success');
-        // Fire GA4 event
-        if (window.gtag) {
-          window.gtag('event', 'email_capture_submit', {
-            variant: variant,
-          });
-        }
-      } else {
-        setStatus('error');
-        setErrorMsg(data.error || 'Something went wrong. Please try again.');
-      }
-    } catch {
+      turnstileToken = await turnstile.getToken();
+    } catch (err) {
       setStatus('error');
-      setErrorMsg('Network error. Please check your connection and try again.');
+      setErrorMsg(err instanceof Error ? err.message : 'The spam check failed. Please press Retry.');
+      return;
     }
+
+    const body: SubscribeBody = {
+      email,
+      toolSlug: toolSlug || undefined,
+      honeypot: honeypotRef.current?.value || '',
+      turnstileToken,
+    };
+    const result = await postJson('/api/subscribe', body);
+
+    if (result.ok) {
+      setStatus('success');
+      if (window.gtag) window.gtag('event', 'email_capture_submit', { variant });
+      return;
+    }
+    setStatus('error');
+    setErrorMsg(result.message);
+    // Tokens are single-use: fetch a fresh one for the next attempt.
+    turnstile.reset();
+  }
+
+  function handleRetry() {
+    setStatus('idle');
+    setErrorMsg('');
+    turnstile.reset();
   }
 
   const isNewsletter = variant === 'newsletter';
 
   if (status === 'success') {
     return (
-      <div className="bg-primary-50 border border-primary-200/60 rounded-lg p-6 shadow-card text-center">
+      <div className="bg-primary-50 border border-primary-200/60 rounded-lg p-6 shadow-card text-center" role="status">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-600 text-white mb-3">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -87,6 +81,10 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
       </div>
     );
   }
+
+  const showTurnstileError = turnstile.status === 'error' && status !== 'loading';
+  const message = status === 'error' && errorMsg ? errorMsg : showTurnstileError ? turnstile.error : '';
+  const canRetry = turnstile.status === 'error' || (status === 'error' && /spam check|verification/i.test(errorMsg));
 
   return (
     <div className={isNewsletter
@@ -117,8 +115,13 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-        {/* Honeypot — hidden from humans, traps bots */}
+      <form
+        onSubmit={handleSubmit}
+        onFocus={turnstile.start}
+        onPointerEnter={turnstile.start}
+        className="flex flex-col sm:flex-row gap-3"
+      >
+        {/* Honeypot: hidden from humans, traps bots */}
         <input
           ref={honeypotRef}
           type="text"
@@ -126,8 +129,7 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
           autoComplete="off"
           tabIndex={-1}
           aria-hidden="true"
-          className="absolute opacity-0 h-0 w-0 overflow-hidden pointer-events-none"
-          style={{ position: 'absolute', left: '-9999px' }}
+          className="absolute -left-[9999px] opacity-0 h-0 w-0 overflow-hidden pointer-events-none"
         />
         <label htmlFor={`email-capture-${variant}`} className="sr-only">Email address</label>
         <input
@@ -138,6 +140,7 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
           placeholder="your@email.com"
           required
           maxLength={254}
+          autoComplete="email"
           disabled={status === 'loading'}
           className="flex-1 px-4 py-3 sm:py-2.5 text-base sm:text-sm border border-neutral-200/80 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-60 transition-all duration-200"
         />
@@ -150,10 +153,24 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
         </button>
       </form>
 
-      {status === 'error' && (
-        <p className="text-sm text-red-600 mt-2" role="alert">
-          {errorMsg}
-        </p>
+      {/* Turnstile renders here; it stays invisible unless Cloudflare needs an interaction. */}
+      <div ref={turnstile.containerRef} className="mt-2" />
+
+      {message && (
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <p className="text-sm text-red-600" role="alert">
+            {message}
+          </p>
+          {canRetry && (
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="text-sm font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2 transition-colors duration-150"
+            >
+              Retry
+            </button>
+          )}
+        </div>
       )}
 
       <p className="text-xs text-neutral-500 mt-3">
