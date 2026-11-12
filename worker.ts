@@ -1,89 +1,74 @@
 /**
  * Cloudflare Worker entry point.
  *
- * Handles API routes (POST /api/subscribe, POST /api/email-results)
- * and delegates all other requests to static assets served from dist/.
+ * Routing: Cloudflare serves any request that matches a static asset in dist/ without
+ * running this Worker. Everything else reaches fetch() below:
+ *   - /api/subscribe and /api/email-results (POST, plus CORS preflight) are handled here;
+ *   - any other /api/* path gets a JSON 404;
+ *   - everything else goes to env.ASSETS.fetch(request), which applies html_handling and
+ *     not_found_handling ("404-page" in wrangler.toml), so unknown URLs get the designed
+ *     404 page with status 404.
  *
- * Security: Turnstile bot prevention, hand-rolled schema validation, server-side
- * tool name derivation (never trust client toolName), input sanitization,
- * 20KB request size cap.
+ * API hardening (both endpoints):
+ *   - Content-Type must be application/json (415 otherwise);
+ *   - Origin must be https://www.calcrun.com or https://calcrun.com (403 otherwise).
+ *     localhost/127.0.0.1 origins are accepted ONLY when env.ALLOW_DEV_ORIGINS is set
+ *     (local wrangler dev or scripts/serve-prod.mjs), never in production;
+ *   - 20 KB body cap, enforced while streaming (413);
+ *   - Cloudflare Turnstile token required; siteverify must succeed AND report one of our
+ *     hostnames (and the expected action when present). Fails closed when the secret is
+ *     missing (503);
+ *   - results-email rows are rebuilt from a server-side allowlist (src/lib/tool-registry.ts
+ *     and src/lib/email-sanitize.ts); client labels and free text are never rendered;
+ *   - every response body is JSON and carries no-store, nosniff, HSTS and a deny-all CSP.
  *
- * Rate limiting: Cloudflare WAF should be configured with TWO rules:
- *   - Rule 1: POST /api/email-results → 5 requests per IP per minute
- *   - Rule 2: POST /api/subscribe → 5 requests per IP per minute
- *   - Action: Block with 429 Too Many Requests
- *   - This is set in the Cloudflare dashboard (Security > WAF > Rate limiting rules)
- *   - The 429 is returned by Cloudflare BEFORE the worker runs, so no in-worker handling needed.
- *   - Without Rule 2, attackers can list-bomb the MailerLite free tier (500 subs).
+ * Rate limiting is NOT done here. A Cloudflare WAF rate-limiting rule (dashboard) covers
+ * both endpoints. Observed behaviour on 9 Nov 2026: about 4-5 POSTs per 10 seconds per IP,
+ * shared across both endpoints, then a 10 second block answered by Cloudflare with
+ * 429 "error code: 1015" as plain text before this Worker runs. The clients handle that
+ * non-JSON 429. The owner verifies the exact rule (docs/owner-actions-2026-11.md, O-8).
  */
+import { TOOL_REGISTRY, isKnownTool } from './src/lib/tool-registry';
+import { sanitizeRows, type EmailRow } from './src/lib/email-sanitize';
 
-interface Env {
-  ASSETS: Fetcher;
-  MAILERLITE_API_KEY: string;
-  MAILERSEND_API_KEY: string;
-  TURNSTILE_SECRET_KEY: string;
+/** Minimal shape of the static-assets binding (avoids a dependency on workers-types). */
+interface AssetsBinding {
+  fetch(request: Request): Promise<Response>;
 }
 
-/* ── Tool registry — server-side source of truth for valid slugs + display names ── */
-const TOOL_REGISTRY: Record<string, string> = {
-  'compound-interest': 'Compound Interest Calculator',
-  'loan-amortization': 'Loan Amortization Calculator',
-  'investment-return': 'Investment Return Calculator',
-  'retirement-savings': 'Retirement Savings Calculator',
-  'retirement-contribution': 'Retirement Contribution Calculator',
-  'retirement-age': 'Retirement Age Calculator',
-  'debt-payoff': 'Debt Payoff Calculator',
-  'savings-goal': 'Savings Goal Calculator',
-  'salary': 'US Salary Calculator',
-  'salary-uk': 'UK Salary Calculator',
-  'mortgage-payment': 'Mortgage Payment Calculator',
-  'inflation': 'Inflation Calculator',
-  'roi': 'ROI Calculator',
-  'net-worth': 'Net Worth Calculator',
-  'rent-vs-buy': 'Rent vs Buy Calculator',
-  'emergency-fund': 'Emergency Fund Calculator',
-  'investment-fee': 'Investment Fee Calculator',
-  'mortgage-affordability': 'Mortgage Affordability Calculator',
-  'credit-card-payoff': 'Credit Card Payoff Calculator',
-  'solar-payback': 'Solar Panel Payback Calculator',
-  'car-finance': 'Car Finance Comparison Calculator',
-  'stamp-duty': 'Stamp Duty Calculator',
-  'capital-gains-tax': 'Capital Gains Tax Calculator',
-};
-
-/* ── Tool page paths — canonical URL per slug (note: 'salary' lives at salary-us) ── */
-const TOOL_PATHS: Record<string, string> = {
-  'compound-interest': '/tools/saving-and-growth/compound-interest/',
-  'loan-amortization': '/tools/debt-and-loans/loan-amortization/',
-  'investment-return': '/tools/saving-and-growth/investment-return/',
-  'retirement-savings': '/tools/income-and-planning/retirement-savings/',
-  'retirement-contribution': '/tools/income-and-planning/retirement-contribution/',
-  'retirement-age': '/tools/income-and-planning/retirement-age/',
-  'debt-payoff': '/tools/debt-and-loans/debt-payoff/',
-  'savings-goal': '/tools/saving-and-growth/savings-goal/',
-  'salary': '/tools/income-and-planning/salary-us/',
-  'salary-uk': '/tools/income-and-planning/salary-uk/',
-  'mortgage-payment': '/tools/debt-and-loans/mortgage-payment/',
-  'inflation': '/tools/economic/inflation/',
-  'roi': '/tools/saving-and-growth/roi/',
-  'net-worth': '/tools/income-and-planning/net-worth/',
-  'rent-vs-buy': '/tools/debt-and-loans/rent-vs-buy/',
-  'emergency-fund': '/tools/income-and-planning/emergency-fund/',
-  'investment-fee': '/tools/saving-and-growth/investment-fee/',
-  'mortgage-affordability': '/tools/debt-and-loans/mortgage-affordability/',
-  'credit-card-payoff': '/tools/debt-and-loans/credit-card-payoff/',
-  'solar-payback': '/tools/saving-and-growth/solar-payback/',
-  'car-finance': '/tools/debt-and-loans/car-finance/',
-  'stamp-duty': '/tools/economic/stamp-duty/',
-  'capital-gains-tax': '/tools/economic/capital-gains-tax/',
-};
+interface Env {
+  ASSETS: AssetsBinding;
+  MAILERLITE_API_KEY?: string;
+  MAILERSEND_API_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
+  /** Set (to any value) only in local development to accept localhost origins. */
+  ALLOW_DEV_ORIGINS?: string;
+}
 
 const MAILERLITE_GROUP_ID = '180838346043426395';
-const ALLOWED_ORIGIN = 'https://www.calcrun.com';
 const MAILERSEND_FROM_EMAIL = 'hello@calcrun.com';
 const MAILERSEND_FROM_NAME = 'CalcRun';
+const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
-/* ── Quick tips shown in results emails ────────────────────── */
+/** Origins whose pages may call the API. */
+const PRODUCTION_ORIGINS = new Set(['https://www.calcrun.com', 'https://calcrun.com']);
+/** Hostnames a valid Turnstile token may have been issued on. */
+const PRODUCTION_HOSTNAMES = new Set(['www.calcrun.com', 'calcrun.com']);
+/**
+ * Extra hostnames accepted in dev mode only. Cloudflare's Turnstile test keys always
+ * report example.com (developers.cloudflare.com/turnstile/troubleshooting/testing/).
+ */
+const DEV_HOSTNAMES = new Set(['localhost', '127.0.0.1', 'example.com']);
+
+/** Turnstile action names set by the clients (src/lib/email-client.ts). */
+const TURNSTILE_ACTIONS = { subscribe: 'subscribe', emailResults: 'email-results' } as const;
+
+const MAX_REQUEST_SIZE = 20_480; // 20 KB
+const MAX_INPUT_ROWS = 64; // Debt Payoff with its maximum of 10 debts sends 32
+const MAX_RESULT_ROWS = 32;
+const UPSTREAM_TIMEOUT_MS = 10_000;
+
+/* -- Quick tips shown in results emails ------------------------------- */
 const QUICK_TIPS: Record<string, string> = {
   'compound-interest': 'Even small increases in your monthly contribution can dramatically grow your wealth over time thanks to compound interest.',
   'loan-amortization': 'Making one extra payment per year can shave years off your loan and save thousands in interest.',
@@ -110,7 +95,7 @@ const QUICK_TIPS: Record<string, string> = {
   'capital-gains-tax': 'Holding investments for over a year (US) or using ISA wrappers (UK) can dramatically reduce your capital gains tax bill.',
 };
 
-/* ── Affiliate recommendations per calculator (2 per tool for better conversion) ── */
+/* -- Affiliate recommendations per calculator (2 per tool) --------------- */
 const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url: string; category: string; cta: string }>> = {
   'compound-interest': [
     { name: 'Betterment', tagline: 'Automated investing with no minimum balance', url: 'https://www.betterment.com/', category: 'Investing', cta: 'Start investing free' },
@@ -206,306 +191,33 @@ const AFFILIATE_RECS: Record<string, Array<{ name: string; tagline: string; url:
   ],
 };
 
-/* ── Request size cap ─────────────────────────────────────── */
-const MAX_REQUEST_SIZE = 20_480; // 20KB
-
-/* ── Input sanitization ──────────────────────────────────── */
-function sanitizeText(str: string): string {
-  return escapeHtml(
-    str
-      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // non-printable
-      .replace(/[\r\n]/g, '')                               // prevent CRLF injection
-      .replace(/\s+/g, ' ')                                 // collapse whitespace
-      .trim()
-  );
-}
-
-/* ── Turnstile verification ──────────────────────────────── */
-async function verifyTurnstile(token: string, secretKey: string): Promise<boolean> {
-  try {
-    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secret: secretKey, response: token }),
-    });
-    const data = await res.json() as { success: boolean };
-    return data.success === true;
-  } catch {
-    return false;
-  }
-}
-
-/* ── Schema validation (inline — worker can't import from src/) ── */
-function validateEmailResultsBody(raw: unknown): {
-  ok: true;
-  data: {
-    email: string;
-    toolSlug: string;
-    inputs: Array<{ label: string; value: string }>;
-    results: Array<{ label: string; value: string; highlight?: boolean }>;
-    subscribe: boolean;
-    honeypot: string;
-    turnstileToken: string;
-  };
-} | { ok: false; error: string } {
-  if (typeof raw !== 'object' || raw === null) {
-    return { ok: false, error: 'Invalid request body' };
-  }
-  const body = raw as Record<string, unknown>;
-
-  // Honeypot
-  const honeypot = typeof body.honeypot === 'string' ? body.honeypot : '';
-
-  // Turnstile token
-  const turnstileToken = typeof body.turnstileToken === 'string' ? body.turnstileToken.trim() : '';
-
-  // Email — trim, lowercase, max 254 chars
-  const rawEmail = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-  if (!rawEmail || rawEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
-    return { ok: false, error: 'Please enter a valid email address' };
-  }
-
-  // Tool slug — must exist in registry
-  const rawSlug = typeof body.toolSlug === 'string' ? body.toolSlug.trim() : '';
-  if (!rawSlug || rawSlug.length > 50 || !(rawSlug in TOOL_REGISTRY)) {
-    return { ok: false, error: 'Invalid calculator' };
-  }
-
-  // Inputs — array of {label, value}, max 20 items, max 200 chars each
-  const rawInputs = Array.isArray(body.inputs) ? body.inputs : [];
-  if (rawInputs.length > 20) {
-    return { ok: false, error: 'Too many input fields' };
-  }
-  const inputs: Array<{ label: string; value: string }> = [];
-  for (const inp of rawInputs) {
-    if (typeof inp !== 'object' || inp === null) continue;
-    const label = typeof (inp as Record<string, unknown>).label === 'string'
-      ? String((inp as Record<string, unknown>).label).slice(0, 200).replace(/[\r\n]/g, '')
-      : '';
-    const value = typeof (inp as Record<string, unknown>).value === 'string'
-      ? String((inp as Record<string, unknown>).value).slice(0, 200).replace(/[\r\n]/g, '')
-      : '';
-    if (label && value) inputs.push({ label, value });
-  }
-
-  // Results — array of {label, value, highlight?}, 1-20 items
-  const rawResults = Array.isArray(body.results) ? body.results : [];
-  if (rawResults.length === 0 || rawResults.length > 20) {
-    return { ok: false, error: 'Missing calculator results' };
-  }
-  const results: Array<{ label: string; value: string; highlight?: boolean }> = [];
-  for (const res of rawResults) {
-    if (typeof res !== 'object' || res === null) continue;
-    const label = typeof (res as Record<string, unknown>).label === 'string'
-      ? String((res as Record<string, unknown>).label).slice(0, 200).replace(/[\r\n]/g, '')
-      : '';
-    const value = typeof (res as Record<string, unknown>).value === 'string'
-      ? String((res as Record<string, unknown>).value).slice(0, 200).replace(/[\r\n]/g, '')
-      : '';
-    const highlight = (res as Record<string, unknown>).highlight === true;
-    if (label && value) results.push({ label, value, highlight });
-  }
-  if (results.length === 0) {
-    return { ok: false, error: 'Missing calculator results' };
-  }
-
-  const subscribe = body.subscribe === true;
-
-  return {
-    ok: true,
-    data: { email: rawEmail, toolSlug: rawSlug, inputs, results, subscribe, honeypot, turnstileToken },
-  };
-}
-
-/* ── CORS ──────────────────────────────────────────────────── */
-function isAllowedOrigin(origin: string): boolean {
-  if (origin === ALLOWED_ORIGIN) return true;
-  // Allow localhost for dev — strict check to prevent bypass via localhost.evil.com
-  try {
-    const url = new URL(origin);
-    return url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  } catch {
-    return false;
-  }
-}
-
-function corsHeaders(origin: string | null): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400',
-    'Vary': 'Origin',
-  };
-  if (origin && isAllowedOrigin(origin)) {
-    headers['Access-Control-Allow-Origin'] = origin;
-  }
-  return headers;
-}
-
-/* ── Subscribe to MailerLite ───────────────────────────────── */
-async function subscribeToMailerLite(
-  email: string,
-  toolSlug: string | undefined,
-  apiKey: string,
-  signupSource: 'newsletter' | 'results' = 'newsletter',
-): Promise<void> {
-  const fields: Record<string, string> = { signup_source: signupSource };
-  if (toolSlug) fields.calculator_slug = toolSlug;
-
-  const mlResponse = await fetch('https://connect.mailerlite.com/api/subscribers', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      email,
-      groups: [MAILERLITE_GROUP_ID],
-      fields,
-    }),
-  });
-
-  // 422 = already subscribed / validation quirk — treat as success.
-  // Anything else is a real failure and must surface to the caller so the
-  // UI can show an error instead of silently losing the signup.
-  if (!mlResponse.ok && mlResponse.status !== 422) {
-    console.error('MailerLite error: status', mlResponse.status);
-    throw new Error(`MailerLite responded ${mlResponse.status}`);
-  }
-}
-
-/* ── Validate /api/subscribe body ─────────────────────────── */
-function validateSubscribeBody(raw: unknown): {
-  ok: true;
-  data: { email: string; toolSlug: string | undefined; honeypot: string };
-} | { ok: false; error: string } {
-  if (typeof raw !== 'object' || raw === null) {
-    return { ok: false, error: 'Invalid request body' };
-  }
-  const body = raw as Record<string, unknown>;
-
-  const honeypot = typeof body.honeypot === 'string' ? body.honeypot : '';
-
-  const rawEmail = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-  if (!rawEmail || rawEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
-    return { ok: false, error: 'Please enter a valid email address' };
-  }
-
-  // toolSlug is optional for subscribe, but if present must be valid
-  let toolSlug: string | undefined;
-  if (typeof body.toolSlug === 'string' && body.toolSlug.trim()) {
-    const slug = body.toolSlug.trim();
-    if (slug.length > 50 || !(slug in TOOL_REGISTRY)) {
-      toolSlug = undefined; // silently ignore invalid slugs — don't leak registry
-    } else {
-      toolSlug = slug;
-    }
-  }
-
-  return { ok: true, data: { email: rawEmail, toolSlug, honeypot } };
-}
-
-/* ── Handle POST /api/subscribe ────────────────────────────── */
-async function handleSubscribe(request: Request, env: Env): Promise<Response> {
-  const origin = request.headers.get('Origin');
-  const headers = { ...corsHeaders(origin), 'Content-Type': 'application/json' };
-
-  // 1. Request size cap (same as email-results)
-  const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
-  if (contentLength > MAX_REQUEST_SIZE) {
-    return new Response(
-      JSON.stringify({ error: 'Request too large' }),
-      { status: 413, headers }
-    );
-  }
-
-  const apiKey = env.MAILERLITE_API_KEY;
-  if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: 'Email service not configured' }),
-      { status: 503, headers }
-    );
-  }
-
-  // 2. Parse JSON with size guard
-  let rawText: string;
-  try {
-    rawText = await request.text();
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'Invalid request body' }),
-      { status: 400, headers }
-    );
-  }
-  if (rawText.length > MAX_REQUEST_SIZE) {
-    return new Response(
-      JSON.stringify({ error: 'Request too large' }),
-      { status: 413, headers }
-    );
-  }
-
-  let rawBody: unknown;
-  try {
-    rawBody = JSON.parse(rawText);
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'Invalid JSON' }),
-      { status: 400, headers }
-    );
-  }
-
-  // 3. Validate with strict schema
-  const validation = validateSubscribeBody(rawBody);
-  if (!validation.ok) {
-    return new Response(
-      JSON.stringify({ error: validation.error }),
-      { status: 400, headers }
-    );
-  }
-  const body = validation.data;
-
-  // 4. Honeypot filled = bot → silently succeed
-  if (body.honeypot) {
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-  }
-
-  // 5. Subscribe
-  try {
-    await subscribeToMailerLite(body.email, body.toolSlug, apiKey, 'newsletter');
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'Subscription failed. Please try again.' }),
-      { status: 502, headers }
-    );
-  }
-}
-
-/* ── Build branded HTML results email ──────────────────────── */
+/* -- Build branded HTML results email ------------------------------------ */
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
+/** Rows are already sanitised by sanitizeRows(); every value is still HTML-escaped here. */
 function buildResultsEmail(
   toolName: string,
   toolSlug: string,
-  inputs: Array<{ label: string; value: string }>,
-  results: Array<{ label: string; value: string; highlight?: boolean }>,
+  inputs: EmailRow[],
+  results: EmailRow[],
 ): string {
   const tip = QUICK_TIPS[toolSlug] || '';
   // toolSlug is already validated against TOOL_REGISTRY upstream
-  const toolUrl = `https://www.calcrun.com${TOOL_PATHS[toolSlug] || '/tools/'}`;
+  const toolUrl = `https://www.calcrun.com${TOOL_REGISTRY[toolSlug]?.path || '/tools/'}`;
 
   const inputRows = inputs
     .map(
       (inp) => `
       <tr>
-        <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${sanitizeText(inp.label)}</td>
-        <td style="padding:8px 12px;font-size:14px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${sanitizeText(inp.value)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${escapeHtml(inp.label)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${escapeHtml(inp.value)}</td>
       </tr>`
     )
     .join('');
@@ -516,15 +228,15 @@ function buildResultsEmail(
         return `
         <tr>
           <td colspan="2" style="padding:16px 12px;background-color:#E6F2F2;border-bottom:1px solid #B8DADA;border-radius:8px;">
-            <div style="font-size:13px;color:#0B6E6E;margin-bottom:4px;">${sanitizeText(res.label)}</div>
-            <div style="font-size:28px;font-weight:700;color:#085858;font-variant-numeric:tabular-nums;">${sanitizeText(res.value)}</div>
+            <div style="font-size:13px;color:#0B6E6E;margin-bottom:4px;">${escapeHtml(res.label)}</div>
+            <div style="font-size:28px;font-weight:700;color:#085858;font-variant-numeric:tabular-nums;">${escapeHtml(res.value)}</div>
           </td>
         </tr>`;
       }
       return `
       <tr>
-        <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${sanitizeText(res.label)}</td>
-        <td style="padding:8px 12px;font-size:14px;color:#1A1A2E;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${sanitizeText(res.value)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#4B5563;border-bottom:1px solid #F3F4F6;">${escapeHtml(res.label)}</td>
+        <td style="padding:8px 12px;font-size:14px;color:#1A1A2E;font-weight:600;text-align:right;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;">${escapeHtml(res.value)}</td>
       </tr>`;
     })
     .join('');
@@ -702,171 +414,452 @@ function buildResultsEmail(
 </html>`;
 }
 
-/* ── Handle POST /api/email-results ────────────────────────── */
-async function handleEmailResults(request: Request, env: Env): Promise<Response> {
-  const origin = request.headers.get('Origin');
-  const headers = { ...corsHeaders(origin), 'Content-Type': 'application/json' };
+/* -- Responses ------------------------------------------------------------ */
 
-  // 1. Hard cap request size before parsing
-  const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
-  if (contentLength > MAX_REQUEST_SIZE) {
-    return new Response(
-      JSON.stringify({ error: 'Request too large' }),
-      { status: 413, headers }
-    );
-  }
+/** Headers on every API response. _headers does not apply to Worker-generated responses. */
+const API_HEADERS: Record<string, string> = {
+  'Cache-Control': 'no-store',
+  'X-Content-Type-Options': 'nosniff',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+  'Referrer-Policy': 'no-referrer',
+};
 
-  const mailerSendKey = env.MAILERSEND_API_KEY;
-  if (!mailerSendKey) {
-    return new Response(
-      JSON.stringify({ error: 'Email service not configured' }),
-      { status: 503, headers }
-    );
-  }
+function json(status: number, body: Record<string, unknown>, extra: Record<string, string> = {}): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...API_HEADERS, 'Content-Type': 'application/json; charset=utf-8', ...extra },
+  });
+}
 
-  // 2. Parse JSON with size guard (read as text first to verify size)
-  let rawText: string;
+/* -- Origin, CORS and content type ---------------------------------------- */
+
+function devMode(env: Env): boolean {
+  return Boolean(env.ALLOW_DEV_ORIGINS);
+}
+
+function isAllowedOrigin(origin: string | null, env: Env): boolean {
+  if (!origin) return false;
+  if (PRODUCTION_ORIGINS.has(origin)) return true;
+  if (!devMode(env)) return false;
   try {
-    rawText = await request.text();
+    const url = new URL(origin);
+    // Strict hostname check so that localhost.evil.example never passes.
+    return (url.protocol === 'http:' || url.protocol === 'https:')
+      && (url.hostname === 'localhost' || url.hostname === '127.0.0.1')
+      && url.origin === origin;
   } catch {
-    return new Response(
-      JSON.stringify({ error: 'Invalid request body' }),
-      { status: 400, headers }
-    );
+    return false;
   }
-  if (rawText.length > MAX_REQUEST_SIZE) {
-    return new Response(
-      JSON.stringify({ error: 'Request too large' }),
-      { status: 413, headers }
-    );
-  }
+}
 
-  let rawBody: unknown;
+function isAllowedTurnstileHostname(hostname: unknown, env: Env): boolean {
+  if (typeof hostname !== 'string') return false;
+  return PRODUCTION_HOSTNAMES.has(hostname) || (devMode(env) && DEV_HOSTNAMES.has(hostname));
+}
+
+/** CORS headers. Access-Control-Allow-Origin is sent only to allowlisted origins. */
+function corsHeaders(origin: string | null, env: Env): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+  };
+  if (origin && isAllowedOrigin(origin, env)) headers['Access-Control-Allow-Origin'] = origin;
+  return headers;
+}
+
+function isJsonContentType(request: Request): boolean {
+  const ct = request.headers.get('Content-Type') || '';
+  return ct.split(';')[0].trim().toLowerCase() === 'application/json';
+}
+
+/**
+ * Read the body as text, giving up once it exceeds `max` bytes (so a chunked upload
+ * without Content-Length cannot make the Worker buffer more than the cap).
+ * Returns null when the body is too large.
+ */
+async function readBodyCapped(request: Request, max: number): Promise<string | null> {
+  if (!request.body) return '';
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > max) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    bytes.set(c, offset);
+    offset += c.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+/* -- Turnstile ------------------------------------------------------------- */
+
+interface SiteverifyResponse {
+  success?: boolean;
+  hostname?: string;
+  action?: string;
+  'error-codes'?: string[];
+}
+
+/**
+ * Verify a Turnstile token. Succeeds only when siteverify says success AND the token was
+ * issued on one of our hostnames AND (when the token carries an action) the action is the
+ * one this endpoint expects. Any network or parse failure fails closed.
+ */
+async function verifyTurnstile(token: string, request: Request, env: Env, expectedAction: string): Promise<boolean> {
+  if (!env.TURNSTILE_SECRET_KEY || !token || token.length > 2048) return false;
   try {
-    rawBody = JSON.parse(rawText);
+    const res = await fetch(SITEVERIFY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: env.TURNSTILE_SECRET_KEY,
+        response: token,
+        remoteip: request.headers.get('CF-Connecting-IP') || undefined,
+      }),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      console.warn('Turnstile siteverify HTTP status', res.status);
+      return false;
+    }
+    const data = await res.json() as SiteverifyResponse;
+    if (data.success !== true) {
+      console.warn('Turnstile rejected token:', (data['error-codes'] || []).join(','));
+      return false;
+    }
+    if (!isAllowedTurnstileHostname(data.hostname, env)) {
+      console.warn('Turnstile token issued on an unexpected hostname');
+      return false;
+    }
+    if (data.action && data.action !== expectedAction) {
+      console.warn('Turnstile token action mismatch');
+      return false;
+    }
+    return true;
   } catch {
-    return new Response(
-      JSON.stringify({ error: 'Invalid JSON' }),
-      { status: 400, headers }
-    );
+    console.warn('Turnstile siteverify unreachable');
+    return false;
+  }
+}
+
+/* -- Validation ------------------------------------------------------------ */
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function readEmail(body: Record<string, unknown>): string | null {
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  if (!email || email.length > 254 || !EMAIL_RE.test(email)) return null;
+  return email;
+}
+
+function readToken(body: Record<string, unknown>): string {
+  return typeof body.turnstileToken === 'string' ? body.turnstileToken.trim() : '';
+}
+
+function validateEmailResultsBody(raw: unknown): {
+  ok: true;
+  data: {
+    email: string;
+    toolSlug: string;
+    inputs: EmailRow[];
+    results: EmailRow[];
+    dropped: number;
+    subscribe: boolean;
+    honeypot: string;
+    turnstileToken: string;
+  };
+} | { ok: false; error: string } {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    return { ok: false, error: 'Invalid request body' };
+  }
+  const body = raw as Record<string, unknown>;
+
+  const email = readEmail(body);
+  if (!email) return { ok: false, error: 'Please enter a valid email address' };
+
+  const toolSlug = typeof body.toolSlug === 'string' ? body.toolSlug.trim() : '';
+  if (!toolSlug || toolSlug.length > 50 || !isKnownTool(toolSlug)) {
+    return { ok: false, error: 'Invalid calculator' };
   }
 
-  // 3. Validate with strict schema
-  const validation = validateEmailResultsBody(rawBody);
-  if (!validation.ok) {
-    return new Response(
-      JSON.stringify({ error: validation.error }),
-      { status: 400, headers }
-    );
+  const rawInputs = Array.isArray(body.inputs) ? body.inputs : [];
+  const rawResults = Array.isArray(body.results) ? body.results : [];
+  if (rawInputs.length > MAX_INPUT_ROWS) return { ok: false, error: 'Too many input fields' };
+  if (rawResults.length > MAX_RESULT_ROWS) return { ok: false, error: 'Too many result fields' };
+
+  // Rows are rebuilt from the server-side allowlist; see src/lib/email-sanitize.ts.
+  const rows = sanitizeRows(toolSlug, rawInputs, rawResults);
+  if (rows.results.length === 0) return { ok: false, error: 'Missing calculator results' };
+
+  return {
+    ok: true,
+    data: {
+      email,
+      toolSlug,
+      inputs: rows.inputs,
+      results: rows.results,
+      dropped: rows.dropped,
+      // Marketing consent only on an explicit boolean true (never a string or default).
+      subscribe: body.subscribe === true,
+      honeypot: typeof body.honeypot === 'string' ? body.honeypot : '',
+      turnstileToken: readToken(body),
+    },
+  };
+}
+
+function validateSubscribeBody(raw: unknown): {
+  ok: true;
+  data: { email: string; toolSlug: string | undefined; honeypot: string; turnstileToken: string };
+} | { ok: false; error: string } {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    return { ok: false, error: 'Invalid request body' };
   }
+  const body = raw as Record<string, unknown>;
+  const email = readEmail(body);
+  if (!email) return { ok: false, error: 'Please enter a valid email address' };
+
+  // toolSlug is optional; an unknown slug is ignored rather than reported.
+  let toolSlug: string | undefined;
+  if (typeof body.toolSlug === 'string') {
+    const slug = body.toolSlug.trim();
+    if (slug && slug.length <= 50 && isKnownTool(slug)) toolSlug = slug;
+  }
+  return {
+    ok: true,
+    data: {
+      email,
+      toolSlug,
+      honeypot: typeof body.honeypot === 'string' ? body.honeypot : '',
+      turnstileToken: readToken(body),
+    },
+  };
+}
+
+/* -- MailerLite ------------------------------------------------------------ */
+
+/** MailerLite answered 422: the address (or a field) was rejected as invalid. */
+class MailerLiteRejected extends Error {}
+
+/**
+ * Add `email` to the newsletter group. MailerLite returns 201 for a new subscriber and
+ * 200 for an existing one (developers.mailerlite.com/docs/subscribers.html). Anything else
+ * is a failure; 422 means invalid data and is reported to the visitor.
+ */
+async function subscribeToMailerLite(
+  email: string,
+  toolSlug: string | undefined,
+  apiKey: string,
+  signupSource: 'newsletter' | 'results',
+): Promise<void> {
+  const fields: Record<string, string> = { signup_source: signupSource };
+  if (toolSlug) fields.calculator_slug = toolSlug;
+
+  const res = await fetch('https://connect.mailerlite.com/api/subscribers', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ email, groups: [MAILERLITE_GROUP_ID], fields }),
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+  });
+  if (res.status === 200 || res.status === 201) return;
+  if (res.status === 422) {
+    console.warn('MailerLite rejected the subscriber data (422)');
+    throw new MailerLiteRejected('MailerLite 422');
+  }
+  console.error('MailerLite error: status', res.status);
+  throw new Error(`MailerLite responded ${res.status}`);
+}
+
+/* -- Shared request gate ----------------------------------------------------- */
+
+/**
+ * Checks shared by both POST endpoints: content type, origin, size, JSON.
+ * Returns the parsed body or the error Response to send.
+ */
+async function readApiRequest(request: Request, env: Env, cors: Record<string, string>): Promise<
+  { ok: true; body: unknown } | { ok: false; response: Response }
+> {
+  if (!isJsonContentType(request)) {
+    return { ok: false, response: json(415, { error: 'Unsupported content type' }, cors) };
+  }
+  if (!isAllowedOrigin(request.headers.get('Origin'), env)) {
+    return { ok: false, response: json(403, { error: 'Forbidden' }, cors) };
+  }
+  const declared = parseInt(request.headers.get('Content-Length') || '0', 10);
+  if (declared > MAX_REQUEST_SIZE) {
+    return { ok: false, response: json(413, { error: 'Request too large' }, cors) };
+  }
+  let text: string | null;
+  try {
+    text = await readBodyCapped(request, MAX_REQUEST_SIZE);
+  } catch {
+    return { ok: false, response: json(400, { error: 'Invalid request body' }, cors) };
+  }
+  if (text === null) return { ok: false, response: json(413, { error: 'Request too large' }, cors) };
+  try {
+    return { ok: true, body: JSON.parse(text) };
+  } catch {
+    return { ok: false, response: json(400, { error: 'Invalid JSON' }, cors) };
+  }
+}
+
+const VERIFICATION_REQUIRED = { error: 'Verification required. Please try again.', code: 'verification_required' };
+const VERIFICATION_FAILED = { error: 'Verification failed. Please try again.', code: 'verification_failed' };
+
+/* -- POST /api/subscribe ----------------------------------------------------- */
+
+async function handleSubscribe(request: Request, env: Env): Promise<Response> {
+  const cors = corsHeaders(request.headers.get('Origin'), env);
+  const parsed = await readApiRequest(request, env, cors);
+  if (!parsed.ok) return parsed.response;
+
+  if (!env.MAILERLITE_API_KEY || !env.TURNSTILE_SECRET_KEY) {
+    console.error('Subscribe endpoint is missing MAILERLITE_API_KEY or TURNSTILE_SECRET_KEY');
+    return json(503, { error: 'Sign-up is temporarily unavailable. Please try again later.' }, cors);
+  }
+
+  const validation = validateSubscribeBody(parsed.body);
+  if (!validation.ok) return json(400, { error: validation.error }, cors);
   const body = validation.data;
 
-  // 4. Honeypot — silently succeed for bots
-  if (body.honeypot) {
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+  // Honeypot filled = bot: pretend success, do nothing.
+  if (body.honeypot) return json(200, { success: true }, cors);
+
+  if (!body.turnstileToken) return json(403, VERIFICATION_REQUIRED, cors);
+  if (!(await verifyTurnstile(body.turnstileToken, request, env, TURNSTILE_ACTIONS.subscribe))) {
+    return json(403, VERIFICATION_FAILED, cors);
   }
 
-  // 5. Verify Turnstile token — fail CLOSED: sending branded email from our
-  // verified domain without bot verification is worse than a temporary outage.
-  if (!env.TURNSTILE_SECRET_KEY) {
-    console.error('TURNSTILE_SECRET_KEY not set — refusing to send email without bot verification.');
-    return new Response(
-      JSON.stringify({ error: 'Email sending is temporarily unavailable.' }),
-      { status: 503, headers }
-    );
-  }
-  if (env.TURNSTILE_SECRET_KEY) {
-    if (!body.turnstileToken) {
-      return new Response(
-        JSON.stringify({ error: 'Verification required' }),
-        { status: 403, headers }
-      );
+  try {
+    await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY, 'newsletter');
+    return json(200, { success: true }, cors);
+  } catch (err) {
+    if (err instanceof MailerLiteRejected) {
+      return json(400, {
+        error: "We couldn't add that address. Please check it and try again.",
+        code: 'email_rejected',
+      }, cors);
     }
-    const turnstileOk = await verifyTurnstile(body.turnstileToken, env.TURNSTILE_SECRET_KEY);
-    if (!turnstileOk) {
-      return new Response(
-        JSON.stringify({ error: 'Verification failed. Please try again.' }),
-        { status: 403, headers }
-      );
-    }
+    return json(502, { error: 'Subscription failed. Please try again later.' }, cors);
+  }
+}
+
+/* -- POST /api/email-results ------------------------------------------------- */
+
+async function handleEmailResults(request: Request, env: Env): Promise<Response> {
+  const cors = corsHeaders(request.headers.get('Origin'), env);
+  const parsed = await readApiRequest(request, env, cors);
+  if (!parsed.ok) return parsed.response;
+
+  // Fail closed: sending branded email from our domain without bot verification is worse
+  // than a temporary outage.
+  if (!env.MAILERSEND_API_KEY || !env.TURNSTILE_SECRET_KEY) {
+    console.error('Email-results endpoint is missing MAILERSEND_API_KEY or TURNSTILE_SECRET_KEY');
+    return json(503, { error: 'Email sending is temporarily unavailable. Please try again later.' }, cors);
   }
 
-  // 6. Derive tool display name from server-side registry (NEVER use client toolName)
-  const toolDisplayName = TOOL_REGISTRY[body.toolSlug] || 'Calculator';
+  const validation = validateEmailResultsBody(parsed.body);
+  if (!validation.ok) return json(400, { error: validation.error }, cors);
+  const body = validation.data;
 
-  // 7. Build the email HTML with sanitized data
+  if (body.honeypot) return json(200, { success: true }, cors);
+
+  if (!body.turnstileToken) return json(403, VERIFICATION_REQUIRED, cors);
+  if (!(await verifyTurnstile(body.turnstileToken, request, env, TURNSTILE_ACTIONS.emailResults))) {
+    return json(403, VERIFICATION_FAILED, cors);
+  }
+
+  if (body.dropped > 0) console.warn(`email-results: dropped ${body.dropped} row(s) for ${body.toolSlug}`);
+
+  // Display name and URL always come from the server-side registry.
+  const toolDisplayName = TOOL_REGISTRY[body.toolSlug].name;
   const htmlContent = buildResultsEmail(toolDisplayName, body.toolSlug, body.inputs, body.results);
 
-  // 8. Send via MailerSend — subject uses server-derived name
   try {
     const msResponse = await fetch('https://api.mailersend.com/v1/email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${mailerSendKey}`,
+        'Authorization': `Bearer ${env.MAILERSEND_API_KEY}`,
       },
       body: JSON.stringify({
         from: { email: MAILERSEND_FROM_EMAIL, name: MAILERSEND_FROM_NAME },
         to: [{ email: body.email }],
-        subject: `Your ${toolDisplayName} Results — CalcRun`,
+        subject: `Your ${toolDisplayName} Results - CalcRun`,
         html: htmlContent,
       }),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
-
     if (!msResponse.ok) {
       console.error('MailerSend error: status', msResponse.status);
-      return new Response(
-        JSON.stringify({ error: 'Failed to send email. Please try again.' }),
-        { status: 502, headers }
-      );
+      return json(502, { error: 'Failed to send email. Please try again.' }, cors);
     }
   } catch {
     console.error('MailerSend request failed');
-    return new Response(
-      JSON.stringify({ error: 'Failed to send email. Please try again.' }),
-      { status: 502, headers }
-    );
+    return json(502, { error: 'Failed to send email. Please try again.' }, cors);
   }
 
-  // 9. Subscribe to MailerLite drip only if user opted in (fire-and-forget)
+  // Marketing enrolment ONLY on an explicit opt-in (the checkbox defaults to unticked).
+  let subscribeFailed = false;
   if (body.subscribe && env.MAILERLITE_API_KEY) {
     try {
       await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY, 'results');
     } catch {
-      console.error('MailerLite subscribe (from email-results) failed');
+      subscribeFailed = true;
     }
   }
 
-  return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+  return json(200, subscribeFailed ? { success: true, subscribeFailed: true } : { success: true }, cors);
 }
 
-/* ── Worker entry point ────────────────────────────────────── */
+/* -- Worker entry point ------------------------------------------------------ */
+
+const API_ROUTES = new Map<string, (request: Request, env: Env) => Promise<Response>>([
+  ['/api/subscribe', handleSubscribe],
+  ['/api/email-results', handleEmailResults],
+]);
+
+async function handleApi(request: Request, env: Env, pathname: string): Promise<Response> {
+  const handler = API_ROUTES.get(pathname);
+  if (!handler) return json(404, { error: 'Not found' });
+  const cors = corsHeaders(request.headers.get('Origin'), env);
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: { ...API_HEADERS, ...cors } });
+  }
+  if (request.method !== 'POST') {
+    return json(405, { error: 'Method not allowed' }, { ...cors, Allow: 'POST, OPTIONS' });
+  }
+  try {
+    return await handler(request, env);
+  } catch {
+    console.error('Unhandled API error on', pathname);
+    return json(500, { error: 'Something went wrong. Please try again.' }, cors);
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-
-    // CORS preflight for API routes
-    if (request.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
-      const origin = request.headers.get('Origin');
-      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+    const { pathname } = new URL(request.url);
+    if (pathname === '/api' || pathname.startsWith('/api/')) {
+      return handleApi(request, env, pathname);
     }
-
-    // API routes
-    if (url.pathname === '/api/subscribe') {
-      if (request.method === 'POST') {
-        return handleSubscribe(request, env);
-      }
-      return new Response('Method not allowed', { status: 405 });
-    }
-
-    if (url.pathname === '/api/email-results') {
-      if (request.method === 'POST') {
-        return handleEmailResults(request, env);
-      }
-      return new Response('Method not allowed', { status: 405 });
-    }
-
-    // Everything else → static assets
+    // Everything else: static assets (html_handling + not_found_handling apply here).
     return env.ASSETS.fetch(request);
   },
-} satisfies ExportedHandler<Env>;
+};
