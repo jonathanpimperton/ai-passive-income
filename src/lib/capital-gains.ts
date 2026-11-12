@@ -35,6 +35,29 @@ export type HoldingPeriod = 'short' | 'long';
 export type CgtCountry = 'us' | 'uk';
 
 /* -- US CGT Calculation ------------------------------------ */
+/**
+ * The US figures the CGT engine needs. Structurally a subset of W1-TAX's
+ * per-year rates object, so `getUsRates(year)` can be passed straight in once
+ * the multi-year module lands. Omitted, the engine uses the us-rates.ts
+ * exports (the default tax year). Tests pass an explicit year's figures so
+ * they do not change when the default year rolls over on 1 January.
+ */
+export interface UsCgtRates {
+  brackets: Record<FilingStatus, [number, number][]>;
+  standardDeduction: Record<FilingStatus, number>;
+  capitalGains: {
+    longTerm: Record<FilingStatus, { from: number; rate: number }[]>;
+    niit: { rate: number; threshold: Record<FilingStatus, number> };
+  };
+}
+
+/** The default-year figures from us-rates.ts. */
+export const DEFAULT_US_CGT_RATES: UsCgtRates = {
+  brackets: US_BRACKETS,
+  standardDeduction: US_STANDARD_DEDUCTION,
+  capitalGains: US_CAPITAL_GAINS,
+};
+
 export interface USCgtResult {
   gain: number;
   taxableGain: number;
@@ -61,8 +84,13 @@ function calcBracketTax(income: number, brackets: [number, number][]): number {
 }
 
 /** Estimated MAGI for the NIIT test: taxable income + standard deduction + gain. */
-export function estimateMagi(taxableIncome: number, gain: number, filing: FilingStatus): number {
-  return Math.max(0, taxableIncome) + US_STANDARD_DEDUCTION[filing] + Math.max(0, gain);
+export function estimateMagi(
+  taxableIncome: number,
+  gain: number,
+  filing: FilingStatus,
+  rates: UsCgtRates = DEFAULT_US_CGT_RATES,
+): number {
+  return Math.max(0, taxableIncome) + rates.standardDeduction[filing] + Math.max(0, gain);
 }
 
 export function calculateUSCgt(
@@ -71,6 +99,7 @@ export function calculateUSCgt(
   holdingPeriod: HoldingPeriod,
   filing: FilingStatus,
   taxableIncome: number,
+  rates: UsCgtRates = DEFAULT_US_CGT_RATES,
 ): USCgtResult {
   const gain = salePrice - purchasePrice;
   if (gain <= 0) return { gain, taxableGain: gain, federalTax: 0, niit: 0, magi: 0, totalTax: 0, effectiveRate: 0, marginalRate: 0 };
@@ -82,7 +111,7 @@ export function calculateUSCgt(
   if (holdingPeriod === 'short') {
     // Short-term: taxed at ordinary income rates
     // Gain stacks on top of existing taxable income
-    const brackets = US_BRACKETS[filing];
+    const brackets = rates.brackets[filing];
     const baseIncome = taxableIncome;
     const totalIncome = baseIncome + gain;
 
@@ -101,7 +130,7 @@ export function calculateUSCgt(
     // Long-term: the gain occupies [taxableIncome, taxableIncome + gain] --
     // ordinary income fills the LTCG brackets first, then each slice of the
     // gain is taxed at the rate of the bracket it lands in.
-    const ltBrackets = US_CAPITAL_GAINS.longTerm[filing];
+    const ltBrackets = rates.capitalGains.longTerm[filing];
     const totalTaxableIncome = taxableIncome + gain;
 
     for (let i = 0; i < ltBrackets.length; i++) {
@@ -117,12 +146,12 @@ export function calculateUSCgt(
   }
 
   // Net Investment Income Tax (NIIT), tested against estimated MAGI
-  const magi = estimateMagi(taxableIncome, gain, filing);
-  const niitThreshold = US_CAPITAL_GAINS.niit.threshold[filing];
+  const magi = estimateMagi(taxableIncome, gain, filing, rates);
+  const niitThreshold = rates.capitalGains.niit.threshold[filing];
   let niit = 0;
   if (magi > niitThreshold) {
     const niitableAmount = Math.min(gain, magi - niitThreshold);
-    niit = niitableAmount * US_CAPITAL_GAINS.niit.rate;
+    niit = niitableAmount * rates.capitalGains.niit.rate;
   }
 
   const totalTax = federalTax + niit;

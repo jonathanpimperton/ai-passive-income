@@ -1,7 +1,39 @@
 import { describe, it, expect } from 'vitest';
-import { calculateUSCgt, calculateUKCgt, ukBandPosition, defaultCgtCountry, estimateMagi } from './capital-gains';
-import { US_CAPITAL_GAINS, US_STANDARD_DEDUCTION } from './us-rates';
+import {
+  calculateUSCgt,
+  calculateUKCgt,
+  ukBandPosition,
+  defaultCgtCountry,
+  estimateMagi,
+  DEFAULT_US_CGT_RATES,
+  type UsCgtRates,
+} from './capital-gains';
+import { US_BRACKETS, US_CAPITAL_GAINS, US_STANDARD_DEDUCTION } from './us-rates';
 import { UK_CGT } from './uk-rates';
+
+/**
+ * TY2026 federal figures (Rev. Proc. 2025-32; IRS IR-2025-103 as amended by
+ * OBBBA), pinned here so these tests do not change when the default US tax
+ * year rolls over on 1 January (W1-TAX multi-year rates). The engine's
+ * default-year behaviour is tested separately below.
+ */
+const R26: UsCgtRates = {
+  brackets: {
+    single: [[0, 0.10], [12_400, 0.12], [50_400, 0.22], [105_700, 0.24], [201_775, 0.32], [256_225, 0.35], [640_600, 0.37]],
+    married: [[0, 0.10], [24_800, 0.12], [100_800, 0.22], [211_400, 0.24], [403_550, 0.32], [512_450, 0.35], [768_700, 0.37]],
+    head: [[0, 0.10], [17_700, 0.12], [67_450, 0.22], [105_700, 0.24], [201_775, 0.32], [256_200, 0.35], [640_600, 0.37]],
+  },
+  standardDeduction: { single: 16_100, married: 32_200, head: 24_150 },
+  capitalGains: {
+    longTerm: {
+      single: [{ from: 0, rate: 0 }, { from: 49_450, rate: 0.15 }, { from: 545_500, rate: 0.20 }],
+      married: [{ from: 0, rate: 0 }, { from: 98_900, rate: 0.15 }, { from: 613_700, rate: 0.20 }],
+      head: [{ from: 0, rate: 0 }, { from: 66_200, rate: 0.15 }, { from: 579_600, rate: 0.20 }],
+    },
+    // NIIT thresholds are statutory (26 U.S.C. 1411), not indexed
+    niit: { rate: 0.038, threshold: { single: 200_000, married: 250_000, head: 200_000 } },
+  },
+};
 
 /**
  * US 2026 (single, Rev. Proc. 2025-32): LTCG 0% to $49,450 taxable,
@@ -16,15 +48,15 @@ import { UK_CGT } from './uk-rates';
 
 describe('calculateUSCgt -- long-term', () => {
   it('returns zero tax for a loss or break-even sale', () => {
-    const r = calculateUSCgt(80_000, 60_000, 'long', 'single', 100_000);
+    const r = calculateUSCgt(80_000, 60_000, 'long', 'single', 100_000, R26);
     expect(r.gain).toBe(-20_000);
     expect(r.totalTax).toBe(0);
-    expect(calculateUSCgt(50_000, 50_000, 'long', 'single', 100_000).totalTax).toBe(0);
+    expect(calculateUSCgt(50_000, 50_000, 'long', 'single', 100_000, R26).totalTax).toBe(0);
   });
 
   it('low-income filer fully inside the 0% band pays $0', () => {
     // $30,000 income + $10,000 gain = $40,000, all below the $49,450 0% top
-    const r = calculateUSCgt(50_000, 60_000, 'long', 'single', 30_000);
+    const r = calculateUSCgt(50_000, 60_000, 'long', 'single', 30_000, R26);
     expect(r.federalTax).toBe(0);
     expect(r.niit).toBe(0);
     expect(r.totalTax).toBe(0);
@@ -34,7 +66,7 @@ describe('calculateUSCgt -- long-term', () => {
   it('mid-income filer: entire gain at 15%', () => {
     // $75,000 income already exceeds the 0% top ($49,450), total $105,000
     // stays below $545,500 -> all $30,000 of gain at 15% = $4,500
-    const r = calculateUSCgt(50_000, 80_000, 'long', 'single', 75_000);
+    const r = calculateUSCgt(50_000, 80_000, 'long', 'single', 75_000, R26);
     expect(r.federalTax).toBeCloseTo(4_500, 2);
     expect(r.niit).toBe(0);
     expect(r.totalTax).toBeCloseTo(4_500, 2);
@@ -45,7 +77,7 @@ describe('calculateUSCgt -- long-term', () => {
   it('gain straddling the 0%/15% boundary', () => {
     // $40,000 income, $20,000 gain: $9,450 fills the 0% band up to $49,450,
     // remaining $10,550 at 15% = $1,582.50
-    const r = calculateUSCgt(0, 20_000, 'long', 'single', 40_000);
+    const r = calculateUSCgt(0, 20_000, 'long', 'single', 40_000, R26);
     expect(r.federalTax).toBeCloseTo(1_582.50, 2);
     expect(r.marginalRate).toBe(0.15);
   });
@@ -54,7 +86,7 @@ describe('calculateUSCgt -- long-term', () => {
     // MAGI = $140,000 taxable + $16,100 standard deduction + $50,000 gain = $206,100
     // -> $6,100 over threshold. Federal: all gain at 15% = $7,500. NIIT: $6,100 x 3.8% = $231.80
     // (taxable income + gain is only $190,000: the old model charged no NIIT at all)
-    const r = calculateUSCgt(0, 50_000, 'long', 'single', 140_000);
+    const r = calculateUSCgt(0, 50_000, 'long', 'single', 140_000, R26);
     expect(r.magi).toBe(206_100);
     expect(r.federalTax).toBeCloseTo(7_500, 2);
     expect(r.niit).toBeCloseTo(231.8, 2);
@@ -63,39 +95,39 @@ describe('calculateUSCgt -- long-term', () => {
 
   it('MATH-UK-15 repro: $150k taxable + $60k gain, single -> NIIT $991.80 (site showed $380)', () => {
     // MAGI 150,000 + 16,100 + 60,000 = 226,100 -> 26,100 x 3.8% = 991.80
-    expect(calculateUSCgt(0, 60_000, 'long', 'single', 150_000).niit).toBeCloseTo(991.8, 2);
+    expect(calculateUSCgt(0, 60_000, 'long', 'single', 150_000, R26).niit).toBeCloseTo(991.8, 2);
   });
 
   it('IRS NIIT Q&A example 20: wages $180,000 + $90,000 investment income -> $2,660', () => {
     // https://www.irs.gov/newsroom/questions-and-answers-on-the-net-investment-income-tax
     // (accessed 12 Nov 2026). MAGI $270,000; taxable income = 180,000 - 16,100.
-    const r = calculateUSCgt(0, 90_000, 'long', 'single', 180_000 - US_STANDARD_DEDUCTION.single);
+    const r = calculateUSCgt(0, 90_000, 'long', 'single', 180_000 - R26.standardDeduction.single, R26);
     expect(r.magi).toBe(270_000);
     expect(r.niit).toBeCloseTo(2_660, 2);
   });
 
   it('IRS NIIT Q&A example 19: wages $180,000 + $15,000 -> MAGI $195,000, no NIIT', () => {
-    const r = calculateUSCgt(0, 15_000, 'long', 'single', 180_000 - US_STANDARD_DEDUCTION.single);
+    const r = calculateUSCgt(0, 15_000, 'long', 'single', 180_000 - R26.standardDeduction.single, R26);
     expect(r.magi).toBe(195_000);
     expect(r.niit).toBe(0);
   });
 
   it('IRS NIIT Q&A example 2: married couple, MAGI $300,000 -> $1,900', () => {
     // $50,000 over the $250,000 threshold; the $100,000 gain does not bind
-    const taxable = 300_000 - 100_000 - US_STANDARD_DEDUCTION.married;
-    const r = calculateUSCgt(0, 100_000, 'long', 'married', taxable);
+    const taxable = 300_000 - 100_000 - R26.standardDeduction.married;
+    const r = calculateUSCgt(0, 100_000, 'long', 'married', taxable, R26);
     expect(r.magi).toBe(300_000);
     expect(r.niit).toBeCloseTo(1_900, 2);
   });
 
   it('estimateMagi adds the filing-status standard deduction', () => {
-    expect(estimateMagi(100_000, 10_000, 'head')).toBe(100_000 + US_STANDARD_DEDUCTION.head + 10_000);
+    expect(estimateMagi(100_000, 10_000, 'head', R26)).toBe(100_000 + 24_150 + 10_000);
   });
 
   it('high earner: gain at 20% plus NIIT on the whole gain', () => {
     // $600,000 income already exceeds the $545,500 20% threshold
     // Federal: $50,000 x 20% = $10,000. NIIT: $50,000 x 3.8% = $1,900
-    const r = calculateUSCgt(0, 50_000, 'long', 'single', 600_000);
+    const r = calculateUSCgt(0, 50_000, 'long', 'single', 600_000, R26);
     expect(r.federalTax).toBeCloseTo(10_000, 2);
     expect(r.niit).toBeCloseTo(1_900, 2);
     expect(r.totalTax).toBeCloseTo(11_900, 2);
@@ -106,7 +138,7 @@ describe('calculateUSCgt -- long-term', () => {
     // $0 income, $700,000 gain: 0% on 49,450; 15% on 496,050 = $74,407.50;
     // 20% on 154,500 = $30,900 -> federal $105,307.50.
     // NIIT: MAGI 716,100; min(700,000, 516,100) x 3.8% = $19,611.80
-    const r = calculateUSCgt(0, 700_000, 'long', 'single', 0);
+    const r = calculateUSCgt(0, 700_000, 'long', 'single', 0, R26);
     expect(r.federalTax).toBeCloseTo(105_307.50, 2);
     expect(r.niit).toBeCloseTo(19_611.8, 2);
     expect(r.totalTax).toBeCloseTo(124_919.30, 2);
@@ -114,9 +146,32 @@ describe('calculateUSCgt -- long-term', () => {
 
   it('married couple with total income below the 0% top pays $0', () => {
     // $90,000 income + $8,000 gain = $98,000, at or below the $98,900 married 0% top
-    expect(US_CAPITAL_GAINS.longTerm.married[1].from).toBe(98_900);
-    const r = calculateUSCgt(0, 8_000, 'long', 'married', 90_000);
+    expect(R26.capitalGains.longTerm.married[1].from).toBe(98_900);
+    const r = calculateUSCgt(0, 8_000, 'long', 'married', 90_000, R26);
     expect(r.federalTax).toBe(0);
+  });
+});
+
+describe('calculateUSCgt -- default year (whatever us-rates.ts currently defaults to)', () => {
+  it('omitting the rates argument uses the us-rates.ts exports', () => {
+    expect(DEFAULT_US_CGT_RATES.brackets).toBe(US_BRACKETS);
+    expect(DEFAULT_US_CGT_RATES.standardDeduction).toBe(US_STANDARD_DEDUCTION);
+    expect(DEFAULT_US_CGT_RATES.capitalGains).toBe(US_CAPITAL_GAINS);
+    for (const [income, gain] of [[40_000, 20_000], [150_000, 60_000], [600_000, 50_000]]) {
+      for (const term of ['short', 'long'] as const) {
+        expect(calculateUSCgt(0, gain, term, 'single', income))
+          .toEqual(calculateUSCgt(0, gain, term, 'single', income, DEFAULT_US_CGT_RATES));
+      }
+    }
+  });
+
+  it('NIIT tests MAGI = taxable income + standard deduction + gain in any year', () => {
+    const sd = US_STANDARD_DEDUCTION.single;
+    const threshold = US_CAPITAL_GAINS.niit.threshold.single;
+    // Taxable income chosen so MAGI exceeds the threshold by exactly $10,000.
+    const r = calculateUSCgt(0, 50_000, 'long', 'single', threshold + 10_000 - sd - 50_000);
+    expect(r.magi).toBe(threshold + 10_000);
+    expect(r.niit).toBeCloseTo(10_000 * US_CAPITAL_GAINS.niit.rate, 6);
   });
 });
 
@@ -124,21 +179,21 @@ describe('calculateUSCgt -- short-term', () => {
   it('taxes the gain at ordinary income rates stacked on top of income', () => {
     // 2026 single: 22% bracket starts at $50,400 taxable.
     // $50,400 income + $10,000 gain -> all of the gain in the 22% band = $2,200
-    const r = calculateUSCgt(0, 10_000, 'short', 'single', 50_400);
+    const r = calculateUSCgt(0, 10_000, 'short', 'single', 50_400, R26);
     expect(r.federalTax).toBeCloseTo(2_200, 2);
     expect(r.marginalRate).toBe(0.22);
   });
 
   it('uses the 10% bracket for a filer with no other income', () => {
     // $10,000 gain < $12,400 (12% threshold) -> 10% x 10,000 = $1,000
-    const r = calculateUSCgt(0, 10_000, 'short', 'single', 0);
+    const r = calculateUSCgt(0, 10_000, 'short', 'single', 0, R26);
     expect(r.federalTax).toBeCloseTo(1_000, 2);
     expect(r.marginalRate).toBe(0.10);
   });
 
   it('short-term tax is at least as high as long-term for the same gain', () => {
-    const short = calculateUSCgt(50_000, 80_000, 'short', 'single', 75_000);
-    const long = calculateUSCgt(50_000, 80_000, 'long', 'single', 75_000);
+    const short = calculateUSCgt(50_000, 80_000, 'short', 'single', 75_000, R26);
+    const long = calculateUSCgt(50_000, 80_000, 'long', 'single', 75_000, R26);
     expect(short.totalTax).toBeGreaterThanOrEqual(long.totalTax);
   });
 });
