@@ -28,8 +28,8 @@ limitations:
   - "Percentage-based minimums that decrease as balance drops are modeled, but some issuers use more complex formulas"
   - "Does not handle multiple cards — use the Debt Payoff calculator for multi-card strategies"
 dataSources:
-  - name: "Consumer Financial Protection Bureau — Credit Card Interest"
-    url: "https://www.consumerfinance.gov/ask-cfpb/how-is-interest-charged-on-my-credit-card-en-62/"
+  - name: "Consumer Financial Protection Bureau — How does my credit card company calculate the amount of interest I owe?"
+    url: "https://www.consumerfinance.gov/ask-cfpb/how-does-my-credit-card-company-calculate-the-amount-of-interest-i-owe-en-51/"
   - name: "Federal Reserve — Consumer Credit (G.19)"
     url: "https://www.federalreserve.gov/releases/g19/current/"
 ---
@@ -54,10 +54,10 @@ For percentage-based minimums (e.g., "2% of balance, $25 floor"), the minimum pa
 
 Credit card companies set minimums to maximize interest revenue. A typical minimum is 1-3% of the balance or $25-35, whichever is greater.
 
-Consider a $5,000 balance at 22.99% APR with a $100/month minimum:
+Consider a $5,000 balance at 22.99% APR, paid off at a fixed $100 a month:
 - Month 1: $96 goes to interest, only $4 to principal
-- Month 12: still paying $88/month in interest
-- Total payoff: 7+ years, $4,300+ in interest
+- Month 12: still paying $95/month in interest
+- Total payoff: 13 years 11 months (167 payments), with $11,694 in interest, more than double the original balance
 
 The minimum payment is designed so that in the early months, nearly all of it is consumed by interest. As the balance slowly drops, so does the minimum (if percentage-based), extending the payoff timeline even further.
 
@@ -69,7 +69,7 @@ Extra payments go entirely to principal reduction (after that month's interest i
 2. Less interest → more of next month's payment goes to principal
 3. More principal reduction → even lower balance → even less interest
 
-This is why even $50/month extra can save thousands. On the $5,000 example above, adding $50/month ($150 total) saves $2,435 in interest and cuts 4+ years off the payoff time.
+This is why even $50/month extra can save thousands. On the $5,000 example above, paying $150 a month instead of $100 clears the card in 4 years 6 months with $3,045 of interest. That saves $8,649 and more than 9 years.
 
 ## How Each Variable Affects the Result
 
@@ -83,4 +83,4 @@ This is why even $50/month extra can save thousands. On the $5,000 example above
 
 ## Why Monthly Approximation Is Accurate Enough
 
-Credit cards technically charge interest daily (APR / 365 × average daily balance). But for payoff timeline calculations, the monthly approximation (APR / 12 × ending balance) produces results within 1-2% of exact daily calculations. The difference on a 3-year payoff is typically less than one month. Every major payoff calculator uses this approach, and it's the standard method described by the CFPB.
+Credit cards technically charge interest daily (APR / 365 × average daily balance). But for payoff timeline calculations, the monthly approximation (APR / 12 × ending balance) produces results within 1-2% of exact daily calculations. The difference on a 3-year payoff is typically less than one month. Most payoff calculators use this approach; the CFPB explains how issuers actually charge interest day by day.

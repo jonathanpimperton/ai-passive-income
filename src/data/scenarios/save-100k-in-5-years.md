@@ -15,7 +15,7 @@ affiliateContext: "Earn more on your savings"
 affiliatePrograms:
   - "SoFi"
 datePublished: "2026-03-02"
-dateModified: "2026-07-02"
+dateModified: "2026-11-12"
 ---
 
 ## You need $1,393 per month
@@ -44,7 +44,7 @@ Saving $1,393 per month is ambitious but achievable, especially if you approach 
 
 **Automate your transfers.** Set up a recurring transfer to a separate savings account on payday. Treat it like a bill you cannot skip. Behavioral research consistently shows that automated savings dramatically outperform manual willpower-based approaches.
 
-**Choose the right account for a 5-year timeline.** A high-yield savings account (currently 4 to 5% APY) offers safety and liquidity for goals under 5 years. A brokerage account invested in index funds offers higher historical returns but introduces volatility — if the market drops 20% in year four, your timeline is at risk. For most people, a HYSA or CD ladder is the right call for a goal this short.
+**Choose the right account for a 5-year timeline.** A high-yield savings account offers safety and liquidity for goals under 5 years; its rate moves with the Federal Reserve's target range, which was 3.75-4.00% as of 12 November 2026. A brokerage account invested in index funds offers higher historical returns but introduces volatility — if the market drops 20% in year four, your timeline is at risk. For most people, a HYSA or CD ladder is the right call for a goal this short.
 
 **Layer in additional income.** Even $300/month from freelancing, selling items, or a part-time side project drops your required savings from $1,393 to $1,093 — suddenly much more manageable on a modest salary.
 
