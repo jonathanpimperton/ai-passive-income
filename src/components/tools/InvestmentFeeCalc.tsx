@@ -1,33 +1,24 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
-import {
-  compoundInterest,
-  compoundInterestSchedule,
-  formatCurrency,
-  formatNumber,
-} from '../../lib/calculator-utils';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { useState, useMemo, useCallback, useDeferredValue, useRef, Suspense } from 'react';
+import { formatNumber } from '../../lib/calculator-utils';
+import { compareFees, feeSchedule } from '../../lib/investment-fee';
+import { formatMoneyGuarded } from '../../lib/result-format';
 import { RotateCcw, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import ChartSkeleton from '../ui/ChartSkeleton';
 import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
+import LiveResult from './fields/LiveResult';
+import { lazyChart } from './charts/InvestDebtLazyChart';
 
-/* ── Defaults ─────────────────────────────────────────────── */
+const InvestGrowthChart = lazyChart(() => import('./charts/InvestGrowthChart'));
+
+/* -- Defaults ---------------------------------------------- */
 const DEFAULTS = {
   principal: 50000,
   monthly: 500,
@@ -37,13 +28,12 @@ const DEFAULTS = {
   comparisonFee: 1.0,
 };
 
-/* ── Main Calculator ──────────────────────────────────────── */
+/* -- Main Calculator --------------------------------------- */
 export default function InvestmentFeeCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
-  const fmt = (v: number) => formatCurrency(v, currency);
-  const ct = useChartTheme();
+  const fmt = (v: number) => formatMoneyGuarded(v, currency);
   // Region-aware fee terminology: US says expense ratio, UK says OCF/TER,
   // EUR says ongoing charges.
   const yourFeeLabel =
@@ -56,94 +46,59 @@ export default function InvestmentFeeCalc() {
   const [yourFee, setYourFee] = useState(DEFAULTS.yourFee);
   const [comparisonFee, setComparisonFee] = useState(DEFAULTS.comparisonFee);
 
-  /* ── Core calculations ──────────────────────────────────── */
-  const results = useMemo(() => {
-    const lowFee = Math.min(yourFee, comparisonFee);
-    const highFee = Math.max(yourFee, comparisonFee);
+  /* -- Core calculations (formula documented in src/lib/investment-fee.ts) -- */
+  const feeInputs = useMemo(
+    () => ({
+      principal,
+      monthlyContribution: monthly,
+      grossReturnPercent: rate,
+      years,
+      yourFeePercent: yourFee,
+      comparisonFeePercent: comparisonFee,
+    }),
+    [principal, monthly, rate, years, yourFee, comparisonFee]
+  );
+  const results = useMemo(() => compareFees(feeInputs), [feeInputs]);
 
-    // Effective returns = gross return minus fee
-    const yourEffective = (rate - yourFee) / 100;
-    const compEffective = (rate - comparisonFee) / 100;
-    const zeroFeeReturn = rate / 100;
+  /* -- Chart and table data (follow a frame behind fast slider drags) -- */
+  const deferredInputs = useDeferredValue(feeInputs);
+  const schedule = useMemo(() => feeSchedule(deferredInputs), [deferredInputs]);
+  const yourKey = `Your fund (${deferredInputs.yourFeePercent}% fee)`;
+  const compKey = `Comparison (${deferredInputs.comparisonFeePercent}% fee)`;
+  const chartData = useMemo(
+    () => schedule.map((row) => ({ year: row.year, [yourKey]: row.yourBalance, [compKey]: row.compBalance })),
+    [schedule, yourKey, compKey]
+  );
 
-    // Final balances
-    const yourBalance = compoundInterest(principal, monthly, yourEffective, years);
-    const compBalance = compoundInterest(principal, monthly, compEffective, years);
-    const zeroFeeBalance = compoundInterest(principal, monthly, zeroFeeReturn, years);
-
-    // Total contributions
-    const totalContributions = principal + monthly * 12 * years;
-
-    // Earnings
-    const yourEarnings = yourBalance - totalContributions;
-    const compEarnings = compBalance - totalContributions;
-
-    // Fees paid = what you would have earned with 0% fee minus what you actually earned
-    const yourFeesPaid = zeroFeeBalance - yourBalance;
-    const compFeesPaid = zeroFeeBalance - compBalance;
-
-    // Fee cost = difference between the two scenarios
-    const feeCost = Math.abs(yourBalance - compBalance);
-
-    // Who has the lower fee?
-    const lowerFeeBalance = yourFee <= comparisonFee ? yourBalance : compBalance;
-    const higherFeeBalance = yourFee <= comparisonFee ? compBalance : yourBalance;
-
-    // Percentage of returns lost to higher fee vs lower fee
-    const lowerFeeEarnings = lowerFeeBalance - totalContributions;
-    const pctReturnsLost = lowerFeeEarnings > 0 ? (feeCost / lowerFeeEarnings) * 100 : 0;
-
-    return {
-      yourBalance,
-      compBalance,
-      yourEffectiveRate: rate - yourFee,
-      compEffectiveRate: rate - comparisonFee,
-      totalContributions,
-      yourEarnings,
-      compEarnings,
-      yourFeesPaid,
-      compFeesPaid,
-      feeCost,
-      pctReturnsLost,
-      lowFee,
-      highFee,
-    };
-  }, [principal, monthly, rate, years, yourFee, comparisonFee]);
-
-  /* ── Chart data ─────────────────────────────────────────── */
-  const chartData = useMemo(() => {
-    const yourSchedule = compoundInterestSchedule(principal, monthly, (rate - yourFee) / 100, years);
-    const compSchedule = compoundInterestSchedule(principal, monthly, (rate - comparisonFee) / 100, years);
-
-    return yourSchedule.map((row, i) => ({
-      year: row.year,
-      [`Your fund (${yourFee}% fee)`]: row.balance,
-      [`Comparison (${comparisonFee}% fee)`]: compSchedule[i]?.balance ?? 0,
-    }));
-  }, [principal, monthly, rate, years, yourFee, comparisonFee]);
-
-  /* ── Animated big number ────────────────────────────────── */
+  /* -- Animated big number ----------------------------------- */
   const animatedFeeCost = useAnimatedNumber(results.feeCost);
+  const feeGap = Math.abs(yourFee - comparisonFee).toFixed(2);
+  const yearsText = `${years} year${years !== 1 ? 's' : ''}`;
 
-  /* ── PDF / Email callbacks ──────────────────────────────── */
+  /* -- PDF / Email callbacks --------------------------------- */
   const getInputs = useCallback(() => [
     { label: 'Initial Investment', value: fmt(principal) },
     { label: 'Monthly Contribution', value: fmt(monthly) },
     { label: 'Expected Annual Return', value: `${rate}%` },
-    { label: 'Investment Period', value: `${years} year${years !== 1 ? 's' : ''}` },
+    { label: 'Investment Period', value: yearsText },
     { label: 'Your Fund Fee', value: `${yourFee}%` },
     { label: 'Comparison Fee', value: `${comparisonFee}%` },
-  ], [principal, monthly, rate, years, yourFee, comparisonFee, currency]);
+  ], [principal, monthly, rate, yearsText, yourFee, comparisonFee, currency]);
 
-  const getResults = useCallback((): ResultItem[] => [
-    { label: 'Fee Difference Cost', value: fmt(results.feeCost), highlight: true },
-    { label: `Balance at ${yourFee}% fee`, value: fmt(results.yourBalance) },
-    { label: `Balance at ${comparisonFee}% fee`, value: fmt(results.compBalance) },
-    { label: 'Total Contributions', value: fmt(results.totalContributions) },
-    { label: 'Returns Lost to Fee Gap', value: `${results.pctReturnsLost.toFixed(1)}%` },
-  ], [results, yourFee, comparisonFee, currency]);
+  const getResults = useCallback((): ResultItem[] => {
+    const items: ResultItem[] = [
+      { label: 'Fee Difference Cost', value: fmt(results.feeCost), highlight: true },
+      { label: `Balance at ${yourFee}% fee`, value: fmt(results.yourBalance) },
+      { label: `Balance at ${comparisonFee}% fee`, value: fmt(results.compBalance) },
+      { label: 'Total Contributions', value: fmt(results.totalContributions) },
+    ];
+    if (results.shareOfReturnsLost !== null) {
+      items.push({ label: 'Returns Lost to Fee Gap', value: `${(results.shareOfReturnsLost * 100).toFixed(1)}%` });
+    }
+    return items;
+  }, [results, yourFee, comparisonFee, currency]);
 
-  /* ── Reset ──────────────────────────────────────────────── */
+  /* -- Reset ------------------------------------------------- */
   const handleReset = useCallback(() => {
     setPrincipal(DEFAULTS.principal);
     setMonthly(DEFAULTS.monthly);
@@ -153,21 +108,12 @@ export default function InvestmentFeeCalc() {
     setComparisonFee(DEFAULTS.comparisonFee);
   }, []);
 
-  /* ── Chart keys and Y-axis formatter ────────────────────── */
-  const yourKey = `Your fund (${yourFee}% fee)`;
-  const compKey = `Comparison (${comparisonFee}% fee)`;
-
-  const yAxisFormatter = (v: number) => {
-    const s = currency === 'GBP' ? '\u00A3' : currency === 'EUR' ? '\u20AC' : '$';
-    if (v >= 1000000) return `${s}${(v / 1000000).toFixed(1)}M`;
-    if (v >= 1000) return `${s}${(v / 1000).toFixed(0)}K`;
-    return `${s}${v}`;
-  };
+  const moneyClass = (v: number) => (v < 0 ? 'text-red-600' : 'text-success-600');
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
-        {/* ── Input Panel ────────────────────────────────── */}
+        {/* -- Input Panel -- */}
         <div className="p-6 lg:p-8 lg:border-r border-neutral-100">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
@@ -237,7 +183,7 @@ export default function InvestmentFeeCalc() {
               onChange={setYears}
             />
 
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent my-2" />
+            <div className="h-px bg-neutral-200/80 my-2" />
 
             <SliderInput
               label={yourFeeLabel}
@@ -266,8 +212,9 @@ export default function InvestmentFeeCalc() {
           </div>
         </div>
 
-        {/* ── Results Panel ───────────────────────────── */}
-        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite">
+        {/* -- Results Panel -- */}
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start">
+          <LiveResult text={`A ${feeGap}% fee gap costs ${fmt(results.feeCost)} over ${yearsText}.`} />
           {/* Big Number */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Fee Difference Costs You</p>
@@ -275,7 +222,7 @@ export default function InvestmentFeeCalc() {
               {fmt(animatedFeeCost)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              A {Math.abs(yourFee - comparisonFee).toFixed(2)}% fee gap over {years} year{years !== 1 ? 's' : ''} on your investment
+              A {feeGap}% fee gap over {yearsText} on your investment
             </p>
           </div>
 
@@ -307,18 +254,17 @@ export default function InvestmentFeeCalc() {
 
           {/* Insight card */}
           <div data-pdf-section className="bg-amber-50 border border-amber-200/60 rounded-lg p-4 mb-6">
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
-                <AlertTriangle size={16} aria-hidden="true" />
-              </div>
+            <div className="flex gap-2.5">
+              <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <p className="text-sm font-semibold text-amber-900 mb-1">The Hidden Cost of Fees</p>
+                <p className="text-sm font-semibold text-amber-800 mb-1">The Hidden Cost of Fees</p>
                 <p className="text-sm text-amber-800 leading-relaxed">
-                  A {Math.abs(yourFee - comparisonFee).toFixed(2)}% difference in fees on a {fmt(principal)} investment
-                  with {fmt(monthly)}/month over {years} years costs {fmt(results.feeCost)}
-                  {results.pctReturnsLost > 0 && (
-                    <> &mdash; that's {results.pctReturnsLost.toFixed(1)}% of your potential returns</>
-                  )}.
+                  A {feeGap}% difference in fees on a {fmt(principal)} investment with {fmt(monthly)}/month over{' '}
+                  {yearsText} costs {fmt(results.feeCost)}
+                  {results.shareOfReturnsLost !== null && results.shareOfReturnsLost > 0 && (
+                    <>, which is {(results.shareOfReturnsLost * 100).toFixed(1)}% of the lower-fee fund's returns</>
+                  )}
+                  . Fees come off the annual return; growth compounds monthly.
                 </p>
               </div>
             </div>
@@ -328,40 +274,41 @@ export default function InvestmentFeeCalc() {
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden mb-6">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-neutral-50 border-b border-neutral-200/80">
-                  <th className="text-left py-3 px-4 font-medium text-neutral-600"></th>
-                  <th className="text-right py-3 px-4 font-medium text-primary-700">Your Fund ({yourFee}%)</th>
-                  <th className="text-right py-3 px-4 font-medium text-neutral-600">Comparison ({comparisonFee}%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-neutral-100">
-                  <td className="py-2.5 px-4 text-neutral-700 font-medium">Effective Return</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-neutral-900">{results.yourEffectiveRate.toFixed(2)}%</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-neutral-900">{results.compEffectiveRate.toFixed(2)}%</td>
-                </tr>
-                <tr className="border-b border-neutral-100 bg-neutral-50/50">
-                  <td className="py-2.5 px-4 text-neutral-700 font-medium">Final Balance</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums font-semibold text-neutral-900">{fmt(results.yourBalance)}</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums font-semibold text-neutral-900">{fmt(results.compBalance)}</td>
-                </tr>
-                <tr className="border-b border-neutral-100">
-                  <td className="py-2.5 px-4 text-neutral-700 font-medium">Total Contributions</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-neutral-900">{fmt(results.totalContributions)}</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-neutral-900">{fmt(results.totalContributions)}</td>
-                </tr>
-                <tr className="border-b border-neutral-100 bg-neutral-50/50">
-                  <td className="py-2.5 px-4 text-neutral-700 font-medium">Total Earnings</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-success-600">{fmt(results.yourEarnings)}</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-success-600">{fmt(results.compEarnings)}</td>
-                </tr>
-                <tr className="border-b border-neutral-100">
-                  <td className="py-2.5 px-4 text-neutral-700 font-medium">Fees Paid (Lost Growth)</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-red-600">{fmt(results.yourFeesPaid)}</td>
-                  <td className="py-2.5 px-4 text-right tabular-nums text-red-600">{fmt(results.compFeesPaid)}</td>
-                </tr>
-              </tbody>
+                <caption className="sr-only">Your fund compared with the comparison fund</caption>
+                <thead>
+                  <tr className="bg-neutral-50 border-b border-neutral-200/80">
+                    <th scope="col" className="text-left py-3 px-4 font-medium text-neutral-600"><span className="sr-only">Measure</span></th>
+                    <th scope="col" className="text-right py-3 px-4 font-medium text-primary-700">Your Fund ({yourFee}%)</th>
+                    <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600">Comparison ({comparisonFee}%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-neutral-100">
+                    <th scope="row" className="py-2.5 px-4 text-left text-neutral-700 font-medium">Net Annual Return</th>
+                    <td className={`py-2.5 px-4 text-right tabular-nums ${results.yourNetReturnPercent < 0 ? 'text-red-600' : 'text-neutral-900'}`}>{results.yourNetReturnPercent.toFixed(2)}%</td>
+                    <td className={`py-2.5 px-4 text-right tabular-nums ${results.compNetReturnPercent < 0 ? 'text-red-600' : 'text-neutral-900'}`}>{results.compNetReturnPercent.toFixed(2)}%</td>
+                  </tr>
+                  <tr className="border-b border-neutral-100 bg-neutral-50/50">
+                    <th scope="row" className="py-2.5 px-4 text-left text-neutral-700 font-medium">Final Balance</th>
+                    <td className="py-2.5 px-4 text-right tabular-nums font-semibold text-neutral-900">{fmt(results.yourBalance)}</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums font-semibold text-neutral-900">{fmt(results.compBalance)}</td>
+                  </tr>
+                  <tr className="border-b border-neutral-100">
+                    <th scope="row" className="py-2.5 px-4 text-left text-neutral-700 font-medium">Total Contributions</th>
+                    <td className="py-2.5 px-4 text-right tabular-nums text-neutral-900">{fmt(results.totalContributions)}</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums text-neutral-900">{fmt(results.totalContributions)}</td>
+                  </tr>
+                  <tr className="border-b border-neutral-100 bg-neutral-50/50">
+                    <th scope="row" className="py-2.5 px-4 text-left text-neutral-700 font-medium">Total Earnings</th>
+                    <td className={`py-2.5 px-4 text-right tabular-nums ${moneyClass(results.yourEarnings)}`}>{fmt(results.yourEarnings)}</td>
+                    <td className={`py-2.5 px-4 text-right tabular-nums ${moneyClass(results.compEarnings)}`}>{fmt(results.compEarnings)}</td>
+                  </tr>
+                  <tr className="border-b border-neutral-100">
+                    <th scope="row" className="py-2.5 px-4 text-left text-neutral-700 font-medium">Growth Lost to Fees</th>
+                    <td className="py-2.5 px-4 text-right tabular-nums text-red-600">{fmt(results.yourFeesPaid)}</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums text-red-600">{fmt(results.compFeesPaid)}</td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           </div>
@@ -377,43 +324,18 @@ export default function InvestmentFeeCalc() {
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Portfolio Growth Comparison</h3>
             <div className="h-56 sm:h-64">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <CartesianGrid stroke={ct.grid} vertical={false} />
-                  <XAxis
-                    dataKey="year"
-                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                    tickLine={false}
-                    axisLine={{ stroke: ct.axis }}
-                    interval="preserveStartEnd"
-                    minTickGap={24}
-                  />
-                  <YAxis
-                    tickFormatter={yAxisFormatter}
-                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                    tickLine={false}
-                    axisLine={false}
-                    width={60}
-                  />
-                  <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                  <Area
-                    type="monotone"
-                    dataKey={yourKey}
-                    stroke={ct.series1}
-                    strokeWidth={2}
-                    fill={ct.series1Fill}
-                    animationDuration={600}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey={compKey}
-                    stroke={ct.series2}
-                    strokeWidth={2}
-                    fill={ct.series2Fill}
-                    animationDuration={600}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <Suspense fallback={<ChartSkeleton height="100%" />}>
+                <InvestGrowthChart
+                  data={chartData}
+                  xKey="year"
+                  series={[
+                    { key: yourKey, tone: 'primary' },
+                    { key: compKey, tone: 'comparison' },
+                  ]}
+                  currency={currency}
+                  ariaLabel="Area chart of both funds' balances by year; the year-by-year comparison table below lists the same figures."
+                />
+              </Suspense>
             </div>
           </div>
 
@@ -422,31 +344,24 @@ export default function InvestmentFeeCalc() {
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Year-by-Year Comparison</h3>
             <div className="overflow-x-auto rounded-xl border border-neutral-200/80">
               <table className="w-full text-sm">
+                <caption className="sr-only">Balance of each fund by year and the difference between them</caption>
                 <thead>
                   <tr className="bg-neutral-50 border-b border-neutral-200/80 sticky top-0 z-10">
-                    <th className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
-                    <th className="text-right py-3 px-4 font-medium text-primary-700">{yourFee}% Fee</th>
-                    <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">{comparisonFee}% Fee</th>
-                    <th className="text-right py-3 px-4 font-medium text-red-600">Difference</th>
+                    <th scope="col" className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
+                    <th scope="col" className="text-right py-3 px-4 font-medium text-primary-700">{deferredInputs.yourFeePercent}% Fee</th>
+                    <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">{deferredInputs.comparisonFeePercent}% Fee</th>
+                    <th scope="col" className="text-right py-3 px-4 font-medium text-red-600">Difference</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {chartData.filter((row) => row.year > 0).map((row, i) => {
-                    const yourVal = row[yourKey] as number;
-                    const compVal = row[compKey] as number;
-                    const diff = Math.abs(yourVal - compVal);
-                    return (
-                      <tr
-                        key={row.year}
-                        className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}
-                      >
-                        <td className="py-2.5 px-4 text-neutral-900 font-medium tabular-nums">{row.year}</td>
-                        <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">{fmt(yourVal)}</td>
-                        <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums hidden sm:table-cell">{fmt(compVal)}</td>
-                        <td className="py-2.5 px-4 text-right text-red-600 tabular-nums">{fmt(diff)}</td>
-                      </tr>
-                    );
-                  })}
+                  {schedule.filter((row) => row.year > 0).map((row, i) => (
+                    <tr key={row.year} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
+                      <th scope="row" className="py-2.5 px-4 text-left text-neutral-900 font-medium tabular-nums">{row.year}</th>
+                      <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums">{fmt(row.yourBalance)}</td>
+                      <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums hidden sm:table-cell">{fmt(row.compBalance)}</td>
+                      <td className="py-2.5 px-4 text-right text-red-600 tabular-nums">{fmt(Math.abs(row.yourBalance - row.compBalance))}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

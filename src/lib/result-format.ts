@@ -68,3 +68,15 @@ export function formatMonthsShort(months: number): string {
   if (m === 0) return `${y} year${y !== 1 ? 's' : ''}`;
   return `${y} yr${y !== 1 ? 's' : ''} ${m} mo`;
 }
+
+/** Money with cents ("$153.27"), in the currency's locale. '--' for non-finite values. */
+export function formatMoneyCents(value: number, currency: string = 'USD'): string {
+  if (!Number.isFinite(value)) return '--';
+  const locale = currency === 'GBP' ? 'en-GB' : currency === 'EUR' ? 'de-DE' : 'en-US';
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
