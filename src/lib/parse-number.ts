@@ -8,7 +8,7 @@
  * tested source of truth for turning what a person typed into a number.
  *
  * Rules (without a range)
- * - Currency symbols ($ £ €), currency codes (USD/GBP/EUR) and `%` are
+ * - Currency symbols (dollar, pound, euro), currency codes (USD/GBP/EUR) and `%` are
  *   ignored. Full-width (IME) digits and punctuation are read as ASCII;
  *   zero-width characters from pasted text are dropped. Spaces and
  *   apostrophes ("50 000", Swiss "50'000") may act as thousands separators
@@ -28,22 +28,37 @@
  * - Exponents ("1e9"), repeated decimal points ("1.2.3"), letters,
  *   Infinity/NaN, input longer than 64 characters and empty input are
  *   rejected.
- * - Negative numbers ("-5", "−5", "-$5", "$-5") are rejected with reason
+ * - Negative numbers ("-5", Unicode-minus "5", "-$5", "$-5") are rejected with reason
  *   'negative' unless `allowNegative` is set.
  *
  * Range-aware disambiguation (`min` / `max`)
- * Every input is read under BOTH conventions. When the field's valid range
- * is given and exactly one of the (up to two) valid readings falls inside
- * it, that reading wins. Examples: EUR "6.125" in a 0-15% rate field is
- * 6.125 (not 6125); EUR "50,000" in a salary field is 50000; USD "52.000"
- * in a salary field is 52000. When both readings are in range (EUR "450.000"
- * in a price field) or neither is, the rules above apply unchanged, so the
- * caller can still clamp and explain. The range never clamps anything.
+ * Every input is read under BOTH conventions (the selected one = primary,
+ * the other = alternate). The field's range may pick the alternate reading
+ * in exactly three situations, and never otherwise:
+ * 1. The primary reading is genuinely ambiguous (EUR "50,000", "3,875"):
+ *    the reading that alone falls in range wins (salary field -> 50000,
+ *    rate field -> 3.875).
+ * 2. The primary reading fails (USD "12,34", EUR "1,000.50") and the
+ *    alternate reading is in range.
+ * 3. The primary reading is out of range because its magnitude is too
+ *    SMALL and the alternate reading, larger in magnitude, is in range
+ *    (USD "52.000" in a salary field -> 52000).
+ * A valid primary reading whose magnitude is too LARGE (above max, or below
+ * min for a negative) is returned as typed (USD "50,000" in a 5,000-max
+ * field stays 50000; EUR "6.125" in a rate field stays 6125; "-60,000" with
+ * min -50,000 stays -60000) so the caller clamps and explains: a correctly
+ * written number is never silently replaced by one 1000x smaller. The range never
+ * clamps anything.
+ *
+ * Failures carry `candidates` (the valid readings, if any) so the UI can
+ * ask "Did you mean 50 or 50,000?".
  *
  * Inverse: `formatForInput(value, currency)` writes a value the way an edit
  * box should show it (no grouping, never exponent notation, decimal comma
- * in EUR). `parseNumericInput(formatForInput(v, c), { currency: c })` always
- * returns v, with no range or with any range that contains v.
+ * in EUR). `parseNumericInput(formatForInput(v, c), { currency: c, allowNegative: v < 0 })`
+ * returns v, with no range or any range containing v, for every finite v
+ * whose plain-decimal text fits the 64-character input cap
+ * (about 1e-60 < |v| < 1e63; every real field is far inside that).
  *
  * The parser never clamps and never rounds: range handling belongs to the
  * caller, which can then explain any adjustment to the user.
@@ -58,7 +73,8 @@ export interface ParseNumberOptions {
   allowNegative?: boolean;
   /**
    * The field's valid range. Used ONLY to choose between the two
-   * conventions' readings when exactly one of them is in range. Never clamps.
+   * conventions' readings in the three situations described in the module
+   * header. Never clamps, and never replaces a valid reading that is above max.
    */
   min?: number;
   max?: number;
@@ -76,7 +92,12 @@ export type ParseFailureReason =
 
 export type ParseNumberResult =
   | { ok: true; value: number }
-  | { ok: false; reason: ParseFailureReason };
+  | {
+      ok: false;
+      reason: ParseFailureReason;
+      /** Valid readings of the input (either convention), for a "Did you mean ...?" prompt. */
+      candidates?: number[];
+    };
 
 const MAX_INPUT_LENGTH = 64;
 const SUFFIX_EXPONENT: Record<string, number> = { k: 3, m: 6, bn: 9 };
@@ -148,12 +169,21 @@ function readConvention(core: string, eur: boolean, exponent: number): ParseNumb
 }
 
 /** Map full-width (IME) ASCII, ideographic space and pasted invisible marks to plain text. */
+const FULL_WIDTH_ASCII = new RegExp('[\uFF01-\uFF5E]', 'g');
+const FULL_WIDTH_POUND = new RegExp('\uFFE1', 'g');
+const IDEOGRAPHIC_SPACE = new RegExp('\u3000', 'g');
+const INVISIBLE_MARKS = new RegExp('[\u200B-\u200F\u2060\uFEFF]', 'g');
+const CURRENCY_SYMBOLS = new RegExp('[$\u00A3\u20AC%]', 'g'); // dollar, pound, euro, percent
+const APOSTROPHES = new RegExp("['\u2019]", 'g');
+const LEADING_SIGN = /^([-\u2212+])\s*/; // hyphen, Unicode minus, plus
+const POUND = String.fromCharCode(0xa3);
+
 function normalise(text: string): string {
   return text
-    .replace(/[！-～]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
-    .replace(/￡/g, '£')
-    .replace(/　/g, ' ')
-    .replace(/[​-‏⁠﻿]/g, '');
+    .replace(FULL_WIDTH_ASCII, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+    .replace(FULL_WIDTH_POUND, POUND)
+    .replace(IDEOGRAPHIC_SPACE, ' ')
+    .replace(INVISIBLE_MARKS, '');
 }
 
 export function parseNumericInput(
@@ -165,19 +195,19 @@ export function parseNumericInput(
   if (raw.length > MAX_INPUT_LENGTH * 4) return fail('invalid'); // cheap guard before any regex work
   const eur = isEur(options.currency);
 
-  // Currency codes and symbols anywhere ("£50", "50 €", "USD 50"), `%`, and
+  // Currency codes and symbols anywhere (pound-50, "50 EUR-sign", "USD 50"), `%`, and
   // apostrophe thousands separators (treated like spaces).
   let s = normalise(raw)
     .replace(/usd|gbp|eur/gi, '')
-    .replace(/[$£€%]/g, '')
-    .replace(/['’]/g, ' ')
+    .replace(CURRENCY_SYMBOLS, '')
+    .replace(APOSTROPHES, ' ')
     .trim();
   if (s === '') return fail('empty');
   if (s.length > MAX_INPUT_LENGTH) return fail('invalid');
 
   // Sign: ASCII hyphen, Unicode minus or plus, before the digits.
   let negative = false;
-  const sign = s.match(/^([-−+])\s*/);
+  const sign = s.match(LEADING_SIGN);
   if (sign) {
     negative = sign[1] !== '+';
     s = s.slice(sign[0].length);
@@ -201,22 +231,37 @@ export function parseNumericInput(
   if (pv === null && av === null) return primary;
   if (negative && !options.allowNegative && ((pv ?? 0) !== 0 || (av ?? 0) !== 0)) return fail('negative');
   const signed = (v: number) => (negative && v !== 0 ? -v : v);
+  const sp = pv === null ? null : signed(pv);
+  const sa = av === null ? null : signed(av);
 
-  // Range-aware choice between the two readings.
   const { min, max } = options;
   const hasMin = typeof min === 'number' && Number.isFinite(min);
   const hasMax = typeof max === 'number' && Number.isFinite(max);
-  if (hasMin || hasMax) {
-    const inRange = (v: number) => (!hasMin || v >= (min as number)) && (!hasMax || v <= (max as number));
-    const readings = [...new Set([pv, av].filter((v): v is number => v !== null).map(signed))];
-    const hits = readings.filter(inRange);
-    if (hits.length === 1) return ok(hits[0]);
+  const hasRange = hasMin || hasMax;
+  const inRange = (v: number) => (!hasMin || v >= (min as number)) && (!hasMax || v <= (max as number));
+
+  if (sp !== null) {
+    // EUR "50,000" / "6,125": continental 50 / 6.125 vs English 50000 / 6125.
+    const ambiguous = eur && sa !== null && sa !== sp && /^\d+,\d{3}$/.test(core);
+    if (ambiguous) {
+      // Situation 1: genuinely ambiguous -- the range may pick either reading.
+      if (hasRange) {
+        const hits = [sp, sa as number].filter(inRange);
+        if (hits.length === 1) return ok(hits[0]);
+      }
+      return { ok: false, reason: 'ambiguous', candidates: [sp, sa as number] };
+    }
+    // Situation 3: the primary is out of range on the too-small-magnitude side
+    // and the alternate, LARGER in magnitude, is in range. The alternate may
+    // only ever grow the magnitude: a primary that is too large (above max,
+    // or below min for negatives) is NEVER replaced (the caller clamps and explains).
+    if (hasRange && !inRange(sp) && sa !== null && Math.abs(sa) > Math.abs(sp) && inRange(sa)) return ok(sa);
+    return ok(sp);
   }
 
-  if (pv === null) return primary;
-  // EUR "50,000" / "6,125": continental 50 / 6.125 vs English 50000 / 6125. Refuse to guess.
-  if (eur && av !== null && av !== pv && /^\d+,\d{3}$/.test(core)) return fail('ambiguous');
-  return ok(signed(pv));
+  // Situation 2: the primary reading failed; a valid alternate in range wins.
+  if (hasRange && sa !== null && inRange(sa)) return ok(sa);
+  return sa === null ? primary : { ok: false, reason: (primary as { reason: ParseFailureReason }).reason, candidates: [sa] };
 }
 
 /** Plain decimal notation for any finite number: no exponent, no grouping, '.' decimal. */
