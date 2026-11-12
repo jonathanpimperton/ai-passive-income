@@ -178,6 +178,7 @@ describe('default year follows the date (aliases switch on 1 January)', () => {
   });
 
   it('31 Dec 2026 -> 2026 values; 1 Jan 2027 -> 2027 values', async () => {
+    vi.stubEnv('CALCRUN_TODAY', ''); // a pinned build clock would override the fake date
     vi.useFakeTimers({ toFake: ['Date'] });
 
     vi.setSystemTime(new Date(2026, 11, 31, 12));
@@ -197,6 +198,7 @@ describe('default year follows the date (aliases switch on 1 January)', () => {
   });
 
   it('a stale deploy in 2028 keeps the newest data instead of crashing', async () => {
+    vi.stubEnv('CALCRUN_TODAY', '');
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2028, 5, 1));
     vi.resetModules();
