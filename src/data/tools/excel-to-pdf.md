@@ -18,7 +18,7 @@ workedExamples:
   - title: "Sharing financial data with a client"
     inputs:
       file: "q4-financials.xlsx"
-    description: "An accountant has quarterly financial data in Excel and needs to share it with a client who doesn't have Excel. Converting to PDF produces a clean, formatted table that opens on any device. The 500-row spreadsheet renders as a multi-page landscape PDF."
+    description: "An accountant has quarterly financial data in Excel and needs to share it with a client who doesn't have Excel. Converting to PDF produces a clean, formatted table that opens on any device, with dates and currency amounts exactly as they appear in Excel. The 500-row spreadsheet renders as a multi-page PDF with the header row repeated on every page."
   - title: "Printing an inventory list"
     inputs:
       file: "inventory.csv"
@@ -33,11 +33,13 @@ faq:
   - question: "Can I convert all sheets at once?"
     answer: "Currently, you convert one sheet at a time. Select the sheet you want from the dropdown, then download the PDF. Repeat for other sheets and use our PDF Merge tool to combine them if needed."
   - question: "Will formulas and charts be included?"
-    answer: "Formulas are evaluated and their calculated values appear in the PDF. Charts, conditional formatting, and cell colors are not included — the output is a clean data table."
+    answer: "For Excel files, the values Excel last calculated and saved appear in the PDF, formatted as they are in the sheet (dates, currency, percentages). In a CSV a formula is just text, so it prints as written. Charts, conditional formatting and cell colours are not included — the output is a clean data table. Hidden rows and columns are left out, as when printing from Excel."
   - question: "How does the table look in the PDF?"
-    answer: "The PDF is generated in landscape orientation with a clean table layout: bold headers on a gray background, alternating row colors for readability, and automatic page breaks for long spreadsheets."
+    answer: "Narrow sheets print in portrait and wide ones in landscape, as a clean table: bold headers on a gray background repeated on every page, alternating row colors, numbers right-aligned, and automatic page breaks. A title row above the headers (such as a merged report title) is printed as a title."
   - question: "What if my spreadsheet has too many columns?"
-    answer: "Very wide spreadsheets may have columns truncated to fit the page width. For best results, keep your data to 10-15 columns or less. Consider hiding unnecessary columns in your spreadsheet before uploading."
+    answer: "Nothing is cut off. The tool switches to landscape, then uses a smaller font, and if the sheet is still too wide it prints the columns in parts, one after another (for example columns 1-12, then 13-24, with the first column repeated). Long text wraps inside its cell. Hiding columns you don't need before uploading gives the most readable result."
+  - question: "Does it handle non-English text and CSV files from other programs?"
+    answer: "Yes. Accented, Polish, Greek and Cyrillic text prints with an embedded Unicode font. Characters that font lacks, such as Chinese or Japanese, are drawn as images so they still appear (they are not searchable). CSV files are read as UTF-8 (with or without a byte-order mark), falling back to Windows-1252 for older Excel exports, so symbols like £ and é come out right."
 ---
 
 ## Why Convert Excel to PDF?
@@ -56,7 +58,7 @@ The conversion uses SheetJS to read spreadsheet data and jsPDF to generate the P
 ## Output Format
 
 The generated PDF uses:
-- **Landscape orientation** for maximum column space
+- **Portrait or landscape**, chosen from the width of your data
 - **Bold header row** with gray background
 - **Alternating row shading** for readability
 - **Automatic page breaks** for long datasets
@@ -64,7 +66,8 @@ The generated PDF uses:
 
 ## Tips
 
-- **Wide spreadsheets**: If you have many columns, consider splitting them across multiple exports.
+- **Wide spreadsheets**: Very wide sheets are printed in column parts rather than cut off; hiding unneeded columns first keeps everything on one page width.
 - **Large datasets**: Spreadsheets with thousands of rows work fine but produce multi-page PDFs.
-- **CSV files**: The tool auto-detects CSV format and handles comma-separated values correctly.
+- **CSV files**: Values are printed exactly as written (leading zeros and dates are not changed), and the text encoding is detected automatically.
+- **Wrong file type**: PDFs and other non-spreadsheet files are refused with a message rather than printed as garbage.
 - **Multiple sheets**: Convert each sheet separately, then merge them with our PDF Merge tool.

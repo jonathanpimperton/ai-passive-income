@@ -35,7 +35,9 @@ faq:
   - question: "Can I reorder the PDFs before merging?"
     answer: "Yes. Use the up/down arrow buttons next to each file to change the order. The merged PDF will follow the order shown on screen."
   - question: "Will my merged PDF keep bookmarks and links?"
-    answer: "Basic page content, images, and text are preserved. However, interactive elements like bookmarks, form fields, and some hyperlinks may not carry over in the merge process."
+    answer: "Page content, images, text, links on the page and fillable form fields are kept (if two files have a field with the same name, the second one gets a '_2' suffix so they stay separate). Bookmarks (the outline panel) are not carried over, and links that jump to another page of the original file may stop working."
+  - question: "Can I merge password-protected PDFs?"
+    answer: "No. Encrypted PDFs, including ones that open without a password but restrict editing, are refused by name, because copying their pages without decrypting them produces blank pages. Open the file, choose Print, select 'Save as PDF', and add the new copy instead."
   - question: "Are my files safe when using this tool?"
     answer: "Yes — your files never leave your device. All processing happens locally in your browser using JavaScript. We don't upload, store, or have access to your documents. Once you close the page, everything is gone."
 ---
@@ -66,4 +68,4 @@ The entire process uses your browser's built-in capabilities. No data leaves you
 
 - **Name your files clearly** before uploading so you can easily identify them in the merge order.
 - **Check page count** — the tool shows how many pages each PDF has, so you can verify nothing is missing.
-- **Large files**: For PDFs over 50MB each, processing may take a few seconds. Be patient and don't refresh.
+- **Large files**: Each PDF can be up to 50MB. Big files may take a few seconds to merge; don't refresh while it runs.

@@ -40,7 +40,9 @@ faq:
   - question: "Can I convert specific pages instead of all pages?"
     answer: "Currently, the tool converts all pages. For specific pages, use our PDF Split tool first to extract the pages you need, then convert those to images."
   - question: "Why are some pages blank or missing text?"
-    answer: "Some PDFs use custom fonts that may not render perfectly in the browser. If a page appears blank, the PDF may be using embedded fonts that the browser can't access. Most standard PDFs convert without issues."
+    answer: "Standard fonts that aren't embedded, Asian character sets and JPEG 2000 images are all supported, so most PDFs render exactly as in a PDF viewer. A blank or incomplete page usually means the file is damaged or uses an unusual feature; the tool reports any page it could not render."
+  - question: "Can I convert a password-protected PDF?"
+    answer: "Yes. If the PDF needs a password to open, the tool asks for it; the password is only used in your browser. PDFs that open without a password but restrict editing convert normally."
   - question: "Is there a page limit?"
     answer: "No hard limit. The tool handles large PDFs, but converting many pages at high scale (3-4×) requires significant memory. For PDFs with 50+ pages, consider using 1-2× scale to keep memory usage manageable."
 ---
@@ -72,4 +74,4 @@ All rendering happens in your browser using PDF.js and the Canvas API.
 
 - **JPG for photos**, PNG for text and graphics. When in doubt, JPG produces smaller files.
 - **Higher scale = more memory**. If your browser slows down, try reducing the scale.
-- **Batch download**: The "Download all" button saves each page separately, named by page number.
+- **Batch download**: The "Download all" button saves every page in one ZIP file, each image named by page number.

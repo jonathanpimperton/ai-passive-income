@@ -22,22 +22,22 @@ workedExamples:
   - title: "Separating invoice pages"
     inputs:
       mode: "every-page"
-    description: "An accountant receives a 50-page PDF with one invoice per page. They split it into 50 individual PDFs, each named by page number, making it easy to file each invoice separately in their accounting system."
+    description: "An accountant receives a 50-page PDF with one invoice per page. They split it into 50 individual PDFs, each named by page number and downloaded together as one ZIP file, making it easy to file each invoice separately in their accounting system."
   - title: "Pulling specific pages for a presentation"
     inputs:
       range: "1, 5, 12-15, 22"
     description: "A manager needs specific pages from a long report for a meeting. They extract pages 1, 5, 12-15, and 22 into a focused 7-page summary document."
 faq:
   - question: "What page range formats are supported?"
-    answer: "You can use individual pages (e.g., '1, 5, 8'), ranges (e.g., '3-10'), or combinations (e.g., '1-3, 7, 12-15'). Pages are numbered starting from 1."
+    answer: "You can use individual pages (e.g., '1, 5, 8'), ranges (e.g., '3-10'), or combinations (e.g., '1-3, 7, 12-15'). Pages are numbered starting from 1. '3-' means page 3 to the end and '-3' means pages 1 to 3; any kind of dash works. Anything the tool can't understand is listed under the box so you can fix it."
   - question: "Can I split a PDF into individual pages?"
-    answer: "Yes — select the 'Every page' mode to download each page as a separate PDF file. Each file is named with the original filename plus the page number."
+    answer: "Yes — select the 'Every page' mode. Each page becomes a separate PDF named with the original filename plus the page number, and they all download together in one ZIP file (browsers block or drop dozens of separate downloads)."
   - question: "Does splitting preserve the original PDF quality?"
     answer: "Yes. The pages are copied directly from the original document without re-encoding. Text, images, and formatting remain identical to the source."
   - question: "Can I split password-protected PDFs?"
-    answer: "The tool can handle PDFs with basic encryption. However, heavily encrypted or DRM-protected PDFs may fail to load. You'll see an error message if the file can't be read."
+    answer: "No. Encrypted PDFs, including ones that open without a password but restrict editing, are refused with a message, because splitting them without decrypting produces blank pages. Workaround: open the PDF, choose Print, select 'Save as PDF', then split the new copy. Fillable form fields on the pages you extract keep working."
   - question: "Is there a page limit?"
-    answer: "No hard limit. The tool handles PDFs with hundreds of pages, though very large files (100MB+) may take a few extra seconds to process in your browser."
+    answer: "No page limit. The tool handles PDFs with hundreds of pages; the file itself can be up to 50MB."
 ---
 
 ## Why Split PDFs?
@@ -58,7 +58,7 @@ All processing happens in your browser — no upload, no server, no waiting.
 | Mode | What It Does | Best For |
 |------|-------------|----------|
 | **Extract range** | Pull specific pages into one new PDF | Getting chapters, sections, or specific pages |
-| **Every page** | Download each page as its own PDF | Filing individual invoices, receipts, or forms |
+| **Every page** | Save each page as its own PDF, downloaded together as one ZIP file | Filing individual invoices, receipts, or forms |
 
 ## Tips
 

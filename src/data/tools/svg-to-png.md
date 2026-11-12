@@ -24,7 +24,7 @@ workedExamples:
   - title: "Icon set for mobile app"
     inputs:
       scale: 4
-    description: "A developer exports 24×24px SVG icons at 4× scale to get 96×96px PNGs for an Android app. The higher resolution ensures icons look sharp on high-DPI screens. 50 icons converted in seconds without opening Figma or Illustrator."
+    description: "A developer exports a 24×24px SVG icon at 4× scale to get a 96×96px PNG for an Android app. The higher resolution keeps the icon sharp on high-DPI screens. Each icon takes a few seconds, one file at a time, without opening Figma or Illustrator."
   - title: "Print-ready illustration"
     inputs:
       scale: 8
@@ -39,7 +39,9 @@ faq:
   - question: "Can I convert SVG to JPG instead?"
     answer: "This tool outputs PNG because it preserves transparency. If you need JPG (e.g., for smaller file size with photos), convert the SVG to PNG first, then use our Image Format Converter to convert the PNG to JPG."
   - question: "What if my SVG doesn't render correctly?"
-    answer: "Some complex SVGs with external fonts, linked images, or advanced CSS filters may not render perfectly in the Canvas API. For best results, use SVGs with embedded fonts and inline styles. If your SVG uses external resources, open it in a browser first to verify it displays correctly."
+    answer: "Styles in a <style> block (Illustrator's default 'Internal CSS' export) and inline styles both work. Browsers never load external files for an SVG drawn as an image, so linked images, web fonts and @import stylesheets are skipped — embed images, and convert text to outlines or use common system fonts. Scripts are removed. Open the SVG in a browser first if you are unsure how it should look."
+  - question: "How is the output size worked out?"
+    answer: "From the SVG's width and height, converted from any unit (px, pt, mm, cm, in) to pixels at 96 per inch, then multiplied by the scale. If the size is a percentage or missing, the viewBox is used. If the SVG has neither, the browser default of 300 × 150 is used and the tool tells you."
 ---
 
 ## When to Convert SVG to PNG

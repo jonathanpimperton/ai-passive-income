@@ -38,7 +38,7 @@ faq:
   - question: "When should I convert PNG to JPG?"
     answer: "Convert PNG to JPG when you have a photo saved as PNG (unnecessarily large) and don't need transparency. A 5MB PNG photo typically becomes a 500KB JPG at 90% quality with no visible difference. JPG is the standard for photos on the web."
   - question: "When should I convert JPG to PNG?"
-    answer: "Convert JPG to PNG when you need transparency (the JPG will get a white background preserved) or when you need a lossless format for further editing. Note that converting JPG to PNG won't improve quality — the lossy compression from the original JPG is permanent."
+    answer: "Convert JPG to PNG when you need a lossless copy for further editing, or a tool that only accepts PNG. Converting won't add transparency (the JPG's background stays as it is) and won't improve quality — the lossy compression from the original JPG is permanent. Expect the PNG to be larger than the JPG."
   - question: "Is WebP better than JPG and PNG?"
     answer: "For web use, yes. WebP produces 25-34% smaller files than JPG at equivalent quality, and smaller files than PNG with similar lossless quality. The main drawback is compatibility — while all modern browsers support WebP, some older software and email clients don't. For maximum compatibility, use JPG for photos and PNG for graphics."
   - question: "Does converting formats lose quality?"
@@ -74,6 +74,8 @@ For JPG and WebP output, you can adjust the quality slider to balance file size 
 
 ## Tips
 
-- **Batch convert**: Drop multiple files at once to convert them all with the same settings.
+- **Batch convert**: Drop multiple files at once to convert them all with the same settings, then download them together as one ZIP file. Change the format or quality afterwards and they are converted again.
+- **Safari and WebP**: Safari can show WebP images but cannot create them. If you choose WebP in Safari, the tool saves PNG instead and says so.
+- **Photo dates**: For JPG output, the date a photo was taken can be kept; location (GPS) data is always removed.
 - **Check the output size**: After converting, compare the file sizes to make sure you're actually saving space.
 - **JPG to PNG won't add transparency**: The conversion preserves the existing pixel data. To add transparency, you'll need an image editor like GIMP or Photoshop.

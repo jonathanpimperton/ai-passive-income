@@ -22,18 +22,18 @@ workedExamples:
       width: 1080
       height: 1080
       keepAspectRatio: "off"
-    description: "A social media manager needs a 1080×1080px square crop for Instagram. The original headshot is 4000×2700px. With aspect ratio unlocked, they set 1080×1080 to get the exact dimensions Instagram requires. File drops from 5MB to 800KB as a bonus."
+    description: "A social media manager needs a 1080×1080px square crop for Instagram. The original headshot is 4000×2700px. With aspect ratio unlocked, they set 1080×1080 to get the exact dimensions Instagram requires (unlocking stretches the photo, so they crop it to a square first if faces must not distort). Saved as JPG, the file drops from 5MB to a few hundred KB."
   - title: "Website hero image for Retina"
     inputs:
       width: 1920
-      height: 1080
+      height: 1280
       keepAspectRatio: "on"
     description: "A web developer resizes a 6000×4000px stock photo to 1920px wide for a website hero banner. With aspect ratio locked, height auto-calculates to 1280px. The resized image loads 3× faster while still looking sharp on Retina displays."
-  - title: "Batch thumbnails at 25%"
+  - title: "Thumbnail at 25%"
     inputs:
       percentage: 25
       keepAspectRatio: "on"
-    description: "A photographer needs 300×200px thumbnails from 1200×800px originals. Using the 25% preset, all images resize proportionally in one click. Each thumbnail is under 50KB — perfect for a gallery grid that loads instantly."
+    description: "A photographer needs a 300×200px thumbnail from a 1200×800px JPG. The 25% preset sets the size in one click, and the result stays a JPG of a few tens of KB. This tool resizes one image at a time; to shrink a whole folder to a maximum width, the Image Compressor's 'Max width' setting handles batches."
 faq:
   - question: "What's the difference between resizing and compressing an image?"
     answer: "Resizing changes the pixel dimensions of an image (e.g., from 4000×3000 to 1920×1440). Compressing reduces file size by lowering quality without changing dimensions. For the smallest file size, resize first then compress — a 1920px-wide image compressed at 80% will be much smaller than a 4000px-wide image compressed at 80%."
@@ -44,7 +44,9 @@ faq:
   - question: "What does 'maintain aspect ratio' mean?"
     answer: "Aspect ratio is the proportional relationship between width and height. A 4000×3000 image has a 4:3 aspect ratio. When 'maintain aspect ratio' is on, changing the width automatically adjusts the height (and vice versa) to keep the image from stretching or squishing. Turn it off only if you intentionally want to distort the proportions."
   - question: "What's the maximum image size I can resize?"
-    answer: "Browser Canvas API supports images up to approximately 16,384×16,384 pixels on most devices. For practical purposes, images up to 8000×8000px resize smoothly. Very large images (20MP+ photos) may be slow on older devices but will still work."
+    answer: "This tool allows outputs up to 16,384 pixels on either side and 100 megapixels in total (about 16.7 megapixels on iPhone and iPad, whose browsers have a lower limit). If you ask for more, it tells you instead of producing a broken file. Very large photos may be slow on older devices."
+  - question: "What format is the resized image saved in?"
+    answer: "The same format as the original: a JPG stays a JPG and a WebP stays a WebP, with a quality setting, so the file does not balloon. PNG stays PNG. SVG and GIF images are saved as PNG. You can also pick JPG, PNG or WebP explicitly."
 ---
 
 ## When to Resize Images
@@ -63,7 +65,7 @@ Our resizer uses the browser's Canvas API to re-draw your image at the new dimen
 1. Upload an image (JPG, PNG, WebP, or SVG)
 2. Set target dimensions in pixels or use a percentage preset
 3. Toggle aspect ratio lock on or off
-4. Download the resized result as PNG
+4. Download the resized result in the same format as the original (or choose JPG, PNG or WebP)
 
 ## Common Size Presets
 
