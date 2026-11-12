@@ -350,7 +350,8 @@ export default function CarFinanceCalc() {
 
           {/* Detailed comparison table */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Scrolls sideways on phones; focusable so keyboard users can scroll it too. */}
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Car finance options compared (scrolls sideways)">
               <table className="w-full text-sm">
                 <caption className="sr-only">Car finance options compared</caption>
                 <thead>
@@ -367,19 +368,19 @@ export default function CarFinanceCalc() {
                   <tr className="border-b border-neutral-100 bg-white">
                     <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Monthly Payment</th>
                     {options.map((o) => (
-                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums">{o.monthly > 0 ? fmt(Math.round(o.monthly)) : '—'}</td>
+                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums whitespace-nowrap">{o.monthly > 0 ? fmt(Math.round(o.monthly)) : '—'}</td>
                     ))}
                   </tr>
                   <tr className="border-b border-neutral-100 bg-neutral-50/50">
                     <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Total Paid</th>
                     {options.map((o) => (
-                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums">{fmt(Math.round(o.totalPaid))}</td>
+                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums whitespace-nowrap">{fmt(Math.round(o.totalPaid))}</td>
                     ))}
                   </tr>
                   <tr className="border-b border-neutral-100 bg-white">
                     <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Interest</th>
                     {options.map((o) => (
-                      <td key={o.type} className={`py-2.5 px-3 text-right tabular-nums ${o.totalInterest > 0.5 ? 'text-red-600' : 'text-neutral-600'}`}>
+                      <td key={o.type} className={`py-2.5 px-3 text-right tabular-nums whitespace-nowrap ${o.totalInterest > 0.5 ? 'text-red-600' : 'text-neutral-600'}`}>
                         {fmt(Math.round(o.totalInterest))}
                       </td>
                     ))}
@@ -387,13 +388,13 @@ export default function CarFinanceCalc() {
                   <tr className="border-b border-neutral-100 bg-neutral-50/50">
                     <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Opportunity Cost</th>
                     {options.map((o) => (
-                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-500 tabular-nums">{fmt(Math.round(o.opportunityCost))}</td>
+                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-500 tabular-nums whitespace-nowrap">{fmt(Math.round(o.opportunityCost))}</td>
                     ))}
                   </tr>
                   <tr className="border-b border-neutral-100 bg-success-50/50 font-semibold">
                     <th scope="row" className="py-2.5 px-3 text-left text-neutral-900">True Cost</th>
                     {options.map((o) => (
-                      <td key={o.type} className={`py-2.5 px-3 text-right tabular-nums ${o.type === cheapest.type ? 'text-success-700' : 'text-neutral-900'}`}>
+                      <td key={o.type} className={`py-2.5 px-3 text-right tabular-nums whitespace-nowrap ${o.type === cheapest.type ? 'text-success-700' : 'text-neutral-900'}`}>
                         {fmt(Math.round(o.trueCost))}
                       </td>
                     ))}

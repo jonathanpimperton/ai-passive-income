@@ -35,7 +35,12 @@ export interface MarketRate {
   checked: string;
 }
 
-/** Date the whole table was last re-verified against its sources. */
+/**
+ * Date the whole table was last re-verified against its sources.
+ * Keep this exact name and the 'YYYY-MM-DD' format: W1-TAX's freshness
+ * calendar reads it (and adds 90 days) and its test fails if it changes.
+ * Only move the date when you have re-read the primary sources that day.
+ */
 export const MARKET_RATES_CHECKED = '2026-11-12';
 
 /**

@@ -12,6 +12,11 @@ import {
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 describe('market-rates table integrity', () => {
+  it('exports MARKET_RATES_CHECKED as an ISO date (read by the freshness calendar)', () => {
+    expect(MARKET_RATES_CHECKED).toMatch(ISO);
+    expect(Number.isNaN(Date.parse(`${MARKET_RATES_CHECKED}T00:00:00Z`))).toBe(false);
+  });
+
   it('every rate is a plausible percentage with dated, sourced provenance', () => {
     for (const r of allMarketRates()) {
       expect(r.value).toBeGreaterThan(0);

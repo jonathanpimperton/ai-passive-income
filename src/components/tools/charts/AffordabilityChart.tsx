@@ -61,7 +61,7 @@ export default function AffordabilityChart({ slices, currency, total }: { slices
           return (
             <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
               <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.fill, opacity: s.opacity }} aria-hidden="true" />
-              {d.name}: <span className="tabular-nums">{fmt(d.value)}</span>
+              {d.name}: <span className="tabular-nums whitespace-nowrap">{fmt(d.value)}</span>
             </div>
           );
         })}

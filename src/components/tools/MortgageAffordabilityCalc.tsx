@@ -495,11 +495,11 @@ export default function MortgageAffordabilityCalc() {
                 <tbody>
                   <tr className="border-b border-neutral-100">
                     <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">Income multiple ({ltiCap}x income){uk.binding === 'lti' ? ' — sets your maximum' : ''}</th>
-                    <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums">{fmt(uk.ltiLimitLoan)}</td>
+                    <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums whitespace-nowrap">{fmt(uk.ltiLimitLoan)}</td>
                   </tr>
                   <tr>
                     <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">Stress test ({maxShare}% of take-home at {uk.stressRatePct.toFixed(2)}%){uk.binding === 'stress' ? ' — sets your maximum' : ''}</th>
-                    <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums">{fmt(uk.stressLimitLoan)}</td>
+                    <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums whitespace-nowrap">{fmt(uk.stressLimitLoan)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -576,20 +576,20 @@ export default function MortgageAffordabilityCalc() {
                 <>
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="text-neutral-600">Gross monthly income</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(us.grossMonthlyIncome)}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(us.grossMonthlyIncome)}</span>
                   </div>
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="text-neutral-600">Housing limit ({frontEndPct}% of income)</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(us.frontEndBudget)}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(us.frontEndBudget)}</span>
                   </div>
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="text-neutral-600">All-debt limit ({backEndPct}%{monthlyDebt > 0 ? ' minus other debts' : ''})</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(Math.max(0, us.backEndBudget))}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(Math.max(0, us.backEndBudget))}</span>
                   </div>
                   <div className="h-px bg-neutral-200" />
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="font-medium text-neutral-900">Available for housing (lower of the two)</span>
-                    <span className="font-semibold text-primary-700 tabular-nums">{fmt(Math.max(0, us.housingBudget))}</span>
+                    <span className="font-semibold text-primary-700 tabular-nums whitespace-nowrap">{fmt(Math.max(0, us.housingBudget))}</span>
                   </div>
                 </>
               )}
@@ -597,22 +597,22 @@ export default function MortgageAffordabilityCalc() {
                 <>
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="text-neutral-600">Take-home pay{takeHomeOverride === null ? ' (estimated)' : ''}</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(takeHome)}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(takeHome)}</span>
                   </div>
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="text-neutral-600">{maxShare}% of take-home pay</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt((takeHome * maxShare) / 100)}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt((takeHome * maxShare) / 100)}</span>
                   </div>
                   {monthlyDebt > 0 && (
                     <div className="flex justify-between gap-3 text-sm">
                       <span className="text-neutral-600">Less credit commitments</span>
-                      <span className="font-medium text-red-600 tabular-nums">-{fmt(monthlyDebt)}</span>
+                      <span className="font-medium text-red-600 tabular-nums whitespace-nowrap">-{fmt(monthlyDebt)}</span>
                     </div>
                   )}
                   <div className="h-px bg-neutral-200" />
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="font-medium text-neutral-900">Mortgage payment allowed at {uk.stressRatePct.toFixed(2)}%</span>
-                    <span className="font-semibold text-primary-700 tabular-nums">{fmt(Math.max(0, (takeHome * maxShare) / 100 - monthlyDebt))}</span>
+                    <span className="font-semibold text-primary-700 tabular-nums whitespace-nowrap">{fmt(Math.max(0, (takeHome * maxShare) / 100 - monthlyDebt))}</span>
                   </div>
                 </>
               )}
@@ -620,22 +620,22 @@ export default function MortgageAffordabilityCalc() {
                 <>
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="text-neutral-600">Gross monthly income</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(eur.grossMonthlyIncome)}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(eur.grossMonthlyIncome)}</span>
                   </div>
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="text-neutral-600">{eurLimit}% of income</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt((eur.grossMonthlyIncome * eurLimit) / 100)}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt((eur.grossMonthlyIncome * eurLimit) / 100)}</span>
                   </div>
                   {monthlyDebt > 0 && (
                     <div className="flex justify-between gap-3 text-sm">
                       <span className="text-neutral-600">Less existing debt</span>
-                      <span className="font-medium text-red-600 tabular-nums">-{fmt(monthlyDebt)}</span>
+                      <span className="font-medium text-red-600 tabular-nums whitespace-nowrap">-{fmt(monthlyDebt)}</span>
                     </div>
                   )}
                   <div className="h-px bg-neutral-200" />
                   <div className="flex justify-between gap-3 text-sm">
                     <span className="font-medium text-neutral-900">Available for the mortgage payment</span>
-                    <span className="font-semibold text-primary-700 tabular-nums">{fmt(Math.max(0, eur.paymentBudget))}</span>
+                    <span className="font-semibold text-primary-700 tabular-nums whitespace-nowrap">{fmt(Math.max(0, eur.paymentBudget))}</span>
                   </div>
                 </>
               )}
