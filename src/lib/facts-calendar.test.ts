@@ -13,10 +13,8 @@ import { parseIsoDate, toIsoDate } from './tax-years.mjs';
 const day = (iso: string) => parseIsoDate(iso) as Date;
 const calendarMd = readFileSync('docs/freshness-calendar.md', 'utf8');
 
-interface Row { id: string; due: string; derive: string; fact: string; source: string }
-
 describe('the real freshness calendar', () => {
-  const { rows, errors } = parseCalendar(calendarMd) as { rows: Row[]; errors: string[] };
+  const { rows, errors } = parseCalendar(calendarMd);
 
   it('parses with no errors, unique ids and real dates', () => {
     expect(errors).toEqual([]);
@@ -55,7 +53,8 @@ describe('the real freshness calendar', () => {
 
   it('derives the security.txt reminder from its Expires field', () => {
     const report = evaluateCalendar(rows, day('2026-11-12'));
-    const sec = report.results.find((r: { row: Row }) => r.row.id === 'security-txt-expiry');
+    const sec = report.results.find((r) => r.row.id === 'security-txt-expiry');
+    if (!sec) throw new Error('security-txt-expiry row missing');
     const expires = /Expires:\s*(\d{4}-\d{2}-\d{2})/.exec(readFileSync('public/.well-known/security.txt', 'utf8'))![1];
     const expected = day(expires);
     expected.setDate(expected.getDate() - 30);
@@ -82,7 +81,7 @@ describe('calendar rules (injected)', () => {
     ].join('\n')));
     expect(errors).toEqual([]);
     const r = evaluateCalendar(rows, day('2026-11-12'));
-    expect(r.flagged.map((f: { row: Row; status: string }) => [f.row.id, f.status])).toEqual([
+    expect(r.flagged.map((f) => [f.row.id, f.status])).toEqual([
       ['a', 'overdue'],
       ['b', 'due-soon'],
     ]);
