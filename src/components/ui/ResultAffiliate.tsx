@@ -137,7 +137,10 @@ export function resolveInlineAffiliate(toolSlug: string, region: PartnerRegion):
       partner,
       tagline: entry.tagline ?? partner.tagline,
       bestFor: entry.bestFor,
-      disclosure: ['We may earn a commission at no extra cost to you.', ...warnings].join(' '),
+      disclosure: [
+        partner.tracked ? 'Affiliate link: we may earn a commission at no extra cost to you.' : 'We are not paid for this link.',
+        ...warnings,
+      ].join(' '),
     };
   }
   return null;
@@ -193,6 +196,7 @@ export default function ResultAffiliate({ toolSlug, region }: ResultAffiliatePro
           </p>
           <p className="text-xs text-neutral-500 mt-0.5">{tagline}</p>
         </div>
+        {partner.tracked && <span className="shrink-0 text-xs text-neutral-500">Affiliate link</span>}
         <a
           href={buildUrl(partner, toolSlug)}
           target="_blank"

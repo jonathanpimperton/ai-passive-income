@@ -120,6 +120,14 @@ describe('risk wording', () => {
   });
 });
 
+describe('paid-link labelling (CONTENT-30)', () => {
+  it('untracked partners are described as unpaid, tracked ones as affiliate links', () => {
+    expect(resolveInlineAffiliate('compound-interest', 'US')?.disclosure).toMatch(/^We are not paid for this link\./);
+    expect(AFFILIATE_PARTNERS.NordPass.tracked).toBe(true);
+    expect(AFFILIATE_PARTNERS.Betterment.tracked).toBeUndefined();
+  });
+});
+
 describe('inline region script', () => {
   function run(stored: string | null, region: string): string | null {
     const attrs: Record<string, string> = {};

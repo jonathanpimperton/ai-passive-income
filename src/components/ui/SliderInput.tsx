@@ -427,8 +427,15 @@ function SliderInput({
 
   /* -- Text field ------------------------------------------- */
 
-  const handleFocus = () => {
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     const text = editText(value, convention);
+    // Write the raw edit text into the field now and select it, instead of
+    // waiting for the re-render: a re-render that changes the value would
+    // drop the selection, so typing (or a test's fill()) right after focus
+    // would append to the old text instead of replacing it.
+    const el = e.currentTarget;
+    if (el.value !== text) el.value = text;
+    el.select();
     focusTextRef.current = text;
     focusValueRef.current = value;
     setIsEditing(true);

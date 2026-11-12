@@ -20,6 +20,9 @@
  *
  * Risk wording: repossession warning only on secured-lending pages; capital
  * at risk only when an investing partner is listed.
+ *
+ * Paid links (`tracked` partners) carry an "Affiliate link" label at the link
+ * itself (review CONTENT-30); untracked partners are plain, unpaid links.
  */
 import {
   partnersForPage,
@@ -48,8 +51,12 @@ if (partners.length === 0) return;
 const regionFiltered = fixedRegion === null;
 const boxRegions = [...new Set(partners.flatMap((p) => p.regions))].join(' ');
 const warnings = riskWarningsFor(toolSlug, partners);
+// Paid (tracked) links are labelled individually; plain links are said to be unpaid.
+const anyPaid = partners.some((p) => p.tracked);
 const disclosureText = [
-  'We may earn a commission if you sign up through these links, at no extra cost to you.',
+  anyPaid
+    ? 'Links marked "Affiliate link" pay us a commission if you sign up, at no extra cost to you.'
+    : 'We are not paid for these links.',
   ...warnings,
 ].join(' ');
 ---
@@ -66,7 +73,6 @@ const disclosureText = [
   {/* FTC disclosure -- before the links */}
   <p class="text-xs text-neutral-500 mt-2 leading-relaxed">
     {disclosureText}{' '}
-    We recommend partners based on relevance to the calculator you're using, not on commission rates.{' '}
     <a href="/disclosure/" class="underline hover:text-primary-600 transition-colors duration-150">
       Full disclosure
     </a>
@@ -87,6 +93,7 @@ const disclosureText = [
           </p>
           <p class="text-sm text-neutral-500 mt-0.5">{partner.tagline}</p>
         </div>
+        {partner.tracked && <span class="shrink-0 text-xs text-neutral-500">Affiliate link</span>}
         <a
           href={buildAffiliateUrl(partner.id, toolSlug)}
           target="_blank"
