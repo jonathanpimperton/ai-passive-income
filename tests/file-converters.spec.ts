@@ -64,6 +64,16 @@ function headersFor(pathname: string): Record<string, string> {
 
 test.beforeEach(async ({ context, baseURL }) => {
   await context.route(GA_RE, (route) => route.abort());
+  // Keep the cookie banner from covering tool controls (it sits over the left column).
+  await context.addInitScript(() => {
+    const hide = () => {
+      const style = document.createElement('style');
+      style.textContent = '#cookie-banner{display:none!important}';
+      (document.head || document.documentElement)?.appendChild(style);
+    };
+    if (document.documentElement) hide();
+    else document.addEventListener('DOMContentLoaded', hide);
+  });
   if (HEADER_RULES.length > 0 && baseURL) {
     const origin = new URL(baseURL).origin;
     await context.route((url) => url.origin === origin && !url.pathname.startsWith('/api/'), async (route) => {
@@ -702,10 +712,11 @@ test.describe('Image Compressor (FILES-03, FILES-10)', () => {
     await expect(page.getByText(/1 file compressed/)).toBeVisible({ timeout: 30000 });
     await uploadFile(page, path.join(FIXTURES, 'test-photo.jpg'));
     await expect(page.getByText(/2 files compressed/)).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('test-photo_compressed.jpg')).toHaveCount(2);
+    // Depending on the browser's JPEG encoder the result is smaller or the original is kept.
+    await expect(page.getByText(/^test-photo(_compressed)?\.jpg$/)).toHaveCount(2);
     await page.locator('#compress-format').selectOption('image/webp');
     await expect(page.getByText('test-photo_compressed.webp')).toHaveCount(2, { timeout: 30000 });
-    await expect(page.getByText('test-photo_compressed.jpg')).toHaveCount(0);
+    await expect(page.getByText(/^test-photo(_compressed)?\.jpg$/)).toHaveCount(0);
   });
 
   test('a damaged image is named in the error (FILES-12)', async ({ page }) => {

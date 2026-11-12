@@ -81,6 +81,7 @@ export async function readSpreadsheet(bytes: Uint8Array, fileName: string): Prom
         try {
           text = XLSX.utils.format_cell(cell);
         } catch {
+          // A number format SheetJS cannot apply: print the raw value rather than drop the cell.
           text = cell.v == null ? '' : String(cell.v);
         }
         return { text, numeric: cell.t === 'n' };
