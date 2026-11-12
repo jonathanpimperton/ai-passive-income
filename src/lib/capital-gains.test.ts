@@ -12,16 +12,16 @@ import { US_BRACKETS, US_CAPITAL_GAINS, US_STANDARD_DEDUCTION } from './us-rates
 import { UK_CGT } from './uk-rates';
 
 /**
- * TY2026 federal figures (Rev. Proc. 2025-32; IRS IR-2025-103 as amended by
- * OBBBA), pinned here so these tests do not change when the default US tax
- * year rolls over on 1 January (W1-TAX multi-year rates). The engine's
- * default-year behaviour is tested separately below.
+ * TY2026 federal figures (Rev. Proc. 2025-32; head-of-household 32% band
+ * from $201,750 per its Table 2), pinned here so these tests do not change
+ * when the default US tax year rolls over on 1 January (W1-TAX multi-year
+ * rates). The engine's default-year behaviour is tested separately below.
  */
 const R26: UsCgtRates = {
   brackets: {
     single: [[0, 0.10], [12_400, 0.12], [50_400, 0.22], [105_700, 0.24], [201_775, 0.32], [256_225, 0.35], [640_600, 0.37]],
     married: [[0, 0.10], [24_800, 0.12], [100_800, 0.22], [211_400, 0.24], [403_550, 0.32], [512_450, 0.35], [768_700, 0.37]],
-    head: [[0, 0.10], [17_700, 0.12], [67_450, 0.22], [105_700, 0.24], [201_775, 0.32], [256_200, 0.35], [640_600, 0.37]],
+    head: [[0, 0.10], [17_700, 0.12], [67_450, 0.22], [105_700, 0.24], [201_750, 0.32], [256_200, 0.35], [640_600, 0.37]],
   },
   standardDeduction: { single: 16_100, married: 32_200, head: 24_150 },
   capitalGains: {

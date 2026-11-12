@@ -19,7 +19,7 @@ import {
   type PensionInputMode,
 } from '../../lib/uk-tax-calc';
 import type { ParsedTaxCode } from '../../lib/uk-tax-codes';
-import { UK_TAX_YEAR, UK_INCOME_TAX } from '../../lib/uk-rates';
+import { UK_TAX_YEAR, UK_INCOME_TAX, UK_SCOTTISH_TAX } from '../../lib/uk-rates';
 
 const SalaryUkChart = lazy(() => import('./charts/SalaryUkChart'));
 
@@ -252,6 +252,16 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
   const sliceTotal = slices.reduce((s, d) => s + d.value, 0);
 
   const showChildcareGood = result.gross > UK_CHILDCARE_ANI_LIMIT && !result.overChildcareLimit;
+
+  // Marriage Allowance recipients must pay no more than basic rate (intermediate
+  // in Scotland): https://www.gov.uk/marriage-allowance (accessed 13 Nov 2026).
+  const marriageAllowanceLimit =
+    UK_INCOME_TAX.personalAllowance +
+    (result.region === 'scotland'
+      ? UK_SCOTTISH_TAX.bands.find((b) => b.name === 'Higher')!.from
+      : UK_INCOME_TAX.bands.find((b) => b.name === 'Higher')!.from);
+  const showMCodeNote =
+    code.kind === 'allowance' && code.suffix === 'M' && result.adjustedNetIncome > marriageAllowanceLimit;
   const noteClass = 'text-xs leading-relaxed';
   const calloutClass = 'mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-800 leading-relaxed';
 
@@ -427,7 +437,7 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
                   onChange={setPensionAmount}
                   prefix="£"
                   formatDisplay={formatNumber}
-                  hint="Total going into your pension each year (before any relief at source)"
+                  hint="Total going into your pension each year, including any basic-rate relief your provider adds"
                 />
               )}
 
@@ -518,6 +528,14 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
             </div>
           )}
 
+          {showMCodeNote && (
+            <div data-pdf-section className={calloutClass}>
+              M codes add Marriage Allowance, which only a basic-rate taxpayer can receive (income up to {formatGBP(marriageAllowanceLimit)}
+              {result.region === 'scotland' ? ', intermediate rate in Scotland' : ''}). The allowance in an M code is not tapered, so at this
+              income check your code with HMRC.
+            </div>
+          )}
+
           {result.kCapApplied && (
             <div data-pdf-section className={calloutClass}>
               K code limit: tax from this job is capped at half your pay ({formatGBP(result.incomeTax)}). HMRC collects the rest another way.
@@ -539,8 +557,11 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
           {result.overChildcareLimit && (
             <div data-pdf-section className={calloutClass}>
               <strong>Childcare limit:</strong> with adjusted net income over £100,000 you cannot get Tax-Free Childcare or the free
-              childcare hours for working parents. Another <span className="tabular-nums">{formatGBP(result.pensionToReach100k)}</span> a year
-              into your pension would bring you to the limit.{' '}
+              childcare hours for working parents.
+              {!result.inTaperZone && (
+                <> Another <span className="tabular-nums">{formatGBP(result.pensionToReach100k)}</span> a year into your pension would bring
+                you to the limit.</>
+              )}{' '}
               <a
                 href="https://www.gov.uk/tax-free-childcare/check-if-youre-eligible"
                 target="_blank"
@@ -697,7 +718,7 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
                 <li>Relief at source: your provider adds 20% to what you pay. Higher-rate relief is included in the tax figure, but you claim it through Self Assessment or a tax code change.</li>
                 <li>Salary sacrifice cannot take pay below the National Minimum Wage. From 6 April 2029, NI relief on sacrifice above £2,000 a year is due to end; this {UK_TAX_YEAR} figure does not apply that.</li>
                 <li>Student loan repayments use pay after salary sacrifice, the same pay as NI. Only one plan is shown at a time.</li>
-                <li>L tax codes: the £100,000 taper reduces the Personal Allowance part of your code. A code already below 1257L is taken as issued. Emergency codes are shown as full-year figures.</li>
+                <li>L tax codes: the £100,000 taper reduces the Personal Allowance part of your code. A code below 1257L uses the lower of your code and the tapered allowance. Emergency codes are shown as full-year figures.</li>
                 <li>The annual allowance ({formatGBP(UK_PENSION_ANNUAL_ALLOWANCE)}) and its taper are flagged but not charged.</li>
               </ul>
             </div>

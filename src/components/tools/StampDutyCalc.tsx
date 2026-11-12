@@ -228,7 +228,7 @@ export default function StampDutyCalc() {
               </label>
               <p id={`${uid}-nonres-hint`} className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 ml-7 leading-relaxed">
                 Not in the UK for at least 183 days in the 12 months before buying. Adds {pctLabel(SDLT_NON_RESIDENT_SURCHARGE)} to every
-                band from {fmt(SDLT_SURCHARGE_FLOOR)}; some buyers can reclaim it later.{' '}
+                band, on purchases of {fmt(SDLT_SURCHARGE_FLOOR)} or more; some buyers can reclaim it later.{' '}
                 <a
                   href="https://www.gov.uk/guidance/rates-of-stamp-duty-land-tax-for-non-uk-residents"
                   target="_blank"
