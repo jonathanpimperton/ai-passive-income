@@ -1149,31 +1149,40 @@ html.has-mini-bar {
    with backgrounds (switches, slider tracks, borderless buttons) vanished.
    Re-draw them with system colours. */
 @media (forced-colors: active) {
-  [role="switch"] {
+  /* Switches come in two shapes:
+     A. the role=switch button IS the rounded track, its child is the knob
+        (salary-uk Scottish + salary sacrifice, password generator);
+     B. the role=switch button wraps a rounded track div (knob inside it)
+        plus a text label (solar battery).
+     "Track" below = A's button or B's rounded child; "knob" = the track's
+     rounded child. B's label keeps normal forced-colour text. */
+  :is([role="switch"].rounded-full, [role="switch"]:not(.rounded-full) > .rounded-full) {
     forced-color-adjust: none;
     background-color: Canvas;
     border: 1px solid ButtonText;
   }
-  [role="switch"] > span {
+  :is([role="switch"].rounded-full, [role="switch"]:not(.rounded-full) > .rounded-full) > .rounded-full {
+    forced-color-adjust: none;
     background-color: ButtonText;
     box-shadow: none;
   }
-  [role="switch"][aria-checked="true"] {
+  :is([role="switch"][aria-checked="true"].rounded-full, [role="switch"][aria-checked="true"]:not(.rounded-full) > .rounded-full) {
     background-color: Highlight;
     border-color: Highlight;
   }
-  [role="switch"][aria-checked="true"] > span {
+  :is([role="switch"][aria-checked="true"].rounded-full, [role="switch"][aria-checked="true"]:not(.rounded-full) > .rounded-full) > .rounded-full {
     background-color: HighlightText;
   }
-  /* Disabled switches (e.g. the Scottish toggle when an S tax code sets it) */
-  [role="switch"]:disabled {
+  /* Disabled (e.g. the Scottish toggle when an S tax code sets it): the state
+     stays visible but reads as unavailable. */
+  :is([role="switch"].rounded-full:disabled, [role="switch"]:not(.rounded-full):disabled > .rounded-full) {
     border-color: GrayText;
   }
-  [role="switch"]:disabled > span,
-  [role="switch"][aria-checked="true"]:disabled {
+  :is([role="switch"].rounded-full:disabled, [role="switch"]:not(.rounded-full):disabled > .rounded-full) > .rounded-full,
+  :is([role="switch"][aria-checked="true"].rounded-full:disabled, [role="switch"][aria-checked="true"]:not(.rounded-full):disabled > .rounded-full) {
     background-color: GrayText;
   }
-  [role="switch"][aria-checked="true"]:disabled > span {
+  :is([role="switch"][aria-checked="true"].rounded-full:disabled, [role="switch"][aria-checked="true"]:not(.rounded-full):disabled > .rounded-full) > .rounded-full {
     background-color: Canvas;
   }
 
