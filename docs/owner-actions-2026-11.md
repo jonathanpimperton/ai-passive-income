@@ -168,7 +168,7 @@ link to it from the site.
 
 ## 12. GitHub Actions notifications and the weekly freshness check (O-11)
 
-Two workflows now exist (no secrets needed):
+Three workflows now exist (only the third uses a secret, and it is optional; section 14):
 
 - `CI` (`.github/workflows/ci.yml`): on every push and pull request it runs unit tests,
   the build, the link check and the production-config E2E suite. It does not deploy and does
@@ -176,6 +176,8 @@ Two workflows now exist (no secrets needed):
 - `Freshness` (`.github/workflows/freshness.yml`): Mondays 07:00 UTC (and on demand). It fails
   when a dated fact (tax year, rates, security.txt expiry...) is due within 30 days or
   overdue.
+- `Scheduled rebuild` (`.github/workflows/scheduled-rebuild.yml`): 1 January and 6 April,
+  redeploys production through a Cloudflare deploy hook (section 14).
 
 To make sure failures reach you:
 
@@ -213,6 +215,35 @@ curl -s https://www.calcrun.com/.well-known/security.txt | grep Expires
 The address in the last-but-one request is deliberately invalid: a request without a
 Turnstile token is refused (403) before any field is validated, so nothing reaches
 Turnstile, MailerSend or MailerLite.
+
+## 14. Scheduled rebuilds on tax-year rollover (deploy hook secret)
+
+The default tax year is fixed into the HTML when the site is built. A build from one tax
+year served in the next makes the page and the browser disagree (a hydration error on the
+homepage engine) until the site is redeployed. The `Scheduled rebuild` workflow
+(`.github/workflows/scheduled-rebuild.yml`) redeploys on **1 January and 6 April at 00:30
+UTC** without creating commits, by calling a Cloudflare Workers Builds **Deploy Hook**
+(available since 1 April 2026; developers.cloudflare.com/workers/ci-cd/builds/deploy-hooks/).
+Until you add the secret, the workflow only logs "Scheduled rebuild skipped".
+
+1. Cloudflare dashboard -> Workers & Pages -> `calcrun` -> Settings -> Builds -> Deploy
+   Hooks -> name `scheduled-rebuild`, branch `claude/master` -> Create. Copy the URL (it
+   looks like `https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/<id>`).
+2. GitHub -> repository -> Settings -> Secrets and variables -> Actions -> New repository
+   secret: name `CF_DEPLOY_HOOK_URL`, value the URL from step 1.
+3. Test once: GitHub -> Actions -> "Scheduled rebuild" -> Run workflow. The log should end
+   with "Build queued: ..."; Cloudflare -> `calcrun` -> Deployments shows a new build with
+   trigger "deploy hook".
+
+The URL works without any other credential, so treat it like a password: anyone who has it
+can trigger builds (Cloudflare limits a Worker to 10 builds a minute). If it leaks, delete
+the hook in step 1 and create a new one, then update the secret. If a scheduled build fails
+(for example because the rates freshness guard finds stale data), Cloudflare keeps serving
+the previous deployment and the workflow run turns red.
+
+Timing note: 00:30 UTC on 1 January is still 31 December in the Americas, so for a few hours
+US visitors' browsers are a year behind the freshly built page. W1-TAX's handling of the
+default year decides whether that matters; a later run can be added if it does.
 
 ---
 
