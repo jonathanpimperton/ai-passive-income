@@ -1,56 +1,21 @@
 /**
- * JWT Decoder — decode JWT tokens into readable header, payload, and signature info.
- * Zero dependencies — uses native Base64URL decoding and JSON parsing.
- * Does NOT verify signatures (no secret key input).
+ * JWT Decoder: decode JWT tokens into readable header, payload and claim
+ * checks (src/lib/dev-tools/jwt.ts). Zero dependencies.
+ * Does NOT verify signatures, and never labels a token "valid".
  */
-import { useState, useCallback, useMemo } from 'react';
-import { Copy, Check, AlertCircle, Clock, Shield, Key } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Copy, Check, AlertCircle, AlertTriangle, Clock, Shield, Key, Info } from 'lucide-react';
 import PrivacyBadge from '../ui/PrivacyBadge';
-import { decodeJwt } from '../../lib/converter-utils';
+import { decodeJwtToken, type JwtStatus } from '../../lib/dev-tools/jwt';
+import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
 
 const SAMPLE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
-/** Format a Unix timestamp to a readable date */
-function formatTimestamp(ts: number): string {
-  try {
-    return new Date(ts * 1000).toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'long',
-    });
-  } catch {
-    return String(ts);
-  }
-}
-
-/** Get time-relative description for expiry */
-function getExpiryStatus(exp: number): { label: string; color: 'green' | 'red' | 'amber' } {
-  const now = Date.now() / 1000;
-  const diff = exp - now;
-
-  if (diff > 0) {
-    const hours = Math.floor(diff / 3600);
-    const minutes = Math.floor((diff % 3600) / 60);
-    if (hours > 24) {
-      const days = Math.floor(hours / 24);
-      return { label: `Valid — expires in ${days} day${days > 1 ? 's' : ''}`, color: 'green' };
-    }
-    if (hours > 0) {
-      return { label: `Valid — expires in ${hours}h ${minutes}m`, color: 'green' };
-    }
-    return { label: `Valid — expires in ${minutes}m`, color: 'amber' };
-  } else {
-    const ago = Math.abs(diff);
-    const hours = Math.floor(ago / 3600);
-    if (hours > 24) {
-      const days = Math.floor(hours / 24);
-      return { label: `Expired ${days} day${days > 1 ? 's' : ''} ago`, color: 'red' };
-    }
-    if (hours > 0) {
-      return { label: `Expired ${hours}h ago`, color: 'red' };
-    }
-    const minutes = Math.floor(ago / 60);
-    return { label: `Expired ${minutes}m ago`, color: 'red' };
-  }
+/** Format a Unix timestamp (seconds) to a readable date; out-of-range values are explained. */
+function formatTimestamp(seconds: number): string {
+  const ms = seconds * 1000;
+  if (!Number.isFinite(ms) || Math.abs(ms) > 8.64e15) return 'outside the range of real dates';
+  return new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'long' });
 }
 
 const KNOWN_CLAIMS: Record<string, string> = {
@@ -61,6 +26,15 @@ const KNOWN_CLAIMS: Record<string, string> = {
   nbf: 'Not Before',
   iat: 'Issued At',
   jti: 'JWT ID',
+  alg: 'Algorithm',
+  typ: 'Type',
+  kid: 'Key ID',
+};
+
+const TONE_CLASSES: Record<JwtStatus['tone'], string> = {
+  ok: 'text-success-700 bg-success-50 border-success-100',
+  warn: 'text-amber-800 bg-amber-50 border-amber-200',
+  bad: 'text-red-700 bg-red-50 border-red-200',
 };
 
 function ClaimRow({ name, value }: { name: string; value: unknown }) {
@@ -70,29 +44,16 @@ function ClaimRow({ name, value }: { name: string; value: unknown }) {
   return (
     <div className="flex items-start gap-3 py-2 border-b border-neutral-100 last:border-0">
       <div className="shrink-0 w-28">
-        <code className="text-sm font-mono font-semibold text-primary-600">{name}</code>
+        <code className="text-sm font-mono font-semibold text-primary-600 break-all">{name}</code>
         {knownLabel && <p className="text-xs text-neutral-500">{knownLabel}</p>}
       </div>
       <div className="min-w-0 flex-1">
         {isTimestamp ? (
           <div>
             <p className="text-sm text-neutral-900 font-mono">{formatTimestamp(value as number)}</p>
-            <p className="text-xs text-neutral-500 font-mono">({value})</p>
-            {name === 'exp' && (() => {
-              const status = getExpiryStatus(value as number);
-              const colorMap = {
-                green: 'text-success-700 bg-success-50',
-                red: 'text-negative-600 bg-negative-50',
-                amber: 'text-warning-600 bg-warning-50',
-              };
-              return (
-                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold ${colorMap[status.color]}`}>
-                  {status.label}
-                </span>
-              );
-            })()}
+            <p className="text-xs text-neutral-500 font-mono tabular-nums">({value as number})</p>
           </div>
-        ) : typeof value === 'object' ? (
+        ) : typeof value === 'object' && value !== null ? (
           <pre className="text-sm text-neutral-900 font-mono whitespace-pre-wrap break-all">
             {JSON.stringify(value, null, 2)}
           </pre>
@@ -106,26 +67,9 @@ function ClaimRow({ name, value }: { name: string; value: unknown }) {
 
 export default function JwtDecoder() {
   const [input, setInput] = useState(SAMPLE_JWT);
-  const [copiedSection, setCopiedSection] = useState<string>('');
+  const { copy, copiedKey, message: copyMessage } = useCopyFeedback();
 
-  const decoded = useMemo(() => decodeJwt(input), [input]);
-
-  const handleCopy = useCallback(async (text: string, section: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedSection(section);
-      setTimeout(() => setCopiedSection(''), 2000);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      setCopiedSection(section);
-      setTimeout(() => setCopiedSection(''), 2000);
-    }
-  }, []);
+  const decoded = useMemo(() => decodeJwtToken(input), [input]);
 
   return (
     <div className="space-y-6">
@@ -140,86 +84,119 @@ export default function JwtDecoder() {
           id="jwt-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Paste your JWT token here..."
-          className="w-full h-32 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y break-all"
+          placeholder="Paste your JWT token here (a leading &quot;Bearer &quot; is fine)..."
+          className="w-full h-32 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-base sm:text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y break-all"
           spellCheck={false}
         />
+        <span className="sr-only" role="status" aria-live="polite">{copyMessage}</span>
       </div>
 
       {/* Error */}
-      {decoded.error && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-negative-50 border border-negative-100" role="alert">
-          <AlertCircle size={18} className="text-negative-600 shrink-0 mt-0.5" aria-hidden="true" />
-          <p className="text-sm text-negative-600 font-medium">{decoded.error}</p>
+      {!decoded.ok && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200" role="alert">
+          <AlertCircle size={18} className="text-red-700 shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="text-sm text-red-700 font-medium">{decoded.error}</p>
         </div>
       )}
 
-      {/* Decoded sections */}
-      {!decoded.error && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" aria-live="polite">
-          {/* Header */}
-          <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 bg-primary-50 border-b border-primary-100">
-              <div className="flex items-center gap-2">
-                <Shield size={16} className="text-primary-600" aria-hidden="true" />
-                <h3 className="text-sm font-bold text-primary-900">Header</h3>
+      {decoded.ok && (
+        <>
+          {/* Status and warnings */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-sm font-semibold ${TONE_CLASSES[decoded.status.tone]}`}>
+                <Clock size={14} aria-hidden="true" />
+                {decoded.status.label}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-neutral-200 bg-neutral-50 text-sm text-neutral-700">
+                <Shield size={14} aria-hidden="true" />
+                Signature not checked
+              </span>
+            </div>
+            {decoded.warnings.length > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-800">
+                <AlertTriangle size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
+                <ul className="space-y-1">
+                  {decoded.warnings.map((w, k) => <li key={k}>{w}</li>)}
+                </ul>
               </div>
-              <button
-                onClick={() => handleCopy(JSON.stringify(decoded.header, null, 2), 'header')}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-primary-700 hover:bg-primary-100 transition-colors duration-150"
-                aria-label="Copy header JSON"
-              >
-                {copiedSection === 'header' ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
-                {copiedSection === 'header' ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-            <div className="px-4 py-2">
-              {Object.entries(decoded.header).map(([key, value]) => (
-                <ClaimRow key={key} name={key} value={value} />
-              ))}
-            </div>
-          </div>
-
-          {/* Payload */}
-          <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-1">
-            <div className="flex items-center justify-between px-4 py-3 bg-success-50 border-b border-success-100">
-              <div className="flex items-center gap-2">
-                <Key size={16} className="text-success-700" aria-hidden="true" />
-                <h3 className="text-sm font-bold text-success-700">Payload</h3>
-              </div>
-              <button
-                onClick={() => handleCopy(JSON.stringify(decoded.payload, null, 2), 'payload')}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-success-700 hover:bg-success-100 transition-colors duration-150"
-                aria-label="Copy payload JSON"
-              >
-                {copiedSection === 'payload' ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
-                {copiedSection === 'payload' ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-            <div className="px-4 py-2">
-              {Object.entries(decoded.payload).map(([key, value]) => (
-                <ClaimRow key={key} name={key} value={value} />
-              ))}
-            </div>
-          </div>
-
-          {/* Signature */}
-          <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-2">
-            <div className="flex items-center justify-between px-4 py-3 bg-neutral-50 border-b border-neutral-100">
-              <div className="flex items-center gap-2">
-                <Clock size={16} className="text-neutral-600" aria-hidden="true" />
-                <h3 className="text-sm font-bold text-neutral-800">Signature</h3>
-              </div>
-            </div>
-            <div className="px-4 py-3">
-              <p className="text-sm font-mono text-neutral-700 break-all">{decoded.signature}</p>
-              <p className="text-xs text-neutral-500 mt-2">
-                Algorithm: <strong>{String(decoded.header.alg || 'unknown')}</strong>.
-                Signature verification requires the secret key and is not performed client-side.
+            )}
+            {decoded.notes.length > 0 && (
+              <p className="flex items-start gap-2 text-sm text-neutral-600">
+                <Info size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
+                <span>{decoded.notes.join(' ')}</span>
               </p>
+            )}
+          </div>
+
+          {/* Decoded sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Header */}
+            <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 bg-primary-50 border-b border-primary-100">
+                <div className="flex items-center gap-2">
+                  <Shield size={16} className="text-primary-600" aria-hidden="true" />
+                  <h2 className="text-sm font-bold text-primary-900">Header</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copy(JSON.stringify(decoded.header, null, 2), 'header')}
+                  className="inline-flex items-center gap-1 min-h-[40px] px-3 rounded text-sm text-primary-700 hover:bg-primary-100 transition-colors duration-150"
+                >
+                  {copiedKey === 'header' ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                  {copiedKey === 'header' ? 'Copied' : 'Copy header'}
+                </button>
+              </div>
+              <div className="px-4 py-2">
+                {Object.entries(decoded.header).map(([key, value]) => (
+                  <ClaimRow key={key} name={key} value={value} />
+                ))}
+              </div>
+            </div>
+
+            {/* Payload */}
+            <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-1">
+              <div className="flex items-center justify-between px-4 py-2 bg-success-50 border-b border-success-100">
+                <div className="flex items-center gap-2">
+                  <Key size={16} className="text-success-700" aria-hidden="true" />
+                  <h2 className="text-sm font-bold text-success-700">Payload</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copy(JSON.stringify(decoded.payload, null, 2), 'payload')}
+                  className="inline-flex items-center gap-1 min-h-[40px] px-3 rounded text-sm text-success-700 hover:bg-success-100 transition-colors duration-150"
+                >
+                  {copiedKey === 'payload' ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                  {copiedKey === 'payload' ? 'Copied' : 'Copy payload'}
+                </button>
+              </div>
+              <div className="px-4 py-2">
+                {Object.entries(decoded.payload).map(([key, value]) => (
+                  <ClaimRow key={key} name={key} value={value} />
+                ))}
+              </div>
+            </div>
+
+            {/* Signature */}
+            <div className="rounded-lg border border-neutral-200/80 shadow-sm bg-white overflow-hidden lg:col-span-2">
+              <div className="flex items-center justify-between px-4 py-3 bg-neutral-50 border-b border-neutral-100">
+                <div className="flex items-center gap-2">
+                  <Clock size={16} className="text-neutral-600" aria-hidden="true" />
+                  <h2 className="text-sm font-bold text-neutral-800">Signature</h2>
+                </div>
+              </div>
+              <div className="px-4 py-3">
+                <p className="text-sm font-mono text-neutral-700 break-all">{decoded.signature || '(empty)'}</p>
+                <p className="text-sm text-neutral-600 mt-2">
+                  Algorithm: <strong>{decoded.alg.name}</strong>.{' '}
+                  {decoded.alg.family === 'none'
+                    ? 'This token is not signed, so it proves nothing about who created it.'
+                    : `This tool does not verify signatures. Verifying this one needs ${decoded.alg.verifyWith}, and should happen on your server before any claim is trusted.`}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
