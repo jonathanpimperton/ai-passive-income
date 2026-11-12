@@ -117,6 +117,18 @@ describe('ChartDataTable', () => {
     expect(html).toMatch(/<button[\s\S]*?Balance by year[\s\S]*?<\/button>/);
   });
 
+  it('makes the open table scroller keyboard-focusable and names it by the caption (WCAG 2.1.1)', () => {
+    const html = renderTable({ defaultOpen: true, id: 'bal' });
+    const caption = openingTagById(html, 'bal-caption');
+    expect(caption).toMatch(/^<caption/);
+    const scroller = html.match(/<div[^>]*\soverflow-auto[^>]*>|<div[^>]*class="[^"]*overflow-auto[^"]*"[^>]*>/);
+    expect(scroller).toBeTruthy();
+    const tag = (scroller as RegExpMatchArray)[0];
+    expect(attr(tag, 'tabindex')).toBe('0');
+    expect(attr(tag, 'role')).toBe('region');
+    expect(attr(tag, 'aria-labelledby')).toBe('bal-caption');
+  });
+
   it('renders <th scope="col"> for every column', () => {
     const html = renderTable({ defaultOpen: true });
     const thead = html.match(/<thead>([\s\S]*)<\/thead>/);
