@@ -8,9 +8,11 @@
  *  - VALUES are rendered only when they match one of the tool's `values` phrase templates
  *    (or a shared phrase such as "N/A"), or when they are a short, well-formed figure:
  *    an amount, percentage, duration or unit value with at most two numbers.
- *    Digit runs that are not ONE well-formed number (phone-number shapes such as
- *    "0800 123 4567", dotted quads, long unseparated runs) never pass, and neither do
- *    words outside a small unit vocabulary.
+ *    Digit runs that are not ONE well-formed number, two numbers joined by phone-style
+ *    separators without a currency or percent sign on each, and long figures with no
+ *    currency, percent or unit marker (phone-number shapes such as "0800 123 4567",
+ *    "+44 1,234,567", dotted quads) never pass, and neither do words outside a small
+ *    unit vocabulary.
  * Rows that fail are dropped (not rendered), and the count is reported to the caller.
  *
  * Template syntax (labels and value phrases):
@@ -18,6 +20,8 @@
  *                 1-3 digits with ","/"." thousands groups and an optional decimal part,
  *                 or up to 5 digits with an optional decimal part; optional trailing
  *                 "%", currency or cent sign
+ *  - `{money}`    like `{n}` but a currency sign is required (before or after the digits)
+ *  - `{pct}`      like `{n}` but a percent sign is required
  *  - `{dur}`      a duration such as "29 years 10 months", "6 yrs 2 mo", "10 months"
  *  - `{month}`    an English month name
  *  - `{taxcode}`  a UK PAYE tax code shape such as 1257L, S1257L, K475, BR, D0, 0T (W1/M1/X)
@@ -67,6 +71,9 @@ const WELL_FORMED_RE = new RegExp(`^${DIGITS_SRC}$`);
 
 /** `{n}`: one well-formed number with optional sign, currency prefix and %/currency/cent suffix. */
 const NUM_SRC = String.raw`[-+\u2212]?(?:[\u00A3$\u20AC] ?)?${DIGITS_SRC}(?: ?[\u00A3\u20AC\u00A2%])?`;
+/** `{money}`: a currency sign is required. `{pct}`: a percent sign is required. */
+const MONEY_SRC = String.raw`[-+\u2212]?(?:[\u00A3$\u20AC] ?${DIGITS_SRC}|${DIGITS_SRC} ?[\u00A3\u20AC])`;
+const PCT_SRC = String.raw`[-+\u2212]?${DIGITS_SRC} ?%`;
 const DUR_SRC = String.raw`\d{1,3} (?:years?|yrs?|months?|mo)(?:,? \d{1,2} (?:months?|mo))?`;
 const MONTH_SRC = '(?:January|February|March|April|May|June|July|August|September|October|November|December)';
 const TAXCODE_SRC = String.raw`[SC]?(?:\d{1,4}[LMNT]|K\d{1,4}|BR|D[0-2]|NT|0T)(?: ?(?:W1|M1|X))?`;
@@ -95,6 +102,8 @@ export function compileTemplate(template: string, allowItem = true): Compiled {
       tokens++;
       const inner = part.slice(1, -1);
       if (inner === 'n') src += `(?:${NUM_SRC})`;
+      else if (inner === 'money') src += `(?:${MONEY_SRC})`;
+      else if (inner === 'pct') src += `(?:${PCT_SRC})`;
       else if (inner === 'dur') src += `(?:${DUR_SRC})`;
       else if (inner === 'month') src += MONTH_SRC;
       else if (inner === 'taxcode') src += `(?:${TAXCODE_SRC})`;
@@ -124,25 +133,50 @@ const NUMERIC_CHARS_RE = /^[A-Za-z0-9 \u00A3$\u20AC\u00A2%.,()+\-\u2013\u2212/~]
 /** Unit words a free numeric value may contain (lower-case). Nothing else. */
 const UNIT_WORDS = new Set([
   'year', 'years', 'yr', 'yrs', 'y', 'month', 'months', 'mo', 'mos', 'week', 'weeks', 'day', 'days',
-  'hr', 'hrs', 'hour', 'hours', 'kwh', 'kwp', 'kw', 'p', 'x', 'k', 'm', 'bn', 'min',
+  'hr', 'hrs', 'hour', 'hours', 'kwh', 'kwp', 'kw', 'p', 'c', 'x', 'k', 'm', 'bn', 'min',
 ]);
 /** A number glued to a unit, such as "28p", "4x", "3y", "2mo", "50k". */
-const NUMBER_UNIT_RE = /^\d+(?:y|yr|yrs|mo|mos|p|x|k|m|bn|kwh|kwp|kw|hr|hrs)$/i;
+const NUMBER_UNIT_RE = /^\d+(?:y|yr|yrs|mo|mos|p|c|x|k|m|bn|kwh|kwp|kw|hr|hrs)$/i;
 const TAXCODE_TOKEN_RE = /^(?:[SC]?(?:\d{1,4}[LMNT]|K\d{1,4}|BR|D[0-2]|NT|0T)|W1|M1)$/i;
-/** Separators that, alone between two bare numbers, make a phone-number shape. */
-const PHONE_GAP_RE = /^[\s\-().+\u2013\u2212]*$/;
+/** Text between two numbers with no letters or digits in it: spaces, hyphens, dots, signs, brackets. */
+const PHONE_GAP_RE = /^[^A-Za-z0-9]*$/;
+/** Most digits a figure may have when it carries no currency, percent or unit marker. */
+const MAX_PLAIN_DIGITS = 7;
+
+type FigureKind = 'money' | 'unit' | 'plain';
+
+/**
+ * How a digit run is anchored in the value: a currency sign directly before it, a
+ * percent/currency/cent sign directly after it (not the prefix of the next number), a unit
+ * word directly after it, or nothing ("plain"). Thousands grouping is NOT an anchor.
+ */
+function figureKind(value: string, start: number, end: number): FigureKind {
+  if (/[\u00a3$\u20ac] ?$/.test(value.slice(0, start))) return 'money';
+  const suffix = /^ ?([%\u00a3\u20ac\u00a2])( ?\d)?/.exec(value.slice(end));
+  if (suffix && (suffix[1] === '%' || suffix[2] === undefined)) return 'money';
+  return /^ ?[A-Za-z]/.test(value.slice(end)) ? 'unit' : 'plain';
+}
 
 /**
  * Free numeric grammar: a short amount / percentage / duration / unit value.
  * Exported for tests; the worker uses isSafeValue().
+ *
+ * Phone-number shapes never pass: each digit run must be ONE well-formed number; at most
+ * two numbers; two numbers with no letters between them must both
+ * be money or percent figures, or the second one glued to a unit word; and a figure with no currency,
+ * percent or unit marker has at most 7 digits (so "192.168.100.200" and "+44 7911123456"
+ * fail). Comma or dot grouping is not a marker. A dot-grouped figure with a currency sign,
+ * such as the German "192.168.100.200 EUR" form, is a legitimate amount and passes.
  */
 export function isNumericValue(value: string): boolean {
   if (!value || value.length > MAX_NUMERIC_VALUE_CHARS) return false;
   if (!NUMERIC_CHARS_RE.test(value)) return false;
   if (/[A-Za-z]\s*\.\s*[A-Za-z]/.test(value)) return false;
 
+  const tokens = value.match(/[A-Za-z0-9]+/g) ?? [];
+  if (tokens.length === 0) return false; // punctuation only, for example "(+-.)"
   let taxCodeOnly = true;
-  for (const token of value.match(/[A-Za-z0-9]+/g) ?? []) {
+  for (const token of tokens) {
     if (/^\d+$/.test(token)) {
       taxCodeOnly = false;
       continue;
@@ -157,29 +191,18 @@ export function isNumericValue(value: string): boolean {
   if (runs.length === 0) return taxCodeOnly;
   if (runs.length > 2) return false;
   for (const r of runs) if (!WELL_FORMED_RE.test(r[0])) return false;
+  const digitCount = (r: RegExpMatchArray) => r[0].replace(/\D/g, '').length;
+  const kinds = runs.map((r) => figureKind(value, r.index ?? 0, (r.index ?? 0) + r[0].length));
+  for (const [i, r] of runs.entries()) {
+    if (kinds[i] === 'plain' && digitCount(r) > MAX_PLAIN_DIGITS) return false;
+  }
   if (runs.length === 2) {
     const [a, b] = runs;
-    const around = (r: RegExpMatchArray) => {
-      const start = r.index ?? 0;
-      const end = start + r[0].length;
-      return {
-        before: value.slice(0, start).trimEnd().slice(-1),
-        after: value.slice(end).trimStart().charAt(0),
-        grouped: /\d[.,]\d{3}(?:\D|$)/.test(r[0]),
-      };
-    };
-    // Money-like: currency prefix, percent/currency/cent suffix, or thousands grouping.
-    const moneyLike = (r: RegExpMatchArray) => {
-      const x = around(r);
-      return x.grouped || /[\u00A3$\u20AC]/.test(x.before) || /[%\u00A3\u20AC\u00A2]/.test(x.after);
-    };
-    const bare = (r: RegExpMatchArray) => !moneyLike(r) && !/[A-Za-z]/.test(around(r).after);
-    if (!moneyLike(a) && !moneyLike(b)) {
-      // Two plain counts ("3 yrs 2 mo") are short; longer pairs look like phone numbers.
-      if (a[0].replace(/\D/g, '').length + b[0].replace(/\D/g, '').length > 6) return false;
-      const gap = value.slice((a.index ?? 0) + a[0].length, b.index ?? 0);
-      if (bare(a) && bare(b) && PHONE_GAP_RE.test(gap)) return false;
-    }
+    const gap = value.slice((a.index ?? 0) + a[0].length, b.index ?? 0);
+    // Two numbers joined only by phone-style separators: each must be anchored.
+    if (PHONE_GAP_RE.test(gap) && kinds.includes('plain')) return false;
+    // Two counts with no money in them ("3 yrs 2 mo") are short; longer pairs look like phone numbers.
+    if (!kinds.includes('money') && digitCount(a) + digitCount(b) > 6) return false;
   }
   return true;
 }

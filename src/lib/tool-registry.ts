@@ -271,7 +271,7 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
     labels: [
       'Housing / Rent', 'Food & Groceries', 'Transportation', 'Utilities', 'Insurance', 'Debt Payments',
       'Other Expenses', 'Total Monthly Expenses', 'Current Emergency Savings', 'Monthly Savings Contribution',
-      'Savings interest rate', 'Savings interest rate ({AER|APY})',
+      'Savings interest rate', 'Savings interest rate ({AER|APY|annual})',
       'Recommended Target ({n} months)', 'Monthly Contribution', 'Time to Reach {n}-Month Target',
     ],
     values: [
@@ -350,7 +350,7 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       'Export Tariff', 'Tax Credit / Grant', 'Grant / Rebate',
       'Payback Period', 'Net System Cost', 'Year 1 Savings', '{n}-Year Savings', '{n}-Year ROI',
     ],
-    values: ['Pays back immediately', 'Not applicable (no net cost)', '{n} ({n} base, year 1)'],
+    values: ['Pays back immediately', 'Not applicable (no net cost)', '{pct} ({pct} base, year 1)'],
   },
   'car-finance': {
     name: 'Car Finance Comparison Calculator',
@@ -370,8 +370,9 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
     labels: [
       'Property Price', 'Buyer Type', 'Non-UK Resident',
       'Stamp Duty (SDLT)', 'Effective Tax Rate', 'Total Cost (Price + SDLT)',
-      // Band rows sent before the W1-UK change, for example "<from> - <to> (2%)" (en dash).
-      '{n} \u2013 {n} ({n})', '{n} \u2013 ... ({n})',
+      // Band rows, for example "GBP 125,000 - GBP 250,000 (2%)" (en dash): the amounts must carry
+      // the currency sign and the rate the percent sign, so the label cannot be a bare number run.
+      '{money} \u2013 {money} ({pct})', '{money} \u2013 ... ({pct})',
     ],
     values: ['First-time buyer', 'Moving home', 'Additional property'],
   },

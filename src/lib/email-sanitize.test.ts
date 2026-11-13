@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   cleanText, isSafeValue, isNumericValue, matchLabel, newLabelContext, sanitizeRows, compileLabel, compileTemplate,
 } from './email-sanitize';
+import { TOOL_REGISTRY } from './tool-registry';
 
 // Build non-ASCII test characters from code points so this file stays ASCII.
 const ch = (...cps: number[]) => String.fromCodePoint(...cps);
@@ -38,18 +39,42 @@ describe('isNumericValue accepts well-formed figures', () => {
     '1 year, 3 months', '4 years, 2 months', '0 months', '25+ years', '8 mo', '3y 2mo', '120 months', '360',
     '$36.00/hr', '40 hrs', '40', '52', '2000', '$1,000/mo', '1.5%/yr', '$1,200/yr', '4 kWp', '10 kWh ($5,000)',
     '1,050 kWh/kWp', '28p/kWh', `15${CENT}/kWh`, `12.5${CENT}/kWh`, '4.5x', '12x/yr', '28% / 36%', '12.5% / 30.1%',
-    '$1,234,567.89', '1257L', 'S1257L', 'K475', 'BR', 'D0', 'NT', '0T', 'C1257L', '1257L W1', '1257L X', '$50k',
+    '$1,234,567.89', '$12,345,678', '1,234,567', '18.04c/kWh', '4,500 kWh',
+    // two anchored figures may share a value: each is money or percent, or the second has a unit
+    '$1,234 - $5,678', `1.234 ${EURO} - 5.678 ${EURO}`, '5.2% (12.5%)', `${POUND}50,000 (12 months)`,
+    '1257L', 'S1257L', 'K475', 'BR', 'D0', 'NT', '0T', 'C1257L', '1257L W1', '1257L X', '$50k',
   ];
   for (const v of ok) {
     it(JSON.stringify(v), () => expect(isNumericValue(cleanText(v))).toBe(true));
   }
 });
 
+/** Phone-number shapes that must not render as a value in ANY tool's email (review rounds 1 and 2). */
+const PHONE_SHAPES = [
+  '0800 123 4567', '+1 (800) 555-0199', '1-800-555-0199', '(800) 555-0199', '07700 900123', '0800.123.4567',
+  '+44 1,234,567', '+44 1.234.567', '+44 7911 123456', '020 7,946,000', '020 7.946.000', '0800 1,234',
+  '$800 5550', '0800 $123', '192.168.100.200', '1,234,567,890', '+4400000000',
+];
+
 describe('isNumericValue rejects phone shapes, codes and words', () => {
+  it('no tool renders a phone-number shape as a value', () => {
+    for (const slug of Object.keys(TOOL_REGISTRY)) {
+      for (const v of PHONE_SHAPES) expect(isSafeValue(slug, cleanText(v)), `${slug}: ${v}`).toBe(false);
+    }
+  });
+
   const bad = [
     // phone-number shapes (review must-fix 1)
     'Emergency tax code 1-800-555-0199', '0800 123 4567', '+1 (800) 555-0199', '1-800-555-0199', '(800) 555-0199',
     '555-0199', '0800 123', '07700 900123', '08001234567', '0800.123.4567', '08001 mo 23456',
+    // review round 2: grouping or a single currency sign is not enough to anchor a phone shape
+    '+44 1,234,567', '+44 1.234.567', '+44 7911 123456', '020 7,946,000', '020 7.946.000', '0800 1,234',
+    '$800 5550', `${POUND}020 1234`, '0800 $123', `0800 ${POUND}123`, `800 ${POUND} 5550`, '$800 - 555',
+    '1,234 5,678', '(800) 5,550', '+1 800,555',
+    // long figures with no currency, percent or unit marker, and dotted quads
+    '192.168.100.200', '10.200.30.400', '12345678', '1,234,567,890', '+4400000000',
+    // punctuation only (no token at all)
+    '(+-.)', '+-.,/~', '()', '-', '~', '$', '%', '.',
     // not one well-formed number
     '123.45.67.89', '1.2.3', '12,34,56', '1,23,456',
     // more than two numbers, free words, codes that are not tax codes
@@ -164,6 +189,15 @@ describe('matchLabel', () => {
     expect(matchLabel('stamp-duty', band, ctx)).toBe(band);
     expect(matchLabel('stamp-duty', `${POUND}1,500,001 ${EN_DASH} ... (12%)`, ctx)).toBe(`${POUND}1,500,001 ${EN_DASH} ... (12%)`);
     expect(matchLabel('stamp-duty', `${POUND}1 ${EN_DASH} evil (2%)`, ctx)).toBeNull();
+    expect(matchLabel('stamp-duty', `${POUND}0 ${EN_DASH} ${POUND}125,000 (0%)`, ctx)).not.toBeNull();
+    // Band labels need the currency sign on both amounts and the percent sign: bare number runs
+    // in an area-code / exchange / line shape are refused.
+    for (const bare of [
+      `800 ${EN_DASH} 555 (0199)`, `${POUND}800 ${EN_DASH} 555 (19%)`, `${POUND}800 ${EN_DASH} ${POUND}555 (0199)`,
+      `800 ${EN_DASH} ... (19%)`, `${POUND}800 ${EN_DASH} ... (0199)`, `800 ${EN_DASH} 555 (19%)`,
+    ]) {
+      expect(matchLabel('stamp-duty', bare, ctx), bare).toBeNull();
+    }
   });
   it('replaces user-named rows with a numbered noun and never renders the user text', () => {
     const ctx = newLabelContext();
