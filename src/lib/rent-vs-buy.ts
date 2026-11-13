@@ -12,9 +12,9 @@
  * - Buyer net worth at year N = home value x (1 - selling costs) - loan
  *   balance + the buyer's portfolio. Renter net worth = the renter's portfolio.
  *   The verdict is the difference. Identical cash flows give exactly 0.
- * - US only: mortgage interest (plus property tax, up to the SALT cap) saves
- *   tax only to the extent itemising beats the standard deduction for the
- *   chosen filing status. The UK abolished mortgage interest relief in 2000
+ * - US only: mortgage interest (plus property tax, which shares the SALT cap
+ *   with state and local income tax) saves tax only to the extent itemising
+ *   beats the standard deduction for the chosen filing status. The UK abolished mortgage interest relief in 2000
  *   and euro-area rules vary, so no relief is modelled outside the US.
  *
  * Simplifications (stated in the UI and methodology): fixed-rate loan;
@@ -73,8 +73,14 @@ export interface RentVsBuyInputs {
   marginalTaxRate: number;
   /** US only: filing status (sets the standard deduction) */
   filingStatus: FilingStatus;
-  /** US only: itemisable deductions the household has anyway (e.g. charity), per year */
+  /** US only: non-SALT itemisable deductions the household has anyway (e.g. charity), per year */
   otherItemizedDeductions: number;
+  /**
+   * US only: state and local income (or sales) tax paid per year. It counts
+   * towards the same SALT cap as property tax, so a high-tax household may
+   * itemise even without a mortgage. Optional; default 0.
+   */
+  stateLocalIncomeTax?: number;
 }
 
 export interface RentVsBuyYear {
@@ -127,9 +133,11 @@ const num = (v: number) => (Number.isFinite(v) ? v : 0);
 const nonNeg = (v: number) => Math.max(0, num(v));
 
 /**
- * Tax saved in one year by itemising, versus the better of the standard
- * deduction and the household's other itemised deductions:
- *   rate x ( max(std, other + interest + min(propertyTax, SALT cap)) - max(std, other) )
+ * Tax saved in one year by owning, versus the household's deduction without
+ * the home (the better of the standard deduction and itemising anyway):
+ *   with    = max(std, other + interest + min(propertyTax + stateIncomeTax, cap))
+ *   without = max(std, other + min(stateIncomeTax, cap))
+ *   saving  = rate x (with - without)
  */
 export function itemizedTaxSaving(params: {
   interest: number;
@@ -137,13 +145,15 @@ export function itemizedTaxSaving(params: {
   otherItemized: number;
   standardDeduction: number;
   marginalRatePct: number;
+  stateIncomeTax?: number;
   saltCap?: number;
 }): number {
-  const salt = Math.min(nonNeg(params.propertyTax), params.saltCap ?? US_SALT_CAP_2026);
+  const cap = params.saltCap ?? US_SALT_CAP_2026;
+  const stateIncome = nonNeg(params.stateIncomeTax ?? 0);
   const other = nonNeg(params.otherItemized);
   const std = nonNeg(params.standardDeduction);
-  const withHome = Math.max(std, other + nonNeg(params.interest) + salt);
-  const without = Math.max(std, other);
+  const withHome = Math.max(std, other + nonNeg(params.interest) + Math.min(nonNeg(params.propertyTax) + stateIncome, cap));
+  const without = Math.max(std, other + Math.min(stateIncome, cap));
   return (nonNeg(params.marginalRatePct) / 100) * (withHome - without);
 }
 
@@ -198,6 +208,7 @@ export function simulateRentVsBuy(input: RentVsBuyInputs): RentVsBuyResult {
           interest,
           propertyTax: monthlyPropertyTax * 12,
           otherItemized: input.otherItemizedDeductions,
+          stateIncomeTax: input.stateLocalIncomeTax ?? 0,
           standardDeduction,
           marginalRatePct: input.marginalTaxRate,
         })
@@ -286,6 +297,23 @@ export function simulateRentVsBuy(input: RentVsBuyInputs): RentVsBuyResult {
     finalBuyerNetWorth: last.buyerNetWorth,
     finalRenterNetWorth: last.renterNetWorth,
   };
+}
+
+/** Longest stay the "would pull ahead later" check looks at. */
+export const LONG_STAY_YEARS = 50;
+
+/**
+ * If renting is ahead at the chosen horizon, the year buying would pull ahead
+ * (and stay ahead) if the household stayed up to `maxYears`; null if buying
+ * never catches up by then, or if renting isn't ahead at the horizon.
+ */
+export function laterBreakEvenYear(input: RentVsBuyInputs, maxYears = LONG_STAY_YEARS): number | null {
+  const horizon = Math.max(1, Math.round(nonNeg(input.timeHorizon)));
+  if (horizon >= maxYears) return null;
+  const now = simulateRentVsBuy(input);
+  if (now.verdict !== 'rent') return null;
+  const long = simulateRentVsBuy({ ...input, timeHorizon: maxYears });
+  return long.verdict === 'buy' ? long.breakEvenYear : null;
 }
 
 /**

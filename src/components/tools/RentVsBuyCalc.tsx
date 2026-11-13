@@ -11,7 +11,7 @@ import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { defaultMortgageRate, defaultMortgageRateInfo, rateAttribution, regionForCurrency } from '../../lib/market-rates';
-import { simulateRentVsBuy, TRANSACTION_COST_DEFAULTS, type FilingStatus } from '../../lib/rent-vs-buy';
+import { laterBreakEvenYear, simulateRentVsBuy, LONG_STAY_YEARS, TRANSACTION_COST_DEFAULTS, type FilingStatus, type RentVsBuyInputs } from '../../lib/rent-vs-buy';
 import ResultAffiliate from '../ui/ResultAffiliate';
 import { Collapse, DeferredChart, ResultAnnouncer } from './property-shared';
 
@@ -33,6 +33,7 @@ const DEFAULTS = {
   marginalTaxRate: 22,
   filingStatus: 'single' as FilingStatus,
   otherItemizedDeductions: 0,
+  stateLocalIncomeTax: 0,
   timeHorizon: 10,
 };
 
@@ -93,6 +94,7 @@ export default function RentVsBuyCalc() {
   const [marginalTaxRate, setMarginalTaxRate] = useState(DEFAULTS.marginalTaxRate);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>(DEFAULTS.filingStatus);
   const [otherItemized, setOtherItemized] = useState(DEFAULTS.otherItemizedDeductions);
+  const [stateIncomeTax, setStateIncomeTax] = useState(DEFAULTS.stateLocalIncomeTax);
   const [timeHorizon, setTimeHorizon] = useState(DEFAULTS.timeHorizon);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -139,11 +141,12 @@ export default function RentVsBuyCalc() {
     setMarginalTaxRate(DEFAULTS.marginalTaxRate);
     setFilingStatus(DEFAULTS.filingStatus);
     setOtherItemized(DEFAULTS.otherItemizedDeductions);
+    setStateIncomeTax(DEFAULTS.stateLocalIncomeTax);
     setTimeHorizon(DEFAULTS.timeHorizon);
     setShowAdvanced(false);
   }, [regionDefault]);
 
-  const analysis = useMemo(() => simulateRentVsBuy({
+  const inputs = useMemo((): RentVsBuyInputs => ({
     homePrice,
     downPaymentPct,
     mortgageRate,
@@ -164,7 +167,12 @@ export default function RentVsBuyCalc() {
     marginalTaxRate,
     filingStatus,
     otherItemizedDeductions: otherItemized,
-  }), [homePrice, downPaymentPct, mortgageRate, loanTermYears, closingCostPct, sellingCostPct, propertyTaxRate, homeInsurance, hoaMonthly, maintenanceRate, homeAppreciation, monthlyRent, rentIncrease, rentersInsurance, investmentReturn, timeHorizon, region, marginalTaxRate, filingStatus, otherItemized]);
+    stateLocalIncomeTax: stateIncomeTax,
+  }), [homePrice, downPaymentPct, mortgageRate, loanTermYears, closingCostPct, sellingCostPct, propertyTaxRate, homeInsurance, hoaMonthly, maintenanceRate, homeAppreciation, monthlyRent, rentIncrease, rentersInsurance, investmentReturn, timeHorizon, region, marginalTaxRate, filingStatus, otherItemized, stateIncomeTax]);
+  const analysis = useMemo(() => simulateRentVsBuy(inputs), [inputs]);
+  // Renting ahead now is only half the story: would buying catch up if you stayed?
+  const laterYear = useMemo(() => (analysis.verdict === 'rent' ? laterBreakEvenYear(inputs) : null), [analysis, inputs]);
+  const noTransactionCosts = closingCostPct === 0 && sellingCostPct === 0;
 
   const verdictLabel = analysis.verdict === 'tie'
     ? `Over ${timeHorizon} years, buying and renting come out even`
@@ -174,7 +182,9 @@ export default function RentVsBuyCalc() {
         ? `Buying pulls ahead in year ${analysis.breakEvenYear} and stays ahead`
         : 'Buying is ahead from the first year')
     : analysis.verdict === 'rent'
-      ? `Renting stays ahead at the end of the ${timeHorizon}-year period`
+      ? (laterYear !== null
+          ? `Buying would pull ahead in year ${laterYear} if you stayed that long`
+          : `Renting stays ahead at the end of the ${timeHorizon}-year period, and buying does not catch up within ${LONG_STAY_YEARS} years`)
       : 'Both paths end with the same net worth';
   const announcement = analysis.verdict === 'tie'
     ? `${verdictLabel}.`
@@ -220,9 +230,11 @@ export default function RentVsBuyCalc() {
     if (region === 'us') {
       inputs.push({ label: 'Filing Status', value: FILING_OPTIONS.find((o) => o.value === filingStatus)?.label ?? filingStatus });
       inputs.push({ label: 'Marginal Tax Rate', value: `${marginalTaxRate}%` });
+      if (stateIncomeTax > 0) inputs.push({ label: 'State & Local Income Tax', value: `${fmt(stateIncomeTax)}/yr` });
+      if (otherItemized > 0) inputs.push({ label: 'Other Itemized Deductions', value: `${fmt(otherItemized)}/yr` });
     }
     return inputs;
-  }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, monthlyRent, rentIncrease, homeAppreciation, investmentReturn, closingCostPct, sellingCostPct, propertyTaxRate, homeInsurance, maintenanceRate, timeHorizon, filingStatus, marginalTaxRate, region, currency]);
+  }, [homePrice, downPaymentPct, mortgageRate, loanTermYears, monthlyRent, rentIncrease, homeAppreciation, investmentReturn, closingCostPct, sellingCostPct, propertyTaxRate, homeInsurance, maintenanceRate, timeHorizon, filingStatus, marginalTaxRate, stateIncomeTax, otherItemized, region, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
     { label: verdictLabel, value: analysis.verdict === 'tie' ? 'Even' : fmt(analysis.difference), highlight: true },
@@ -230,7 +242,9 @@ export default function RentVsBuyCalc() {
     { label: `Net worth at year ${timeHorizon} if you rent`, value: fmt(analysis.finalRenterNetWorth) },
     { label: 'Monthly Mortgage (P&I)', value: fmt(analysis.monthlyMortgage) },
     { label: 'Monthly Cost to Own (first month)', value: fmt(analysis.monthlyOwnershipCost) },
-  ], [timeHorizon, analysis, verdictLabel, currency]);
+    ...(laterYear !== null ? [{ label: 'Buying would pull ahead (if you stayed) in year', value: String(laterYear) }] : []),
+    ...(noTransactionCosts ? [{ label: 'Buying and selling costs', value: 'Not included' }] : []),
+  ], [timeHorizon, analysis, verdictLabel, laterYear, noTransactionCosts, currency]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -317,7 +331,8 @@ export default function RentVsBuyCalc() {
                       </div>
                     </div>
                     <SliderInput label="Marginal Tax Rate" id="rvb-tax" value={marginalTaxRate} min={0} max={55} step={1} onChange={setMarginalTaxRate} suffix="%" formatDisplay={(v) => v.toFixed(0)} hint="Your top combined federal + state rate — 22% is common for middle incomes" />
-                    <SliderInput label="Other Itemized Deductions (Annual)" id="rvb-other-ded" value={otherItemized} min={0} max={50000} step={500} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}50K`} onChange={setOtherItemized} prefix={currencySymbol} formatDisplay={formatNumber} hint="Charity and other deductions you'd itemize anyway (not property tax)" />
+                    <SliderInput label="State & Local Income Tax (Annual)" id="rvb-state-tax" value={stateIncomeTax} min={0} max={50000} step={500} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}50K`} onChange={setStateIncomeTax} prefix={currencySymbol} formatDisplay={formatNumber} hint="Shares the $40,400 SALT cap with property tax; a high-tax household may itemize even without a mortgage" />
+                    <SliderInput label="Other Itemized Deductions (Annual)" id="rvb-other-ded" value={otherItemized} min={0} max={50000} step={500} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}50K`} onChange={setOtherItemized} prefix={currencySymbol} formatDisplay={formatNumber} hint="Charity and other deductions you'd itemize anyway (not state or property tax)" />
                   </>
                 )}
               </div>
@@ -339,6 +354,11 @@ export default function RentVsBuyCalc() {
               Net worth if you sold up at the end. Both paths start with <span className="tabular-nums">{fmt(analysis.initialCash)}</span> ({region === 'uk' ? 'deposit' : 'down payment'}
               {analysis.closingCosts > 0 ? ' + buying costs' : ''}); each month the cheaper path invests the difference.
             </p>
+            {noTransactionCosts && (
+              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                Buying and selling costs ({region === 'uk' ? 'stamp duty, legal fees, estate agent fees' : region === 'eur' ? 'transfer tax, notary, agent fees' : 'closing costs, agent commission'}) are not included. Add them under Advanced Settings.
+              </p>
+            )}
           </div>
 
           {/* Summary cards */}

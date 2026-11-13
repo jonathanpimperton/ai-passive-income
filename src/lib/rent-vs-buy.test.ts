@@ -3,6 +3,7 @@ import {
   TRANSACTION_COST_DEFAULTS,
   US_SALT_CAP_2026,
   itemizedTaxSaving,
+  laterBreakEvenYear,
   simulateRentVsBuy,
   type RentVsBuyInputs,
 } from './rent-vs-buy';
@@ -67,9 +68,11 @@ function spreadsheetAdvantage(p: RentVsBuyInputs): number {
   for (let y = 0; y < p.timeHorizon; y++) {
     const interest = rows.slice(y * 12, y * 12 + 12).reduce((s, x) => s + x.interest, 0);
     const ptax = (p.homePrice * p.propertyTaxRate) / 100;
-    const itemized = p.otherItemizedDeductions + interest + Math.min(ptax, 40_400);
+    const sit = p.stateLocalIncomeTax ?? 0;
+    const itemized = p.otherItemizedDeductions + interest + Math.min(ptax + sit, 40_400);
+    const baseline = p.otherItemizedDeductions + Math.min(sit, 40_400);
     const saving = p.region === 'us'
-      ? (p.marginalTaxRate / 100) * (Math.max(std, itemized) - Math.max(std, p.otherItemizedDeductions))
+      ? (p.marginalTaxRate / 100) * (Math.max(std, itemized) - Math.max(std, baseline))
       : 0;
     yearSaving.push(saving);
   }
@@ -249,6 +252,37 @@ describe('itemizedTaxSaving', () => {
     const v = itemizedTaxSaving({ interest: 0, propertyTax: 100_000, otherItemized: 0, standardDeduction: 0, marginalRatePct: 10 });
     expect(v).toBeCloseTo(0.1 * US_SALT_CAP_2026, 9);
   });
+
+  it('property tax shares the SALT cap with state income tax', () => {
+    // $38,000 state income tax already uses most of the $40,400 cap: only
+    // $2,400 of a $6,000 property tax bill adds to the deduction.
+    const v = itemizedTaxSaving({ interest: 0, propertyTax: 6_000, otherItemized: 0, stateIncomeTax: 38_000, standardDeduction: 16_100, marginalRatePct: 24 });
+    expect(v).toBeCloseTo(0.24 * 2_400, 9);
+  });
+
+  it('a household that itemises anyway (state tax over the standard deduction) deducts all mortgage interest', () => {
+    const v = itemizedTaxSaving({ interest: 18_000, propertyTax: 3_500, otherItemized: 0, stateIncomeTax: 20_000, standardDeduction: 16_100, marginalRatePct: 22 });
+    expect(v).toBeCloseTo(0.22 * (18_000 + 3_500), 9);
+  });
+});
+
+describe('laterBreakEvenYear (renting ahead now, buying later)', () => {
+  it('reports the year buying would pull ahead when renting wins at the horizon', () => {
+    const p = { ...REVIEW, ...TRANSACTION_COST_DEFAULTS.us, mortgageRate: 7.11, propertyTaxRate: 1, homeInsurance: 1_800 };
+    expect(simulateRentVsBuy(p).verdict).toBe('rent');
+    const later = laterBreakEvenYear(p);
+    expect(later).not.toBeNull();
+    expect(later!).toBeGreaterThan(p.timeHorizon);
+    // It is the break-even of a stay of that length: buying ahead from that year on.
+    const long = simulateRentVsBuy({ ...p, timeHorizon: 50 });
+    expect(long.years[later! - 1].advantage).toBeGreaterThanOrEqual(0);
+    expect(long.years[later! - 2].advantage).toBeLessThan(0);
+  });
+
+  it('null when buying already wins, or never catches up within 50 years', () => {
+    expect(laterBreakEvenYear({ ...REVIEW, monthlyRent: 3_000 })).toBeNull();
+    expect(laterBreakEvenYear({ ...REVIEW, monthlyRent: 600, rentIncrease: 0, homeAppreciation: -2 })).toBeNull();
+  });
 });
 
 describe('agreement with the independent spreadsheet implementation', () => {
@@ -286,6 +320,7 @@ describe('agreement with the independent spreadsheet implementation', () => {
         marginalTaxRate: Math.round(between(0, 55)),
         filingStatus: statuses[k % 3],
         otherItemizedDeductions: k % 4 === 0 ? Math.round(between(0, 60_000)) : 0,
+        stateLocalIncomeTax: k % 5 === 0 ? Math.round(between(0, 60_000)) : 0,
       };
       const lib = simulateRentVsBuy(p).advantage;
       const ref = spreadsheetAdvantage(p);
