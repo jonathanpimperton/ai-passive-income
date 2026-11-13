@@ -1,5 +1,5 @@
 ---
-title: "Debt Snowball vs Avalanche: Which Pays Off Debt Faster?"
+title: "Debt Snowball vs Avalanche: Which Is Faster?"
 slug: "snowball-vs-avalanche-debt"
 description: "Compare the debt snowball and avalanche methods. See which saves more interest and which keeps you motivated to become debt-free."
 keywords:

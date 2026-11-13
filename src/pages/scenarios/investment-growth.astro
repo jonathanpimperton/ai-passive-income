@@ -56,7 +56,7 @@ const growthShare500 = Math.round((growth500 / balance500) * 100);
 const lump100k = YEARS.map((y) => compoundInterest(100000, 0, RATE, y, 12));
 const multiple30 = compoundInterest(1, 0, RATE, 30, 12);
 
-const title = 'Investment Growth by Amount: What Monthly Investing and Lump Sums Become';
+const title = `Investment Growth by Amount (${Number((RATE * 100).toFixed(2))}% Average Return)`;
 const description =
   'What monthly investing from $100 to $2,000 — and lump sums from $5,000 to $500,000 — grow to over 10, 20, and 30 years at a 7% average annual return.';
 
@@ -87,7 +87,7 @@ const breadcrumbs = [
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
-        Investment growth by amount <span class="text-neutral-500 font-normal">(7% average return)</span>
+        Investment growth by amount <span class="text-neutral-500 font-normal">({Number((RATE * 100).toFixed(2))}% average return)</span>
       </h1>
       <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
       <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">

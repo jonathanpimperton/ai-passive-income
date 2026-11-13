@@ -14,7 +14,7 @@ affiliateContext: "Compare mortgage rates from multiple lenders"
 affiliatePrograms:
   - "LendingTree"
 datePublished: "2026-03-04"
-dateModified: "2026-07-02"
+dateModified: "2026-11-12"
 ---
 
 ## Your monthly payment is £1,842 — and you pay £252,600 in interest
@@ -51,7 +51,7 @@ The crossover from interest-heavy to principal-heavy payments happens around yea
 | Maintenance (1% of value) | £250 |
 | **Total housing cost** | **~£2,392–£2,607** |
 
-Stamp Duty on a £300,000+ property (assuming not a first-time buyer) adds £2,500 at purchase — a one-off cost, not monthly.
+Stamp Duty is a one-off cost at purchase, not monthly. In England and Northern Ireland, buying a £300,000 home costs £5,000 in SDLT at standard rates (£0 for a first-time buyer). If £300,000 is the mortgage on a £375,000 home bought with a 20% deposit, the bill is £8,750, or £3,750 for a first-time buyer. These are the rates in force since 1 April 2025; check yours with the [Stamp Duty Calculator](/tools/economic/stamp-duty/).
 
 ## How rates affect a £300K mortgage
 
@@ -74,12 +74,12 @@ Most UK lenders allow overpayments of up to 10% of the outstanding balance per y
 
 | Overpayment | Payoff time | Interest saved |
 |-------------|------------|----------------|
-| £100/month | 22 years 3 months | £33,800 |
-| £200/month | 20 years | £59,100 |
-| £500/month | 16 years 2 months | £108,300 |
-| 10% lump sum in year 1 | 22 years 6 months | ~£38,000 |
+| £100/month | 22 years 6 months | £29,900 |
+| £200/month | 20 years 5 months | £53,100 |
+| £500/month | 16 years 2 months | £99,700 |
+| £30,000 (10%) lump sum at the start | 20 years 4 months | £73,900 |
 
-£200/month in overpayments cuts 5 years off the mortgage and saves nearly £60,000. This is often the best risk-free "return" available — equivalent to earning 5.5% tax-free on the overpaid amount.
+£200/month in overpayments cuts about 4 years 7 months off the mortgage and saves about £53,000. This is often the best risk-free "return" available — equivalent to earning 5.5% tax-free on the overpaid amount.
 
 ## Fixed vs variable: the UK decision
 

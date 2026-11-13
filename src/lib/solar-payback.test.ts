@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateSolarPayback,
   effectiveSelfConsumption,
+  selfConsumptionFraction,
+  SOLAR_REGIONAL_DEFAULTS,
   type SolarPaybackInputs,
 } from './solar-payback';
 
@@ -135,5 +137,96 @@ describe('effectiveSelfConsumption', () => {
     const withoutBattery = calculateSolarPayback({ ...SIMPLE, selfConsumptionPct: effectiveSelfConsumption(false, 50, 1, 1_000, 5) });
     const withBattery = calculateSolarPayback({ ...SIMPLE, selfConsumptionPct: effectiveSelfConsumption(true, 50, 1, 1_000, 5) });
     expect(withBattery.year1Savings).toBeGreaterThan(withoutBattery.year1Savings);
+  });
+});
+
+describe('calculateSolarPayback — edge states (MATH-US-11)', () => {
+  it('a grant equal to the cost pays back immediately (not "25+ years")', () => {
+    const r = calculateSolarPayback({ ...SIMPLE, taxCredit: 1_000 });
+    expect(r.netCost).toBe(0);
+    expect(r.paysBackImmediately).toBe(true);
+    expect(r.reachesPayback).toBe(true);
+    expect(r.paybackYears).toBe(0);
+    expect(r.paybackMonths).toBe(0);
+    expect(r.roi).toBeNull();
+  });
+
+  it('a grant above the cost also pays back immediately', () => {
+    const r = calculateSolarPayback({ ...SIMPLE, taxCredit: 5_000 });
+    expect(r.netCost).toBeLessThan(0);
+    expect(r.paysBackImmediately).toBe(true);
+    expect(r.roi).toBeNull();
+  });
+
+  it('flags systems whose running costs exceed every year of savings', () => {
+    const r = calculateSolarPayback({ ...SIMPLE, maintenanceCost: 200 });
+    expect(r.neverSavesMoney).toBe(true);
+    expect(r.reachesPayback).toBe(false);
+    expect(calculateSolarPayback(SIMPLE).neverSavesMoney).toBe(false);
+  });
+
+  it('a payback fraction that rounds to 12 months carries into the next year', () => {
+    // £1,000 at £150/yr flat with a £995 cost: 6 years (£900) + 95/150*12 = 7.6 -> 8 mo.
+    // Construct 11.6 months: cost £900 + 0.97 * 150 = £1,045.5 -> 6 yr + 11.64 mo -> 7 yr 0 mo.
+    const r = calculateSolarPayback({ ...SIMPLE, systemCost: 1_045.5 });
+    expect(r.paybackYears).toBe(7);
+    expect(r.paybackMonths).toBe(0);
+  });
+});
+
+describe('calculateSolarPayback — battery modelled per year (MTH-36)', () => {
+  const BATT = { ...SIMPLE, includeBattery: true, batteryCost: 0, selfConsumptionPct: 30, batteryCapacityKwh: 1 };
+
+  it('year 1 matches the unrounded single-year battery formula', () => {
+    const frac = selfConsumptionFraction(30, 1_000, 1);
+    const r = calculateSolarPayback(BATT);
+    // 1,000 kWh: self share at 20p, the rest exported at 10p.
+    expect(r.year1Savings).toBe(Math.round(1_000 * frac * 0.2 + 1_000 * (1 - frac) * 0.1));
+  });
+
+  it('the battery share is recomputed on each year\'s degraded output', () => {
+    const r = calculateSolarPayback({ ...BATT, degradation: 10, analysisPeriod: 3 });
+    const year2Gen = 900;
+    const frac2 = selfConsumptionFraction(30, year2Gen, 1);
+    expect(frac2).toBeGreaterThan(selfConsumptionFraction(30, 1_000, 1));
+    expect(r.yearly[1].annualSavings).toBe(Math.round(year2Gen * frac2 * 0.2 + year2Gen * (1 - frac2) * 0.1));
+  });
+
+  it('without batteryCapacityKwh the given percentage is used as is (backward compatible)', () => {
+    const r = calculateSolarPayback({ ...SIMPLE, includeBattery: true, batteryCost: 0, selfConsumptionPct: 76 });
+    expect(r.year1Savings).toBe(Math.round(1_000 * 0.76 * 0.2 + 1_000 * 0.24 * 0.1));
+  });
+});
+
+describe('SOLAR_REGIONAL_DEFAULTS', () => {
+  const run = (region: 'uk' | 'us' | 'eur') => {
+    const d = SOLAR_REGIONAL_DEFAULTS[region];
+    return calculateSolarPayback({
+      systemCost: d.systemCost, systemSize: d.systemSize, includeBattery: false, batteryCost: d.batteryCost,
+      electricityTariff: d.electricityTariff, selfConsumptionPct: 30, exportTariff: d.exportTariff,
+      energyInflation: 3, degradation: 0.5, maintenanceCost: d.maintenanceCost, taxCredit: 0,
+      analysisPeriod: 25, kWhPerKwp: d.kWhPerKwp,
+    });
+  };
+
+  it('MATH-US-F10: US defaults use US figures (not the UK 24.5p / 900 kWh / 4 kWp setup)', () => {
+    const us = SOLAR_REGIONAL_DEFAULTS.us;
+    expect(us.electricityTariff).toBe(18.04);
+    expect(us.kWhPerKwp).toBe(1_375);
+    expect(us.systemSize).toBe(7.5);
+    expect(run('us').reachesPayback).toBe(true);
+  });
+
+  it('UK tariff is the Oct-Dec 2026 Ofgem cap', () => {
+    expect(SOLAR_REGIONAL_DEFAULTS.uk.electricityTariff).toBe(26.32);
+    expect(run('uk').reachesPayback).toBe(true);
+  });
+
+  it('every region produces finite, positive year-1 savings at its defaults', () => {
+    for (const region of ['uk', 'us', 'eur'] as const) {
+      const r = run(region);
+      expect(Number.isFinite(r.year1Savings)).toBe(true);
+      expect(r.year1Savings).toBeGreaterThan(0);
+    }
   });
 });

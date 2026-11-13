@@ -1,5 +1,5 @@
 ---
-title: "The £40,000 to £50,000 Pay Rise: What You Actually Keep"
+title: "A £40k to £50k Pay Rise: What You Actually Keep"
 slug: "pay-rise-shock-uk"
 description: "A £40,000 to £50,000 pay rise adds £600 a month to your take-home — 72% of the rise. See where the other 28% goes and why rises near £100K keep far less."
 keywords: ["pay rise take home uk", "40k to 50k pay rise", "how much of a pay rise do you keep uk", "pay rise after tax uk", "10000 pay rise take home", "pay rise calculator uk"]

@@ -5,15 +5,22 @@
  * Formulas are documented inline for E-E-A-T transparency.
  */
 
+import { futureValue, requiredContributionRaw, requiredPrincipalRaw } from './investment-solvers';
+
 /**
- * Compound interest: A = P(1 + r/n)^(nt) + PMT * [((1 + r/n)^(nt) - 1) / (r/n)]
+ * Compound interest with monthly deposits.
+ *
+ * Deposits are made every month; the compounding frequency n only sets the
+ * growth rate, applied as the equivalent monthly rate (1 + r/n)^(n/12) - 1.
+ * With n = 12 this is A = P(1 + r/12)^(12t) + PMT * [((1 + r/12)^(12t) - 1) / (r/12)].
+ * Engine and full method notes: investment-solvers.ts (futureValue).
  *
  * @param principal - Initial investment (P)
  * @param monthlyContribution - Regular monthly deposit (PMT)
- * @param annualRate - Annual interest rate as decimal (e.g., 0.07 for 7%)
- * @param years - Number of years (t)
+ * @param annualRate - Annual interest rate as decimal (e.g., 0.07 for 7%); may be negative
+ * @param years - Number of years (t); may be fractional
  * @param compoundingFrequency - Times interest compounds per year (n): 1=annually, 4=quarterly, 12=monthly, 365=daily
- * @param timing - 'end' (default) or 'beginning' — when contributions are made within each period
+ * @param timing - 'end' (default) or 'beginning': when each monthly deposit is made
  * @returns Final balance
  */
 export function compoundInterest(
@@ -24,31 +31,10 @@ export function compoundInterest(
   compoundingFrequency: number = 12,
   timing: 'end' | 'beginning' = 'end'
 ): number {
-  const n = compoundingFrequency;
-  const r = annualRate;
-  const t = years;
-
-  // Convert monthly contribution to per-compounding-period contribution
-  const periodicContribution = monthlyContribution * (12 / n);
-
-  // Principal growth: P(1 + r/n)^(nt)
-  const principalGrowth = principal * Math.pow(1 + r / n, n * t);
-
-  // Contribution growth (future value of annuity)
-  let contributionGrowth = 0;
-  if (r > 0) {
-    contributionGrowth =
-      periodicContribution * ((Math.pow(1 + r / n, n * t) - 1) / (r / n));
-  } else {
-    contributionGrowth = periodicContribution * n * t;
-  }
-
-  // Beginning-of-period contributions earn one extra period of interest
-  if (timing === 'beginning' && r > 0) {
-    contributionGrowth *= (1 + r / n);
-  }
-
-  return principalGrowth + contributionGrowth;
+  return futureValue(
+    { principal, monthlyContribution, annualRate, compoundingPerYear: compoundingFrequency, timing },
+    years * 12
+  );
 }
 
 /**
@@ -179,6 +165,8 @@ export function monthlySavingsRequired(
 
 /**
  * Solve for required monthly contribution to reach a target balance.
+ * Negative when the starting amount alone overshoots the target.
+ * Closed form shared with investment-solvers.ts (requiredContributionRaw).
  */
 export function solveForContribution(
   principal: number,
@@ -188,16 +176,7 @@ export function solveForContribution(
   compoundingFrequency: number = 12,
   timing: 'end' | 'beginning' = 'end'
 ): number {
-  const n = compoundingFrequency;
-  const r = annualRate;
-  const t = years;
-  const principalGrowth = principal * Math.pow(1 + r / n, n * t);
-  const remaining = targetAmount - principalGrowth;
-  if (r === 0) return remaining / (12 * t);
-  let periodicFV = (Math.pow(1 + r / n, n * t) - 1) / (r / n);
-  if (timing === 'beginning' && r > 0) periodicFV *= (1 + r / n);
-  const periodicContribution = remaining / periodicFV;
-  return periodicContribution * (n / 12);
+  return requiredContributionRaw(principal, targetAmount, annualRate, years * 12, compoundingFrequency, timing);
 }
 
 /**
@@ -261,6 +240,8 @@ export function solveForTime(
 
 /**
  * Solve for required starting amount to reach a target balance.
+ * Negative when the monthly deposits alone overshoot the target.
+ * Closed form shared with investment-solvers.ts (requiredPrincipalRaw).
  */
 export function solveForPrincipal(
   monthlyContribution: number,
@@ -270,20 +251,7 @@ export function solveForPrincipal(
   compoundingFrequency: number = 12,
   timing: 'end' | 'beginning' = 'end'
 ): number {
-  const n = compoundingFrequency;
-  const r = annualRate;
-  const t = years;
-  const periodicContribution = monthlyContribution * (12 / n);
-  let contributionGrowth = 0;
-  if (r > 0) {
-    contributionGrowth = periodicContribution * ((Math.pow(1 + r / n, n * t) - 1) / (r / n));
-    if (timing === 'beginning') contributionGrowth *= (1 + r / n);
-  } else {
-    contributionGrowth = periodicContribution * n * t;
-  }
-  const remaining = targetAmount - contributionGrowth;
-  const growthFactor = Math.pow(1 + r / n, n * t);
-  return remaining / growthFactor;
+  return requiredPrincipalRaw(monthlyContribution, targetAmount, annualRate, years * 12, compoundingFrequency, timing);
 }
 
 /**
@@ -318,122 +286,10 @@ export function solveForRetirementAge(
 
 /* ── Debt Payoff: Snowball & Avalanche ─────────────────────── */
 
-export interface Debt {
-  name: string;
-  balance: number;
-  rate: number;       // annual rate as decimal
-  minPayment: number;
-}
-
-export interface DebtPayoffResult {
-  months: number;
-  totalInterest: number;
-  totalPaid: number;
-  payoffOrder: string[];
-  timeline: Array<{
-    month: number;
-    totalBalance: number;
-    totalInterest: number;
-  }>;
-}
-
-/**
- * Calculate debt payoff using either snowball (smallest balance first)
- * or avalanche (highest rate first) strategy.
- */
-export function debtPayoff(
-  debts: Debt[],
-  extraMonthlyPayment: number,
-  strategy: 'snowball' | 'avalanche'
-): DebtPayoffResult {
-  if (debts.length === 0) return { months: 0, totalInterest: 0, totalPaid: 0, payoffOrder: [], timeline: [] };
-
-  const balances = debts.map((d) => d.balance);
-  const rates = debts.map((d) => d.rate);
-  const mins = debts.map((d) => d.minPayment);
-  const paidOff = debts.map(() => false);
-  const payoffOrder: string[] = [];
-  const timeline: DebtPayoffResult['timeline'] = [];
-  let totalInterest = 0;
-  let totalPaid = 0;
-  // Minimum payments freed by fully-paid debts roll into the extra-payment
-  // pool permanently (total monthly outlay stays constant) — this rollover is
-  // the engine of both snowball and avalanche strategies.
-  let rolledMinimums = 0;
-  let month = 0;
-  const maxMonths = 600;
-
-  while (balances.some((b) => b > 0.01) && month < maxMonths) {
-    month++;
-    let monthInterest = 0;
-
-    for (let i = 0; i < balances.length; i++) {
-      if (balances[i] <= 0) continue;
-      const interest = balances[i] * (rates[i] / 12);
-      balances[i] += interest;
-      monthInterest += interest;
-    }
-    totalInterest += monthInterest;
-
-    let available = extraMonthlyPayment + rolledMinimums;
-    for (let i = 0; i < balances.length; i++) {
-      if (balances[i] <= 0) continue;
-      const payment = Math.min(mins[i], balances[i]);
-      balances[i] -= payment;
-      totalPaid += payment;
-      if (balances[i] <= 0.01) {
-        balances[i] = 0;
-        available += mins[i] - payment;
-        if (!paidOff[i]) {
-          paidOff[i] = true;
-          rolledMinimums += mins[i];
-        }
-        if (!payoffOrder.includes(debts[i].name)) payoffOrder.push(debts[i].name);
-      }
-    }
-
-    const sorted = balances
-      .map((b, i) => ({ idx: i, balance: b, rate: rates[i] }))
-      .filter((d) => d.balance > 0);
-
-    if (strategy === 'snowball') sorted.sort((a, b) => a.balance - b.balance);
-    else sorted.sort((a, b) => b.rate - a.rate);
-
-    for (const d of sorted) {
-      if (available <= 0) break;
-      const payment = Math.min(available, balances[d.idx]);
-      balances[d.idx] -= payment;
-      totalPaid += payment;
-      available -= payment;
-      if (balances[d.idx] <= 0.01) {
-        balances[d.idx] = 0;
-        if (!paidOff[d.idx]) {
-          paidOff[d.idx] = true;
-          rolledMinimums += mins[d.idx];
-        }
-        if (!payoffOrder.includes(debts[d.idx].name)) payoffOrder.push(debts[d.idx].name);
-      }
-    }
-
-    timeline.push({
-      month,
-      totalBalance: balances.reduce((s, b) => s + Math.max(0, b), 0),
-      totalInterest,
-    });
-  }
-
-  for (const d of debts) {
-    if (!payoffOrder.includes(d.name)) payoffOrder.push(d.name);
-  }
-
-  return {
-    months: month,
-    totalInterest: Math.round(totalInterest * 100) / 100,
-    totalPaid: Math.round(totalPaid * 100) / 100,
-    payoffOrder,
-    timeline,
-  };
-}
+// Moved to debt-payoff.ts (Nov 2026) with never-pays-off detection; re-exported
+// here so existing imports keep working.
+export { debtPayoff } from './debt-payoff';
+export type { Debt, DebtPayoffResult } from './debt-payoff';
 
 /**
  * Format a number as a currency string.

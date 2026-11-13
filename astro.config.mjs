@@ -2,30 +2,29 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
-import { readdirSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import rehypeMonoFigures from './src/lib/rehype-mono-figures.mjs';
+import { remarkFiguresPlugin } from './src/lib/remark-figures.mjs';
+
+import rehypeTableA11y from './src/lib/rehype-table-a11y.mjs';
+import { buildLastmodMap, ensureFullHistory } from './src/lib/sitemap-lastmod.mjs';
 
 /**
- * Map of page pathname -> lastUpdated date, sourced from tool markdown
- * frontmatter. Only pages with a real editorial date get <lastmod> in the
- * sitemap — no fake build-time freshness.
+ * Honest sitemap <lastmod> for every URL: editorial dates for content, git
+ * last-commit dates for templates, never the build time. See
+ * src/lib/sitemap-lastmod.mjs. Shallow CI clones are unshallowed first so the
+ * git dates are real; dates that still can't be established are omitted.
  */
-function buildLastmodMap() {
-  const map = new Map();
-  const dir = new URL('./src/data/tools/', import.meta.url);
-  for (const file of readdirSync(dir)) {
-    if (!file.endsWith('.md')) continue;
-    const raw = readFileSync(new URL(file, dir), 'utf8');
-    const slug = raw.match(/^slug:\s*"([^"]+)"/m)?.[1];
-    const category = raw.match(/^category:\s*"([^"]+)"/m)?.[1];
-    const lastUpdated = raw.match(/^lastUpdated:\s*"([^"]+)"/m)?.[1];
-    if (slug && category && lastUpdated) {
-      map.set(`/tools/${category}/${slug}/`, lastUpdated);
-    }
-  }
-  return map;
-}
-const lastmodMap = buildLastmodMap();
+const ROOT = fileURLToPath(new URL('.', import.meta.url));
+// Pages that read git dates at build time (methodology bylines) use this root,
+// not whatever directory the build was started from.
+process.env.CALCRUN_ROOT = ROOT;
+ensureFullHistory(ROOT);
+const lastmodMap = buildLastmodMap({ root: ROOT });
+
+/** Pages kept out of the sitemap: noindex'd prototypes and embed-only frames. */
+const isSitemapExcluded = (pathname) =>
+  pathname.startsWith('/labs/') || /^\/embed\/.+/.test(pathname);
 
 export default defineConfig({
   site: 'https://www.calcrun.com',
@@ -36,19 +35,25 @@ export default defineConfig({
   cacheDir: './.astro-cache',
   // The Number Theater prototype was promoted to the production homepage
   redirects: { '/labs/story/': '/' },
+  // Opt-in prefetch only: links marked data-astro-prefetch load on hover/focus.
+  // (prefetchAll + viewport fetched ~35 pages per desktop load, A11Y-PERF-08.)
   prefetch: {
-    prefetchAll: true,
-    defaultStrategy: 'viewport',
+    prefetchAll: false,
+    defaultStrategy: 'hover',
   },
   markdown: {
+    // Build-time figure tokens {{ ... }} resolved from the src/lib engines (docs/figures.md)
+    remarkPlugins: [remarkFiguresPlugin],
     // Mono numerals on financial figures inside markdown tables + bold stats
-    rehypePlugins: [rehypeMonoFigures],
+    rehypePlugins: [rehypeMonoFigures, rehypeTableA11y],
+    // (rehypeTableA11y: column scopes and heading-derived captions on markdown tables, F-25)
   },
   integrations: [
     react(),
+    // sitemap-index.xml's own <lastmod> is set by the integration to the newest
+    // URL lastmod below, so it inherits the same honest dates (never build time).
     sitemap({
-      // /labs/ pages are prototypes — noindex'd and kept out of the sitemap
-      filter: (page) => !new URL(page).pathname.startsWith('/labs/'),
+      filter: (page) => !isSitemapExcluded(new URL(page).pathname),
       serialize(item) {
         const lastmod = lastmodMap.get(new URL(item.url).pathname);
         if (lastmod) item.lastmod = lastmod;

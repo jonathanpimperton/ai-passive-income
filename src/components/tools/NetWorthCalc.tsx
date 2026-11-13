@@ -1,44 +1,51 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
 import { RotateCcw, Plus, X, TrendingUp, CreditCard, Scale, Percent } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
-import { getCurrencyConfig, getSavedCurrency } from '../../lib/currency';
+import ChartSkeleton from '../ui/ChartSkeleton';
+import ChartDataTable from '../ui/ChartDataTable';
+import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
-import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
-import { useChartTheme } from '../../lib/useChartTheme';
+import { summarizeNetWorth, breakdown, itemLabel } from '../../lib/net-worth';
+import { formatMoneyGuarded, isExtremeMoney } from '../../lib/result-format';
+import NumericTextField from './fields/NumericTextField';
+import LiveResult from './fields/LiveResult';
+import { lazyChart } from './charts/InvestDebtLazyChart';
+
+const NetWorthChart = lazyChart(() => import('./charts/NetWorthChart'));
 
 interface Item {
   id: string;
   name: string;
-  value: number;
+  /** null = blank field (counts as 0). */
+  value: number | null;
 }
 
-// Liability slices share the cost hue, differentiated by opacity steps.
-const LIABILITY_OPACITY = [1, 0.75, 0.55, 0.38, 0.25];
+type Kind = 'asset' | 'liability';
+
+/** Largest amount a single item accepts. */
+const MAX_ITEM_VALUE = 1e11;
 
 let idCounter = 0;
 function newId() { return `item-${++idCounter}`; }
 
-// Two default item names are region-flavored: US gets "Checking Account" /
-// "401(k)", UK and EUR get "Current Account" / "Pension". Applied to initial
-// defaults only — items the user has edited are never renamed.
+// Two default item names are region-flavoured: US gets "Checking Account" /
+// "401(k)", UK and EUR get "Current Account" / "Pension". Only untouched
+// defaults are renamed; anything the user typed is left alone.
+const REGION_NAMES: Array<{ us: string; other: string }> = [
+  { us: 'Checking Account', other: 'Current Account' },
+  { us: '401(k)', other: 'Pension' },
+];
+
 function defaultAssets(currency: string = 'USD'): Item[] {
-  const region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
+  const us = currency !== 'GBP' && currency !== 'EUR';
   return [
-    { id: newId(), name: region === 'us' ? 'Checking Account' : 'Current Account', value: 5000 },
+    { id: newId(), name: us ? 'Checking Account' : 'Current Account', value: 5000 },
     { id: newId(), name: 'Savings Account', value: 15000 },
-    { id: newId(), name: region === 'us' ? '401(k)' : 'Pension', value: 45000 },
+    { id: newId(), name: us ? '401(k)' : 'Pension', value: 45000 },
     { id: newId(), name: 'Home', value: 300000 },
     { id: newId(), name: 'Car', value: 18000 },
   ];
@@ -53,43 +60,65 @@ function defaultLiabilities(): Item[] {
   ];
 }
 
-function ItemRow({ item, symbol, onChange, onRemove }: {
+/** Name box that keeps any name typed before hydration. */
+function NameInput({ id, value, ariaLabel, onChange }: { id: string; value: string; ariaLabel: string; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const dom = ref.current?.value ?? '';
+    if (dom !== value) onChange(dom);
+    // Only on mount: later renders are controlled.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <input
+      ref={ref}
+      id={id}
+      type="text"
+      value={value}
+      maxLength={60}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full h-10 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base px-3
+        focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
+      placeholder="Item name"
+      aria-label={ariaLabel}
+    />
+  );
+}
+
+function ItemRow({ item, index, kind, symbol, currency, onChange, onRemove }: {
   item: Item;
+  index: number;
+  kind: Kind;
   symbol: string;
-  onChange: (id: string, field: 'name' | 'value', val: string | number) => void;
+  currency: string;
+  onChange: (id: string, patch: Partial<Item>) => void;
   onRemove: (id: string) => void;
 }) {
+  const kindLabel = kind === 'asset' ? 'Asset' : 'Liability';
+  const label = itemLabel(item.name, kind, index);
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="text"
-        value={item.name}
-        onChange={(e) => onChange(item.id, 'name', e.target.value)}
-        className="flex-1 h-10 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3
-          focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
-        placeholder="Item name"
-        aria-label="Item name"
-      />
-      <div className="relative w-32 shrink-0">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none">{symbol}</span>
-        <input
-          type="text"
-          inputMode="decimal"
-          value={formatNumber(item.value)}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^0-9.]/g, '');
-            const parsed = parseFloat(raw);
-            onChange(item.id, 'value', isNaN(parsed) ? 0 : parsed);
-          }}
-          className="w-full h-10 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm pl-6 pr-3
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150 tabular-nums"
-          aria-label="Item value"
-        />
+    <div className="flex items-start gap-2">
+      <div className="flex-1 min-w-0">
+        <NameInput id={`${item.id}-name`} value={item.name} ariaLabel={`${kindLabel} ${index + 1} name`} onChange={(v) => onChange(item.id, { name: v })} />
       </div>
+      <NumericTextField
+        id={`${item.id}-value`}
+        className="w-36 shrink-0"
+        inputClassName="h-10"
+        value={item.value}
+        onChange={(v) => onChange(item.id, { value: v })}
+        currency={currency}
+        prefix={symbol}
+        min={0}
+        max={MAX_ITEM_VALUE}
+        negativeMessage={kind === 'asset' ? 'Use a positive amount. Add money you owe under Liabilities.' : 'Use a positive amount for what you owe.'}
+        ariaLabel={`${label} value`}
+      />
       <button
+        type="button"
         onClick={() => onRemove(item.id)}
-        className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-500 hover:text-red-500 hover:bg-red-50 transition-all duration-150 shrink-0"
-        aria-label={`Remove ${item.name}`}
+        className="w-8 h-10 flex items-center justify-center rounded-lg text-neutral-500 hover:text-red-600 hover:bg-red-50 transition-all duration-150 shrink-0"
+        aria-label={`Remove ${label}`}
       >
         <X size={16} aria-hidden="true" />
       </button>
@@ -98,31 +127,27 @@ function ItemRow({ item, symbol, onChange, onRemove }: {
 }
 
 export default function NetWorthCalc() {
-  const ct = useChartTheme();
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
-  const fmt = (v: number) => formatCurrency(v, currency);
+  const fmt = (v: number) => formatMoneyGuarded(v, currency);
   const fmtCompact = (v: number) =>
-    `${currencySymbol}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : Math.round(v)}`;
+    `${currencySymbol}${v >= 1e9 ? `${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : Math.round(v)}`;
   const [assets, setAssets] = useState<Item[]>(() => defaultAssets());
   const [liabilities, setLiabilities] = useState<Item[]>(defaultLiabilities);
 
-  // Region-flavor the default item names once on mount (client-only so SSR
-  // markup stays stable, mirroring useCurrency). Only untouched US defaults
-  // are renamed — anything the user has edited no longer matches and is left alone.
+  // Region-flavour untouched default names whenever the display currency
+  // changes (stored, detected or picked). Client-only, so SSR markup stays stable.
   useEffect(() => {
-    const saved = getSavedCurrency();
-    if (saved !== 'GBP' && saved !== 'EUR') return;
+    const us = currency !== 'GBP' && currency !== 'EUR';
     setAssets((prev) =>
-      prev.map((item) =>
-        item.name === 'Checking Account'
-          ? { ...item, name: 'Current Account' }
-          : item.name === '401(k)'
-            ? { ...item, name: 'Pension' }
-            : item
-      )
+      prev.map((item) => {
+        const match = REGION_NAMES.find((n) => item.name === n.us || item.name === n.other);
+        if (!match) return item;
+        const name = us ? match.us : match.other;
+        return name === item.name ? item : { ...item, name };
+      })
     );
-  }, []);
+  }, [currency]);
 
   const handleReset = useCallback(() => {
     idCounter = 0;
@@ -130,51 +155,63 @@ export default function NetWorthCalc() {
     setLiabilities(defaultLiabilities());
   }, [currency]);
 
-  const handleChange = (
-    setter: React.Dispatch<React.SetStateAction<Item[]>>,
-    id: string,
-    field: 'name' | 'value',
-    val: string | number
-  ) => {
-    setter((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item))
-    );
+  const handleChange = (setter: React.Dispatch<React.SetStateAction<Item[]>>, id: string, patch: Partial<Item>) => {
+    setter((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
   };
-
   const handleAdd = (setter: React.Dispatch<React.SetStateAction<Item[]>>) => {
-    setter((prev) => [...prev, { id: newId(), name: '', value: 0 }]);
+    setter((prev) => [...prev, { id: newId(), name: '', value: null }]);
   };
-
   const handleRemove = (setter: React.Dispatch<React.SetStateAction<Item[]>>, id: string) => {
     setter((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const totalAssets = useMemo(() => assets.reduce((sum, a) => sum + a.value, 0), [assets]);
-  const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + l.value, 0), [liabilities]);
-  const netWorth = totalAssets - totalLiabilities;
+  const asNumbers = (items: Item[]) => items.map((i) => ({ name: i.name, value: i.value ?? 0 }));
+  const summary = useMemo(() => summarizeNetWorth(asNumbers(assets), asNumbers(liabilities)), [assets, liabilities]);
+  const { totalAssets, totalLiabilities, netWorth } = summary;
+  const extreme = isExtremeMoney(totalAssets) || isExtremeMoney(totalLiabilities);
   const animatedNetWorth = useAnimatedNumber(netWorth);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  const ratioText = (v: number | null) => (v === null ? '--' : `${(v * 100).toFixed(1)}%`);
+  const equityText = summary.equityShare === null ? '--' : summary.equityShare < 0 ? 'None' : ratioText(summary.equityShare);
 
   const getInputs = useCallback(() => [
     { label: 'Total Assets', value: fmt(totalAssets) },
     { label: 'Total Liabilities', value: fmt(totalLiabilities) },
-    { label: 'Number of Assets', value: `${assets.filter((a) => a.name || a.value > 0).length}` },
-    { label: 'Number of Liabilities', value: `${liabilities.filter((l) => l.name || l.value > 0).length}` },
+    { label: 'Number of Assets', value: `${assets.filter((a) => a.name.trim() || (a.value ?? 0) > 0).length}` },
+    { label: 'Number of Liabilities', value: `${liabilities.filter((l) => l.name.trim() || (l.value ?? 0) > 0).length}` },
   ], [assets, liabilities, totalAssets, totalLiabilities, currency]);
 
   const getResults = useCallback((): ResultItem[] => [
     { label: 'Net Worth', value: fmt(netWorth), highlight: true },
     { label: 'Total Assets', value: fmt(totalAssets) },
     { label: 'Total Liabilities', value: fmt(totalLiabilities) },
-  ], [netWorth, totalAssets, totalLiabilities, currency]);
+    { label: 'Debt-to-Asset Ratio', value: ratioText(summary.debtToAsset) },
+  ], [netWorth, totalAssets, totalLiabilities, summary.debtToAsset, currency]);
 
-  const assetPieData = useMemo(
-    () => assets.filter((a) => a.value > 0).map((a) => ({ name: a.name, value: a.value })),
-    [assets]
-  );
-  const liabilityPieData = useMemo(
-    () => liabilities.filter((l) => l.value > 0).map((l) => ({ name: l.name, value: l.value })),
-    [liabilities]
+  const assetRows = useMemo(() => breakdown(asNumbers(assets), 'asset'), [assets]);
+  const liabilityRows = useMemo(() => breakdown(asNumbers(liabilities), 'liability'), [liabilities]);
+  const shareColumns = [
+    { key: 'name', label: 'Item' },
+    { key: 'value', label: 'Value', format: (v: unknown) => formatMoneyGuarded(Number(v), currency) },
+    { key: 'share', label: 'Share', format: (v: unknown) => `${(Number(v) * 100).toFixed(1)}%` },
+  ];
+
+  const renderList = (kind: Kind, items: Item[], setter: React.Dispatch<React.SetStateAction<Item[]>>) => (
+    <div className="space-y-2.5">
+      {items.map((item, index) => (
+        <ItemRow
+          key={item.id}
+          item={item}
+          index={index}
+          kind={kind}
+          symbol={currencySymbol}
+          currency={currency}
+          onChange={(id, patch) => handleChange(setter, id, patch)}
+          onRemove={(id) => handleRemove(setter, id)}
+        />
+      ))}
+    </div>
   );
 
   return (
@@ -199,18 +236,9 @@ export default function NetWorthCalc() {
           {/* Assets */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-success-600 uppercase tracking-wide mb-3">Assets</h3>
-            <div className="space-y-2.5">
-              {assets.map((item) => (
-                <ItemRow
-                  key={item.id}
-                  item={item}
-                  symbol={currencySymbol}
-                  onChange={(id, field, val) => handleChange(setAssets, id, field, val)}
-                  onRemove={(id) => handleRemove(setAssets, id)}
-                />
-              ))}
-            </div>
+            {renderList('asset', assets, setAssets)}
             <button
+              type="button"
               onClick={() => handleAdd(setAssets)}
               className="flex items-center gap-1.5 mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150"
             >
@@ -219,23 +247,14 @@ export default function NetWorthCalc() {
             </button>
           </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-6" />
+          <div className="h-px bg-neutral-200/80 mb-6" />
 
           {/* Liabilities */}
           <div>
             <h3 className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3">Liabilities</h3>
-            <div className="space-y-2.5">
-              {liabilities.map((item) => (
-                <ItemRow
-                  key={item.id}
-                  item={item}
-                  symbol={currencySymbol}
-                  onChange={(id, field, val) => handleChange(setLiabilities, id, field, val)}
-                  onRemove={(id) => handleRemove(setLiabilities, id)}
-                />
-              ))}
-            </div>
+            {renderList('liability', liabilities, setLiabilities)}
             <button
+              type="button"
               onClick={() => handleAdd(setLiabilities)}
               className="flex items-center gap-1.5 mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150"
             >
@@ -246,48 +265,46 @@ export default function NetWorthCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" ref={resultsRef}>
+          <LiveResult text={`Net worth ${fmt(netWorth)}.`} />
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Your Net Worth</p>
             <p data-headline-result data-headline-label="Your Net Worth" className={`text-3xl sm:text-4xl font-bold tabular-nums ${netWorth >= 0 ? 'result-number' : 'text-red-600'}`}>
-              {fmt(animatedNetWorth)}
+              {extreme || isExtremeMoney(netWorth) ? fmt(netWorth) : fmt(animatedNetWorth)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              {fmt(totalAssets)} in assets − {fmt(totalLiabilities)} in liabilities
+              {fmt(totalAssets)} in assets minus {fmt(totalLiabilities)} in liabilities
             </p>
+            {extreme && <p className="text-sm text-red-600 mt-1.5">These totals look too large. Check the amounts you entered.</p>}
           </div>
 
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5"><TrendingUp size={16} aria-hidden="true" /></div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Assets</p>
-                <p className="text-lg font-semibold text-success-600 tabular-nums">{fmt(totalAssets)}</p>
+                <p className="text-lg font-semibold text-success-600 tabular-nums break-words">{fmt(totalAssets)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5"><CreditCard size={16} aria-hidden="true" /></div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Liabilities</p>
-                <p className="text-lg font-semibold text-red-600 tabular-nums">{fmt(totalLiabilities)}</p>
+                <p className="text-lg font-semibold text-red-600 tabular-nums break-words">{fmt(totalLiabilities)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Percent size={16} aria-hidden="true" /></div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Debt-to-Asset Ratio</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {totalAssets > 0 ? `${((totalLiabilities / totalAssets) * 100).toFixed(1)}%` : '0%'}
-                </p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{ratioText(summary.debtToAsset)}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><Scale size={16} aria-hidden="true" /></div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Assets Owned Free</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {totalAssets > 0 ? `${(((totalAssets - totalLiabilities) / totalAssets) * 100).toFixed(1)}%` : '0%'}
-                </p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{equityText}</p>
               </div>
             </div>
           </div>
@@ -300,77 +317,36 @@ export default function NetWorthCalc() {
 
           {/* Charts side by side */}
           <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Assets pie */}
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <h3 className="text-sm font-medium text-neutral-700 mb-2">Assets Breakdown</h3>
-              {assetPieData.length > 0 ? (
-                <>
-                  <div className="relative h-[180px]">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                      <PieChart>
-                        <Pie data={assetPieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" animationDuration={600}>
-                          {assetPieData.map((_, i) => (
-                            <Cell key={i} fill={ct.segments[i % ct.segments.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<ChartTooltip labelPrefix="" />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    {/* Donut center KPI — total assets */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
-                      <span className="font-mono tabular-nums text-sm font-semibold text-neutral-900">{fmtCompact(totalAssets)}</span>
-                      <span className="text-[9px] uppercase tracking-wide text-neutral-500">assets</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {assetPieData.map((d, i) => (
-                      <span key={d.name} className="flex items-center gap-1 text-[11px] text-neutral-500">
-                        <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: ct.segments[i % ct.segments.length] }} />
-                        {d.name}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm text-neutral-500 py-8 text-center">No assets added</p>
-              )}
-            </div>
-
-            {/* Liabilities pie */}
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <h3 className="text-sm font-medium text-neutral-700 mb-2">Liabilities Breakdown</h3>
-              {liabilityPieData.length > 0 ? (
-                <>
-                  <div className="relative h-[180px]">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                      <PieChart>
-                        <Pie data={liabilityPieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" animationDuration={600}>
-                          {liabilityPieData.map((_, i) => (
-                            <Cell key={i} fill={ct.cost} fillOpacity={LIABILITY_OPACITY[i % LIABILITY_OPACITY.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<ChartTooltip labelPrefix="" />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    {/* Donut center KPI — total liabilities */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
-                      <span className="font-mono tabular-nums text-sm font-semibold text-neutral-900">{fmtCompact(totalLiabilities)}</span>
-                      <span className="text-[9px] uppercase tracking-wide text-neutral-500">owed</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {liabilityPieData.map((d, i) => (
-                      <span key={d.name} className="flex items-center gap-1 text-[11px] text-neutral-500">
-                        <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: ct.cost, opacity: LIABILITY_OPACITY[i % LIABILITY_OPACITY.length] }} />
-                        {d.name}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm text-neutral-500 py-8 text-center">No liabilities added</p>
-              )}
-            </div>
+            {([
+              { kind: 'asset' as Kind, title: 'Assets Breakdown', rows: assetRows, total: totalAssets, centerLabel: 'assets', empty: 'No assets added' },
+              { kind: 'liability' as Kind, title: 'Liabilities Breakdown', rows: liabilityRows, total: totalLiabilities, centerLabel: 'owed', empty: 'No liabilities added' },
+            ]).map((panel) => (
+              <div key={panel.kind} className="bg-white rounded-xl border border-neutral-200/80 p-4 min-w-0">
+                <h3 className="text-sm font-medium text-neutral-700 mb-2">{panel.title}</h3>
+                {panel.rows.length > 0 ? (
+                  <>
+                    <Suspense fallback={<ChartSkeleton height={180} />}>
+                      <NetWorthChart
+                        data={panel.rows.map(({ name, value }) => ({ name, value }))}
+                        kind={panel.kind}
+                        currency={currency}
+                        centerValue={fmtCompact(panel.total)}
+                        centerLabel={panel.centerLabel}
+                        ariaLabel={`Donut chart of ${panel.kind === 'asset' ? 'assets' : 'liabilities'} by item; use Show data for the figures.`}
+                      />
+                    </Suspense>
+                    <ChartDataTable
+                      className="mt-2"
+                      caption={`${panel.title} by item`}
+                      columns={shareColumns}
+                      rows={panel.rows}
+                    />
+                  </>
+                ) : (
+                  <p className="text-sm text-neutral-500 py-8 text-center">{panel.empty}</p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>

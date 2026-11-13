@@ -1,7 +1,7 @@
 ---
-title: "First-Time Buyer Stamp Duty in 2026: Where the Relief Ends"
+title: "First-Time Buyer Stamp Duty: Where the Relief Ends"
 slug: "stamp-duty-first-time-buyer-2026"
-description: "First-time buyer stamp duty in 2026: £0 up to £300,000, 5% to £500,000, then no relief at all. FTB vs standard SDLT at £300k, £425k, £500k and £625k."
+description: "First-time buyer stamp duty in England and NI: £0 up to £300,000, 5% to £500,000, then no relief. FTB vs standard SDLT at £300k, £425k, £500k and £625k."
 keywords: ["stamp duty first time buyer", "first time buyer stamp duty 2026", "first time buyer SDLT relief", "stamp duty relief threshold", "how much stamp duty first time buyer"]
 toolSlug: "stamp-duty"
 toolCategory: "economic"
@@ -11,7 +11,7 @@ inputs:
   Region: "England / Northern Ireland"
 resultSummary: "£6,250 SDLT (vs £11,250 standard)"
 datePublished: "2026-07-07"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 faq:
   - question: "How much stamp duty does a first-time buyer pay in 2026?"
     answer: "Nothing on the first £300,000, then 5% on the portion between £300,000 and £500,000 — but only if the property costs £500,000 or less. At £300,000 the bill is £0, at £425,000 it is £6,250, and at £500,000 it is £10,000. Above £500,000 the relief disappears entirely and standard rates apply to the whole price."
@@ -64,11 +64,11 @@ The conditions are stricter than many buyers expect:
 - **You will live there.** The property must be intended as your only or main residence — buy-to-let purchases don't qualify.
 - **England and Northern Ireland only.** Scotland (LBTT) and Wales (LTT) have separate systems with different reliefs.
 
-The full rules are on GOV.UK: [SDLT residential rates](https://www.gov.uk/stamp-duty-land-tax/residential-property-rates) and [first-time buyer relief](https://www.gov.uk/stamp-duty-land-tax/relief-for-first-time-buyers).
+The full rules are on GOV.UK: [SDLT residential rates](https://www.gov.uk/stamp-duty-land-tax/residential-property-rates) and [first-time buyer relief](https://www.gov.uk/stamp-duty-land-tax/residential-property-rates#if-youre-buying-your-first-home).
 
 ## Mind the other cap: the LISA stops at £450,000
 
-If your deposit is sitting in a Lifetime ISA, note that the two schemes' limits don't line up. SDLT relief runs to £500,000, but a LISA can only be used penalty-free on a first home costing **£450,000 or less** — buy at £470,000 and you'd keep the stamp duty relief yet pay a 25% penalty to withdraw your LISA money. Between £450,000 and £500,000 there's a band where the taxman helps you and the LISA punishes you; see [LISA vs regular ISA](/comparisons/lisa-vs-regular-isa/) for how that penalty works.
+If your deposit is sitting in a Lifetime ISA, note that the two schemes' limits don't line up. SDLT relief runs to £500,000, but a LISA can only be used without a charge on a first home costing **£450,000 or less**. Buy at £470,000 and you'd keep the stamp duty relief but pay a 20% charge to use your LISA money (the reduced rate for first homes above the cap since 29 October 2026; it was 25% before). The 20% charge takes back the government bonus, so between £450,000 and £500,000 you get the stamp duty relief but not the LISA bonus. See [LISA vs regular ISA](/comparisons/lisa-vs-regular-isa/) for how the charge works.
 
 ## Check your own purchase
 

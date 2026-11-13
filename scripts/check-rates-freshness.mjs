@@ -1,50 +1,89 @@
 /**
- * Build-time rates freshness guard — dependency-free (plain Node) so it runs
- * in ANY build environment, including CI without devDependencies.
+ * Rates freshness guard -- runs before every `npm run build` (prebuild hook)
+ * and weekly in CI. Dependency-free plain Node, so it runs in any build
+ * environment, including CI without devDependencies.
  *
- * Fails the build when:
- *  - UK_TAX_YEAR doesn't match the current UK tax year (rolls over 6 April)
- *  - US_TAX_YEAR doesn't match the current calendar year
- *  - either rates file hasn't been checked in >400 days
+ * Rules (decision D8; logic in src/lib/tax-years.mjs, tested by
+ * src/lib/rates-freshness.test.ts):
+ * - FAIL (exit 1) only when the default tax year for today has no dataset
+ *   (US: the calendar year; UK: the tax year starting 6 April), or the default
+ *   dataset was last checked 400+ days ago.
+ * - WARN (loud, exit 0) from 60 days before a rollover whose new year has no
+ *   dataset yet, and from 340 days unchecked.
  *
- * The vitest twin (src/lib/rates-freshness.test.ts) covers `npm test`; this
- * script covers `npm run build` via the prebuild hook.
+ * Usage:
+ *   node scripts/check-rates-freshness.mjs
+ *   node scripts/check-rates-freshness.mjs --today=2027-01-02   # rehearse a date
+ *   CALCRUN_TODAY=2027-01-02 node scripts/check-rates-freshness.mjs   # local only
+ * A pinned date is announced loudly. CALCRUN_TODAY is IGNORED (with a warning)
+ * when CI or WORKERS_CI is set, so it can never bypass the guard in CI or a
+ * Cloudflare build.
+ *
+ * Exit codes: 0 = pass (warnings may be printed), 1 = guard failed,
+ * 2 = bad arguments.
  */
-import { readFileSync } from 'fs';
+import { evaluateRatesFreshness, parseIsoDate, pinnedToday, toIsoDate } from '../src/lib/tax-years.mjs';
 
-const read = (p) => readFileSync(p, 'utf8');
-const grab = (src, name) => {
-  const m = src.match(new RegExp(`${name}\\s*=\\s*'([^']+)'`));
-  if (!m) throw new Error(`Could not find ${name}`);
-  return m[1];
-};
+const inActions = process.env.GITHUB_ACTIONS === 'true';
 
-const uk = read('src/lib/uk-rates.ts');
-const us = read('src/lib/us-rates.ts');
-
-const now = new Date();
-const y = now.getFullYear();
-const afterApril6 = now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 6);
-const ukStart = afterApril6 ? y : y - 1;
-const expectedUk = `${ukStart}/${String((ukStart + 1) % 100).padStart(2, '0')}`;
-const expectedUs = String(y);
-
-const errors = [];
-const ukYear = grab(uk, 'UK_TAX_YEAR');
-const usYear = grab(us, 'US_TAX_YEAR');
-if (ukYear !== expectedUk) errors.push(`UK_TAX_YEAR is '${ukYear}' but the current UK tax year is '${expectedUk}'`);
-if (usYear !== expectedUs) errors.push(`US_TAX_YEAR is '${usYear}' but the current year is '${expectedUs}'`);
-
-const MAX_DAYS = 400;
-for (const [label, src, name] of [['UK', uk, 'UK_RATES_LAST_CHECKED'], ['US', us, 'US_RATES_LAST_CHECKED']]) {
-  const days = (Date.now() - new Date(grab(src, name) + 'T00:00:00').getTime()) / 86_400_000;
-  if (!(days < MAX_DAYS)) errors.push(`${label} rates last checked ${Math.round(days)} days ago (max ${MAX_DAYS})`);
+function resolveToday(argv) {
+  const arg = argv.find((a) => a.startsWith('--today='));
+  if (arg) {
+    const value = arg.slice('--today='.length);
+    const date = parseIsoDate(value);
+    if (!date) {
+      console.error(`--today must be a real date in YYYY-MM-DD form, got "${value}"`);
+      process.exit(2);
+    }
+    console.warn(`*** DATE PINNED BY --today=${value}: checking ${toIsoDate(date)}, not the real date ***`);
+    return date;
+  }
+  let pin;
+  try {
+    pin = pinnedToday();
+  } catch (e) {
+    console.error(String(e instanceof Error ? e.message : e));
+    process.exit(2);
+  }
+  if (pin.ignored) {
+    const msg = `CALCRUN_TODAY=${pin.raw} IGNORED because ${pin.reason}; checking the real date.`;
+    console.warn(`*** ${msg} ***`);
+    if (inActions) console.log(`::warning title=Rates freshness::${msg}`);
+    return new Date();
+  }
+  if (pin.date) {
+    console.warn(`*** DATE PINNED BY CALCRUN_TODAY=${pin.raw}: checking ${toIsoDate(pin.date)}, not the real date. Never set it in Cloudflare or CI. ***`);
+    return pin.date;
+  }
+  return new Date();
 }
 
-if (errors.length) {
-  console.error('RATES FRESHNESS GUARD FAILED — the site would ship stale tax data:');
-  for (const e of errors) console.error('  - ' + e);
-  console.error('Update src/lib/uk-rates.ts / us-rates.ts from primary sources (see docs/plan-2026-07.md Phase 1A).');
+const today = resolveToday(process.argv.slice(2));
+const report = evaluateRatesFreshness(today);
+
+if (report.warnings.length) {
+  console.warn('');
+  console.warn('==================== RATES FRESHNESS WARNING ====================');
+  for (const w of report.warnings) {
+    console.warn('  ! ' + w);
+    if (inActions) console.log(`::warning title=Rates freshness::${w}`);
+  }
+  console.warn('  The build still passes today. See docs/freshness-calendar.md.');
+  console.warn('=================================================================');
+  console.warn('');
+}
+
+if (report.errors.length) {
+  console.error('RATES FRESHNESS GUARD FAILED -- the site would ship stale or missing tax data:');
+  for (const e of report.errors) {
+    console.error('  - ' + e);
+    if (inActions) console.log(`::error title=Rates freshness::${e}`);
+  }
+  console.error('Rates live in src/lib/us-rates.ts and src/lib/uk-rates.ts; the year manifest is src/lib/tax-years.mjs.');
   process.exit(1);
 }
-console.log(`Rates freshness OK: UK ${ukYear}, US ${usYear}`);
+
+console.log(
+  `Rates freshness OK on ${report.today}: default years US ${report.usDefault}, UK ${report.ukDefault}` +
+    (report.warnings.length ? ` (${report.warnings.length} warning(s) above)` : ''),
+);

@@ -1,5 +1,5 @@
 ---
-title: "Lump Sum vs Dollar-Cost Averaging: How to Invest a Windfall"
+title: "Lump Sum vs Dollar-Cost Averaging: Which Wins?"
 slug: "lump-sum-vs-dollar-cost-averaging"
 description: "Compare lump sum investing with dollar-cost averaging. See historical win rates, the maths behind each strategy, and which approach suits your situation."
 keywords:

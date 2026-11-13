@@ -12,7 +12,7 @@ inputs:
   Pension: "0%"
 resultSummary: "£3,293/month"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 ---
 
 ## You take home £39,520 — about £3,293 per month
@@ -46,7 +46,7 @@ This makes £50,000 an interesting salary point. You are £270 away from the hig
 
 ## What £3,293 per month means in different places
 
-Compared to the UK median salary of around £35,000, a £50,000 salary puts you in roughly the top 25% of earners. It is typical for senior professionals, experienced software developers, team leaders in the NHS (Band 8a), and mid-career solicitors.
+The median full-time salary in the UK was £40,911 in April 2026 (ONS, provisional). A £50,000 salary is higher than about two-thirds of full-time pay packets, and only just short of the top quarter once part-time jobs are included. It is typical for senior professionals, experienced software developers, experienced NHS staff on Band 7 (£49,387 to £56,515 in England from April 2026), and mid-career solicitors.
 
 Outside London, £3,293 per month is a comfortable income. You can mortgage a three-bedroom house in many parts of the country, save consistently, and afford a decent lifestyle. In the North West or Yorkshire, housing costs might take 20-25% of your take-home. In the South East, expect 30-40%. In central London, a one-bedroom flat still takes a serious chunk.
 

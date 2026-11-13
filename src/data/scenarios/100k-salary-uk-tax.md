@@ -11,7 +11,7 @@ inputs:
   Tax Year: "2026/27"
 resultSummary: "£68,557/year (£5,713/month)"
 datePublished: "2026-03-04"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 ---
 
 ## You take home £68,557 — about £5,713 per month
@@ -58,7 +58,7 @@ This is why financial advisers call the £100K–£125K range the "tax trap."
 
 If your salary is near the threshold, these approaches can bring your adjusted net income back under £100K:
 
-- **Pension contributions:** The most common strategy. Contributing £5,000 to a pension reduces your adjusted income to £95,000, restoring your full personal allowance. You save £2,500 in tax that you would have lost from the taper (on top of the normal 40% relief). Salary sacrifice is even better — it also saves NI.
+- **Pension contributions:** The most common strategy. Take the £105,000 earner above: a £5,000 gross pension contribution brings adjusted net income back to £100,000 and restores the £2,500 of personal allowance lost to the taper. That restored allowance is worth £1,000 of tax, on top of the normal 40% relief on £5,000 (£2,000), so the total tax saving is £3,000 (60%) and the contribution costs you £2,000. Through salary sacrifice it costs £1,900, because the 2% NI on the £5,000 is saved too. (From 6 April 2029, only the first £2,000 a year of salary sacrifice will be free of NI.) At exactly £100,000 nothing has been tapered yet, so a contribution earns only the normal 40% relief.
 - **Charitable donations via Gift Aid:** Grossed-up donations reduce your adjusted income. A £4,000 donation (£5,000 with Gift Aid) brings you under the threshold.
 - **Employer benefits review:** Some benefits in kind increase your adjusted income. Check your P11D.
 

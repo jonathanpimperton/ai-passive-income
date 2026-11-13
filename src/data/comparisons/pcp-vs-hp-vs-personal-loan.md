@@ -1,5 +1,5 @@
 ---
-title: "PCP vs HP vs Personal Loan: The Cheapest Way to Finance a £25,000 Car"
+title: "PCP vs HP vs Personal Loan: Which Costs Least?"
 slug: "pcp-vs-hp-vs-personal-loan"
 description: "PCP vs HP vs personal loan on a £25,000 car: monthly payments, total cost, ownership and mileage limits compared, with the maths behind every figure."
 keywords:

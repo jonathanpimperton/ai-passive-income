@@ -9,17 +9,19 @@ inputs:
   Age: "30"
   Total Assets: "$120,000"
   Total Liabilities: "$45,000"
-resultSummary: "$76,300 average, $13,900 median (US under-35)"
+resultSummary: "$135,400 average, $33,000 median (US under-35, 2025)"
 affiliateContext: "Grow your net worth faster"
 affiliatePrograms:
   - "Betterment"
 datePublished: "2026-03-04"
-dateModified: "2026-07-02"
+dateModified: "2026-11-12"
 ---
 
-## The average is $76,300 — but the median is only $13,900
+## The average is $135,400 — but the median is only $33,000
 
-**According to the Federal Reserve's Survey of Consumer Finances, Americans under 35 have an average net worth of $76,300 and a median net worth of $13,900.** The massive gap between average and median tells you that a small number of high-net-worth individuals pull the average up. For most 30-year-olds, $13,900 is the more relevant benchmark.
+**According to the Federal Reserve's 2025 Survey of Consumer Finances (published October 2026), US families headed by someone under 35 have an average net worth of $135,400 and a median of $33,000.** The massive gap between average and median tells you that a small number of high-net-worth families pull the average up. For most 30-year-olds, $33,000 is the more relevant benchmark.
+
+Young families lost ground in the latest survey: the under-35 median fell 23% from the 2022 survey (in inflation-adjusted terms), which the Fed attributes mainly to the unwinding of business-equity gains made between 2019 and 2022.
 
 ## What net worth actually measures
 
@@ -40,7 +42,7 @@ Net worth = total assets minus total liabilities.
 - Mortgage balance
 - Personal loans
 
-A 30-year-old with $60,000 in a 401(k), $15,000 in savings, $45,000 in student loans, and no home has a net worth of $30,000. That puts them well above the median.
+A 30-year-old with $60,000 in a 401(k), $15,000 in savings, $45,000 in student loans, and no home has a net worth of $30,000. That is just below the $33,000 median for under-35s.
 
 ## Common benchmarks and rules of thumb
 
@@ -53,7 +55,7 @@ If you earn $55,000, you should have $55,000 in retirement savings by 30. This i
 Expected net worth = (age × pre-tax income) ÷ 10. At 30 with $55,000 income: $165,000. Very few 30-year-olds hit this — it works better for older age groups.
 
 **A practical benchmark:**
-Having any positive net worth at 30 puts you ahead of many peers who are still paying down student loans. If your net worth is above the $13,900 median, you are in the top half for your age group.
+Having any positive net worth at 30 puts you ahead of many peers who are still paying down student loans. If your net worth is above the $33,000 median, you are in the top half for your age group.
 
 ## Why most 30-year-olds have low net worth
 
@@ -70,7 +72,7 @@ Having a negative net worth at 30 — which is common if you have student loans 
 
 The biggest drivers of net worth growth between 30 and 40:
 
-1. **Increase retirement contributions.** Maxing a 401(k) at $23,500/year for 10 years at 7% returns grows to $340,000 — by far the single biggest net worth builder.
+1. **Increase retirement contributions.** Maxing a 401(k) at the 2026 limit of $24,500/year for 10 years at 7% returns grows to about $353,000 — by far the single biggest net worth builder.
 2. **Pay down high-interest debt.** Every dollar of credit card debt eliminated adds $1 to net worth plus saves 20%+ in interest.
 3. **Build an emergency fund.** $10,000–$20,000 in savings prevents debt-funded emergencies from destroying progress.
 4. **Increase income.** Job changes in your early 30s often come with 15–25% salary bumps, creating more room to save and invest.
