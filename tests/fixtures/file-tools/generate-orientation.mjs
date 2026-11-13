@@ -21,6 +21,10 @@ const noise = (width, height) => sharp({ create: { width, height, channels: 3, n
 // default 80% quality a re-encode is larger, so the original pixels are kept.
 fs.writeFileSync(path.join(OUT, 'gps-rot6-q30.jpg'),
   await noise(400, 300).jpeg({ quality: 30 }).withMetadata({ orientation: 6 }).withExif(EXIF).toBuffer());
+// 200x120 stored, Orientation 6 (shows 120x200), high-quality (92) noise like a phone photo: at 100% a
+// re-encode is larger in every browser, so the original pixels are kept even where the encoder is efficient.
+fs.writeFileSync(path.join(OUT, 'rot6-q92-noise.jpg'),
+  await noise(200, 120).jpeg({ quality: 92 }).withMetadata({ orientation: 6 }).toBuffer());
 // 160x80 stored, Orientation 6 (shows 80x160): a palette PNG with an eXIf chunk and a WebP with EXIF.
 const png = await sharp(await noise(160, 80).png().toBuffer()).png({ palette: true, colours: 16 }).withMetadata({ orientation: 6 }).toBuffer();
 fs.writeFileSync(path.join(OUT, 'rot6.png'), png);

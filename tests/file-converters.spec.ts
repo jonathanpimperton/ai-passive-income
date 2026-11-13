@@ -52,17 +52,23 @@ function parseHeadersFile(): HeaderRule[] {
   return rules;
 }
 const HEADER_RULES = process.env.FILE_TOOLS_PROD_HEADERS ? parseHeadersFile() : [];
-function headersFor(pathname: string): Record<string, string> {
+function headersFor(pathname: string, upgradeInsecure = true): Record<string, string> {
   const out: Record<string, string> = {};
   for (const r of HEADER_RULES) {
     if (!r.pattern.test(pathname)) continue;
     for (const d of r.detach) delete out[d];
     for (const [k, v] of r.set) out[k] = out[k] ? `${out[k]}, ${v}` : v;
   }
+  // WebKit (unlike Chromium and Firefox) applies upgrade-insecure-requests to http://127.0.0.1,
+  // so the test server's own scripts would be fetched over https and fail. Production is https
+  // already, where the directive changes nothing; drop it only from the local emulation.
+  if (!upgradeInsecure && out['content-security-policy']) {
+    out['content-security-policy'] = out['content-security-policy'].replace(/;\s*upgrade-insecure-requests/g, '');
+  }
   return out;
 }
 
-test.beforeEach(async ({ context, baseURL }) => {
+test.beforeEach(async ({ context, baseURL, browserName }) => {
   await context.route(GA_RE, (route) => route.abort());
   // Keep the cookie banner from covering tool controls (it sits over the left column).
   await context.addInitScript(() => {
@@ -85,7 +91,7 @@ test.beforeEach(async ({ context, baseURL }) => {
       try {
         const res = await route.fetch();
         const pathname = new URL(route.request().url()).pathname;
-        await route.fulfill({ response: res, headers: { ...res.headers(), ...headersFor(pathname) } });
+        await route.fulfill({ response: res, headers: { ...res.headers(), ...headersFor(pathname, browserName !== 'webkit') } });
       } catch {
         // The page closed mid-request (prefetch); nothing to fulfil.
         await route.abort().catch(() => undefined);
@@ -464,6 +470,24 @@ async function downloadBytes(page: Page, click: () => Promise<unknown>): Promise
   return { name: download.suggestedFilename(), bytes: fs.readFileSync(saved.path) };
 }
 
+/** The size a browser DISPLAYS `bytes` at (naturalWidth/Height applies the Orientation tag where honoured). */
+async function displayedSize(page: Page, bytes: Buffer, type: string): Promise<{ w: number; h: number }> {
+  return page.evaluate(async ({ b64, mime }) => {
+    const bin = atob(b64);
+    const data = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([data], { type: mime }));
+    try {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      return { w: img.naturalWidth, h: img.naturalHeight };
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }, { b64: bytes.toString('base64'), mime: type });
+}
+
 async function rgbAt(bytes: Buffer, x: number, y: number): Promise<number[]> {
   const sharp = (await import('sharp')).default;
   const { data, info } = await sharp(bytes).removeAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -639,6 +663,27 @@ test.describe('PDF to Image (FILES-09, FILES-13, FILES-23)', () => {
     expect(Object.keys(unzipSync(new Uint8Array(bytes))).sort()).toEqual(['text-3p_p1.jpg', 'text-3p_p2.jpg', 'text-3p_p3.jpg']);
   });
 
+  test('Convert is disabled while the next PDF is still being read', async ({ page }) => {
+    await page.goto('/tools/file-tools/pdf-to-image/');
+    await page.waitForLoadState('networkidle');
+    await uploadFile(page, path.join(FT, 'text-3p.pdf'));
+    const convert = page.getByRole('button', { name: /convert to jpg/i });
+    await expect(convert).toBeEnabled({ timeout: 30000 });
+    // Make reading the next file slow, as it is for a large PDF.
+    await page.evaluate(() => {
+      const original = Blob.prototype.arrayBuffer;
+      Blob.prototype.arrayBuffer = function (this: Blob) {
+        return new Promise<ArrayBuffer>((resolve) => setTimeout(() => resolve(original.call(this)), 2500));
+      };
+    });
+    await uploadFile(page, path.join(FT, 'form-2p.pdf'));
+    await expect(page.getByText('Reading PDF...')).toBeVisible();
+    await expect(convert).toBeDisabled(); // used to stay live and start a run that opening the new file tore down
+    await expect(page.getByText(/^2 pages$/)).toBeVisible({ timeout: 30000 });
+    await expect(convert).toBeEnabled();
+    await expect(page.locator('[role="alert"]:not(#cookie-banner)')).toHaveCount(0);
+  });
+
   test('JPEG 2000 images render instead of coming out blank', async ({ page }) => {
     await page.goto('/tools/file-tools/pdf-to-image/');
     await page.waitForLoadState('networkidle');
@@ -748,6 +793,58 @@ test.describe('Image Compressor (FILES-03, FILES-10)', () => {
     });
   }
 
+  // Regression: images handed back as the original (re-encoding was not smaller) came out sideways
+  // because stripping metadata also dropped the Orientation tag. The output must display the same
+  // way round as the input, measured as the browser draws it (naturalWidth/Height), in every engine.
+  const ORIENTATION_CASES: Array<{ fixture: string; type: string; quality?: string; keepDate?: boolean; kept?: boolean }> = [
+    // Small and simple: the original is kept in some engines and re-encoded smaller in others (WebKit's
+    // encoder wins here), so it only asserts the orientation, not which path was taken.
+    { fixture: 'exif-rot6-600x300.jpg', type: 'image/jpeg', quality: '100' },
+    // Noise at 92%: a re-encode at 100% is larger in every engine, so the kept-original path always runs.
+    { fixture: 'rot6-q92-noise.jpg', type: 'image/jpeg', quality: '100', kept: true },
+    { fixture: 'gps-rot6-q30.jpg', type: 'image/jpeg', kept: true },
+    { fixture: 'gps-rot6-q30.jpg', type: 'image/jpeg', keepDate: false, kept: true },
+    { fixture: 'rot6.png', type: 'image/png' },
+    { fixture: 'rot6.webp', type: 'image/webp' },
+  ];
+  for (const c of ORIENTATION_CASES) {
+    test(`${c.fixture} (${c.quality ? `quality ${c.quality}` : 'default quality'}, date ${c.keepDate === false ? 'off' : 'on'}) comes out the same way round`, async ({ page }) => {
+      await page.goto('/tools/file-tools/image-compressor/');
+      await page.waitForLoadState('networkidle');
+      if (c.quality) {
+        await page.locator('#quality').fill(c.quality);
+        await page.locator('#quality').blur();
+      }
+      if (c.keepDate === false) await page.getByLabel(/Keep the date a photo was taken/).uncheck();
+      const input = fs.readFileSync(path.join(FT, c.fixture));
+      await uploadFile(page, path.join(FT, c.fixture));
+      await expect(page.getByText(/1 file compressed/)).toBeVisible({ timeout: 30000 });
+      const keptShown = (await page.getByText('(original kept)').count()) > 0;
+      if (c.kept) expect(keptShown, 'the kept-original path must run for this fixture').toBe(true);
+      const { bytes } = await downloadBytes(page, () => page.getByRole('button', { name: /^download /i }).first().click());
+      const before = await displayedSize(page, input, c.type);
+      const sharp = (await import('sharp')).default;
+      const meta = await sharp(bytes).metadata();
+      const after = await displayedSize(page, bytes, `image/${meta.format}`); // a WebP may come back as PNG (Safari cannot encode WebP)
+      expect(after).toEqual(before);
+      // The thumbnail the page shows is the same file.
+      const preview = await page.locator('img[alt^="Compressed preview"]').first().evaluate((el: HTMLImageElement) => ({ w: el.naturalWidth, h: el.naturalHeight }));
+      expect(preview).toEqual(before);
+      if (c.type === 'image/jpeg') {
+        expect(before.w).toBeLessThan(before.h); // the fixture really is sideways in storage and upright on screen
+        if (keptShown) {
+          expect(meta.orientation).toBe(6); // only the rotation flag survives (plus the date)
+          expect(meta.exif!.length).toBeLessThan(120);
+          expect(meta.exif!.includes(Buffer.from([0x88, 0x25]))).toBe(false);
+        } else {
+          expect(meta.orientation ?? 1).toBe(1); // re-encoded: drawn upright, so no flag is needed
+        }
+        const text = bytes.toString('latin1');
+        for (const secret of ['secret-owner', 'TestCam']) expect(text).not.toContain(secret);
+      }
+    });
+  }
+
   test('a damaged image is named in the error (FILES-12)', async ({ page }) => {
     await page.goto('/tools/file-tools/image-compressor/');
     await page.waitForLoadState('networkidle');
@@ -840,6 +937,13 @@ test.describe('SVG to PNG (FILES-07, FILES-12)', () => {
     const { bytes } = await downloadBytes(page, () => page.getByRole('button', { name: /download png/i }).click());
     near(await rgbAt(bytes, 20, 10), [0, 255, 0], 10);
     expect(errors).toEqual([]);
+  });
+
+  test('an SVG without xmlns says so instead of "could not be parsed"', async ({ page }) => {
+    await page.goto('/tools/file-tools/svg-to-png/');
+    await page.waitForLoadState('networkidle');
+    await uploadFile(page, path.join(FT, 'no-xmlns.svg'));
+    await expect(toolAlert(page, 'xmlns="http://www.w3.org/2000/svg"')).toBeVisible({ timeout: 15000 });
   });
 
   test('invalid and impossibly large SVGs get messages, not a stuck spinner', async ({ page }) => {
