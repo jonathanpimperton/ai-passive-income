@@ -223,10 +223,13 @@ export default function ShareButton({ toolSlug, toolName }: ShareButtonProps) {
         Share
       </button>
 
-      {/* Announces the copy result to screen readers; always present so updates are read. */}
-      <p className="sr-only" role="status" aria-live="polite">
-        {copyState === 'copied' ? 'Link copied' : copyState === 'failed' ? 'Copy failed. The link is selected for you to copy.' : ''}
-      </p>
+      {/* Announces the copy result. Present (empty) from the moment the panel opens, so
+          the later update is read; absent otherwise, so the page keeps one live region. */}
+      {open && (
+        <p className="sr-only" role="status" aria-live="polite">
+          {copyState === 'copied' ? 'Link copied' : copyState === 'failed' ? 'Copy failed. The link is selected for you to copy.' : ''}
+        </p>
+      )}
 
       {open && (
         <div

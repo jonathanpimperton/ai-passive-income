@@ -683,13 +683,19 @@ function SliderInput({
           <span className="text-xs text-neutral-500 tabular-nums">{maxLabel}</span>
         </div>
       )}
-      <p
-        id={messageId}
-        aria-live="polite"
-        className={`text-xs leading-relaxed mt-1 empty:mt-0 ${error ? 'text-red-600' : 'text-neutral-500'}`}
-      >
-        {message}
-      </p>
+      {/* Rendered only when there is something to say: an inserted role=alert /
+          role=status is announced, and the page keeps a single live region
+          (the headline result) until then (A11Y-PERF-03). */}
+      {error && (
+        <p id={messageId} role="alert" className="text-xs leading-relaxed mt-1 text-red-600">
+          {error}
+        </p>
+      )}
+      {!error && notice && (
+        <p id={messageId} role="status" className="text-xs leading-relaxed mt-1 text-neutral-500">
+          {notice}
+        </p>
+      )}
     </div>
   );
 }

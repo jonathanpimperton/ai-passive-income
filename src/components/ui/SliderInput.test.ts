@@ -274,9 +274,9 @@ describe('server markup', () => {
     expect(html).toContain('for="uk-salary"');
   });
 
-  it('links the hint with aria-describedby and keeps an empty polite message region', () => {
+  it('links the hint with aria-describedby and renders no live region until there is a message', () => {
     expect(html).toMatch(/aria-describedby="uk-salary-hint"/);
-    expect(html).toMatch(/<p id="uk-salary-message" aria-live="polite"[^>]*><\/p>/);
+    expect(html).not.toMatch(/aria-live|role="status"|role="alert"|uk-salary-message/);
   });
 
   it('renders the range thumb at the value with the fill set', () => {

@@ -77,9 +77,10 @@ async function enter(page: Page, id: string, text: string, how: 'fill' | 'type' 
     await input.pressSequentially(text, { delay: 10 });
   }
   await input.press('Tab');
+  const message = page.locator(`#${id}-message`); // rendered only when there is something to say
   return {
     value: await input.inputValue(),
-    message: (await page.locator(`#${id}-message`).innerText()).trim(),
+    message: (await message.count()) ? (await message.innerText()).trim() : '',
   };
 }
 
