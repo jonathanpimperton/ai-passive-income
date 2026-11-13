@@ -21,6 +21,8 @@ import {
   type RemovedSummary,
 } from '../../lib/dev-tools/markdown-preview';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
+import { useSizeAwareDebounce } from '../../lib/dev-tools/use-size-aware-debounce';
+import { markdownToHtml, MarkdownTooSlowError } from '../../lib/dev-tools/markdown-convert';
 
 type Mode = 'md-to-html' | 'html-to-md';
 
@@ -106,8 +108,11 @@ export default function MarkdownHtmlConverter() {
   const [sanitizeOutput, setSanitizeOutput] = useState(true);
   const [libs, setLibs] = useState<Libs | null>(null);
   const [loadError, setLoadError] = useState('');
+  const [fileError, setFileError] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const { copy, copiedKey, failedKey, message: copyMessage } = useCopyFeedback();
+  // Large inputs are converted once per pause instead of once per keystroke.
+  const { value: settledInput, pending } = useSizeAwareDebounce(input);
 
   useEffect(() => {
     let cancelled = false;
@@ -141,12 +146,12 @@ export default function MarkdownHtmlConverter() {
   }, []);
 
   const conversion = useMemo<Conversion>(() => {
-    if (!input.trim() || !libs) return EMPTY;
+    if (!settledInput.trim() || !libs) return EMPTY;
     try {
       if (mode === 'html-to-md') {
-        return { ...EMPTY, output: libs.turndown.turndown(input) };
+        return { ...EMPTY, output: libs.turndown.turndown(settledInput) };
       }
-      const rawHtml = libs.marked.marked.parse(input, { async: false }) as string;
+      const rawHtml = markdownToHtml(libs.marked.Marked, settledInput);
       const out = sanitizeOutput ? sanitizeHtml(libs.outputPurifier, rawHtml) : null;
       const preview = showPreview ? sanitizeHtml(libs.previewPurifier, rawHtml) : null;
       return {
@@ -157,24 +162,31 @@ export default function MarkdownHtmlConverter() {
         error: '',
       };
     } catch (e) {
+      if (e instanceof MarkdownTooSlowError) return { ...EMPTY, error: e.message };
       return { ...EMPTY, error: e instanceof Error ? `Conversion failed: ${e.message}` : 'Conversion failed.' };
     }
-  }, [input, mode, libs, sanitizeOutput, showPreview]);
+  }, [settledInput, mode, libs, sanitizeOutput, showPreview]);
 
   const previewDoc = useMemo(
     () => (showPreview && mode === 'md-to-html' && conversion.output ? buildPreviewDocument(conversion.previewHtml, theme) : ''),
     [showPreview, mode, conversion.output, conversion.previewHtml, theme],
   );
 
-  const result = conversion.output;
-  const statusText = !input.trim()
-    ? ''
-    : loadError || (!libs ? 'Loading converter...' : conversion.error);
+  const result = pending ? '' : conversion.output;
+  const errorText = fileError || (input.trim() ? loadError || conversion.error : '');
+  const statusText = errorText || (!input.trim() ? '' : !libs ? 'Loading converter...' : pending ? 'Converting...' : '');
 
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
     if (!f) return;
-    const text = await f.text();
+    setFileError('');
+    let text: string;
+    try {
+      text = await f.text();
+    } catch {
+      setFileError(`Could not read "${f.name}". Try choosing the file again.`);
+      return;
+    }
     setInput(text);
     const name = f.name.toLowerCase();
     if (/\.(html?|xhtml)$/.test(name)) setMode('html-to-md');
@@ -264,7 +276,10 @@ export default function MarkdownHtmlConverter() {
           <textarea
             id="md-html-input"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              if (fileError) setFileError('');
+            }}
             placeholder={
               mode === 'md-to-html'
                 ? '# Hello World\n\nThis is **bold** and *italic*.\n\n- Item 1\n- Item 2'
@@ -312,11 +327,11 @@ export default function MarkdownHtmlConverter() {
           {statusText && (
             <div
               className={`flex items-start gap-2 p-3 rounded-lg border text-sm ${
-                loadError || conversion.error ? 'bg-red-50 border-red-200 text-red-700' : 'bg-neutral-50 border-neutral-200 text-neutral-600'
+                errorText ? 'bg-red-50 border-red-200 text-red-700' : 'bg-neutral-50 border-neutral-200 text-neutral-600'
               }`}
-              role={loadError || conversion.error ? 'alert' : 'status'}
+              role={errorText ? 'alert' : 'status'}
             >
-              {(loadError || conversion.error) && <AlertCircle size={16} className="shrink-0 mt-0.5" aria-hidden="true" />}
+              {errorText && <AlertCircle size={16} className="shrink-0 mt-0.5" aria-hidden="true" />}
               <span>{statusText}</span>
             </div>
           )}
