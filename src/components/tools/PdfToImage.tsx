@@ -146,11 +146,18 @@ export default function PdfToImage() {
     if (!f) return;
     setPasswordFor(null);
     setPassword('');
+    // Busy from the moment a file is chosen, not once it has been read: until then the previous
+    // PDF's Convert button stayed live, and a click started a run that openPdf() then tore down.
+    setProgress('Reading PDF...');
+    let bytes: Uint8Array;
     try {
-      await openPdf(f, await readBytes(f));
+      bytes = await readBytes(f);
     } catch (e) {
+      setProgress('');
       setErrors([errorMessage(e, `Could not read "${f.name}".`)]);
+      return;
     }
+    await openPdf(f, bytes); // never throws; clears the busy state itself
   }, [openPdf]);
 
   const convert = useCallback(async () => {
@@ -198,6 +205,7 @@ export default function PdfToImage() {
         }
         if (i % 5 === 0) await nextFrame();
       }
+      if (runRef.current !== runId) return; // cancelled, or a new PDF was opened: these results are stale
       if (failures.length > 0) setErrors(failures);
       if (produced > 0) requestAnimationFrame(() => revealOnSmallScreens(outputRef.current));
     } finally {
