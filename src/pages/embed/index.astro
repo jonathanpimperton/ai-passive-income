@@ -1,0 +1,226 @@
+---
+/**
+ * /embed/ — embed snippet generator (plan decision D6, task LA-6).
+ *
+ * The snippet is an iframe of /embed/<tool>/ PLUS a plain attribution link
+ * OUTSIDE the iframe, so the host page itself carries the link back to the
+ * full tool (a link inside the iframe credits calcrun.com to itself:
+ * review GROWTH-SEO-02 / EDGE-06). Anchor text is the tool's own name, never
+ * keyword-stuffed (Google treats keyword-rich widget links as link spam).
+ * An optional one-line script (/embed/resize.js) gives auto-height.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { TOOLS, CATEGORIES } from '@lib/tools-data';
+import { isEmbeddable, embedPath } from '@lib/tool-islands';
+
+const SITE = 'https://www.calcrun.com';
+const DEFAULT_HEIGHT = 700;
+
+const embeddableTools = TOOLS.filter((t) => isEmbeddable(t.category, t.slug));
+
+interface SnippetOptions {
+  theme: 'light' | 'dark' | 'auto';
+  autoHeight: boolean;
+}
+
+/** The exact snippet a host pastes. Mirrored by buildSnippet() in the script below. */
+function buildSnippet(tool: (typeof embeddableTools)[number], opts: SnippetOptions): string {
+  const src = `${SITE}${embedPath(tool.slug)}${opts.theme === 'light' ? '' : `?theme=${opts.theme}`}`;
+  const toolUrl = `${SITE}/tools/${tool.category}/${tool.slug}/`;
+  const lines = [
+    `<iframe src="${src}" title="${tool.name}" width="100%" height="${DEFAULT_HEIGHT}" style="border:0;width:100%;max-width:100%;" loading="lazy"></iframe>`,
+    `<p style="margin:6px 0 0;font-size:14px;"><a href="${toolUrl}">${tool.name}</a> by CalcRun</p>`,
+  ];
+  if (opts.autoHeight) lines.push(`<script src="${SITE}/embed/resize.js" async></script>`);
+  return lines.join('\n');
+}
+
+const defaults: SnippetOptions = { theme: 'light', autoHeight: true };
+const toolsJson = JSON.stringify(
+  embeddableTools.map((t) => ({ slug: t.slug, name: t.name, category: t.category })),
+);
+---
+
+<BaseLayout
+  title="Embed a Calculator on Your Site | CalcRun"
+  description="Add a working CalcRun calculator to your website or blog. Copy the snippet: calculator, result and an attribution link. No ads or tracking in the embed."
+>
+  {/* Page header — compact light interior header */}
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">Embed a calculator</h1>
+      <p class="mt-2 text-lg text-neutral-600 max-w-[640px] leading-relaxed">
+        Put a working CalcRun calculator on your website or blog. Visitors get the calculator and their
+        result; your page links to the full tool.
+      </p>
+    </div>
+  </section>
+
+  <div class="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    {/* What the embed is */}
+    <div class="grid gap-6 sm:grid-cols-2 mb-10">
+      <div class="bg-white border border-neutral-200/80 rounded-lg p-6">
+        <h2 class="text-xl font-bold text-neutral-900 mb-3">How it works</h2>
+        <ol class="list-decimal pl-5 space-y-1.5 text-neutral-700 leading-relaxed">
+          <li>Pick a calculator below.</li>
+          <li>Copy the snippet.</li>
+          <li>Paste it into your page's HTML.</li>
+        </ol>
+      </div>
+      <div class="bg-white border border-neutral-200/80 rounded-lg p-6">
+        <h2 class="text-xl font-bold text-neutral-900 mb-3">What your visitors see</h2>
+        <ul class="list-disc pl-5 space-y-1.5 text-neutral-700 leading-relaxed">
+          <li>The calculator and its live result, nothing else.</li>
+          <li>No ads, analytics, cookie banner or sign-up forms inside the embed.</li>
+          <li>Links open in a new tab, so your page stays put.</li>
+        </ul>
+      </div>
+    </div>
+
+    {/* Options */}
+    <section aria-labelledby="embed-options-title" class="mb-8">
+      <h2 id="embed-options-title" class="text-xl font-bold text-neutral-900 mb-4">Snippet options</h2>
+      <div class="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
+        <div>
+          <label for="embed-theme" class="block text-sm font-medium text-neutral-700 mb-1.5">Colour theme</label>
+          <select
+            id="embed-theme"
+            class="w-full sm:w-64 rounded-lg border border-neutral-200/80 bg-white px-3 py-2 text-base text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="light" selected>Light</option>
+            <option value="dark">Dark</option>
+            <option value="auto">Match the visitor's device</option>
+          </select>
+        </div>
+        <label class="inline-flex items-center gap-2.5 text-sm text-neutral-700 cursor-pointer py-2">
+          <input id="embed-autoheight" type="checkbox" checked class="h-4 w-4 rounded border-neutral-300 accent-primary-600" />
+          Resize the frame to fit (adds one small script)
+        </label>
+      </div>
+    </section>
+
+    {/* Calculator list */}
+    <h2 class="text-xl font-bold text-neutral-900 mb-4">Choose a calculator</h2>
+    <div class="space-y-3" id="embed-list" data-tools={toolsJson}>
+      {embeddableTools.map((tool) => (
+        <details class="group bg-white border border-neutral-200/80 rounded-lg overflow-hidden embed-card" data-slug={tool.slug}>
+          <summary class="flex items-center gap-3 p-4 sm:p-5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-neutral-50 transition-colors duration-150">
+            <span class="flex-1 min-w-0">
+              <span class="block text-base font-semibold text-neutral-900">{tool.name}</span>
+              <span class="block text-sm text-neutral-500">{CATEGORIES[tool.category]?.label}</span>
+            </span>
+            <svg class="w-5 h-5 text-neutral-500 shrink-0 transition-transform duration-200 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div class="border-t border-neutral-200/80 p-4 sm:p-5 bg-neutral-50">
+            <label for={`embed-code-${tool.slug}`} class="block text-sm font-medium text-neutral-700 mb-2">Embed snippet</label>
+            <textarea
+              id={`embed-code-${tool.slug}`}
+              readonly
+              rows="5"
+              class="embed-code w-full px-4 py-3 text-sm font-mono text-neutral-700 bg-white border border-neutral-200/80 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >{buildSnippet(tool, defaults)}</textarea>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                class="copy-btn inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors duration-150"
+                data-target={`embed-code-${tool.slug}`}
+              >
+                Copy snippet
+              </button>
+              <a
+                href={embedPath(tool.slug)}
+                target="_blank"
+                rel="noopener"
+                class="preview-link text-sm font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2 transition-colors duration-150"
+              >
+                Preview the embed <span class="sr-only">(opens in a new tab)</span>
+              </a>
+              <p class="copy-status text-sm text-neutral-600" aria-live="polite"></p>
+            </div>
+          </div>
+        </details>
+      ))}
+    </div>
+
+    {/* Terms */}
+    <div class="mt-10 bg-neutral-50 border border-neutral-200/80 rounded-lg p-6">
+      <h2 class="text-base font-semibold text-neutral-900 mb-2">Embed terms</h2>
+      <ul class="list-disc pl-5 text-sm text-neutral-600 space-y-1.5 leading-relaxed">
+        <li>You may embed calculators on personal and commercial sites.</li>
+        <li>Keep the attribution link that sits below the iframe visible and unchanged.</li>
+        <li>Don't alter the calculator's content or present its results as your own advice.</li>
+        <li>We update calculators over time (tax rates, fixes); your embed updates automatically.</li>
+        <li>
+          If your site sandboxes iframes, allow
+          <code class="bg-neutral-100 px-1 rounded text-sm">allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox</code>,
+          or the calculator can't run and its links can't open.
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    /* Rebuild every snippet when an option changes (mirrors buildSnippet() in
+       the frontmatter), and copy with a visible fallback. */
+    const SITE = 'https://www.calcrun.com';
+    const HEIGHT = 700;
+    type Tool = { slug: string; name: string; category: string };
+
+    const list = document.getElementById('embed-list');
+    const themeSelect = document.getElementById('embed-theme') as HTMLSelectElement | null;
+    const autoHeight = document.getElementById('embed-autoheight') as HTMLInputElement | null;
+    let tools: Tool[] = [];
+    try {
+      tools = JSON.parse(list?.getAttribute('data-tools') || '[]');
+    } catch (err) {
+      // The server-rendered default snippets stay usable; options just won't apply.
+      console.error('[embed] tool list unreadable', err);
+    }
+
+    const buildSnippet = (tool: Tool, theme: string, withScript: boolean) => {
+      const src = `${SITE}/embed/${tool.slug}/${theme === 'light' ? '' : `?theme=${theme}`}`;
+      const toolUrl = `${SITE}/tools/${tool.category}/${tool.slug}/`;
+      const lines = [
+        `<iframe src="${src}" title="${tool.name}" width="100%" height="${HEIGHT}" style="border:0;width:100%;max-width:100%;" loading="lazy"></iframe>`,
+        `<p style="margin:6px 0 0;font-size:14px;"><a href="${toolUrl}">${tool.name}</a> by CalcRun</p>`,
+      ];
+      if (withScript) lines.push(`<script src="${SITE}/embed/resize.js" async></` + `script>`);
+      return lines.join('\n');
+    };
+
+    const refresh = () => {
+      const theme = themeSelect?.value || 'light';
+      const withScript = autoHeight?.checked ?? true;
+      for (const tool of tools) {
+        const area = document.getElementById(`embed-code-${tool.slug}`) as HTMLTextAreaElement | null;
+        if (area) area.value = buildSnippet(tool, theme, withScript);
+        const card = list?.querySelector(`[data-slug="${tool.slug}"]`);
+        const preview = card?.querySelector<HTMLAnchorElement>('.preview-link');
+        if (preview) preview.href = `/embed/${tool.slug}/${theme === 'light' ? '' : `?theme=${theme}`}`;
+      }
+    };
+    themeSelect?.addEventListener('change', refresh);
+    autoHeight?.addEventListener('change', refresh);
+
+    document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const area = document.getElementById(btn.dataset.target || '') as HTMLTextAreaElement | null;
+        const status = btn.parentElement?.querySelector('.copy-status');
+        if (!area || !status) return;
+        try {
+          await navigator.clipboard.writeText(area.value);
+          status.textContent = 'Copied to clipboard.';
+        } catch {
+          // Clipboard blocked (permissions, insecure context): select the text
+          // and tell the visitor how to finish.
+          area.focus();
+          area.select();
+          status.textContent = 'Copy blocked by the browser. The snippet is selected: press Ctrl+C (Cmd+C on a Mac).';
+        }
+        setTimeout(() => { status.textContent = ''; }, 6000);
+      });
+    });
+  </script>
+</BaseLayout>

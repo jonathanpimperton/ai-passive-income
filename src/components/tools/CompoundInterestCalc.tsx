@@ -1,31 +1,22 @@
-import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
-import {
-  compoundInterestSchedule,
-  formatCurrency,
-  formatNumber,
-} from '../../lib/calculator-utils';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceDot,
-} from 'recharts';
+import { useState, useMemo, useCallback, useDeferredValue, useRef, Fragment, Suspense } from 'react';
+import { formatNumber } from '../../lib/calculator-utils';
+import { growthSchedule, type ContributionTiming, type GrowthInputs } from '../../lib/investment-solvers';
+import { formatMoneyGuarded, isExtremeMoney } from '../../lib/result-format';
 import { ChevronDown, RotateCcw, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import ChartSkeleton from '../ui/ChartSkeleton';
 import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
+import LiveResult from './fields/LiveResult';
+import { lazyChart } from './charts/InvestDebtLazyChart';
+
+const InvestGrowthChart = lazyChart(() => import('./charts/InvestGrowthChart'));
 
 /* ── Compounding frequency options ────────────────────────── */
 const COMPOUND_OPTIONS = [
@@ -36,9 +27,10 @@ const COMPOUND_OPTIONS = [
   { label: 'Daily', value: 365 },
 ] as const;
 
+// Deposits are always monthly; timing says when in the month they land.
 const TIMING_OPTIONS = [
-  { label: 'End of period', value: 'end' },
-  { label: 'Beginning of period', value: 'beginning' },
+  { label: 'End of each month', value: 'end' },
+  { label: 'Start of each month', value: 'beginning' },
 ] as const;
 
 /* ── Collapsible year row ─────────────────────────────────── */
@@ -53,19 +45,20 @@ interface YearRowData {
 
 function ScheduleTable({ data, cc }: { data: YearRowData[]; cc: string }) {
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
-  const fmt = (v: number) => formatCurrency(v, cc);
+  const fmt = (v: number) => formatMoneyGuarded(v, cc);
 
   if (data.length === 0) return null;
 
   return (
     <div className="overflow-x-auto rounded-xl border border-neutral-200/80">
       <table className="w-full text-sm">
+        <caption className="sr-only">Balance, contributions and interest by year</caption>
         <thead>
           <tr className="bg-neutral-50 border-b border-neutral-200/80 sticky top-0 z-10">
-            <th className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600">Balance</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Contributions</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Interest</th>
+            <th scope="col" className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600">Balance</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Contributions</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Interest</th>
           </tr>
         </thead>
         <tbody>
@@ -146,59 +139,96 @@ function ScheduleTable({ data, cc }: { data: YearRowData[]; cc: string }) {
   );
 }
 
-/* ── Main Calculator ──────────────────────────────────────── */
-const DEFAULTS = {
+/* -- Inputs and defaults ------------------------------------ */
+export interface CompoundInterestInputs {
+  principal: number;
+  monthlyContribution: number;
+  /** Percent, e.g. 7 for 7%. */
+  annualRate: number;
+  years: number;
+  compoundingFrequency: number;
+  contributionTiming: ContributionTiming;
+}
+
+const DEFAULTS: CompoundInterestInputs = {
   principal: 10000,
   monthlyContribution: 200,
   annualRate: 7,
   years: 20,
   compoundingFrequency: 12,
-  contributionTiming: 'end' as 'end' | 'beginning',
+  contributionTiming: 'end',
 };
 
-export default function CompoundInterestCalc() {
+/** Keep only finite, in-range values from a caller's `defaults` (e.g. a hub page). */
+function mergeDefaults(overrides?: Partial<CompoundInterestInputs>): CompoundInterestInputs {
+  const o = overrides ?? {};
+  const num = (v: unknown, min: number, max: number, fallback: number) =>
+    typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max ? v : fallback;
+  return {
+    principal: num(o.principal, 0, 10_000_000, DEFAULTS.principal),
+    monthlyContribution: num(o.monthlyContribution, 0, 50_000, DEFAULTS.monthlyContribution),
+    annualRate: num(o.annualRate, 0, 25, DEFAULTS.annualRate),
+    years: Math.round(num(o.years, 1, 100, DEFAULTS.years)),
+    compoundingFrequency: COMPOUND_OPTIONS.some((c) => c.value === o.compoundingFrequency)
+      ? (o.compoundingFrequency as number)
+      : DEFAULTS.compoundingFrequency,
+    contributionTiming: o.contributionTiming === 'beginning' || o.contributionTiming === 'end' ? o.contributionTiming : DEFAULTS.contributionTiming,
+  };
+}
+
+export interface CompoundInterestCalcProps {
+  /** Starting values, e.g. from a hub page that embeds this calculator. Reset returns to these. */
+  defaults?: Partial<CompoundInterestInputs>;
+}
+
+export default function CompoundInterestCalc({ defaults }: CompoundInterestCalcProps = {}) {
+  const start = useMemo(() => mergeDefaults(defaults), [defaults]);
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
-  const [principal, setPrincipal] = useState(DEFAULTS.principal);
-  const [monthly, setMonthly] = useState(DEFAULTS.monthlyContribution);
-  const [rate, setRate] = useState(DEFAULTS.annualRate);
-  const [years, setYears] = useState(DEFAULTS.years);
-  const [frequency, setFrequency] = useState(DEFAULTS.compoundingFrequency);
-  const [timing, setTiming] = useState(DEFAULTS.contributionTiming);
+  const [principal, setPrincipal] = useState(start.principal);
+  const [monthly, setMonthly] = useState(start.monthlyContribution);
+  const [rate, setRate] = useState(start.annualRate);
+  const [years, setYears] = useState(start.years);
+  const [frequency, setFrequency] = useState(start.compoundingFrequency);
+  const [timing, setTiming] = useState<ContributionTiming>(start.contributionTiming);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const ct = useChartTheme();
-  const fmt = (v: number) => formatCurrency(v, currency);
+  const fmt = (v: number) => formatMoneyGuarded(v, currency);
 
-  const schedule = useMemo(
-    () => compoundInterestSchedule(principal, monthly, rate / 100, years, frequency, timing as 'end' | 'beginning'),
-    [principal, monthly, rate, years, frequency, timing]
+  const growth: GrowthInputs = useMemo(
+    () => ({ principal, monthlyContribution: monthly, annualRate: rate / 100, compoundingPerYear: frequency, timing }),
+    [principal, monthly, rate, frequency, timing]
   );
+  const schedule = useMemo(() => growthSchedule(growth, years), [growth, years]);
+  // The chart and the 100-row table follow a frame behind fast slider drags.
+  const deferredSchedule = useDeferredValue(schedule);
 
-  const finalBalance = schedule[schedule.length - 1]?.balance ?? 0;
-  const totalContributions = principal + monthly * 12 * years;
+  const finalRow = schedule[schedule.length - 1];
+  const finalBalance = finalRow?.balance ?? 0;
+  const totalContributions = finalRow?.totalContributions ?? principal;
   const totalInterest = finalBalance - totalContributions;
+  const extreme = isExtremeMoney(finalBalance);
+  const freqLabel = COMPOUND_OPTIONS.find((o) => o.value === frequency)?.label ?? `${frequency}x/yr`;
 
   const chartData = useMemo(
     () =>
-      schedule.map((row) => ({
+      deferredSchedule.map((row) => ({
         year: row.year,
         'Total Balance': row.balance,
         Contributions: row.totalContributions,
-        Interest: row.totalInterest,
       })),
-    [schedule]
+    [deferredSchedule]
   );
 
   /** First year where cumulative interest exceeds cumulative contributions. */
   const crossover = useMemo(() => {
-    const row = schedule.find((r) => r.year > 0 && r.totalInterest > r.totalContributions);
-    return row ? { year: row.year, balance: row.balance } : null;
-  }, [schedule]);
+    const row = deferredSchedule.find((r) => r.year > 0 && r.totalInterest > r.totalContributions);
+    return row ? { x: row.year, y: row.balance } : null;
+  }, [deferredSchedule]);
 
   const yearTableData: YearRowData[] = useMemo(() => {
-    return schedule.slice(1).map((row, i) => {
-      const prev = schedule[i]; // i maps to previous year since we sliced
+    return deferredSchedule.slice(1).map((row, i) => {
+      const prev = deferredSchedule[i]; // i maps to previous year since we sliced
       return {
         year: row.year,
         balance: row.balance,
@@ -208,10 +238,9 @@ export default function CompoundInterestCalc() {
         yearInterest: row.totalInterest - prev.totalInterest,
       };
     });
-  }, [schedule]);
+  }, [deferredSchedule]);
 
   const getInputs = useCallback(() => {
-    const freqLabel = COMPOUND_OPTIONS.find((o) => o.value === frequency)?.label ?? `${frequency}x/yr`;
     const timingLabel = TIMING_OPTIONS.find((o) => o.value === timing)?.label ?? timing;
     return [
       { label: 'Starting Amount', value: fmt(principal) },
@@ -221,22 +250,29 @@ export default function CompoundInterestCalc() {
       { label: 'Compounding Frequency', value: freqLabel },
       { label: 'Contribution Timing', value: timingLabel },
     ];
-  }, [principal, monthly, rate, years, frequency, timing, currency]);
+  }, [principal, monthly, rate, years, freqLabel, timing, currency]);
 
-  const getResults = useCallback((): ResultItem[] => [
-    { label: 'Final Balance', value: fmt(finalBalance), highlight: true },
-    { label: 'Total Contributions', value: fmt(totalContributions) },
-    { label: 'Interest Earned', value: fmt(totalInterest) },
-  ], [finalBalance, totalContributions, totalInterest, currency]);
+  const getResults = useCallback((): ResultItem[] => {
+    const results: ResultItem[] = [
+      { label: 'Final Balance', value: fmt(finalBalance), highlight: true },
+      { label: 'Total Contributions', value: fmt(totalContributions) },
+      { label: 'Interest Earned', value: fmt(totalInterest) },
+    ];
+    if (extreme) results.push({ label: 'Note', value: 'Beyond any realistic outcome - check your inputs' });
+    return results;
+  }, [finalBalance, totalContributions, totalInterest, extreme, currency]);
 
   const handleReset = useCallback(() => {
-    setPrincipal(DEFAULTS.principal);
-    setMonthly(DEFAULTS.monthlyContribution);
-    setRate(DEFAULTS.annualRate);
-    setYears(DEFAULTS.years);
-    setFrequency(DEFAULTS.compoundingFrequency);
-    setTiming(DEFAULTS.contributionTiming);
-  }, []);
+    setPrincipal(start.principal);
+    setMonthly(start.monthlyContribution);
+    setRate(start.annualRate);
+    setYears(start.years);
+    setFrequency(start.compoundingFrequency);
+    setTiming(start.contributionTiming);
+  }, [start]);
+
+  const animatedBalance = useAnimatedNumber(finalBalance);
+  const yearsText = `${years} year${years !== 1 ? 's' : ''}`;
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -314,11 +350,13 @@ export default function CompoundInterestCalc() {
 
           {/* ── Advanced Settings ─────────────────────── */}
           <div className="mt-6 pt-5">
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
+            <div className="h-px bg-neutral-200/80 mb-5" />
             <button
+              type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-expanded={showAdvanced}
+              aria-controls="ci-advanced"
             >
               <ChevronDown
                 size={14}
@@ -329,8 +367,11 @@ export default function CompoundInterestCalc() {
             </button>
 
             <div
+              id="ci-advanced"
+              inert={showAdvanced ? undefined : true}
+              aria-hidden={showAdvanced ? undefined : true}
               className={`overflow-hidden transition-all duration-200 ${
-                showAdvanced ? 'max-h-60 opacity-100 mt-4' : 'max-h-0 opacity-0'
+                showAdvanced ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
               }`}
             >
               <div className="space-y-4">
@@ -342,7 +383,8 @@ export default function CompoundInterestCalc() {
                     id="ci-frequency"
                     value={frequency}
                     onChange={(e) => setFrequency(Number(e.target.value))}
-                    className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3
+                    aria-describedby="ci-frequency-note"
+                    className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base px-3
                       focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
                   >
                     {COMPOUND_OPTIONS.map((opt) => (
@@ -351,6 +393,9 @@ export default function CompoundInterestCalc() {
                       </option>
                     ))}
                   </select>
+                  <p id="ci-frequency-note" className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
+                    Sets how often interest is added. Your contribution still goes in every month.
+                  </p>
                 </div>
 
                 <div>
@@ -360,8 +405,8 @@ export default function CompoundInterestCalc() {
                   <select
                     id="ci-timing"
                     value={timing}
-                    onChange={(e) => setTiming(e.target.value)}
-                    className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3
+                    onChange={(e) => setTiming(e.target.value === 'beginning' ? 'beginning' : 'end')}
+                    className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base px-3
                       focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
                   >
                     {TIMING_OPTIONS.map((opt) => (
@@ -377,27 +422,33 @@ export default function CompoundInterestCalc() {
         </div>
 
         {/* ── Results Panel ───────────────────────────── */}
-        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite">
-          {/* Big Number — gradient text + count-up animation */}
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start">
+          <LiveResult text={`Final balance ${fmt(finalBalance)} after ${yearsText}.`} />
+          {/* Big Number with count-up animation */}
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Final Balance</p>
             <p data-headline-result data-headline-label="Final Balance" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {fmt(useAnimatedNumber(finalBalance))}
+              {extreme ? fmt(finalBalance) : fmt(animatedBalance)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              After {years} year{years !== 1 ? 's' : ''} of compounding at {rate}% annually
+              After {yearsText} at {rate}% a year, compounded {freqLabel.toLowerCase()}
             </p>
+            {extreme && (
+              <p className="text-sm text-red-600 mt-1.5 leading-relaxed">
+                That is beyond any realistic outcome. Check your inputs.
+              </p>
+            )}
           </div>
 
-          {/* Breakdown — with icons */}
+          {/* Breakdown */}
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Wallet size={16} aria-hidden="true" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums break-words">
                   {fmt(totalContributions)}
                 </p>
               </div>
@@ -406,9 +457,9 @@ export default function CompoundInterestCalc() {
               <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Sparkles size={16} aria-hidden="true" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Interest Earned</p>
-                <p className="text-lg font-semibold text-success-600 tabular-nums">
+                <p className="text-lg font-semibold text-success-600 tabular-nums break-words">
                   {fmt(totalInterest)}
                 </p>
               </div>
@@ -425,57 +476,23 @@ export default function CompoundInterestCalc() {
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Growth Over Time</h3>
             <div className="h-56 sm:h-64">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <CartesianGrid stroke={ct.grid} vertical={false} />
-                  <XAxis
-                    dataKey="year"
-                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                    tickLine={false}
-                    axisLine={{ stroke: ct.axis }}
-                    interval="preserveStartEnd"
-                    minTickGap={24}
-                  />
-                  <YAxis
-                    tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                    tickLine={false}
-                    axisLine={false}
-                    width={60}
-                  />
-                  <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                  <Area
-                    type="monotone"
-                    dataKey="Total Balance"
-                    stroke={ct.series1}
-                    strokeWidth={2}
-                    fill={ct.series1Fill}
-                    animationDuration={600}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="Contributions"
-                    stroke={ct.series2}
-                    strokeWidth={2}
-                    fill={ct.series2Fill}
-                    animationDuration={600}
-                  />
-                  {crossover && (
-                    <ReferenceDot
-                      x={crossover.year}
-                      y={crossover.balance}
-                      r={4}
-                      fill={ct.series1}
-                      stroke={ct.tooltipBg}
-                      strokeWidth={2}
-                    />
-                  )}
-                </AreaChart>
-              </ResponsiveContainer>
+              <Suspense fallback={<ChartSkeleton height="100%" />}>
+                <InvestGrowthChart
+                  data={chartData}
+                  xKey="year"
+                  series={[
+                    { key: 'Total Balance', tone: 'primary' },
+                    { key: 'Contributions', tone: 'comparison' },
+                  ]}
+                  currency={currency}
+                  marker={crossover}
+                  ariaLabel={`Area chart of balance and contributions by year over ${yearsText}; the year-by-year table below lists the same figures.`}
+                />
+              </Suspense>
             </div>
             {crossover && (
               <p className="text-xs text-neutral-500 mt-2">
-                Interest overtakes deposits — Yr <span className="font-mono tabular-nums">{crossover.year}</span>
+                Interest overtakes deposits in year <span className="font-mono tabular-nums">{crossover.x}</span>
               </p>
             )}
           </div>

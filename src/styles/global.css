@@ -70,21 +70,25 @@
   --color-success-100: #D3F1E0;
   --color-success-50: #EDF9F2;
 
-  /* Negative (red — errors/losses) */
-  --color-negative-600: #DE350B;
+  /* Negative (red — errors/losses)
+     600 darkened from #DE350B: badges sit on negative-50, where the old
+     value was 4.15:1 (A11Y-PERF-13). #C42D09 is 5.2:1 there, 5.6:1 on white. */
+  --color-negative-600: #C42D09;
   --color-negative-500: #EF4444;
   --color-negative-100: #FEE2E2;
   --color-negative-50: #FEF2F2;
 
-  /* Warning (amber) */
-  --color-warning-600: #D97706;
+  /* Warning (amber). 600 is used for TEXT (password "Fair"/"Good", JWT
+     badges, solar payback headline): #D97706 was 3.2:1 on white. #B45309 is
+     5.0:1 on white, 4.8:1 on amber-50, and still 3:1+ for icons. */
+  --color-warning-600: #B45309;
   --color-warning-500: #F59E0B;
   --color-warning-100: #FEF3C7;
   --color-warning-50: #FFFBEB;
 
   /* Amber (alias for warning shades used in components) */
   --color-amber-800: #92400E;
-  --color-amber-600: #D97706;
+  --color-amber-600: #B45309;
   --color-amber-500: #F59E0B;
   --color-amber-200: #FDE68A;
   --color-amber-50: #FFFBEB;
@@ -105,7 +109,9 @@
   /* Red (alias for negative shades) */
   --color-red-800: #991B1B;
   --color-red-700: #B91C1C;
-  --color-red-600: #DC2626;
+  /* 600 nudged from #DC2626 (4.4:1 on red-50 error boxes, A11Y-PERF-13):
+     #D32222 is 4.8:1 on red-50 and 5.2:1 on white. */
+  --color-red-600: #D32222;
   --color-red-500: #EF4444;
   --color-red-200: #FECACA;
   --color-red-100: #FEE2E2;
@@ -228,10 +234,10 @@ pre {
 /* Mobile backstop: extreme money figures wrap inside stat cards instead of
    clipping mid-digit; 2-col stat grids stack on very narrow screens */
 @media (max-width: 26rem) {
-  [data-calc-section] .tabular-nums {
+  :is([data-calc-section], .embed-v2 main) .tabular-nums {
     overflow-wrap: anywhere;
   }
-  [data-calc-section] .grid.grid-cols-2 {
+  :is([data-calc-section], .embed-v2 main) .grid.grid-cols-2 {
     grid-template-columns: 1fr;
   }
 }
@@ -265,13 +271,6 @@ pre {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
-
-/* Slide-up animation for scroll-triggered email bar */
-@keyframes slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-.animate-slide-up { animation: slide-up 0.3s ease-out; }
 
 /* Scrollbar hide utility */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -650,37 +649,102 @@ input[type="range"] {
   opacity: 1;
 }
 
-/* --- Back-to-calculator floating button --- */
+/* --- Back-to-calculator floating button ---
+   While hidden it is visibility:hidden, which also takes it out of the tab
+   order and the accessibility tree (A11Y-PERF F-26). The visibility change is
+   delayed on hide so the fade-out still plays. */
 
 .back-to-calc {
   opacity: 0;
+  visibility: hidden;
   transform: translateY(8px);
   pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease, visibility 0s linear 0.3s;
 }
 
 .back-to-calc.visible {
   opacity: 1;
+  visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .back-to-calc:hover {
   transform: translateY(-2px);
 }
 
-/* Embed mode — strip chrome for iframe embedding */
+/* --- Mobile result mini-bar (tool pages, LA-3) ---
+   Semantic surface/ink tokens so it flips correctly in dark mode (the old
+   dark:bg-neutral-900 resolved to a LIGHT band under the inverted dark
+   neutrals: 1.09:1, A11Y-PERF-06). Label uses neutral-600 (7:1 light,
+   ~7:1 dark). Shown/hidden by ToolPageLayout's script. */
+.mini-bar {
+  position: fixed;
+  top: 4rem; /* under the h-16 sticky header */
+  left: 0;
+  right: 0;
+  z-index: 30;
+  cursor: pointer;
+  background-color: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-sm);
+}
+.mini-bar-label { color: var(--color-neutral-600); }
+.mini-bar-value { color: var(--color-neutral-900); }
+
+/* While the bar shows, focus scrolling keeps controls below it (2.4.11) */
+html.has-mini-bar {
+  scroll-padding-top: calc(80px + 2.75rem);
+}
+
+/* Short viewports and 400% zoom (e.g. 320x200 CSS px): fixed chrome covered
+   up to 92% of the screen (A11Y-PERF-04). The header scrolls away and the
+   mini-bar never shows. */
+@media (max-height: 500px) {
+  body > header {
+    position: static;
+  }
+  html,
+  html.has-mini-bar {
+    scroll-padding-top: 1rem;
+  }
+  .mini-bar {
+    display: none !important;
+  }
+}
+
+/* =============================================
+   Embeds (plan decision D6)
+   - Embed v2 (/embed/<tool>/, EmbedLayout) and legacy ?embed tool pages
+     both carry body.embed-mode.
+   - Only the calculator, its result and one attribution link remain: no
+     affiliate cards, email forms, share/PDF actions, tabs or site chrome.
+   - [data-embed-hide] marks layout pieces; the :has() selectors catch the
+     shared result-action components by their current markup until they
+     carry data-embed-hide themselves.
+   ============================================= */
 .embed-mode > header,
 .embed-mode > footer,
 .embed-mode > .sr-only,
-.embed-mode #back-to-calc-btn,
 .embed-mode .scroll-reveal,
-.embed-mode .dot-grid-bg {
+.embed-mode .dot-grid-bg,
+.embed-mode [data-embed-hide],
+.embed-mode [data-export-pdf] {
+  display: none !important;
+}
+
+/* Separate rule: a browser without :has() drops only this block. */
+.embed-mode [data-pdf-hide]:has(> div > a.affiliate-link),
+.embed-mode [data-pdf-hide]:has(> button[aria-label="Email my results"]),
+.embed-mode [data-pdf-hide]:has(> button[aria-label="Share this calculator"]) {
   display: none !important;
 }
 
 .embed-mode {
-  background: white;
+  background: var(--color-surface);
   min-height: auto;
 }
 
@@ -689,7 +753,7 @@ input[type="range"] {
 }
 
 .embed-mode [data-calc-section] {
-  background: white;
+  background: var(--color-surface);
   padding-top: 0;
 }
 
@@ -698,13 +762,19 @@ input[type="range"] {
   padding-bottom: 1rem;
 }
 
-/* Powered-by badge shown only in embed mode */
+/* Powered-by badge shown only in legacy embed mode */
 .embed-badge {
   display: none;
 }
 
 .embed-mode .embed-badge {
   display: flex;
+}
+
+/* Embed v2 attribution line: one quiet link to the full tool */
+.embed-attribution {
+  border-top: 1px solid var(--color-neutral-200);
+  color: var(--color-neutral-600);
 }
 
 /* =============================================
@@ -720,8 +790,12 @@ input[type="range"] {
   --color-neutral-800: #D1D5DB;
   --color-neutral-700: #B0B4BC;
   --color-neutral-600: #9CA3AF;
-  --color-neutral-500: #8B93A1;
-  --color-neutral-400: #5A6270;
+  /* 500/400 are muted TEXT in dark mode (29 `dark:text-neutral-400` uses).
+     The old 400 (#5A6270) was 2.6-3.6:1 on dark surfaces (A11Y-PERF-13,
+     stamp-duty band rows) and 500 only just cleared 4.5:1 on surface-alt.
+     Both now clear 4.9:1 on every dark surface, staying ordered 400 < 500 < 600. */
+  --color-neutral-500: #98A0AC;
+  --color-neutral-400: #939BA7;
   --color-neutral-300: #3D4451;
   --color-neutral-200: #2D333E;
   --color-neutral-100: #232830;
@@ -760,6 +834,12 @@ input[type="range"] {
   --color-red-200: #4A2222;
   --color-red-100: #331B1B;
   --color-red-50: #2A1818;
+
+  /* Negative (errors) — same lifted text / dark tints as red */
+  --color-negative-600: #F87171;
+  --color-negative-500: #F87171;
+  --color-negative-100: #331B1B;
+  --color-negative-50: #2A1818;
 
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.35);
   --shadow-card-hover: 0 10px 28px rgba(0, 0, 0, 0.40);
@@ -833,11 +913,52 @@ input[type="range"] {
   color: var(--color-neutral-900);
 }
 
+/* Flat ink, as in light mode: gradient text is banned by the Precision
+   Instrument rules, and a clipped gradient vanishes in forced colours. */
 [data-theme="dark"] .result-number {
-  background: linear-gradient(135deg, #A3DEDE, #14B8A6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-neutral-900);
+}
+
+/* --- Dark mode: teal highlight tints written as dark:bg-primary-900/NN ---
+   The dark theme INVERTS the primary scale (900 becomes the lightest teal),
+   so "primary-900 at 20%" lightened highlighted rows to a grey #424A50 and
+   failed contrast (A11Y-PERF-13, stamp-duty band row 3.55:1). Map these
+   variants to the dark teal tints they were written to mean. */
+[data-theme="dark"] .dark\:bg-primary-900\/20,
+[data-theme="dark"] .dark\:bg-primary-900\/30 {
+  background-color: var(--color-primary-50);
+}
+[data-theme="dark"] .dark\:bg-primary-900\/40 {
+  background-color: var(--color-primary-100);
+}
+
+/* --- Dark mode: amber warning callouts (A11Y-PERF F-23) ---
+   Components use light-mode amber utilities (bg-amber-50, text-amber-800...)
+   that stayed #FFFBEB in dark mode. Map them to a dark amber surface with
+   light amber text: 11:1 for body text, 5:1 for the 600 accents. These rules
+   are unlayered, so they also win over component `dark:` amber variants and
+   keep every callout identical. */
+[data-theme="dark"] .bg-amber-50,
+[data-theme="dark"] .bg-warning-50 {
+  background-color: #2A2213;
+}
+[data-theme="dark"] .bg-amber-100,
+[data-theme="dark"] .bg-warning-100 {
+  background-color: #3A2D12;
+}
+[data-theme="dark"] .border-amber-200,
+[data-theme="dark"] .border-amber-200\/60,
+[data-theme="dark"] .border-amber-200\/80 {
+  border-color: #5C4515;
+}
+[data-theme="dark"] .text-amber-900,
+[data-theme="dark"] .text-amber-800,
+[data-theme="dark"] .text-amber-700 {
+  color: #F6D38E;
+}
+[data-theme="dark"] .text-amber-600,
+[data-theme="dark"] .text-warning-600 {
+  color: #F2B544;
 }
 
 [data-theme="dark"] .prose {
@@ -1022,6 +1143,87 @@ input[type="range"] {
 [data-theme="dark"] .theme-toggle:hover {
   color: var(--color-neutral-900);
   background-color: var(--color-neutral-100);
+}
+
+/* --- Form controls: 16px minimum on phones and touch devices (LA-9) ---
+   iOS Safari zooms the page when a focused control's text is under 16px
+   (DEVTOOLS-19, CALC-UX-B). Unlayered, so it wins over text-sm/text-xs
+   utilities on inputs; desktop mouse users keep the compact editor sizes. */
+@media (max-width: 1023px), (pointer: coarse) {
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  select,
+  textarea {
+    font-size: max(16px, 1rem);
+  }
+}
+
+/* --- Windows High Contrast / forced colours (A11Y-PERF-15) ---
+   Background colours are dropped in forced colours, so controls drawn only
+   with backgrounds (switches, slider tracks, borderless buttons) vanished.
+   Re-draw them with system colours. */
+@media (forced-colors: active) {
+  /* Switches come in two shapes:
+     A. the role=switch button IS the rounded track, its child is the knob
+        (salary-uk Scottish + salary sacrifice, password generator);
+     B. the role=switch button wraps a rounded track div (knob inside it)
+        plus a text label (solar battery).
+     "Track" below = A's button or B's rounded child; "knob" = the track's
+     rounded child. B's label keeps normal forced-colour text. */
+  :is([role="switch"].rounded-full, [role="switch"]:not(.rounded-full) > .rounded-full) {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    border: 1px solid ButtonText;
+  }
+  :is([role="switch"].rounded-full, [role="switch"]:not(.rounded-full) > .rounded-full) > .rounded-full {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+    box-shadow: none;
+  }
+  :is([role="switch"][aria-checked="true"].rounded-full, [role="switch"][aria-checked="true"]:not(.rounded-full) > .rounded-full) {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+  :is([role="switch"][aria-checked="true"].rounded-full, [role="switch"][aria-checked="true"]:not(.rounded-full) > .rounded-full) > .rounded-full {
+    background-color: HighlightText;
+  }
+  /* Disabled (e.g. the Scottish toggle when an S tax code sets it): the state
+     stays visible but reads as unavailable. */
+  :is([role="switch"].rounded-full:disabled, [role="switch"]:not(.rounded-full):disabled > .rounded-full) {
+    border-color: GrayText;
+  }
+  :is([role="switch"].rounded-full:disabled, [role="switch"]:not(.rounded-full):disabled > .rounded-full) > .rounded-full,
+  :is([role="switch"][aria-checked="true"].rounded-full:disabled, [role="switch"][aria-checked="true"]:not(.rounded-full):disabled > .rounded-full) {
+    background-color: GrayText;
+  }
+  :is([role="switch"][aria-checked="true"].rounded-full:disabled, [role="switch"][aria-checked="true"]:not(.rounded-full):disabled > .rounded-full) > .rounded-full {
+    background-color: Canvas;
+  }
+
+  /* Slider: the filled track is an inline gradient; draw a plain system
+     track instead (!important beats the inline style) and a system thumb. */
+  input[type="range"] {
+    forced-color-adjust: none;
+    background: linear-gradient(ButtonText, ButtonText) center / 100% 2px no-repeat !important;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    background-color: Highlight;
+    border-color: Canvas;
+    box-shadow: 0 0 0 1px ButtonText;
+  }
+  input[type="range"]::-moz-range-thumb {
+    background-color: Highlight;
+    border-color: Canvas;
+  }
+
+  /* Borderless buttons (cookie banner, pills, toggles) get a visible edge.
+     :where() keeps specificity at zero so :focus-visible still wins. */
+  :where(button, [role="button"], [role="tab"]) {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+  }
+  .mini-bar {
+    border-bottom: 1px solid CanvasText;
+  }
 }
 
 /* Reduced motion preferences */

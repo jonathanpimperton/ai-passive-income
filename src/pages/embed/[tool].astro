@@ -1,0 +1,27 @@
+---
+/**
+ * Embed v2 route: /embed/<tool>/ for the financial calculators (D6, LA-6).
+ * Host sites iframe this page; /embed/ (index.astro) generates the snippet.
+ */
+import EmbedLayout from '@layouts/EmbedLayout.astro';
+import ToolIsland from '@components/ui/ToolIsland.astro';
+import { getCollection } from 'astro:content';
+import { isEmbeddable, toolComponent } from '@lib/tool-islands';
+import { islandPreloads } from '@lib/island-preload';
+
+export async function getStaticPaths() {
+  const tools = await getCollection('tools');
+  return tools
+    .filter((tool) => isEmbeddable(tool.data.category, tool.data.slug))
+    .map((tool) => ({ params: { tool: tool.data.slug }, props: { tool } }));
+}
+
+const { tool } = Astro.props;
+const { name, slug, category } = tool.data;
+const toolUrl = `https://www.calcrun.com/tools/${category}/${slug}/`;
+const preloads = import.meta.env.PROD ? islandPreloads(toolComponent(slug)) : [];
+---
+
+<EmbedLayout toolName={name} toolUrl={toolUrl} slug={slug} preloads={preloads}>
+  <ToolIsland slug={slug} name={name} />
+</EmbedLayout>

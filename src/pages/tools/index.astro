@@ -3,12 +3,14 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { TOOLS, POPULAR_TOOL_SLUGS, CATEGORIES, getToolPath, type CategorySlug } from '@lib/tools-data';
 
-const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][];
+const categoryEntries = (Object.entries(CATEGORIES) as [CategorySlug, typeof CATEGORIES[CategorySlug]][])
+  .map(([slug, cat]) => ({ slug, cat, count: TOOLS.filter((t) => t.category === slug).length }))
+  .filter((c) => c.count > 0);
 ---
 
 <BaseLayout
   title="Online Calculators & Tools | CalcRun"
-  description="Browse all 44 calculators, file converters, and utility tools. No signup, no ads, no data harvesting."
+  description={`Browse all ${TOOLS.length} calculators, file converters and utility tools. Instant results, no signup and no ads.`}
 >
   {/* Page header */}
   <section class="border-b border-neutral-200/80 bg-bg">
@@ -17,13 +19,28 @@ const categoryEntries = Object.entries(CATEGORIES) as [CategorySlug, typeof CATE
       <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">
         <span class="tabular-nums">{TOOLS.length}</span> calculators and tools — instant results, no signup required.
       </p>
+      {/* Jump list: the page is ~10 phone screens long (HOME-CHROME-05, /tools/ part) */}
+      <nav aria-label="Tool categories" class="mt-5">
+        <ul class="flex flex-wrap gap-2">
+          {categoryEntries.map(({ slug, cat, count }) => (
+            <li>
+              <a
+                href={`#${slug}`}
+                class="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-200/80 rounded-lg hover:border-primary-500/40 hover:text-primary-700 transition-colors duration-150"
+              >
+                {cat.label}
+                <span class="tabular-nums text-neutral-500">{count}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   </section>
 
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-    {categoryEntries.map(([slug, cat], catIndex) => {
+    {categoryEntries.map(({ slug, cat }, catIndex) => {
       const categoryTools = TOOLS.filter((t) => t.category === slug);
-      if (categoryTools.length === 0) return null;
       return (
         <section id={slug} class="mb-14">
           {catIndex > 0 && (
