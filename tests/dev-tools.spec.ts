@@ -60,6 +60,17 @@ test.describe('Markdown preview (DV-1)', () => {
   });
 });
 
+test.describe('Markdown conversion limits', () => {
+  test('stops input that parses very slowly and stays usable', async ({ page }) => {
+    test.setTimeout(120000);
+    await open(page, '/tools/file-tools/markdown-html/');
+    await page.locator('#md-html-input').fill('[a]('.repeat(1500));
+    await expect(tool(page).getByRole('alert')).toContainText('too complex to convert in the browser', { timeout: 60000 });
+    await page.locator('#md-html-input').fill('# Fine');
+    await expect(page.locator('#md-html-output')).toHaveValue(/<h1>Fine<\/h1>/);
+  });
+});
+
 test.describe('JSON formatter (DV-3)', () => {
   test('keeps big numbers exactly and minifies into the output', async ({ page }) => {
     await open(page, '/tools/utility/json-formatter/');
@@ -100,6 +111,43 @@ test.describe('JSON and XML (DV-4, DV-5)', () => {
     await expect(tool(page).getByRole('alert')).toContainText('does not look like XML');
   });
 
+  test('XML to JSON names a reserved element and the tool stays usable', async ({ page }) => {
+    await open(page, '/tools/file-tools/json-xml/');
+    await page.getByRole('button', { name: /Switch to XML to JSON/ }).click();
+    await page.locator('#xml-input').fill('<root><constructor>1</constructor></root>');
+    await expect(tool(page).getByRole('alert')).toContainText('"constructor"');
+    await expect(page.getByRole('button', { name: /Switch to JSON to XML/ })).toBeVisible();
+    await page.locator('#xml-input').fill('<root><item>ok</item></root>');
+    await expect(page.locator('#xml-output')).toHaveValue(/"item": "ok"/);
+  });
+
+  test('XML to JSON explains declarations it does not support', async ({ page }) => {
+    await open(page, '/tools/file-tools/json-xml/');
+    await page.getByRole('button', { name: /Switch to XML to JSON/ }).click();
+    await page.locator('#xml-input').fill('<!DOCTYPE a [<!ENTITY % p "x">]><a>1</a>');
+    await expect(tool(page).getByRole('alert')).toContainText('parameter entity');
+    await page.locator('#xml-input').fill(`<!DOCTYPE a [<!ENTITY big "${'x'.repeat(10001)}">]><a>&big;</a>`);
+    await expect(tool(page).getByRole('alert')).toContainText('"&big;"');
+    await page.locator('#xml-input').fill('<a><b>1</b></a>');
+    await expect(page.locator('#xml-output')).toHaveValue(/"b": "1"/);
+  });
+
+  test('XML to JSON says when it renames a name JavaScript objects already use', async ({ page }) => {
+    await open(page, '/tools/file-tools/json-xml/');
+    await page.getByRole('button', { name: /Switch to XML to JSON/ }).click();
+    await page.locator('#xml-input').fill('<a><toString>1</toString></a>');
+    await expect(page.locator('#xml-output')).toHaveValue(/"__toString": "1"/);
+    await expect(tool(page).getByText(/<toString> is a name that JavaScript objects already use/)).toBeVisible();
+  });
+
+  test('JSON to XML writes each attribute once and says so', async ({ page }) => {
+    await open(page, '/tools/file-tools/json-xml/');
+    await page.locator('#xml-input').fill('{"r":{"@_a b":"1","@_a_b":"2"}}');
+    await expect(page.locator('#xml-output')).toHaveValue(/<r a_b="2"\/>/);
+    await expect(tool(page).getByText(/only the last value was kept/)).toBeVisible();
+    await expect(tool(page).getByText(/Please report/)).toHaveCount(0);
+  });
+
   test('JSON to XML writes one root and valid names', async ({ page }) => {
     await open(page, '/tools/file-tools/json-xml/');
     await page.locator('#xml-input').fill('{"name":"Alice","age":30,"first name":"A","tags":["x","y"]}');
@@ -120,6 +168,13 @@ test.describe('JSON and XML (DV-4, DV-5)', () => {
 });
 
 test.describe('JSON and YAML (DV-11)', () => {
+  test('keeps whole numbers beyond 2^53 exactly', async ({ page }) => {
+    await open(page, '/tools/file-tools/json-yaml/');
+    await page.locator('#yaml-input').fill('{"id":12345678901234567890,"n":5}');
+    await expect(page.locator('#yaml-output')).toHaveValue(/id: 12345678901234567890\n/);
+    await expect(tool(page).getByText(/rounded/)).toHaveCount(0);
+  });
+
   test('converts a multi-document YAML file to an array', async ({ page }) => {
     await open(page, '/tools/file-tools/json-yaml/');
     await page.getByRole('button', { name: /Switch to YAML to JSON/ }).click();
@@ -222,6 +277,25 @@ test.describe('Password generator (DV-2, DV-11)', () => {
 });
 
 test.describe('JWT decoder (DV-11)', () => {
+  const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
+
+  test('decodes a token whose time claims are far outside the range of real dates', async ({ page }) => {
+    await open(page, '/tools/utility/jwt-decoder/');
+    await page.locator('#jwt-input').fill(`${b64({ alg: 'HS256' })}.${b64({ sub: 'x', exp: 1e20, nbf: -1e20, iat: 1e300 })}.c2ln`);
+    await expect(page.getByRole('heading', { name: 'Payload' })).toBeVisible();
+    await expect(page.getByText('Expiry unclear: "exp" looks like milliseconds')).toBeVisible();
+    await expect(tool(page).getByText(/outside the range of real dates/).first()).toBeVisible();
+    await page.locator('#jwt-input').fill('not a token');
+    await expect(tool(page).getByRole('alert')).toBeVisible();
+  });
+
+  test('says the expiry is not a number when it is written as text', async ({ page }) => {
+    await open(page, '/tools/utility/jwt-decoder/');
+    await page.locator('#jwt-input').fill(`${b64({ alg: 'HS256' })}.${b64({ exp: '1893456000' })}.c2ln`);
+    await expect(page.getByText('Expiry unclear: "exp" is not a number')).toBeVisible();
+    await expect(page.getByText(/no "exp" claim/)).toHaveCount(0);
+  });
+
   test('never calls a not-yet-active token valid', async ({ page }) => {
     await open(page, '/tools/utility/jwt-decoder/');
     const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
