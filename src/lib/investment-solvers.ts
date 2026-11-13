@@ -214,6 +214,8 @@ export type RateSolution =
   | { status: 'ok'; rate: number }
   /** Even MAX_SOLVE_RATE (100% a year) falls short. */
   | { status: 'tooHigh'; balanceAtMaxRate: number }
+  /** Even MIN_SOLVE_RATE (losing 99% a year) still ends at or above the target: no rate needs solving. */
+  | { status: 'metAtAnyRate'; balanceAtMinRate: number }
   /** Nothing is invested, or the horizon is zero. */
   | { status: 'invalid' };
 
@@ -243,7 +245,8 @@ export function solveRequiredRate(
   if (atMax < target) return { status: 'tooHigh', balanceAtMaxRate: atMax };
   let lo = MIN_SOLVE_RATE;
   let hi = MAX_SOLVE_RATE;
-  if (fv(lo) >= target) return { status: 'ok', rate: lo };
+  const atMin = fv(lo);
+  if (atMin >= target) return { status: 'metAtAnyRate', balanceAtMinRate: atMin };
   for (let iter = 0; iter < 200; iter++) {
     const mid = (lo + hi) / 2;
     if (mid === lo || mid === hi) break; // interval exhausted at double precision

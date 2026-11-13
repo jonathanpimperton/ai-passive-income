@@ -53,6 +53,17 @@ export function textForEditing(value: number | null, currency?: string): string 
   return formatForInput(value, currency);
 }
 
+/**
+ * A number written so it cannot be misread in either convention: whole
+ * numbers without separators ("1234"), decimals with the word "point"
+ * ("1 point 234").
+ */
+export function describeUnambiguously(value: number): string {
+  const plain = formatForInput(value, 'USD'); // plain decimal, no grouping
+  const [intPart, frac] = plain.split('.');
+  return frac === undefined ? intPart : `${intPart} point ${frac}`;
+}
+
 function failureMessage(reason: ParseFailureReason, rules: NumericFieldRules): string {
   const eur = rules.currency === 'EUR';
   switch (reason) {
@@ -84,8 +95,12 @@ export function interpretNumericText(text: string, rules: NumericFieldRules = {}
     if (parsed.reason === 'empty' && allowEmpty) return { kind: 'empty' };
     const options = (parsed.candidates ?? []).filter((c) => Number.isFinite(c));
     if (parsed.reason === 'ambiguous' && options.length > 1) {
-      const list = options.map((c) => formatEditableNumber(c, rules.currency, 6));
-      return { kind: 'error', message: `Did you mean ${list.slice(0, -1).join(', ')} or ${list[list.length - 1]}? Type it without separators to be sure.` };
+      const said = options.map(describeUnambiguously);
+      const typed = options.map((c) => formatForInput(c, rules.currency));
+      return {
+        kind: 'error',
+        message: `Did you mean ${said.slice(0, -1).join(', ')} or ${said[said.length - 1]}? Type ${typed.slice(0, -1).join(', ')} or ${typed[typed.length - 1]} to be sure.`,
+      };
     }
     return { kind: 'error', message: failureMessage(parsed.reason, rules) };
   }

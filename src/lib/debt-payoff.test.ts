@@ -164,6 +164,18 @@ describe('never / beyond horizon (S1-11: MATH-US-03)', { timeout: 60000 }, () =>
     expect(legacy.months).toBe(600); // legacy behaviour kept, but now flagged
   });
 
+  it('review probe: a slowly shrinking debt beside a growing 0%-minimum debt is beyondHorizon, not never (it clears at month 2,078)', () => {
+    const debts: Debt[] = [
+      { name: 'X', balance: 50000, rate: 0.06, minPayment: 250.01 },
+      { name: 'Y', balance: 10000, rate: 0.001, minPayment: 0 },
+    ];
+    const r = simulateDebtPayoff(debts, 0, 'avalanche');
+    expect(r.status).toBe('beyondHorizon');
+    const long = simulateDebtPayoff(debts, 0, 'avalanche', { horizonMonths: 3000 });
+    expect(long.status).toBe('paid');
+    expect(long.months).toBeGreaterThan(DEBT_HORIZON_MONTHS);
+  });
+
   it('a slow but shrinking debt is beyondHorizon, not never', () => {
     // $50,000 at 6% paying $251: interest $250 a month, shrinks by about $1 a month at first (about 92 years).
     const r = simulateDebtPayoff([{ name: 'Slow', balance: 50000, rate: 0.06, minPayment: 251 }], 0, 'avalanche');
@@ -190,9 +202,11 @@ describe('never / beyond horizon (S1-11: MATH-US-03)', { timeout: 60000 }, () =>
           expect(r.clearances.every((c) => c.month !== null)).toBe(true);
         } else {
           expect(r.months).toBe(DEBT_HORIZON_MONTHS);
-          const tl = r.timeline;
-          const falling = tl[tl.length - 1].totalBalance < tl[tl.length - 2].totalBalance - 1e-9;
-          expect(r.status).toBe(falling ? 'beyondHorizon' : 'never');
+          expect(r.remainingBalance).toBeGreaterThan(0);
+          if (r.status === 'never') {
+            // "never" must be provable: a much longer run still cannot clear it.
+            expect(simulateDebtPayoff(debts, extra, strategy, { horizonMonths: 2400 }).status).not.toBe('paid');
+          }
         }
         expect(Number.isFinite(r.totalInterest)).toBe(true);
         expect(Number.isFinite(r.totalPaid)).toBe(true);

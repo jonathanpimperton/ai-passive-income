@@ -19,8 +19,11 @@
  *
  *   cost of the fee gap      = |balance at fee A - balance at fee B|
  *   growth lost to a fee     = balance at 0% fee - balance at that fee
- *   share of returns lost    = cost of the gap / earnings at the lower fee
- *                              (not defined when those earnings are <= 0)
+ *   share of returns lost    = cost of the gap / earnings at the lower fee,
+ *                              capped at 100% (not defined when those
+ *                              earnings are <= 0). Above 100% the higher-fee
+ *                              fund ends below what was paid in; that part is
+ *                              reported separately as contributions lost.
  */
 import { futureValue, growthSchedule, type GrowthInputs } from './investment-solvers';
 
@@ -48,8 +51,16 @@ export interface FeeComparison {
   compFeesPaid: number;
   /** Absolute difference between the two final balances. */
   feeCost: number;
-  /** Fraction of the lower-fee fund's earnings lost to the gap, or null when those earnings are <= 0. */
+  /**
+   * Fraction of the lower-fee fund's earnings lost to the gap, capped at 1
+   * (all of them), or null when those earnings are <= 0.
+   */
   shareOfReturnsLost: number | null;
+  /**
+   * When the higher-fee fund ends below the money paid in, the gap takes all
+   * of the returns AND this much of the contributions; otherwise 0.
+   */
+  contributionsLost: number;
 }
 
 function inputsAt(feePercent: number, i: FeeComparisonInputs): GrowthInputs {
@@ -70,6 +81,7 @@ export function compareFees(i: FeeComparisonInputs): FeeComparison {
   const totalContributions = i.principal + i.monthlyContribution * months;
   const lowerFeeBalance = i.yourFeePercent <= i.comparisonFeePercent ? yourBalance : compBalance;
   const lowerFeeEarnings = lowerFeeBalance - totalContributions;
+  const higherFeeBalance = i.yourFeePercent <= i.comparisonFeePercent ? compBalance : yourBalance;
   const feeCost = Math.abs(yourBalance - compBalance);
   return {
     yourNetReturnPercent: i.grossReturnPercent - i.yourFeePercent,
@@ -83,7 +95,8 @@ export function compareFees(i: FeeComparisonInputs): FeeComparison {
     yourFeesPaid: zeroFeeBalance - yourBalance,
     compFeesPaid: zeroFeeBalance - compBalance,
     feeCost,
-    shareOfReturnsLost: lowerFeeEarnings > 0 ? feeCost / lowerFeeEarnings : null,
+    shareOfReturnsLost: lowerFeeEarnings > 0 ? Math.min(1, feeCost / lowerFeeEarnings) : null,
+    contributionsLost: lowerFeeEarnings > 0 ? Math.max(0, totalContributions - higherFeeBalance) : 0,
   };
 }
 

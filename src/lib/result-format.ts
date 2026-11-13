@@ -17,7 +17,9 @@ const SYMBOLS: Record<string, string> = { USD: '$', GBP: String.fromCharCode(0xa
 
 /** True when a money figure is not something a person could plausibly have. */
 export function isExtremeMoney(value: number): boolean {
-  return !Number.isFinite(value) || Math.abs(value) >= EXTREME_MONEY;
+  // Judged on the whole-unit value that would be displayed, so 999,999,999,999.995
+  // (which would print as "$1,000,000,000,000") counts as extreme.
+  return !Number.isFinite(value) || Math.abs(Math.round(value)) >= EXTREME_MONEY;
 }
 
 /**
@@ -27,7 +29,7 @@ export function isExtremeMoney(value: number): boolean {
  */
 export function formatMoneyGuarded(value: number, currency: string = 'USD'): string {
   if (!Number.isFinite(value)) return '--';
-  if (Math.abs(value) >= EXTREME_MONEY) {
+  if (isExtremeMoney(value)) {
     const symbol = SYMBOLS[currency] ?? '$';
     return value > 0 ? `Over ${symbol}1 trillion` : `Under -${symbol}1 trillion`;
   }

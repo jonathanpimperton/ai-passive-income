@@ -170,6 +170,15 @@ describe('solveRequiredRate', () => {
     }
   });
 
+  it('reports metAtAnyRate (no fake -99% "solution") when even losing 99% a year overshoots', () => {
+    const s = solveRequiredRate(10000, 200, 1000, 240);
+    expect(s.status).toBe('metAtAnyRate');
+    if (s.status === 'metAtAnyRate') {
+      expect(s.balanceAtMinRate).toBeGreaterThanOrEqual(1000);
+      expect(s.balanceAtMinRate).toBeCloseTo(futureValue({ principal: 10000, monthlyContribution: 200, annualRate: -0.99 }, 240), 6);
+    }
+  });
+
   it('says tooHigh when even 100% a year falls short', () => {
     const s = solveRequiredRate(100, 0, 1e12, 12);
     expect(s.status).toBe('tooHigh');
@@ -191,9 +200,12 @@ describe('solveRequiredRate', () => {
       const s = solveRequiredRate(p, pmt, target, months, n, timing);
       if (s.status === 'ok') {
         const fv = futureValue({ principal: p, monthlyContribution: pmt, annualRate: s.rate, compoundingPerYear: n, timing }, months);
-        if (s.rate > -0.99) expect(Math.abs(fv - target)).toBeLessThan(Math.max(0.01, target * 1e-9));
+        expect(Math.abs(fv - target)).toBeLessThan(Math.max(0.01, target * 1e-9));
+        expect(s.rate).toBeGreaterThan(-0.99);
       } else if (s.status === 'tooHigh') {
         expect(s.balanceAtMaxRate).toBeLessThan(target);
+      } else if (s.status === 'metAtAnyRate') {
+        expect(s.balanceAtMinRate).toBeGreaterThanOrEqual(target);
       }
     }
   });

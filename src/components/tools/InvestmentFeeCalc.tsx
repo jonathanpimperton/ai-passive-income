@@ -93,7 +93,13 @@ export default function InvestmentFeeCalc() {
       { label: 'Total Contributions', value: fmt(results.totalContributions) },
     ];
     if (results.shareOfReturnsLost !== null) {
-      items.push({ label: 'Returns Lost to Fee Gap', value: `${(results.shareOfReturnsLost * 100).toFixed(1)}%` });
+      items.push({
+        label: 'Returns Lost to Fee Gap',
+        value:
+          results.contributionsLost > 0
+            ? `All of them, plus ${fmt(results.contributionsLost)} of contributions`
+            : `${(results.shareOfReturnsLost * 100).toFixed(1)}%`,
+      });
     }
     return items;
   }, [results, yourFee, comparisonFee, currency]);
@@ -261,8 +267,11 @@ export default function InvestmentFeeCalc() {
                 <p className="text-sm text-amber-800 leading-relaxed">
                   A {feeGap}% difference in fees on a {fmt(principal)} investment with {fmt(monthly)}/month over{' '}
                   {yearsText} costs {fmt(results.feeCost)}
-                  {results.shareOfReturnsLost !== null && results.shareOfReturnsLost > 0 && (
+                  {results.shareOfReturnsLost !== null && results.shareOfReturnsLost > 0 && results.contributionsLost <= 0 && (
                     <>, which is {(results.shareOfReturnsLost * 100).toFixed(1)}% of the lower-fee fund's returns</>
+                  )}
+                  {results.contributionsLost > 0 && (
+                    <>, which wipes out all of the lower-fee fund's returns and {fmt(results.contributionsLost)} of the money paid in</>
                   )}
                   . Fees come off the annual return; growth compounds monthly.
                 </p>

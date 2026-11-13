@@ -16,12 +16,17 @@
  * Outcomes (review MATH-US-03: the old code printed "50 years" and "$40M
  * interest" for a debt that never shrinks):
  * - 'paid':          every debt cleared within the horizon; totals exact.
- * - 'never':         not cleared within the horizon and the total balance
- *                    is not falling at the end of it (the outlay no longer
- *                    covers the interest on what is left), so it will never
- *                    be cleared. Totals are unbounded and must not be shown.
- * - 'beyondHorizon': not cleared within the horizon but still falling.
- *                    Totals cover the horizon only.
+ * - 'never':         provably never cleared: at the end of the horizon every
+ *                    open debt's interest is at least the most it could be
+ *                    paid (its own minimum plus the whole extra/rollover
+ *                    pool). Then no balance can fall, so no debt can clear,
+ *                    so the pool never grows and the interest only rises.
+ *                    Totals are unbounded and must not be shown.
+ * - 'beyondHorizon': not cleared within the horizon and "never" is not
+ *                    provable (a trend at month 600 is not decisive with
+ *                    several debts: a slowly shrinking debt can clear decades
+ *                    later and release its minimum). Totals cover the horizon
+ *                    only.
  * - 'empty':         no debts.
  * Debts are tracked by position, so two debts with the same name are kept
  * apart (review MATH-US-04).
@@ -176,9 +181,10 @@ export function simulateDebtPayoff(
   if (debts.length === 0) status = 'empty';
   else if (!balances.some((b) => b > 0.01)) status = 'paid';
   else {
-    const last = timeline[timeline.length - 1]?.totalBalance ?? remainingBalance;
-    const prev = timeline[timeline.length - 2]?.totalBalance ?? Infinity;
-    status = last >= prev - 1e-9 ? 'never' : 'beyondHorizon';
+    const pool = extra + rolledMinimums;
+    const open = balances.map((b, i) => i).filter((i) => balances[i] > 0.01);
+    const provablyNever = open.every((i) => mins[i] + pool <= balances[i] * (rates[i] / 12) + 1e-9);
+    status = provablyNever ? 'never' : 'beyondHorizon';
   }
 
   const clearances: DebtClearance[] = [

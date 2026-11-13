@@ -164,15 +164,22 @@ export default function RoiCalc() {
               {showComparison ? '- Hide comparison' : '+ Compare with another investment'}
             </button>
 
-            {showComparison && (
-              <div id="roi-compare" className="space-y-5 pt-2">
+            <div
+              id="roi-compare"
+              inert={showComparison ? undefined : true}
+              aria-hidden={showComparison ? undefined : true}
+              className={`grid grid-cols-1 transition-all duration-200 ${showComparison ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 -mt-5'}`}
+            >
+              <div className="min-h-0 overflow-hidden">
+              <div className="space-y-5 pt-2">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Investment B</p>
                 <SliderInput label="Initial Investment" id="roi-initial-b" value={initialB} min={100} max={500000} step={1000} textMax={10000000} minLabel={`${currencySymbol}100`} maxLabel={`${currencySymbol}500K`} onChange={setInitialB} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Final Value" id="roi-final-b" value={finalB} min={0} max={1000000} step={2500} textMax={20000000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}1M`} onChange={setFinalB} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Dividends / Income Received" id="roi-div-b" value={dividendsB} min={0} max={20000} step={50} textMax={100000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}20K`} onChange={setDividendsB} prefix={currencySymbol} formatDisplay={formatNumber} />
                 <SliderInput label="Time Held (Years)" id="roi-years-b" value={yearsB} min={0.25} max={100} step={0.25} onChange={setYearsB} formatDisplay={(v) => v.toFixed(v % 1 === 0 ? 0 : 2)} />
               </div>
-            )}
+              </div>
+            </div>
           </div>
         </div>
 

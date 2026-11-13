@@ -149,6 +149,15 @@ export default function InvestmentReturnCalc() {
             effective: { inputs: withAll(principal, monthly, s.rate), months },
           };
         }
+        if (s.status === 'metAtAnyRate') {
+          return {
+            label: 'Required Return Rate',
+            amount: null,
+            formatted: 'No growth needed',
+            context: `Even losing 99% a year leaves ${fmt(s.balanceAtMinRate)} after ${yearsText}, above your ${fmt(target)} target, so there is no rate to solve for.`,
+            effective: null,
+          };
+        }
         if (s.status === 'tooHigh') {
           return {
             label: 'Required Return Rate',

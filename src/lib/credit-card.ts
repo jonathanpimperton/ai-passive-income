@@ -13,15 +13,17 @@
  *                   least $25). The payment falls as the balance falls.
  * - 'interestPlus': the month's interest plus a percentage of the balance,
  *                   with a floor (e.g. interest + 1%, at least $25). This is
- *                   the structure UK rules require (FCA CONC 6.7.5R: at least
- *                   the interest, fees and charges plus 1% of the amount
- *                   outstanding) and the common US issuer formula; US bank
+ *                   the structure UK rules require (FCA Handbook CONC
+ *                   6.7.5R(1): at least the interest, fees and charges
+ *                   applied plus 1% of the amount outstanding) and the
+ *                   common US issuer formula; US bank
  *                   regulators expect minimums that "amortize the current
  *                   balance over a reasonable period of time" (FFIEC
  *                   interagency guidance, Jan 2003). It always reduces the
  *                   balance.
  *   Sources (accessed 2026-11-12):
- *   https://www.fca.org.uk/publications/finalised-guidance/credit-cards-retail-revolving-credit-coronavirus-temporary-guidance-firms/printable/print
+ *   FCA Handbook CONC 6.7.5R(1): https://www.handbook.fca.org.uk/handbook/CONC/6/7.html
+ *   FFIEC Account Management and Loss Allowance Guidance (Jan 2003):
  *   https://www.fdic.gov/news/financial-institution-letters/2003/FIL0302a.html
  *
  * Outcomes:

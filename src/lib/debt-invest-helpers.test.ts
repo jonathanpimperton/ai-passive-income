@@ -119,6 +119,16 @@ describe('investment fee (DB-7, MTH-08)', () => {
     expect(c.yourEarnings).toBeLessThan(0);
   });
 
+  it('share of returns lost is capped at 100% and the extra is reported as contributions lost', () => {
+    const c = compareFees({ principal: 10000, monthlyContribution: 100, grossReturnPercent: 1.5, years: 20, yourFeePercent: 3, comparisonFeePercent: 0.1 });
+    expect(c.shareOfReturnsLost).toBe(1);
+    expect(c.contributionsLost).toBeCloseTo(c.totalContributions - c.yourBalance, 6);
+    expect(c.contributionsLost).toBeGreaterThan(0);
+    const normal = compareFees({ ...base, yourFeePercent: 0.5, comparisonFeePercent: 1 });
+    expect(normal.shareOfReturnsLost as number).toBeLessThan(1);
+    expect(normal.contributionsLost).toBe(0);
+  });
+
   it('share of returns lost is null when the lower-fee fund has no earnings', () => {
     const c = compareFees({ principal: 1000, monthlyContribution: 0, grossReturnPercent: 1, years: 5, yourFeePercent: 2, comparisonFeePercent: 3 });
     expect(c.shareOfReturnsLost).toBeNull();
@@ -140,6 +150,12 @@ describe('guarded formatting (CALC-UX-B edge values)', () => {
     expect(isExtremeMoney(v)).toBe(true);
     expect(formatMoneyGuarded(v, 'USD')).toBe('Over $1 trillion');
     expect(formatMoneyGuarded(v, 'GBP')).toBe(`Over ${String.fromCharCode(0xa3)}1 trillion`);
+  });
+
+  it('decides on the displayed (rounded) value: 999,999,999,999.995 is over a trillion', () => {
+    expect(formatMoneyGuarded(999_999_999_999.995)).toBe('Over $1 trillion');
+    expect(isExtremeMoney(999_999_999_999.4)).toBe(false);
+    expect(formatMoneyGuarded(999_999_999_999.4)).toBe('$999,999,999,999');
   });
 
   it('ordinary values format normally; non-finite is "--"', () => {
@@ -221,6 +237,17 @@ describe('numeric text fields (DB-4: CALC-UX-B-04)', () => {
   it('ambiguous input with no range asks "Did you mean ...?"', () => {
     const r = interpretNumericText('50,000', { currency: 'EUR' });
     expect(r.kind).toBe('error');
-    if (r.kind === 'error') expect(r.message).toMatch(/^Did you mean 50 or 50\.000\?/);
+    if (r.kind === 'error') expect(r.message).toBe('Did you mean 50 or 50000? Type 50 or 50000 to be sure.');
+  });
+
+  it('EUR "1,234" offers forms that cannot be misread (not "1,234 or 1.234")', () => {
+    const r = interpretNumericText('1,234', { currency: 'EUR' });
+    expect(r.kind).toBe('error');
+    if (r.kind === 'error') {
+      expect(r.message).toContain('1 point 234');
+      expect(r.message).toContain('1234');
+      expect(r.message).toContain('1,2340');
+      expect(r.message).not.toMatch(/1\.234/);
+    }
   });
 });
