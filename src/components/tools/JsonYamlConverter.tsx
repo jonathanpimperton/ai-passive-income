@@ -10,6 +10,7 @@ import { parseJsonLossless } from '../../lib/dev-tools/json-lossless';
 import { yamlToJson, jsonToYaml, looksLikeYaml, type JsYamlModule, type YamlSchemaChoice } from '../../lib/dev-tools/yaml';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
 import { useSizeAwareDebounce } from '../../lib/dev-tools/use-size-aware-debounce';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 type Mode = 'json-to-yaml' | 'yaml-to-json';
 type IndentSize = 2 | 4;
@@ -66,7 +67,7 @@ export default function JsonYamlConverter() {
     };
   }, []);
 
-  const result = useMemo<Result>(() => {
+  const result = useMemo<Result>(() => safely<Result>(() => {
     const none: Result = { output: '', error: '', warnings: [], switchHint: false };
     if (!settledInput.trim()) return none;
     if (!jsYaml) return { ...none, error: loadError };
@@ -88,7 +89,7 @@ export default function JsonYamlConverter() {
     const r = yamlToJson(jsYaml, settledInput, { schema, indent: indentSize });
     if (!r.ok) return { ...none, error: r.error };
     return { ...none, output: r.json, warnings: r.warnings };
-  }, [settledInput, mode, indentSize, schema, jsYaml, loadError]);
+  }, (message) => ({ output: '', error: message, warnings: [], switchHint: false })), [settledInput, mode, indentSize, schema, jsYaml, loadError]);
 
   const waitingForLibrary = !jsYaml && !loadError && !!input.trim();
 

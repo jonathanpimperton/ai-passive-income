@@ -185,4 +185,11 @@ describe('toJsValue', () => {
     toJsValue(ok('[9007199254740993, 1.5]').value, (raw) => lossy.push(raw));
     expect(lossy).toEqual(['9007199254740993']);
   });
+
+  it('returns whole numbers as BigInt when asked, so no digits are lost', () => {
+    const lossy: string[] = [];
+    const v = toJsValue(ok('[9007199254740993, -12345678901234567890, 18446744073709551616, 5, 0.1234567890123456789]').value, (raw) => lossy.push(raw), { exactIntegers: true });
+    expect(v).toEqual([9007199254740993n, -12345678901234567890n, 18446744073709551616n, 5, 0.12345678901234568]);
+    expect(lossy).toEqual(['0.1234567890123456789']);
+  });
 });

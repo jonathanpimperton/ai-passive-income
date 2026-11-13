@@ -28,7 +28,8 @@ export interface JsYamlModule {
   dump(value: unknown, options?: Record<string, unknown>): string;
   CORE_SCHEMA: unknown;
   JSON_SCHEMA: unknown;
-  DEFAULT_SCHEMA: unknown;
+  DEFAULT_SCHEMA: { extend(definition: Record<string, unknown>): unknown };
+  Type: new (tag: string, definition: Record<string, unknown>) => unknown;
 }
 
 /** Maximum values written when expanding aliases into JSON. */
@@ -189,19 +190,38 @@ export function yamlToJson(
   return { ok: true, json: result.text, warnings, documents: docs.length };
 }
 
+/**
+ * The dump schema writes BigInt values (whole numbers JSON holds exactly but a
+ * JavaScript number cannot) as plain YAML integers, digit for digit. The tag is
+ * our own so it sits beside the built-in int type instead of replacing it.
+ */
+function dumpSchema(mod: JsYamlModule): unknown {
+  const exactInteger = new mod.Type('tag:calcrun.com,2026:exact-integer', {
+    kind: 'scalar',
+    resolve: (data: string) => /^-?[0-9]+$/.test(data),
+    predicate: (value: unknown) => typeof value === 'bigint',
+    represent: (value: bigint) => value.toString(),
+  });
+  return mod.DEFAULT_SCHEMA.extend({ implicit: [exactInteger] });
+}
+
 export type JsonToYamlResult = { ok: true; yaml: string; warnings: string[] } | { ok: false; error: string };
 
 export function jsonToYaml(mod: JsYamlModule, root: JsonNode, opts: { indent: number }): JsonToYamlResult {
   const lossy: string[] = [];
-  const value = toJsValue(root, (raw, becomes) => {
-    if (lossy.length < 3) lossy.push(`${raw} -> ${becomes}`);
-    else if (lossy.length === 3) lossy.push('...');
-  });
+  const value = toJsValue(
+    root,
+    (raw, becomes) => {
+      if (lossy.length < 3) lossy.push(`${raw} -> ${becomes}`);
+      else if (lossy.length === 3) lossy.push('...');
+    },
+    { exactIntegers: true },
+  );
   try {
-    const yaml = mod.dump(value, { indent: opts.indent, lineWidth: -1, noRefs: true, sortKeys: false });
+    const yaml = mod.dump(value, { indent: opts.indent, lineWidth: -1, noRefs: true, sortKeys: false, schema: dumpSchema(mod) });
     const warnings: string[] = [];
     if (lossy.length) {
-      warnings.push(`Some numbers are too large or too precise for exact conversion and were rounded: ${lossy.join(', ')}. Quote them in the JSON to keep them exact.`);
+      warnings.push(`Some numbers are too precise or too large for exact conversion and were rounded: ${lossy.join(', ')}. Quote them in the JSON to keep them exact.`);
     }
     return { ok: true, yaml, warnings };
   } catch (e) {

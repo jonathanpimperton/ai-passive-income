@@ -572,14 +572,22 @@ export function describeTopLevel(node: JsonNode): { type: string; keys: number }
  * Convert to plain JavaScript values for libraries that need them (js-yaml).
  * Objects have a null prototype so a "__proto__" key survives as data.
  * Duplicate keys keep the last value, as JSON.parse does. Numbers that
- * JavaScript cannot hold exactly are reported through `onLossy`.
+ * JavaScript cannot hold exactly are reported through `onLossy`; with
+ * `exactIntegers`, whole numbers beyond 2^53 are returned as BigInt, so a
+ * consumer that can write them (the YAML dumper) keeps every digit.
  */
-export function toJsValue(root: JsonNode, onLossy?: (raw: string, becomes: string) => void): unknown {
+export function toJsValue(
+  root: JsonNode,
+  onLossy?: (raw: string, becomes: string) => void,
+  opts: { exactIntegers?: boolean } = {},
+): unknown {
   const convert = (node: JsonNode): unknown => {
     switch (node.kind) {
       case 'string':
         return node.value;
       case 'number': {
+        // Beyond 2^53 a double may hold the value (e.g. 2^64) yet print other digits.
+        if (opts.exactIntegers && /^-?[0-9]+$/.test(node.raw) && !Number.isSafeInteger(Number(node.raw))) return BigInt(node.raw);
         const lossy = jsRendering(node.raw);
         if (lossy !== null) onLossy?.(node.raw, lossy);
         return Number(node.raw);

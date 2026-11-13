@@ -105,9 +105,22 @@ describe('JSON to YAML', () => {
     expect(j2y('{"__proto__":{"x":1},"a":1}').yaml).toContain('__proto__:');
   });
 
-  it('warns when a number cannot be converted exactly', () => {
-    const { warnings } = j2y('{"id":12345678901234567890}');
-    expect(warnings[0]).toMatch(/12345678901234567890 -> 12345678901234567000/);
+  it('keeps whole numbers beyond 2^53 exactly, with no rounding warning', () => {
+    const { yaml, warnings } = j2y('{"id":12345678901234567890,"neg":-9007199254740993,"list":[18446744073709551616],"small":5,"text":"12345678901234567890"}');
+    expect(yaml).toContain('id: 12345678901234567890\n');
+    expect(yaml).toContain('neg: -9007199254740993\n');
+    expect(yaml).toContain('- 18446744073709551616\n');
+    expect(yaml).toContain('small: 5\n');
+    expect(yaml).toContain("text: '12345678901234567890'");
+    expect(warnings).toEqual([]);
+  });
+
+  it('still warns when a decimal is too precise to convert exactly', () => {
+    const { yaml, warnings } = j2y('{"x":0.1234567890123456789,"big":12345678901234567890}');
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatch(/0\.1234567890123456789 -> 0\.12345678901234568/);
+    expect(warnings[0]).not.toMatch(/12345678901234567890 ->/);
+    expect(yaml).toContain('big: 12345678901234567890');
   });
 });
 
