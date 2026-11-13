@@ -14,10 +14,12 @@ import SliderInput, {
   describeParseFailure,
   formatBound,
   resolveConvention,
+  reconcileConvention,
   toEurSeparators,
   valueToVirtual,
   virtualToValue,
   isNonLinear,
+  fillPercent,
 } from './SliderInput';
 import { parseNumericInput } from '../../lib/parse-number';
 import type { CurrencyCode } from '../../lib/currency';
@@ -284,5 +286,35 @@ describe('server markup', () => {
     const virt = valueToVirtual(35000, 10000, 500000);
     expect(html).toMatch(new RegExp(`<input type="range"[^>]*aria-valuenow="35000"[^>]*value="${virt}"`));
     expect(html).toMatch(/--slider-fill:\d+(\.\d+)?%/);
+  });
+});
+
+describe('slider fill percentage', () => {
+  it('is rounded to two decimals (no float noise in the CSS variable)', () => {
+    expect(fillPercent(1, 0, 3)).toBe(33.33);
+    expect(fillPercent(2, 0, 3)).toBe(66.67);
+    expect(String(fillPercent(7, 0, 9))).not.toMatch(/\d{4,}/);
+  });
+  it('stays within 0 to 100', () => {
+    expect(fillPercent(-5, 0, 10)).toBe(0);
+    expect(fillPercent(15, 0, 10)).toBe(100);
+    expect(fillPercent(3, 3, 3)).toBe(0);
+  });
+});
+
+describe('convention for text typed before hydration', () => {
+  it('a $ prefix or USD is only the hydration default: the visitor currency decides', () => {
+    expect(reconcileConvention(undefined, '$', null, 'EUR')).toBe('EUR');
+    expect(reconcileConvention('USD', '$', null, 'EUR')).toBe('EUR');
+    expect(reconcileConvention(undefined, undefined, null, 'GBP')).toBe('GBP');
+  });
+  it('a pound or euro sign, or another explicit currency, is a real choice', () => {
+    expect(reconcileConvention(undefined, '£', null, 'EUR')).toBe('GBP');
+    expect(reconcileConvention(undefined, '€', null, 'USD')).toBe('EUR');
+    expect(reconcileConvention('GBP', '$', null, 'EUR')).toBe('GBP');
+  });
+  it('a UK-only or US-only page wins over the visitor currency', () => {
+    expect(reconcileConvention(undefined, undefined, 'GBP', 'EUR')).toBe('GBP');
+    expect(reconcileConvention(undefined, '$', 'USD', 'EUR')).toBe('USD');
   });
 });

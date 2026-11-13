@@ -21,7 +21,7 @@
  *   comparisons), never on car, card, debt or personal-loan pages.
  * - "Capital at risk..." appears only where an investing partner is shown.
  */
-import type { CurrencyRegion } from './currency';
+import type { CurrencyCode, CurrencyRegion } from './currency';
 
 export type PartnerRegion = CurrencyRegion;
 
@@ -162,6 +162,22 @@ export const PAGE_REGIONS: Readonly<Record<string, PartnerRegion>> = {
 export function pageRegionFor(slug: string | undefined | null): PartnerRegion | null {
   if (!slug) return null;
   return PAGE_REGIONS[slug] ?? null;
+}
+
+/**
+ * Number-format currency for a page that applies to one country only
+ * ('GBP' for UK pages, 'USD' for US pages), else null. Unprefixed fields on
+ * such pages (percentages, years) use this convention, never EUR separators.
+ */
+export function fixedCurrencyFor(slug: string | undefined | null): CurrencyCode | null {
+  const region = pageRegionFor(slug);
+  return region === 'UK' ? 'GBP' : region === 'US' ? 'USD' : null;
+}
+
+/** Slug of the page being viewed (last path segment), or undefined on the server. */
+export function currentPageSlug(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return window.location.pathname.split('/').filter(Boolean).pop();
 }
 
 /** Whether a partner serves a region. */

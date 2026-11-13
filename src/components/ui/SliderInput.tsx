@@ -41,7 +41,8 @@
 import { memo, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { formatForInput, parseNumericInput, type ParseFailureReason } from '../../lib/parse-number';
-import { useActiveCurrency, type CurrencyCode } from '../../lib/currency';
+import { getActiveCurrency, useActiveCurrency, type CurrencyCode } from '../../lib/currency';
+import { currentPageSlug, fixedCurrencyFor } from '../../lib/affiliate-data';
 import { useUrlNumberSync } from '../../lib/url-state';
 
 interface SliderInputProps {
@@ -125,6 +126,24 @@ export function resolveConvention(
     if (prefix.includes('$')) return 'USD';
   }
   return pageCurrency;
+}
+
+/**
+ * Convention for text found in the box at hydration. The hydration render is USD
+ * by design, so a "$" prefix or `currency="USD"` seen then only means "the
+ * default"; only a pound or euro sign (or another explicit currency) is a real
+ * choice. Otherwise the page's fixed country, then the visitor's currency.
+ */
+export function reconcileConvention(
+  currency: CurrencyCode | undefined,
+  prefix: string | undefined,
+  fixed: CurrencyCode | null,
+  active: CurrencyCode,
+): CurrencyCode {
+  if (currency && currency !== 'USD') return currency;
+  if (!currency && prefix?.includes('£')) return 'GBP';
+  if (!currency && prefix?.includes('€')) return 'EUR';
+  return fixed ?? active;
 }
 
 /** True when the prefix is a money symbol (shapes the examples in messages). */
@@ -295,9 +314,10 @@ function sanitizedDefault(el: HTMLInputElement): string {
   return probe.value;
 }
 
-function fillPercent(pos: number, lo: number, hi: number): number {
+export function fillPercent(pos: number, lo: number, hi: number): number {
   if (hi <= lo) return 0;
-  return Math.max(0, Math.min(100, ((pos - lo) / (hi - lo)) * 100));
+  // Two decimals: the CSS variable would otherwise carry float noise (33.33333333333333%).
+  return Math.round(Math.max(0, Math.min(100, ((pos - lo) / (hi - lo)) * 100)) * 100) / 100;
 }
 
 const TRACK_BACKGROUND =
@@ -331,7 +351,9 @@ function SliderInput({
   const [notice, setNotice] = useState<string | null>(null);
 
   const pageCurrency = useActiveCurrency();
-  const convention = resolveConvention(currency, prefix, pageCurrency);
+  // UK-only and US-only pages keep their own separators for unprefixed fields (the
+  // two look the same in USD and GBP, so server and client markup agree).
+  const convention = resolveConvention(currency, prefix, fixedCurrencyFor(currentPageSlug()) ?? pageCurrency);
 
   const hardMin = textMin ?? min;
   const hardMax = textMax ?? max;
@@ -395,6 +417,12 @@ function SliderInput({
   useIsoLayoutEffect(() => {
     const textEl = textRef.current;
     const rangeEl = rangeRef.current;
+    // The hydration render uses USD to match the static HTML. What was typed before it
+    // belongs to the visitor's real currency (EUR "25.000" is twenty-five thousand).
+    latest.current = {
+      ...latest.current,
+      convention: reconcileConvention(currency, prefix, fixedCurrencyFor(currentPageSlug()), getActiveCurrency()),
+    };
     if (textEl) {
       const live = textEl.value;
       const typed = live !== textEl.defaultValue;

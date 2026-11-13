@@ -22,7 +22,7 @@
  *   PDF export waits for it (pairs with ChartSkeleton as the Suspense
  *   fallback of a lazily loaded chart).
  */
-import { useState, useEffect, cloneElement, isValidElement, type ReactNode, type ReactElement } from 'react';
+import { Children, useState, useEffect, cloneElement, isValidElement, type ReactNode, type ReactElement } from 'react';
 import { ResponsiveContainer } from 'recharts';
 
 export const FALLBACK_CHART_LABEL = 'Chart of the calculator results';
@@ -40,12 +40,31 @@ interface ClientChartProps {
   debounce?: number;
 }
 
-/** Turn off Recharts' focusable role="application" layer unless the caller set it explicitly. */
+/**
+ * Recharts' own tab stops: a chart root with an unnamed focusable
+ * role="application" layer (`accessibilityLayer`), and a <Pie> whose layer has
+ * tabIndex 0 (`rootTabIndex`). Both are turned off, unless the caller set them,
+ * so a chart is one named image and never a tab stop (A11Y-PERF-11).
+ */
+const isPie = (el: ReactElement): boolean => (el.type as { displayName?: string }).displayName === 'Pie';
+
+function withoutChartTabStops(node: ReactNode): ReactNode {
+  if (!isValidElement(node)) return node;
+  const el = node as ReactElement<{ rootTabIndex?: number; children?: ReactNode }>;
+  if (isPie(el)) {
+    return el.props.rootTabIndex === undefined ? cloneElement(el, { rootTabIndex: -1 }) : el;
+  }
+  const kids = el.props.children;
+  if (kids === undefined || kids === null || typeof kids === 'string') return el;
+  return cloneElement(el, undefined, ...Children.toArray(kids).map(withoutChartTabStops));
+}
+
 export function withoutAccessibilityLayer(children: ReactNode): ReactNode {
   if (!isValidElement(children)) return children;
   const props = children.props as { accessibilityLayer?: boolean };
-  if (props.accessibilityLayer !== undefined) return children;
-  return cloneElement(children as ReactElement<{ accessibilityLayer?: boolean }>, { accessibilityLayer: false });
+  const chart = withoutChartTabStops(children) as ReactElement<{ accessibilityLayer?: boolean }>;
+  if (props.accessibilityLayer !== undefined) return chart;
+  return cloneElement(chart, { accessibilityLayer: false });
 }
 
 export default function ClientChart({ children, ariaLabel, className, minWidth = 0, minHeight, debounce }: ClientChartProps) {

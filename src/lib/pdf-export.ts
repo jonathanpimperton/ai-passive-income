@@ -271,12 +271,31 @@ const STRIPE: RGB = [246, 246, 243];
 
 // -- Main export ---------------------------------------------------------
 
+/**
+ * The PDF libraries could not be fetched (offline, deploy in progress).
+ * Browsers remember a failed module fetch for the life of the page, so
+ * asking again does not help: the caller tells the visitor to reload.
+ */
+export const PDF_LOAD_ERROR_NAME = 'PdfLibraryLoadError';
+
+export class PdfLibraryLoadError extends Error {
+  constructor(cause?: unknown) {
+    super('Could not load the PDF libraries');
+    this.name = PDF_LOAD_ERROR_NAME;
+    if (cause !== undefined) (this as { cause?: unknown }).cause = cause;
+  }
+}
+
+
 export async function exportToPdf(options: PdfExportOptions): Promise<void> {
   // Load the libraries first: if that fails, nothing on the page has changed.
-  const [{ jsPDF }, { toCanvas }] = await Promise.all([
-    import('jspdf'),
-    import('html-to-image'),
-  ]);
+  let jsPDF: typeof import('jspdf').jsPDF;
+  let toCanvas: typeof import('html-to-image').toCanvas;
+  try {
+    [{ jsPDF }, { toCanvas }] = await Promise.all([import('jspdf'), import('html-to-image')]);
+  } catch (err) {
+    throw new PdfLibraryLoadError(err);
+  }
 
   const { toolName, inputs, resultsElement, currency } = options;
 

@@ -20,8 +20,9 @@ type PdfModule = typeof import('../../lib/pdf-export');
 let pdfModule: Promise<PdfModule> | null = null;
 
 /**
- * Load the PDF library once. A failed load (offline, deploy in progress) is
- * forgotten, so the next click retries instead of failing until reload.
+ * Load the PDF module once. A failed load is forgotten so a later click can
+ * ask again, but browsers remember a failed module fetch for the life of the
+ * page, so most of the time only a reload helps: the button says so.
  */
 function loadPdfModule(): Promise<PdfModule> {
   if (!pdfModule) {
@@ -43,16 +44,28 @@ function resolveCurrency(explicit?: string): string {
   return getActiveCurrency();
 }
 
+/** 'load': the PDF code could not be fetched; 'capture': it loaded but the export failed. */
+type Failure = 'load' | 'capture' | null;
+
 export default function ExportPdfButton({ toolName, getInputs, resultsRef, currency }: ExportPdfButtonProps) {
   const [exporting, setExporting] = useState(false);
-  const [error, setError] = useState(false);
+  const [failure, setFailure] = useState<Failure>(null);
+  const error = failure !== null;
 
   async function handleExport() {
     if (!resultsRef.current || exporting) return;
     setExporting(true);
-    setError(false);
+    setFailure(null);
+    let exportToPdf: PdfModule['exportToPdf'];
     try {
-      const { exportToPdf } = await loadPdfModule();
+      ({ exportToPdf } = await loadPdfModule());
+    } catch (err) {
+      console.error('PDF tool failed to load:', err);
+      setFailure('load');
+      setExporting(false);
+      return;
+    }
+    try {
       await exportToPdf({
         toolName,
         inputs: getInputs(),
@@ -61,7 +74,7 @@ export default function ExportPdfButton({ toolName, getInputs, resultsRef, curre
       });
     } catch (err) {
       console.error('PDF export failed:', err);
-      setError(true);
+      setFailure((err as { name?: string } | null)?.name === 'PdfLibraryLoadError' ? 'load' : 'capture');
     } finally {
       setExporting(false);
     }
@@ -76,7 +89,13 @@ export default function ExportPdfButton({ toolName, getInputs, resultsRef, curre
           ? 'text-red-600 bg-red-50 border border-red-200/60 hover:bg-red-100'
           : 'text-primary-600 bg-primary-50 border border-primary-200/60 hover:bg-primary-100'
       }`}
-      aria-label={error ? 'PDF export failed. Export results as PDF again' : 'Export results as PDF'}
+      aria-label={
+        failure === 'load'
+          ? "Couldn't load the PDF tool. Reload the page to try again."
+          : failure === 'capture'
+            ? 'PDF export failed. Export results as PDF again'
+            : 'Export results as PDF'
+      }
       data-pdf-hide
       data-embed-hide
       data-export-pdf
@@ -84,7 +103,7 @@ export default function ExportPdfButton({ toolName, getInputs, resultsRef, curre
       {error ? (
         <>
           <AlertCircle size={16} aria-hidden="true" />
-          Export failed. Try again
+          {failure === 'load' ? "Couldn't load the PDF tool. Reload the page to try again." : 'Export failed. Try again'}
         </>
       ) : (
         <>

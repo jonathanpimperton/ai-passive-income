@@ -9,6 +9,7 @@ import {
   AFFILIATE_PARTNERS,
   partnersForPage,
   pageRegionFor,
+  fixedCurrencyFor,
   partnerServes,
   riskWarningsFor,
   isSecuredLendingPage,
@@ -97,6 +98,18 @@ describe('fixed-region pages', () => {
     expect(visibleInline('capital-gains-tax', 'USD')?.partner.id).toBe('Betterment');
     expect(visibleInline('capital-gains-tax', 'GBP')?.partner.id).toBe('Nutmeg');
     expect(visibleInline('capital-gains-tax', 'EUR')).toBeNull();
+  });
+});
+
+describe('fixed-currency pages', () => {
+  it('UK-only pages format as GBP, US-only pages as USD', () => {
+    expect(fixedCurrencyFor('salary-uk')).toBe('GBP');
+    expect(fixedCurrencyFor('stamp-duty')).toBe('GBP');
+    expect(fixedCurrencyFor('salary-us')).toBe('USD');
+  });
+  it('every other page follows the visitor', () => {
+    expect(fixedCurrencyFor('compound-interest')).toBeNull();
+    expect(fixedCurrencyFor(undefined)).toBeNull();
   });
 });
 

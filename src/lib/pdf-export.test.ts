@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatPdfDate, pdfFilename, chooseChunk } from './pdf-export';
+import { formatPdfDate, pdfFilename, chooseChunk, PdfLibraryLoadError, PDF_LOAD_ERROR_NAME } from './pdf-export';
 
 describe('PDF date follows the display currency locale', () => {
   const d = new Date(Date.UTC(2026, 10, 12, 12));
@@ -27,5 +27,14 @@ describe('page breaks', () => {
   });
   it('ignores slivers and falls back to a raw slice', () => {
     expect(chooseChunk(0, 3000, 1000, 100, [50, 2000])).toBe(1000);
+  });
+});
+
+describe('library load failure', () => {
+  it('is recognisable by name (the button tells the visitor to reload)', () => {
+    const err = new PdfLibraryLoadError(new TypeError('Failed to fetch dynamically imported module'));
+    expect(err).toBeInstanceOf(Error);
+    expect(err.name).toBe(PDF_LOAD_ERROR_NAME);
+    expect((err as { cause?: unknown }).cause).toBeInstanceOf(TypeError);
   });
 });
