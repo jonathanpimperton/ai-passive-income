@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Build-level check for the figure engine (docs/figures.md section 7).
  *
