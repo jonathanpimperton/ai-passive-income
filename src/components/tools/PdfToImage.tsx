@@ -6,9 +6,9 @@
  * - One shared pdf.js worker for the page and documents destroyed after use,
  *   instead of two new workers (each holding a copy of the PDF) per upload
  *   (FILES-15).
- * - wasm, CMap and standard-font locations are configured, so JPEG 2000
- *   images and PDFs without embedded fonts render instead of coming out blank
- *   (FILES-13).
+ * - CMap, standard-font and JPEG 2000 decoder locations are configured, so
+ *   JPEG 2000 images and PDFs without embedded fonts render instead of coming
+ *   out blank (FILES-13). WebAssembly is never attempted (see PDFJS_ASSETS).
  * - Password-protected PDFs get a password prompt (FILES-23).
  * - "Download all" saves one ZIP instead of hundreds of separate downloads
  *   (FILES-09); per-page failures are reported, and conversion can be
@@ -40,11 +40,18 @@ type OutputFormat = 'image/jpeg' | 'image/png';
 type PdfJs = typeof import('pdfjs-dist');
 
 const PDFJS_ASSETS = {
+  // The site CSP has no 'wasm-unsafe-eval', so every WebAssembly module pdf.js tries (OpenJPEG,
+  // JBIG2, QCMS colour management) is downloaded and then refused. Turn the attempt off: JPEG 2000
+  // uses the JavaScript build of OpenJPEG, JBIG2 uses pdf.js's built-in JavaScript decoder, and
+  // ICC-based colour spaces use their alternate device space. Output is the same as before;
+  // the wasted downloads and console errors are gone.
+  useWasm: false,
+  // With useWasm off this only locates the JavaScript JPEG 2000 decoder
+  // (/pdfjs/wasm/openjpeg_nowasm_fallback.js). No .wasm file is shipped or requested.
   wasmUrl: '/pdfjs/wasm/',
   cMapUrl: '/pdfjs/cmaps/',
   cMapPacked: true,
   standardFontDataUrl: '/pdfjs/standard_fonts/',
-  iccUrl: '/pdfjs/iccs/',
   isEvalSupported: false,
 };
 

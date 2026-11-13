@@ -557,6 +557,70 @@ test.describe('Encrypted PDFs are refused (FILES-02, S1-13)', () => {
   });
 });
 
+test.describe('PDF tools use the JavaScript decoders, never WebAssembly', () => {
+  // The site CSP has no 'wasm-unsafe-eval', so a WebAssembly module pdf.js asked for was downloaded and then
+  // refused (and logged an error). With useWasm off, no .wasm file is requested and nothing is refused.
+  // Run with FILE_TOOLS_PROD_HEADERS=1 so the production CSP applies and a regression would also log refusals.
+  function watchWasm(page: Page) {
+    const requests: string[] = [];
+    const complaints: string[] = [];
+    page.on('request', (r) => { if (/\.wasm(\?|$)/i.test(r.url())) requests.push(r.url()); });
+    page.on('console', (m) => {
+      const t = m.text();
+      if (/Refused to compile or instantiate WebAssembly|blocked by CSP|instantiateWasm|WebAssembly/i.test(t)) complaints.push(t.slice(0, 200));
+    });
+    return { requests, complaints };
+  }
+
+  /** Convert `fixture` to PNG (scale 1) and return the first page's pixels. */
+  async function renderFirstPage(page: Page, fixture: string): Promise<Buffer> {
+    await page.goto('/tools/file-tools/pdf-to-image/');
+    await page.waitForLoadState('networkidle');
+    await uploadFile(page, path.join(FT, fixture));
+    await page.locator('#img-format').selectOption('image/png');
+    await page.getByRole('button', { name: /convert to png/i }).click();
+    await expect(page.getByText(/1 page converted/)).toBeVisible({ timeout: 60000 });
+    return (await downloadBytes(page, () => page.getByRole('button', { name: /download page 1/i }).click())).bytes;
+  }
+
+  test('PDF to Image: JPEG 2000, JBIG2 and ICC-based images render with 0 .wasm requests and 0 refusals', async ({ page }) => {
+    const seen = watchWasm(page);
+    // JPEG 2000 (OpenJPEG): the image's middle band is red (see the JPEG 2000 test above).
+    near(await rgbAt(await renderFirstPage(page, 'jpx-image.pdf'), 500, (842 - 620) * 2), [220, 60, 40], 60);
+    // JBIG2 (pdf.js's built-in JavaScript decoder): an 8x8 black square in the middle of a 24x24 image on a 240pt page, rendered at 2x.
+    const jbig2 = await renderFirstPage(page, 'jbig2.pdf');
+    near(await rgbAt(jbig2, 240, 240), [0, 0, 0], 40);
+    near(await rgbAt(jbig2, 20, 20), [255, 255, 255], 10);
+    near(await rgbAt(jbig2, 460, 460), [255, 255, 255], 10);
+    // ICC-based RGB (alternate device colour space): left half red, right half blue.
+    const icc = await renderFirstPage(page, 'icc-rgb.pdf');
+    near(await rgbAt(icc, 120, 240), [200, 40, 40], 30);
+    near(await rgbAt(icc, 360, 240), [40, 40, 200], 30);
+    expect(seen.requests).toEqual([]);
+    expect(seen.complaints).toEqual([]);
+  });
+
+  test('PDF Compress, Merge and Split make 0 .wasm requests', async ({ page }) => {
+    const seen = watchWasm(page);
+    await page.goto('/tools/file-tools/pdf-compress/');
+    await page.waitForLoadState('networkidle');
+    await uploadFile(page, path.join(FT, 'flate-photo-2p.pdf'));
+    await page.getByRole('button', { name: /compress pdf/i }).click();
+    await expect(page.getByText(/2 of 2 images recompressed/)).toBeVisible({ timeout: 60000 });
+    await page.goto('/tools/file-tools/pdf-merge/');
+    await page.waitForLoadState('networkidle');
+    await uploadFiles(page, [path.join(FT, 'form-2p.pdf'), path.join(FT, 'form-1p.pdf')]);
+    await expect(page.getByText(/2 PDFs/)).toBeVisible({ timeout: 15000 });
+    await page.goto('/tools/file-tools/pdf-split/');
+    await page.waitForLoadState('networkidle');
+    await uploadFile(page, path.join(FT, 'text-3p.pdf'));
+    await page.locator('#page-range').fill('1-2');
+    await expect(page.getByText('2 pages will be extracted into one PDF')).toBeVisible({ timeout: 15000 });
+    expect(seen.requests).toEqual([]);
+    expect(seen.complaints).toEqual([]);
+  });
+});
+
 test.describe('PDF Compress (FILES-08, FILES-14)', () => {
   test('compresses Flate images and reports true counts', async ({ page }) => {
     await page.goto('/tools/file-tools/pdf-compress/');
