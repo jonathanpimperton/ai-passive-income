@@ -90,7 +90,8 @@ const THEME_JS =
   'function pick(){var t=calcrunStore.get("calcrun.theme");if(t==="dark"||t==="light")return t;return mq&&mq.matches?"dark":"light"}' +
   'd.setAttribute("data-theme",pick());' +
   'if(mq){var on=function(){if(calcrunStore.get("calcrun.theme"))return;d.setAttribute("data-theme",pick());' +
-  'try{window.dispatchEvent(new Event("calcrun:themechange"))}catch(e){}};' +
+  // Old browsers without the Event constructor get the legacy createEvent path
+  'try{window.dispatchEvent(new Event("calcrun:themechange"))}catch(e){var ev=document.createEvent("Event");ev.initEvent("calcrun:themechange",false,false);window.dispatchEvent(ev)}};' +
   'if(mq.addEventListener)mq.addEventListener("change",on);else if(mq.addListener)mq.addListener(on)}})();';
 const BOOT_JS = SAFE_STORAGE_INLINE_JS + REGION_INLINE_JS + THEME_JS;
 

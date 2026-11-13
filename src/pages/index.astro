@@ -213,7 +213,9 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       var standalone = false;
       try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { reduced = false; }
       try { standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch (e) { standalone = false; }
-      var embed = /[?&]embed(?:[=&]|$)/.test(location.search);
+      var framed = false;
+      try { framed = window.self !== window.top; } catch (e) { framed = true; }
+      var embed = framed || /[?&]embed(?:[=&]|$)/.test(location.search);
       var sameOrigin = false;
       try { sameOrigin = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) { sameOrigin = false; }
       var seen = calcrunStore.get(K) === '1' || calcrunStore.sget(K) === '1';

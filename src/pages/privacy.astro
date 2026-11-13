@@ -87,14 +87,14 @@ const storageKeys = [
       <ul>
         <li><strong>Newsletter:</strong> if you subscribe, your email address is stored by our email provider <strong>MailerLite</strong>, with the date, which form you used and, if it was on a calculator page, which calculator.</li>
         <li><strong>Email my results:</strong> your email address and that calculator's inputs and results go from our server to <strong>MailerSend</strong>, which sends the email. We do not keep a copy. You are added to the newsletter only if you tick the newsletter box.</li>
-        <li><strong>Bot protection:</strong> our email forms use <strong>Cloudflare Turnstile</strong> to check that a person, not a script, is sending them. It runs in your browser when you use the form and processes browser and device signals for that check.</li>
+        <li><strong>Bot protection:</strong> our email forms use <strong>Cloudflare Turnstile</strong> to check that a person, not a script, is sending them. It runs in your browser when you use the form and processes browser and device signals for that check; our server also passes your IP address to Cloudflare as part of verifying it.</li>
       </ul>
       <p>Every newsletter email has an unsubscribe link. Your address stays on the list until you unsubscribe or ask us to delete it. We never sell or share email addresses.</p>
     </section>
 
     <section aria-labelledby="cloudflare">
       <h2 id="cloudflare">Hosting and security (Cloudflare)</h2>
-      <p>The site is served by <strong>Cloudflare</strong>. Like any web host, Cloudflare processes your IP address and request details to deliver pages and to block attacks. Cloudflare's bot protection may run a small script (loaded from <code>/cdn-cgi/</code>) in your browser and may set a strictly necessary security cookie, such as <code>__cf_bm</code> or <code>cf_clearance</code>. Cloudflare may also collect reports of blocked browser requests to help keep the site secure.</p>
+      <p>The site is served by <strong>Cloudflare</strong>. Like any web host, Cloudflare processes your IP address and request details to deliver pages and to block attacks. Cloudflare's bot protection may run a small script (loaded from <code>/cdn-cgi/</code>) in your browser and may set a strictly necessary security cookie, such as <code>__cf_bm</code> or <code>cf_clearance</code>. On some page views Cloudflare's Page Shield also adds a report-only security policy, so your browser sends Cloudflare a report of requests that policy would have blocked.</p>
       <p>Our own server code does not record your IP address or anything you enter; its error messages contain no personal data.</p>
     </section>
 

@@ -65,7 +65,7 @@ const guides = [
         Go to the homepage
       </a>
       <a href="/tools/" class="inline-flex items-center justify-center bg-surface text-neutral-800 font-semibold px-6 py-3 rounded-lg border border-neutral-200/80 hover:bg-neutral-50 transition-all duration-200">
-        Browse all <span class="tabular-nums mx-1">{TOOL_COUNT}</span> tools
+        Browse all {TOOL_COUNT} tools
       </a>
     </div>
   </div>
@@ -108,9 +108,13 @@ const guides = [
   } catch {
     path = location.pathname; // malformed %-escape: match on the raw path instead
   }
-  const words = path
-    .split('/')
-    .filter((seg) => seg && seg !== '404.html' && !/^(tools|scenarios|comparisons|how-we-calculate)$/.test(seg))
+  // A category in the path ("/tools/debt-and-loans/...") is a strong hint:
+  // its tools are preferred, and a bare category URL lists them.
+  const CATEGORY_SLUGS = ['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic', 'utility', 'file-tools'];
+  const segments = path.split('/').filter((seg) => seg && seg !== '404.html');
+  const category = segments.find((seg) => CATEGORY_SLUGS.includes(seg)) || null;
+  const words = segments
+    .filter((seg) => !CATEGORY_SLUGS.includes(seg) && !/^(tools|scenarios|comparisons|how-we-calculate)$/.test(seg))
     .slice(-2)
     .join(' ')
     .replace(/[-_.]+/g, ' ')
@@ -118,7 +122,7 @@ const guides = [
     .trim();
 
   async function suggest() {
-    if (!box || !list || !empty || !words) return;
+    if (!box || !list || !empty || (!words && !category)) return;
     box.classList.add('is-active');
     try {
       const [lib, res] = await Promise.all([import('@lib/search-index'), fetch('/search-index.json')]);
@@ -126,15 +130,24 @@ const guides = [
       const data = (await res.json()) as { entries: import('@lib/search-index').SearchEntry[] };
       const index = lib.prepareIndex(data.entries);
       const region = (window as unknown as { calcrunRegion?: string }).calcrunRegion;
-      let results = lib.searchIndex(index, words, { region, limit: 4 });
-      // Typos rarely match every word: fall back to the single best word
-      if (!results.length) {
-        for (const w of words.split(' ').sort((a, b) => b.length - a.length)) {
-          if (w.length < 3) continue;
-          results = lib.searchIndex(index, w, { region, limit: 4 });
-          if (results.length) break;
-        }
+      const inCategory = (u: string) => !!category && u.startsWith(`/tools/${category}/`);
+      const ranked = (q: string) => {
+        const r = lib.searchIndex(index, q, { region, limit: 12 });
+        // Stable: matches inside the URL's category first, others after
+        return [...r.filter((e) => inCategory(e.u)), ...r.filter((e) => !inCategory(e.u))];
+      };
+      let results = words ? ranked(words) : [];
+      // Typos rarely match every word: try each longer word, then its first
+      // four letters ("mortage" -> "mort"), always preferring the category
+      const tries = words.split(' ').filter((w) => w.length >= 3).sort((x, y) => y.length - x.length);
+      for (const q of [...tries, ...tries.filter((w) => w.length >= 5).map((w) => w.slice(0, 4))]) {
+        if (results.length && (!category || inCategory(results[0].u))) break;
+        const r = ranked(q);
+        if (r.length && (!results.length || (category && inCategory(r[0].u)))) results = r;
       }
+      // Nothing matched (or only a category URL): list that category's tools
+      if (!results.length && category) results = data.entries.filter((e) => e.k === 'tool' && inCategory(e.u));
+      results = results.slice(0, 4);
       results.forEach((e) => {
         const li = document.createElement('li');
         const a = document.createElement('a');
