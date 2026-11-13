@@ -37,8 +37,20 @@ async function prepare(context: BrowserContext, opts: Prep = {}) {
   }, opts);
 }
 
+/**
+ * Wait until React has hydrated the calculator: Astro drops `ssr` when it
+ * calls hydrateRoot, and React then attaches a fiber key to each node it takes over.
+ */
 async function hydrated(page: Page) {
-  await page.waitForFunction(() => document.querySelectorAll('astro-island[ssr]').length === 0, null, { timeout: 30000 });
+  await page.waitForFunction(
+    () => {
+      const head = document.querySelector('[data-headline-result]');
+      const island = head?.closest('astro-island');
+      return !!head && !!island && !island.hasAttribute('ssr') && Object.keys(head).some((k) => k.startsWith('__reactFiber$'));
+    },
+    null,
+    { timeout: 30000 },
+  );
 }
 
 /** Headline result once its count-up animation has settled. */
@@ -167,7 +179,7 @@ test.describe('typed before hydration (CO-2)', () => {
       await page.goto(c.path, { waitUntil: 'domcontentloaded' });
       const input = page.locator(`input#${c.id}`);
       await input.waitFor();
-      expect(await page.locator('astro-island[ssr]').count()).toBeGreaterThan(0);
+      expect(await page.locator('astro-island[ssr] [data-headline-result]').count()).toBe(1);
       await input.fill(c.text);
       await input.press('Tab');
       release();
