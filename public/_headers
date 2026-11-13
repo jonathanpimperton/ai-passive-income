@@ -29,13 +29,16 @@
   Cache-Control: public, max-age=86400
 
 # BEGIN W1-LAYOUT
-# Embed v2 (/embed/<tool>/): framable by any site. Same CSP as the site, but
-# frame-ancestors * and no X-Frame-Options (the "!" lines detach the /* values;
-# rules accumulate, so without the detach both DENY and * would ship). The embed
-# pages load no GA, cookie banner, affiliates or email capture by construction;
-# the CSP keeps the site's GA allowances only because /embed/ itself (the snippet
-# generator) is a normal site page. If the site CSP changes, mirror it here.
-/embed/*
+# Embed v2 tool pages (/embed/<tool>/) are framable by any site: same CSP as the
+# site but frame-ancestors *, and no X-Frame-Options (the "!" lines detach the /*
+# values; rules accumulate, so without the detach both DENY and * would ship).
+# The ":tool" placeholder matches one path segment, so this rule does NOT apply to
+# /embed/ (the snippet generator, a normal site page that keeps DENY and
+# frame-ancestors 'none') or to /embed/resize.js (a classic script hosts load
+# with <script src>, which needs no CORS or framing headers). Embed pages load no
+# GA, cookie banner, affiliates or email capture by construction. If the site
+# CSP changes, mirror it here (W1-PLAT's prod tests check parity).
+/embed/:tool/
   ! Content-Security-Policy
   ! X-Frame-Options
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors *; upgrade-insecure-requests
