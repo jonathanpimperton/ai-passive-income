@@ -39,7 +39,7 @@ describe('isNumericValue accepts well-formed figures', () => {
     '1 year, 3 months', '4 years, 2 months', '0 months', '25+ years', '8 mo', '3y 2mo', '120 months', '360',
     '$36.00/hr', '40 hrs', '40', '52', '2000', '$1,000/mo', '1.5%/yr', '$1,200/yr', '4 kWp', '10 kWh ($5,000)',
     '1,050 kWh/kWp', '28p/kWh', `15${CENT}/kWh`, `12.5${CENT}/kWh`, '4.5x', '12x/yr', '28% / 36%', '12.5% / 30.1%',
-    '$1,234,567.89', '$12,345,678', '1,234,567', '18.04c/kWh', '4,500 kWh',
+    '$1,234,567.89', '$12,345,678', '1,234,567', '18.04c/kWh', '4,500 kWh', '1,234,567 kWh', '1,050 kWh/kWp',
     // two anchored figures may share a value: each is money or percent, or the second has a unit
     '$1,234 - $5,678', `1.234 ${EURO} - 5.678 ${EURO}`, '5.2% (12.5%)', `${POUND}50,000 (12 months)`,
     '1257L', 'S1257L', 'K475', 'BR', 'D0', 'NT', '0T', 'C1257L', '1257L W1', '1257L X', '$50k',
@@ -54,6 +54,7 @@ const PHONE_SHAPES = [
   '0800 123 4567', '+1 (800) 555-0199', '1-800-555-0199', '(800) 555-0199', '07700 900123', '0800.123.4567',
   '+44 1,234,567', '+44 1.234.567', '+44 7911 123456', '020 7,946,000', '020 7.946.000', '0800 1,234',
   '$800 5550', '0800 $123', '192.168.100.200', '1,234,567,890', '+4400000000',
+  '192.168.100.200 kWh', '1,234,567,890 mo', '12,345,678 k', '08001234567y',
 ];
 
 describe('isNumericValue rejects phone shapes, codes and words', () => {
@@ -73,6 +74,8 @@ describe('isNumericValue rejects phone shapes, codes and words', () => {
     '1,234 5,678', '(800) 5,550', '+1 800,555',
     // long figures with no currency, percent or unit marker, and dotted quads
     '192.168.100.200', '10.200.30.400', '12345678', '1,234,567,890', '+4400000000',
+    // unit words do not lift the cap
+    '192.168.100.200 kWh', '192.168.100.200 x', '1,234,567,890 mo', '12,345,678 k', '99,999,999 years', '08001234567y',
     // punctuation only (no token at all)
     '(+-.)', '+-.,/~', '()', '-', '~', '$', '%', '.',
     // not one well-formed number

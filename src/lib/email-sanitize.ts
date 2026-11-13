@@ -10,7 +10,7 @@
  *    an amount, percentage, duration or unit value with at most two numbers.
  *    Digit runs that are not ONE well-formed number, two numbers joined by phone-style
  *    separators without a currency or percent sign on each, and long figures with no
- *    currency, percent or unit marker (phone-number shapes such as "0800 123 4567",
+ *    currency or percent sign (phone-number shapes such as "0800 123 4567",
  *    "+44 1,234,567", dotted quads) never pass, and neither do words outside a small
  *    unit vocabulary.
  * Rows that fail are dropped (not rendered), and the count is reported to the caller.
@@ -140,7 +140,7 @@ const NUMBER_UNIT_RE = /^\d+(?:y|yr|yrs|mo|mos|p|c|x|k|m|bn|kwh|kwp|kw|hr|hrs)$/
 const TAXCODE_TOKEN_RE = /^(?:[SC]?(?:\d{1,4}[LMNT]|K\d{1,4}|BR|D[0-2]|NT|0T)|W1|M1)$/i;
 /** Text between two numbers with no letters or digits in it: spaces, hyphens, dots, signs, brackets. */
 const PHONE_GAP_RE = /^[^A-Za-z0-9]*$/;
-/** Most digits a figure may have when it carries no currency, percent or unit marker. */
+/** Most digits a figure may have unless a currency or percent sign makes it an amount (a unit word does not lift the cap). */
 const MAX_PLAIN_DIGITS = 7;
 
 type FigureKind = 'money' | 'unit' | 'plain';
@@ -163,9 +163,9 @@ function figureKind(value: string, start: number, end: number): FigureKind {
  *
  * Phone-number shapes never pass: each digit run must be ONE well-formed number; at most
  * two numbers; two numbers with no letters between them must both
- * be money or percent figures, or the second one glued to a unit word; and a figure with no currency,
- * percent or unit marker has at most 7 digits (so "192.168.100.200" and "+44 7911123456"
- * fail). Comma or dot grouping is not a marker. A dot-grouped figure with a currency sign,
+ * be money or percent figures, or the second one glued to a unit word; and a figure with no currency
+ * or percent sign has at most 7 digits, with or without a unit word (so "192.168.100.200",
+ * "192.168.100.200 kWh" and "+44 7911123456" fail). Comma or dot grouping is not a marker. A dot-grouped figure with a currency sign,
  * such as the German "192.168.100.200 EUR" form, is a legitimate amount and passes.
  */
 export function isNumericValue(value: string): boolean {
@@ -194,7 +194,7 @@ export function isNumericValue(value: string): boolean {
   const digitCount = (r: RegExpMatchArray) => r[0].replace(/\D/g, '').length;
   const kinds = runs.map((r) => figureKind(value, r.index ?? 0, (r.index ?? 0) + r[0].length));
   for (const [i, r] of runs.entries()) {
-    if (kinds[i] === 'plain' && digitCount(r) > MAX_PLAIN_DIGITS) return false;
+    if (kinds[i] !== 'money' && digitCount(r) > MAX_PLAIN_DIGITS) return false;
   }
   if (runs.length === 2) {
     const [a, b] = runs;

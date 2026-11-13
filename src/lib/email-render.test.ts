@@ -6,7 +6,7 @@
  * wording, but only in each calculator's default state (server render: no effects, no
  * interaction), so the branches that only show other states are covered by the static scan.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -34,6 +34,13 @@ const emailing = readdirSync(TOOLS_DIR)
   .filter((x): x is { file: string; slug: string } => Boolean(x.slug));
 
 describe('real calculator rows survive the sanitiser', () => {
+  // The first dynamic import of a calculator is slow (cold transform of recharts, lucide, ...),
+  // which once pushed a single case past vitest's 5 s default: import them all up front and give
+  // every case a generous timeout.
+  beforeAll(async () => {
+    for (const { file } of emailing) await import(`../components/tools/${file}`);
+  }, 180_000);
+
   beforeEach(() => {
     state.captured = [];
   });
@@ -60,7 +67,7 @@ describe('real calculator rows survive the sanitiser', () => {
         expect(dropped, `${slug}/${currency}: rows the worker would drop`).toEqual([]);
         expect(out.dropped).toBe(0);
         expect(out.results.length).toBeGreaterThan(0);
-      });
+      }, 30_000);
     }
   }
 });
