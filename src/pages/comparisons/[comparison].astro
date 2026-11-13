@@ -7,6 +7,7 @@ import AffiliateLinks from '@components/ui/AffiliateLinks.astro';
 import Byline from '@components/ui/Byline.astro';
 import { TOOLS, getToolPath } from '@lib/tools-data';
 import { buildArticleSchema, buildFaqSchema } from '@lib/seo';
+import { relatedComparisons, comparisonOptionLabels, shortTitle } from '@lib/internal-links';
 
 export async function getStaticPaths() {
   const comparisons = await getCollection('comparisons');
@@ -35,21 +36,20 @@ const resolvedTools = relatedTools
   .map((toolSlug) => TOOLS.find((t) => t.slug === toolSlug))
   .filter(Boolean);
 
-// Get other comparisons for sidebar (excluding current)
-const allComparisons = await getCollection('comparisons');
-const otherComparisons = allComparisons
-  .filter((c) => c.data.slug !== slug)
-  .slice(0, 5);
+// Sidebar "More comparisons": ranked by shared calculators and audience,
+// deterministic across builds (src/lib/internal-links.ts)
+const allComparisons = (await getCollection('comparisons')).map((c) => c.data);
+const otherComparisons = relatedComparisons(comparison.data, allComparisons);
 
-// Extract the option names from the title (before the colon).
-// Supports both "A vs B" and three-way "A vs B vs C" titles.
-const titleParts = title.split(':')[0];
-const optionLabels = titleParts.split(/\s+vs\.?\s+/i).map((part) => part.trim());
-const option1Label = optionLabels.length >= 2 ? optionLabels[0] : 'Option A';
-const option2Label = optionLabels.length >= 2 ? optionLabels[1] : 'Option B';
-// Third column renders only when the table data actually has option3 values
+// Column labels from the "A vs B" part of the title, before or after a colon
+// (CMP-22). Third column renders only when the table data has option3 values.
+const titleParts = shortTitle(title);
 const hasOption3 = comparisonTable.some((row) => row.option3 !== undefined);
-const option3Label = hasOption3 ? (optionLabels[2] ?? 'Option C') : null;
+const [option1Label, option2Label, option3Label = null] = comparisonOptionLabels(title, hasOption3 ? 3 : 2);
+
+// "How we calculate" pages for the calculators this article uses
+const methodologySlugs = new Set((await getCollection('methodologies')).map((m) => m.data.slug));
+const methodologyTools = resolvedTools.filter((t) => methodologySlugs.has(t!.slug));
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },
@@ -70,16 +70,9 @@ const breadcrumbs = [
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
 
-      <div class="flex items-start gap-4">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary-50 text-primary-600 shrink-0">
-          <ToolIcon name="scale" size={24} />
-        </div>
-        <div>
-          <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">{title}</h1>
-          <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">{description}</p>
-          <Byline datePublished={datePublished} dateModified={dateModified} />
-        </div>
-      </div>
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">{title}</h1>
+      <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">{description}</p>
+      <Byline datePublished={datePublished} dateModified={dateModified} />
     </div>
   </section>
 
@@ -97,13 +90,14 @@ const breadcrumbs = [
         <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card mb-8 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
+              <caption class="sr-only">{[option1Label, option2Label, option3Label].filter(Boolean).join(' vs ')}: side-by-side comparison</caption>
               <thead>
                 <tr class="bg-neutral-50 border-b border-neutral-200/80">
-                  <th class:list={['text-left px-5 py-3.5 font-semibold text-neutral-700', option3Label ? 'w-[22%]' : 'w-[30%]']}>Feature</th>
-                  <th class:list={['text-left px-5 py-3.5 font-semibold text-primary-700', option3Label ? 'w-[26%]' : 'w-[35%]']}>{option1Label}</th>
-                  <th class:list={['text-left px-5 py-3.5 font-semibold text-primary-700', option3Label ? 'w-[26%]' : 'w-[35%]']}>{option2Label}</th>
+                  <th scope="col" class:list={['text-left px-5 py-3.5 font-semibold text-neutral-700', option3Label ? 'w-[22%]' : 'w-[30%]']}>Feature</th>
+                  <th scope="col" class:list={['text-left px-5 py-3.5 font-semibold text-primary-700', option3Label ? 'w-[26%]' : 'w-[35%]']}>{option1Label}</th>
+                  <th scope="col" class:list={['text-left px-5 py-3.5 font-semibold text-primary-700', option3Label ? 'w-[26%]' : 'w-[35%]']}>{option2Label}</th>
                   {option3Label && (
-                    <th class="text-left px-5 py-3.5 font-semibold text-primary-700 w-[26%]">{option3Label}</th>
+                    <th scope="col" class="text-left px-5 py-3.5 font-semibold text-primary-700 w-[26%]">{option3Label}</th>
                   )}
                 </tr>
               </thead>
@@ -113,7 +107,7 @@ const breadcrumbs = [
                     "border-b border-neutral-100 last:border-b-0",
                     i % 2 === 1 ? "bg-neutral-50/50" : "",
                   ]}>
-                    <td class="px-5 py-3.5 font-medium text-neutral-700">{row.feature}</td>
+                    <th scope="row" class="text-left px-5 py-3.5 font-medium text-neutral-700">{row.feature}</th>
                     <td class="px-5 py-3.5 text-neutral-600">{row.option1}</td>
                     <td class="px-5 py-3.5 text-neutral-600">{row.option2}</td>
                     {option3Label && <td class="px-5 py-3.5 text-neutral-600">{row.option3}</td>}
@@ -179,6 +173,7 @@ const breadcrumbs = [
               {resolvedTools.slice(0, 3).map((tool) => (
                 <a
                   href={getToolPath(tool!)}
+                  data-astro-prefetch
                   class="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-all duration-200 shadow-sm shadow-primary-600/20"
                 >
                   <ToolIcon name={tool!.icon} size={16} />
@@ -199,7 +194,7 @@ const breadcrumbs = [
             <ul class="space-y-3">
               {resolvedTools.map((tool) => (
                 <li>
-                  <a href={getToolPath(tool!)} class="group flex items-start gap-3">
+                  <a href={getToolPath(tool!)} data-astro-prefetch class="group flex items-start gap-3">
                     <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-600 shrink-0 group-hover:bg-primary-700 group-hover:text-white transition-colors duration-200">
                       <ToolIcon name={tool!.icon} size={20} />
                     </div>
@@ -216,6 +211,25 @@ const breadcrumbs = [
           </div>
         )}
 
+        {/* How the calculators work (links the methodology pages, GROWTH-SEO-05) */}
+        {methodologyTools.length > 0 && (
+          <div class="bg-white border border-neutral-200/80 rounded-xl p-5 shadow-card">
+            <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">How the numbers work</p>
+            <ul class="space-y-2">
+              {methodologyTools.map((tool) => (
+                <li>
+                  <a
+                    href={`/how-we-calculate/${tool!.slug}/`}
+                    class="text-sm text-primary-600 hover:text-primary-700 underline decoration-primary-300 underline-offset-2 transition-colors duration-150"
+                  >
+                    How we calculate: {tool!.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Other comparisons */}
         {otherComparisons.length > 0 && (
           <div class="bg-white border border-neutral-200/80 rounded-xl p-5 shadow-card">
@@ -224,11 +238,12 @@ const breadcrumbs = [
               {otherComparisons.map((other) => (
                 <li>
                   <a
-                    href={`/comparisons/${other.data.slug}/`}
+                    href={`/comparisons/${other.slug}/`}
+                    data-astro-prefetch
                     class="group block"
                   >
                     <span class="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-200">
-                      {other.data.title.split(':')[0]}
+                      {shortTitle(other.title)}
                     </span>
                   </a>
                 </li>

@@ -42,11 +42,18 @@ const VIEWPORTS = [
 
 const CONCURRENCY = 6;
 const browser = await chromium.launch();
+
+// Block Google Analytics / Tag Manager in every context: the built HTML carries the
+// production GA tag, so an unblocked local run would send real hits (plan 2.4).
+const GA_HOSTS = ['google-analytics.com', 'googletagmanager.com', 'analytics.google.com'];
+const isGaUrl = (url) => GA_HOSTS.some((d) => url.hostname === d || url.hostname.endsWith('.' + d));
+let gaBlocked = 0;
 const findings = [];
 let done = 0;
 
 async function checkPage(route, vp) {
   const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+  await ctx.route(isGaUrl, (r) => { gaBlocked++; return r.abort(); });
   const page = await ctx.newPage();
   const consoleErrors = [];
   page.on('pageerror', (e) => consoleErrors.push(String(e).slice(0, 200)));
@@ -100,4 +107,5 @@ await browser.close();
 findings.sort((a, b) => (b.overflowPx || 0) - (a.overflowPx || 0));
 writeFileSync(OUT, JSON.stringify({ total: routes.length * VIEWPORTS.length, findingCount: findings.length, findings }, null, 2));
 console.log(`DONE: ${findings.length} findings of ${routes.length * VIEWPORTS.length} checks -> ${OUT}`);
+console.log(`GA requests blocked: ${gaBlocked}`);
 process.exit(findings.length > 0 ? 1 : 0);

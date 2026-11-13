@@ -38,12 +38,14 @@ affiliatePrograms:
   - "InvestEngine"
   - "Nutmeg"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "GOV.UK — Individual Savings Accounts"
     url: "https://www.gov.uk/individual-savings-accounts"
-  - name: "GOV.UK — Money and tax"
-    url: "https://www.gov.uk/browse/tax"
+  - name: "HM Treasury — Budget 2026 (cash ISA limit kept at £20,000)"
+    url: "https://www.gov.uk/government/publications/budget-2026-document/budget-2026-html"
+  - name: "HMRC — Income Tax: changes to tax rates for property and savings income"
+    url: "https://www.gov.uk/government/publications/income-tax-changes-to-tax-rates-for-property-and-savings-income"
   - name: "Bank of England — Monetary policy"
     url: "https://www.bankofengland.co.uk/monetary-policy"
 ---
@@ -60,7 +62,7 @@ At a 4.5% interest rate, a basic rate taxpayer would need over **£22,000** in s
 
 **Higher rate taxpayers.** With only £500 of PSA, a higher rate taxpayer with £12,000+ in savings at 4.5% is already paying tax on their interest. Moving cash into a Cash ISA eliminates that.
 
-**Additional rate taxpayers.** No PSA at all. Every pound of interest is taxed at 45%. A Cash ISA is worth it from the first penny.
+**Additional rate taxpayers.** No PSA at all. Every pound of interest is taxed at 45% in 2026-27, rising to 49% from 6 April 2027. A Cash ISA is worth it from the first penny.
 
 **Large emergency funds.** If you keep £30,000-£50,000 in cash (perhaps [saving for a home deposit](/scenarios/save-for-house-deposit/) while maintaining an [emergency fund](/tools/income-and-planning/emergency-fund/)), even basic rate taxpayers will exceed their PSA. A Cash ISA shelters the excess.
 
@@ -94,6 +96,8 @@ Here's the break-even point — the savings balance where your interest exceeds 
 
 If your savings are below your break-even, a Cash ISA provides no tax advantage. Pick whichever account — ISA or regular — offers the best rate.
 
+**From 6 April 2027, interest above the allowance is taxed more.** The Budget on 28 October 2026 set separate savings tax rates of 24% (basic), 44% (higher) and 49% (additional) from that date, 4 percentage points above the 2026-27 rates. The break-even balances above stay the same, but each £1,000 of interest over your allowance will cost £240, £440 or £490 in tax instead of £200, £400 or £450. If you are already over your allowance, that makes a Cash ISA worth more, not less.
+
 ## The bottom line
 
-For basic rate taxpayers with modest savings, skip the Cash ISA and use a higher-paying regular account. Save your ISA allowance for investments where the tax shelter is worth far more. For higher earners or people with significant cash holdings, a Cash ISA remains a useful part of the toolkit — just be aware of what it costs you in lost investment ISA space. And note that from April 2027, the annual Cash ISA limit is due to drop to £12,000 for under-65s (the overall £20,000 allowance stays), so larger cash balances will take longer to shelter.
+For basic rate taxpayers with modest savings, skip the Cash ISA and use a higher-paying regular account. Save your ISA allowance for investments where the tax shelter is worth far more. For higher earners or people with significant cash holdings, a Cash ISA remains a useful part of the toolkit — just be aware of what it costs you in lost investment ISA space. The Cash ISA limit is not being cut: the planned drop to £12,000 was cancelled at the Budget on 28 October 2026, so the whole £20,000 allowance can still go into cash. With savings tax rising from April 2027, higher-rate savers with large cash balances have more reason to use it.

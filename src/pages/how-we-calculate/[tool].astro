@@ -2,8 +2,12 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
+import Byline from '@components/ui/Byline.astro';
 import { getCollection, render } from 'astro:content';
 import { TOOLS, getToolPath } from '@lib/tools-data';
+import { buildArticleSchema, methodologyDescription, toolTaxYearLabel } from '@lib/seo';
+import { guidesForTool, shortTitle } from '@lib/internal-links';
+import { gitFileDates } from '@lib/sitemap-lastmod.mjs';
 
 export async function getStaticPaths() {
   const methodologies = await getCollection('methodologies');
@@ -26,13 +30,43 @@ const breadcrumbs = [
   { name: toolMeta?.name || slug, url: toolPath },
   { name: 'How We Calculate', url: `/how-we-calculate/${slug}/` },
 ];
+
+// Per-page description (every page used to share one, MTH-26) and the tax
+// year the calculator uses, derived from the rates modules.
+const toolName = toolMeta?.name || title.replace(/^How We Calculate:\s*/, '');
+const description = methodologyDescription(toolName, toolSlug);
+const taxYear = toolTaxYearLabel(toolSlug);
+
+// Methodology markdown has no editorial dates, so the byline and Article
+// JSON-LD use its git history (created / last changed), the same source as the
+// sitemap lastmod. Unknown dates (shallow clone) are omitted, never guessed.
+// CALCRUN_ROOT is set by astro.config.mjs to the project root.
+const dates = gitFileDates(process.env.CALCRUN_ROOT ?? process.cwd(), methodology.filePath ?? `src/data/methodologies/${slug}.md`);
+const articleSchema = buildArticleSchema({
+  type: 'TechArticle',
+  headline: title,
+  description,
+  path: `/how-we-calculate/${slug}/`,
+  datePublished: dates.published,
+  dateModified: dates.modified,
+  ogImagePath: `/og/${toolSlug}.png`,
+});
+
+// Links back to the guides that use this calculator (GROWTH-SEO-05).
+const guides = guidesForTool(
+  toolSlug,
+  (await getCollection('scenarios')).map((s) => s.data),
+  (await getCollection('comparisons')).map((c) => c.data)
+);
+const hasGuides = !!guides.hub || guides.scenarios.length > 0 || guides.comparisons.length > 0;
 ---
 
 {/* BreadcrumbList JSON-LD is emitted once by the Breadcrumb component below */}
 <BaseLayout
   title={title}
-  description={`Methodology and formulas behind the ${toolMeta?.name || slug} calculator on CalcRun. See the exact formula, variables, assumptions, and data sources.`}
+  description={description}
   ogImage={`/og/${toolSlug}.png`}
+  structuredData={[articleSchema]}
 >
   <!-- Page header -->
   <section class="border-b border-neutral-200/80 bg-bg">
@@ -47,7 +81,10 @@ const breadcrumbs = [
         )}
         <div>
           <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">{title}</h1>
-          <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">Exact formulas, variables, and assumptions</p>
+          <p class="mt-2 text-lg text-neutral-600 max-w-[640px]">
+            The formula, inputs and assumptions behind the <a href={toolPath} class="text-primary-600 hover:text-primary-700 underline decoration-primary-300 underline-offset-2 transition-colors duration-150">{toolName}</a>{taxYear && <>, for the {taxYear}</>}.
+          </p>
+          {dates.published && dates.modified && <Byline datePublished={dates.published} dateModified={dates.modified} />}
         </div>
       </div>
     </div>
@@ -124,11 +161,36 @@ const breadcrumbs = [
             <p class="text-sm text-neutral-600 mb-4">Run your own numbers with the {toolMeta?.name || slug}.</p>
             <a
               href={toolPath}
+              data-astro-prefetch
               class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200"
             >
               Open calculator &rarr;
             </a>
           </div>
+
+          <!-- Guides that use this calculator (links back, GROWTH-SEO-05) -->
+          {hasGuides && (
+            <nav class="bg-white rounded-lg border border-neutral-200/80 shadow-card p-6" aria-labelledby="method-guides-heading">
+              <h3 id="method-guides-heading" class="text-base font-bold text-neutral-900 mb-3">See it worked through</h3>
+              <ul class="space-y-2.5">
+                {guides.hub && (
+                  <li>
+                    <a href={guides.hub.href} data-astro-prefetch class="text-sm text-primary-600 hover:text-primary-700 underline decoration-primary-300 underline-offset-2 transition-colors duration-150">{guides.hub.label}</a>
+                  </li>
+                )}
+                {guides.scenarios.map((s) => (
+                  <li>
+                    <a href={`/scenarios/${s.slug}/`} data-astro-prefetch class="text-sm text-primary-600 hover:text-primary-700 underline decoration-primary-300 underline-offset-2 transition-colors duration-150">{s.title}</a>
+                  </li>
+                ))}
+                {guides.comparisons.map((c) => (
+                  <li>
+                    <a href={`/comparisons/${c.slug}/`} data-astro-prefetch class="text-sm text-primary-600 hover:text-primary-700 underline decoration-primary-300 underline-offset-2 transition-colors duration-150">{shortTitle(c.title)}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
 
           <!-- Data Sources -->
           {dataSources && dataSources.length > 0 && (

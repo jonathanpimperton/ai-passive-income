@@ -10,9 +10,9 @@ relatedTools:
   - "savings-goal"
   - "compound-interest"
   - "emergency-fund"
-verdict: "High-yield savings wins for emergency funds and money you might need soon. CDs win when rates are falling and you want to lock in today's rate for 1-2 years."
+verdict: "High-yield savings wins for emergency funds, money you might need soon, and periods when rates are rising. A CD wins when you can leave the money untouched for a set term and expect rates to fall, because it locks in today's rate. If rates look flat, take the best rate that still gives you the access you need."
 comparisonTable:
-  - feature: "Typical APY (2026)"
+  - feature: "Typical top APY (mid-2026)"
     option1: "3.50–4.25%"
     option2: "3.75–4.50%"
   - feature: "Access to funds"
@@ -35,17 +35,19 @@ affiliatePrograms:
   - "SoFi"
   - "Ally"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "FDIC — Deposit insurance"
     url: "https://www.fdic.gov/resources/deposit-insurance/"
-  - name: "Bank of England — Monetary policy"
-    url: "https://www.bankofengland.co.uk/monetary-policy"
+  - name: "Federal Reserve — FOMC statement, 16 September 2026"
+    url: "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm"
+  - name: "Federal Reserve — FOMC statement, 28 October 2026"
+    url: "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"
 ---
 
 ## The rate gap is smaller than you think
 
-In 2026, the difference between top high-yield savings accounts and CDs is typically 0.25-0.50%. On $10,000, that's $25-50 per year — meaningful but not life-changing.
+In mid-2026 the difference between top high-yield savings accounts and CDs was typically 0.25-0.50%. On $10,000, that's $25-50 per year — meaningful but not life-changing.
 
 The real question is whether that small rate premium is worth giving up access to your money. For most people, it isn't.
 
@@ -55,11 +57,11 @@ The real question is whether that small rate premium is worth giving up access t
 
 **Short-term goals (under 12 months).** If you're [saving for a holiday, car, or other purchase](/tools/saving-and-growth/savings-goal/) within a year, the flexibility of a savings account outweighs the 0.25% rate advantage of a CD.
 
-**Falling rate environment.** When the Bank of England or Federal Reserve is cutting rates, savings account rates drop too. But if you expect rates to drop *further*, you've already missed the CD advantage. The time to lock in was before cuts started.
+**Rising rate environment.** When the Federal Reserve is raising rates, savings account rates tend to rise with it, while a CD holds you at the rate you locked in. The Fed raised its target range to 3.75-4.00% on 16 September 2026 and held it there on 28 October, with two members voting for another rise. If you expect rates to keep climbing, keep the money in a savings account or a short CD so you can move up as rates do.
 
 ## When CDs win
 
-**Rate is about to fall.** If you believe central banks will cut rates significantly, locking in today's rate for 12-24 months guarantees your return while savings account rates decline. In 2024-25, people who locked 5%+ CDs before rate cuts were glad they did.
+**Rates are expected to fall.** If you believe the Fed will cut rates significantly, locking in today's rate for 12-24 months guarantees your return while savings account rates decline. In 2024-25, people who locked 5%+ CDs before rate cuts were glad they did.
 
 **Money you won't need for a specific period.** [Saving for a home deposit](/scenarios/save-for-house-deposit/) in 18 months? A CD maturing at that date locks in your rate and removes the temptation to spend it.
 
@@ -73,7 +75,7 @@ Some banks offer no-penalty CDs, but these usually pay lower rates than standard
 
 ## What about money market accounts?
 
-[Money market accounts](/comparisons/emergency-fund-savings-vs-money-market/) sit between savings and CDs — they often pay slightly higher rates than savings accounts (0.10-0.25% more) while maintaining full liquidity. The trade-off is usually a higher minimum balance ($1,000-$10,000).
+[Money market accounts](/comparisons/emergency-fund-savings-vs-money-market/) sit between savings and CDs. Their rates are usually close to high-yield savings rates: some banks pay a little more on their money market account, others a little less, so compare the specific rates. They keep full liquidity, and the trade-off is usually a higher minimum balance ($1,000-$10,000).
 
 If you have a large emergency fund, a money market account can be a good middle ground. But the difference is marginal enough that the best advice is simple: pick the highest-rate option that gives you the access you need.
 

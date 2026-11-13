@@ -10,19 +10,21 @@ const { slugs } = Astro.props;
 const relatedTools = slugs
   .map((slug) => TOOLS.find((t) => t.slug === slug))
   .filter((t): t is ToolMeta => t !== undefined);
+
+/** "Calculators" only when every related tool is one (file tools are converters). */
+const CALCULATOR_CATEGORIES = new Set(['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic']);
+const heading = relatedTools.every((t) => CALCULATOR_CATEGORIES.has(t.category)) ? 'Related calculators' : 'Related tools';
 ---
 
 {relatedTools.length > 0 && (
-  <section class="mt-14">
-    {/* Gradient divider */}
-    <div class="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent mb-14"></div>
-
+  <section class="mt-10">
     <div class="bg-neutral-50 border border-neutral-200/60 rounded-lg p-6 sm:p-8">
-      <h2 class="text-2xl font-bold text-neutral-900 mb-6">Related Calculators</h2>
+      <h2 class="text-2xl font-bold text-neutral-900 mb-6">{heading}</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {relatedTools.map((tool) => (
           <a
             href={getToolPath(tool)}
+            data-astro-prefetch
             class="group relative bg-white border border-neutral-200/80 rounded-xl p-4 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200"
           >
             <div class="flex items-start gap-3">
