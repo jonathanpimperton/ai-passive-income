@@ -20,7 +20,7 @@ faq:
   - question: "How do I calculate what X% of Y is?"
     answer: "Multiply the number by the percentage and divide by 100. For example, 15% of 200 = (200 × 15) ÷ 100 = 30. Alternatively, convert the percentage to a decimal first: 15% = 0.15, then 200 × 0.15 = 30. Our calculator handles this instantly for any numbers."
   - question: "How do I calculate percentage change?"
-    answer: "Percentage change = ((New Value – Old Value) ÷ Old Value) × 100. For example, if a stock price goes from $50 to $65: ((65 – 50) ÷ 50) × 100 = 30% increase. If it goes from $65 to $50: ((50 – 65) ÷ 65) × 100 = –23.1% decrease. Note that the same absolute change ($15) gives different percentages depending on the starting value."
+    answer: "Percentage change = ((New Value – Old Value) ÷ Old Value) × 100. For example, if a stock price goes from $50 to $65: ((65 – 50) ÷ 50) × 100 = 30% increase. If it goes from $65 to $50: ((50 – 65) ÷ 65) × 100 = –23.1% decrease. Note that the same absolute change ($15) gives different percentages depending on the starting value. If the old value is 0, percentage change is undefined (it would mean dividing by zero), so compare the absolute change instead."
   - question: "What is the difference between percentage change and percentage difference?"
     answer: "Percentage change measures the relative change from one value to another (and has a direction — increase or decrease). Percentage difference measures how far apart two values are relative to their average, with no direction. Percentage difference = (|A – B| ÷ ((A + B) ÷ 2)) × 100. Use percentage change when comparing a before/after. Use percentage difference when comparing two independent values."
   - question: "How do I find what percentage one number is of another?"

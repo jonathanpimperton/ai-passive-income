@@ -90,4 +90,4 @@ Base64:   T        W        F        u
 
 ## Privacy & Security
 
-All encoding and decoding happens entirely in your browser. No data is sent to any server. This tool uses the Web Crypto API's `TextEncoder` and native `btoa`/`atob` functions — the same primitives used by your browser internally.
+All encoding and decoding happens entirely in your browser. No data is sent to any server. Text is converted with the browser's built-in `TextEncoder` and `TextDecoder` (the Encoding API), and decoding works on raw bytes, so binary data such as images comes back as the original file instead of garbled text. URL-safe Base64, missing padding and data: URLs are accepted.

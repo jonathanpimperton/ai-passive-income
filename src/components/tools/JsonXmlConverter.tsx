@@ -1,16 +1,19 @@
 /**
- * JSON ↔ XML Converter — bidirectional conversion using fast-xml-parser.
- * Real-time conversion, configurable root element, copy/download. No server upload.
+ * JSON <-> XML Converter: XML parsing with fast-xml-parser, JSON -> XML with
+ * our own well-formed builder (src/lib/dev-tools/xml.ts). Real-time
+ * conversion, configurable root element, copy/download. No server upload.
  */
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Download, Copy, Check, ArrowLeftRight } from 'lucide-react';
+import { Download, Copy, Check, ArrowLeftRight, AlertTriangle } from 'lucide-react';
 import PrivacyBadge from '../ui/PrivacyBadge';
+import { parseJsonLossless } from '../../lib/dev-tools/json-lossless';
+import { jsonToXml, xmlToJson, isNcName, type FxpModule } from '../../lib/dev-tools/xml';
+import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
+import { useSizeAwareDebounce } from '../../lib/dev-tools/use-size-aware-debounce';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 type Mode = 'json-to-xml' | 'xml-to-json';
 type IndentSize = 2 | 4;
-
-let fxpModule: typeof import('fast-xml-parser') | null = null;
-let fxpLoading = false;
 
 const SAMPLE_JSON = `{
   "users": {
@@ -31,93 +34,78 @@ const SAMPLE_JSON = `{
   }
 }`;
 
-const SAMPLE_XML = `<?xml version="1.0" encoding="UTF-8"?>
-<users>
-  <user id="1">
-    <name>Alice</name>
-    <email>alice@example.com</email>
-    <role>admin</role>
-  </user>
-  <user id="2">
-    <name>Bob</name>
-    <email>bob@example.com</email>
-    <role>user</role>
-  </user>
-</users>`;
+interface Result {
+  output: string;
+  error: string;
+  warnings: string[];
+  /** Suggest switching direction when the input looks like the other format. */
+  switchHint: boolean;
+}
+
+/** Second opinion from the browser's own XML parser before showing generated XML. */
+function browserRejects(xml: string): string | null {
+  if (typeof DOMParser === 'undefined') return null;
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  const err = doc.getElementsByTagName('parsererror')[0];
+  return err ? (err.textContent || 'XML parser error').trim().split('\n')[0] : null;
+}
 
 export default function JsonXmlConverter() {
   const [mode, setMode] = useState<Mode>('json-to-xml');
   const [input, setInput] = useState(SAMPLE_JSON);
   const [indentSize, setIndentSize] = useState<IndentSize>(2);
-  const [copied, setCopied] = useState(false);
-  const [libReady, setLibReady] = useState(false);
+  const [rootName, setRootName] = useState('root');
+  const [fxp, setFxp] = useState<FxpModule | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const { copy, copiedKey, failedKey, message: copyMessage } = useCopyFeedback();
+  const { value: settledInput, pending } = useSizeAwareDebounce(input);
 
-  // Load fast-xml-parser lazily
   useEffect(() => {
-    if (fxpModule) {
-      setLibReady(true);
-      return;
-    }
-    if (fxpLoading) return;
-    fxpLoading = true;
+    let cancelled = false;
     import('fast-xml-parser')
       .then((mod) => {
-        fxpModule = mod;
-        setLibReady(true);
+        if (!cancelled) setFxp(mod as unknown as FxpModule);
       })
-      .catch(() => setLibReady(true)); // Degrade gracefully — result memo handles missing lib
+      .catch(() => {
+        if (!cancelled) setLoadError('The XML library failed to load. Check your connection and reload the page.');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const result = useMemo(() => {
-    if (!libReady || !fxpModule) return { output: 'Loading XML library...', error: '' };
-    if (!input.trim()) return { output: '', error: '' };
+  const rootNameError = rootName.trim() && !isNcName(rootName.trim()) ? 'Use letters, digits, _, - or . and start with a letter or _.' : '';
 
-    try {
-      if (mode === 'json-to-xml') {
-        const parsed = JSON.parse(input);
-        const builder = new fxpModule.XMLBuilder({
-          ignoreAttributes: false,
-          format: true,
-          indentBy: ' '.repeat(indentSize),
-          suppressEmptyNode: false,
-          attributeNamePrefix: '@_',
-        });
-        const xml = builder.build(parsed);
-        return { output: `<?xml version="1.0" encoding="UTF-8"?>\n${xml}`, error: '' };
-      } else {
-        const parser = new fxpModule.XMLParser({
-          ignoreAttributes: false,
-          attributeNamePrefix: '@_',
-          allowBooleanAttributes: true,
-          parseTagValue: true,
-          parseAttributeValue: true,
-          trimValues: true,
-        });
-        const parsed = parser.parse(input);
-        const json = JSON.stringify(parsed, null, indentSize);
-        return { output: json, error: '' };
+  const result = useMemo<Result>(() => safely<Result>(() => {
+    const none: Result = { output: '', error: '', warnings: [], switchHint: false };
+    if (!settledInput.trim()) return none;
+    if (mode === 'json-to-xml') {
+      const parsed = parseJsonLossless(settledInput);
+      if (!parsed.ok) {
+        const e = parsed.error;
+        return {
+          ...none,
+          error: `Invalid JSON on line ${e.line}, column ${e.column}: ${e.message}.${e.hint ? ` ${e.hint}` : ''}`,
+          switchHint: settledInput.trimStart().startsWith('<'),
+        };
       }
-    } catch (e) {
-      return { output: '', error: e instanceof Error ? e.message : 'Conversion failed' };
+      const built = jsonToXml(parsed.value, { rootName: rootName.trim() || 'root', indent: indentSize });
+      if (!built.ok) return { ...none, error: built.error };
+      const rejected = browserRejects(built.xml);
+      if (rejected) return { ...none, error: `The generated XML did not pass the browser's XML check (${rejected}). Try simplifying the key names in the JSON.` };
+      const duplicates = parsed.warnings.filter((w) => w.kind === 'duplicate-key').map((w) => w.message);
+      return { ...none, output: built.xml, warnings: [...built.warnings, ...duplicates] };
     }
-  }, [input, mode, indentSize, libReady]);
+    if (!fxp) return { ...none, error: loadError };
+    const converted = xmlToJson(fxp, settledInput, indentSize);
+    if (!converted.ok) {
+      const t = settledInput.trimStart();
+      return { ...none, error: converted.error, switchHint: t.startsWith('{') || t.startsWith('[') };
+    }
+    return { ...none, output: converted.json, warnings: converted.warnings };
+  }, (message) => ({ output: '', error: message, warnings: [], switchHint: false })), [settledInput, mode, indentSize, rootName, fxp, loadError]);
 
-  const handleCopy = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }, []);
+  const waitingForLibrary = mode === 'xml-to-json' && !fxp && !loadError && !!input.trim();
 
   const handleDownload = useCallback(() => {
     if (!result.output) return;
@@ -132,26 +120,31 @@ export default function JsonXmlConverter() {
     URL.revokeObjectURL(url);
   }, [result.output, mode]);
 
+  // Swapping direction carries the converted output across instead of
+  // replacing the user's data with a sample (DEVTOOLS-13).
   const toggleMode = useCallback(() => {
-    setMode((m) => {
-      const newMode = m === 'json-to-xml' ? 'xml-to-json' : 'json-to-xml';
-      setInput(newMode === 'json-to-xml' ? SAMPLE_JSON : SAMPLE_XML);
-      return newMode;
-    });
+    if (result.output && !result.error) setInput(result.output);
+    setMode((m) => (m === 'json-to-xml' ? 'xml-to-json' : 'json-to-xml'));
+  }, [result.output, result.error]);
+
+  const switchOnly = useCallback(() => {
+    setMode((m) => (m === 'json-to-xml' ? 'xml-to-json' : 'json-to-xml'));
   }, []);
 
   const inputLabel = mode === 'json-to-xml' ? 'JSON Input' : 'XML Input';
   const outputLabel = mode === 'json-to-xml' ? 'XML Output' : 'JSON Output';
+  const shownOutput = result.error ? '' : waitingForLibrary ? 'Loading XML library...' : pending ? 'Converting...' : result.output;
 
   return (
     <div className="space-y-6">
       <PrivacyBadge />
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <button
+          type="button"
           onClick={toggleMode}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white font-medium text-sm hover:bg-primary-700 transition-colors duration-150"
+          className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg bg-primary-600 text-white font-medium text-sm hover:bg-primary-700 transition-colors duration-150"
           aria-label={`Switch to ${mode === 'json-to-xml' ? 'XML to JSON' : 'JSON to XML'} mode`}
         >
           <ArrowLeftRight size={16} aria-hidden="true" />
@@ -159,10 +152,11 @@ export default function JsonXmlConverter() {
         </button>
 
         {/* Indent selector */}
-        <div className="flex rounded-lg border border-neutral-200 overflow-hidden">
+        <div className="flex rounded-lg border border-neutral-200 overflow-hidden" role="group" aria-label="Indentation">
           <button
+            type="button"
             onClick={() => setIndentSize(2)}
-            className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+            className={`min-h-[44px] px-3 py-2 text-sm font-medium transition-colors duration-150 ${
               indentSize === 2 ? 'bg-primary-50 text-primary-700' : 'bg-white text-neutral-600 hover:bg-neutral-50'
             }`}
             aria-pressed={indentSize === 2}
@@ -170,8 +164,9 @@ export default function JsonXmlConverter() {
             2 spaces
           </button>
           <button
+            type="button"
             onClick={() => setIndentSize(4)}
-            className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+            className={`min-h-[44px] px-3 py-2 text-sm font-medium transition-colors duration-150 ${
               indentSize === 4 ? 'bg-primary-50 text-primary-700' : 'bg-white text-neutral-600 hover:bg-neutral-50'
             }`}
             aria-pressed={indentSize === 4}
@@ -179,6 +174,27 @@ export default function JsonXmlConverter() {
             4 spaces
           </button>
         </div>
+
+        {mode === 'json-to-xml' && (
+          <div>
+            <label htmlFor="xml-root-name" className="block text-xs font-medium text-neutral-600 mb-1">
+              Root element (when needed)
+            </label>
+            <input
+              id="xml-root-name"
+              type="text"
+              value={rootName}
+              onChange={(e) => setRootName(e.target.value)}
+              spellCheck={false}
+              aria-invalid={!!rootNameError}
+              aria-describedby={rootNameError ? 'xml-root-name-error' : undefined}
+              className="h-11 w-40 rounded-lg border border-neutral-200 bg-white px-3 font-mono text-base sm:text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400"
+            />
+            {rootNameError && (
+              <p id="xml-root-name-error" className="text-xs text-red-700 mt-1">{rootNameError}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Main area */}
@@ -193,7 +209,7 @@ export default function JsonXmlConverter() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={mode === 'json-to-xml' ? 'Paste JSON here...' : 'Paste XML here...'}
-            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y"
+            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-base sm:text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y"
             spellCheck={false}
           />
         </div>
@@ -205,20 +221,20 @@ export default function JsonXmlConverter() {
               {outputLabel}
             </label>
             <div className="flex gap-2">
-              {result.output && !result.error && (
+              {result.output && !result.error && !pending && (
                 <>
                   <button
-                    onClick={() => handleCopy(result.output)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
-                    aria-label="Copy output"
+                    type="button"
+                    onClick={() => copy(result.output)}
+                    className="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
                   >
-                    {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-                    {copied ? 'Copied' : 'Copy'}
+                    {copiedKey ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                    {copiedKey ? 'Copied' : failedKey ? 'Copy failed' : 'Copy'}
                   </button>
                   <button
+                    type="button"
                     onClick={handleDownload}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
-                    aria-label="Download output"
+                    className="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
                   >
                     <Download size={14} aria-hidden="true" />
                     Download
@@ -227,24 +243,49 @@ export default function JsonXmlConverter() {
               )}
             </div>
           </div>
+          <span className="sr-only" role="status" aria-live="polite">{copyMessage}</span>
           <textarea
             id="xml-output"
             readOnly
-            value={result.error ? '' : result.output}
+            value={shownOutput}
             placeholder="Output will appear here..."
-            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-neutral-50 font-mono text-sm text-neutral-900 placeholder:text-neutral-500 resize-y"
-            aria-live="polite"
+            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-neutral-50 font-mono text-base sm:text-sm text-neutral-900 placeholder:text-neutral-500 resize-y"
           />
           {result.error && (
-            <p className="text-sm text-negative-600 font-medium" role="alert">{result.error}</p>
+            <div className="p-3 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700" role="alert">
+              <p>{result.error}</p>
+              {result.switchHint && (
+                <button
+                  type="button"
+                  onClick={switchOnly}
+                  className="mt-2 inline-flex items-center gap-1.5 min-h-[40px] px-3 rounded-lg border border-red-200 bg-white text-sm font-medium text-red-700 hover:bg-red-50 transition-colors duration-150"
+                >
+                  <ArrowLeftRight size={14} aria-hidden="true" />
+                  This looks like {mode === 'json-to-xml' ? 'XML: convert XML to JSON instead' : 'JSON: convert JSON to XML instead'}
+                </button>
+              )}
+            </div>
+          )}
+          {!result.error && result.warnings.length > 0 && (
+            <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-800">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
+              <ul className="space-y-1">
+                {result.warnings.map((w, k) => <li key={k}>{w}</li>)}
+              </ul>
+            </div>
           )}
         </div>
       </div>
 
       {/* Info */}
-      <div className="px-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 text-sm text-neutral-600">
-        <strong className="text-neutral-700">Attribute convention:</strong> XML attributes are represented as <code className="font-mono text-primary-600">@_attributeName</code> in JSON.
-        For example, <code className="font-mono text-primary-600">&lt;user id="1"&gt;</code> becomes <code className="font-mono text-primary-600">{`{"@_id": "1"}`}</code>.
+      <div className="px-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 text-sm text-neutral-600 space-y-1">
+        <p>
+          <strong className="text-neutral-700">Attribute convention:</strong> XML attributes are represented as <code className="font-mono text-primary-600">@_attributeName</code> in JSON.
+          For example, <code className="font-mono text-primary-600">&lt;user id="1"&gt;</code> becomes <code className="font-mono text-primary-600">{`{"@_id": "1"}`}</code>.
+        </p>
+        <p>
+          <strong className="text-neutral-700">Values stay as text:</strong> XML has no number type, so <code className="font-mono text-primary-600">&lt;zip&gt;02134&lt;/zip&gt;</code> becomes <code className="font-mono text-primary-600">"02134"</code>, never 2134.
+        </p>
       </div>
     </div>
   );

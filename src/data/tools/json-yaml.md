@@ -38,7 +38,7 @@ faq:
   - question: "Can YAML comments survive conversion to JSON and back?"
     answer: "No. JSON does not support comments, so any YAML comments are lost when converting to JSON. If you convert JSON back to YAML, the comments will not be restored. This is an inherent limitation — not a bug. If you need to preserve comments, keep a copy of the original YAML file."
   - question: "How does YAML handle data types?"
-    answer: "YAML automatically infers types: 'true'/'false' become booleans, '42' becomes an integer, '3.14' becomes a float, 'null'/'~' become null, and unquoted strings without special characters become strings. This can cause surprises — for example, 'yes' becomes boolean true, and '1.0' becomes a float. To force a string, wrap it in quotes: '\"yes\"' or \"'1.0'\"."
+    answer: "YAML automatically infers types: 'true'/'false' become booleans, '42' becomes an integer, '3.14' becomes a float, 'null'/'~' become null, and unquoted strings without special characters become strings. This can cause surprises: unquoted 0x1F becomes the number 31, 02134 becomes 2134, and older YAML 1.1 tools read 'yes' and 'no' as booleans (this tool follows YAML 1.2, where they stay text). Dates such as 2024-01-01 stay as text by default; choose the extended option to turn them into timestamps. To force a string, wrap it in quotes: '\"0x1F\"' or \"'02134'\"."
   - question: "Is YAML a superset of JSON?"
     answer: "Yes, as of YAML 1.2. Any valid JSON document is also valid YAML. This means you can paste JSON directly into a YAML parser and it will work. However, YAML adds features that JSON doesn't have: comments, multi-line strings (| and >), anchors (&anchor/*alias), type tags (!!str, !!int), and more compact syntax."
   - question: "Which format should I use for configuration files?"
@@ -86,8 +86,8 @@ features:                        "features": [
 | Data reuse | Not supported | Anchors `&` and aliases `*` |
 | File size | Larger (verbose) | Smaller (compact) |
 | Parsing speed | Faster | Slower |
-| Ambiguity | None | Some (`yes` = boolean) |
+| Ambiguity | None | Some (unquoted `0x1F` and `02134` become numbers; YAML 1.1 tools read `yes` as true) |
 
 ## How It Works
 
-This tool uses [js-yaml](https://github.com/nodeca/js-yaml), the most popular YAML library for JavaScript with 44M+ weekly npm downloads. It fully supports the YAML 1.2 specification. All conversion happens in your browser — no data is sent to any server.
+This tool uses [js-yaml](https://github.com/nodeca/js-yaml), the most popular YAML library for JavaScript with 44M+ weekly npm downloads. It follows the YAML 1.2 specification. Files with several documents separated by --- become a JSON array, and aliases are expanded with a safety limit so a malicious file cannot freeze the page. All conversion happens in your browser — no data is sent to any server.

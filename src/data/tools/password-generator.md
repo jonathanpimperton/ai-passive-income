@@ -21,7 +21,7 @@ faq:
   - question: "What makes a strong password?"
     answer: "A strong password is at least 12-16 characters long and includes a mix of uppercase letters, lowercase letters, numbers, and special characters. Length matters more than complexity — a 20-character passphrase like 'correct-horse-battery-staple' is stronger than a short complex password like 'P@s5w0rd'. Our generator creates passwords that meet all modern security standards."
   - question: "How long should my password be?"
-    answer: "At minimum 12 characters, but 16+ is recommended. An 8-character password with all character types can be cracked in about 8 hours with modern hardware. A 12-character password takes roughly 3,000 years. A 16-character password is essentially uncrackable with current technology. Every additional character multiplies the difficulty exponentially."
+    answer: "At minimum 12 characters, but 16+ is recommended. At 100 billion guesses per second (an offline attack on a leaked password database), trying every 8-character password that uses all character types takes about 10 hours. At 12 characters it takes about 68,300 years, and at 16 characters about 4.1 trillion years. Every additional character multiplies the difficulty."
   - question: "Is it safe to use an online password generator?"
     answer: "Our password generator runs entirely in your browser — passwords are generated client-side using JavaScript's cryptographic random number generator (crypto.getRandomValues). No passwords are sent to our servers, stored, or logged. For maximum security, you can verify this by checking the page source code or using the tool while disconnected from the internet."
   - question: "Should I use a password manager?"
@@ -33,7 +33,7 @@ workedExamples:
     inputs:
       length: 20
       characters: "uppercase, lowercase, numbers, symbols"
-    description: "A password manager master password needs to be exceptionally strong — it protects all your other passwords. Generate a 20+ character password with all character types enabled. A 20-character password with this complexity has over 130 bits of entropy, making it virtually uncrackable. Store your master password in a secure physical location as a backup."
+    description: "A password manager master password needs to be exceptionally strong — it protects all your other passwords. Generate a 20+ character password with all character types enabled. A 20-character password with this complexity has about 129 bits of entropy, making it virtually uncrackable. Store your master password in a secure physical location as a backup."
   - title: "Wi-Fi network password"
     inputs:
       length: 16
@@ -50,7 +50,7 @@ workedExamples:
 
 Weak passwords are the leading cause of account breaches. According to security research, over 80% of hacking-related breaches involve stolen or weak credentials. The problem isn't that attackers are geniuses — it's that common passwords are trivially easy to crack.
 
-Modern password-cracking hardware can test billions of combinations per second. An 8-character password using all character types can be brute-forced in about 8 hours. Bump that to 12 characters and it takes roughly 3,000 years. At 16 characters, it's effectively uncrackable with current technology.
+Password-cracking rigs can test around 100 billion guesses per second against a leaked database of fast password hashes. At that speed, trying every 8-character password that uses all character types takes about 10 hours. At 12 characters it takes about 68,300 years, and at 16 characters it's effectively uncrackable.
 
 > **Key takeaway:** Every character you add to a password multiplies the cracking time exponentially. Going from 8 to 16 characters isn't twice as strong — it's billions of times stronger.
 
@@ -66,12 +66,15 @@ No passwords are sent to our servers, stored, or logged. You can verify this by 
 
 Password strength is measured in **bits of entropy** — the number of binary decisions needed to guess the password. More entropy = harder to crack.
 
-| Entropy (bits) | Strength | What it means |
-|---|---|---|
-| 40–50 | Weak | Crackable with consumer hardware |
-| 60–70 | Moderate | Resists casual attacks but not determined ones |
-| 80–90 | Strong | Sufficient for most online accounts |
-| 100+ | Very strong | Suitable for master passwords, encryption keys, and high-security accounts |
+| Entropy (bits) | Strength | What it means | Time to try every combination* |
+|---|---|---|---|
+| Under 40 | Very weak | Cracked almost instantly by an offline attack | Under 11 seconds |
+| 40–59 | Weak | Crackable with consumer hardware | 11 seconds to 67 days |
+| 60–79 | Moderate | Resists casual attacks but not determined ones | 133 days to 192,000 years |
+| 80–99 | Strong | Sufficient for most online accounts | 383,000 years to 201 billion years |
+| 100+ | Very strong | Suitable for master passwords, encryption keys and high-security accounts | 402 billion years or more |
+
+*At 100 billion guesses per second, an offline attack on a leaked database of fast password hashes. The strength meter in the tool uses these same bands.
 
 Each additional character type (uppercase, lowercase, numbers, symbols) and each additional character of length increases entropy. Length has a bigger impact than complexity — a 20-character alphanumeric password is stronger than a 10-character password with all character types.
 

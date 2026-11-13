@@ -1,16 +1,19 @@
 /**
- * JSON ↔ YAML Converter — bidirectional conversion using js-yaml.
- * Real-time conversion, copy/download, indent options. No server upload.
+ * JSON <-> YAML Converter using js-yaml (src/lib/dev-tools/yaml.ts).
+ * Real-time conversion, multi-document YAML, schema choice, copy/download.
+ * No server upload.
  */
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Download, Copy, Check, ArrowLeftRight } from 'lucide-react';
+import { Download, Copy, Check, ArrowLeftRight, AlertTriangle } from 'lucide-react';
 import PrivacyBadge from '../ui/PrivacyBadge';
+import { parseJsonLossless } from '../../lib/dev-tools/json-lossless';
+import { yamlToJson, jsonToYaml, looksLikeYaml, type JsYamlModule, type YamlSchemaChoice } from '../../lib/dev-tools/yaml';
+import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
+import { useSizeAwareDebounce } from '../../lib/dev-tools/use-size-aware-debounce';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 type Mode = 'json-to-yaml' | 'yaml-to-json';
 type IndentSize = 2 | 4;
-
-let jsYamlInstance: typeof import('js-yaml') | null = null;
-let jsYamlLoading = false;
 
 const SAMPLE_JSON = `{
   "name": "CalcRun",
@@ -27,83 +30,68 @@ const SAMPLE_JSON = `{
   }
 }`;
 
-const SAMPLE_YAML = `name: CalcRun
-version: 1.0.0
-features:
-  - calculators
-  - converters
-  - utilities
-config:
-  theme: light
-  language: en
-  analytics: true
-limits:
-  maxFileSize: 50
-  maxRequests: null`;
+const SCHEMAS: { value: YamlSchemaChoice; label: string }[] = [
+  { value: 'core', label: 'YAML 1.2 Core (dates stay as text)' },
+  { value: 'json', label: 'JSON schema (strict)' },
+  { value: 'extended', label: 'Extended (dates become timestamps)' },
+];
+
+interface Result {
+  output: string;
+  error: string;
+  warnings: string[];
+  switchHint: boolean;
+}
 
 export default function JsonYamlConverter() {
   const [mode, setMode] = useState<Mode>('json-to-yaml');
   const [input, setInput] = useState(SAMPLE_JSON);
   const [indentSize, setIndentSize] = useState<IndentSize>(2);
-  const [copied, setCopied] = useState(false);
-  const [yamlReady, setYamlReady] = useState(false);
+  const [schema, setSchema] = useState<YamlSchemaChoice>('core');
+  const [jsYaml, setJsYaml] = useState<JsYamlModule | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const { copy, copiedKey, failedKey, message: copyMessage } = useCopyFeedback();
+  const { value: settledInput, pending } = useSizeAwareDebounce(input);
 
-  // Load js-yaml lazily
   useEffect(() => {
-    if (jsYamlInstance) {
-      setYamlReady(true);
-      return;
-    }
-    if (jsYamlLoading) return;
-    jsYamlLoading = true;
+    let cancelled = false;
     import('js-yaml')
       .then((mod) => {
-        jsYamlInstance = mod;
-        setYamlReady(true);
+        if (!cancelled) setJsYaml(((mod as unknown as { default?: JsYamlModule }).default ?? mod) as unknown as JsYamlModule);
       })
-      .catch(() => setYamlReady(true)); // Degrade gracefully — result memo handles missing lib
+      .catch(() => {
+        if (!cancelled) setLoadError('The YAML library failed to load. Check your connection and reload the page.');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const result = useMemo(() => {
-    if (!yamlReady || !jsYamlInstance) return { output: 'Loading YAML library...', error: '' };
-    if (!input.trim()) return { output: '', error: '' };
-
-    try {
-      if (mode === 'json-to-yaml') {
-        const parsed = JSON.parse(input);
-        const yaml = jsYamlInstance.dump(parsed, {
-          indent: indentSize,
-          lineWidth: -1, // no line wrapping
-          noRefs: true,
-          sortKeys: false,
-        });
-        return { output: yaml, error: '' };
-      } else {
-        const parsed = jsYamlInstance.load(input);
-        const json = JSON.stringify(parsed, null, indentSize);
-        return { output: json, error: '' };
+  const result = useMemo<Result>(() => safely<Result>(() => {
+    const none: Result = { output: '', error: '', warnings: [], switchHint: false };
+    if (!settledInput.trim()) return none;
+    if (!jsYaml) return { ...none, error: loadError };
+    if (mode === 'json-to-yaml') {
+      const parsed = parseJsonLossless(settledInput);
+      if (!parsed.ok) {
+        const e = parsed.error;
+        return {
+          ...none,
+          error: `Invalid JSON on line ${e.line}, column ${e.column}: ${e.message}.${e.hint ? ` ${e.hint}` : ''}`,
+          switchHint: looksLikeYaml(settledInput),
+        };
       }
-    } catch (e) {
-      return { output: '', error: e instanceof Error ? e.message : 'Conversion failed' };
+      const r = jsonToYaml(jsYaml, parsed.value, { indent: indentSize });
+      if (!r.ok) return { ...none, error: r.error };
+      const duplicates = parsed.warnings.filter((w) => w.kind === 'duplicate-key').map((w) => w.message);
+      return { ...none, output: r.yaml, warnings: [...r.warnings, ...duplicates] };
     }
-  }, [input, mode, indentSize, yamlReady]);
+    const r = yamlToJson(jsYaml, settledInput, { schema, indent: indentSize });
+    if (!r.ok) return { ...none, error: r.error };
+    return { ...none, output: r.json, warnings: r.warnings };
+  }, (message) => ({ output: '', error: message, warnings: [], switchHint: false })), [settledInput, mode, indentSize, schema, jsYaml, loadError]);
 
-  const handleCopy = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }, []);
+  const waitingForLibrary = !jsYaml && !loadError && !!input.trim();
 
   const handleDownload = useCallback(() => {
     if (!result.output) return;
@@ -118,26 +106,29 @@ export default function JsonYamlConverter() {
     URL.revokeObjectURL(url);
   }, [result.output, mode]);
 
+  // Swapping direction carries the converted output across instead of
+  // replacing the user's data with a sample (DEVTOOLS-13).
   const toggleMode = useCallback(() => {
-    setMode((m) => {
-      const newMode = m === 'json-to-yaml' ? 'yaml-to-json' : 'json-to-yaml';
-      setInput(newMode === 'json-to-yaml' ? SAMPLE_JSON : SAMPLE_YAML);
-      return newMode;
-    });
-  }, []);
+    if (result.output && !result.error) setInput(result.output);
+    setMode((m) => (m === 'json-to-yaml' ? 'yaml-to-json' : 'json-to-yaml'));
+  }, [result.output, result.error]);
+
+  const switchOnly = useCallback(() => setMode('yaml-to-json'), []);
 
   const inputLabel = mode === 'json-to-yaml' ? 'JSON Input' : 'YAML Input';
   const outputLabel = mode === 'json-to-yaml' ? 'YAML Output' : 'JSON Output';
+  const shownOutput = result.error ? '' : waitingForLibrary ? 'Loading YAML library...' : pending ? 'Converting...' : result.output;
 
   return (
     <div className="space-y-6">
       <PrivacyBadge />
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <button
+          type="button"
           onClick={toggleMode}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white font-medium text-sm hover:bg-primary-700 transition-colors duration-150"
+          className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg bg-primary-600 text-white font-medium text-sm hover:bg-primary-700 transition-colors duration-150"
           aria-label={`Switch to ${mode === 'json-to-yaml' ? 'YAML to JSON' : 'JSON to YAML'} mode`}
         >
           <ArrowLeftRight size={16} aria-hidden="true" />
@@ -145,10 +136,11 @@ export default function JsonYamlConverter() {
         </button>
 
         {/* Indent selector */}
-        <div className="flex rounded-lg border border-neutral-200 overflow-hidden">
+        <div className="flex rounded-lg border border-neutral-200 overflow-hidden" role="group" aria-label="Indentation">
           <button
+            type="button"
             onClick={() => setIndentSize(2)}
-            className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+            className={`min-h-[44px] px-3 py-2 text-sm font-medium transition-colors duration-150 ${
               indentSize === 2 ? 'bg-primary-50 text-primary-700' : 'bg-white text-neutral-600 hover:bg-neutral-50'
             }`}
             aria-pressed={indentSize === 2}
@@ -156,8 +148,9 @@ export default function JsonYamlConverter() {
             2 spaces
           </button>
           <button
+            type="button"
             onClick={() => setIndentSize(4)}
-            className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+            className={`min-h-[44px] px-3 py-2 text-sm font-medium transition-colors duration-150 ${
               indentSize === 4 ? 'bg-primary-50 text-primary-700' : 'bg-white text-neutral-600 hover:bg-neutral-50'
             }`}
             aria-pressed={indentSize === 4}
@@ -165,6 +158,24 @@ export default function JsonYamlConverter() {
             4 spaces
           </button>
         </div>
+
+        {mode === 'yaml-to-json' && (
+          <div>
+            <label htmlFor="yaml-schema" className="block text-xs font-medium text-neutral-600 mb-1">
+              YAML types
+            </label>
+            <select
+              id="yaml-schema"
+              value={schema}
+              onChange={(e) => setSchema(e.target.value as YamlSchemaChoice)}
+              className="h-11 rounded-lg border border-neutral-200 bg-white px-2 text-base sm:text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400"
+            >
+              {SCHEMAS.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Main area */}
@@ -179,7 +190,7 @@ export default function JsonYamlConverter() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={mode === 'json-to-yaml' ? 'Paste JSON here...' : 'Paste YAML here...'}
-            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y"
+            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-white font-mono text-base sm:text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 resize-y"
             spellCheck={false}
           />
         </div>
@@ -191,20 +202,20 @@ export default function JsonYamlConverter() {
               {outputLabel}
             </label>
             <div className="flex gap-2">
-              {result.output && !result.error && (
+              {result.output && !result.error && !pending && (
                 <>
                   <button
-                    onClick={() => handleCopy(result.output)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
-                    aria-label="Copy output"
+                    type="button"
+                    onClick={() => copy(result.output)}
+                    className="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
                   >
-                    {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-                    {copied ? 'Copied' : 'Copy'}
+                    {copiedKey ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                    {copiedKey ? 'Copied' : failedKey ? 'Copy failed' : 'Copy'}
                   </button>
                   <button
+                    type="button"
                     onClick={handleDownload}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
-                    aria-label="Download output"
+                    className="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
                   >
                     <Download size={14} aria-hidden="true" />
                     Download
@@ -213,16 +224,36 @@ export default function JsonYamlConverter() {
               )}
             </div>
           </div>
+          <span className="sr-only" role="status" aria-live="polite">{copyMessage}</span>
           <textarea
             id="yaml-output"
             readOnly
-            value={result.error ? '' : result.output}
+            value={shownOutput}
             placeholder="Output will appear here..."
-            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-neutral-50 font-mono text-sm text-neutral-900 placeholder:text-neutral-500 resize-y"
-            aria-live="polite"
+            className="w-full h-80 p-4 rounded-xl border border-neutral-200 bg-neutral-50 font-mono text-base sm:text-sm text-neutral-900 placeholder:text-neutral-500 resize-y"
           />
           {result.error && (
-            <p className="text-sm text-negative-600 font-medium" role="alert">{result.error}</p>
+            <div className="p-3 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700" role="alert">
+              <p className="whitespace-pre-wrap">{result.error}</p>
+              {result.switchHint && (
+                <button
+                  type="button"
+                  onClick={switchOnly}
+                  className="mt-2 inline-flex items-center gap-1.5 min-h-[40px] px-3 rounded-lg border border-red-200 bg-white text-sm font-medium text-red-700 hover:bg-red-50 transition-colors duration-150"
+                >
+                  <ArrowLeftRight size={14} aria-hidden="true" />
+                  This looks like YAML: convert YAML to JSON instead
+                </button>
+              )}
+            </div>
+          )}
+          {!result.error && result.warnings.length > 0 && (
+            <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-800">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
+              <ul className="space-y-1">
+                {result.warnings.map((w, k) => <li key={k}>{w}</li>)}
+              </ul>
+            </div>
           )}
         </div>
       </div>
@@ -230,7 +261,7 @@ export default function JsonYamlConverter() {
       {/* Info */}
       <div className="px-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 text-sm text-neutral-600">
         <strong className="text-neutral-700">Note:</strong> YAML comments are not preserved when converting to JSON (JSON does not support comments).
-        YAML anchors and aliases are resolved during conversion.
+        YAML anchors and aliases are expanded during conversion. Files with several documents separated by <code className="font-mono text-primary-600">---</code> become a JSON array.
       </div>
     </div>
   );

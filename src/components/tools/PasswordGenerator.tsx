@@ -1,135 +1,33 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Copy, RefreshCw, Check, Shield, ShieldAlert, ShieldCheck, Eye, EyeOff, RotateCcw, Hash, Shuffle } from 'lucide-react';
+import {
+  generatePassword,
+  entropyBits,
+  poolSize,
+  strengthFor,
+  crackSeconds,
+  formatDuration,
+  parseLength,
+  CHAR_SETS,
+  MIN_LENGTH,
+  MAX_LENGTH,
+  type PasswordOptions,
+  type StrengthTone,
+} from '../../lib/dev-tools/password';
+import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
 
-/* ── Character Sets ───────────────────────────────────────── */
-const CHAR_SETS: Record<string, string> = {
-  uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-  lowercase: 'abcdefghijklmnopqrstuvwxyz',
-  numbers: '0123456789',
-  special: '!@#$%^&*()_+-=[]{}|;:,.<>?',
+const BULLET = String.fromCharCode(0x2022);
+
+/* Strength styling (labels and thresholds live in lib/dev-tools/password.ts) */
+const TONE_STYLES: Record<StrengthTone, { text: string; bar: string }> = {
+  'very-weak': { text: 'text-red-700', bar: 'bg-red-600' },
+  weak: { text: 'text-red-700', bar: 'bg-red-500' },
+  moderate: { text: 'text-neutral-800', bar: 'bg-amber-500' },
+  strong: { text: 'text-success-700', bar: 'bg-success-500' },
+  'very-strong': { text: 'text-success-700', bar: 'bg-success-600' },
 };
 
-const AMBIGUOUS_CHARS = /[0OoIl1|]/g;
-
-/* ── Strength Levels ──────────────────────────────────────── */
-interface StrengthLevel {
-  label: string;
-  colorClass: string;
-  barColor: string;
-  percent: number;
-}
-
-function getStrengthLevel(entropy: number): StrengthLevel {
-  if (entropy < 28) {
-    return { label: 'Weak', colorClass: 'text-negative-600', barColor: 'bg-negative-500', percent: 15 };
-  }
-  if (entropy < 36) {
-    return { label: 'Fair', colorClass: 'text-warning-600', barColor: 'bg-warning-500', percent: 35 };
-  }
-  if (entropy < 60) {
-    return { label: 'Good', colorClass: 'text-amber-600', barColor: 'bg-amber-500', percent: 55 };
-  }
-  if (entropy < 128) {
-    return { label: 'Strong', colorClass: 'text-success-600', barColor: 'bg-success-500', percent: 80 };
-  }
-  return { label: 'Very Strong', colorClass: 'text-success-700', barColor: 'bg-success-600', percent: 100 };
-}
-
-/* ── Crypto-safe random int ───────────────────────────────── */
-function secureRandomInt(max: number): number {
-  const array = new Uint32Array(1);
-  const limit = Math.floor(0x100000000 / max) * max;
-  do {
-    crypto.getRandomValues(array);
-  } while (array[0] >= limit);
-  return array[0] % max;
-}
-
-/* ── Password generation logic ────────────────────────────── */
-interface GenerateOptions {
-  length: number;
-  uppercase: boolean;
-  lowercase: boolean;
-  numbers: boolean;
-  special: boolean;
-  excludeAmbiguous: boolean;
-}
-
-function generatePassword(options: GenerateOptions): string {
-  let charset = '';
-  const requiredChars: string[] = [];
-
-  if (options.uppercase) {
-    let set = CHAR_SETS.uppercase;
-    if (options.excludeAmbiguous) set = set.replace(AMBIGUOUS_CHARS, '');
-    charset += set;
-    if (set.length > 0) requiredChars.push(set[secureRandomInt(set.length)]);
-  }
-  if (options.lowercase) {
-    let set = CHAR_SETS.lowercase;
-    if (options.excludeAmbiguous) set = set.replace(AMBIGUOUS_CHARS, '');
-    charset += set;
-    if (set.length > 0) requiredChars.push(set[secureRandomInt(set.length)]);
-  }
-  if (options.numbers) {
-    let set = CHAR_SETS.numbers;
-    if (options.excludeAmbiguous) set = set.replace(AMBIGUOUS_CHARS, '');
-    charset += set;
-    if (set.length > 0) requiredChars.push(set[secureRandomInt(set.length)]);
-  }
-  if (options.special) {
-    let set = CHAR_SETS.special;
-    if (options.excludeAmbiguous) set = set.replace(AMBIGUOUS_CHARS, '');
-    charset += set;
-    if (set.length > 0) requiredChars.push(set[secureRandomInt(set.length)]);
-  }
-
-  if (charset.length === 0) return '';
-
-  // Fill remaining length with random chars from the full charset
-  const remaining = Math.max(0, options.length - requiredChars.length);
-  const randomChars: string[] = [];
-  for (let i = 0; i < remaining; i++) {
-    randomChars.push(charset[secureRandomInt(charset.length)]);
-  }
-
-  // Combine required + random and shuffle using Fisher-Yates
-  const allChars = [...requiredChars, ...randomChars];
-  for (let i = allChars.length - 1; i > 0; i--) {
-    const j = secureRandomInt(i + 1);
-    [allChars[i], allChars[j]] = [allChars[j], allChars[i]];
-  }
-
-  return allChars.join('');
-}
-
-function calculateEntropy(options: GenerateOptions): number {
-  let charsetSize = 0;
-  if (options.uppercase) {
-    let set = CHAR_SETS.uppercase;
-    if (options.excludeAmbiguous) set = set.replace(AMBIGUOUS_CHARS, '');
-    charsetSize += set.length;
-  }
-  if (options.lowercase) {
-    let set = CHAR_SETS.lowercase;
-    if (options.excludeAmbiguous) set = set.replace(AMBIGUOUS_CHARS, '');
-    charsetSize += set.length;
-  }
-  if (options.numbers) {
-    let set = CHAR_SETS.numbers;
-    if (options.excludeAmbiguous) set = set.replace(AMBIGUOUS_CHARS, '');
-    charsetSize += set.length;
-  }
-  if (options.special) {
-    let set = CHAR_SETS.special;
-    if (options.excludeAmbiguous) set = set.replace(AMBIGUOUS_CHARS, '');
-    charsetSize += set.length;
-  }
-  if (charsetSize === 0) return 0;
-  return options.length * Math.log2(charsetSize);
-}
-
-/* ── Toggle Switch ────────────────────────────────────────── */
+/* Toggle Switch */
 interface ToggleSwitchProps {
   id: string;
   label: string;
@@ -176,8 +74,8 @@ function ToggleSwitch({ id, label, description, checked, onChange, disabled = fa
   );
 }
 
-/* ── Main Component ───────────────────────────────────────── */
-const DEFAULTS = {
+/* Main Component */
+const DEFAULTS: PasswordOptions = {
   length: 16,
   uppercase: true,
   lowercase: true,
@@ -188,80 +86,38 @@ const DEFAULTS = {
 
 export default function PasswordGenerator() {
   const [length, setLength] = useState(DEFAULTS.length);
+  // While the length box is being edited it holds the raw text; it is clamped on blur or Enter.
+  const [lengthText, setLengthText] = useState<string | null>(null);
   const [uppercase, setUppercase] = useState(DEFAULTS.uppercase);
   const [lowercase, setLowercase] = useState(DEFAULTS.lowercase);
   const [numbers, setNumbers] = useState(DEFAULTS.numbers);
   const [special, setSpecial] = useState(DEFAULTS.special);
   const [excludeAmbiguous, setExcludeAmbiguous] = useState(DEFAULTS.excludeAmbiguous);
   const [password, setPassword] = useState('');
-  const [copied, setCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(true);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { copy, copiedKey, failedKey, message: copyMessage } = useCopyFeedback();
 
-  const options: GenerateOptions = {
-    length,
-    uppercase,
-    lowercase,
-    numbers,
-    special,
-    excludeAmbiguous,
-  };
-
-  const entropy = calculateEntropy(options);
-  const strength = getStrengthLevel(entropy);
+  const options: PasswordOptions = { length, uppercase, lowercase, numbers, special, excludeAmbiguous };
+  const entropy = entropyBits(options);
+  const strength = strengthFor(entropy);
+  const tone = TONE_STYLES[strength.tone];
+  const pool = poolSize(options);
   const hasAnyCharset = uppercase || lowercase || numbers || special;
+  const crackTime = formatDuration(crackSeconds(entropy));
 
-  /* ── Generate on mount + any option change ────────────────── */
+  /* Generate on mount + any option change */
   const generate = useCallback(() => {
-    const opts: GenerateOptions = {
-      length,
-      uppercase,
-      lowercase,
-      numbers,
-      special,
-      excludeAmbiguous,
-    };
-    const pw = generatePassword(opts);
-    setPassword(pw);
-    setCopied(false);
+    setPassword(generatePassword({ length, uppercase, lowercase, numbers, special, excludeAmbiguous }));
   }, [length, uppercase, lowercase, numbers, special, excludeAmbiguous]);
 
   useEffect(() => {
     generate();
   }, [generate]);
 
-  // Cleanup copy timeout on unmount
-  useEffect(() => {
-    return () => { if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current); };
-  }, []);
-
-  /* ── Copy to clipboard ─────────────────────────────────────── */
-  const handleCopy = useCallback(async () => {
-    if (!password) return;
-    try {
-      await navigator.clipboard.writeText(password);
-      setCopied(true);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for older browsers
-      const textarea = document.createElement('textarea');
-      textarea.value = password;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      setCopied(true);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
-    }
-  }, [password]);
-
-  /* ── Reset to defaults ──────────────────────────────────── */
+  /* Reset to defaults */
   const handleReset = useCallback(() => {
     setLength(DEFAULTS.length);
+    setLengthText(null);
     setUppercase(DEFAULTS.uppercase);
     setLowercase(DEFAULTS.lowercase);
     setNumbers(DEFAULTS.numbers);
@@ -269,7 +125,7 @@ export default function PasswordGenerator() {
     setExcludeAmbiguous(DEFAULTS.excludeAmbiguous);
   }, []);
 
-  /* ── Ensure at least one charset is always selected ────────── */
+  /* Ensure at least one charset is always selected */
   const handleToggle = useCallback(
     (setter: React.Dispatch<React.SetStateAction<boolean>>, current: boolean, others: boolean[]) => {
       // If turning off and all others are also off, don't allow it
@@ -279,30 +135,37 @@ export default function PasswordGenerator() {
     []
   );
 
-  /* ── Length slider handler ──────────────────────────────────── */
-  const handleLengthText = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9]/g, '');
-    const parsed = parseInt(raw, 10);
-    if (!isNaN(parsed)) setLength(Math.min(128, Math.max(8, parsed)));
+  /* Length box: free typing while focused, clamped on blur/Enter (DEVTOOLS-16) */
+  const commitLength = () => {
+    if (lengthText === null) return;
+    const parsed = parseLength(lengthText);
+    if (parsed !== null) setLength(parsed);
+    setLengthText(null);
   };
+  const pendingLength = lengthText !== null ? parseLength(lengthText) : length;
+  const lengthHint =
+    lengthText !== null && pendingLength !== null && String(pendingLength) !== lengthText.replace(/[^0-9]/g, '')
+      ? `Will be set to ${pendingLength} (allowed ${MIN_LENGTH}-${MAX_LENGTH})`
+      : `${MIN_LENGTH} to ${MAX_LENGTH} characters`;
 
-  /* ── Strength icon ──────────────────────────────────────────── */
-  const StrengthIcon = entropy < 36 ? ShieldAlert : entropy < 60 ? Shield : ShieldCheck;
+  const StrengthIcon = entropy < 60 ? ShieldAlert : entropy < 80 ? Shield : ShieldCheck;
+  const crackPhrase = crackTime === 'less than a second' ? crackTime : `about ${crackTime}`;
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
 
-        {/* ── Options Panel ──────────────────────────────── */}
-        <div className="p-6 lg:p-8 lg:border-r border-neutral-100">
+        {/* Options Panel */}
+        <div className="p-6 lg:p-8 lg:border-r border-neutral-100 order-2 lg:order-1">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Options</h2>
             <button
+              type="button"
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
+              className="flex items-center gap-1 min-h-[40px] px-3 -mr-3 text-sm text-neutral-500 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150"
               aria-label="Reset to defaults"
             >
-              <RotateCcw size={12} aria-hidden="true" />
+              <RotateCcw size={14} aria-hidden="true" />
               Reset
             </button>
           </div>
@@ -318,24 +181,34 @@ export default function PasswordGenerator() {
                   id="pw-length"
                   type="text"
                   inputMode="numeric"
-                  value={length}
-                  onChange={handleLengthText}
-                  className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm
+                  value={lengthText ?? String(length)}
+                  onChange={(e) => setLengthText(e.target.value)}
+                  onBlur={commitLength}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitLength();
+                    if (e.key === 'Escape') setLengthText(null);
+                  }}
+                  aria-describedby="pw-length-hint"
+                  className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base tabular-nums
                     focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
-                    pl-3 pr-16"
+                    pl-3 pr-24"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-xs pointer-events-none tabular-nums">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-xs pointer-events-none">
                   characters
                 </span>
               </div>
+              <p id="pw-length-hint" className="text-xs text-neutral-500 mt-1">{lengthHint}</p>
               <input
                 type="range"
-                min={8}
-                max={128}
+                min={MIN_LENGTH}
+                max={MAX_LENGTH}
                 step={1}
                 value={length}
-                onChange={(e) => setLength(parseInt(e.target.value, 10))}
-                style={{ background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${((length - 8) / 120) * 100}%, var(--color-neutral-200) ${((length - 8) / 120) * 100}%, var(--color-neutral-200) 100%)` }}
+                onChange={(e) => {
+                  setLength(parseInt(e.target.value, 10));
+                  setLengthText(null);
+                }}
+                style={{ background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${((length - MIN_LENGTH) / (MAX_LENGTH - MIN_LENGTH)) * 100}%, var(--color-neutral-200) ${((length - MIN_LENGTH) / (MAX_LENGTH - MIN_LENGTH)) * 100}%, var(--color-neutral-200) 100%)` }}
                 className="w-full h-2 mt-2.5 rounded-full appearance-none cursor-pointer
                   [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:rounded-full
                   [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:appearance-none
@@ -350,13 +223,12 @@ export default function PasswordGenerator() {
                 aria-valuetext={`${length} characters`}
               />
               <div className="flex justify-between mt-1">
-                <span className="text-xs text-neutral-500 tabular-nums">8</span>
-                <span className="text-xs text-neutral-500 tabular-nums">128</span>
+                <span className="text-xs text-neutral-500 tabular-nums">{MIN_LENGTH}</span>
+                <span className="text-xs text-neutral-500 tabular-nums">{MAX_LENGTH}</span>
               </div>
             </div>
 
-            {/* Character Set Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+            <div className="h-px bg-neutral-200/80" />
 
             {/* Character Toggles */}
             <ToggleSwitch
@@ -380,13 +252,12 @@ export default function PasswordGenerator() {
             <ToggleSwitch
               id="pw-special"
               label="Special Characters"
-              description="!@#$%^&*()_+-=[]{}|;:,.<>?"
+              description={CHAR_SETS.special}
               checked={special}
               onChange={() => handleToggle(setSpecial, special, [uppercase, lowercase, numbers])}
             />
 
-            {/* Ambiguous Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+            <div className="h-px bg-neutral-200/80" />
 
             <ToggleSwitch
               id="pw-ambiguous"
@@ -398,29 +269,30 @@ export default function PasswordGenerator() {
           </div>
         </div>
 
-        {/* ── Results Panel ──────────────────────────────── */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        {/* Results Panel (first on phones so the password is in view) */}
+        <div className="p-6 lg:p-8 bg-neutral-50/50 order-1 lg:order-2">
           {/* Generated Password Display */}
           <div className="mb-6">
-            <p className="text-sm text-neutral-500 mb-1">Generated Password</p>
+            <p className="text-sm text-neutral-500 mb-1" id="pw-output-label">Generated Password</p>
             <div className="bg-white rounded-xl border border-neutral-200/80 p-4 sm:p-5 relative group">
               <div className="flex items-start gap-3">
                 <p
                   className={`flex-1 font-mono text-lg sm:text-xl break-all leading-relaxed text-neutral-900 tabular-nums
                     ${!showPassword ? 'select-none' : ''}`}
-                  aria-label="Generated password"
+                  aria-labelledby="pw-output-label"
                 >
                   {!hasAnyCharset ? (
                     <span className="text-neutral-500 font-sans text-base">Select at least one character type</span>
                   ) : showPassword ? (
                     password
                   ) : (
-                    '\u2022'.repeat(password.length)
+                    BULLET.repeat(password.length)
                   )}
                 </p>
                 <button
+                  type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="flex-shrink-0 p-1.5 rounded-lg text-neutral-500 hover:text-neutral-600 hover:bg-neutral-100
+                  className="flex-shrink-0 p-2.5 -m-1 rounded-lg text-neutral-500 hover:text-neutral-600 hover:bg-neutral-100
                     transition-all duration-150"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -438,8 +310,8 @@ export default function PasswordGenerator() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <StrengthIcon size={16} className={strength.colorClass} aria-hidden="true" />
-                <span className={`text-sm font-semibold ${strength.colorClass}`}>
+                <StrengthIcon size={16} className={tone.text} aria-hidden="true" />
+                <span className={`text-sm font-semibold ${tone.text}`}>
                   {hasAnyCharset ? strength.label : 'None'}
                 </span>
               </div>
@@ -449,39 +321,35 @@ export default function PasswordGenerator() {
             </div>
             <div className="w-full h-2.5 bg-neutral-200 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-300 ease-out ${hasAnyCharset ? strength.barColor : 'bg-neutral-300'}`}
+                className={`h-full rounded-full transition-all duration-300 ease-out ${hasAnyCharset ? tone.bar : 'bg-neutral-300'}`}
                 style={{ width: `${hasAnyCharset ? strength.percent : 0}%` }}
                 role="progressbar"
                 aria-valuenow={Math.round(entropy)}
                 aria-valuemin={0}
-                aria-valuemax={200}
+                aria-valuemax={128}
+                aria-valuetext={`${strength.label}, ${Math.round(entropy)} bits`}
                 aria-label="Password strength"
               />
             </div>
-            <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
-              {entropy < 28 && hasAnyCharset && 'Easily cracked — increase length or add more character types.'}
-              {entropy >= 28 && entropy < 36 && 'Vulnerable to targeted attacks. Consider a longer password.'}
-              {entropy >= 36 && entropy < 60 && 'Reasonable for most accounts. Longer is always better.'}
-              {entropy >= 60 && entropy < 128 && 'Resistant to brute-force attacks. Great for important accounts.'}
-              {entropy >= 128 && 'Virtually unbreakable by current computing standards.'}
-              {!hasAnyCharset && 'Enable at least one character type to generate a password.'}
+            {/* Announces the rating, never the password itself. */}
+            <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed" aria-live="polite">
+              {hasAnyCharset
+                ? `${strength.meaning}. Trying every combination would take ${crackPhrase} at 100 billion guesses per second.`
+                : 'Enable at least one character type to generate a password.'}
             </p>
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <button
-              onClick={handleCopy}
+              type="button"
+              onClick={() => copy(password)}
               disabled={!password}
-              className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-lg font-medium text-sm
-                transition-all duration-150
-                ${copied
-                  ? 'bg-accent-700 text-white'
-                  : 'bg-accent-700 text-white hover:bg-accent-800 active:bg-accent-800'
-                }
-                disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed`}
+              className="flex-1 flex items-center justify-center gap-2 h-11 rounded-lg font-medium text-sm
+                transition-all duration-150 bg-accent-700 text-white hover:bg-accent-800 active:bg-accent-800
+                disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed"
             >
-              {copied ? (
+              {copiedKey ? (
                 <>
                   <Check size={16} aria-hidden="true" />
                   Copied!
@@ -489,11 +357,12 @@ export default function PasswordGenerator() {
               ) : (
                 <>
                   <Copy size={16} aria-hidden="true" />
-                  Copy to Clipboard
+                  {failedKey ? 'Copy failed: select it and copy' : 'Copy to Clipboard'}
                 </>
               )}
             </button>
             <button
+              type="button"
               onClick={generate}
               disabled={!hasAnyCharset}
               className="flex-1 flex items-center justify-center gap-2 h-11 rounded-lg font-medium text-sm
@@ -505,6 +374,7 @@ export default function PasswordGenerator() {
               Generate New
             </button>
           </div>
+          <span className="sr-only" role="status" aria-live="polite">{copyMessage}</span>
 
           {/* Info Cards */}
           <div className="grid grid-cols-2 gap-3">
@@ -514,32 +384,7 @@ export default function PasswordGenerator() {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Character Pool</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {(() => {
-                    let size = 0;
-                    if (uppercase) {
-                      let s = CHAR_SETS.uppercase;
-                      if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
-                      size += s.length;
-                    }
-                    if (lowercase) {
-                      let s = CHAR_SETS.lowercase;
-                      if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
-                      size += s.length;
-                    }
-                    if (numbers) {
-                      let s = CHAR_SETS.numbers;
-                      if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
-                      size += s.length;
-                    }
-                    if (special) {
-                      let s = CHAR_SETS.special;
-                      if (excludeAmbiguous) s = s.replace(AMBIGUOUS_CHARS, '');
-                      size += s.length;
-                    }
-                    return size;
-                  })()}
-                </p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{pool}</p>
                 <p className="text-xs text-neutral-500">unique characters</p>
               </div>
             </div>

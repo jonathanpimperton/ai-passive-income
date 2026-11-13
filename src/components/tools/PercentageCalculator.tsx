@@ -1,8 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { RotateCcw, Percent, Calculator, ArrowUpDown, Equal } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
+import { parseNumericInput } from '../../lib/parse-number';
+import { computePercentage, formatNumber, cleanFloat, type PercentMode } from '../../lib/dev-tools/percentage';
 
-type CalcMode = 'whatIsXofY' | 'xIsWhatPercent' | 'percentChange' | 'percentDiff';
+type CalcMode = PercentMode;
 
 const MODES: { key: CalcMode; label: string; shortLabel: string }[] = [
   { key: 'whatIsXofY', label: 'What is X% of Y?', shortLabel: 'X% of Y' },
@@ -11,11 +13,21 @@ const MODES: { key: CalcMode; label: string; shortLabel: string }[] = [
   { key: 'percentDiff', label: 'Percentage Difference', shortLabel: '% Difference' },
 ];
 
-function formatResult(value: number): string {
-  if (Number.isNaN(value) || !Number.isFinite(value)) return '—';
-  if (Math.abs(value) >= 1e9) return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  if (Number.isInteger(value)) return value.toLocaleString('en-US');
-  return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+const DEFAULTS: Record<CalcMode, [string, string]> = {
+  whatIsXofY: ['15', '200'],
+  xIsWhatPercent: ['35', '200'],
+  percentChange: ['50', '65'],
+  percentDiff: ['50', '65'],
+};
+
+type Parsed = { ok: true; value: number } | { ok: false; message: string };
+
+function parseField(text: string): Parsed {
+  const r = parseNumericInput(text, { allowNegative: true });
+  if (r.ok) return { ok: true, value: r.value };
+  if (r.reason === 'empty') return { ok: false, message: 'Enter a number.' };
+  if (r.reason === 'ambiguous') return { ok: false, message: 'Use a dot for decimals and commas only for thousands, e.g. 1,250.5.' };
+  return { ok: false, message: 'Enter a number, e.g. 1,250.5 or -3.' };
 }
 
 interface NumberInputProps {
@@ -23,32 +35,30 @@ interface NumberInputProps {
   id: string;
   value: string;
   onChange: (v: string) => void;
+  error?: string;
   suffix?: string;
-  prefix?: string;
-  hint?: string;
 }
 
-function NumberInput({ label, id, value, onChange, suffix, prefix, hint }: NumberInputProps) {
+function NumberInput({ label, id, value, onChange, error, suffix }: NumberInputProps) {
+  const errorId = `${id}-error`;
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-neutral-700 mb-1.5">
         {label}
       </label>
       <div className="relative">
-        {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500 pointer-events-none">
-            {prefix}
-          </span>
-        )}
         <input
-          type="number"
+          type="text"
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150
-            tabular-nums ${prefix ? 'pl-7' : 'px-3'} ${suffix ? 'pr-8' : 'pr-3'}`}
           inputMode="decimal"
+          autoComplete="off"
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
+          className={`w-full h-11 rounded-lg border bg-white text-neutral-900 text-base
+            focus:ring-2 focus:outline-none transition-all duration-150 tabular-nums pl-3 ${suffix ? 'pr-8' : 'pr-3'}
+            ${error ? 'border-red-200 focus:border-red-700 focus:ring-red-200' : 'border-neutral-200 focus:border-primary-500 focus:ring-primary-500/20'}`}
         />
         {suffix && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500 pointer-events-none">
@@ -56,87 +66,78 @@ function NumberInput({ label, id, value, onChange, suffix, prefix, hint }: Numbe
           </span>
         )}
       </div>
-      {hint && <p className="text-xs text-neutral-500 mt-1">{hint}</p>}
+      {error && <p id={errorId} className="text-xs text-red-700 mt-1">{error}</p>}
     </div>
   );
 }
 
 export default function PercentageCalculator() {
   const [mode, setMode] = useState<CalcMode>('whatIsXofY');
-  const [inputA, setInputA] = useState('15');
-  const [inputB, setInputB] = useState('200');
+  const [inputA, setInputA] = useState(DEFAULTS.whatIsXofY[0]);
+  const [inputB, setInputB] = useState(DEFAULTS.whatIsXofY[1]);
 
   const handleReset = useCallback(() => {
-    setInputA(mode === 'whatIsXofY' ? '15' : mode === 'xIsWhatPercent' ? '35' : '50');
-    setInputB(mode === 'whatIsXofY' ? '200' : mode === 'xIsWhatPercent' ? '200' : '65');
+    setInputA(DEFAULTS[mode][0]);
+    setInputB(DEFAULTS[mode][1]);
   }, [mode]);
 
-  const a = parseFloat(inputA) || 0;
-  const b = parseFloat(inputB) || 0;
+  const parsedA = parseField(inputA);
+  const parsedB = parseField(inputB);
+  const inputsOk = parsedA.ok && parsedB.ok;
+  const a = parsedA.ok ? parsedA.value : 0;
+  const b = parsedB.ok ? parsedB.value : 0;
+  const fa = formatNumber(a);
+  const fb = formatNumber(b);
 
-  const result = useMemo(() => {
+  const outcome = useMemo(() => (inputsOk ? computePercentage(mode, a, b) : null), [inputsOk, mode, a, b]);
+
+  const view = useMemo(() => {
+    const value = outcome && outcome.kind === 'value' ? outcome.value : 0;
     switch (mode) {
-      case 'whatIsXofY': {
-        const value = (a / 100) * b;
-        return {
-          rawValue: value,
-          mainValue: formatResult(value),
-          mainLabel: `${inputA}% of ${inputB}`,
-          mainUnit: '',
-          context: `${inputA}% × ${inputB} = ${formatResult(value)}`,
-        };
-      }
-      case 'xIsWhatPercent': {
-        const value = b !== 0 ? (a / b) * 100 : 0;
-        return {
-          rawValue: value,
-          mainValue: formatResult(value),
-          mainLabel: `${inputA} is what % of ${inputB}`,
-          mainUnit: '%',
-          context: `${inputA} ÷ ${inputB} × 100 = ${formatResult(value)}%`,
-        };
-      }
-      case 'percentChange': {
-        const value = a !== 0 ? ((b - a) / Math.abs(a)) * 100 : 0;
-        const direction = value > 0 ? 'increase' : value < 0 ? 'decrease' : 'no change';
-        return {
-          rawValue: Math.abs(value),
-          mainValue: formatResult(Math.abs(value)),
-          mainLabel: `${direction === 'increase' ? '+' : direction === 'decrease' ? '-' : ''}${formatResult(Math.abs(value))}% ${direction}`,
-          mainUnit: '%',
-          context: `From ${inputA} to ${inputB}: ((${inputB} − ${inputA}) ÷ |${inputA}|) × 100`,
-          isPositive: value > 0,
-          isNegative: value < 0,
-        };
-      }
-      case 'percentDiff': {
-        const avg = (Math.abs(a) + Math.abs(b)) / 2;
-        const value = avg !== 0 ? (Math.abs(a - b) / avg) * 100 : 0;
-        return {
-          rawValue: value,
-          mainValue: formatResult(value),
-          mainLabel: 'Percentage difference',
-          mainUnit: '%',
-          context: `|${inputA} − ${inputB}| ÷ ((|${inputA}| + |${inputB}|) / 2) × 100`,
-        };
-      }
+      case 'whatIsXofY':
+        return { unit: '', context: `${fa}% × ${fb} = ${formatNumber(value)}` };
+      case 'xIsWhatPercent':
+        return { unit: '%', context: `${fa} ÷ ${fb} × 100${outcome?.kind === 'value' ? ` = ${formatNumber(value)}%` : ' (dividing by zero is undefined)'}` };
+      case 'percentChange':
+        return { unit: '%', context: `From ${fa} to ${fb}: ((${fb} − ${fa}) ÷ |${fa}|) × 100` };
+      case 'percentDiff':
+        return { unit: '%', context: `|${fa} − ${fb}| ÷ ((|${fa}| + |${fb}|) ÷ 2) × 100` };
     }
-  }, [mode, a, b, inputA, inputB]);
+  }, [mode, fa, fb, outcome]);
 
   const labelsForMode = useMemo(() => {
     switch (mode) {
       case 'whatIsXofY':
-        return { a: 'Percentage', b: 'Number', aSuffix: '%', bPrefix: undefined };
+        return { a: 'Percentage', b: 'Number', aSuffix: '%' };
       case 'xIsWhatPercent':
-        return { a: 'Part (X)', b: 'Whole (Y)', aSuffix: undefined, bPrefix: undefined };
+        return { a: 'Part (X)', b: 'Whole (Y)', aSuffix: undefined };
       case 'percentChange':
-        return { a: 'Original Value', b: 'New Value', aSuffix: undefined, bPrefix: undefined };
+        return { a: 'Original Value', b: 'New Value', aSuffix: undefined };
       case 'percentDiff':
-        return { a: 'Value A', b: 'Value B', aSuffix: undefined, bPrefix: undefined };
+        return { a: 'Value A', b: 'Value B', aSuffix: undefined };
     }
   }, [mode]);
 
-  const animatedResult = useAnimatedNumber(result.rawValue);
+  const isValue = outcome?.kind === 'value';
+  const rawValue = outcome && outcome.kind === 'value' ? (mode === 'percentChange' ? Math.abs(outcome.value) : outcome.value) : 0;
+  const animatedResult = useAnimatedNumber(rawValue);
+  const direction = outcome && outcome.kind === 'value' ? outcome.direction : undefined;
+  const changeLabel =
+    outcome && outcome.kind === 'value' && mode === 'percentChange'
+      ? `${direction === 'increase' ? '+' : direction === 'decrease' ? '-' : ''}${formatNumber(Math.abs(outcome.value))}% ${direction === 'none' ? 'no change' : direction}`
+      : '';
+
+  const headline = !inputsOk
+    ? 'Enter two valid numbers to see the result.'
+    : outcome?.kind === 'undefined'
+      ? outcome.reason
+      : mode === 'whatIsXofY'
+        ? `${fa}% of ${fb} is ${formatNumber(rawValue)}.`
+        : mode === 'xIsWhatPercent'
+          ? `${fa} is ${formatNumber(rawValue)}% of ${fb}.`
+          : mode === 'percentChange'
+            ? `${changeLabel} from ${fa} to ${fb}.`
+            : `The percentage difference is ${formatNumber(rawValue)}%.`;
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -145,18 +146,17 @@ export default function PercentageCalculator() {
         {MODES.map((m) => (
           <button
             key={m.key}
+            type="button"
             role="tab"
             aria-selected={mode === m.key}
             aria-controls="pct-results"
             onClick={() => {
               setMode(m.key);
               // Reset to sensible defaults per mode
-              if (m.key === 'whatIsXofY') { setInputA('15'); setInputB('200'); }
-              else if (m.key === 'xIsWhatPercent') { setInputA('35'); setInputB('200'); }
-              else if (m.key === 'percentChange') { setInputA('50'); setInputB('65'); }
-              else if (m.key === 'percentDiff') { setInputA('50'); setInputB('65'); }
+              setInputA(DEFAULTS[m.key][0]);
+              setInputB(DEFAULTS[m.key][1]);
             }}
-            className={`flex-1 py-3 px-2 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
+            className={`flex-1 min-h-[44px] py-3 px-2 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
               mode === m.key
                 ? 'text-primary-600 border-b-2 border-primary-500 bg-primary-50/40'
                 : 'text-neutral-500 hover:text-neutral-700'
@@ -174,11 +174,11 @@ export default function PercentageCalculator() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-neutral-900">Enter Values</h2>
             <button
+              type="button"
               onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
-              aria-label="Reset all inputs"
+              className="flex items-center gap-1.5 min-h-[40px] px-3 -mr-3 text-sm text-neutral-500 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150"
             >
-              <RotateCcw size={13} aria-hidden="true" />
+              <RotateCcw size={14} aria-hidden="true" />
               Reset
             </button>
           </div>
@@ -189,20 +189,21 @@ export default function PercentageCalculator() {
               value={inputA}
               onChange={setInputA}
               suffix={labelsForMode.aSuffix}
+              error={parsedA.ok ? undefined : parsedA.message}
             />
             <NumberInput
               label={labelsForMode.b}
               id="pct-input-b"
               value={inputB}
               onChange={setInputB}
-              prefix={labelsForMode.bPrefix}
+              error={parsedB.ok ? undefined : parsedB.message}
             />
           </div>
 
           {/* Quick examples */}
           <div className="mt-8">
             <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Quick Examples</p>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {mode === 'whatIsXofY' && (
                 <>
                   <QuickExample label="Tip: 18% of $85" onClick={() => { setInputA('18'); setInputB('85'); }} />
@@ -236,19 +237,25 @@ export default function PercentageCalculator() {
         </div>
 
         {/* Results */}
-        <div id="pct-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50" aria-live="polite">
+        <div id="pct-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50">
           <div className="mb-8">
             <p className="text-sm text-neutral-500 mb-1">Result</p>
-            <p className={`text-4xl sm:text-5xl font-bold tabular-nums ${
-              'isPositive' in result && result.isPositive ? 'text-success-600' :
-              'isNegative' in result && result.isNegative ? 'text-red-600' :
-              'result-number'
-            }`}>
-              {formatResult(animatedResult)}{result.mainUnit && <span className="text-2xl ml-1">{result.mainUnit}</span>}
-            </p>
-            {mode === 'percentChange' && (
-              <p className="text-sm text-neutral-600 mt-2">{result.mainLabel}</p>
+            {isValue ? (
+              <p className={`text-4xl sm:text-5xl font-bold tabular-nums ${
+                mode === 'percentChange' && direction === 'increase' ? 'text-success-600' :
+                mode === 'percentChange' && direction === 'decrease' ? 'text-red-600' :
+                'result-number'
+              }`} aria-hidden="true">
+                {formatNumber(animatedResult)}{view.unit && <span className="text-2xl ml-1">{view.unit}</span>}
+              </p>
+            ) : (
+              <p className="text-3xl sm:text-4xl font-bold text-neutral-700" aria-hidden="true">
+                {inputsOk ? 'Undefined' : '-'}
+              </p>
             )}
+            <p className={`text-sm mt-2 ${outcome?.kind === 'undefined' || !inputsOk ? 'text-neutral-700' : 'text-neutral-600'}`} aria-live="polite">
+              {headline}
+            </p>
           </div>
 
           {/* Formula display */}
@@ -256,14 +263,14 @@ export default function PercentageCalculator() {
             <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
               <Calculator size={16} aria-hidden="true" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">Formula</p>
-              <p className="text-sm text-neutral-700 font-mono leading-relaxed">{result.context}</p>
+              <p className="text-sm text-neutral-700 font-mono leading-relaxed break-words">{inputsOk ? view.context : 'Enter two numbers.'}</p>
             </div>
           </div>
 
           {/* Helpful conversion card */}
-          {mode === 'whatIsXofY' && a > 0 && b > 0 && (
+          {inputsOk && mode === 'whatIsXofY' && a > 0 && b > 0 && (
             <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Percent size={16} aria-hidden="true" />
@@ -271,24 +278,32 @@ export default function PercentageCalculator() {
               <div className="flex-1">
               <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Related Calculations</p>
               <div className="space-y-2 text-sm text-neutral-700">
-                <div className="flex justify-between">
-                  <span>Remaining ({(100 - a).toFixed(1)}% of {inputB})</span>
-                  <span className="font-medium tabular-nums">{formatResult(((100 - a) / 100) * b)}</span>
+                {a <= 100 && (
+                  <div className="flex justify-between gap-3">
+                    <span>Remaining ({formatNumber(100 - a)}% of {fb})</span>
+                    <span className="font-medium tabular-nums">{formatNumber(((100 - a) / 100) * b)}</span>
+                  </div>
+                )}
+                {a > 100 && (
+                  <div className="flex justify-between gap-3">
+                    <span>Amount above {fb} ({formatNumber(a - 100)}%)</span>
+                    <span className="font-medium tabular-nums">{formatNumber(((a - 100) / 100) * b)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between gap-3">
+                  <span>Double ({formatNumber(a * 2)}% of {fb})</span>
+                  <span className="font-medium tabular-nums">{formatNumber((a * 2 / 100) * b)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Double ({(a * 2).toFixed(1)}% of {inputB})</span>
-                  <span className="font-medium tabular-nums">{formatResult((a * 2 / 100) * b)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Half ({(a / 2).toFixed(1)}% of {inputB})</span>
-                  <span className="font-medium tabular-nums">{formatResult((a / 2 / 100) * b)}</span>
+                <div className="flex justify-between gap-3">
+                  <span>Half ({formatNumber(a / 2)}% of {fb})</span>
+                  <span className="font-medium tabular-nums">{formatNumber((a / 2 / 100) * b)}</span>
                 </div>
               </div>
               </div>
             </div>
           )}
 
-          {mode === 'xIsWhatPercent' && b > 0 && (
+          {inputsOk && mode === 'xIsWhatPercent' && b > 0 && a >= 0 && a <= b && (
             <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Equal size={16} aria-hidden="true" />
@@ -296,20 +311,20 @@ export default function PercentageCalculator() {
               <div className="flex-1">
                 <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Related</p>
                 <div className="space-y-2 text-sm text-neutral-700">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-3">
                     <span>Remaining</span>
-                    <span className="font-medium tabular-nums">{formatResult(b - a)} ({formatResult(((b - a) / b) * 100)}%)</span>
+                    <span className="font-medium tabular-nums">{formatNumber(b - a)} ({formatNumber(cleanFloat(((b - a) / b) * 100))}%)</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-3">
                     <span>Ratio</span>
-                    <span className="font-medium tabular-nums">{formatResult(a)} : {formatResult(b - a)}</span>
+                    <span className="font-medium tabular-nums">{formatNumber(a)} : {formatNumber(b - a)}</span>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {mode === 'percentChange' && a !== 0 && (
+          {inputsOk && mode === 'percentChange' && (
             <div className="bg-white rounded-xl border border-neutral-200/80 p-5 mb-6 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <ArrowUpDown size={16} aria-hidden="true" />
@@ -317,19 +332,28 @@ export default function PercentageCalculator() {
               <div className="flex-1">
                 <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-3">Details</p>
                 <div className="space-y-2 text-sm text-neutral-700">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-3">
                     <span>Absolute change</span>
-                    <span className="font-medium tabular-nums">{formatResult(b - a)}</span>
+                    <span className="font-medium tabular-nums">{b - a > 0 ? '+' : ''}{formatNumber(b - a)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Multiplier</span>
-                    <span className="font-medium tabular-nums">{formatResult(a !== 0 ? b / a : 0)}x</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Reverse change needed</span>
-                    <span className="font-medium tabular-nums">{formatResult(b !== 0 ? ((a - b) / Math.abs(b)) * 100 : 0)}%</span>
-                  </div>
+                  {a !== 0 && (
+                    <div className="flex justify-between gap-3">
+                      <span>Multiplier</span>
+                      <span className="font-medium tabular-nums">{formatNumber(cleanFloat(b / a))}x</span>
+                    </div>
+                  )}
+                  {a !== 0 && b !== 0 && (
+                    <div className="flex justify-between gap-3">
+                      <span>Reverse change needed</span>
+                      <span className="font-medium tabular-nums">{formatNumber(cleanFloat(((a - b) / Math.abs(b)) * 100))}%</span>
+                    </div>
+                  )}
                 </div>
+                <p className="text-xs text-neutral-500 mt-3 leading-relaxed">
+                  If both values are themselves percentages (such as interest rates), the change is{' '}
+                  <span className="tabular-nums">{b - a > 0 ? '+' : ''}{formatNumber(b - a)}</span> percentage point{Math.abs(b - a) === 1 ? '' : 's'}
+                  {outcome?.kind === 'value' && a !== 0 ? <>, which is a <span className="tabular-nums">{formatNumber(Math.abs(outcome.value))}%</span> relative {direction === 'decrease' ? 'decrease' : 'change'}.</> : '.'}
+                </p>
               </div>
             </div>
           )}
@@ -347,8 +371,8 @@ export default function PercentageCalculator() {
                 { pct: '75%', frac: '3/4', dec: '0.75' },
               ].map((row) => (
                 <div key={row.pct} className="bg-neutral-50 rounded-lg p-2 text-center">
-                  <p className="font-medium text-neutral-800">{row.pct}</p>
-                  <p className="text-neutral-500">{row.frac} = {row.dec}</p>
+                  <p className="font-medium text-neutral-800 tabular-nums">{row.pct}</p>
+                  <p className="text-neutral-500 tabular-nums">{row.frac} = {row.dec}</p>
                 </div>
               ))}
             </div>
@@ -362,8 +386,9 @@ export default function PercentageCalculator() {
 function QuickExample({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="w-full text-left text-xs text-neutral-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg px-3 py-2 transition-colors duration-150"
+      className="w-full min-h-[40px] text-left text-sm text-neutral-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg px-3 py-2 transition-colors duration-150"
     >
       {label}
     </button>
