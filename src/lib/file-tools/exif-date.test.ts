@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { readCaptureDate, writeJpegCaptureDate, buildCaptureDateTiff, readCaptureDateFromTiff } from './exif-date';
+import {
+  readCaptureDate, writeJpegCaptureDate, buildCaptureDateTiff, readCaptureDateFromTiff,
+  readOrientation, readOrientationFromTiff, buildExifTiff, writeJpegExif,
+} from './exif-date';
 import { readJpegInfo } from './image-sniff';
 
 const FIX = path.resolve(__dirname, '../../../tests/fixtures/file-tools');
@@ -97,5 +100,43 @@ describe('capture date (FILES-18)', () => {
     expect(writeJpegCaptureDate(png, { dateTimeOriginal: '2026:01:01 00:00:00' })).toBe(png);
     const jpg = read('exif-rot6-600x300.jpg');
     expect(writeJpegCaptureDate(jpg, { dateTimeOriginal: 'yesterday' })).toBe(jpg);
+  });
+});
+
+describe('orientation (rotation flag kept on images that are not re-encoded)', () => {
+  it('reads the tag from JPEG, PNG and WebP, and defaults to 1', () => {
+    expect(readOrientation(read('exif-rot6-600x300.jpg'))).toBe(6);
+    expect(readOrientation(read('gps-rot6-q30.jpg'))).toBe(6);
+    expect(readOrientation(read('rot6.png'))).toBe(6);
+    expect(readOrientation(read('rot6.webp'))).toBe(6);
+    for (const upright of ['gps-q30.jpg', 'meta.png', 'meta.webp', 'logo-1024.png', 'transparent-400.webp', 'quadrants-256x128.heic', 'animated-3f.gif']) {
+      expect(readOrientation(read(upright)), upright).toBe(1);
+    }
+    expect(readOrientation(read('rot6.png').subarray(0, 40))).toBe(1);
+    expect(readOrientation(new Uint8Array([0xff, 0xd8, 0xff]))).toBe(1);
+    expect(readOrientation(new Uint8Array())).toBe(1);
+  });
+
+  it('round-trips 2-8 through the minimal writer, alone and with a date', () => {
+    for (let o = 2; o <= 8; o++) {
+      expect(readOrientationFromTiff(buildExifTiff({ orientation: o }))).toBe(o);
+      const both = buildExifTiff({ orientation: o, date: { dateTimeOriginal: '2026:07:14 09:30:05', offsetTimeOriginal: '+01:00' } });
+      expect(readOrientationFromTiff(both)).toBe(o);
+      expect(readCaptureDateFromTiff(both)).toEqual({ dateTimeOriginal: '2026:07:14 09:30:05', offsetTimeOriginal: '+01:00' });
+    }
+  });
+
+  it('never writes 1 (upright) or an out-of-range value, and writes nothing for an empty request', () => {
+    for (const o of [undefined, 0, 1, 9, -3]) expect(buildExifTiff({ orientation: o }).length).toBe(14);
+    const jpg = read('exif-rot6-600x300.jpg');
+    expect(writeJpegExif(jpg, {})).toBe(jpg);
+    expect(writeJpegExif(jpg, { orientation: 1 })).toBe(jpg);
+    expect(writeJpegExif(read('logo-1024.png'), { orientation: 6 }).length).toBe(read('logo-1024.png').length);
+  });
+
+  it('keeps writeJpegCaptureDate free of orientation', () => {
+    const out = writeJpegCaptureDate(read('exif-rot6-600x300.jpg'), { dateTimeOriginal: '2026:01:02 03:04:05' });
+    expect(readCaptureDate(out)?.dateTimeOriginal).toBe('2026:01:02 03:04:05');
+    expect(readOrientation(out)).toBe(1);
   });
 });

@@ -15,9 +15,15 @@
  * - WebP: EXIF and XMP chunks (the VP8X flags and RIFF size are updated).
  *
  * Malformed input is returned unchanged (the caller then re-encodes instead).
+ *
+ * The Orientation tag lives in the same Exif container and is dropped with it,
+ * which would turn a photo taken sideways onto its side (its stored pixels are
+ * unrotated). keepOriginalWithoutMetadata() decides what to do about that.
+ *
  * Pure functions (no DOM), unit-tested in strip-metadata.test.ts.
  */
 import { detectImageKind } from './image-sniff';
+import { readCaptureDate, readOrientation, writeJpegExif } from './exif-date';
 
 function concat(parts: Uint8Array[]): Uint8Array {
   const total = parts.reduce((n, p) => n + p.length, 0);
@@ -129,4 +135,36 @@ export function stripImageMetadata(data: Uint8Array): Uint8Array | null {
     case 'webp': return stripWebpMetadata(data);
     default: return null;
   }
+}
+
+export interface KeptOriginal {
+  /** The original pixels with metadata removed, or null when the file must be re-encoded instead. */
+  bytes: Uint8Array | null;
+  /** True when re-encoding is needed only to keep the picture the right way up (PNG/WebP with a rotation tag). */
+  needsUpright: boolean;
+}
+
+/**
+ * The original image with its metadata removed and WITHOUT re-encoding, for
+ * when re-encoding would not make the file smaller.
+ *
+ * The result must display the same way round as the input:
+ * - JPEG: Orientation 2-8 is put back as a minimal Exif block (a rotation
+ *   flag, not private data), together with the date taken when `keepDate`.
+ * - PNG and WebP: their orientation tags are not honoured everywhere (Safari
+ *   ignores a PNG's eXIf), so a tagged file is not kept: `bytes` is null and
+ *   `needsUpright` is true, and the caller returns its upright re-encode.
+ * GPS, camera, XMP and text metadata are never put back.
+ */
+export function keepOriginalWithoutMetadata(data: Uint8Array, keepDate: boolean): KeptOriginal {
+  const stripped = stripImageMetadata(data);
+  if (!stripped) return { bytes: null, needsUpright: false };
+  const orientation = readOrientation(data);
+  if (detectImageKind(data) === 'jpeg') {
+    const date = keepDate ? readCaptureDate(data) : null;
+    const bytes = orientation !== 1 || date ? writeJpegExif(stripped, { orientation, date }) : stripped;
+    return { bytes, needsUpright: false };
+  }
+  if (orientation !== 1) return { bytes: null, needsUpright: true };
+  return { bytes: stripped, needsUpright: false };
 }

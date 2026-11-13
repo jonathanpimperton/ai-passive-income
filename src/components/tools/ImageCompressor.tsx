@@ -27,7 +27,7 @@ import {
   encodePngLossless, encodePngIndexed, quantizeRgba, expandIndexed, psnr, psnrGateForQuality,
 } from '../../lib/file-tools/png-encode';
 import { readCaptureDate, writeJpegCaptureDate } from '../../lib/file-tools/exif-date';
-import { stripImageMetadata } from '../../lib/file-tools/strip-metadata';
+import { keepOriginalWithoutMetadata } from '../../lib/file-tools/strip-metadata';
 import { buildZip } from '../../lib/file-tools/zip';
 import {
   decodeImage, createCanvas, encodeCanvas, releaseCanvas, downloadBlob, readBytes, bytesToBlob, errorMessage,
@@ -62,6 +62,8 @@ interface CompressedFile {
 
 /** Largest image (pixels) we run the JavaScript PNG optimiser on; bigger ones use the browser encoder. */
 const PNG_OPTIMISER_MAX_PIXELS = 16_000_000;
+
+const FIRST_FRAME_NOTE = 'Animated image: only the first frame is kept.';
 
 function mimeForKind(kind: string): string | null {
   if (kind === 'jpeg') return 'image/jpeg';
@@ -98,7 +100,8 @@ async function compressOne(file: File, s: Settings): Promise<CompressedFile> {
   const inputType = mimeForKind(kind);
   if (!inputType) throw new Error(`"${file.name}" is not a JPG, PNG or WebP image.`);
   const notes: string[] = [];
-  if (isAnimatedImage(bytes)) notes.push('Animated image: only the first frame is kept.');
+  const animated = isAnimatedImage(bytes);
+  if (animated) notes.push(FIRST_FRAME_NOTE);
 
   const decoded = await decodeImage(file);
   let canvas: HTMLCanvasElement | null = null;
@@ -147,18 +150,25 @@ async function compressOne(file: File, s: Settings): Promise<CompressedFile> {
     if (!changedSize && !changedFormat) {
       // Never hand back a bigger file (FILES-03) - but never hand back the
       // original's metadata either: strip Exif/GPS/XMP/text without re-encoding.
-      let original = stripImageMetadata(bytes);
-      if (original && inputType === 'image/jpeg' && s.keepDate) {
-        const date = readCaptureDate(bytes);
-        if (date) original = writeJpegCaptureDate(original, date);
-      }
+      // A photo taken sideways shows upright only because of its Orientation tag,
+      // which the strip removes with the rest of the Exif; keepOriginalWithoutMetadata
+      // keeps the kept file the same way round as the input (see strip-metadata.ts).
+      const { bytes: original, needsUpright } = keepOriginalWithoutMetadata(bytes, s.keepDate);
       if (original && blob.size >= original.length) {
         blob = bytesToBlob(original, inputType);
         target = inputType;
         keptOriginal = true;
-        notes.unshift('Already optimised: no smaller version at these settings, so your original image is kept, with location and other metadata removed.');
+        if (animated) {
+          // The kept file still has every frame, so the first-frame note would be untrue.
+          notes.splice(notes.indexOf(FIRST_FRAME_NOTE), 1);
+          notes.unshift('Already optimised: no smaller version at these settings, so your original animated image is kept (all frames), with location and other metadata removed.');
+        } else {
+          notes.unshift('Already optimised: no smaller version at these settings, so your original image is kept, with location and other metadata removed.');
+        }
       } else if (!original && blob.size >= file.size) {
-        notes.push('This copy is slightly larger than the original: re-encoding was the only safe way to remove its metadata.');
+        notes.push(needsUpright
+          ? 'This copy is slightly larger than the original: re-encoding was needed to keep the photo the right way up while removing its metadata.'
+          : 'This copy is slightly larger than the original: re-encoding was the only safe way to remove its metadata.');
       }
     }
     if (!keptOriginal && blob.size > file.size && (changedSize || changedFormat)) {

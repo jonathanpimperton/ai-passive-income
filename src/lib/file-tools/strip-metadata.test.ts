@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import sharp from 'sharp';
 import fs from 'node:fs';
 import path from 'node:path';
-import { stripJpegMetadata, stripPngMetadata, stripWebpMetadata, stripImageMetadata } from './strip-metadata';
-import { readCaptureDate } from './exif-date';
+import { stripJpegMetadata, stripPngMetadata, stripWebpMetadata, stripImageMetadata, keepOriginalWithoutMetadata } from './strip-metadata';
+import { readCaptureDate, readOrientation } from './exif-date';
 
 vi.setConfig({ testTimeout: 30_000 });
 
@@ -118,5 +118,57 @@ describe('stripImageMetadata', () => {
     expect(stripImageMetadata(read('logo-1024.png'))).not.toBeNull();
     expect(stripImageMetadata(read('transparent-400.webp'))).not.toBeNull();
     expect(stripImageMetadata(read('animated-3f.gif'))).toBeNull();
+  });
+});
+
+describe('keepOriginalWithoutMetadata (regression: kept originals came out sideways)', () => {
+  it('JPEG: removes GPS and camera data but keeps the rotation flag, with or without the date', async () => {
+    const jpeg = read('gps-rot6-q30.jpg');
+    expect(readOrientation(jpeg)).toBe(6);
+    expect(hasAscii(jpeg, 'secret-owner')).toBe(true);
+    for (const keepDate of [true, false]) {
+      const { bytes, needsUpright } = keepOriginalWithoutMetadata(jpeg, keepDate);
+      expect(needsUpright).toBe(false);
+      expect(bytes).not.toBeNull();
+      const out = bytes!;
+      expect(readOrientation(out)).toBe(6);
+      expect(readCaptureDate(out)?.dateTimeOriginal).toBe(keepDate ? '2025:06:01 12:34:56' : undefined);
+      expect(hasAscii(out, 'secret-owner')).toBe(false);
+      expect(hasAscii(out, 'TestCam')).toBe(false);
+      const meta = await sharp(Buffer.from(out)).metadata();
+      expect(meta.orientation).toBe(6);
+      expect(meta.exif!.length).toBeLessThan(120);
+      expect(meta.exif!.includes(Buffer.from([0x88, 0x25]))).toBe(false); // no GPS IFD pointer
+      expect((await rawPixels(out)).equals(await rawPixels(jpeg))).toBe(true);
+    }
+  });
+
+  it('JPEG: an upright photo keeps no Exif at all when the date is not wanted', async () => {
+    const jpeg = read('gps-q30.jpg');
+    const dateOnly = keepOriginalWithoutMetadata(jpeg, true).bytes!;
+    expect(readOrientation(dateOnly)).toBe(1);
+    expect(readCaptureDate(dateOnly)?.dateTimeOriginal).toBe('2025:06:01 12:34:56');
+    const none = keepOriginalWithoutMetadata(jpeg, false).bytes!;
+    expect((await sharp(Buffer.from(none)).metadata()).exif).toBeUndefined();
+  });
+
+  it('PNG and WebP with a rotation tag are not kept (the upright re-encode is used instead)', () => {
+    expect(keepOriginalWithoutMetadata(read('rot6.png'), true)).toEqual({ bytes: null, needsUpright: true });
+    expect(keepOriginalWithoutMetadata(read('rot6.webp'), false)).toEqual({ bytes: null, needsUpright: true });
+  });
+
+  it('PNG and WebP without a rotation tag are kept with their metadata stripped', async () => {
+    for (const name of ['meta.png', 'meta.webp']) {
+      const { bytes, needsUpright } = keepOriginalWithoutMetadata(read(name), true);
+      expect(needsUpright).toBe(false);
+      expect(bytes).not.toBeNull();
+      expect(hasAscii(bytes!, 'secret-owner')).toBe(false);
+      expect((await sharp(Buffer.from(bytes!)).metadata()).exif).toBeUndefined();
+    }
+  });
+
+  it('damaged or unsupported input is not kept and does not claim an orientation problem', () => {
+    expect(keepOriginalWithoutMetadata(read('gps-rot6-q30.jpg').subarray(0, 300), true)).toEqual({ bytes: null, needsUpright: false });
+    expect(keepOriginalWithoutMetadata(read('animated-3f.gif'), true)).toEqual({ bytes: null, needsUpright: false });
   });
 });
