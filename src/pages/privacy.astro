@@ -20,6 +20,7 @@ const storageKeys = [
   { key: 'calcrun.currency', purpose: 'The currency you chose on calculators (USD, GBP or EUR).', when: 'When you change currency.' },
   { key: 'calcrun.recentTools', purpose: 'Up to four tools you opened recently, for the "Recently used" links on the homepage.', when: 'When you open a calculator or tool page.' },
   { key: 'calcrun.introSeen', purpose: 'That you have seen the homepage intro, so it does not play again.', when: 'On your first homepage visit.' },
+  { key: 'calcrun.usTaxYear', purpose: 'The tax year you picked on the US salary calculator (session storage: gone when you close the tab).', when: 'When you change the tax year.' },
 ];
 ---
 
@@ -95,13 +96,13 @@ const storageKeys = [
 
     <section aria-labelledby="cloudflare">
       <h2 id="cloudflare">Hosting and security (Cloudflare)</h2>
-      <p>The site is served by <strong>Cloudflare</strong>. Like any web host, Cloudflare processes your IP address and request details to deliver pages and to block attacks. Cloudflare's bot protection may run a small script (loaded from <code>/cdn-cgi/</code>) in your browser and may set a strictly necessary security cookie, such as <code>__cf_bm</code> or <code>cf_clearance</code>. On some page views Cloudflare's Page Shield also adds a report-only security policy, so your browser sends Cloudflare a report of requests that policy would have blocked.</p>
+      <p>The site is served by <strong>Cloudflare</strong>. Like any web host, Cloudflare processes your IP address and request details to deliver pages and to block attacks. Cloudflare's bot protection may run a small script (loaded from <code>/cdn-cgi/</code>) in your browser and may set a strictly necessary security cookie, such as <code>__cf_bm</code> or <code>cf_clearance</code>. On some page views Cloudflare's Page Shield also adds a report-only security policy, so your browser sends Cloudflare a report of requests that policy would have blocked. Cloudflare may also ask your browser to send it network error reports (its <code>NEL</code> and <code>Report-To</code> response headers).</p>
       <p>Our own server code does not record your IP address or anything you enter; its error messages contain no personal data.</p>
     </section>
 
     <section aria-labelledby="storage">
       <h2 id="storage">What we keep in your browser</h2>
-      <p>These items live in your browser's local storage. They are never sent to us, and you can delete them at any time by clearing this site's data.</p>
+      <p>These items live in your browser's local storage (one is in session storage, as noted). They are never sent to us, and you can delete them at any time by clearing this site's data.</p>
       <div class="overflow-x-auto">
         <table>
           <caption class="sr-only">Items CalcRun stores in your browser</caption>
