@@ -1,0 +1,91 @@
+---
+/**
+ * Embed v2 layout (plan decision D6, task LA-6) for /embed/<tool>/.
+ *
+ * What a host site's iframe gets: the calculator, its result and ONE
+ * attribution link to the full tool. Deliberately absent:
+ * - Google Analytics / gtag (no consent banner needed on someone else's site),
+ * - the cookie banner, navigation, footer, search,
+ * - affiliate cards, email capture, share and PDF actions (hidden by the
+ *   .embed-mode rules in global.css; the island itself is the shared one).
+ *
+ * Behaviour:
+ * - noindex; canonical points at the full tool page.
+ * - <base target="_blank">: every link opens a new tab, so a click can never
+ *   navigate the iframe to a page that refuses framing (review EDGE-04).
+ * - Theme follows ?theme=light|dark|auto (default light), never the visitor's
+ *   stored site preference: the embed should match the host page (EDGE-05).
+ * - Posts {type:'calcrun:height', height, slug} to the parent whenever the
+ *   content height changes; /embed/resize.js (optional) applies it.
+ * - No storage reads or writes here: storage is often blocked in third-party
+ *   iframes, and the theme comes from the URL.
+ */
+import '../styles/global.css';
+
+interface Props {
+  /** Tool name, e.g. "Mortgage Payment Calculator". */
+  toolName: string;
+  /** Absolute URL of the full tool page (attribution + canonical). */
+  toolUrl: string;
+  slug: string;
+  /** modulepreload hrefs for the island (production builds). */
+  preloads?: string[];
+}
+
+const { toolName, toolUrl, slug, preloads = [] } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{toolName} | CalcRun</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={toolUrl} />
+    <base target="_blank" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+    <script is:inline>
+      (function () {
+        var p = new URLSearchParams(location.search).get('theme');
+        var t = p === 'dark' ? 'dark' : 'light';
+        if (p === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+    {preloads.map((href) => <link rel="modulepreload" href={href} />)}
+  </head>
+  <body class="embed-mode embed-v2 bg-surface text-neutral-900" data-embed-slug={slug}>
+    <main id="main-content" class="px-3 sm:px-4 pt-3 pb-2">
+      <h1 class="sr-only">{toolName}</h1>
+      <slot />
+    </main>
+    <p class="embed-attribution mx-3 sm:mx-4 py-2 text-xs">
+      <a href={toolUrl} rel="noopener" class="font-medium text-primary-700 underline underline-offset-2 hover:text-primary-600 transition-colors duration-150">{toolName}</a>
+      <span> by CalcRun &middot; opens the full calculator with guides and FAQs</span>
+    </p>
+    <script is:inline define:vars={{ slug }}>
+      (function () {
+        if (window.parent === window) return;
+        var last = -1;
+        var queued = false;
+        function send() {
+          queued = false;
+          var h = Math.ceil(document.body.getBoundingClientRect().height);
+          if (h === last) return;
+          last = h;
+          window.parent.postMessage({ type: 'calcrun:height', height: h, slug: slug }, '*');
+        }
+        function queue() {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(send);
+        }
+        if (window.ResizeObserver) new ResizeObserver(queue).observe(document.body);
+        window.addEventListener('load', queue);
+        queue();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,61 +1,11 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolPageLayout from '@components/ui/ToolPageLayout.astro';
+import ToolIsland from '@components/ui/ToolIsland.astro';
 import { getCollection, render } from 'astro:content';
-import { buildWebApplicationSchema, buildFaqSchema } from '@lib/seo';
-
-/**
- * All tool components must be statically imported — Astro requires
- * direct imports for client:* hydration directives to work.
- * See: https://docs.astro.build/en/concepts/islands/
- */
-import PlaceholderCalc from '@components/tools/PlaceholderCalc.tsx';
-import CompoundInterestCalc from '@components/tools/CompoundInterestCalc.tsx';
-import LoanAmortizationCalc from '@components/tools/LoanAmortizationCalc.tsx';
-import InvestmentReturnCalc from '@components/tools/InvestmentReturnCalc.tsx';
-import InvestmentFeeCalc from '@components/tools/InvestmentFeeCalc.tsx';
-import RetirementSavingsCalc from '@components/tools/RetirementSavingsCalc.tsx';
-import RetirementContributionCalc from '@components/tools/RetirementContributionCalc.tsx';
-import RetirementAgeCalc from '@components/tools/RetirementAgeCalc.tsx';
-import DebtPayoffCalc from '@components/tools/DebtPayoffCalc.tsx';
-import SavingsGoalCalc from '@components/tools/SavingsGoalCalc.tsx';
-import QrCodeGenerator from '@components/tools/QrCodeGenerator.tsx';
-import PasswordGenerator from '@components/tools/PasswordGenerator.tsx';
-import EmergencyFundCalc from '@components/tools/EmergencyFundCalc.tsx';
-import RoiCalc from '@components/tools/RoiCalc.tsx';
-import InflationCalc from '@components/tools/InflationCalc.tsx';
-import SalaryCalc from '@components/tools/SalaryCalc.tsx';
-import SalaryUkCalc from '@components/tools/SalaryUkCalc.tsx';
-import NetWorthCalc from '@components/tools/NetWorthCalc.tsx';
-import RentVsBuyCalc from '@components/tools/RentVsBuyCalc.tsx';
-import MortgagePaymentCalc from '@components/tools/MortgagePaymentCalc.tsx';
-import MortgageAffordabilityCalc from '@components/tools/MortgageAffordabilityCalc.tsx';
-import PercentageCalculator from '@components/tools/PercentageCalculator.tsx';
-import JsonFormatter from '@components/tools/JsonFormatter.tsx';
-import ImageCompressor from '@components/tools/ImageCompressor.tsx';
-import ImageResizer from '@components/tools/ImageResizer.tsx';
-import ImageFormatConverter from '@components/tools/ImageFormatConverter.tsx';
-import SvgToPngConverter from '@components/tools/SvgToPngConverter.tsx';
-import HeicToJpgConverter from '@components/tools/HeicToJpgConverter.tsx';
-import CsvJsonConverter from '@components/tools/CsvJsonConverter.tsx';
-import MarkdownHtmlConverter from '@components/tools/MarkdownHtmlConverter.tsx';
-import ImagesToPdf from '@components/tools/ImagesToPdf.tsx';
-import PdfMerge from '@components/tools/PdfMerge.tsx';
-import PdfSplit from '@components/tools/PdfSplit.tsx';
-import PdfCompress from '@components/tools/PdfCompress.tsx';
-import PdfToImage from '@components/tools/PdfToImage.tsx';
-import ExcelToPdf from '@components/tools/ExcelToPdf.tsx';
-import Base64EncodeDecode from '@components/tools/Base64EncodeDecode.tsx';
-import UrlEncodeDecode from '@components/tools/UrlEncodeDecode.tsx';
-import JwtDecoder from '@components/tools/JwtDecoder.tsx';
-import JsonYamlConverter from '@components/tools/JsonYamlConverter.tsx';
-import JsonXmlConverter from '@components/tools/JsonXmlConverter.tsx';
-import PngToIco from '@components/tools/PngToIco.tsx';
-import CreditCardPayoffCalc from '@components/tools/CreditCardPayoffCalc.tsx';
-import SolarPaybackCalc from '@components/tools/SolarPaybackCalc.tsx';
-import CarFinanceCalc from '@components/tools/CarFinanceCalc.tsx';
-import StampDutyCalc from '@components/tools/StampDutyCalc.tsx';
-import CapitalGainsTaxCalc from '@components/tools/CapitalGainsTaxCalc.tsx';
+import { buildWebApplicationSchema, buildFaqSchema, toolPageTitle } from '@lib/seo';
+import { toolComponent } from '@lib/tool-islands';
+import { islandPreloads } from '@lib/island-preload';
 
 export async function getStaticPaths() {
   const tools = await getCollection('tools');
@@ -74,115 +24,25 @@ const faqSchema = faq.length > 0 ? buildFaqSchema(faq) : null;
 const structuredData = [webAppSchema, ...(faqSchema ? [faqSchema] : [])];
 
 /**
- * Map tool slugs to their calculator components.
- * Tools not yet built fall through to PlaceholderCalc.
+ * The calculator island hydrates with client:load (see ToolIsland.astro).
+ * In production builds its whole static-import closure is preloaded from
+ * <head> so the chunks download in parallel instead of as a waterfall
+ * (LA-1). Dev serves source modules, so no hints there.
  */
-const CALCULATOR_MAP: Record<string, string> = {
-  'compound-interest': 'CompoundInterestCalc',
-  'loan-amortization': 'LoanAmortizationCalc',
-  'investment-return': 'InvestmentReturnCalc',
-  'investment-fee': 'InvestmentFeeCalc',
-  'retirement-savings': 'RetirementSavingsCalc',
-  'retirement-contribution': 'RetirementContributionCalc',
-  'retirement-age': 'RetirementAgeCalc',
-  'debt-payoff': 'DebtPayoffCalc',
-  'savings-goal': 'SavingsGoalCalc',
-  'qr-code': 'QrCodeGenerator',
-  'password-generator': 'PasswordGenerator',
-  'emergency-fund': 'EmergencyFundCalc',
-  'roi': 'RoiCalc',
-  'inflation': 'InflationCalc',
-  'salary-us': 'SalaryCalc',
-  'salary-uk': 'SalaryUkCalc',
-  'net-worth': 'NetWorthCalc',
-  'rent-vs-buy': 'RentVsBuyCalc',
-  'mortgage-payment': 'MortgagePaymentCalc',
-  'mortgage-affordability': 'MortgageAffordabilityCalc',
-  'percentage-calculator': 'PercentageCalculator',
-  'json-formatter': 'JsonFormatter',
-  'image-compressor': 'ImageCompressor',
-  'image-resizer': 'ImageResizer',
-  'image-format-converter': 'ImageFormatConverter',
-  'svg-to-png': 'SvgToPngConverter',
-  'heic-to-jpg': 'HeicToJpgConverter',
-  'csv-json': 'CsvJsonConverter',
-  'markdown-html': 'MarkdownHtmlConverter',
-  'images-to-pdf': 'ImagesToPdf',
-  'pdf-merge': 'PdfMerge',
-  'pdf-split': 'PdfSplit',
-  'pdf-compress': 'PdfCompress',
-  'pdf-to-image': 'PdfToImage',
-  'excel-to-pdf': 'ExcelToPdf',
-  'base64-encode-decode': 'Base64EncodeDecode',
-  'url-encode-decode': 'UrlEncodeDecode',
-  'jwt-decoder': 'JwtDecoder',
-  'json-yaml': 'JsonYamlConverter',
-  'json-xml': 'JsonXmlConverter',
-  'png-to-ico': 'PngToIco',
-  'credit-card-payoff': 'CreditCardPayoffCalc',
-  'solar-payback': 'SolarPaybackCalc',
-  'car-finance': 'CarFinanceCalc',
-  'stamp-duty': 'StampDutyCalc',
-  'capital-gains-tax': 'CapitalGainsTaxCalc',
-};
-
-const hasCalculator = slug in CALCULATOR_MAP;
+const preloads = import.meta.env.PROD ? islandPreloads(toolComponent(slug)) : [];
 ---
 
 <BaseLayout
-  title={`${name} | CalcRun`}
+  title={toolPageTitle({ name, slug })}
   description={description}
   ogImage={`/og/${slug}.png`}
   structuredData={structuredData}
 >
+  <Fragment slot="head">
+    {preloads.map((href) => <link rel="modulepreload" href={href} />)}
+  </Fragment>
   <ToolPageLayout tool={{ data: tool.data }}>
-    {slug === 'compound-interest' && <CompoundInterestCalc client:idle />}
-    {slug === 'loan-amortization' && <LoanAmortizationCalc client:idle />}
-    {slug === 'investment-return' && <InvestmentReturnCalc client:idle />}
-    {slug === 'investment-fee' && <InvestmentFeeCalc client:idle />}
-    {slug === 'retirement-savings' && <RetirementSavingsCalc client:idle />}
-    {slug === 'retirement-contribution' && <RetirementContributionCalc client:idle />}
-    {slug === 'retirement-age' && <RetirementAgeCalc client:idle />}
-    {slug === 'debt-payoff' && <DebtPayoffCalc client:idle />}
-    {slug === 'savings-goal' && <SavingsGoalCalc client:idle />}
-    {slug === 'qr-code' && <QrCodeGenerator client:idle />}
-    {slug === 'password-generator' && <PasswordGenerator client:idle />}
-    {slug === 'emergency-fund' && <EmergencyFundCalc client:idle />}
-    {slug === 'roi' && <RoiCalc client:idle />}
-    {slug === 'inflation' && <InflationCalc client:idle />}
-    {slug === 'salary-us' && <SalaryCalc client:idle />}
-    {slug === 'salary-uk' && <SalaryUkCalc client:idle />}
-    {slug === 'net-worth' && <NetWorthCalc client:idle />}
-    {slug === 'rent-vs-buy' && <RentVsBuyCalc client:idle />}
-    {slug === 'mortgage-payment' && <MortgagePaymentCalc client:idle />}
-    {slug === 'mortgage-affordability' && <MortgageAffordabilityCalc client:idle />}
-    {slug === 'percentage-calculator' && <PercentageCalculator client:idle />}
-    {slug === 'json-formatter' && <JsonFormatter client:idle />}
-    {slug === 'image-compressor' && <ImageCompressor client:idle />}
-    {slug === 'image-resizer' && <ImageResizer client:idle />}
-    {slug === 'image-format-converter' && <ImageFormatConverter client:idle />}
-    {slug === 'svg-to-png' && <SvgToPngConverter client:idle />}
-    {slug === 'heic-to-jpg' && <HeicToJpgConverter client:idle />}
-    {slug === 'csv-json' && <CsvJsonConverter client:idle />}
-    {slug === 'markdown-html' && <MarkdownHtmlConverter client:idle />}
-    {slug === 'images-to-pdf' && <ImagesToPdf client:idle />}
-    {slug === 'pdf-merge' && <PdfMerge client:idle />}
-    {slug === 'pdf-split' && <PdfSplit client:idle />}
-    {slug === 'pdf-compress' && <PdfCompress client:idle />}
-    {slug === 'pdf-to-image' && <PdfToImage client:idle />}
-    {slug === 'excel-to-pdf' && <ExcelToPdf client:idle />}
-    {slug === 'base64-encode-decode' && <Base64EncodeDecode client:idle />}
-    {slug === 'url-encode-decode' && <UrlEncodeDecode client:idle />}
-    {slug === 'jwt-decoder' && <JwtDecoder client:idle />}
-    {slug === 'json-yaml' && <JsonYamlConverter client:idle />}
-    {slug === 'json-xml' && <JsonXmlConverter client:idle />}
-    {slug === 'png-to-ico' && <PngToIco client:idle />}
-    {slug === 'credit-card-payoff' && <CreditCardPayoffCalc client:idle />}
-    {slug === 'solar-payback' && <SolarPaybackCalc client:idle />}
-    {slug === 'car-finance' && <CarFinanceCalc client:idle />}
-    {slug === 'stamp-duty' && <StampDutyCalc client:idle />}
-    {slug === 'capital-gains-tax' && <CapitalGainsTaxCalc client:idle />}
-    {!hasCalculator && <PlaceholderCalc name={name} client:idle />}
+    <ToolIsland slug={slug} name={name} />
     <Fragment slot="content">
       <Content />
     </Fragment>

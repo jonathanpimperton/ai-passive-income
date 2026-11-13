@@ -1,0 +1,58 @@
+# Scheduled production rebuild on tax-year rollover days, WITHOUT creating commits.
+#
+# Why: the default tax year is computed at build time for the server-rendered HTML. A build
+# made in one tax year and served in the next disagrees with the browser's date (hydration
+# mismatch) until something redeploys. This calls a Cloudflare Workers Builds Deploy Hook,
+# which builds and deploys the configured branch exactly like a push would
+# (developers.cloudflare.com/workers/ci-cd/builds/deploy-hooks/).
+#
+# Needs the repository secret CF_DEPLOY_HOOK_URL (owner step, docs/owner-actions-2026-11.md).
+# Without it, the job logs a notice and exits successfully, triggering nothing.
+# If the build fails (for example the rates freshness guard), Cloudflare keeps serving the
+# previous deployment.
+name: Scheduled rebuild
+
+on:
+  schedule:
+    - cron: '30 0 1 1 *' # 1 January 00:30 UTC (US tax year)
+    - cron: '30 0 6 4 *' # 6 April 00:30 UTC (UK tax year)
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger the Workers Builds deploy hook
+        env:
+          CF_DEPLOY_HOOK_URL: ${{ secrets.CF_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$CF_DEPLOY_HOOK_URL" ]; then
+            echo "::notice title=Scheduled rebuild skipped::Repository secret CF_DEPLOY_HOOK_URL is not set, so no build was triggered. See docs/owner-actions-2026-11.md."
+            exit 0
+          fi
+          case "$CF_DEPLOY_HOOK_URL" in
+            https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/*) ;;
+            *)
+              echo "::error::CF_DEPLOY_HOOK_URL is not a Workers Builds deploy hook URL (https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/...)."
+              exit 1
+              ;;
+          esac
+          response=$(curl -sS -X POST --max-time 30 -w '\n%{http_code}' "$CF_DEPLOY_HOOK_URL") || {
+            echo "::error::Could not reach the deploy hook."
+            exit 1
+          }
+          status=$(printf '%s\n' "$response" | tail -n 1)
+          body=$(printf '%s\n' "$response" | sed '$d')
+          echo "Deploy hook answered HTTP $status"
+          # jq is preinstalled on GitHub's ubuntu runners.
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ] || ! printf '%s' "$body" | jq -e '.success == true' > /dev/null 2>&1; then
+            echo "::error::Deploy hook call failed (HTTP $status)."
+            exit 1
+          fi
+          echo "Build queued: $(printf '%s' "$body" | jq -r '.result.build_uuid // "uuid not reported"')"
+          if [ "$(printf '%s' "$body" | jq -r '.result.already_exists // false')" = "true" ]; then
+            echo "A build for this branch was already queued; Cloudflare reused it."
+          fi
