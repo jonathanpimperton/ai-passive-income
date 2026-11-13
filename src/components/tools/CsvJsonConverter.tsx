@@ -11,6 +11,7 @@ import { parseJsonLossless } from '../../lib/dev-tools/json-lossless';
 import { csvToJson, jsonToCsv, delimiterName, type Delimiter, type PapaModule } from '../../lib/dev-tools/csv';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
 import { useSizeAwareDebounce } from '../../lib/dev-tools/use-size-aware-debounce';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 type Mode = 'csv-to-json' | 'json-to-csv';
 
@@ -38,6 +39,7 @@ export default function CsvJsonConverter() {
   const [protectFormulas, setProtectFormulas] = useState(true);
   const [papa, setPapa] = useState<PapaModule | null>(null);
   const [loadError, setLoadError] = useState('');
+  const [fileError, setFileError] = useState('');
   const { copy, copiedKey, failedKey, message: copyMessage } = useCopyFeedback();
   const { value: settledInput, pending } = useSizeAwareDebounce(input);
 
@@ -56,7 +58,7 @@ export default function CsvJsonConverter() {
     };
   }, []);
 
-  const result = useMemo<Result>(() => {
+  const result = useMemo<Result>(() => safely<Result>(() => {
     const none: Result = { output: '', error: '', warnings: [], summary: '' };
     if (!settledInput.trim()) return none;
     if (mode === 'csv-to-json') {
@@ -75,7 +77,7 @@ export default function CsvJsonConverter() {
     if (!r.ok) return { ...none, error: r.error };
     const summary = `${r.rows.toLocaleString('en-US')} row${r.rows === 1 ? '' : 's'}, ${r.columns} column${r.columns === 1 ? '' : 's'}`;
     return { ...none, output: r.csv, warnings: r.warnings, summary };
-  }, [settledInput, mode, papa, loadError, delimiter, header, skipEmpty, protectFormulas]);
+  }, (message) => ({ output: '', error: message, warnings: [], summary: '' })), [settledInput, mode, papa, loadError, delimiter, header, skipEmpty, protectFormulas]);
 
   const output = result.output;
   const waitingForParser = mode === 'csv-to-json' && !papa && !loadError && !!input.trim();
@@ -83,7 +85,14 @@ export default function CsvJsonConverter() {
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
     if (!f) return;
-    const text = await f.text();
+    setFileError('');
+    let text: string;
+    try {
+      text = await f.text();
+    } catch {
+      setFileError(`Could not read "${f.name}". Try choosing the file again.`);
+      return;
+    }
     setInput(text);
     // Auto-detect mode from file extension
     const name = f.name.toLowerCase();
@@ -180,7 +189,10 @@ export default function CsvJsonConverter() {
           <textarea
             id="csv-json-input"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              if (fileError) setFileError('');
+            }}
             placeholder={
               mode === 'csv-to-json'
                 ? 'name,age,city\nAlice,30,NYC\nBob,25,LA'
@@ -222,8 +234,8 @@ export default function CsvJsonConverter() {
           </div>
           <span className="sr-only" role="status" aria-live="polite">{copyMessage}</span>
 
-          {result.error && (
-            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700" role="alert">{result.error}</div>
+          {(fileError || result.error) && (
+            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700" role="alert">{fileError || result.error}</div>
           )}
           {!result.error && result.warnings.length > 0 && (
             <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-800">
