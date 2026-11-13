@@ -32,6 +32,9 @@ Engine code: `src/lib/figures.ts` (catalogue), `src/lib/figure-parser.ts` (synta
   goes to principal", not "more than 80%".
 - The words around a figure are still your job. Re-read the sentence with the generated
   value in it (section 6 shows how to print every value on a page).
+- **Do not use an INTERIM function** (listed at the end of section 4) until it has been
+  re-pointed to its merged engine. Check `figures.ts`: if the function still has an
+  `interim:` line, leave the figure as it is and say so in your handoff.
 
 ## 2. Syntax
 
@@ -53,8 +56,18 @@ Engine code: `src/lib/figures.ts` (catalogue), `src/lib/figure-parser.ts` (synta
 - **Formatters** run left to right after `|`. A number can only be printed through a
   formatter, so the currency and the rounding are always explicit. A token that ends in a
   bare number is an error.
+- **A token must compute something.** A bare word (`{{ taxYear }}`, a forgotten `()`)
+  or quoted text on its own (`{{ '£25,064' }}`) is an error, so a hand-typed figure
+  can't pass as a generated one. Arithmetic on the page's stated inputs is fine:
+  `{{ 50000 / 18 | usd }}`.
 - **Whitespace**, including line breaks, is allowed anywhere inside the braces.
-- **Escape.** `\{{` prints a literal `{{`.
+- **Escape (rarely needed).** `\{{` stops a token from being read.
+  - In body prose it prints a literal `{{`, because Markdown removes the backslash.
+  - Inside code spans and fenced code blocks, Markdown keeps the backslash, so readers
+    see `\{{`. Avoid literal `{{` in code.
+  - In frontmatter, put it in a single-quoted YAML value (`note: 'type \{{ to start'`).
+    The transform prints `{{`. A double-quoted YAML value rejects `\{` as an invalid
+    escape, and the build fails.
 
 ### Where tokens work
 
@@ -62,7 +75,7 @@ Engine code: `src/lib/figures.ts` (catalogue), `src/lib/figure-parser.ts` (synta
 |---|---|---|
 | Markdown body (paragraphs, headings, lists, **bold**, tables, code) | Yes | Resolved before Markdown is parsed, so a `\|` inside a token does not split a table cell. Bold and table figures still get the mono face (rehype-mono-figures). |
 | Prose frontmatter fields: `title`, `description`, `resultSummary`, `inputs` values, `faq`, `workedExamples`, `comparisonTable` cells, `verdict`, `formula`, `assumptions`, `limitations`, `keywords`, `name`, `affiliateContext`, `calculationMethod`, source names | Yes | Resolved by the zod transform in `src/content.config.ts`. |
-| Identifier fields: `slug`, `toolSlug`, `toolCategory`, `datePublished`, `dateModified`, `lastUpdated`, `relatedTools`, `affiliatePrograms`, source `url`s | No | A token here fails the build on purpose. |
+| Identifier fields: `slug`, `toolSlug`, `toolCategory`, `datePublished`, `dateModified`, `lastUpdated`, `relatedTools`, `affiliatePrograms`, source `url`s, and the KEYS of `inputs` (the pill labels) | No | A token here fails the build on purpose. Put figures in the `inputs` values, not the labels. |
 | `.astro` templates | Use the function | `import { figure } from '@lib/figures';` then `figure("mortgagePayment(300000, 7, 30) \| usd")`. |
 
 **Frontmatter quoting.** Always quote a frontmatter value that holds a token (a bare
@@ -283,6 +296,24 @@ cleared within 1,200 months.
 | `min(a, b)` | the smaller number | `{{ min(3, 5) \| int }}` | 3 |
 | `max(a, b)` | the larger number | `{{ max(0, 50000 - 60000) \| usd }}` | $0 |
 
+### Do not use yet: INTERIM functions
+
+These functions work and are tested, but they compose the `src/lib` primitives instead of
+calling the engine their calculator will use once Wave 1 merges. A figure built on them
+could disagree with the merged calculator. Wave 2 must not use them until each one is
+re-pointed (its `interim:` line in `figures.ts` removed). The orchestrator does this at
+merge time.
+
+| Functions | Will be re-pointed to |
+|---|---|
+| `ukPay`, `ukTakeHome`, `ukIncomeTax`, `ukNi`, `ukStudentLoan`, `ukMarginalRate` | W1-UK salary lib and `uk-tax-codes.ts` (UK-1 to UK-4) |
+| `usPay`, `usTakeHome`, `usFederalTax`, `usFica`, `usBracket`, `usMarginalRate` | W1-TAX salary lib (TX-1 to TX-4) |
+| `cardPayoff`, `loanPayoff`, `payoffBalance` | W1-DEBT `credit-card.ts` (DB-1) |
+| `feeDrag` | W1-DEBT investment-fee formula (DB-7) |
+
+`rate()` is not interim: it always fails until `market-rates.ts` (W1-PROP) is merged and
+wired.
+
 ## 5. Formatters
 
 | Formatter | What it does | Example | Value |
@@ -341,13 +372,24 @@ and read the generated page in `dist/`.
   before parsing. Astro's glob loader only logs a body that fails to render, so
   `withRenderCheck()` (`src/lib/figures-content.ts`, applied to every collection in
   `src/content.config.ts`) fails the build when an entry has no rendered body.
-- **Frontmatter.** Every prose string field in `src/content.config.ts` is
-  `z.string().transform(resolveFigureField)`. A bad token becomes a schema error, which
-  fails the build.
+  - On the dev server (`npm run dev`) a bad body token is only logged, and the page
+    shows an empty body. Builds fail correctly. Always check with section 6 or a build.
+- **Frontmatter.** Every prose string field in `src/content.config.ts` uses
+  `figureText()`, which resolves tokens; a bad token becomes a schema error, which fails
+  the build. Identifier fields and `inputs` keys use `figureIdent()`, which refuses tokens.
+  - Templates must read `entry.data`, which holds the resolved values. The frontmatter
+    copy that Astro passes to the Markdown renderer (`remarkPluginFrontmatter`,
+    `rendered.metadata.frontmatter`) still holds the raw, unresolved tokens.
+- **Build-level check.** `node scripts/check-figures-build.mjs` runs `astro sync` on a
+  small fixture three times. It passes when a bad body token fails, a bad frontmatter
+  token fails, and good tokens pass. It proves the wiring still works after an Astro
+  upgrade, because `withRenderCheck` relies on how Astro's glob loader stores entries.
+  It is opt-in (about 350 MB, under a minute). Run it after any Astro upgrade or change
+  to this wiring.
 - **Caching.** Astro caches rendered content in `.astro-cache/`, keyed by file content.
-  The remark plugin entry carries a `cacheKey`: a hash of every non-test file in
-  `src/lib`. Any engine or rates change alters the Astro config digest and clears the
-  content cache, so cached pages can't keep stale figures.
+  The remark plugin entry carries a `cacheKey`: a hash of every non-test file under
+  `src/lib`, subfolders included. Any engine or rates change alters the Astro config
+  digest and clears the content cache, so cached pages can't keep stale figures.
   - This does NOT cover other Markdown plugin changes: a change to
     `rehype-mono-figures.mjs` is covered (it lives in `src/lib`), but a new plugin added
     elsewhere is not. After any other plugin change, delete `.astro-cache/` before
@@ -361,17 +403,17 @@ and read the generated page in `dist/`.
   - an `example`;
   - a cross-check against the engine in `figures.test.ts`;
   - a row in this file. The tests fail if a function or formatter is missing here.
-- **Interim functions.** Some calculators still keep their logic in `.tsx` components
-  while the Wave 1 workstreams move it into `src/lib`. These figure functions compose
-  the lib primitives for now, and each is marked `INTERIM` in `figures.ts` with the
-  module that should replace it:
-  - `ukPay` and the UK pay family, and the tax-code parser: W1-UK, `uk-tax-codes.ts`;
-  - `usPay`: W1-TAX;
-  - `cardPayoff`: W1-DEBT, `credit-card.ts`;
-  - `feeDrag`: W1-DEBT, DB-7;
-  - `rate()`: W1-PROP, `market-rates.ts`.
+- **Interim functions.** These carry an `interim:` line in `figures.ts` naming the module
+  that should replace them (see "Do not use yet" at the end of section 4). To re-point
+  one:
+  1. Call the merged engine.
+  2. Delete the `interim:` line.
+  3. Remove the function from the "Do not use yet" table.
+  4. Keep the tests green: they pin today's values, so any difference is a real
+     engine change to review.
 
-  Re-point each one when its module merges. The tests pin the values.
+  The UK tax-code parser inside `figures.ts` goes the same way, to `uk-tax-codes.ts`.
+  `rate()` is wired once `market-rates.ts` lands.
 - **Multi-year tax data.** When the rates modules become year-keyed (W1-TAX, TX-1),
   wire `year=` through to the engines in `figures.ts` (see "MULTI-YEAR HOOK"). Until
   then a `year=` other than the current dataset fails, by design.

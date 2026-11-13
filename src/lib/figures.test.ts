@@ -103,7 +103,7 @@ describe('formatters', () => {
   });
 
   it('formatter failures', () => {
-    expect(() => f("'text' | gbp")).toThrow(/needs a number, got text/);
+    expect(() => f("taxYear('uk') | gbp")).toThrow(/needs a number, got text/);
     expect(() => f('1 | usd(9)')).toThrow(/decimals 0-4/);
     expect(() => f('1 | usd(1, 2)')).toThrow(/at most one argument/);
     expect(() => f('1 | pct1(2)')).toThrow(/takes no arguments/);
@@ -121,6 +121,20 @@ describe('failure modes', () => {
   const cases: Array<[string, RegExp]> = [
     ['ukTakehome(30000) | gbp', /unknown function "ukTakehome" \(did you mean "ukTakeHome"\?\)/],
     ['nope(1) | gbp', /unknown function "nope"/],
+    // A token must compute: a bare word or quoted text would print as typed
+    ['taxYear', /"taxYear" on its own is just a word.*missing "\(\)"\? call it, e\.g\. taxYear\(country\)/],
+    ['ukTakehome', /missing "\(\)"\?.*did you mean "ukTakeHome"/],
+    ['plan2 | gbp', /"plan2" on its own is just a word/],
+    ["'£25,064'", /quoted text on its own prints as typed/],
+    ['"25064" | gbp', /quoted text on its own prints as typed/],
+    // Prototype names are never fields, options, codes or aliases
+    ['ukPay(30000).constructor | gbp', /no field ".constructor"/],
+    ['ukPay(30000).__proto__ | gbp', /no field ".__proto__"/],
+    ['ukPay(30000).toString | gbp', /no field ".toString"/],
+    ['compoundFV(1000, 0, 7, 10, compounding=constructor) | usd', /compounding must be a number or one of/],
+    ['sdlt(300000, buyer=toString) | gbp', /"buyer" must be one of/],
+    ["ukTakeHome(30000, code='__proto__') | gbp", /not supported by figure tokens/],
+    ["ukTakeHome(30000, code='CONSTRUCTOR') | gbp", /not supported by figure tokens/],
     ['ukTakeHome(30000, plan=plan9) | gbp', /"plan" must be one of .*plan2.*got "plan9"/],
     ['ukTakeHome(30000, plna=plan2) | gbp', /unknown option "plna" \(did you mean "plan"\?\)/],
     ['ukTakeHome() | gbp', /missing "salary"/],
@@ -219,14 +233,30 @@ describe('catalogue', () => {
   });
 
   it('every example value printed in docs/figures.md tables is what the engine gives', () => {
-    if (!UK_2026 || !US_2026) return; // the doc's values are for the 2026/27 and 2026 datasets
+    // The values are for the 2026/27 (UK) and 2026 (US) datasets; each country's
+    // rows are skipped only once that country's data has moved on.
     const doc = readFileSync('docs/figures.md', 'utf8');
     const rows = [...doc.matchAll(/`\{\{ (.+?) \}\}` \| ([^|\r\n]+?) \|\r?$/gm)];
     expect(rows.length).toBeGreaterThan(40);
+    let checked = 0;
     for (const [, expr, value] of rows) {
       if (value === 'fails') continue;
+      if (!UK_2026 && /\buk[A-Z]|\bsdlt\(|taxYear\('uk'\)/.test(expr)) continue;
+      if (!US_2026 && /\bus[A-Z]|taxYear\('us'\)/.test(expr)) continue;
       expect(f(expr.replace(/\\\|/g, '|')), expr).toBe(value);
+      checked++;
     }
+    expect(checked).toBeGreaterThan(UK_2026 && US_2026 ? 40 : 15);
+  });
+
+  it('INTERIM functions are flagged in the catalogue and listed in the docs', () => {
+    const doc = readFileSync('docs/figures.md', 'utf8');
+    const start = doc.indexOf('### Do not use yet: INTERIM functions');
+    expect(start).toBeGreaterThan(0);
+    const section = doc.slice(start, doc.indexOf('\n## ', start));
+    const interim = [...FIGURE_FUNCTIONS.values()].filter((fn) => fn.interim);
+    expect(interim.map((fn) => fn.name)).toEqual(expect.arrayContaining(['ukPay', 'usPay', 'cardPayoff', 'feeDrag']));
+    for (const fn of interim) expect(section, fn.name).toContain(`\`${fn.name}\``);
   });
 
   it('every object function documents its fields, and they match the result', () => {

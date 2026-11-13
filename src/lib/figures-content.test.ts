@@ -3,7 +3,7 @@ import { z } from 'astro/zod';
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
-import { resolveFigureField, withRenderCheck } from './figures-content';
+import { figureIdent, figureText, resolveFigureField, withRenderCheck } from './figures-content';
 import { evaluateFigure } from './figures';
 
 describe('resolveFigureField (frontmatter zod transform)', () => {
@@ -35,6 +35,31 @@ describe('resolveFigureField (frontmatter zod transform)', () => {
     const inputs = z.record(z.string(), z.union([text, z.number()]));
     expect(inputs.parse({ a: 5, b: "{{ taxYear('uk') }}" })).toEqual({ a: 5, b: evaluateFigure("taxYear('uk')") });
     expect(text.optional().parse(undefined)).toBeUndefined();
+  });
+});
+
+describe('figureText / figureIdent (the schemas content.config.ts uses)', () => {
+  // Same shape as the scenarios/tools `inputs` field in src/content.config.ts
+  const inputs = z.record(figureIdent(), z.union([figureText(), z.number()]));
+
+  it('inputs: values resolve, plain keys pass', () => {
+    expect(inputs.parse({ 'Tax Year': "{{ taxYear('uk') }}", Salary: 30000 })).toEqual({
+      'Tax Year': evaluateFigure("taxYear('uk')"),
+      Salary: 30000,
+    });
+  });
+
+  it('inputs: a token in a KEY (pill label) is refused, not printed raw', () => {
+    const r = inputs.safeParse({ "{{ taxYear('uk') }} salary": '£30,000' });
+    expect(r.success).toBe(false);
+    if (r.success) return;
+    expect(r.error.issues[0].message).toBe('figure tokens are not allowed in this field');
+  });
+
+  it('identifier fields refuse tokens; prose fields resolve them', () => {
+    expect(figureIdent().safeParse('{{ taxYear(uk) }}').success).toBe(false);
+    expect(figureIdent().parse('50k-car-loan-4-years')).toBe('50k-car-loan-4-years');
+    expect(figureText().parse('{{ taxYear(uk) }}')).toBe(evaluateFigure('taxYear(uk)'));
   });
 });
 

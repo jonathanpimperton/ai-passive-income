@@ -46,19 +46,27 @@ function libDir() {
   return join(process.cwd(), 'src', 'lib');
 }
 
+/** Every non-test source file under dir (recursive), as sorted relative paths. */
+function sourceFiles(dir, prefix = '') {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) out.push(...sourceFiles(join(dir, entry.name), rel));
+    else if (/\.(ts|tsx|mjs|js|json)$/.test(entry.name) && !/\.test\.[cm]?[jt]sx?$/.test(entry.name)) out.push(rel);
+  }
+  return out.sort();
+}
+
 /**
- * Hash of every non-test source file in src/lib. Any engine or rates change
- * gives a new key, which changes the Astro config digest and clears the
- * content-layer cache, so cached pages can never show stale figures.
+ * Hash of every non-test source file under src/lib (recursively). Any engine
+ * or rates change gives a new key, which changes the Astro config digest and
+ * clears the content-layer cache, so cached pages can never show stale figures.
  */
 export function figuresCacheKey(dir = libDir()) {
   const hash = createHash('sha256');
-  const files = readdirSync(dir)
-    .filter((f) => /\.(ts|tsx|mjs|js)$/.test(f) && !/\.(test|stress\.test)\.ts$/.test(f))
-    .sort();
-  for (const f of files) {
-    hash.update(f);
-    hash.update(readFileSync(join(dir, f)));
+  for (const rel of sourceFiles(dir)) {
+    hash.update(rel);
+    hash.update(readFileSync(join(dir, rel)));
   }
   return hash.digest('hex').slice(0, 16);
 }

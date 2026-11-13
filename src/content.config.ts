@@ -1,18 +1,18 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
-import { resolveFigureField, withRenderCheck } from './lib/figures-content';
+import { figureIdent, figureText, withRenderCheck } from './lib/figures-content';
 
 /*
  * Figure tokens (plan-2026-11 RC1; docs/figures.md). Every prose string in
  * frontmatter goes through `text()`, which resolves `{{ ... }}` tokens from the
  * src/lib engines and fails the build on a bad token. Identifier fields (slugs,
- * dates, URLs, partner ids) use `ident()`, which refuses tokens outright.
+ * dates, URLs, partner ids) and record keys (input labels) use `ident()`, which
+ * refuses tokens outright.
  * Markdown bodies are resolved by src/lib/remark-figures.mjs; `withRenderCheck`
  * makes a body that failed to render fail the build instead of shipping empty.
  */
-const text = () => z.string().transform(resolveFigureField);
-const ident = () =>
-  z.string().refine((v) => !v.includes('{{'), { message: 'figure tokens are not allowed in this field' });
+const text = figureText;
+const ident = figureIdent;
 
 const scenarios = defineCollection({
   loader: withRenderCheck(glob({ pattern: '**/*.md', base: './src/data/scenarios' })),
@@ -23,7 +23,7 @@ const scenarios = defineCollection({
     keywords: z.array(text()),
     toolSlug: ident(),
     toolCategory: ident(),
-    inputs: z.record(z.string(), z.union([text(), z.number()])),
+    inputs: z.record(ident(), z.union([text(), z.number()])),
     resultSummary: text(),
     // E-E-A-T (Phase 3): ISO dates rendered in the byline and emitted in
     // Article JSON-LD. datePublished is backfilled from git history.
@@ -72,7 +72,7 @@ const tools = defineCollection({
       .array(
         z.object({
           title: text(),
-          inputs: z.record(z.string(), z.union([text(), z.number()])),
+          inputs: z.record(ident(), z.union([text(), z.number()])),
           description: text(),
         })
       )

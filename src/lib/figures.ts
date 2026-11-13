@@ -142,6 +142,12 @@ export interface FigureFunction {
   fields?: Readonly<Record<string, string>>;
   /** A complete token body (no braces) that the tests evaluate. */
   example: string;
+  /**
+   * Set while the function composes lib primitives instead of calling the
+   * engine the calculator will use (names the module that should replace it).
+   * Wave 2 content must not use INTERIM functions until they are re-pointed.
+   */
+  interim?: string;
   run: (a: Args) => FigureValue;
 }
 
@@ -281,7 +287,7 @@ function parseUkCode(raw: string): UkCode {
     rest = rest.slice(1);
   }
   if (rest === 'NT') return { kind: 'nt', scottish, code };
-  const flat = FLAT_CODES[rest];
+  const flat = Object.hasOwn(FLAT_CODES, rest) ? FLAT_CODES[rest] : undefined;
   if (flat) {
     const band = scottish ? flat.scot : flat.ruk;
     if (!band) fail(`tax code ${code} only exists with the S (Scottish) prefix`);
@@ -765,7 +771,7 @@ const COMPOUNDING: ParamSpec = {
   default: 12,
   coerce: (v) => {
     if (typeof v === 'string') {
-      const n = COMPOUNDING_WORDS[v];
+      const n = Object.hasOwn(COMPOUNDING_WORDS, v) ? COMPOUNDING_WORDS[v] : undefined;
       if (n === undefined) fail(`compounding must be a number or one of ${Object.keys(COMPOUNDING_WORDS).join(', ')} (got "${v}")`);
       return n;
     }
@@ -794,6 +800,7 @@ const fns: FigureFunction[] = [
   {
     name: 'ukPay',
     group: 'UK pay',
+    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Full UK pay breakdown for one salary (England/Wales/NI bands unless Scottish).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -805,6 +812,7 @@ const fns: FigureFunction[] = [
   {
     name: 'ukTakeHome',
     group: 'UK pay',
+    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Annual take-home pay (same options as ukPay).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -815,6 +823,7 @@ const fns: FigureFunction[] = [
   {
     name: 'ukIncomeTax',
     group: 'UK pay',
+    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Income tax for the year (same options as ukPay).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -825,6 +834,7 @@ const fns: FigureFunction[] = [
   {
     name: 'ukNi',
     group: 'UK pay',
+    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Employee National Insurance for the year (same options as ukPay).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -835,6 +845,7 @@ const fns: FigureFunction[] = [
   {
     name: 'ukStudentLoan',
     group: 'UK pay',
+    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Student loan repayments for the year; needs plan= (same options as ukPay).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -848,6 +859,7 @@ const fns: FigureFunction[] = [
   {
     name: 'ukMarginalRate',
     group: 'UK pay',
+    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Share of the next £2 of salary lost to income tax + NI + student loan, in % (shows the 60% trap).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -914,6 +926,7 @@ const fns: FigureFunction[] = [
   {
     name: 'usPay',
     group: 'US pay',
+    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Full US pay breakdown: federal tax, FICA, flat state rate, 401(k).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -925,6 +938,7 @@ const fns: FigureFunction[] = [
   {
     name: 'usTakeHome',
     group: 'US pay',
+    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Annual take-home pay (same options as usPay).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -935,6 +949,7 @@ const fns: FigureFunction[] = [
   {
     name: 'usFederalTax',
     group: 'US pay',
+    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Federal income tax after the standard deduction (same options as usPay).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -945,6 +960,7 @@ const fns: FigureFunction[] = [
   {
     name: 'usFica',
     group: 'US pay',
+    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Social Security + Medicare (same options as usPay).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -955,6 +971,7 @@ const fns: FigureFunction[] = [
   {
     name: 'usBracket',
     group: 'US pay',
+    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Federal bracket (%) that the next dollar of taxable pay falls in (0 below the standard deduction).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -965,6 +982,7 @@ const fns: FigureFunction[] = [
   {
     name: 'usMarginalRate',
     group: 'US pay',
+    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Share of the next $1 lost to federal tax + FICA + state, in %.',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -1196,6 +1214,7 @@ const fns: FigureFunction[] = [
   {
     name: 'cardPayoff',
     group: 'Debt',
+    interim: 'W1-DEBT credit-card.ts (DB-1)',
     summary: 'Paying down a card or loan balance: a fixed payment, or a percentage minimum with a floor.',
     params: [
       money('balance', 'starting balance', { above: 0, min: undefined }),
@@ -1224,6 +1243,7 @@ const fns: FigureFunction[] = [
   {
     name: 'loanPayoff',
     group: 'Debt',
+    interim: 'W1-DEBT credit-card.ts (DB-1)',
     summary: 'Time and interest to clear a balance with a fixed monthly payment (cardPayoff with a fixed payment).',
     params: [
       money('balance', 'starting balance', { above: 0, min: undefined }),
@@ -1239,6 +1259,7 @@ const fns: FigureFunction[] = [
   {
     name: 'payoffBalance',
     group: 'Debt',
+    interim: 'W1-DEBT credit-card.ts (DB-1)',
     summary: 'Balance left after some months of a fixed payment (0 once paid off).',
     params: [
       money('balance', 'starting balance', { above: 0, min: undefined }),
@@ -1394,6 +1415,7 @@ const fns: FigureFunction[] = [
   {
     name: 'feeDrag',
     group: 'Saving and investing',
+    interim: 'W1-DEBT investment fee formula (DB-7)',
     summary: 'What a fund fee costs over time (the investment fee calculator: fee subtracted from the return).',
     params: [
       money('start', 'starting amount'),
@@ -1743,7 +1765,7 @@ function signature(fn: FigureFunction): string {
 function checkParam(fn: FigureFunction, spec: ParamSpec, raw: FigurePrimitive): FigurePrimitive {
   let v = spec.coerce ? spec.coerce(raw) : raw;
   const label = `${fn.name}: "${spec.name}"`;
-  if (spec.type === 'string' && typeof v === 'string' && spec.aliases && v in spec.aliases) {
+  if (spec.type === 'string' && typeof v === 'string' && spec.aliases && Object.hasOwn(spec.aliases, v)) {
     v = spec.aliases[v];
   }
   if (typeof v !== spec.type) {
@@ -1824,7 +1846,7 @@ function evalExpr(node: ExprNode): FigureValue {
     case 'field': {
       const target = evalExpr(node.target);
       if (typeof target !== 'object') fail(`".${node.field}" needs an object result, got ${describeValue(target)}`);
-      if (!(node.field in target)) {
+      if (!Object.hasOwn(target, node.field)) {
         fail(`no field ".${node.field}" (fields: ${Object.keys(target).join(', ')})${suggest(node.field, Object.keys(target))}`);
       }
       return target[node.field];
@@ -1849,6 +1871,20 @@ function evalExpr(node: ExprNode): FigureValue {
 }
 
 function runPipeline(p: Pipeline): string {
+  // A token must compute something. A bare word or quoted text on its own would
+  // print as typed: a forgotten "()" (`{{ taxYear }}`) or a hand-typed figure
+  // dressed up as a generated one (`{{ '£25,064' }}`).
+  if (p.expr.kind === 'word') {
+    const name = p.expr.value;
+    const known = FIGURE_FUNCTIONS.has(name);
+    fail(
+      `"${name}" on its own is just a word, not a figure; missing "()"? ` +
+        (known ? `call it, e.g. ${signature(FIGURE_FUNCTIONS.get(name)!)}` : `functions are called like name(...)${suggest(name, FIGURE_FUNCTIONS.keys())}`),
+    );
+  }
+  if (p.expr.kind === 'str') {
+    fail('quoted text on its own prints as typed, so it is not a generated figure; write literal text outside the token, or call a function');
+  }
   let value = evalExpr(p.expr);
   for (const f of p.filters) {
     const fmt = FIGURE_FORMATTERS.get(f.name);

@@ -88,7 +88,18 @@ describe('figuresCacheKey', () => {
     writeFileSync(join(lib, 'engine.test.ts'), 'test changed');
     expect(figuresCacheKey(lib)).toBe(k1);
     writeFileSync(join(lib, 'engine.ts'), 'export const a = 2;');
-    expect(figuresCacheKey(lib)).not.toBe(k1);
+    const k2 = figuresCacheKey(lib);
+    expect(k2).not.toBe(k1);
+    // Subfolders count too (e.g. src/lib/dev-tools/)
+    mkdirSync(join(lib, 'sub'));
+    writeFileSync(join(lib, 'sub', 'helper.ts'), 'export const b = 1;');
+    const k3 = figuresCacheKey(lib);
+    expect(k3).not.toBe(k2);
+    writeFileSync(join(lib, 'sub', 'helper.ts'), 'export const b = 2;');
+    const k4 = figuresCacheKey(lib);
+    expect(k4).not.toBe(k3);
+    writeFileSync(join(lib, 'sub', 'helper.test.ts'), 'ignored');
+    expect(figuresCacheKey(lib)).toBe(k4);
   });
 
   it('the exported plugin entry carries the key for the Astro config digest', () => {

@@ -58,7 +58,7 @@ If you pay only the declining minimum (which drops as the balance drops), a 3% m
 
 **Balance transfer cards.** A 0% APR balance transfer (typically 12–21 months) eliminates interest temporarily. Transfer $50,000 to a 0% card and pay {{ 50000 / 18 | usd }}/month to clear it in 18 months, with only a 3–5% transfer fee ({{ 50000 * 3 / 100 | usd }}–{{ 50000 * 5 / 100 | usd }}) instead of {{ cardPayoff(50000, 22, 1200).interest | roundTo(1000) | usd }} in interest. The challenge: qualifying for a high enough credit limit.
 
-**Debt consolidation loan.** A personal loan at 10–12% APR cuts the interest rate nearly in half. At 12% and $1,200/month, payoff drops to {{ loanPayoff(50000, 12, 1200).months | int }} months with {{ loanPayoff(50000, 12, 1200).interest | usd }} in interest — saving {{ cardPayoff(50000, 22, 1200).interest - loanPayoff(50000, 12, 1200).interest | usd }} versus the credit card.
+**Debt consolidation loan.** A personal loan at 10–12% APR cuts the interest rate nearly in half. At 12% and $1,200/month, payoff drops to {{ loanPayoff(50000, 12, 1200).months | int }} months with {{ loanPayoff(50000, 12, 1200).interest | usd }} in interest — saving {{ cardPayoff(50000, 22, 1200).interest - loanPayoff(50000, 12, 1200).interest | usd }} versus the credit card (rounding applies).
 
 **Avalanche method.** If the $50,000 is split across multiple cards, pay minimums on all except the highest-APR card, and throw every extra dollar at that one first. This minimises total interest.
 

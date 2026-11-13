@@ -4,6 +4,9 @@
  * - `resolveFigureField`: a zod transform for frontmatter strings. Resolves
  *   `{{ ... }}` tokens and reports bad ones as schema issues, so Astro fails
  *   the build naming the entry and the field.
+ * - `figureText()` / `figureIdent()`: the zod string schemas content.config.ts
+ *   uses for prose fields (tokens resolved) and identifier fields and record
+ *   keys (tokens refused).
  * - `withRenderCheck`: wraps a loader (the glob loader) so that a Markdown
  *   entry whose body failed to render fails the build. Astro's glob loader
  *   catches render errors and only logs them, which would publish a page with
@@ -12,6 +15,7 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Loader, LoaderContext } from 'astro/loaders';
+import { z } from 'astro/zod';
 import { resolveFiguresPlain } from './figures';
 
 /** The part of zod's RefinementCtx this needs (kept structural for testing). */
@@ -27,6 +31,13 @@ export function resolveFigureField(value: string, ctx: IssueSink): string {
   }
   return text;
 }
+
+/** Prose frontmatter string: `{{ ... }}` tokens are resolved; a bad token is a schema error. */
+export const figureText = () => z.string().transform(resolveFigureField);
+
+/** Identifier string or record key (slug, date, URL, partner id, input label): tokens are refused. */
+export const figureIdent = () =>
+  z.string().refine((v) => !v.includes('{{'), { message: 'figure tokens are not allowed in this field' });
 
 const ERRORS_KEY = '__calcrunFigureErrors';
 
