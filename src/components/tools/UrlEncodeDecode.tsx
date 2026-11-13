@@ -8,6 +8,7 @@ import { Copy, Check, ArrowLeftRight } from 'lucide-react';
 import PrivacyBadge from '../ui/PrivacyBadge';
 import { encodeUrl, decodeUrl, type EncodeMode } from '../../lib/dev-tools/url-codec';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 type Direction = 'encode' | 'decode';
 
@@ -18,11 +19,18 @@ export default function UrlEncodeDecode() {
   const [input, setInput] = useState('');
   const { copy, copiedKey, failedKey, message: copyMessage } = useCopyFeedback();
 
-  const result = useMemo(() => {
-    if (!input) return { output: '', error: '' };
-    const r = direction === 'encode' ? encodeUrl(input, encodeMode, plusSpaces) : decodeUrl(input, encodeMode, plusSpaces);
-    return r.ok ? { output: r.value, error: '' } : { output: '', error: r.error };
-  }, [input, direction, encodeMode, plusSpaces]);
+  const result = useMemo(
+    () =>
+      safely(
+        () => {
+          if (!input) return { output: '', error: '' };
+          const r = direction === 'encode' ? encodeUrl(input, encodeMode, plusSpaces) : decodeUrl(input, encodeMode, plusSpaces);
+          return r.ok ? { output: r.value, error: '' } : { output: '', error: r.error };
+        },
+        (message) => ({ output: '', error: message }),
+      ),
+    [input, direction, encodeMode, plusSpaces],
+  );
 
   const stats = useMemo(() => {
     const inputLen = input.length;

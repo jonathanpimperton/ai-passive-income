@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { RotateCcw, Copy, Check, AlertCircle, CheckCircle, Braces, Key, FileText, Minimize2, AlertTriangle } from 'lucide-react';
-import { parseJsonLossless, printJson, describeTopLevel, type JsonParseError } from '../../lib/dev-tools/json-lossless';
+import { parseJsonLossless, printJson, describeTopLevel, type JsonParseError, type JsonParseResult } from '../../lib/dev-tools/json-lossless';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
 import { useSizeAwareDebounce } from '../../lib/dev-tools/use-size-aware-debounce';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 const SAMPLE_JSON = `{"name":"John Doe","age":30,"email":"john@example.com","address":{"street":"123 Main St","city":"New York","state":"NY","zip":"10001"},"hobbies":["reading","hiking","photography"],"active":true}`;
 
@@ -40,33 +41,55 @@ export default function JsonFormatter() {
   }, []);
 
   // One parse per settled change (it used to parse three times per keystroke).
-  const parsed = useMemo(() => (settledInput.trim() ? parseJsonLossless(settledInput) : null), [settledInput]);
+  // An unexpected exception in any of these must show a message, not unmount the tool.
+  // Line 0 marks a failure that is not a position in the user's text.
+  const parsed = useMemo(
+    () =>
+      safely<JsonParseResult | null>(
+        () => (settledInput.trim() ? parseJsonLossless(settledInput) : null),
+        (message) => ({ ok: false, error: { message, line: 0, column: 0, offset: 0 } }),
+      ),
+    [settledInput],
+  );
 
   const output = useMemo(() => {
-    if (!parsed || !parsed.ok) return { formatted: '', minified: '' };
-    return {
-      formatted: printJson(parsed.value, { indent: indentSize, sortKeys }),
-      minified: printJson(parsed.value, { indent: 0, sortKeys }),
-    };
+    if (!parsed || !parsed.ok) return { formatted: '', minified: '', failure: '' };
+    return safely(
+      () => ({
+        formatted: printJson(parsed.value, { indent: indentSize, sortKeys }),
+        minified: printJson(parsed.value, { indent: 0, sortKeys }),
+        failure: '',
+      }),
+      (message) => ({ formatted: '', minified: '', failure: message }),
+    );
   }, [parsed, indentSize, sortKeys]);
 
   const stats = useMemo(() => {
-    if (!parsed || !parsed.ok) return null;
-    const top = describeTopLevel(parsed.value);
-    return {
-      type: top.type,
-      keys: top.keys,
-      keyLabel: top.type === 'Array' ? 'Items' : 'Top-Level Keys',
-      size: new Blob([output.formatted]).size,
-      minifiedSize: new Blob([output.minified]).size,
-    };
+    if (!parsed || !parsed.ok || output.failure) return null;
+    return safely(
+      () => {
+        const top = describeTopLevel(parsed.value);
+        return {
+          type: top.type,
+          keys: top.keys,
+          keyLabel: top.type === 'Array' ? 'Items' : 'Top-Level Keys',
+          size: new Blob([output.formatted]).size,
+          minifiedSize: new Blob([output.minified]).size,
+        };
+      },
+      () => null,
+    );
   }, [parsed, output]);
 
-  const valid = !!parsed && parsed.ok;
-  const error = parsed && !parsed.ok ? parsed.error : null;
+  const failure: JsonParseError | null = output.failure ? { message: output.failure, line: 0, column: 0, offset: 0 } : null;
+  const valid = !!parsed && parsed.ok && !failure;
+  const error = parsed && !parsed.ok ? parsed.error : failure;
   const warnings = parsed && parsed.ok ? parsed.warnings : [];
   const shown = view === 'minified' ? output.minified : output.formatted;
-  const excerpt = useMemo(() => (error ? errorExcerpt(settledInput, error) : null), [error, settledInput]);
+  const excerpt = useMemo(
+    () => (error && error.line > 0 ? safely(() => errorExcerpt(settledInput, error), () => null) : null),
+    [error, settledInput],
+  );
 
   // Screen readers get one short, debounced status instead of the whole output on every keystroke.
   useEffect(() => {
@@ -74,7 +97,9 @@ export default function JsonFormatter() {
       ? ''
       : parsed.ok
         ? `Valid JSON${parsed.warnings.length ? `, ${parsed.warnings.length} warning${parsed.warnings.length === 1 ? '' : 's'}` : ''}`
-        : `Invalid JSON: ${parsed.error.message}, line ${parsed.error.line}, column ${parsed.error.column}`;
+        : parsed.error.line > 0
+          ? `Invalid JSON: ${parsed.error.message}, line ${parsed.error.line}, column ${parsed.error.column}`
+          : parsed.error.message;
     const t = setTimeout(() => setAnnouncement(text), 600);
     return () => clearTimeout(t);
   }, [parsed]);
@@ -216,9 +241,9 @@ export default function JsonFormatter() {
                 <AlertCircle size={16} className="text-red-700 mt-0.5 shrink-0" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-red-800">
-                    Parse error on line {error.line}, column {error.column}
+                    {error.line > 0 ? `Parse error on line ${error.line}, column ${error.column}` : 'Something went wrong'}
                   </p>
-                  <p className="text-sm text-red-700 mt-1">{error.message}.</p>
+                  <p className="text-sm text-red-700 mt-1">{error.line > 0 ? `${error.message}.` : error.message}</p>
                   {error.hint && <p className="text-sm text-red-700 mt-1">{error.hint}</p>}
                   {excerpt && (
                     <pre className="mt-3 text-sm font-mono text-red-800 bg-neutral-50 rounded-lg p-3 overflow-x-auto" aria-hidden="true">

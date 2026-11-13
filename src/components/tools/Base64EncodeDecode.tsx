@@ -7,6 +7,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Copy, Check, ArrowLeftRight, Download, FileText, Type, File, AlertCircle } from 'lucide-react';
 import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
+import { safely } from '../../lib/dev-tools/safe-compute';
 import { decodeBase64, encodeBase64, encodeText, classifyBytes, extensionFor, hexPreview } from '../../lib/dev-tools/base64';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
 
@@ -60,7 +61,7 @@ export default function Base64EncodeDecode() {
   const [previewUrl, setPreviewUrl] = useState('');
   const { copy, copiedKey, failedKey, message: copyMessage } = useCopyFeedback();
 
-  const output = useMemo<Output>(() => {
+  const output = useMemo<Output>(() => safely<Output>(() => {
     const encodeOpts = { urlSafe, wrapAt: lineWrap ? 76 : 0 };
     if (direction === 'encode') {
       if (inputMode === 'file') {
@@ -85,7 +86,7 @@ export default function Base64EncodeDecode() {
       label: c.type?.label ?? (decoded.mime ? `${decoded.mime} data` : 'Binary data'),
       reason: c.reason,
     };
-  }, [direction, inputMode, input, file, lineWrap, urlSafe]);
+  }, (message) => ({ kind: 'error', message })), [direction, inputMode, input, file, lineWrap, urlSafe]);
 
   // Image preview for decoded binary images (blob: URLs are allowed by the site CSP).
   useEffect(() => {
@@ -100,10 +101,15 @@ export default function Base64EncodeDecode() {
 
   const stats = useMemo(() => {
     if (inputMode === 'file' || output.kind !== 'text') return null;
-    const inputSize = new Blob([input]).size;
-    const outputSize = new Blob([output.text]).size;
-    const ratio = inputSize > 0 ? ((outputSize / inputSize) * 100).toFixed(0) : '0';
-    return { inputSize, outputSize, ratio };
+    return safely(
+      () => {
+        const inputSize = new Blob([input]).size;
+        const outputSize = new Blob([output.text]).size;
+        const ratio = inputSize > 0 ? ((outputSize / inputSize) * 100).toFixed(0) : '0';
+        return { inputSize, outputSize, ratio };
+      },
+      () => null,
+    );
   }, [input, output, inputMode]);
 
   const handleFileUpload = useCallback(

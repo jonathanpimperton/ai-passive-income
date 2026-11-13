@@ -6,6 +6,7 @@ import {
   BYTE_CAPACITY, utf8Length, capacityMessage, pngScale,
   type QrMode, type ErrorCorrection, type WifiFields, type VcardFields, type EmailFields, type SmsFields,
 } from '../../lib/dev-tools/qr-payloads';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 /* Error Correction Levels */
 const ERROR_CORRECTION_LEVELS = [
@@ -64,7 +65,7 @@ export default function QrCodeGenerator() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* Build the payload a phone will read for the chosen mode */
-  const { payload, problems } = useMemo(() => {
+  const { payload, problems } = useMemo(() => safely<{ payload: string; problems: string[] }>(() => {
     switch (mode) {
       case 'wifi':
         return { payload: buildWifi(wifi), problems: wifiProblems(wifi) };
@@ -77,7 +78,7 @@ export default function QrCodeGenerator() {
       default:
         return { payload: text, problems: [] as string[] };
     }
-  }, [mode, text, wifi, vcard, email, sms]);
+  }, (message) => ({ payload: '', problems: [message] })), [mode, text, wifi, vcard, email, sms]);
 
   const bytes = utf8Length(payload);
   const ecInfo = ERROR_CORRECTION_LEVELS.find((l) => l.value === errorCorrection)!;
