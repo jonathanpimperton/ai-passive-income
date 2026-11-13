@@ -19,6 +19,7 @@ import {
   solveEurAffordability,
 } from '../../lib/mortgage-affordability';
 import ResultAffiliate from '../ui/ResultAffiliate';
+import { ukCheckName, ukCheckedPaymentLabel, ukResultItems, ukStressTestInput, type UkStressSettings } from '../../lib/affordability-report';
 import { Collapse, DeferredChart, ResultAnnouncer } from './property-shared';
 
 const AffordabilityChart = lazy(() => import('./charts/AffordabilityChart'));
@@ -172,6 +173,14 @@ export default function MortgageAffordabilityCalc() {
     stretched: { box: 'bg-red-50 border-red-200', text: 'text-red-600', label: 'High risk' },
   }[band];
 
+  const stressSettings: UkStressSettings = {
+    stressMarginPct: stressMargin,
+    ratePct: interestRate,
+    revertRatePct: D.revertRatePct,
+    maxShareOfTakeHomePct: maxShare,
+  };
+  const checkName = ukCheckName(stressSettings);
+
   const rateInfo = defaultMortgageRateInfo(region, loanTerm);
   const rateHint = `Average ${rateInfo.label.split(',')[0].toLowerCase()}: ${rateInfo.value}% (${rateAttribution(rateInfo)})`;
 
@@ -192,7 +201,7 @@ export default function MortgageAffordabilityCalc() {
     } else if (isUK) {
       inputs.push({ label: 'Monthly Take-Home Pay', value: `${fmt(takeHome)}${takeHomeOverride === null ? ' (estimated)' : ''}` });
       inputs.push({ label: 'Income Multiple Cap', value: `${ltiCap}x` });
-      inputs.push({ label: 'Stress Test', value: `${uk.stressRatePct.toFixed(2)}% (max of your rate and ${D.revertRatePct}% SVR, + ${stressMargin} pt); max ${maxShare}% of take-home pay` });
+      inputs.push(ukStressTestInput(stressSettings, uk.stressRatePct));
     } else {
       inputs.push({ label: 'Max Share of Gross Income', value: `${eurLimit}%` });
     }
@@ -214,15 +223,13 @@ export default function MortgageAffordabilityCalc() {
       items.push({ label: 'Total Monthly Housing Payment', value: fmt(us.totalMonthly) });
       items.push({ label: 'Housing / All-Debt Ratios', value: `${fmtPct(us.frontEndRatio)} / ${fmtPct(us.backEndRatio)}` });
     } else if (isUK) {
-      items.push({ label: `Monthly Payment at ${interestRate}%`, value: fmt(uk.monthlyPI) });
-      items.push({ label: `Payment at Stress Rate ${uk.stressRatePct.toFixed(2)}%`, value: fmt(uk.stressedPayment) });
-      items.push({ label: 'Income Multiple', value: `${uk.incomeMultiple.toFixed(2)}x` });
+      items.push(...ukResultItems(uk, stressSettings, fmt));
     } else {
       items.push({ label: 'Monthly Payment', value: fmt(eur.monthlyPI) });
       items.push({ label: 'Share of Gross Income on Loan Payments', value: fmtPct(eur.debtServiceRatio) });
     }
     return items;
-  }, [result, us, uk, eur, affordable, headlineLabel, subline, interestRate, region, currency]);
+  }, [result, us, uk, eur, affordable, headlineLabel, subline, interestRate, stressMargin, maxShare, region, currency]);
 
   const slices = useMemo(() => {
     const data = [
@@ -464,7 +471,9 @@ export default function MortgageAffordabilityCalc() {
               {region === 'eur' && card(<Banknote size={16} aria-hidden="true" />, 'Monthly Payment', fmt(eur.monthlyPI))}
               {card(<PiggyBank size={16} aria-hidden="true" />, depositLabel, fmt(downPayment))}
               {isUS && card(<Percent size={16} aria-hidden="true" />, 'Monthly P&I', fmt(us.monthlyPI))}
-              {isUK && card(<Percent size={16} aria-hidden="true" />, `At Stress Rate ${uk.stressRatePct.toFixed(2)}%`, fmt(uk.stressedPayment))}
+              {isUK && (stressMargin > 0
+                ? card(<Percent size={16} aria-hidden="true" />, ukCheckedPaymentLabel(stressSettings, uk.stressRatePct), fmt(uk.stressedPayment))
+                : card(<Percent size={16} aria-hidden="true" />, 'Share of Take-Home Pay', fmtPct(uk.shareOfTakeHome)))}
               {region === 'eur' && card(<Percent size={16} aria-hidden="true" />, 'Share of Income', fmtPct(eur.debtServiceRatio))}
             </div>
           )}
@@ -478,7 +487,7 @@ export default function MortgageAffordabilityCalc() {
                   : <AlertTriangle size={16} className={bandStyle.text} aria-hidden="true" />}
                 <p className={`text-sm font-semibold ${bandStyle.text}`}>
                   {isUS && <>Housing {fmtPct(us.frontEndRatio)} · All debts {fmtPct(us.backEndRatio)} of gross income ({bandStyle.label})</>}
-                  {isUK && <>Stress test: {fmtPct(uk.stressedShareOfTakeHome)} of take-home pay ({bandStyle.label})</>}
+                  {isUK && <>{checkName}: {fmtPct(uk.stressedShareOfTakeHome)} of take-home pay ({bandStyle.label})</>}
                   {region === 'eur' && <>Loan and debt payments: {fmtPct(eur.debtServiceRatio)} of gross income ({bandStyle.label})</>}
                 </p>
               </div>
@@ -494,7 +503,7 @@ export default function MortgageAffordabilityCalc() {
                     ? <>Lenders check you could still pay at a higher rate. Here that is {uk.stressRatePct.toFixed(2)}% (the higher of your rate and the {D.revertRatePct}% average standard variable rate, plus {stressMargin} point{stressMargin === 1 ? '' : 's'}): {fmt(uk.stressedPayment)} a month</>
                     : <>No stress test (stress margin 0): the payment is checked at your {interestRate}% rate: {fmt(uk.stressedPayment)} a month</>}
                   {monthlyDebt > 0 ? ` plus ${fmt(monthlyDebt)} of other commitments` : ''}. The {maxShare}% ceiling is MoneyHelper's budgeting guide, not a lender rule: it treats more than half of take-home pay as high risk.
-                  {stressMargin > 0 && <span className="block mt-1">Fixing for 5 years or more? Lenders usually skip the stress test then — set the stress margin to 0 in Affordability Limits.</span>}</>
+                  {stressMargin > 0 && <span className="block mt-1">Fixing for 5 years or more? Lenders usually skip the stress test then — use your 5-year fixed rate (average {MARKET_RATES.uk.fixed5yr75.value}%) and set the stress margin to 0 in Affordability Limits.</span>}</>
                 )}
                 {region === 'eur' && (
                   <>Lending rules differ across the euro area, and many lenders cap payments as a share of net income. Check your lender's own limit.</>
@@ -520,7 +529,7 @@ export default function MortgageAffordabilityCalc() {
                     <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums whitespace-nowrap">{fmt(uk.ltiLimitLoan)}</td>
                   </tr>
                   <tr>
-                    <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">Stress test: payment at {uk.stressRatePct.toFixed(2)}% within {maxShare}% of take-home (MoneyHelper guide){uk.binding === 'stress' ? ' — sets your maximum' : ''}</th>
+                    <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">{checkName}: payment at {uk.stressRatePct.toFixed(2)}% within {maxShare}% of take-home (MoneyHelper guide){uk.binding === 'stress' ? ' — sets your maximum' : ''}</th>
                     <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums whitespace-nowrap">{fmt(uk.stressLimitLoan)}</td>
                   </tr>
                 </tbody>

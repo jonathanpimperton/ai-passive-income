@@ -316,6 +316,37 @@ export function laterBreakEvenYear(input: RentVsBuyInputs, maxYears = LONG_STAY_
   return long.verdict === 'buy' ? long.breakEvenYear : null;
 }
 
+const BUYING_COST_WORDS: Record<RateRegion, string> = {
+  us: 'closing costs',
+  uk: 'stamp duty, legal and survey fees',
+  eur: 'transfer tax and notary fees',
+};
+const SELLING_COST_WORDS: Record<RateRegion, string> = {
+  us: 'agent commission and seller fees',
+  uk: 'estate agent and legal fees',
+  eur: 'agent and notary fees',
+};
+
+/**
+ * Which transaction costs the comparison leaves out, for a visible note and
+ * the email/PDF payload. null when both buying and selling costs are set.
+ */
+export function excludedCostsNote(region: RateRegion, closingCostPct: number, sellingCostPct: number): { label: string; text: string } | null {
+  const noBuy = !(closingCostPct > 0);
+  const noSell = !(sellingCostPct > 0);
+  if (!noBuy && !noSell) return null;
+  if (noBuy && noSell) {
+    return {
+      label: 'Buying and selling costs',
+      text: `Buying and selling costs (${BUYING_COST_WORDS[region]}; ${SELLING_COST_WORDS[region]}) are not included. Add them under Advanced Settings.`,
+    };
+  }
+  if (noBuy) {
+    return { label: 'Buying costs', text: `Buying costs (${BUYING_COST_WORDS[region]}) are not included. Add them under Advanced Settings.` };
+  }
+  return { label: 'Selling costs', text: `Selling costs (${SELLING_COST_WORDS[region]}) are not included. Add them under Advanced Settings.` };
+}
+
 /**
  * Region-appropriate transaction-cost defaults, % of price.
  * US: Freddie Mac -- buyers "should be prepared to pay between 2% and 5% of

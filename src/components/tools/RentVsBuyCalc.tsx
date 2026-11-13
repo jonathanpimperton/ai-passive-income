@@ -11,7 +11,7 @@ import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { defaultMortgageRate, defaultMortgageRateInfo, rateAttribution, regionForCurrency } from '../../lib/market-rates';
-import { laterBreakEvenYear, simulateRentVsBuy, LONG_STAY_YEARS, TRANSACTION_COST_DEFAULTS, type FilingStatus, type RentVsBuyInputs } from '../../lib/rent-vs-buy';
+import { excludedCostsNote, laterBreakEvenYear, simulateRentVsBuy, LONG_STAY_YEARS, TRANSACTION_COST_DEFAULTS, type FilingStatus, type RentVsBuyInputs } from '../../lib/rent-vs-buy';
 import ResultAffiliate from '../ui/ResultAffiliate';
 import { Collapse, DeferredChart, ResultAnnouncer } from './property-shared';
 
@@ -172,7 +172,7 @@ export default function RentVsBuyCalc() {
   const analysis = useMemo(() => simulateRentVsBuy(inputs), [inputs]);
   // Renting ahead now is only half the story: would buying catch up if you stayed?
   const laterYear = useMemo(() => (analysis.verdict === 'rent' ? laterBreakEvenYear(inputs) : null), [analysis, inputs]);
-  const noTransactionCosts = closingCostPct === 0 && sellingCostPct === 0;
+  const costsNote = excludedCostsNote(region, closingCostPct, sellingCostPct);
 
   const verdictLabel = analysis.verdict === 'tie'
     ? `Over ${timeHorizon} years, buying and renting come out even`
@@ -243,8 +243,8 @@ export default function RentVsBuyCalc() {
     { label: 'Monthly Mortgage (P&I)', value: fmt(analysis.monthlyMortgage) },
     { label: 'Monthly Cost to Own (first month)', value: fmt(analysis.monthlyOwnershipCost) },
     ...(laterYear !== null ? [{ label: 'Buying would pull ahead (if you stayed) in year', value: String(laterYear) }] : []),
-    ...(noTransactionCosts ? [{ label: 'Buying and selling costs', value: 'Not included' }] : []),
-  ], [timeHorizon, analysis, verdictLabel, laterYear, noTransactionCosts, currency]);
+    ...(costsNote ? [{ label: costsNote.label, value: 'Not included' }] : []),
+  ], [timeHorizon, analysis, verdictLabel, laterYear, costsNote, currency]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -354,10 +354,8 @@ export default function RentVsBuyCalc() {
               Net worth if you sold up at the end. Both paths start with <span className="tabular-nums">{fmt(analysis.initialCash)}</span> ({region === 'uk' ? 'deposit' : 'down payment'}
               {analysis.closingCosts > 0 ? ' + buying costs' : ''}); each month the cheaper path invests the difference.
             </p>
-            {noTransactionCosts && (
-              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                Buying and selling costs ({region === 'uk' ? 'stamp duty, legal fees, estate agent fees' : region === 'eur' ? 'transfer tax, notary, agent fees' : 'closing costs, agent commission'}) are not included. Add them under Advanced Settings.
-              </p>
+            {costsNote && (
+              <p className="text-xs text-amber-800 mt-1 leading-relaxed">{costsNote.text}</p>
             )}
           </div>
 

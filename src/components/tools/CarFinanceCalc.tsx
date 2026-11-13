@@ -117,7 +117,8 @@ export default function CarFinanceCalc() {
     [options],
   );
 
-  const announcement = `${LABELS[cheapest.type]} has the lowest true cost: ${fmt(Math.round(cheapest.trueCost))}.`;
+  // The deposit clamp notice is plain text; the one status region reads it out.
+  const announcement = `${depositNotice ? `${depositNotice} ` : ''}${LABELS[cheapest.type]} has the lowest true cost: ${fmt(Math.round(cheapest.trueCost))}.`;
 
   /* ── Callbacks for PDF / Email ──────────────────────────── */
   const getInputs = useCallback(() => [

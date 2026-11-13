@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   TRANSACTION_COST_DEFAULTS,
   US_SALT_CAP_2026,
+  excludedCostsNote,
   itemizedTaxSaving,
   laterBreakEvenYear,
   simulateRentVsBuy,
@@ -282,6 +283,24 @@ describe('laterBreakEvenYear (renting ahead now, buying later)', () => {
   it('null when buying already wins, or never catches up within 50 years', () => {
     expect(laterBreakEvenYear({ ...REVIEW, monthlyRent: 3_000 })).toBeNull();
     expect(laterBreakEvenYear({ ...REVIEW, monthlyRent: 600, rentIncrease: 0, homeAppreciation: -2 })).toBeNull();
+  });
+});
+
+describe('excludedCostsNote', () => {
+  it('null when both costs are set', () => {
+    expect(excludedCostsNote('us', 3, 6)).toBeNull();
+  });
+  it('names both when both are 0, in regional words', () => {
+    const n = excludedCostsNote('uk', 0, 0)!;
+    expect(n.label).toBe('Buying and selling costs');
+    expect(n.text).toMatch(/stamp duty/);
+    expect(n.text).toMatch(/estate agent/);
+  });
+  it('names only the missing one', () => {
+    expect(excludedCostsNote('uk', 2, 0)!.label).toBe('Selling costs');
+    expect(excludedCostsNote('uk', 2, 0)!.text).not.toMatch(/stamp duty/);
+    expect(excludedCostsNote('eur', 0, 1.5)!.label).toBe('Buying costs');
+    expect(excludedCostsNote('eur', 0, 1.5)!.text).toMatch(/transfer tax/);
   });
 });
 
