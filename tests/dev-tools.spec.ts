@@ -289,6 +289,13 @@ test.describe('JWT decoder (DV-11)', () => {
     await expect(tool(page).getByRole('alert')).toBeVisible();
   });
 
+  test('keeps heading levels sequential under the page heading', async ({ page }) => {
+    await open(page, '/tools/utility/jwt-decoder/');
+    await expect(page.getByRole('heading', { name: 'Payload' })).toBeVisible();
+    await expect(tool(page).locator('h3')).toHaveCount(0);
+    await expect(tool(page).locator('h2')).toHaveText(['Header', 'Payload', 'Signature']);
+  });
+
   test('says the expiry is not a number when it is written as text', async ({ page }) => {
     await open(page, '/tools/utility/jwt-decoder/');
     await page.locator('#jwt-input').fill(`${b64({ alg: 'HS256' })}.${b64({ exp: '1893456000' })}.c2ln`);
