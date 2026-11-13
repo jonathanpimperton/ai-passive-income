@@ -85,6 +85,7 @@ export default function ShareButton({ toolSlug, toolName }: ShareButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const fallbackRef = useRef<HTMLInputElement>(null);
   const pointerInside = useRef(false);
+  const copying = useRef(false); // the legacy copy path briefly moves focus to a temporary textarea
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const panelId = useId();
 
@@ -111,7 +112,13 @@ export default function ShareButton({ toolSlug, toolName }: ShareButtonProps) {
 
   const handleCopyLink = useCallback(async () => {
     const url = getShareableUrl();
-    const ok = await copyText(url, containerRef.current);
+    copying.current = true;
+    let ok = false;
+    try {
+      ok = await copyText(url, containerRef.current);
+    } finally {
+      copying.current = false;
+    }
     if (resetTimer.current !== null) clearTimeout(resetTimer.current);
     if (ok) {
       setCopyState('copied');
@@ -170,7 +177,7 @@ export default function ShareButton({ toolSlug, toolName }: ShareButtonProps) {
   // Close when keyboard focus leaves the control (pointer clicks are handled above;
   // Safari doesn't focus buttons on click, so blur alone would close too early).
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    if (!open || pointerInside.current) return;
+    if (!open || pointerInside.current || copying.current) return;
     const next = e.relatedTarget as Node | null;
     if (next && containerRef.current?.contains(next)) return;
     close(false);
