@@ -55,6 +55,9 @@ export default function NumericTextField({
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // The value when editing began, so unreadable text can go back to it (null until the first
+  // focus: a field focused before hydration has nothing to go back to).
+  const focusValueRef = useRef<{ value: number | null } | null>(null);
 
   const display = editing ? text : formatEditableNumber(value, rules.currency, maxFractionDigits);
 
@@ -80,6 +83,10 @@ export default function NumericTextField({
       onChange(null);
     } else {
       setError(r.message);
+      // Live typing may have applied a clean prefix of the text ("1" of "1e9"): put the value
+      // from before the edit back, as SliderInput does, so the box and the results agree.
+      const before = focusValueRef.current;
+      if (before) onChange(before.value);
     }
   };
 
@@ -105,9 +112,16 @@ export default function NumericTextField({
           aria-label={ariaLabel}
           aria-invalid={error || invalid ? true : undefined}
           aria-describedby={describedByIds}
-          onFocus={() => {
+          onFocus={(e) => {
+            const raw = textForEditing(value, rules.currency);
+            const el = e.currentTarget;
+            // Write the raw edit text now and select it, so typing (or fill()) right after
+            // focus replaces the old text; a re-render that changes the value drops the selection.
+            if (el.value !== raw) el.value = raw;
+            el.select();
+            focusValueRef.current = { value };
             setEditing(true);
-            setText(textForEditing(value, rules.currency));
+            setText(raw);
           }}
           onChange={(e) => {
             const next = e.target.value;
@@ -118,9 +132,12 @@ export default function NumericTextField({
               onChange(r.value);
             }
           }}
-          onBlur={() => {
+          onBlur={(e) => {
             setEditing(false);
-            commit(text);
+            // Read the live box, not the `text` state: a field focused before hydration has
+            // empty state, and committing that would clear the value.
+            commit(e.currentTarget.value);
+            focusValueRef.current = null;
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
