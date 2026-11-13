@@ -12,6 +12,9 @@
  *   mid-typing: 12 + 000 became 1.2 or 7).
  * - Text that cannot be read ("1e9") puts back the value from before the edit
  *   and explains why, instead of keeping a prefix of what was typed.
+ * - Text typed before hydration is read in the visitor's real number convention,
+ *   not the hydration render's USD default: an EUR visitor's "5.000" is five
+ *   thousand, not five.
  *
  * Works against the dev server (repo playwright.config.ts) and a built
  * preview. GA and /api are blocked in every context; nothing is submitted.
@@ -43,17 +46,18 @@ const CASES = [
   },
 ];
 
-async function prepare(context: BrowserContext) {
+async function prepare(context: BrowserContext, currency?: string) {
   await context.route(GA, (r) => r.abort());
   await context.route(/\/api\//, (r) => r.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
-  await context.addInitScript(() => {
+  await context.addInitScript((c: string | undefined) => {
     try {
       localStorage.setItem('calcrun-cookie-consent', 'accepted');
       sessionStorage.setItem('calcrun.introSeen', '1');
+      if (c) localStorage.setItem('calcrun.currency', c);
     } catch {
       /* storage may be unavailable */
     }
-  });
+  }, currency);
 }
 
 /** Astro drops `ssr` when it calls hydrateRoot; React then attaches a fiber key to each node it takes over. */
@@ -210,5 +214,49 @@ for (const c of CASES) {
       expect(await headline(page)).toBe(expected);
       await ctx.close();
     });
+
+    // The visitor either leaves the field before the island hydrates (then the mount reconcile
+    // reads the text: with the hydration render's USD it was 5) or is still in it (the blur after
+    // hydration reads it).
+    for (const leftBeforeHydration of [true, false]) {
+      test(`EUR visitor: "5.000" typed before hydration means 5,000, not 5 (${leftBeforeHydration ? 'left the field before hydration' : 'still in the field at hydration'})`, async ({ browser }) => {
+        // Reference: 5000 typed after hydration (unambiguous in every convention).
+        const refCtx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
+        await prepare(refCtx, 'EUR');
+        const ref = await refCtx.newPage();
+        await ref.goto(c.path);
+        await hydrated(ref);
+        const refField = ref.locator(c.field).first();
+        await refField.fill('5000');
+        await refField.press('Tab');
+        await expect(refField).toHaveValue('5.000'); // EUR display
+        const expected = await headline(ref);
+        await refCtx.close();
+
+        // Hold the island's module so "5.000" is typed on the static HTML, then let it hydrate.
+        const ctx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
+        await prepare(ctx, 'EUR');
+        let release!: () => void;
+        const gate = new Promise<void>((r) => (release = r));
+        await ctx.route(new RegExp(`${c.component}[^/]*\\.(js|tsx)`), async (route) => {
+          await gate;
+          await route.continue();
+        });
+        const page = await ctx.newPage();
+        await page.goto(c.path, { waitUntil: 'domcontentloaded' });
+        const field = page.locator(c.field).first();
+        await field.waitFor();
+        expect(await page.locator('astro-island[ssr] [data-headline-result]').count()).toBe(1);
+        await field.click();
+        await field.fill('5.000');
+        if (leftBeforeHydration) await field.press('Tab'); // plain HTML: nothing reformats or reads it yet
+        release();
+        await hydrated(page);
+        if (!leftBeforeHydration) await field.press('Tab'); // the blur happens after hydration
+        await expect(field).toHaveValue('5.000'); // five thousand, shown the EUR way (it was "5" before the fix)
+        expect(await headline(page)).toBe(expected);
+        await ctx.close();
+      });
+    }
   });
 }

@@ -15,6 +15,7 @@ import {
   calculateUSCgt,
   calculateUKCgt,
   defaultCgtCountry,
+  cgtPartnerRegion,
   type CgtCountry,
   type HoldingPeriod,
   type UkIncomeBand,
@@ -596,7 +597,7 @@ export default function CapitalGainsTaxCalc() {
             </div>
           )}
 
-          <ResultAffiliate toolSlug="capital-gains-tax" />
+          <ResultAffiliate toolSlug="capital-gains-tax" region={cgtPartnerRegion(country)} />
         </div>
       </div>
     </div>

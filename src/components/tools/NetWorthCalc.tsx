@@ -29,8 +29,13 @@ type Kind = 'asset' | 'liability';
 /** Largest amount a single item accepts. */
 const MAX_ITEM_VALUE = 1e11;
 
-let idCounter = 0;
-function newId() { return `item-${++idCounter}`; }
+/**
+ * Row ids come from a counter that belongs to one calculator instance (a ref in
+ * the component), never from module state: the server renders every request, and
+ * the static build renders several pages, in one process, so a module-level counter
+ * would give the server HTML different ids from the client's (React #418 on hydrate).
+ */
+type NextId = () => string;
 
 // Two default item names are region-flavoured: US gets "Checking Account" /
 // "401(k)", UK and EUR get "Current Account" / "Pension". Only untouched
@@ -40,7 +45,7 @@ const REGION_NAMES: Array<{ us: string; other: string }> = [
   { us: '401(k)', other: 'Pension' },
 ];
 
-function defaultAssets(currency: string = 'USD'): Item[] {
+function defaultAssets(newId: NextId, currency: string = 'USD'): Item[] {
   const us = currency !== 'GBP' && currency !== 'EUR';
   return [
     { id: newId(), name: us ? 'Checking Account' : 'Current Account', value: 5000 },
@@ -51,7 +56,7 @@ function defaultAssets(currency: string = 'USD'): Item[] {
   ];
 }
 
-function defaultLiabilities(): Item[] {
+function defaultLiabilities(newId: NextId): Item[] {
   return [
     { id: newId(), name: 'Mortgage', value: 240000 },
     { id: newId(), name: 'Student Loans', value: 25000 },
@@ -132,8 +137,11 @@ export default function NetWorthCalc() {
   const fmt = (v: number) => formatMoneyGuarded(v, currency);
   const fmtCompact = (v: number) =>
     `${currencySymbol}${v >= 1e9 ? `${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : Math.round(v)}`;
-  const [assets, setAssets] = useState<Item[]>(() => defaultAssets());
-  const [liabilities, setLiabilities] = useState<Item[]>(defaultLiabilities);
+  // Per-instance id counter (server and client both start the defaults at item-1).
+  const idCounter = useRef(0);
+  const newId = useCallback<NextId>(() => `item-${++idCounter.current}`, []);
+  const [assets, setAssets] = useState<Item[]>(() => defaultAssets(newId));
+  const [liabilities, setLiabilities] = useState<Item[]>(() => defaultLiabilities(newId));
 
   // Region-flavour untouched default names whenever the display currency
   // changes (stored, detected or picked). Client-only, so SSR markup stays stable.
@@ -150,16 +158,18 @@ export default function NetWorthCalc() {
   }, [currency]);
 
   const handleReset = useCallback(() => {
-    idCounter = 0;
-    setAssets(defaultAssets(currency));
-    setLiabilities(defaultLiabilities());
-  }, [currency]);
+    idCounter.current = 0;
+    setAssets(defaultAssets(newId, currency));
+    setLiabilities(defaultLiabilities(newId));
+  }, [currency, newId]);
 
   const handleChange = (setter: React.Dispatch<React.SetStateAction<Item[]>>, id: string, patch: Partial<Item>) => {
     setter((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
   };
   const handleAdd = (setter: React.Dispatch<React.SetStateAction<Item[]>>) => {
-    setter((prev) => [...prev, { id: newId(), name: '', value: null }]);
+    // Allocated here, not inside the updater: an updater may be called more than once.
+    const id = newId();
+    setter((prev) => [...prev, { id, name: '', value: null }]);
   };
   const handleRemove = (setter: React.Dispatch<React.SetStateAction<Item[]>>, id: string) => {
     setter((prev) => prev.filter((item) => item.id !== id));

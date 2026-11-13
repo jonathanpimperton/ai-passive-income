@@ -126,9 +126,11 @@ test.describe('number entry (CO-1)', () => {
   test('above the maximum clamps with a visible note, never shrinks', async ({ page }) => {
     await page.goto(SALARY_UK);
     await hydrated(page);
-    const r = await enter(page, 'uk-salary', '5,000,000');
-    expect(r.value).toBe('1,000,000');
-    expect(r.message).toBe(`Maximum is ${POUND}1,000,000, so we used that.`);
+    // The UK salary field accepts up to 10,000,000 (W1-UK UK-7: no silent clamping below it).
+    expect(await enter(page, 'uk-salary', '5,000,000')).toEqual({ value: '5,000,000', message: '' });
+    const r = await enter(page, 'uk-salary', '20,000,000');
+    expect(r.value).toBe('10,000,000');
+    expect(r.message).toBe(`Maximum is ${POUND}10,000,000, so we used that.`);
   });
 
   test('EUR convention when the display currency is EUR', async ({ page, context }) => {

@@ -4,6 +4,7 @@ import {
   calculateUKCgt,
   ukBandPosition,
   defaultCgtCountry,
+  cgtPartnerRegion,
   estimateMagi,
   DEFAULT_US_CGT_RATES,
   type UsCgtRates,
@@ -300,5 +301,12 @@ describe('defaultCgtCountry (MATH-UK addendum: tab follows currency/region)', ()
     expect(defaultCgtCountry(null, 'US')).toBe('us');
     expect(defaultCgtCountry(null, 'EEA')).toBe('us');
     expect(defaultCgtCountry(null, 'OTHER')).toBe('us');
+  });
+});
+
+describe('cgtPartnerRegion (affiliate region follows the tab on screen)', () => {
+  it('the US tab is US content and the UK tab is UK content', () => {
+    expect(cgtPartnerRegion('us')).toBe('US');
+    expect(cgtPartnerRegion('uk')).toBe('UK');
   });
 });

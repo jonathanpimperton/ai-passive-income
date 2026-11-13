@@ -9,7 +9,10 @@
  *   formatted; blank commits null (when allowed); anything else keeps the
  *   previous value and shows an inline, aria-describedby-linked message.
  * - On mount it reconciles text typed before hydration (or restored by Back
- *   navigation) with React state, so results never disagree with the box.
+ *   navigation) with React state, so results never disagree with the box. That
+ *   text is read in the visitor's real number convention, not the hydration
+ *   render's USD default (an EUR visitor's "5.000" is five thousand), by the
+ *   same rule SliderInput uses (reconcileConvention).
  * - 16px text so iOS does not zoom on focus.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -19,8 +22,26 @@ import {
   textForEditing,
   type NumericFieldRules,
 } from '../../../lib/numeric-field';
+import { getActiveCurrency, isCurrencyCode, type CurrencyCode } from '../../../lib/currency';
+import { currentPageSlug, fixedCurrencyFor } from '../../../lib/affiliate-data';
+import { reconcileConvention } from '../../ui/SliderInput';
 
 const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+/**
+ * Rules for reading text found in the box at hydration. The hydration render
+ * uses USD to match the static HTML, so `currency="USD"` seen then only means
+ * "the default"; what the visitor typed (or the browser restored) belongs to
+ * the page's fixed country, else to their real currency.
+ */
+export function hydrationRules(
+  rules: NumericFieldRules,
+  fixed: CurrencyCode | null,
+  active: CurrencyCode,
+): NumericFieldRules {
+  const given = rules.currency && isCurrencyCode(rules.currency) ? rules.currency : undefined;
+  return { ...rules, currency: reconcileConvention(given, rules.prefix, fixed, active) };
+}
 
 export interface NumericTextFieldProps extends NumericFieldRules {
   id: string;
@@ -70,26 +91,29 @@ export default function NumericTextField({
     const el = inputRef.current;
     if (!el) return;
     const dom = el.value;
+    // "Untouched" is judged in the hydration render's convention (the one the static HTML used);
+    // anything else in the box is read in the visitor's real one.
     const untouched = dom === formatEditableNumber(value, rules.currency, maxFractionDigits);
+    const read = hydrationRules(rules, fixedCurrencyFor(currentPageSlug()), getActiveCurrency());
     if (document.activeElement === el) {
       // Still in the box: carry on as a normal edit instead of reformatting under their fingers.
       focusValueRef.current = { value };
       setEditing(true);
       if (untouched) {
-        const raw = textForEditing(value, rules.currency);
+        const raw = textForEditing(value, read.currency);
         if (el.value !== raw) el.value = raw;
         el.select();
         setText(raw);
         return;
       }
       setText(dom);
-      const r = interpretNumericText(dom, rules);
+      const r = interpretNumericText(dom, read);
       if (r.kind === 'value') onChange(r.value);
       else if (r.kind === 'empty') onChange(null);
       return;
     }
     if (untouched) return;
-    const r = interpretNumericText(dom, rules);
+    const r = interpretNumericText(dom, read);
     if (r.kind === 'value') onChange(r.value);
     else if (r.kind === 'empty') onChange(null);
     // Only on mount: later renders are controlled.

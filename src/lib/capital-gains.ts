@@ -30,6 +30,7 @@ import { US_BRACKETS, US_CAPITAL_GAINS, US_STANDARD_DEDUCTION, type FilingStatus
 import { UK_CGT, UK_INCOME_TAX } from './uk-rates';
 import { calcPersonalAllowance } from './uk-tax-calc';
 import type { Region } from './region';
+import type { CurrencyRegion } from './currency';
 
 export type HoldingPeriod = 'short' | 'long';
 export type CgtCountry = 'us' | 'uk';
@@ -246,4 +247,14 @@ export function defaultCgtCountry(storedCurrency: string | null, region: Region)
   if (storedCurrency === 'GBP') return 'uk';
   if (storedCurrency === 'USD' || storedCurrency === 'EUR') return 'us';
   return region === 'UK' ? 'uk' : 'us';
+}
+
+/**
+ * Region whose affiliate partners suit the tab on screen: US tax content gets
+ * US partners and UK tax content gets UK partners, whatever currency the
+ * visitor has chosen (a GBP visitor looking at the US tab must not be offered
+ * a UK-only ISA, and the reverse).
+ */
+export function cgtPartnerRegion(country: CgtCountry): CurrencyRegion {
+  return country === 'uk' ? 'UK' : 'US';
 }
