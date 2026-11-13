@@ -112,6 +112,15 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 /** Removed by local name in ANY namespace, so prefixed forms such as <s:script> cannot slip through. */
 const REMOVE_LOCAL_NAMES = new Set(['script', 'foreignobject', 'iframe', 'object', 'embed', 'audio', 'video', 'canvas', 'handler', 'listener']);
 
+/** Why sanitizeSvgDocument() rejected `doc`, as a sentence for the user. */
+export function svgProblemMessage(doc: Document): string {
+  const root = doc.documentElement;
+  if (root && root.localName === 'svg' && root.namespaceURI !== SVG_NS && doc.getElementsByTagNameNS('*', 'parsererror').length === 0) {
+    return 'This SVG file has no xmlns="http://www.w3.org/2000/svg" on its <svg> tag, so browsers cannot draw it as an image. Add that attribute (or re-export the file) and try again.';
+  }
+  return 'This file is not a valid SVG image (it could not be parsed). Check that it opens in a browser.';
+}
+
 /**
  * Sanitise a parsed SVG document in place (browser DOM). Keeps <style> and
  * presentation attributes; removes scripting elements, event handlers,

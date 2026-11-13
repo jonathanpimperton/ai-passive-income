@@ -20,7 +20,7 @@ import PrivacyBadge from '../ui/PrivacyBadge';
 import SliderInput from '../ui/SliderInput';
 import { ToolMessages, ProcessingBanner } from '../ui/FileToolKit';
 import { formatBytes, withExtension } from '../../lib/file-tools/names';
-import { resolveSvgSize, sanitizeSvgDocument } from '../../lib/file-tools/svg';
+import { resolveSvgSize, sanitizeSvgDocument, svgProblemMessage } from '../../lib/file-tools/svg';
 import {
   decodeImage, createCanvas, encodeCanvas, releaseCanvas, downloadBlob, errorMessage,
 } from '../../lib/file-tools/browser';
@@ -38,7 +38,7 @@ interface Prepared {
 function prepareSvg(text: string): Prepared {
   const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
   if (!sanitizeSvgDocument(doc)) {
-    throw new Error('This file is not a valid SVG image (it could not be parsed). Check that it opens in a browser.');
+    throw new Error(svgProblemMessage(doc));
   }
   const root = doc.documentElement;
   const size = resolveSvgSize({
