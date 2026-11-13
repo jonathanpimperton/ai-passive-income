@@ -183,7 +183,7 @@ describe('parseNumericInput: robustness', () => {
         if (r.ok) expect(Number.isFinite(r.value), `"${s}" ${currency}`).toBe(true);
       }
     }
-  });
+  }, 60_000); // heavy property test: generous timeout so a loaded machine cannot flake it
   it('round-trips Intl-formatted values in each currency convention', () => {
     const samples = [0, 7, 999, 1000, 50000, 425000, 1234567.89, 10000000];
     for (const v of samples) {
@@ -195,7 +195,7 @@ describe('parseNumericInput: robustness', () => {
       // de-DE "50.000,00 €" is unambiguous because of the 2-digit decimals.
       expectValue(de, v, { currency: 'EUR' });
     }
-  });
+  }, 60_000); // heavy property test: generous timeout so a loaded machine cannot flake it
 });
 
 describe('parseNumericInput: range-aware disambiguation (min/max)', () => {
@@ -268,7 +268,7 @@ describe('parseNumericInput: range-aware disambiguation (min/max)', () => {
       }
     }
     expect(checked).toBe(18000);
-  });
+  }, 60_000); // heavy property test: generous timeout so a loaded machine cannot flake it
   it('property (negative mirror): grouped text below min never comes back as a different number', () => {
     const conventions: Array<[string, string]> = [['en-US', 'USD'], ['en-GB', 'GBP'], ['de-DE', 'EUR']];
     const maxes = [15, 100, 5000, 10000, 50000, 1000000];
@@ -288,7 +288,7 @@ describe('parseNumericInput: range-aware disambiguation (min/max)', () => {
       }
     }
     expect(checked).toBe(18000);
-  });
+  }, 60_000); // heavy property test: generous timeout so a loaded machine cannot flake it
   it('failures carry the valid readings as candidates for a "Did you mean" prompt', () => {
     expect(parseNumericInput('50,000', { currency: 'EUR' })).toEqual({ ok: false, reason: 'ambiguous', candidates: [50, 50000] });
     expect(parseNumericInput('12,34', { currency: 'USD' })).toEqual({ ok: false, reason: 'ambiguous', candidates: [12.34] });
@@ -330,7 +330,7 @@ describe('formatForInput (inverse)', () => {
         expect(ranged, `ranged ${v} ${currency} "${text}"`).toEqual({ ok: true, value: v === 0 ? 0 : v });
       }
     }
-  });
+  }, 60_000); // heavy property test: generous timeout so a loaded machine cannot flake it
 });
 
 describe('parseNumericInput: input hygiene', () => {
@@ -338,7 +338,8 @@ describe('parseNumericInput: input hygiene', () => {
     expectFail('1'.repeat(65), 'invalid');
     const t0 = performance.now();
     expectFail('1' + ' '.repeat(40000) + '1', 'invalid');
-    expect(performance.now() - t0).toBeLessThan(100);
+    // The pre-fix quadratic path took ~770 ms here on an idle machine; the capped path is ~0 ms.
+    expect(performance.now() - t0).toBeLessThan(500);
   });
   it('reads full-width (IME) digits and drops zero-width marks', () => {
     expectValue('５０,０００', 50000);
