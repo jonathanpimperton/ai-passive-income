@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { CURRENCIES, getSavedCurrency, saveCurrency } from '@lib/currency';
+import { useCallback } from 'react';
+import { CURRENCIES, setActiveCurrency, useActiveCurrency, type CurrencyCode } from '@lib/currency';
 
 interface Props {
   value: string;
@@ -32,20 +32,19 @@ export default function CurrencySelector({ value, onChange }: Props) {
 }
 
 /**
- * Hook for managing display currency state with localStorage persistence.
- * Country-specific calculators should NOT use this hook — they lock to their currency.
+ * Display currency for a calculator with a currency selector.
+ *
+ * - Server render and hydration render: USD (matches the static HTML, so no
+ *   hydration mismatch). Straight after hydration: the visitor's stored
+ *   choice if valid, else their region default (UK=GBP, EEA=EUR, else USD).
+ * - setCurrency(code) changes it for every island on the page and stores it
+ *   as the visitor's explicit choice. Invalid codes are ignored.
+ * - Storage failures never throw (safe-storage).
+ *
+ * Country-specific calculators should NOT use this hook -- they lock to their currency.
  */
-export function useCurrency() {
-  const [currency, setCurrency] = useState('USD');
-
-  useEffect(() => {
-    setCurrency(getSavedCurrency());
-  }, []);
-
-  const handleChange = (code: string) => {
-    setCurrency(code);
-    saveCurrency(code);
-  };
-
-  return { currency, setCurrency: handleChange };
+export function useCurrency(): { currency: CurrencyCode; setCurrency: (code: string) => void } {
+  const currency = useActiveCurrency();
+  const setCurrency = useCallback((code: string) => setActiveCurrency(code), []);
+  return { currency, setCurrency };
 }

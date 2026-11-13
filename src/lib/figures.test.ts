@@ -400,7 +400,7 @@ describe('UK pay vs uk-tax-calc engine', () => {
 
   it('CGT and SDLT match their engines', () => {
     for (const [gain, income] of [[10000, 30000], [50000, 40000], [50000, 120000], [2000, 20000]]) {
-      close(n(`ukCgt(${gain}, ${income}) | gbp(2)`), calculateUKCgt(0, gain, 'basic', income).totalTax);
+      close(n(`ukCgt(${gain}, ${income}) | gbp(2)`), calculateUKCgt(0, gain, income).totalTax);
     }
     for (const price of [100000, 250000, 300000, 425000, 500000, 600000, 1000000]) {
       close(n(`sdlt(${price}) | gbp(2)`), calculateSdlt(price, 'standard').totalTax);

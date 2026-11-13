@@ -2,6 +2,9 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
+  // tests/prod/** needs the production emulator (serve-prod, real worker); it runs
+  // only via `npm run test:prod` (playwright.prod.config.ts), never against the dev server.
+  testIgnore: ['**/prod/**'],
   timeout: 60000,
   expect: { timeout: 15000 },
   fullyParallel: false,
@@ -11,6 +14,10 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4321',
     headless: true,
+    // The specs assume a US visitor (USD results). The display currency now defaults
+    // from the visitor's region, so pin one rather than inherit the machine's zone.
+    timezoneId: 'America/New_York',
+    locale: 'en-US',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     // Analytics must never be reached from tests (plan 2.4): the pages carry the

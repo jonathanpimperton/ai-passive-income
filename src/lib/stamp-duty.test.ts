@@ -87,13 +87,88 @@ describe('calculateSdlt — additional property surcharge', () => {
 });
 
 describe('calculateSdlt — edge cases', () => {
-  it('returns zeros for zero or negative price', () => {
-    expect(calculateSdlt(0, 'standard')).toEqual({ totalTax: 0, effectiveRate: 0, bands: [] });
-    expect(calculateSdlt(-50_000, 'first-time')).toEqual({ totalTax: 0, effectiveRate: 0, bands: [] });
+  it('returns zeros for zero, negative or non-finite price', () => {
+    for (const price of [0, -50_000, Number.NaN]) {
+      const r = calculateSdlt(price, 'first-time');
+      expect(r.totalTax).toBe(0);
+      expect(r.effectiveRate).toBe(0);
+      expect(r.bands).toEqual([]);
+    }
   });
 
   it('caps the top of each reported band at the purchase price', () => {
     const r = calculateSdlt(180_000, 'standard');
     expect(r.bands[r.bands.length - 1].to).toBe(180_000);
+  });
+});
+
+describe('calculateSdlt -- £40,000 floor for the higher rates (MATH-UK-16b, MTH-23)', () => {
+  // HMRC SDLTM09740: higher rates exclude consideration "less than £40,000".
+  it('£39,999 additional property pays nothing (was £2,000)', () => {
+    const r = calculateSdlt(39_999, 'additional');
+    expect(r.totalTax).toBe(0);
+    expect(r.higherRatesApplied).toBe(false);
+    expect(r.belowSurchargeFloor).toBe(true);
+  });
+
+  it('exactly £40,000 additional property pays 5% = £2,000', () => {
+    const r = calculateSdlt(40_000, 'additional');
+    expect(r.totalTax).toBeCloseTo(2_000, 6);
+    expect(r.higherRatesApplied).toBe(true);
+  });
+});
+
+describe('calculateSdlt -- non-UK resident 2% surcharge (MATH-UK-16a)', () => {
+  it('GOV.UK example (Fifi): £700,000 first-time buyer over the cap, non-resident = £39,000', () => {
+    // https://www.gov.uk/guidance/rates-of-stamp-duty-land-tax-for-non-uk-residents
+    // 2% x 125,000 + 4% x 125,000 + 7% x 450,000 = 2,500 + 5,000 + 31,500
+    const r = calculateSdlt(700_000, 'first-time', { nonResident: true });
+    expect(r.totalTax).toBeCloseTo(39_000, 6);
+    expect(r.firstTimeBuyerRelief).toBe(false);
+    expect(r.nonResidentApplied).toBe(true);
+  });
+
+  it('HMRC SDLTM09870 example (Gia): £200,000 first-time buyer, non-resident = £4,000', () => {
+    const r = calculateSdlt(200_000, 'first-time', { nonResident: true });
+    expect(r.totalTax).toBeCloseTo(4_000, 6);
+    expect(r.firstTimeBuyerRelief).toBe(true);
+  });
+
+  it('£500,000 non-resident moving home = standard £15,000 + £10,000 (MATH-UK-16a)', () => {
+    expect(calculateSdlt(500_000, 'standard').totalTax).toBeCloseTo(15_000, 6);
+    expect(calculateSdlt(500_000, 'standard', { nonResident: true }).totalTax).toBeCloseTo(25_000, 6);
+  });
+
+  it('stacks on the higher rates: additional + non-resident = standard + 7% of the price', () => {
+    const price = 450_000;
+    const r = calculateSdlt(price, 'additional', { nonResident: true });
+    expect(r.totalTax).toBeCloseTo(calculateSdlt(price, 'standard').totalTax + price * 0.07, 6);
+    expect(r.bands.every((b) => b.rate >= 0.07)).toBe(true);
+  });
+
+  it('does not apply below £40,000', () => {
+    const r = calculateSdlt(39_000, 'standard', { nonResident: true });
+    expect(r.totalTax).toBe(0);
+    expect(r.nonResidentApplied).toBe(false);
+  });
+
+  it('defaults to resident when no option is passed (homepage call sites)', () => {
+    expect(calculateSdlt(450_000, 'first-time').totalTax).toBeCloseTo(7_500, 6);
+  });
+});
+
+describe('calculateSdlt -- invariants', () => {
+  it('band taxes sum to the total and tax never falls as the price rises (except the FTB cliff)', () => {
+    for (const type of ['standard', 'additional'] as const) {
+      for (const nonResident of [false, true]) {
+        let prev = -1;
+        for (let price = 0; price <= 3_000_000; price += 7_500) {
+          const r = calculateSdlt(price, type, { nonResident });
+          expect(r.bands.reduce((s, b) => s + b.tax, 0)).toBeCloseTo(r.totalTax, 6);
+          expect(r.totalTax).toBeGreaterThanOrEqual(prev);
+          prev = r.totalTax;
+        }
+      }
+    }
   });
 });

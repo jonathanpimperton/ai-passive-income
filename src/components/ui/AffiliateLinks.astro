@@ -1,6 +1,6 @@
 ---
 /**
- * "Next step" affiliate recommendations — quiet rows, not cards.
+ * "Next step" affiliate recommendations -- quiet rows, not cards.
  *
  * One bordered container with a neutral header, the FTC disclosure line
  * ABOVE the partner rows (compliance: disclosure before the links), and
@@ -8,60 +8,92 @@
  * teal text link instead of a block button.
  *
  * All links open in new tabs with rel="noopener sponsored" for FTC compliance.
+ *
+ * Region (review CALC-UX-B-09, HOME-CHROME-10):
+ * - On a page with a fixed region (e.g. UK-only stamp duty) only that
+ *   region's partners are rendered at all.
+ * - Elsewhere every row carries the regions its partner serves, and a tiny
+ *   inline script sets <html data-currency-region> from the visitor's stored
+ *   or detected currency before the rows are parsed; CSS then hides rows (and
+ *   the whole box) that don't serve that region. The currency selector keeps
+ *   the attribute current. Without JS every row shows.
+ *
+ * Risk wording: repossession warning only on secured-lending pages; capital
+ * at risk only when an investing partner is listed.
+ *
+ * Paid links (`tracked` partners) carry an "Affiliate link" label at the link
+ * itself (review CONTENT-30); untracked partners are plain, unpaid links.
  */
-import { resolvePartners, buildAffiliateUrl } from '@lib/affiliate-data';
+import {
+  partnersForPage,
+  pageRegionFor,
+  buildAffiliateUrl,
+  riskWarningsFor,
+  CURRENCY_REGION_INLINE_JS,
+} from '@lib/affiliate-data';
+import { SAFE_STORAGE_INLINE_JS } from '@lib/safe-storage';
+import { REGION_INLINE_JS } from '@lib/region';
 
 interface Props {
   context: string;
   programIds: string[];
   toolSlug: string;
+  /** No longer used for wording (kept so existing callers compile). */
   category?: string;
 }
 
-const { context, programIds, toolSlug, category } = Astro.props;
-const partners = resolvePartners(programIds);
+const { context, programIds, toolSlug } = Astro.props;
+const fixedRegion = pageRegionFor(toolSlug);
+const partners = partnersForPage(programIds, toolSlug);
 
 if (partners.length === 0) return;
 
-/* Contextual disclosure text based on page type */
-const INVESTMENT_SLUGS = new Set(['compound-interest', 'investment-return', 'investment-fee', 'retirement-savings', 'retirement-contribution', 'retirement-age', 'savings-goal', 'roi']);
-const LOAN_SLUGS = new Set(['mortgage-payment', 'mortgage-affordability', 'loan-amortization', 'rent-vs-buy']);
-
-let disclosureText: string;
-if (LOAN_SLUGS.has(toolSlug) || category === 'debt-and-loans') {
-  disclosureText = 'We may earn a commission if you apply through these links. Your home may be repossessed if you do not keep up repayments on your mortgage.';
-} else if (INVESTMENT_SLUGS.has(toolSlug) || category === 'saving-and-growth') {
-  disclosureText = 'We may earn a commission if you open an account through these links. Capital at risk — the value of investments can go down as well as up.';
-} else {
-  disclosureText = 'We may earn a commission at no extra cost to you.';
-}
+const regionFiltered = fixedRegion === null;
+const boxRegions = [...new Set(partners.flatMap((p) => p.regions))].join(' ');
+const warnings = riskWarningsFor(toolSlug, partners);
+// Paid (tracked) links are labelled individually; plain links are said to be unpaid.
+const anyPaid = partners.some((p) => p.tracked);
+const disclosureText = [
+  anyPaid
+    ? 'Links marked "Affiliate link" pay us a commission if you sign up, at no extra cost to you.'
+    : 'We are not paid for these links.',
+  ...warnings,
+].join(' ');
 ---
 
-<div class="mt-10 mb-6 rounded-lg bg-surface border border-neutral-200/80 p-5 sm:p-6">
+{regionFiltered && <script is:inline set:html={SAFE_STORAGE_INLINE_JS + REGION_INLINE_JS + CURRENCY_REGION_INLINE_JS} />}
+<div
+  class="affiliate-box mt-10 mb-6 rounded-lg bg-surface border border-neutral-200/80 p-5 sm:p-6"
+  data-affiliate-regions={regionFiltered ? boxRegions : undefined}
+>
   {/* Header */}
   <p class="text-xs font-semibold uppercase tracking-wider text-neutral-500">Next step</p>
   <h2 class="text-base sm:text-lg font-semibold text-neutral-900 mt-1">{context}</h2>
 
-  {/* FTC disclosure — before the links */}
+  {/* FTC disclosure -- before the links */}
   <p class="text-xs text-neutral-500 mt-2 leading-relaxed">
     {disclosureText}{' '}
-    We recommend partners based on relevance to the calculator you're using, not on commission rates.{' '}
     <a href="/disclosure/" class="underline hover:text-primary-600 transition-colors duration-150">
       Full disclosure
     </a>
   </p>
 
   {/* Partner rows */}
-  <div class="mt-4 border-t border-neutral-200/80 divide-y divide-neutral-200/80">
+  {/* Each row draws its own top hairline, so hiding a row never leaves a stray divider. */}
+  <div class="mt-4">
     {partners.map((partner) => (
-      <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 py-4">
+      <div
+        class="affiliate-row flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 py-4 border-t border-neutral-200/80"
+        data-affiliate-regions={regionFiltered ? partner.regions.join(' ') : undefined}
+      >
         <div class="min-w-0 flex-1">
-          <p class="text-sm">
+          <p class="text-sm flex flex-wrap items-baseline gap-x-2">
             <span class="font-semibold text-neutral-900">{partner.name}</span>
-            <span class="ml-2 text-xs text-neutral-500">{partner.category}</span>
+            <span class="text-xs text-neutral-500">{partner.category}</span>
           </p>
           <p class="text-sm text-neutral-500 mt-0.5">{partner.tagline}</p>
         </div>
+        {partner.tracked && <span class="shrink-0 text-xs text-neutral-500">Affiliate link</span>}
         <a
           href={buildAffiliateUrl(partner.id, toolSlug)}
           target="_blank"
@@ -76,3 +108,12 @@ if (LOAN_SLUGS.has(toolSlug) || category === 'debt-and-loans') {
     ))}
   </div>
 </div>
+
+<style>
+  /* Hide partners (and the whole box) that don't serve the visitor's currency region. */
+  :global(html[data-currency-region='US']) [data-affiliate-regions]:not([data-affiliate-regions~='US']),
+  :global(html[data-currency-region='UK']) [data-affiliate-regions]:not([data-affiliate-regions~='UK']),
+  :global(html[data-currency-region='EU']) [data-affiliate-regions]:not([data-affiliate-regions~='EU']) {
+    display: none;
+  }
+</style>
