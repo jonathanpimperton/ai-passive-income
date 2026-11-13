@@ -9,71 +9,71 @@ inputs:
   Annual Salary: "£30,000"
   Tax Code: "1257L"
   Student Loan: "Plan 2"
-  Tax Year: "2026/27"
-resultSummary: "£25,064/year (£2,089/month)"
+  Tax Year: "{{ taxYear('uk') }}"
+resultSummary: "{{ ukTakeHome(30000, plan=plan2) | gbp }}/year ({{ ukTakeHome(30000, plan=plan2) / 12 | gbp }}/month)"
 datePublished: "2026-03-04"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 ---
 
-## You take home £25,064 — about £2,089 per month
+## You take home {{ ukTakeHome(30000, plan=plan2) | gbp }} — about {{ ukTakeHome(30000, plan=plan2) / 12 | gbp }} per month
 
-**On a £30,000 salary with a Plan 2 student loan, your take-home pay is approximately £25,064 per year after income tax, National Insurance, and loan repayments.** That is roughly £2,089 per month. Without the student loan, you would take home £25,120 — the loan costs you £55 per year or about £5 per month.
+**On a £30,000 salary with a Plan 2 student loan, your take-home pay is approximately {{ ukTakeHome(30000, plan=plan2) | gbp }} per year after income tax, National Insurance, and loan repayments.** That is roughly {{ ukTakeHome(30000, plan=plan2) / 12 | gbp }} per month. Without the student loan, you would take home {{ ukTakeHome(30000) | gbp }} — the loan costs you {{ ukStudentLoan(30000, plan=plan2) | gbp }} per year or about {{ ukStudentLoan(30000, plan=plan2) / 12 | gbp }} per month.
 
 ## Full deduction breakdown
 
-**Income tax: £3,486**
-- Personal allowance: £12,570
-- Taxable income: £30,000 − £12,570 = £17,430
-- Tax at 20%: £3,486
+**Income tax: {{ ukIncomeTax(30000) | gbp }}**
+- Personal allowance: {{ ukPay(30000).personalAllowance | gbp }}
+- Taxable income: £30,000 − {{ ukPay(30000).personalAllowance | gbp }} = {{ 30000 - ukPay(30000).personalAllowance | gbp }}
+- Tax at {{ ukFact('basicRate') | pct }}: {{ ukIncomeTax(30000) | gbp }}
 
-**National Insurance: £1,394**
-- NI-liable: £17,430 at 8% = £1,394
+**National Insurance: {{ ukNi(30000) | gbp }}**
+- NI-liable: {{ 30000 - ukFact('niPrimaryThreshold') | gbp }} at {{ ukFact('niMainRate') | pct }} = {{ ukNi(30000) | gbp }}
 
-**Student loan (Plan 2): £55**
-- Repayment threshold: £29,385 per year
-- Repayable income: £30,000 − £29,385 = £615
-- Repayment at 9%: £615 × 0.09 = £55.35
+**Student loan (Plan 2): {{ ukStudentLoan(30000, plan=plan2) | gbp }}**
+- Repayment threshold: {{ ukFact('plan2Threshold') | gbp }} per year
+- Repayable income: £30,000 − {{ ukFact('plan2Threshold') | gbp }} = {{ 30000 - ukFact('plan2Threshold') | gbp }}
+- Repayment at {{ ukFact('studentLoanRate') | pct }}: {{ 30000 - ukFact('plan2Threshold') | gbp }} × {{ ukFact('studentLoanRate') / 100 | num(2) }} = {{ ukStudentLoan(30000, plan=plan2) | gbp(2) }}
 
-**Total deductions: £4,936**
-**Annual take-home: £25,064** (rounding applies)
+**Total deductions: {{ 30000 - ukTakeHome(30000, plan=plan2) | gbp }}**
+**Annual take-home: {{ ukTakeHome(30000, plan=plan2) | gbp }}** (rounding applies)
 
 ## How Plan 2 repayments actually work
 
 Student loan repayments in the UK are not like a standard debt where you choose how much to pay. The rules are fixed:
 
-- **Threshold:** You only repay when earning above £29,385 per year (2026/27 rate)
-- **Rate:** 9% of everything above the threshold
+- **Threshold:** You only repay when earning above {{ ukFact('plan2Threshold') | gbp }} per year ({{ taxYear('uk') }} rate)
+- **Rate:** {{ ukFact('studentLoanRate') | pct }} of everything above the threshold
 - **Collection:** Deducted automatically through PAYE, like tax
 - **Write-off:** Any remaining balance is wiped after 30 years from the April after you graduated
 
-At £30,000, you are only £615 above the threshold, so repayments are minimal. Your employer deducts about £5 per month. If your salary drops below £29,385, repayments stop automatically.
+At £30,000, you are only {{ 30000 - ukFact('plan2Threshold') | gbp }} above the threshold, so repayments are minimal. Your employer deducts about {{ ukStudentLoan(30000, plan=plan2) / 12 | gbp }} per month. If your salary drops below {{ ukFact('plan2Threshold') | gbp }}, repayments stop automatically.
 
 ## What this means for your actual debt
 
-£55 per year in repayments barely touches the interest being added to most Plan 2 balances. The interest rate on Plan 2 loans is RPI plus up to 3%, depending on your income. At £30,000, the rate is RPI (which has been 3–10% in recent years).
+{{ ukStudentLoan(30000, plan=plan2) | gbp }} per year in repayments barely touches the interest being added to most Plan 2 balances. The interest rate on Plan 2 loans is RPI plus up to 3%, depending on your income. At £30,000, the rate is RPI (which has been 3–10% in recent years).
 
-If you owe £40,000 and interest adds £2,000–£3,000 per year, your £55 repayment means the balance is growing. This is normal and by design — the system functions more like a graduate tax than a traditional loan. For most Plan 2 borrowers, the balance will be written off before it is fully repaid.
+If you owe £40,000 and interest adds £2,000–£3,000 per year, your {{ ukStudentLoan(30000, plan=plan2) | gbp }} repayment means the balance is growing. This is normal and by design — the system functions more like a graduate tax than a traditional loan. For most Plan 2 borrowers, the balance will be written off before it is fully repaid.
 
 Whether to make voluntary overpayments depends on your balance and expected career earnings. If you expect to earn well above £50,000 for most of your career, you will likely repay in full and overpaying saves interest. If your career trajectory is more modest, the write-off will clear the remaining balance and overpayments would be money wasted.
 
 ## Salary milestones and repayment amounts
 
-- **£29,385 or below:** No repayment
-- **£30,000:** £55/year (£5/month)
-- **£35,000:** £505/year (£42/month)
-- **£40,000:** £955/year (£80/month)
-- **£50,000:** £1,855/year (£155/month)
+- **{{ ukFact('plan2Threshold') | gbp }} or below:** No repayment
+- **£30,000:** {{ ukStudentLoan(30000, plan=plan2) | gbp }}/year ({{ ukStudentLoan(30000, plan=plan2) / 12 | gbp }}/month)
+- **£35,000:** {{ ukStudentLoan(35000, plan=plan2) | gbp }}/year ({{ ukStudentLoan(35000, plan=plan2) / 12 | gbp }}/month)
+- **£40,000:** {{ ukStudentLoan(40000, plan=plan2) | gbp }}/year ({{ ukStudentLoan(40000, plan=plan2) / 12 | gbp }}/month)
+- **£50,000:** {{ ukStudentLoan(50000, plan=plan2) | gbp }}/year ({{ ukStudentLoan(50000, plan=plan2) / 12 | gbp }}/month)
 
-Each £1,000 pay rise above the threshold adds £90/year (£7.50/month) in student loan repayments on top of the 28% income tax and NI you already pay. The effective marginal rate for someone with a Plan 2 loan earning between £29,385 and £50,270 is 37% (20% tax + 8% NI + 9% student loan).
+Each £1,000 pay rise above the threshold adds {{ 1000 * ukFact('studentLoanRate') / 100 | gbp }}/year ({{ 1000 * ukFact('studentLoanRate') / 100 / 12 | gbp(2) }}/month) in student loan repayments on top of the {{ ukMarginalRate(30000) | pct }} income tax and NI you already pay. The effective marginal rate for someone with a Plan 2 loan earning between {{ ukFact('plan2Threshold') | gbp }} and {{ ukFact('higherRateThreshold') | gbp }} is {{ ukMarginalRate(30000, plan=plan2) | pct }} ({{ ukFact('basicRate') | pct }} tax + {{ ukFact('niMainRate') | pct }} NI + {{ ukFact('studentLoanRate') | pct }} student loan).
 
 ## Nearby salaries
 
-At £25,000 you would be below the £29,385 Plan 2 threshold entirely — no repayment at all, and take-home of £21,520 (£1,793 per month) after just tax and NI. At £35,000 the deduction starts to register: you keep £28,720 (£2,393 per month) before the loan, and Plan 2 takes another £505 a year. The pattern is worth knowing when weighing a pay rise: the first £615 above the threshold costs you pennies, but every pound after that carries the full 37% marginal rate.
+At £25,000 you would be below the {{ ukFact('plan2Threshold') | gbp }} Plan 2 threshold entirely — no repayment at all, and take-home of {{ ukTakeHome(25000, plan=plan2) | gbp }} ({{ ukTakeHome(25000, plan=plan2) / 12 | gbp }} per month) after just tax and NI. At £35,000 the deduction starts to register: you keep {{ ukTakeHome(35000) | gbp }} ({{ ukTakeHome(35000) / 12 | gbp }} per month) before the loan, and Plan 2 takes another {{ ukStudentLoan(35000, plan=plan2) | gbp }} a year. The pattern is worth knowing when weighing a pay rise: below the threshold each extra pound loses {{ ukMarginalRate(25000) | pct }} to tax and NI, and every pound above it carries the full {{ ukMarginalRate(30000, plan=plan2) | pct }} marginal rate.
 
-Every salary from £20,000 to £150,000 — including a dedicated student loan table showing Plan 2 and Plan 5 side by side — is in our [UK take-home pay reference](/scenarios/uk-take-home-pay/#25k).
+Every salary from £20,000 to £150,000 — including a dedicated student loan table showing Plan 2 and Plan 5 side by side — is in our [UK take-home pay reference](/scenarios/uk-take-home-pay/#30k).
 
 ## Plan 1 vs Plan 2 comparison
 
-If you started university before September 2012, you are on Plan 1, which has a lower threshold of £26,900 but the same 9% rate. On £30,000, Plan 1 repayments would be £279/year — about five times the Plan 2 amount because of the lower threshold. Plan 5 borrowers (courses starting from August 2023) made their first-ever repayments in April 2026 — the threshold is £25,000, so on £30,000 you would repay £450/year.
+If you started university before September 2012, you are on Plan 1, which has a lower threshold of {{ ukFact('plan1Threshold') | gbp }} but the same {{ ukFact('studentLoanRate') | pct }} rate. On £30,000, Plan 1 repayments would be {{ ukStudentLoan(30000, plan=plan1) | gbp }}/year — about {{ ukStudentLoan(30000, plan=plan1) / ukStudentLoan(30000, plan=plan2) | num }} times the Plan 2 amount because of the lower threshold. Plan 5 covers courses that started from 1 August 2023. Repayments begin the April after you leave your course, so someone who started a three-year degree in autumn 2023 makes their first repayment in April 2027. The Plan 5 threshold is {{ ukFact('plan5Threshold') | gbp }}, so on £30,000 you would repay {{ ukStudentLoan(30000, plan=plan5) | gbp }}/year.
 
 Use the [UK Salary Calculator](/tools/income-and-planning/salary-uk/) to see your exact take-home with any student loan plan, pension contributions, or tax code.
