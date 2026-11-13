@@ -76,7 +76,12 @@ test.beforeEach(async ({ context, baseURL }) => {
   });
   if (HEADER_RULES.length > 0 && baseURL) {
     const origin = new URL(baseURL).origin;
-    await context.route((url) => url.origin === origin && !url.pathname.startsWith('/api/'), async (route) => {
+    // http(s) only: a blob: URL's origin is the page origin, and WebKit routes blob: loads
+    // through interception, where route.fetch() cannot follow them (it aborted SVG images
+    // and the HEIC decoder worker in WebKit only).
+    const matches = (url: URL) => (url.protocol === 'http:' || url.protocol === 'https:')
+      && url.origin === origin && !url.pathname.startsWith('/api/');
+    await context.route(matches, async (route) => {
       try {
         const res = await route.fetch();
         const pathname = new URL(route.request().url()).pathname;
