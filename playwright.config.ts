@@ -18,7 +18,8 @@ export default defineConfig({
     launchOptions: {
       args: [
         '--host-resolver-rules=MAP google-analytics.com ~NOTFOUND, MAP *.google-analytics.com ~NOTFOUND, ' +
-          'MAP googletagmanager.com ~NOTFOUND, MAP *.googletagmanager.com ~NOTFOUND',
+          'MAP googletagmanager.com ~NOTFOUND, MAP *.googletagmanager.com ~NOTFOUND, ' +
+          'MAP analytics.google.com ~NOTFOUND, MAP *.analytics.google.com ~NOTFOUND',
       ],
     },
   },

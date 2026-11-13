@@ -45,7 +45,7 @@ const browser = await chromium.launch();
 
 // Block Google Analytics / Tag Manager in every context: the built HTML carries the
 // production GA tag, so an unblocked local run would send real hits (plan 2.4).
-const GA_HOSTS = ['google-analytics.com', 'googletagmanager.com'];
+const GA_HOSTS = ['google-analytics.com', 'googletagmanager.com', 'analytics.google.com'];
 const isGaUrl = (url) => GA_HOSTS.some((d) => url.hostname === d || url.hostname.endsWith('.' + d));
 let gaBlocked = 0;
 const findings = [];
