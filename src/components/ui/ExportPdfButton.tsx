@@ -78,6 +78,7 @@ export default function ExportPdfButton({ toolName, getInputs, resultsRef, curre
       }`}
       aria-label={error ? 'PDF export failed. Export results as PDF again' : 'Export results as PDF'}
       data-pdf-hide
+      data-embed-hide
       data-export-pdf
     >
       {error ? (

@@ -10,7 +10,7 @@
  * UK-only), else the visitor's display currency (USD=US, GBP=UK, EUR=EU).
  * Nothing renders on the server or during hydration (the visitor's currency
  * isn't known yet), so there is no hydration mismatch (CALC-UX-A-13) and no
- * US partner ever flashes for a UK visitor.
+ * US partner ever flashes for a UK visitor. Never renders inside an embed.
  */
 
 import { currencyRegion, useResolvedCurrency } from '@lib/currency';
@@ -165,9 +165,20 @@ interface ResultAffiliateProps {
   region?: PartnerRegion;
 }
 
+/** Embeds (embed v2 /embed/<tool>/, or legacy ?embed) never carry affiliate links. */
+function isEmbed(): boolean {
+  if (typeof document === 'undefined') return false;
+  return (
+    !!document.body?.classList.contains('embed-mode') ||
+    window.location.pathname.startsWith('/embed/') ||
+    new URLSearchParams(window.location.search).has('embed')
+  );
+}
+
 export default function ResultAffiliate({ toolSlug, region }: ResultAffiliateProps) {
   const currency = useResolvedCurrency();
   if (currency === null) return null; // server render / hydration: visitor's region unknown
+  if (isEmbed()) return null; // client-only check, so it cannot cause a hydration mismatch
 
   const effectiveRegion = region ?? pageRegionFor(toolSlug) ?? currencyRegion(currency);
   const resolved = resolveInlineAffiliate(toolSlug, effectiveRegion);
@@ -175,7 +186,7 @@ export default function ResultAffiliate({ toolSlug, region }: ResultAffiliatePro
   const { cta, partner, tagline, bestFor, disclosure } = resolved;
 
   return (
-    <div data-pdf-hide className="mt-6 mb-6 rounded-lg border border-neutral-200/80 bg-surface p-4">
+    <div data-pdf-hide data-embed-hide className="mt-6 mb-6 rounded-lg border border-neutral-200/80 bg-surface p-4">
       <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
         {cta}
       </p>

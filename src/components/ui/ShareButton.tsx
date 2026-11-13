@@ -193,6 +193,7 @@ export default function ShareButton({ toolSlug, toolName }: ShareButtonProps) {
       ref={containerRef}
       className="relative"
       data-pdf-hide
+      data-embed-hide
       onBlur={handleBlur}
       onPointerDownCapture={() => {
         pointerInside.current = true;
