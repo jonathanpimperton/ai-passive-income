@@ -45,7 +45,7 @@
  * --worker mode extras (localhost only, for tests):
  *   env passed to the worker: dummy secrets + ALLOW_DEV_ORIGINS=1
  *   Turnstile siteverify mock: token "XXXX.DUMMY.TOKEN.XXXX" passes with hostname
- *     "localhost" (any other token fails)
+ *     "localhost" and the action of the endpoint being called (any other token fails)
  *   GET  /__serve-prod/health              -> {"ok":true}
  *   GET  /__serve-prod/upstream            -> JSON log of mocked third-party calls
  *   POST /__serve-prod/upstream?reset=1    -> clear the log
@@ -351,6 +351,8 @@ function assetResponse(method, rawPath, search, reqHeaders) {
 const DUMMY_TOKEN = 'XXXX.DUMMY.TOKEN.XXXX';
 const upstreamLog = [];
 const upstreamMode = { mailerlite: 'ok', mailersend: 'ok', siteverify: 'ok' };
+/** API path being handled, so the siteverify mock can report the matching action. */
+let currentApiPath = '';
 let workerModule = null;
 
 async function loadWorker() {
@@ -388,7 +390,7 @@ async function mockedFetch(input, init = {}) {
   if (url.startsWith('https://challenges.cloudflare.com/turnstile/v0/siteverify')) {
     const pass = upstreamMode.siteverify === 'ok' && body?.response === DUMMY_TOKEN;
     return new Response(JSON.stringify(pass
-      ? { success: true, hostname: 'localhost', action: '' }
+      ? { success: true, hostname: 'localhost', action: currentApiPath === '/api/subscribe' ? 'subscribe' : 'email-results' }
       : { success: false, 'error-codes': ['invalid-input-response'] }), { status: 200 });
   }
   if (host === 'connect.mailerlite.com') {
@@ -472,6 +474,7 @@ async function handle(req, res) {
     }
     headers.set('CF-Connecting-IP', req.socket.remoteAddress || '127.0.0.1');
     const request = new Request(url, { method, headers, body });
+    currentApiPath = url.pathname;
     const response = await workerModule.fetch(request, WORKER_ENV);
     const out = Buffer.from(await response.arrayBuffer());
     // Worker-generated responses do NOT get _headers in production; pass them through.

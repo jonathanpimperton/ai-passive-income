@@ -15,9 +15,9 @@
  *     localhost/127.0.0.1 origins are accepted ONLY when env.ALLOW_DEV_ORIGINS is set
  *     (local wrangler dev or scripts/serve-prod.mjs), never in production;
  *   - 20 KB body cap, enforced while streaming (413);
- *   - Cloudflare Turnstile token required (a missing token is refused before any field
- *     validation); siteverify must succeed AND report one of our
- *     hostnames (and the expected action when present). Fails closed when the secret is
+ *   - Cloudflare Turnstile token required and verified BEFORE any field validation;
+ *     siteverify must succeed AND report one of our
+ *     hostnames and exactly the expected action. Fails closed when the secret is
  *     missing (503);
  *   - results-email rows are rebuilt from a server-side allowlist (src/lib/tool-registry.ts
  *     and src/lib/email-sanitize.ts); client labels and free text are never rendered;
@@ -516,8 +516,8 @@ interface SiteverifyResponse {
 
 /**
  * Verify a Turnstile token. Succeeds only when siteverify says success AND the token was
- * issued on one of our hostnames AND (when the token carries an action) the action is the
- * one this endpoint expects. Any network or parse failure fails closed.
+ * issued on one of our hostnames AND its action is exactly the one this endpoint expects.
+ * Any network or parse failure fails closed.
  */
 async function verifyTurnstile(token: string, request: Request, env: Env, expectedAction: string): Promise<boolean> {
   if (!env.TURNSTILE_SECRET_KEY || !token || token.length > 2048) return false;
@@ -545,7 +545,9 @@ async function verifyTurnstile(token: string, request: Request, env: Env, expect
       console.warn('Turnstile token issued on an unexpected hostname');
       return false;
     }
-    if (data.action && data.action !== expectedAction) {
+    // Exact action match. Cloudflare's test keys report no action, so an empty action is
+    // accepted only in local development (ALLOW_DEV_ORIGINS).
+    if (data.action !== expectedAction && !(devMode(env) && !data.action)) {
       console.warn('Turnstile token action mismatch');
       return false;
     }
@@ -723,9 +725,17 @@ async function readApiRequest(request: Request, env: Env, cors: Record<string, s
 const VERIFICATION_REQUIRED = { error: 'Verification required. Please try again.', code: 'verification_required' };
 
 /**
- * True when the parsed body carries a non-empty Turnstile token. Checked BEFORE field
- * validation so unverified clients learn nothing about what the validator accepts.
+ * Token of the parsed body ('' when absent). The token is checked, and verified with
+ * siteverify, BEFORE field validation, so an unverified client learns nothing about what
+ * the validator accepts.
  */
+function bodyToken(body: unknown): string {
+  return typeof body === 'object' && body !== null && !Array.isArray(body)
+    ? readToken(body as Record<string, unknown>)
+    : '';
+}
+
+/** True when the parsed body carries a non-empty Turnstile token. */
 function hasToken(body: unknown): boolean {
   return typeof body === 'object' && body !== null && !Array.isArray(body)
     && readToken(body as Record<string, unknown>) !== '';
@@ -745,6 +755,9 @@ async function handleSubscribe(request: Request, env: Env): Promise<Response> {
   }
 
   if (!hasToken(parsed.body)) return json(403, VERIFICATION_REQUIRED, cors);
+  if (!(await verifyTurnstile(bodyToken(parsed.body), request, env, TURNSTILE_ACTIONS.subscribe))) {
+    return json(403, VERIFICATION_FAILED, cors);
+  }
 
   const validation = validateSubscribeBody(parsed.body);
   if (!validation.ok) return json(400, { error: validation.error }, cors);
@@ -752,10 +765,6 @@ async function handleSubscribe(request: Request, env: Env): Promise<Response> {
 
   // Honeypot filled = bot: pretend success, do nothing.
   if (body.honeypot) return json(200, { success: true }, cors);
-
-  if (!(await verifyTurnstile(body.turnstileToken, request, env, TURNSTILE_ACTIONS.subscribe))) {
-    return json(403, VERIFICATION_FAILED, cors);
-  }
 
   try {
     await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY, 'newsletter');
@@ -786,16 +795,15 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
   }
 
   if (!hasToken(parsed.body)) return json(403, VERIFICATION_REQUIRED, cors);
+  if (!(await verifyTurnstile(bodyToken(parsed.body), request, env, TURNSTILE_ACTIONS.emailResults))) {
+    return json(403, VERIFICATION_FAILED, cors);
+  }
 
   const validation = validateEmailResultsBody(parsed.body);
   if (!validation.ok) return json(400, { error: validation.error }, cors);
   const body = validation.data;
 
   if (body.honeypot) return json(200, { success: true }, cors);
-
-  if (!(await verifyTurnstile(body.turnstileToken, request, env, TURNSTILE_ACTIONS.emailResults))) {
-    return json(403, VERIFICATION_FAILED, cors);
-  }
 
   if (body.dropped > 0) console.warn(`email-results: dropped ${body.dropped} row(s) for ${body.toolSlug}`);
 
@@ -829,11 +837,16 @@ async function handleEmailResults(request: Request, env: Env): Promise<Response>
 
   // Marketing enrolment ONLY on an explicit opt-in (the checkbox defaults to unticked).
   let subscribeFailed = false;
-  if (body.subscribe && env.MAILERLITE_API_KEY) {
-    try {
-      await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY, 'results');
-    } catch {
+  if (body.subscribe) {
+    if (!env.MAILERLITE_API_KEY) {
+      console.error('Opt-in requested but MAILERLITE_API_KEY is not set');
       subscribeFailed = true;
+    } else {
+      try {
+        await subscribeToMailerLite(body.email, body.toolSlug, env.MAILERLITE_API_KEY, 'results');
+      } catch {
+        subscribeFailed = true;
+      }
     }
   }
 

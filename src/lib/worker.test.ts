@@ -207,10 +207,20 @@ describe('POST /api/subscribe gate (EDGE-01)', () => {
     expect(res.status).toBe(400);
     expect(data.error).toMatch(/valid email/);
   });
-  it('honeypot submissions get a silent 200 and reach no third party', async () => {
+  it('honeypot submissions get a silent 200 and are never subscribed', async () => {
     const { res } = await call(post('/api/subscribe', subscribeBody({ honeypot: 'https://spam' })));
     expect(res.status).toBe(200);
-    expect(calls).toHaveLength(0);
+    expect(upstreamUrls().some((u) => u.includes('mailerlite'))).toBe(false);
+  });
+  it('verifies the token before validating fields (a bad token learns nothing)', async () => {
+    upstream.siteverify.body = { success: false, 'error-codes': ['invalid-input-response'] };
+    const { res, data } = await call(post('/api/subscribe', subscribeBody({ email: 'not-an-address' })));
+    expect(res.status).toBe(403);
+    expect(data.code).toBe('verification_failed');
+  });
+  it('requires an exact action match in production (none is not enough)', async () => {
+    upstream.siteverify.body = { success: true, hostname: 'www.calcrun.com' };
+    expect((await call(post('/api/subscribe', subscribeBody()))).res.status).toBe(403);
   });
   it('refuses a missing token before validating fields (safe live probe with an invalid address)', async () => {
     const { res, data } = await call(post('/api/subscribe', { email: 'x@invalid' }));
@@ -368,6 +378,11 @@ describe('POST /api/email-results (EDGE-02, S1-16)', () => {
     expect(data).toEqual({ success: true });
     const ml = calls.find((c) => c.url.includes('mailerlite'))!;
     expect(ml.body.fields).toEqual({ signup_source: 'results', calculator_slug: 'compound-interest' });
+  });
+  it('reports the opt-in as failed when MailerLite is not configured', async () => {
+    const { res, data } = await call(post('/api/email-results', resultsBody({ subscribe: true })), env({ MAILERLITE_API_KEY: '' }));
+    expect(res.status).toBe(200);
+    expect(data).toEqual({ success: true, subscribeFailed: true });
   });
   it('reports a failed opt-in honestly while still confirming the email', async () => {
     upstream.mailerlite.status = 422;
