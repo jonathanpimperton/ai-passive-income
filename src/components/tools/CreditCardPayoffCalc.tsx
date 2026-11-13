@@ -1,200 +1,84 @@
-import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
+import { useState, useMemo, useCallback, useDeferredValue, useRef, Fragment, Suspense } from 'react';
+import { formatNumber } from '../../lib/calculator-utils';
 import {
-  formatCurrency,
-  formatNumber,
-} from '../../lib/calculator-utils';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+  simulateCardPayoff,
+  paymentToClearIn,
+  paymentToStopGrowth,
+  CARD_HORIZON_MONTHS,
+  type CardMonth,
+  type CardPayoffResult,
+  type MinPaymentMode,
+} from '../../lib/credit-card';
+import { formatMoneyGuarded, formatMoneyCents, formatMonthsLong } from '../../lib/result-format';
 import { ChevronDown, RotateCcw, CreditCard, TrendingDown, Clock, DollarSign, AlertTriangle } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
+import ChartSkeleton from '../ui/ChartSkeleton';
+import ChartDataTable from '../ui/ChartDataTable';
 import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
+import LiveResult from './fields/LiveResult';
+import { lazyChart } from './charts/InvestDebtLazyChart';
 
-/* ── Types ────────────────────────────────────────────────── */
-type MinPaymentType = 'fixed' | 'percentage';
+const DebtBalanceChart = lazyChart(() => import('./charts/DebtBalanceChart'));
 
-interface PayoffMonth {
-  month: number;
-  payment: number;
-  principal: number;
-  interest: number;
-  balance: number;
+const HORIZON_YEARS = CARD_HORIZON_MONTHS / 12;
+
+/* -- Outcome wording (shared by the headline, cards, email and PDF) -- */
+function timeText(r: CardPayoffResult): string {
+  if (r.status === 'paid') return formatMonthsLong(r.months);
+  if (r.status === 'never') return 'Never';
+  if (r.status === 'beyondHorizon') return `Over ${HORIZON_YEARS} years`;
+  return '0 months';
 }
 
-interface PayoffResult {
-  months: number;
-  totalInterest: number;
-  totalPaid: number;
-  schedule: PayoffMonth[];
-}
-
-/* ── Credit card payoff simulation ────────────────────────── */
-function simulatePayoff(
-  balance: number,
-  apr: number,
-  minType: MinPaymentType,
-  minFixed: number,
-  minPercent: number,
-  minFloor: number,
-  extra: number
-): PayoffResult {
-  if (balance <= 0 || (minType === 'fixed' && minFixed <= 0 && extra <= 0)) {
-    return { months: 0, totalInterest: 0, totalPaid: 0, schedule: [] };
-  }
-
-  const monthlyRate = apr / 100 / 12;
-  let remaining = balance;
-  let totalInterest = 0;
-  let totalPaid = 0;
-  const schedule: PayoffMonth[] = [];
-  const maxMonths = 1200; // 100 years cap
-
-  for (let month = 1; month <= maxMonths && remaining > 0.01; month++) {
-    const interest = remaining * monthlyRate;
-    totalInterest += interest;
-
-    let minPayment: number;
-    if (minType === 'fixed') {
-      minPayment = minFixed;
-    } else {
-      minPayment = Math.max(remaining * (minPercent / 100), minFloor);
-    }
-
-    let payment = minPayment + extra;
-
-    // Can't pay more than balance + interest
-    if (payment > remaining + interest) {
-      payment = remaining + interest;
-    }
-
-    // Check if minimum payment even covers interest
-    if (payment <= interest && month > 1) {
-      // Payment doesn't cover interest — debt grows forever
-      // Return with a large month count to signal this
-      return {
-        months: maxMonths,
-        totalInterest: totalInterest,
-        totalPaid: totalPaid,
-        schedule,
-      };
-    }
-
-    const principalPaid = payment - interest;
-    remaining = Math.max(0, remaining - principalPaid);
-    totalPaid += payment;
-
-    schedule.push({
-      month,
-      payment: Math.round(payment * 100) / 100,
-      principal: Math.round(principalPaid * 100) / 100,
-      interest: Math.round(interest * 100) / 100,
-      balance: Math.round(remaining * 100) / 100,
-    });
-  }
-
-  return {
-    months: schedule.length,
-    totalInterest: Math.round(totalInterest * 100) / 100,
-    totalPaid: Math.round(totalPaid * 100) / 100,
-    schedule,
-  };
-}
-
-/* ── Format months as "X years, Y months" ─────────────────── */
-function formatMonths(months: number): string {
-  if (months >= 1200) return '100+ years';
-  if (months === 0) return '0 months';
-  const y = Math.floor(months / 12);
-  const m = months % 12;
-  const parts: string[] = [];
-  if (y > 0) parts.push(`${y} year${y !== 1 ? 's' : ''}`);
-  if (m > 0) parts.push(`${m} month${m !== 1 ? 's' : ''}`);
-  return parts.join(', ');
-}
-
-/* ── Collapsible Year-Group Schedule Table ─────────────────── */
+/* -- Collapsible Year-Group Schedule Table ------------------ */
 interface YearGroup {
   year: number;
-  startBalance: number;
   endBalance: number;
   totalPrincipal: number;
   totalInterest: number;
-  totalPayment: number;
-  months: PayoffMonth[];
+  months: CardMonth[];
 }
 
-function buildYearGroups(schedule: PayoffMonth[], startingBalance: number): YearGroup[] {
+function buildYearGroups(schedule: CardMonth[]): YearGroup[] {
   const groups: YearGroup[] = [];
-  let currentYear = 1;
-  let yearMonths: PayoffMonth[] = [];
-  let yearStart = startingBalance;
-
   for (const row of schedule) {
-    const rowYear = Math.ceil(row.month / 12);
-    if (rowYear !== currentYear) {
-      if (yearMonths.length > 0) {
-        groups.push({
-          year: currentYear,
-          startBalance: yearStart,
-          endBalance: yearMonths[yearMonths.length - 1].balance,
-          totalPrincipal: yearMonths.reduce((s, m) => s + m.principal, 0),
-          totalInterest: yearMonths.reduce((s, m) => s + m.interest, 0),
-          totalPayment: yearMonths.reduce((s, m) => s + m.payment, 0),
-          months: yearMonths,
-        });
-      }
-      yearStart = yearMonths.length > 0 ? yearMonths[yearMonths.length - 1].balance : yearStart;
-      yearMonths = [];
-      currentYear = rowYear;
+    const year = Math.ceil(row.month / 12);
+    let g = groups[groups.length - 1];
+    if (!g || g.year !== year) {
+      g = { year, endBalance: row.balance, totalPrincipal: 0, totalInterest: 0, months: [] };
+      groups.push(g);
     }
-    yearMonths.push(row);
+    g.months.push(row);
+    g.endBalance = row.balance;
+    g.totalPrincipal += row.principal;
+    g.totalInterest += row.interest;
   }
-
-  if (yearMonths.length > 0) {
-    groups.push({
-      year: currentYear,
-      startBalance: yearStart,
-      endBalance: yearMonths[yearMonths.length - 1].balance,
-      totalPrincipal: yearMonths.reduce((s, m) => s + m.principal, 0),
-      totalInterest: yearMonths.reduce((s, m) => s + m.interest, 0),
-      totalPayment: yearMonths.reduce((s, m) => s + m.payment, 0),
-      months: yearMonths,
-    });
-  }
-
   return groups;
 }
 
 function ScheduleTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string }) {
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
-  const fmt = (v: number) => formatCurrency(v, cc);
+  const fmt = (v: number) => formatMoneyGuarded(v, cc);
 
   if (yearGroups.length === 0) return null;
 
   return (
     <div className="overflow-x-auto rounded-xl border border-neutral-200/80">
       <table className="w-full text-sm">
+        <caption className="sr-only">Principal, interest and balance by year; expand a year for monthly detail</caption>
         <thead>
           <tr className="bg-neutral-50 border-b border-neutral-200/80 sticky top-0 z-10">
-            <th className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600">Principal</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600">Interest</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Balance</th>
+            <th scope="col" className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600">Principal</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600">Interest</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Balance</th>
           </tr>
         </thead>
         <tbody>
@@ -220,15 +104,9 @@ function ScheduleTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string
                     {group.year}
                   </span>
                 </td>
-                <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums">
-                  {fmt(group.totalPrincipal)}
-                </td>
-                <td className="py-2.5 px-4 text-right text-red-600 tabular-nums">
-                  {fmt(group.totalInterest)}
-                </td>
-                <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums hidden sm:table-cell">
-                  {fmt(group.endBalance)}
-                </td>
+                <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums">{fmt(group.totalPrincipal)}</td>
+                <td className="py-2.5 px-4 text-right text-red-600 tabular-nums">{fmt(group.totalInterest)}</td>
+                <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums hidden sm:table-cell">{fmt(group.endBalance)}</td>
               </tr>
               {expandedYear === group.year && (
                 <tr className="bg-primary-50/30 border-b border-primary-100/50">
@@ -237,11 +115,11 @@ function ScheduleTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="border-b border-primary-100/50">
-                            <th className="text-left py-2 px-4 font-medium text-neutral-500">Month</th>
-                            <th className="text-right py-2 px-4 font-medium text-neutral-500">Payment</th>
-                            <th className="text-right py-2 px-4 font-medium text-neutral-500">Principal</th>
-                            <th className="text-right py-2 px-4 font-medium text-neutral-500">Interest</th>
-                            <th className="text-right py-2 px-4 font-medium text-neutral-500">Balance</th>
+                            <th scope="col" className="text-left py-2 px-4 font-medium text-neutral-500">Month</th>
+                            <th scope="col" className="text-right py-2 px-4 font-medium text-neutral-500">Payment</th>
+                            <th scope="col" className="text-right py-2 px-4 font-medium text-neutral-500">Principal</th>
+                            <th scope="col" className="text-right py-2 px-4 font-medium text-neutral-500">Interest</th>
+                            <th scope="col" className="text-right py-2 px-4 font-medium text-neutral-500">Balance</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -268,109 +146,169 @@ function ScheduleTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string
   );
 }
 
-/* ── Defaults ──────────────────────────────────────────────── */
+/* -- Result card for one plan (minimum only / with extra) --- */
+function PlanCard({ title, icon, result, active, cc }: { title: string; icon: React.ReactNode; result: CardPayoffResult; active: boolean; cc: string }) {
+  const fmt = (v: number) => formatMoneyGuarded(v, cc);
+  return (
+    <div
+      className={`rounded-xl border p-4 transition-all duration-200 bg-white ${
+        active ? 'border-primary-300 shadow-sm ring-1 ring-primary-200/50' : 'border-neutral-200/80'
+      }`}
+    >
+      <div className="flex items-center gap-1.5 mb-3">
+        {icon}
+        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">{title}</p>
+      </div>
+      <div className="space-y-2">
+        <div>
+          <p className="text-xs text-neutral-500">Time to Payoff</p>
+          <p className={`text-sm font-semibold tabular-nums ${result.status === 'paid' ? 'text-neutral-900' : 'text-red-600'}`}>{timeText(result)}</p>
+        </div>
+        {result.status === 'paid' && (
+          <>
+            <div>
+              <p className="text-xs text-neutral-500">Total Interest</p>
+              <p className="text-sm font-semibold text-red-600 tabular-nums">{fmt(result.totalInterest)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500">Total Paid</p>
+              <p className="text-sm font-semibold text-neutral-900 tabular-nums">{fmt(result.totalPaid)}</p>
+            </div>
+          </>
+        )}
+        {result.status === 'beyondHorizon' && (
+          <>
+            <div>
+              <p className="text-xs text-neutral-500">Interest in {HORIZON_YEARS} years</p>
+              <p className="text-sm font-semibold text-red-600 tabular-nums">{fmt(result.totalInterest)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500">Still owed after {HORIZON_YEARS} years</p>
+              <p className="text-sm font-semibold text-neutral-900 tabular-nums">{fmt(result.remainingBalance)}</p>
+            </div>
+          </>
+        )}
+        {result.status === 'never' && (
+          <p className="text-xs text-neutral-500 leading-relaxed">
+            The payment does not cover the {formatMoneyCents(result.firstMonthInterest, cc)}/mo interest, so the balance never falls.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* -- Defaults ---------------------------------------------- */
 const DEFAULTS = {
   balance: 5000,
   apr: 22.99,
-  minType: 'fixed' as MinPaymentType,
+  minType: 'fixed' as MinPaymentMode,
   minFixed: 100,
   minPercent: 2,
-  minFloor: 25,
+  plusPercent: 1,
   extra: 0,
 };
 
-/* ── Main Calculator ──────────────────────────────────────── */
+const MODE_OPTIONS: { value: MinPaymentMode; label: string }[] = [
+  { value: 'fixed', label: 'Fixed amount' },
+  { value: 'percentage', label: '% of balance' },
+  { value: 'interestPlus', label: 'Interest + %' },
+];
+
+/* -- Main Calculator --------------------------------------- */
 export default function CreditCardPayoffCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
-  const fmt = (v: number) => formatCurrency(v, currency);
-  const ct = useChartTheme();
+  const fmt = (v: number) => formatMoneyGuarded(v, currency);
+  const cents = (v: number) => formatMoneyCents(v, currency);
   // Percentage-mode minimum payment floor: US cards typically use $25, UK
-  // cards £5. Not user-editable, so it flips safely with the currency selector.
-  const minFloor = currency === 'GBP' ? 5 : DEFAULTS.minFloor;
+  // cards often 5 pounds. Not user-editable, so it flips safely with the currency.
+  const minFloor = currency === 'GBP' ? 5 : 25;
 
   const [balance, setBalance] = useState(DEFAULTS.balance);
   const [apr, setApr] = useState(DEFAULTS.apr);
-  const [minType, setMinType] = useState<MinPaymentType>(DEFAULTS.minType);
+  const [minType, setMinType] = useState<MinPaymentMode>(DEFAULTS.minType);
   const [minFixed, setMinFixed] = useState(DEFAULTS.minFixed);
   const [minPercent, setMinPercent] = useState(DEFAULTS.minPercent);
+  const [plusPercent, setPlusPercent] = useState(DEFAULTS.plusPercent);
   const [extra, setExtra] = useState(DEFAULTS.extra);
 
-  /* ── Compute payoff: minimum only ────────────────────── */
-  const minOnlyResult = useMemo(
-    () => simulatePayoff(balance, apr, minType, minFixed, minPercent, minFloor, 0),
-    [balance, apr, minType, minFixed, minPercent, minFloor]
+  const baseInputs = useMemo(
+    () => ({
+      balance,
+      aprPercent: apr,
+      mode: minType,
+      fixedPayment: minFixed,
+      percentOfBalance: minType === 'interestPlus' ? plusPercent : minPercent,
+      floor: minFloor,
+    }),
+    [balance, apr, minType, minFixed, minPercent, plusPercent, minFloor]
   );
 
-  /* ── Compute payoff: with extra payments ─────────────── */
-  const withExtraResult = useMemo(
-    () => simulatePayoff(balance, apr, minType, minFixed, minPercent, minFloor, extra),
-    [balance, apr, minType, minFixed, minPercent, minFloor, extra]
-  );
+  const minOnlyResult = useMemo(() => simulateCardPayoff({ ...baseInputs, extra: 0 }), [baseInputs]);
+  const withExtraResult = useMemo(() => simulateCardPayoff({ ...baseInputs, extra }), [baseInputs, extra]);
 
   const hasExtra = extra > 0;
-  const interestSaved = minOnlyResult.totalInterest - withExtraResult.totalInterest;
-  const monthsSaved = minOnlyResult.months - withExtraResult.months;
   const activeResult = hasExtra ? withExtraResult : minOnlyResult;
-  const isNeverPaidOff = activeResult.months >= 1200;
+  const bothPaid = minOnlyResult.status === 'paid' && withExtraResult.status === 'paid';
+  const interestSaved = bothPaid ? minOnlyResult.totalInterest - withExtraResult.totalInterest : 0;
+  const monthsSaved = bothPaid ? minOnlyResult.months - withExtraResult.months : 0;
+  const stopGrowth = paymentToStopGrowth(balance, apr);
+  const clearIn5 = paymentToClearIn(balance, apr, 60);
 
-  /* ── Year groups for schedule table ──────────────────── */
-  const yearGroups = useMemo(
-    () => buildYearGroups(activeResult.schedule, balance),
-    [activeResult.schedule, balance]
-  );
+  /* -- Schedule table and chart follow a frame behind slider drags -- */
+  const deferredActive = useDeferredValue(activeResult);
+  const deferredMin = useDeferredValue(minOnlyResult);
+  const deferredExtra = useDeferredValue(withExtraResult);
+  const deferredHasExtra = useDeferredValue(hasExtra);
+  const yearGroups = useMemo(() => buildYearGroups(deferredActive.schedule), [deferredActive]);
 
-  /* ── Chart data: min-only vs with-extra ──────────────── */
+  const lines = useMemo(() => {
+    const out: Array<{ key: string; tone: 'primary' | 'comparison'; result: CardPayoffResult }> = [];
+    if (deferredMin.schedule.length > 0) out.push({ key: 'Minimum only', tone: 'comparison', result: deferredMin });
+    if (deferredHasExtra && deferredExtra.schedule.length > 0) out.push({ key: 'With extra', tone: 'primary', result: deferredExtra });
+    return out;
+  }, [deferredMin, deferredExtra, deferredHasExtra]);
+
   const chartData = useMemo(() => {
-    const maxLen = Math.max(minOnlyResult.schedule.length, withExtraResult.schedule.length);
-    // Cap at 600 for display (50 years)
-    const cappedMax = Math.min(maxLen, 600);
-    const data: Array<{ month: number; 'Minimum Only': number; 'With Extra': number }> = [];
-
-    const interval = cappedMax > 120 ? 6 : cappedMax > 60 ? 3 : 1;
-
-    for (let i = 0; i < cappedMax; i += interval) {
-      const minVal = minOnlyResult.schedule[i]?.balance ?? 0;
-      const extraVal = withExtraResult.schedule[i]?.balance ?? 0;
-      data.push({
-        month: i + 1,
-        'Minimum Only': Math.round(minVal),
-        'With Extra': hasExtra ? Math.round(extraVal) : Math.round(minVal),
-      });
-    }
-
-    // Ensure last point included
-    if (cappedMax > 0) {
-      const lastIdx = cappedMax - 1;
-      const lastMonth = lastIdx + 1;
-      if (data.length === 0 || data[data.length - 1].month !== lastMonth) {
-        data.push({
-          month: lastMonth,
-          'Minimum Only': Math.round(minOnlyResult.schedule[lastIdx]?.balance ?? 0),
-          'With Extra': hasExtra
-            ? Math.round(withExtraResult.schedule[lastIdx]?.balance ?? 0)
-            : Math.round(minOnlyResult.schedule[lastIdx]?.balance ?? 0),
-        });
-      }
-    }
-
+    const maxLen = Math.max(0, ...lines.map((l) => l.result.schedule.length));
+    const interval = maxLen > 120 ? 6 : maxLen > 60 ? 3 : 1;
+    const row = (i: number) => {
+      const point: Record<string, number> = { month: i + 1 };
+      for (const l of lines) point[l.key] = Math.round(l.result.schedule[i]?.balance ?? 0);
+      return point;
+    };
+    const data: Array<Record<string, number>> = [];
+    for (let i = 0; i < maxLen; i += interval) data.push(row(i));
+    if (maxLen > 0 && data[data.length - 1].month !== maxLen) data.push(row(maxLen - 1));
     return data;
-  }, [minOnlyResult, withExtraResult, hasExtra]);
+  }, [lines]);
 
-  /* ── Current monthly payment display ─────────────────── */
-  const currentMinPayment = useMemo(() => {
-    if (minType === 'fixed') return minFixed;
-    return Math.max(balance * (minPercent / 100), minFloor);
-  }, [balance, minType, minFixed, minPercent, minFloor]);
+  const tableRows = useMemo(() => {
+    const maxLen = Math.max(0, ...lines.map((l) => l.result.schedule.length));
+    const rows: Array<Record<string, unknown>> = [];
+    for (let year = 1; year * 12 <= maxLen + 11; year++) {
+      const idx = Math.min(year * 12, maxLen) - 1;
+      const r: Record<string, unknown> = { year };
+      for (const l of lines) r[l.key] = l.result.schedule[idx]?.balance ?? 0;
+      rows.push(r);
+    }
+    return rows;
+  }, [lines]);
 
-  /* ── Handlers ────────────────────────────────────────── */
+  /* -- Current payment display -------------------------------- */
+  const firstPayment = activeResult.status === 'noBalance' ? 0 : activeResult.firstPayment;
+  const paymentLabel = minType === 'fixed' ? 'Monthly Payment' : 'First Payment';
+
+  /* -- Handlers --------------------------------------------- */
   const handleReset = useCallback(() => {
     setBalance(DEFAULTS.balance);
     setApr(DEFAULTS.apr);
     setMinType(DEFAULTS.minType);
     setMinFixed(DEFAULTS.minFixed);
     setMinPercent(DEFAULTS.minPercent);
+    setPlusPercent(DEFAULTS.plusPercent);
     setExtra(DEFAULTS.extra);
   }, []);
 
@@ -379,38 +317,58 @@ export default function CreditCardPayoffCalc() {
       { label: 'Credit Card Balance', value: fmt(balance) },
       { label: 'Annual Interest Rate (APR)', value: `${apr}%` },
     ];
-    if (minType === 'fixed') {
-      inputs.push({ label: 'Minimum Payment (Fixed)', value: fmt(minFixed) });
-    } else {
-      inputs.push({ label: 'Minimum Payment (%)', value: `${minPercent}% (min ${fmt(minFloor)})` });
-    }
+    if (minType === 'fixed') inputs.push({ label: 'Minimum Payment (Fixed)', value: fmt(minFixed) });
+    else if (minType === 'percentage') inputs.push({ label: 'Minimum Payment', value: `${minPercent}% of balance (min ${fmt(minFloor)})` });
+    else inputs.push({ label: 'Minimum Payment', value: `Interest + ${plusPercent}% of balance (min ${fmt(minFloor)})` });
     inputs.push({ label: 'Extra Monthly Payment', value: fmt(extra) });
     return inputs;
-  }, [balance, apr, minType, minFixed, minPercent, minFloor, extra, currency]);
+  }, [balance, apr, minType, minFixed, minPercent, plusPercent, minFloor, extra, currency]);
 
   const getResults = useCallback((): ResultItem[] => {
-    const results: ResultItem[] = [
-      { label: 'Paid Off In', value: formatMonths(activeResult.months), highlight: true },
-      { label: 'Total Interest', value: fmt(activeResult.totalInterest) },
-      { label: 'Total Amount Paid', value: fmt(activeResult.totalPaid) },
-    ];
-    if (hasExtra && interestSaved > 0) {
-      results.push({ label: 'Interest Saved', value: fmt(interestSaved) });
+    const r = activeResult;
+    if (r.status === 'never') {
+      return [
+        { label: 'Paid Off In', value: 'Never - the payment does not cover the interest', highlight: true },
+        { label: 'Interest Charged in Month 1', value: cents(r.firstMonthInterest) },
+        { label: 'Your Payment', value: cents(r.firstPayment) },
+        { label: 'Payment Needed to Reduce the Balance', value: `At least ${fmt(stopGrowth)}/mo` },
+        { label: 'Payment to Clear in 5 Years', value: `${fmt(clearIn5)}/mo` },
+      ];
     }
+    if (r.status === 'beyondHorizon') {
+      return [
+        { label: 'Paid Off In', value: `Not within ${HORIZON_YEARS} years`, highlight: true },
+        { label: `Interest Paid in ${HORIZON_YEARS} Years`, value: fmt(r.totalInterest) },
+        { label: `Still Owed After ${HORIZON_YEARS} Years`, value: fmt(r.remainingBalance) },
+        { label: 'Payment to Clear in 5 Years', value: `${fmt(clearIn5)}/mo` },
+      ];
+    }
+    const results: ResultItem[] = [
+      { label: 'Paid Off In', value: timeText(r), highlight: true },
+      { label: 'Total Interest', value: fmt(r.totalInterest) },
+      { label: 'Total Amount Paid', value: fmt(r.totalPaid) },
+    ];
+    if (hasExtra && interestSaved > 0) results.push({ label: 'Interest Saved', value: fmt(interestSaved) });
     return results;
-  }, [activeResult, interestSaved, hasExtra, currency]);
+  }, [activeResult, interestSaved, hasExtra, stopGrowth, clearIn5, currency]);
 
-  const animatedMonths = useAnimatedNumber(activeResult.months);
+  const animatedMonths = useAnimatedNumber(activeResult.status === 'paid' ? activeResult.months : 0);
+  const headlineLabel = hasExtra ? 'Paid Off In (with extra payments)' : 'Paid Off In';
+  const headline = activeResult.status === 'paid' ? formatMonthsLong(Math.round(animatedMonths)) : timeText(activeResult);
+  const liveText =
+    activeResult.status === 'never'
+      ? 'Never paid off: the payment does not cover the interest.'
+      : activeResult.status === 'beyondHorizon'
+        ? `Not paid off within ${HORIZON_YEARS} years.`
+        : `Paid off in ${timeText(activeResult)}.`;
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
-        {/* ── Input Panel ──────────────────────────────── */}
+        {/* -- Input Panel -- */}
         <div className="p-6 lg:p-8 lg:border-r border-neutral-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
-              Inputs
-            </h2>
+            <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Inputs</h2>
             <button
               onClick={handleReset}
               className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
@@ -452,40 +410,27 @@ export default function CreditCardPayoffCalc() {
               formatDisplay={(v) => v.toFixed(2)}
             />
 
-            {/* ── Minimum Payment Type Toggle ─────────── */}
+            {/* -- Minimum Payment Type -- */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Minimum Payment Type
-              </label>
-              <div className="inline-flex rounded-lg bg-neutral-100 p-1" role="radiogroup" aria-label="Minimum payment type">
-                <button
-                  role="radio"
-                  aria-checked={minType === 'fixed'}
-                  onClick={() => setMinType('fixed')}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                    minType === 'fixed'
-                      ? 'bg-white text-neutral-900 shadow-sm'
-                      : 'text-neutral-500 hover:text-neutral-700'
-                  }`}
-                >
-                  Fixed Amount
-                </button>
-                <button
-                  role="radio"
-                  aria-checked={minType === 'percentage'}
-                  onClick={() => setMinType('percentage')}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                    minType === 'percentage'
-                      ? 'bg-white text-neutral-900 shadow-sm'
-                      : 'text-neutral-500 hover:text-neutral-700'
-                  }`}
-                >
-                  % of Balance
-                </button>
+              <p id="cc-mode-label" className="block text-sm font-medium text-neutral-700 mb-2">Minimum Payment Type</p>
+              <div className="inline-flex flex-wrap rounded-lg bg-neutral-100 p-1" role="group" aria-labelledby="cc-mode-label">
+                {MODE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    aria-pressed={minType === opt.value}
+                    onClick={() => setMinType(opt.value)}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                      minType === opt.value ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {minType === 'fixed' ? (
+            {minType === 'fixed' && (
               <SliderInput
                 label="Minimum Payment"
                 hint="Fixed monthly minimum payment amount"
@@ -500,10 +445,11 @@ export default function CreditCardPayoffCalc() {
                 prefix={currencySymbol}
                 formatDisplay={(v) => formatNumber(v)}
               />
-            ) : (
+            )}
+            {minType === 'percentage' && (
               <SliderInput
                 label="Minimum Payment Percentage"
-                hint={`Percentage of balance (min ${currencySymbol}${minFloor} floor)`}
+                hint={`A share of the balance, never less than ${currencySymbol}${minFloor}. It falls as the balance falls.`}
                 id="cc-min-pct"
                 value={minPercent}
                 min={1}
@@ -514,11 +460,25 @@ export default function CreditCardPayoffCalc() {
                 formatDisplay={(v) => v.toFixed(1)}
               />
             )}
+            {minType === 'interestPlus' && (
+              <SliderInput
+                label="Percentage of Balance (plus interest)"
+                hint={`The month's interest plus this share of the balance, never less than ${currencySymbol}${minFloor}. UK rules require at least interest + 1%.`}
+                id="cc-min-plus"
+                value={plusPercent}
+                min={1}
+                max={5}
+                step={0.5}
+                onChange={setPlusPercent}
+                suffix="%"
+                formatDisplay={(v) => v.toFixed(1)}
+              />
+            )}
           </div>
 
-          {/* ── Extra Monthly Payment ──────────────────── */}
+          {/* -- Extra Monthly Payment -- */}
           <div className="mt-6 pt-5">
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
+            <div className="h-px bg-neutral-200/80 mb-5" />
             <SliderInput
               label="Extra Monthly Payment"
               hint="Additional amount above your minimum payment"
@@ -538,137 +498,110 @@ export default function CreditCardPayoffCalc() {
             </p>
           </div>
 
-          {/* ── Summary stats ──────────────────────────── */}
+          {/* -- Summary stats -- */}
           <div className="mt-5 pt-5">
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
+            <div className="h-px bg-neutral-200/80 mb-5" />
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white rounded-lg border border-neutral-200/80 p-3 flex items-start gap-3 min-w-0 overflow-hidden">
                 <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                   <CreditCard size={16} aria-hidden="true" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-neutral-500 mb-0.5">Balance</p>
-                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                    {fmt(balance)}
-                  </p>
+                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">{fmt(balance)}</p>
                 </div>
               </div>
               <div className="bg-white rounded-lg border border-neutral-200/80 p-3 flex items-start gap-3 min-w-0 overflow-hidden">
                 <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                   <DollarSign size={16} aria-hidden="true" />
                 </div>
-                <div>
-                  <p className="text-xs text-neutral-500 mb-0.5">Monthly Payment</p>
-                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                    {fmt(currentMinPayment + extra)}/mo
-                  </p>
+                <div className="min-w-0">
+                  <p className="text-xs text-neutral-500 mb-0.5">{paymentLabel}</p>
+                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">{fmt(firstPayment)}/mo</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── Results Panel ──────────────────────────────── */}
-        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite">
-          {/* ── Big Number: Time to Payoff ──────────────── */}
+        {/* -- Results Panel -- */}
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start">
+          <LiveResult text={liveText} />
+          {/* -- Big Number: Time to Payoff -- */}
           <div data-pdf-section className="mb-6">
-            <p className="text-sm text-neutral-500 mb-1">
-              {hasExtra ? 'Paid Off In (with extra payments)' : 'Paid Off In'}
+            <p className="text-sm text-neutral-500 mb-1">{headlineLabel}</p>
+            <p
+              data-headline-result
+              data-headline-label={headlineLabel}
+              className={`text-3xl sm:text-4xl font-bold tabular-nums ${activeResult.status === 'paid' ? 'result-number' : 'text-red-600'}`}
+            >
+              {headline}
             </p>
-            <p data-headline-result data-headline-label={hasExtra ? 'Paid Off In (with extra payments)' : 'Paid Off In'} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {isNeverPaidOff ? '100+ years' : formatMonths(Math.round(animatedMonths))}
-            </p>
-            <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              Paying {fmt(currentMinPayment + extra)}/mo on a {fmt(balance)} balance at {apr}% APR
-            </p>
+            {activeResult.status === 'never' ? (
+              <p className="text-sm text-neutral-600 mt-1.5 leading-relaxed">
+                The {cents(activeResult.firstPayment)} payment doesn't cover the {cents(activeResult.firstMonthInterest)}/mo
+                interest, so the balance never goes down. Pay at least {fmt(stopGrowth)}/mo to start reducing it;{' '}
+                {fmt(clearIn5)}/mo clears it in 5 years.
+              </p>
+            ) : activeResult.status === 'beyondHorizon' ? (
+              <p className="text-sm text-neutral-600 mt-1.5 leading-relaxed">
+                Not repaid within {HORIZON_YEARS} years: after {HORIZON_YEARS} years you would still owe{' '}
+                {fmt(activeResult.remainingBalance)}, having paid {fmt(activeResult.totalInterest)} in interest.{' '}
+                {fmt(clearIn5)}/mo clears it in 5 years.
+              </p>
+            ) : (
+              <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
+                Paying {fmt(firstPayment)}/mo{minType === 'fixed' ? '' : ' at first'} on a {fmt(balance)} balance at {apr}% APR
+              </p>
+            )}
           </div>
 
-          {/* ── Comparison Cards ────────────────────────── */}
+          {/* -- Comparison Cards -- */}
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            {/* Minimum Only Card */}
-            <div className={`rounded-xl border p-4 transition-all duration-200 ${
-              !hasExtra
-                ? 'bg-white border-primary-300 shadow-sm ring-1 ring-primary-200/50'
-                : 'bg-white border-neutral-200/80'
-            }`}>
-              <div className="flex items-center gap-1.5 mb-3">
-                <Clock size={14} className="text-neutral-500" aria-hidden="true" />
-                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                  Minimum Only
-                </p>
+            <PlanCard
+              title="Minimum Only"
+              icon={<Clock size={14} className="text-neutral-500" aria-hidden="true" />}
+              result={minOnlyResult}
+              active={!hasExtra}
+              cc={currency}
+            />
+            {hasExtra ? (
+              <PlanCard
+                title="With Extra"
+                icon={<TrendingDown size={14} className="text-primary-600" aria-hidden="true" />}
+                result={withExtraResult}
+                active
+                cc={currency}
+              />
+            ) : (
+              <div className="rounded-xl border p-4 bg-white border-neutral-200/80">
+                <div className="flex items-center gap-1.5 mb-3">
+                  <TrendingDown size={14} className="text-neutral-500" aria-hidden="true" />
+                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">With Extra</p>
+                </div>
+                <p className="text-xs text-neutral-500 leading-relaxed">Add an extra monthly payment above to see the savings</p>
               </div>
-              <div className="space-y-2">
-                <div>
-                  <p className="text-xs text-neutral-500">Time to Payoff</p>
-                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                    {formatMonths(minOnlyResult.months)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500">Total Interest</p>
-                  <p className="text-sm font-semibold text-red-600 tabular-nums">
-                    {fmt(minOnlyResult.totalInterest)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500">Total Paid</p>
-                  <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                    {fmt(minOnlyResult.totalPaid)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* With Extra Card */}
-            <div className={`rounded-xl border p-4 transition-all duration-200 ${
-              hasExtra
-                ? 'bg-white border-emerald-300 shadow-sm ring-1 ring-emerald-200/50'
-                : 'bg-white border-neutral-200/80 opacity-60'
-            }`}>
-              <div className="flex items-center gap-1.5 mb-3">
-                <TrendingDown size={14} className="text-emerald-600" aria-hidden="true" />
-                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                  With Extra
-                </p>
-              </div>
-              {hasExtra ? (
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-xs text-neutral-500">Time to Payoff</p>
-                    <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                      {formatMonths(withExtraResult.months)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-neutral-500">Total Interest</p>
-                    <p className="text-sm font-semibold text-red-600 tabular-nums">
-                      {fmt(withExtraResult.totalInterest)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-neutral-500">Total Paid</p>
-                    <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                      {fmt(withExtraResult.totalPaid)}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-xs text-neutral-500 leading-relaxed">
-                  Add an extra monthly payment above to see the savings
-                </p>
-              )}
-            </div>
+            )}
           </div>
 
-          {/* ── Savings / Minimum Payment Trap Banner ──── */}
-          {hasExtra && interestSaved > 0 ? (
-            <div data-pdf-section className="mb-6 rounded-xl bg-gradient-to-r from-primary-50 to-emerald-50 border border-primary-200/60 p-4">
+          {/* -- Savings / Minimum Payment Trap Banner -- */}
+          {hasExtra && bothPaid && interestSaved > 0 ? (
+            <div data-pdf-section className="mb-6 rounded-xl bg-primary-50 border border-primary-200/60 p-4">
               <p className="text-sm font-medium text-primary-900">
                 Adding <span className="font-bold">{fmt(extra)}/mo</span> extra saves you{' '}
                 <span className="font-bold text-success-600">{fmt(interestSaved)}</span> in interest
                 {monthsSaved > 0 && (
-                  <> and pays off <span className="font-bold">{formatMonths(monthsSaved)}</span> sooner</>
+                  <> and pays off <span className="font-bold">{formatMonthsLong(monthsSaved)}</span> sooner</>
                 )}
+              </p>
+            </div>
+          ) : hasExtra && withExtraResult.status === 'paid' ? (
+            <div data-pdf-section className="mb-6 rounded-xl bg-primary-50 border border-primary-200/60 p-4">
+              <p className="text-sm font-medium text-primary-900">
+                With <span className="font-bold">{fmt(extra)}/mo</span> extra you are debt-free in{' '}
+                <span className="font-bold">{formatMonthsLong(withExtraResult.months)}</span>, paying{' '}
+                {fmt(withExtraResult.totalInterest)} in interest. The minimum alone{' '}
+                {minOnlyResult.status === 'never' ? 'never clears this balance.' : `does not clear it within ${HORIZON_YEARS} years.`}
               </p>
             </div>
           ) : (
@@ -676,13 +609,30 @@ export default function CreditCardPayoffCalc() {
               <div className="flex items-start gap-2.5">
                 <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
-                  <p className="text-sm font-semibold text-amber-900 mb-1">The Minimum Payment Trap</p>
+                  <p className="text-sm font-semibold text-amber-800 mb-1">The Minimum Payment Trap</p>
                   <p className="text-xs text-amber-800 leading-relaxed">
-                    Making only minimum payments on a {fmt(balance)} balance at {apr}% costs{' '}
-                    <span className="font-bold">{fmt(minOnlyResult.totalInterest)}</span> in interest and takes{' '}
-                    <span className="font-bold">{formatMonths(minOnlyResult.months)}</span> to pay off.
-                    {minOnlyResult.months > 12 && (
+                    {minOnlyResult.status === 'paid' && (
+                      <>
+                        Making only minimum payments on a {fmt(balance)} balance at {apr}% costs{' '}
+                        <span className="font-bold">{fmt(minOnlyResult.totalInterest)}</span> in interest and takes{' '}
+                        <span className="font-bold">{formatMonthsLong(minOnlyResult.months)}</span> to pay off.
+                      </>
+                    )}
+                    {minOnlyResult.status === 'never' && (
+                      <>Minimum payments on a {fmt(balance)} balance at {apr}% never clear it: the interest grows faster than you pay.</>
+                    )}
+                    {minOnlyResult.status === 'beyondHorizon' && (
+                      <>
+                        Minimum payments on a {fmt(balance)} balance at {apr}% do not clear it within {HORIZON_YEARS} years; you
+                        would pay {fmt(minOnlyResult.totalInterest)} in interest over that time and still owe{' '}
+                        {fmt(minOnlyResult.remainingBalance)}.
+                      </>
+                    )}
+                    {(minOnlyResult.status !== 'paid' || minOnlyResult.months > 12) && (
                       <> Try adding even {fmt(50)}/mo extra to see the difference.</>
+                    )}
+                    {hasExtra && withExtraResult.status !== 'paid' && (
+                      <> Even with {fmt(extra)}/mo extra it is {withExtraResult.status === 'never' ? 'never repaid' : `not repaid within ${HORIZON_YEARS} years`}.</>
                     )}
                   </p>
                 </div>
@@ -696,65 +646,39 @@ export default function CreditCardPayoffCalc() {
             <ExportPdfButton toolName="Credit Card Payoff Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          {/* ── Balance Over Time Chart ─────────────────── */}
+          {/* -- Balance Over Time Chart -- */}
           {chartData.length > 1 && (
             <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
-              <h3 className="text-sm font-medium text-neutral-700 mb-3">
-                Balance Over Time
-              </h3>
+              <h3 className="text-sm font-medium text-neutral-700 mb-3">Balance Over Time</h3>
               <div className="h-56 sm:h-64">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                    <CartesianGrid stroke={ct.grid} vertical={false} />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                      tickLine={false}
-                      axisLine={{ stroke: ct.axis }}
-                      interval="preserveStartEnd"
-                      minTickGap={24}
-                      label={{ value: 'Months', position: 'insideBottomRight', offset: -5, style: { fontSize: 11, fill: ct.axisText } }}
-                    />
-                    <YAxis
-                      tickFormatter={(v: number) => { const s = currency === 'GBP' ? '\u00A3' : currency === 'EUR' ? '\u20AC' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={60}
-                    />
-                    <Tooltip content={<ChartTooltip labelPrefix="Month" formatValue={fmt} />} />
-                    <Line
-                      type="monotone"
-                      dataKey="Minimum Only"
-                      stroke={ct.series2}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 4 }}
-                      animationDuration={600}
-                    />
-                    {hasExtra && (
-                      <Line
-                        type="monotone"
-                        dataKey="With Extra"
-                        stroke={ct.series1}
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                        animationDuration={600}
-                      />
-                    )}
-                  </LineChart>
-                </ResponsiveContainer>
+                <Suspense fallback={<ChartSkeleton height="100%" />}>
+                  <DebtBalanceChart
+                    data={chartData}
+                    lines={lines.map(({ key, tone }) => ({ key, tone }))}
+                    currency={currency}
+                    ariaLabel="Line chart of the remaining card balance by month; use Show data for the figures by year."
+                  />
+                </Suspense>
               </div>
+              {lines.some((l) => l.result.status === 'beyondHorizon') && (
+                <p className="text-xs text-neutral-500 mt-2">The chart and schedule stop at {HORIZON_YEARS} years.</p>
+              )}
+              <ChartDataTable
+                className="mt-3"
+                caption="Remaining balance at the end of each year"
+                columns={[
+                  { key: 'year', label: 'Year', numeric: true },
+                  ...lines.map((l) => ({ key: l.key, label: l.key, format: (v: unknown) => formatMoneyGuarded(Number(v), currency) })),
+                ]}
+                rows={tableRows}
+              />
             </div>
           )}
 
-          {/* ── Payoff Schedule Table ───────────────────── */}
+          {/* -- Payoff Schedule Table -- */}
           {yearGroups.length > 0 && (
             <div data-pdf-section>
-              <h3 className="text-sm font-medium text-neutral-700 mb-3">
-                Payoff Schedule
-              </h3>
+              <h3 className="text-sm font-medium text-neutral-700 mb-3">Payoff Schedule</h3>
               <ScheduleTable yearGroups={yearGroups} cc={currency} />
             </div>
           )}
