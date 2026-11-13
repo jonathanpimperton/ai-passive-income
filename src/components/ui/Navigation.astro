@@ -292,18 +292,23 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
 </div>
 
 <style>
-  /* Focusing anything in the sticky header must never scroll the page: the
-     global scroll-padding-top plus a sticky element made Chromium scroll a
-     focused header control to the middle of the padded viewport (~400px jump
-     on menu, search and theme buttons). A huge negative scroll margin means
-     "already in view". */
+  /* Focusing anything in the sticky header must never scroll the page. The
+     global scroll-padding-top (80px, so content is not hidden under the
+     sticky header) makes Chromium treat a header control as hidden and scroll
+     it into the middle of the padded viewport: a ~400px jump on the menu,
+     search and theme buttons, and when typing in the search field.
+     Two states, because each fix alone leaves a gap (measured in Chromium):
+     - focus inside the header: nothing to keep clear of, so the padding is
+       dropped (programmatic focus, Tab, Shift+Tab and typing move 0px; a
+       negative margin on top of zero padding would nudge the page 11-14px);
+     - focus elsewhere: a large negative scroll margin says "already in view",
+       so tools that scroll a control into view before clicking it (test
+       runners, voice control) leave the page where it is. */
+  :global(html:has(.site-header:focus-within)) { scroll-padding-top: 0; }
   :global(.site-header),
   :global(.site-header *) { scroll-margin-block: -100vh; }
-  /* Text fields reveal their caret with a separate scroll that ignores
-     scroll-margin but applies the global scroll-padding-top (80px): while
-     focus is in the header, drop that padding so typing in the header search
-     never scrolls the page (class set by the script below) */
-  :global(html.header-focus) { scroll-padding-top: 0; }
+  :global(.site-header:focus-within),
+  :global(.site-header:focus-within *) { scroll-margin-block: 0; }
 
   /* ── Desktop menus ── */
   .nav-trigger,
@@ -485,15 +490,6 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
 </style>
 
 <script>
-  /* ── Focus inside the sticky header must not scroll the page (see the style above) ── */
-  const siteHeader = document.getElementById('site-header');
-  siteHeader?.addEventListener('focusin', () => document.documentElement.classList.add('header-focus'));
-  siteHeader?.addEventListener('focusout', () => {
-    setTimeout(() => {
-      if (!siteHeader.contains(document.activeElement)) document.documentElement.classList.remove('header-focus');
-    }, 0);
-  });
-
   /* ── Desktop menus: click, hover, keyboard ── */
   const items = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-item]'));
   const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -648,10 +644,10 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
       const last = focusable[focusable.length - 1];
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
-        last.focus();
+        last.focus({ preventScroll: true });
       } else if (!e.shiftKey && document.activeElement === last) {
         e.preventDefault();
-        first.focus();
+        first.focus({ preventScroll: true });
       }
     }
   });
