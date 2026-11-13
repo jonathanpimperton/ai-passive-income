@@ -46,9 +46,15 @@ test.describe('Homepage', () => {
     await page.waitForLoadState('networkidle');
 
     expect(
-      await page.evaluate(() => document.documentElement.classList.contains('intro-seen'))
-    ).toBe(true);
-    await expect(page.locator('#track')).toBeHidden();
+      await page.evaluate(() => {
+        const c = document.documentElement.classList;
+        return { seen: c.contains('intro-seen'), play: c.contains('intro-play') };
+      })
+    ).toEqual({ seen: true, play: false });
+    // Outside intro mode #track is not a box (display: contents; the compact hero inside it
+    // stays in normal flow), so check that the theater itself is off rather than the track.
+    expect(await page.locator('#track').evaluate((el) => getComputedStyle(el).display)).toBe('contents');
+    await expect(page.locator('section.chapter').first()).toBeHidden();
     await expect(page.locator('#daylight-title')).toBeVisible();
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
     // The replay control is offered
