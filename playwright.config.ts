@@ -14,6 +14,10 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4321',
     headless: true,
+    // The specs assume a US visitor (USD results). The display currency now defaults
+    // from the visitor's region, so pin one rather than inherit the machine's zone.
+    timezoneId: 'America/New_York',
+    locale: 'en-US',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     // Analytics must never be reached from tests (plan 2.4): the pages carry the
