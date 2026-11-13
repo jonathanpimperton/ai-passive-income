@@ -1,0 +1,433 @@
+---
+/**
+ * Site search combobox (HOME-CHROME-05, A11Y-PERF-10).
+ *
+ * One widget, two placements:
+ * - variant "header": a visible field on wide screens; on narrow screens a
+ *   search button that opens the field in a bar under the header.
+ * - variant "page": a full-width field (the 404 page).
+ *
+ * ARIA 1.2 combobox: the input owns a listbox of results; Up/Down move the
+ * active option, Enter opens it (or the top result), Escape closes the list
+ * (and then the narrow-screen bar), Tab leaves. A polite status line says how
+ * many results there are. Results are real links (role=option), so middle-
+ * and Ctrl-click still open a new tab.
+ *
+ * The index (/search-index.json, built from the site's own data) and the
+ * ranking code load on first use only. Queries never leave the browser.
+ * Without JavaScript the widget is hidden (html.js gates it).
+ */
+interface Props {
+  /** Unique id prefix for this instance */
+  id: string;
+  variant?: 'header' | 'page';
+  placeholder?: string;
+}
+
+const { id, variant = 'header', placeholder = 'Search calculators and guides' } = Astro.props;
+const inputId = `${id}-input`;
+const listId = `${id}-listbox`;
+const panelId = `${id}-panel`;
+---
+
+<div class:list={['site-search', `site-search--${variant}`]} data-site-search={id} data-variant={variant} role="search">
+  {variant === 'header' && (
+    <button
+      type="button"
+      class="search-toggle w-11 h-11 items-center justify-center rounded-lg text-neutral-500 hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150"
+      aria-label="Search"
+      aria-expanded="false"
+      aria-controls={panelId}
+      data-search-toggle
+    >
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+  )}
+  <div class="search-panel" id={panelId} data-search-panel>
+    <label for={inputId} class="sr-only">Search calculators and guides</label>
+    <div class="search-field">
+      <svg class="search-field-icon w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input
+        type="search"
+        id={inputId}
+        class="search-input"
+        role="combobox"
+        aria-expanded="false"
+        aria-controls={listId}
+        aria-autocomplete="list"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="go"
+        placeholder={placeholder}
+        data-search-input
+      />
+    </div>
+    <div class="search-results" data-search-results>
+      <ul id={listId} role="listbox" aria-label="Search results" data-search-list></ul>
+      <p class="search-message" data-search-message></p>
+    </div>
+    <p class="sr-only" role="status" aria-live="polite" data-search-status></p>
+  </div>
+</div>
+
+<style>
+  /* Hidden without JavaScript: nothing here works without it */
+  .site-search { display: none; position: static; }
+  :global(html.js) .site-search { display: block; }
+
+  .search-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-field-icon {
+    position: absolute;
+    left: 0.75rem;
+    color: var(--color-neutral-500);
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    height: 2.5rem;
+    padding: 0 0.75rem 0 2.25rem;
+    font-size: 1rem; /* 16px: no iOS zoom on focus */
+    color: var(--color-neutral-900);
+    background: var(--color-surface);
+    border: 1px solid var(--color-neutral-200);
+    border-radius: 0.5rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .search-input::placeholder { color: var(--color-neutral-500); }
+  .search-input:focus { outline: none; border-color: var(--color-primary-600); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-600) 22%, transparent); }
+  .search-input::-webkit-search-cancel-button { cursor: pointer; }
+
+  .search-results {
+    position: absolute;
+    z-index: 60;
+    background: var(--color-surface);
+    border: 1px solid var(--color-neutral-200);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-card-hover);
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 150ms ease, transform 150ms ease, visibility 0s linear 150ms;
+  }
+  .site-search.is-listing .search-results {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 150ms ease, transform 150ms ease, visibility 0s;
+  }
+  .search-results ul { list-style: none; margin: 0; padding: 0.375rem; }
+  .search-message { margin: 0; padding: 0.75rem 1rem; font-size: 0.875rem; color: var(--color-neutral-600); }
+  .search-message:empty { display: none; }
+  .search-message :global(a) { color: var(--color-primary-700); text-decoration: underline; text-underline-offset: 2px; }
+
+  .search-results :global(.search-option) {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    color: var(--color-neutral-900);
+    text-decoration: none;
+  }
+  .search-results :global(.search-option[aria-selected='true']),
+  .search-results :global(.search-option:hover) {
+    background: var(--color-primary-50);
+  }
+  .search-results :global(.search-option-title) { display: block; font-size: 0.9375rem; font-weight: 500; line-height: 1.35; }
+  .search-results :global(.search-option-meta) { display: block; margin-top: 0.125rem; font-size: 0.8125rem; color: var(--color-neutral-600); line-height: 1.35; }
+  .search-results :global(.search-group) { padding: 0.5rem 0.75rem 0.25rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-neutral-600); }
+
+  /* -- Header variant -- */
+  .search-toggle { display: inline-flex; }
+  .site-search--header .search-panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-neutral-200);
+    box-shadow: 0 8px 20px rgba(20, 22, 26, 0.08);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 150ms ease, transform 150ms ease, visibility 0s linear 150ms;
+  }
+  .site-search--header.is-open .search-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 150ms ease, transform 150ms ease, visibility 0s;
+  }
+  .site-search--header .search-results {
+    left: 1rem;
+    right: 1rem;
+    top: calc(100% - 0.25rem);
+    max-height: min(26rem, calc(100vh - 9rem));
+  }
+  @media (min-width: 1024px) {
+    .site-search--header { position: relative; }
+    .search-toggle { display: none; }
+    .site-search--header .search-panel,
+    .site-search--header.is-open .search-panel {
+      position: static;
+      padding: 0;
+      background: none;
+      border: 0;
+      box-shadow: none;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition: none;
+    }
+    .site-search--header .search-input { width: 15rem; height: 2.375rem; font-size: 0.9375rem; background: var(--color-bg); }
+    .site-search--header .search-results {
+      left: auto;
+      right: 0;
+      top: calc(100% + 0.5rem);
+      width: 24rem;
+      max-height: min(28rem, calc(100vh - 6rem));
+    }
+  }
+  @media (min-width: 1280px) {
+    .site-search--header .search-input { width: 17rem; }
+  }
+
+  /* -- Page variant (404) -- */
+  .site-search--page { position: relative; max-width: 32rem; margin-inline: auto; text-align: left; }
+  .site-search--page .search-input { height: 3rem; }
+  .site-search--page .search-results { left: 0; right: 0; top: calc(100% + 0.375rem); max-height: 22rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .search-results,
+    .site-search--header .search-panel { transition: none; transform: none; }
+  }
+</style>
+
+<script>
+  type Lib = typeof import('@lib/search-index');
+  type Entry = import('@lib/search-index').SearchEntry;
+
+  const POPULAR: Array<Pick<Entry, 't' | 'u' | 'k'>> = [
+    { t: 'UK Salary & Take-Home Calculator', u: '/tools/income-and-planning/salary-uk/', k: 'tool' },
+    { t: 'US Salary & Take-Home Calculator', u: '/tools/income-and-planning/salary-us/', k: 'tool' },
+    { t: 'Mortgage Payment Calculator', u: '/tools/debt-and-loans/mortgage-payment/', k: 'tool' },
+    { t: 'Compound Interest Calculator', u: '/tools/saving-and-growth/compound-interest/', k: 'tool' },
+    { t: 'Stamp Duty Calculator', u: '/tools/economic/stamp-duty/', k: 'tool' },
+    { t: 'PDF Compress', u: '/tools/file-tools/pdf-compress/', k: 'tool' },
+  ];
+
+  let loading: Promise<{ lib: Lib; index: ReturnType<Lib['prepareIndex']> }> | null = null;
+
+  /** Load the ranking code and the index once per page; failures are surfaced, then retried on next use. */
+  function load() {
+    if (!loading) {
+      loading = (async () => {
+        const [lib, res] = await Promise.all([import('@lib/search-index'), fetch('/search-index.json')]);
+        if (!res.ok) throw new Error(`index ${res.status}`);
+        const data = (await res.json()) as { entries: Entry[] };
+        return { lib, index: lib.prepareIndex(data.entries) };
+      })();
+      loading.catch(() => {
+        loading = null;
+      });
+    }
+    return loading;
+  }
+
+  function labelFor(e: Pick<Entry, 'k' | 'u'>): string {
+    if (e.k === 'tool') {
+      if (e.u.startsWith('/tools/file-tools/')) return 'File tool';
+      if (e.u.startsWith('/tools/utility/')) return 'Tool';
+      return 'Calculator';
+    }
+    return { hub: 'Table', row: 'Answer', scenario: 'Worked answer', comparison: 'Comparison', method: 'How we calculate', page: 'Page' }[e.k] || 'Page';
+  }
+
+  function bind(root: HTMLElement) {
+    const input = root.querySelector<HTMLInputElement>('[data-search-input]');
+    const list = root.querySelector<HTMLUListElement>('[data-search-list]');
+    const message = root.querySelector<HTMLElement>('[data-search-message]');
+    const status = root.querySelector<HTMLElement>('[data-search-status]');
+    const toggle = root.querySelector<HTMLButtonElement>('[data-search-toggle]');
+    if (!input || !list || !message || !status) return;
+    const prefix = root.dataset.siteSearch || 'search';
+    let options: HTMLAnchorElement[] = [];
+    let active = -1;
+    let seq = 0;
+
+    const setListing = (on: boolean) => {
+      root.classList.toggle('is-listing', on);
+      input.setAttribute('aria-expanded', on ? 'true' : 'false');
+      if (!on) setActive(-1);
+    };
+
+    function setActive(i: number) {
+      options.forEach((o, n) => o.setAttribute('aria-selected', n === i ? 'true' : 'false'));
+      active = i;
+      if (i >= 0 && options[i]) {
+        input!.setAttribute('aria-activedescendant', options[i].id);
+        options[i].scrollIntoView({ block: 'nearest' });
+      } else {
+        input!.removeAttribute('aria-activedescendant');
+      }
+    }
+
+    function render(items: Array<Pick<Entry, 't' | 'u' | 'k' | 'd'>>, heading: string | null) {
+      list!.textContent = '';
+      options = [];
+      if (heading) {
+        const h = document.createElement('li');
+        h.setAttribute('role', 'presentation');
+        h.className = 'search-group';
+        h.textContent = heading;
+        list!.appendChild(h);
+      }
+      items.forEach((e, n) => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'presentation');
+        const a = document.createElement('a');
+        a.href = e.u;
+        a.id = `${prefix}-opt-${n}`;
+        a.className = 'search-option';
+        a.setAttribute('role', 'option');
+        a.setAttribute('aria-selected', 'false');
+        a.tabIndex = -1;
+        a.dataset.astroPrefetch = 'false';
+        const title = document.createElement('span');
+        title.className = 'search-option-title';
+        title.textContent = e.t;
+        const meta = document.createElement('span');
+        meta.className = 'search-option-meta';
+        meta.textContent = e.d ? `${labelFor(e)} \u00b7 ${e.d}` : labelFor(e);
+        a.append(title, meta);
+        // Keep focus in the input while clicking a result
+        a.addEventListener('mousedown', (ev) => ev.preventDefault());
+        li.appendChild(a);
+        list!.appendChild(li);
+        options.push(a);
+      });
+      active = -1;
+      input!.removeAttribute('aria-activedescendant');
+    }
+
+    function showMessage(html: string) {
+      message!.innerHTML = html;
+    }
+
+    async function update() {
+      const q = input!.value;
+      const mine = ++seq;
+      if (!q.trim()) {
+        render(POPULAR, 'Popular');
+        showMessage('');
+        status!.textContent = 'Popular pages. Type to search.';
+        setListing(true);
+        return;
+      }
+      let ready;
+      try {
+        if (!loading) showMessage('Loading search\u2026');
+        ready = await load();
+      } catch {
+        if (mine !== seq) return;
+        render([], null);
+        showMessage('Search could not load. <a href="/tools/">Browse all tools</a> instead.');
+        status!.textContent = 'Search could not load.';
+        setListing(true);
+        return;
+      }
+      if (mine !== seq) return; // a newer keystroke won
+      const region = (window as unknown as { calcrunRegion?: string }).calcrunRegion;
+      const results = ready.lib.searchIndex(ready.index, q, { region, limit: 8 });
+      render(results, null);
+      if (results.length) {
+        showMessage('');
+        status!.textContent = `${results.length} result${results.length === 1 ? '' : 's'}. Use up and down arrows to choose.`;
+      } else {
+        showMessage('No matches. Try a shorter word, or <a href="/tools/">browse all tools</a>.');
+        status!.textContent = 'No matches.';
+      }
+      setListing(true);
+    }
+
+    const go = (a: HTMLAnchorElement) => {
+      window.location.href = a.href;
+    };
+
+    input.addEventListener('focus', () => {
+      void update();
+      void load().catch(() => undefined); // warm the index; errors show on typing
+    });
+    input.addEventListener('input', () => void update());
+    input.addEventListener('keydown', (e) => {
+      const open = root.classList.contains('is-listing');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!open) {
+          void update();
+          return;
+        }
+        if (options.length) setActive(active < options.length - 1 ? active + 1 : 0);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (open && options.length) setActive(active > 0 ? active - 1 : options.length - 1);
+      } else if (e.key === 'Enter') {
+        const target = options[active >= 0 ? active : 0];
+        if (open && target) {
+          e.preventDefault();
+          go(target);
+        }
+      } else if (e.key === 'Escape') {
+        if (open) {
+          e.preventDefault();
+          setListing(false);
+        } else if (toggle && root.classList.contains('is-open')) {
+          e.preventDefault();
+          closePanel(true);
+        }
+      } else if (e.key === 'Tab') {
+        setListing(false);
+      }
+    });
+
+    // Close when focus leaves the widget, or on an outside click
+    root.addEventListener('focusout', () => {
+      setTimeout(() => {
+        if (root.contains(document.activeElement)) return;
+        setListing(false);
+        if (toggle && root.classList.contains('is-open')) closePanel(false);
+      }, 0);
+    });
+    document.addEventListener('click', (e) => {
+      if (!root.contains(e.target as Node)) setListing(false);
+    });
+
+    // Narrow screens: the search button opens the field in a bar under the header
+    function openPanel() {
+      root.classList.add('is-open');
+      toggle!.setAttribute('aria-expanded', 'true');
+      input!.focus({ preventScroll: true });
+    }
+    function closePanel(restoreFocus: boolean) {
+      setListing(false);
+      root.classList.remove('is-open');
+      toggle!.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) toggle!.focus({ preventScroll: true });
+    }
+    toggle?.addEventListener('click', () => {
+      if (root.classList.contains('is-open')) closePanel(true);
+      else openPanel();
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-site-search]').forEach(bind);
+</script>

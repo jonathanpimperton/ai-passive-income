@@ -1,83 +1,175 @@
 ---
+/**
+ * Privacy policy and cookies (plan HO-7; HOME-CHROME-06, EDGE-17).
+ *
+ * Every statement here describes what the code does today:
+ * - analytics loader and consent: src/layouts/BaseLayout.astro (CONSENT_JS)
+ * - banner and Cookie settings: src/components/ui/CookieBanner.astro
+ * - browser storage keys: grep the codebase for "calcrun" keys before editing
+ * - email: worker.ts, EmailCapture.tsx, EmailResultsButton.tsx
+ * If any of those change, update this page in the same commit.
+ */
 import BaseLayout from '@layouts/BaseLayout.astro';
-import ToolIcon from '@components/ui/ToolIcon.astro';
 
-const sections = [
-  {
-    icon: 'mail',
-    title: 'Data We Collect',
-    content: '<strong>Email address only</strong> — and only if you choose to receive your calculator results via email. We never require an account, password, or any personal financial data.',
-  },
-  {
-    icon: 'calculator',
-    title: 'Calculator Data',
-    content: 'All calculations run client-side in your browser. We never see, store, or transmit the numbers you enter into our calculators. Your financial data stays on your device.',
-  },
-  {
-    icon: 'chart-line',
-    title: 'Analytics',
-    content: 'We use Google Analytics with anonymized IP addresses to understand how people use the site. We track page views, traffic sources, and device types. We do not track individual users, financial data, or personal information.',
-  },
-  {
-    icon: 'cookie',
-    title: 'Cookies',
-    content: 'We use analytics cookies to understand aggregate site usage. No advertising cookies, no tracking pixels, no third-party data sharing. You can decline analytics cookies via the cookie banner and the site works exactly the same — we just won\'t have analytics data for your visit.',
-  },
-  {
-    icon: 'lock',
-    title: 'Email Usage',
-    content: 'If you provide your email to receive calculator results, we use it solely for sending your requested calculator results and occasional educational content. Your email is never sold, shared, or given to third parties. Every email includes an unsubscribe link. We use MailerLite as our email provider.',
-  },
-  {
-    icon: 'external-link',
-    title: 'Affiliate Links',
-    content: 'We link to third-party financial products on some pages. When you click an affiliate link, that company\'s privacy policy applies. We do not share your data with affiliate partners.',
-  },
-  {
-    icon: 'shield-check',
-    title: 'Your Rights (GDPR/CCPA)',
-    content: 'You have the right to request deletion of your data, access the data we have about you, opt out of email communications at any time, and decline analytics cookies. For any privacy-related requests, contact us at hello@calcrun.com.',
-  },
-  {
-    icon: 'users',
-    title: 'Children\'s Privacy',
-    content: 'CalcRun is not directed at children under 13. We do not knowingly collect information from children under 13.',
-  },
-  {
-    icon: 'file-text',
-    title: 'Data Controller',
-    content: 'CalcRun is operated as a sole trader business based in the United Kingdom. For any data protection queries, privacy requests, or to exercise your rights under GDPR or CCPA, contact us at <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">hello@calcrun.com</a>. We aim to respond to all requests within 30 days.',
-  },
+const LAST_UPDATED = '12 November 2026';
+const GA_ID = 'G-K0ZB3P48QG';
+
+const storageKeys = [
+  { key: 'calcrun-cookie-consent', purpose: 'Your analytics choice ("accepted" or "declined"), so we do not ask again.', when: 'When you press Accept or Decline.' },
+  { key: 'calcrun.theme', purpose: 'Light or dark mode.', when: 'Only if you pick the opposite of your device setting.' },
+  { key: 'calcrun.currency', purpose: 'The currency you chose on calculators (USD, GBP or EUR).', when: 'When you change currency.' },
+  { key: 'calcrun.recentTools', purpose: 'Up to four tools you opened recently, for the "Recently used" links on the homepage.', when: 'When you open a calculator or tool page.' },
+  { key: 'calcrun.introSeen', purpose: 'That you have seen the homepage intro, so it does not play again.', when: 'On your first homepage visit.' },
+  { key: 'calcrun.usTaxYear', purpose: 'The tax year you picked on the US salary calculator (session storage: gone when you close the tab).', when: 'When you change the tax year.' },
 ];
 ---
 
 <BaseLayout
-  title="Privacy Policy | CalcRun"
-  description="CalcRun privacy policy. All calculations run in your browser. We never see, store, or transmit the numbers you enter."
+  title="Privacy Policy and Cookies | CalcRun"
+  description="How CalcRun handles your data: calculators run in your browser, Google Analytics rules by region, email, Cloudflare, and every item stored in your browser."
 >
-  {/* Page header */}
   <section class="border-b border-neutral-200/80 bg-bg">
     <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">Privacy Policy</h1>
-      <p class="mt-2 text-sm text-neutral-500">Last updated: February 2026</p>
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">Privacy policy and cookies</h1>
+      <p class="mt-2 text-sm text-neutral-600">Last updated: {LAST_UPDATED}</p>
     </div>
   </section>
 
-  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-    <div class="space-y-6">
-      {sections.map((section) => (
-        <section class="bg-white border border-neutral-200/80 rounded-xl p-5 sm:p-6 shadow-card">
-          <div class="flex items-start gap-3.5">
-            <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 text-primary-600 shrink-0 mt-0.5">
-              <ToolIcon name={section.icon} size={18} />
-            </div>
-            <div>
-              <h2 class="text-base font-bold text-neutral-900 mb-2">{section.title}</h2>
-              <p class="text-sm text-neutral-700 leading-relaxed" set:html={section.content} />
-            </div>
-          </div>
-        </section>
-      ))}
-    </div>
-  </div>
+  <article class="privacy max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <section aria-labelledby="summary">
+      <h2 id="summary">In short</h2>
+      <ul>
+        <li>There are no accounts. The calculators and file tools run in your browser.</li>
+        <li>We use Google Analytics to count visits. In the UK, the US and most other places it is on unless you decline. In the EEA, Switzerland and the rest of continental Europe it stays off unless you accept. You can change your choice at any time with <strong>Cookie settings</strong> at the bottom of every page.</li>
+        <li>We only have your email address if you give it to us, to receive results or the newsletter.</li>
+        <li>No advertising cookies, and we never sell your data.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="calculations">
+      <h2 id="calculations">The numbers and files you enter</h2>
+      <p>Calculators work out results in your browser. The numbers you type, and the files you open in the file tools, are not sent to us.</p>
+      <p>The one exception is <strong>Email my results</strong>: when you use it, the email address you enter and the inputs and results shown on that calculator are sent to our server and on to MailerSend, which sends the email, and your address also goes to MailerLite if you tick the newsletter box (see <a href="#email">Email</a>).</p>
+      <p>Site search also runs in your browser: it downloads a list of pages and matches it on your device, so we do not receive what you search for.</p>
+    </section>
+
+    <section aria-labelledby="analytics">
+      <h2 id="analytics">Analytics (Google Analytics 4)</h2>
+      <h3>When it runs</h3>
+      <ul>
+        <li><strong>UK, US and everywhere outside continental Europe:</strong> Google Analytics loads when you open a page. A banner tells you, and <strong>Decline</strong> turns it off.</li>
+        <li><strong>EEA (EU countries, Iceland, Liechtenstein, Norway), Switzerland and, to be safe, every other European time zone outside the UK:</strong> Google Analytics does not load at all unless you press <strong>Accept</strong>.</li>
+        <li><strong>Embedded calculators</strong> on other websites never load Google Analytics or show the banner.</li>
+        <li><strong>The password generator and the JWT decoder</strong> never load Google Analytics, whatever you choose, because you type or generate secrets there.</li>
+      </ul>
+      <p>We decide which rule applies from your device's time zone (and its language setting, if the time zone does not say). This happens in your browser; it is not stored or sent anywhere. If we get it wrong you can still accept or decline.</p>
+
+      <h3>What it collects</h3>
+      <p>The pages you view, the page that sent you here, your approximate location and your type of device and browser, plus a few actions on our pages: using a calculator, clicking a partner link, exporting a PDF, sharing a page, signing up by email (not the address itself), how far you scrolled and how far you watched the homepage intro. It never receives the numbers you type into a calculator.</p>
+      <p>Our configuration turns off Google Signals and ad personalisation, and keeps advertising storage switched off. Google Analytics 4 does not log or store IP addresses.</p>
+
+      <h3>Cookies it sets</h3>
+      <p><code>_ga</code> and <code>_ga_{GA_ID.replace('G-', '')}</code>: first-party cookies that let Google Analytics recognise a returning browser. They last up to two years, and your browser may delete them sooner. Google keeps the analytics data for the retention period set in our Google Analytics account, which is at most 14 months.</p>
+
+      <h3>Saying no, or changing your mind</h3>
+      <p>Press <strong>Decline</strong> on the banner, or open <strong>Cookie settings</strong> at the bottom of any page. Declining:</p>
+      <ul>
+        <li>stops Google Analytics on the page you are on,</li>
+        <li>deletes the <code>_ga</code> cookies, and</li>
+        <li>keeps Google Analytics from loading on later visits in this browser.</li>
+      </ul>
+      <p>Your choice is saved in your browser (<code>calcrun-cookie-consent</code>, see <a href="#storage">below</a>). If you clear this site's data the banner will ask again.</p>
+
+      <h3>Why we may do this</h3>
+      <p>In the UK, analytics used only to understand and improve our own site may be set without consent, as long as we tell you clearly and you can object at any time (the statistical-purposes exception that the Data (Use and Access) Act 2025 added to PECR). Our lawful basis under UK GDPR is legitimate interests: knowing which calculators people use so we can fix and improve them. In the EEA, Switzerland and the rest of continental Europe we ask for your consent first.</p>
+    </section>
+
+    <section aria-labelledby="email">
+      <h2 id="email">Email</h2>
+      <ul>
+        <li><strong>Newsletter:</strong> if you subscribe, your email address is stored by our email provider <strong>MailerLite</strong>, with the date, which form you used and, if it was on a calculator page, which calculator.</li>
+        <li><strong>Email my results:</strong> your email address and that calculator's inputs and results go from our server to <strong>MailerSend</strong>, which sends the email. We do not keep a copy. You are added to the newsletter only if you tick the newsletter box.</li>
+        <li><strong>Bot protection:</strong> our email forms use <strong>Cloudflare Turnstile</strong> to check that a person, not a script, is sending them. It runs in your browser when you use the form and processes browser and device signals for that check; our server also passes your IP address to Cloudflare as part of verifying it.</li>
+      </ul>
+      <p>Every newsletter email has an unsubscribe link. Your address stays on the list until you unsubscribe or ask us to delete it. We never sell or share email addresses.</p>
+    </section>
+
+    <section aria-labelledby="cloudflare">
+      <h2 id="cloudflare">Hosting and security (Cloudflare)</h2>
+      <p>The site is served by <strong>Cloudflare</strong>. Like any web host, Cloudflare processes your IP address and request details to deliver pages and to block attacks. Cloudflare's bot protection may run a small script (loaded from <code>/cdn-cgi/</code>) in your browser and may set a strictly necessary security cookie, such as <code>__cf_bm</code> or <code>cf_clearance</code>. On some page views Cloudflare's Page Shield also adds a report-only security policy, so your browser sends Cloudflare a report of requests that policy would have blocked. Cloudflare may also ask your browser to send it network error reports (its <code>NEL</code> and <code>Report-To</code> response headers).</p>
+      <p>Our own server code does not record your IP address or anything you enter; its error messages contain no personal data.</p>
+    </section>
+
+    <section aria-labelledby="storage">
+      <h2 id="storage">What we keep in your browser</h2>
+      <p>These items live in your browser's local storage (one is in session storage, as noted). They are never sent to us, and you can delete them at any time by clearing this site's data.</p>
+      <div class="overflow-x-auto">
+        <table>
+          <caption class="sr-only">Items CalcRun stores in your browser</caption>
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">What it remembers</th>
+              <th scope="col">When it is set</th>
+            </tr>
+          </thead>
+          <tbody>
+            {storageKeys.map((s) => (
+              <tr>
+                <th scope="row"><code>{s.key}</code></th>
+                <td>{s.purpose}</td>
+                <td>{s.when}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>We set no cookies of our own. The only cookies on this site are Google Analytics' (where it runs) and Cloudflare's security cookie.</p>
+    </section>
+
+    <section aria-labelledby="links">
+      <h2 id="links">Partner links and sharing</h2>
+      <p>Some pages link to financial products, and we may earn a commission if you sign up (see our <a href="/disclosure/">affiliate disclosure</a>). Once you click through, the partner's own privacy policy applies, and the partner or its affiliate network may set its own cookies on its site. We do not share your data with partners. Share buttons open the service you pick, under that service's privacy policy.</p>
+    </section>
+
+    <section aria-labelledby="rights">
+      <h2 id="rights">Your rights</h2>
+      <p>You can ask to see, correct or delete the personal data we hold about you (in practice, an email address), object to our use of it, and unsubscribe from email at any time. Write to <a href="mailto:hello@calcrun.com">hello@calcrun.com</a>; we reply within one month.</p>
+      <p>If you are unhappy with how we handle your data, you can complain to the UK Information Commissioner's Office at <a href="https://ico.org.uk/make-a-complaint/" rel="noopener">ico.org.uk</a>, or to the data protection authority where you live.</p>
+    </section>
+
+    <section aria-labelledby="controller">
+      <h2 id="controller">Who we are</h2>
+      <p>CalcRun is run by a sole trader in the United Kingdom, who is the data controller for this site. Contact: <a href="mailto:hello@calcrun.com">hello@calcrun.com</a>.</p>
+    </section>
+
+    <section aria-labelledby="children">
+      <h2 id="children">Children</h2>
+      <p>CalcRun is not aimed at children under 13, and we do not knowingly collect their information.</p>
+    </section>
+
+    <section aria-labelledby="changes">
+      <h2 id="changes">Changes to this policy</h2>
+      <p>When what the site does with data changes, this page changes with it and the date at the top is updated.</p>
+    </section>
+  </article>
 </BaseLayout>
+
+<style>
+  .privacy section + section { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--color-neutral-200); }
+  .privacy h2 { margin: 0 0 0.75rem; font-size: 1.375rem; font-weight: 700; letter-spacing: -0.02em; color: var(--color-neutral-900); }
+  .privacy h3 { margin: 1.5rem 0 0.5rem; font-size: 1.0625rem; font-weight: 600; color: var(--color-neutral-900); }
+  .privacy p,
+  .privacy li { font-size: 1rem; line-height: 1.7; color: var(--color-neutral-700); }
+  .privacy p + p { margin-top: 0.75rem; }
+  .privacy ul { margin: 0.5rem 0 0; padding-left: 1.25rem; list-style: disc; }
+  .privacy li + li { margin-top: 0.375rem; }
+  .privacy a { color: var(--color-primary-700); text-decoration: underline; text-underline-offset: 2px; }
+  .privacy a:hover { color: var(--color-primary-800); }
+  .privacy code { font-size: 0.875em; padding: 0.0625rem 0.25rem; border-radius: 0.25rem; background: var(--color-surface-alt); color: var(--color-neutral-900); }
+  .privacy table { width: 100%; margin-top: 1rem; border-collapse: collapse; font-size: 0.9375rem; }
+  .privacy th,
+  .privacy td { padding: 0.625rem 0.75rem 0.625rem 0; border-bottom: 1px solid var(--color-neutral-200); text-align: left; vertical-align: top; line-height: 1.5; color: var(--color-neutral-700); }
+  .privacy thead th { font-size: 0.8125rem; font-weight: 600; color: var(--color-neutral-900); }
+  .privacy tbody th { font-weight: 400; white-space: nowrap; }
+</style>

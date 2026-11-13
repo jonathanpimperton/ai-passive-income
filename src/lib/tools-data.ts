@@ -24,9 +24,10 @@ export const CATEGORIES = {
     color: '#2563EB',
   },
   economic: {
-    label: 'Economic',
+    // The slug stays 'economic' (it is in every URL); the label says what is in it.
+    label: 'Tax & Inflation',
     slug: 'economic',
-    tagline: 'Track the forces that affect every pound and dollar.',
+    tagline: 'Stamp duty, capital gains and what inflation does to your money.',
     color: '#0B6E6E',
   },
   utility: {
@@ -54,8 +55,9 @@ export interface ToolMeta {
 }
 
 /**
- * All 44 tools with metadata for navigation and homepage display.
- * Order within each category matches the build-spec priority.
+ * Every tool, with metadata for navigation, search and homepage display.
+ * Order within each category matches the build-spec priority. The tool count
+ * shown anywhere on the site comes from TOOL_COUNT below, never a typed number.
  */
 export const TOOLS: ToolMeta[] = [
   // Saving & Growth
@@ -167,18 +169,18 @@ export const TOOLS: ToolMeta[] = [
     icon: 'hourglass',
   },
   {
-    name: 'US Salary & Take-Home Calculator',
-    slug: 'salary-us',
-    category: 'income-and-planning',
-    description: 'Calculate US take-home pay after federal and state taxes.',
-    icon: 'wallet',
-  },
-  {
     name: 'UK Salary & Take-Home Calculator',
     slug: 'salary-uk',
     category: 'income-and-planning',
     description: 'Calculate UK take-home pay after Income Tax, NI, and pension.',
     icon: 'coins',
+  },
+  {
+    name: 'US Salary & Take-Home Calculator',
+    slug: 'salary-us',
+    category: 'income-and-planning',
+    description: 'Calculate US take-home pay after federal and state taxes.',
+    icon: 'wallet',
   },
   {
     name: 'Net Worth Calculator',
@@ -387,6 +389,9 @@ export const TOOLS: ToolMeta[] = [
     icon: 'app-window',
   },
 ];
+
+/** Number of tools on the site: the single source for every displayed count (HOME-CHROME-16). */
+export const TOOL_COUNT = TOOLS.length;
 
 /** Get tools filtered by category */
 export function getToolsByCategory(category: CategorySlug): ToolMeta[] {

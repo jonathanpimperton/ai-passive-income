@@ -1,33 +1,46 @@
 ---
 /**
- * HOMEPAGE — "The Number Theater" (R2.1, promoted from /labs/story).
+ * HOMEPAGE — "The Number Theater" (R2.1), constrained per plan-2026-11 D2.
  *
- * Scroll-driven cinematic opening: obsidian theater → three data chapters
- * (Grow / Keep / Owe) told by one morphing glowing line → dawn handoff into
- * the light product (live engine, decision board, bento, discovery, close).
+ * Scroll-driven cinematic opening: obsidian theater -> three data chapters
+ * (Grow / Keep / Owe) told by one morphing line -> dawn handoff into the
+ * light product (live engine, decision board, bento, discovery, close).
  *
- * The theater plays ONCE per browsing session: a pre-paint head script reads
- * sessionStorage and adds `intro-seen` to <html>, which collapses the track so
- * returning navigations land directly in the daylight product. A quiet
- * "Watch the intro again" control clears the flag.
+ * When the intro plays (head gate below, html.intro-play):
+ * - once per BROWSER (localStorage via calcrunStore; the old per-session
+ *   sessionStorage flag is still honoured), and never for visitors arriving
+ *   from another CalcRun page, the installed app (display-mode standalone),
+ *   reduced-motion users, embeds or deep links (#...) (HOME-CHROME-01);
+ * - reload and Back keep the intro for that history entry (history.state),
+ *   so the browser restores scroll into the same layout (HOME-CHROME-03);
+ *   rotating mid-intro keeps the timeline position (HOME-CHROME-14);
+ * - the real site header (menus + search) is visible throughout, in a night
+ *   tone over the theater (HOME-CHROME-01);
+ * - no scroll snapping (HOME-CHROME-02).
  *
- * All figures are computed at build time by the site's own engines — the
- * story can never drift from what the calculators say. GSAP + ScrollTrigger,
- * scrub-tied to native scroll. prefers-reduced-motion renders every act
- * settled with plain scroll; no-JS collapses to daylight via <noscript>.
+ * Otherwise (html.intro-seen, and with no JavaScript) the theater collapses to
+ * a compact light hero holding the same H1 and the product follows directly.
+ *
+ * Crawlable and accessible (HOME-CHROME-12/15, GROWTH-SEO-01, A11Y-PERF-14,
+ * F-21): one noun H1 in the first viewport in every mode; product sections
+ * are visible in the server HTML (no opacity reveals); the header sits outside
+ * <main> and the skip link jumps past the theater. No user-agent sniffing.
+ *
+ * All figures are computed at build time by the site's own engines.
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
-import Navigation from '@components/ui/Navigation.astro';
 import DecisionEngine from '@components/homepage/DecisionEngine.tsx';
 import EmailCapture from '@components/ui/EmailCapture.tsx';
+import { getCollection } from 'astro:content';
 import { buildWebsiteSchema } from '@lib/seo';
 import { formatNumber, compoundInterest, loanMonthlyPayment, debtPayoff } from '@lib/calculator-utils';
 import { calcIncomeTax, calcNI } from '@lib/uk-tax-calc';
 import { calcFederalTax, calcFICA } from '@lib/us-tax-calc';
 import { calculateSdlt } from '@lib/stamp-duty';
 import { UK_TAX_YEAR } from '@lib/uk-rates';
-import { US_TAX_YEAR } from '@lib/us-rates';
-import { TOOLS, CATEGORIES, getToolPath } from '@lib/tools-data';
+import { US_TAX_YEARS } from '@lib/us-rates';
+import { TOOLS, TOOL_COUNT, CATEGORIES, getToolPath } from '@lib/tools-data';
+import { HUBS } from '@lib/search-index';
 
 const websiteSchema = buildWebsiteSchema();
 
@@ -128,20 +141,22 @@ const BENTO = BENTO_ORDER.map((slug) => {
     ...BENTO_META[slug],
   };
 });
-const TOOL_COUNT = TOOLS.length;
 
+/* ── Hero: the noun says what the site is; the question is the signature ── */
+const HERO_NOUN = 'UK & US money calculators';
 const QUESTION = 'Get clarity on your financial decisions';
+const H1_LABEL = `UK and US money calculators: ${QUESTION.toLowerCase()}`;
 const questionWords = QUESTION.split(' ');
 
 /* ── Discovery: flagship tools, comparisons, precomputed scenario answers ── */
 const FLAGSHIP_SLUGS = [
+  'salary-uk',
+  'salary-us',
   'mortgage-payment',
   'mortgage-affordability',
   'compound-interest',
   'investment-return',
   'retirement-savings',
-  'salary-uk',
-  'salary-us',
   'debt-payoff',
   'net-worth',
   'emergency-fund',
@@ -150,12 +165,14 @@ const flagshipTools = FLAGSHIP_SLUGS
   .map((slug) => TOOLS.find((t) => t.slug === slug))
   .filter((t): t is NonNullable<typeof t> => t !== undefined);
 
+// UK and US articles side by side (HOME-CHROME-10); region shown, not implied
 const FEATURED_COMPARISONS = [
-  { title: 'Renting vs Buying in 2026', slug: 'renting-vs-buying-2026' },
-  { title: 'Pay Off Debt vs Invest', slug: 'pay-off-debt-vs-invest' },
-  { title: 'Roth vs Traditional 401(k)', slug: 'roth-vs-traditional-401k' },
-  { title: '15-Year vs 30-Year Mortgage', slug: '15-year-vs-30-year-mortgage' },
-  { title: 'Snowball vs Avalanche', slug: 'snowball-vs-avalanche-debt' },
+  { title: 'Pension vs ISA', slug: 'pension-vs-isa-uk', region: 'UK' },
+  { title: 'Renting vs Buying', slug: 'renting-vs-buying-2026', region: '' },
+  { title: 'Roth vs Traditional 401(k)', slug: 'roth-vs-traditional-401k', region: 'US' },
+  { title: 'Cash ISA vs Savings Account', slug: 'cash-isa-vs-savings-account', region: 'UK' },
+  { title: 'Pay Off Debt vs Invest', slug: 'pay-off-debt-vs-invest', region: '' },
+  { title: '15-Year vs 30-Year Mortgage', slug: '15-year-vs-30-year-mortgage', region: '' },
 ];
 
 const invest1000x20 = compoundInterest(0, 1000, 0.07, 20, 12);
@@ -169,58 +186,79 @@ const FEATURED_SCENARIOS = [
   { title: '$1,000/mo invested for 20 years', href: '/scenarios/investment-growth/#1000-per-month', answer: `$${formatNumber(Math.round(invest1000x20 / 1000) * 1000)}` },
 ];
 
-/* Server-rendered default mortgage result for the engine skeleton — a real
-   answer is visible before React hydrates, never a blank state */
-const MORTGAGE_RATE = 0.0675;
-const MORTGAGE_TERM_YEARS = 30;
-const MORTGAGE_DTI = 0.36;
-const defaultIncome = 75000;
-const defaultDown = 50000;
-const defaultMaxMonthlyPmt = (defaultIncome / 12) * MORTGAGE_DTI;
-const defaultTermMonths = MORTGAGE_TERM_YEARS * 12;
-const defaultR = MORTGAGE_RATE / 12;
-const defaultFactor = (Math.pow(1 + defaultR, defaultTermMonths) - 1) / (defaultR * Math.pow(1 + defaultR, defaultTermMonths));
-const defaultMaxLoan = defaultMaxMonthlyPmt * defaultFactor;
-const defaultMaxPrice = defaultMaxLoan + defaultDown;
-const defaultMortgagePayment = loanMonthlyPayment(defaultMaxLoan, MORTGAGE_RATE, defaultTermMonths);
-const defaultLoanPct = ((defaultMaxLoan / defaultMaxPrice) * 100).toFixed(0);
-const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
+// Counted, never typed (HOME-CHROME-16): scenario pages + the hub tables
+// (HUBS is cross-checked against the hub pages by search-index.test.ts)
+const scenarioDocs = await getCollection('scenarios');
+const SCENARIO_PAGE_COUNT = scenarioDocs.length + Object.keys(HUBS).length;
+
+// "Recently used" return hook: slug -> name/path for the inline renderer
+const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.replace(/ Calculator$/, ''), getToolPath(t)]]));
 ---
 
 <BaseLayout
-  title="Financial Calculators & Tools | CalcRun"
-  description="Financial calculators with interactive charts and plain-English explanations. Mortgage, salary, compound interest, retirement — no signup, no ads."
+  title="CalcRun: UK & US Money Calculators - Salary, Mortgage, Tax"
+  description="Salary, mortgage, compound interest, retirement and tax calculators for the UK and US, with charts and plain-English explanations. No signup, no ads."
   structuredData={[websiteSchema]}
-  hideNav
+  skipTo="daylight"
+  skipLabel="Skip to the calculators"
 >
-  {/* Pre-paint: returning visitors in this session skip straight to daylight */}
+  {/* Pre-paint intro gate (plan D2). calcrunStore comes from BaseLayout's boot script. */}
   <script is:inline slot="head">
-    (function(){try{var k='calcrun.introSeen';if(sessionStorage.getItem(k)==='1'){document.documentElement.classList.add('intro-seen');}sessionStorage.setItem(k,'1');}catch(e){}})();
+    (function () {
+      var d = document.documentElement;
+      var K = 'calcrun.introSeen';
+      var st = null;
+      try { st = history.state; } catch (e) { st = null; }
+      var reduced = false;
+      var standalone = false;
+      try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { reduced = false; }
+      try { standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch (e) { standalone = false; }
+      var framed = false;
+      try { framed = window.self !== window.top; } catch (e) { framed = true; }
+      var embed = framed || /[?&]embed(?:[=&]|$)/.test(location.search);
+      var sameOrigin = false;
+      try { sameOrigin = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) { sameOrigin = false; }
+      var seen = calcrunStore.get(K) === '1' || calcrunStore.sget(K) === '1';
+      // Reload or Back/Forward into an entry that played the intro (or asked to replay it)
+      // keeps it, so the browser restores scroll into the same layout. A fresh
+      // navigation to "/" (even from "/" itself) does not.
+      var navType = '';
+      try {
+        var navEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        navType = navEntry ? navEntry.type : (performance.navigation && performance.navigation.type === 1 ? 'reload' : performance.navigation && performance.navigation.type === 2 ? 'back_forward' : '');
+      } catch (e) { navType = ''; }
+      var keep = !!(st && st.calcrunIntro === 1) && (navType === 'reload' || navType === 'back_forward');
+      var play = !embed && (keep || (!seen && !sameOrigin && !standalone && !reduced && !location.hash));
+      if (play) {
+        d.classList.add('intro-play');
+        if (reduced) d.classList.add('intro-static');
+        calcrunStore.set(K, '1');
+        try {
+          var next = {};
+          if (st && typeof st === 'object') { for (var p in st) { if (Object.prototype.hasOwnProperty.call(st, p)) next[p] = st[p]; } }
+          next.calcrunIntro = 1;
+          history.replaceState(next, '');
+        } catch (e) { /* history unavailable: reload simply shows the product */ }
+      } else {
+        d.classList.add('intro-seen');
+        // A same-URL navigation can carry the old entry's state: drop the intro mark
+        if (st && st.calcrunIntro === 1) {
+          try {
+            var kept = {};
+            for (var q in st) { if (q !== 'calcrunIntro' && Object.prototype.hasOwnProperty.call(st, q)) kept[q] = st[q]; }
+            history.replaceState(kept, '');
+          } catch (e) { /* history unavailable: nothing to clear */ }
+        }
+        var r = calcrunStore.get('calcrun.recentTools');
+        if (r && r.indexOf('"') >= 0) d.classList.add('has-recents');
+      }
+    })();
   </script>
-  {/* No JS: collapse the theater — the daylight product is the page */}
-  <noscript slot="head">
-    <style>
-      .story-header, .track, .dawn-hint { display: none !important; }
-      body { background: var(--color-bg) !important; }
-    </style>
-  </noscript>
 
-  {/* ── Floating minimal header — present from frame 0 ─────────── */}
-  <header class="story-header" id="story-header">
-    <a href="/" class="story-wordmark" aria-label="CalcRun home">
-      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
-        <rect x="1" y="1" width="22" height="22" rx="6" fill="#0B6E6E" />
-        <path d="M6 15.5 L10.5 11 L13.5 13.5 L18 8.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M18 8.5 h-3.2 M18 8.5 v3.2" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" />
-      </svg>
-      <span>Calc<em>Run</em></span>
-    </a>
-    <a href="#daylight" class="story-skip" id="story-skip">Skip to the calculators →</a>
-  </header>
-
-  {/* ── The theater: 700vh scroll track driving a sticky stage ── */}
+  {/* ── The theater: a 700vh scroll track driving a sticky stage (intro mode only) ── */}
   <div class="track" id="track">
     <div class="stage">
+      <a href="#daylight" class="stage-skip" id="story-skip">Skip to the calculators &rarr;</a>
 
       {/* Chapter washes (parallax layer) */}
       <div class="wash" id="wash-grow"></div>
@@ -229,36 +267,76 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       {/* Warm horizon glow — keeps the dawn transit atmospheric, never flat grey */}
       <div class="wash dawn-glow" id="dawn-glow"></div>
 
-      {/* The data line */}
+      {/* The data line. Ends fade through the stroke gradient (no CSS mask, no
+          blur filter: both re-rasterise every frame — A11Y-PERF-16). */}
       <svg class="line-stage" id="line-stage" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-hidden="true">
         <defs>
-          <filter id="glow" x="-20%" y="-50%" width="140%" height="200%">
-            <feGaussianBlur stdDeviation="7" />
-          </filter>
           <linearGradient id="kept-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#38AEAE" stop-opacity="0.16" />
             <stop offset="1" stop-color="#38AEAE" stop-opacity="0.02" />
           </linearGradient>
+          <linearGradient id="line-fade-core" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="0">
+            <stop class="core-stop" offset="0" stop-color="#5FD3D3" stop-opacity="0" />
+            <stop class="core-stop" offset="0.09" stop-color="#5FD3D3" stop-opacity="1" />
+            <stop class="core-stop" offset="0.91" stop-color="#5FD3D3" stop-opacity="1" />
+            <stop class="core-stop" offset="1" stop-color="#5FD3D3" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="line-fade-glow" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="0">
+            <stop offset="0" stop-color="#38AEAE" stop-opacity="0" />
+            <stop offset="0.09" stop-color="#38AEAE" stop-opacity="0.22" />
+            <stop offset="0.91" stop-color="#38AEAE" stop-opacity="0.22" />
+            <stop offset="1" stop-color="#38AEAE" stop-opacity="0" />
+          </linearGradient>
         </defs>
         <path id="area-kept" d="" fill="url(#kept-fill)" opacity="0" />
-        <path id="line-glow" d="" fill="none" stroke="#38AEAE" stroke-width="7" opacity="0" filter="url(#glow)" />
-        <path id="line-core" d="" fill="none" stroke="#5FD3D3" stroke-width="2" opacity="0" vector-effect="non-scaling-stroke" />
+        <path id="line-glow" d="" fill="none" stroke="url(#line-fade-glow)" stroke-width="10" stroke-linecap="round" opacity="0" />
+        <path id="line-core" d="" fill="none" stroke="url(#line-fade-core)" stroke-width="2" opacity="0" vector-effect="non-scaling-stroke" />
       </svg>
 
-      {/* Act 0 — the question */}
-      <section class="act act-0" id="act-0" aria-label="Introduction">
-        {/* Word spans on one template line with explicit string spaces between
-            them — any extra markup inside the h1 shows up as doubled word gaps.
-            aria-label carries the sentence; char spans are hidden from SRs. */}
-        <h1 class="question" id="question" aria-label={QUESTION}>
-          <span aria-hidden="true">{questionWords.map((word, wi) => (
+      {/* Act 0 — the hero. Intro mode: the dark full-screen question. Otherwise:
+          a compact light hero. One H1 either way. */}
+      <section class="act act-0" id="act-0" aria-labelledby="home-title">
+        <h1 class="hero-title" id="home-title" aria-label={H1_LABEL}>
+          <span class="hero-noun">{HERO_NOUN}</span>
+          {/* Word spans on one template line with explicit string spaces between
+              them — any extra markup inside shows up as doubled word gaps. */}
+          <span class="question" id="question" aria-hidden="true">{questionWords.map((word, wi) => (
             <Fragment><span class={word === 'clarity' ? 'q-word q-accent' : 'q-word'}>{word.split('').map((ch) => <span class="q-char" data-wi={wi}>{ch}</span>)}</span>{wi < questionWords.length - 1 ? ' ' : ''}</Fragment>
           ))}</span>
         </h1>
         <p class="question-sub" id="question-sub">
-          CalcRun — salary, mortgage, investing and debt calculators.
+          Salary, mortgage, savings, tax and debt calculators, built on published UK and US rates.
           <span class="sub-quiet">Answers in seconds. No signup. No ads.</span>
         </p>
+        {/* Returning visitors: their recent tools (local to this browser) */}
+        <nav class="hero-recents" id="hero-recents" aria-label="Recently used">
+          <span class="hero-recents-label">Recently used</span>
+          <ul class="hero-recents-list" id="hero-recents-list"></ul>
+        </nav>
+        <script is:inline define:vars={{ toolMap: RECENT_TOOL_MAP }}>
+          (function () {
+            var d = document.documentElement;
+            if (!d.classList.contains('has-recents')) return;
+            var list = document.getElementById('hero-recents-list');
+            var slugs = [];
+            var store = window.calcrunStore && typeof window.calcrunStore.get === 'function' ? window.calcrunStore : null;
+            try { slugs = JSON.parse((store && store.get('calcrun.recentTools')) || '[]'); } catch (e) { slugs = []; }
+            if (!Array.isArray(slugs)) slugs = [];
+            var n = 0;
+            for (var i = 0; i < slugs.length && n < 4; i++) {
+              var t = toolMap[slugs[i]];
+              if (!t || !list) continue;
+              var li = document.createElement('li');
+              var a = document.createElement('a');
+              a.href = t[1];
+              a.textContent = t[0];
+              li.appendChild(a);
+              list.appendChild(li);
+              n++;
+            }
+            if (!n) d.classList.remove('has-recents');
+          })();
+        </script>
         <div class="scroll-cue" id="scroll-cue" aria-hidden="true">
           <span class="cue-line"></span>
           <span class="cue-label">scroll</span>
@@ -290,113 +368,15 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
   <p class="dawn-hint" id="dawn-hint" aria-hidden="true">Run your numbers</p>
 
   {/* ── DAYLIGHT — the instrument room: same standard, full utility ── */}
-  <div class="daylight" id="daylight">
-    {/* The real site navigation takes over from the story header here */}
-    <Navigation />
-
-    {/* D1 — the live instrument */}
+  <div class="daylight" id="daylight" tabindex="-1">
+    {/* D1 — the live instrument. No separate skeleton: the island's own server
+        HTML is the first paint, so nothing jumps on hydration (A11Y-PERF-07). */}
     <section class="d-section d-engine">
       <div class="d-inner">
-        <p class="d-kicker reveal">Your turn</p>
+        <p class="d-kicker">Your turn</p>
         <h2 class="d-title" id="daylight-title">Run your numbers</h2>
-        <p class="d-sub reveal">The same questions, live — answers as you type. No signup, no ads.</p>
-        <div class="d-engine-wrap reveal">
-          {/* Server-rendered skeleton with a real computed answer — replaced by React on hydrate */}
-          <div id="engine-skeleton">
-            <div class="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
-              <div>
-                <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-primary-500 font-bold text-neutral-900">
-                  <span class="text-xl leading-relaxed">Can I actually afford this house?</span>
-                </div>
-                <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
-                  <span class="text-xl leading-relaxed">What does $500/mo grow into?</span>
-                </div>
-                <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
-                  <span class="text-xl leading-relaxed">When can I retire?</span>
-                </div>
-                <div class="w-full text-left px-5 py-5 border-l-[4px] border-l-transparent font-medium text-neutral-800">
-                  <span class="text-xl leading-relaxed">What's my take-home pay?</span>
-                </div>
-              </div>
-
-              <div class="engine-panel rounded-xl p-6 sm:p-8">
-                <div class="space-y-5">
-                  <div class="space-y-3">
-                    <div class="flex items-start justify-between gap-4">
-                      <div>
-                        <p class="text-sm text-neutral-500 mb-1">You could afford up to</p>
-                        <p class="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
-                          ${formatNumber(Math.round(defaultMaxPrice))}
-                        </p>
-                      </div>
-                      <a
-                        href="/tools/debt-and-loans/mortgage-affordability/"
-                        class="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
-                      >
-                        Open full calculator
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                      </a>
-                    </div>
-                    <p class="text-sm text-neutral-500">
-                      ${formatNumber(Math.round(defaultMortgagePayment))}/mo at {(MORTGAGE_RATE * 100).toFixed(2)}% over {MORTGAGE_TERM_YEARS} years
-                    </p>
-                    <div>
-                      <div class="flex gap-[3px] h-4 rounded-full overflow-hidden">
-                        <div class="rounded-l-full bg-primary-500" style={`width:${defaultLoanPct}%`}></div>
-                        <div class="rounded-r-full bg-neutral-300" style={`width:${defaultDownPct}%`}></div>
-                      </div>
-                      <div class="flex justify-between mt-1.5">
-                        <span class="text-xs text-neutral-500">Loan {defaultLoanPct}%</span>
-                        <span class="text-xs text-neutral-500">Down payment {defaultDownPct}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="h-px bg-neutral-200/80"></div>
-
-                  <div class="space-y-3">
-                    <div>
-                      <div class="text-sm font-medium text-neutral-700 mb-1.5">Annual income</div>
-                      <div class="shimmer-line h-11 rounded-lg"></div>
-                      <div class="shimmer-line h-2 rounded-full mt-2.5"></div>
-                    </div>
-                    <div>
-                      <div class="text-sm font-medium text-neutral-700 mb-1.5">Down payment</div>
-                      <div class="shimmer-line h-11 rounded-lg"></div>
-                      <div class="shimmer-line h-2 rounded-full mt-2.5"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile skeleton: first accordion open — mortgage */}
-            <div class="lg:hidden space-y-3">
-              <div class="rounded-xl overflow-hidden border border-neutral-200/80">
-                <div class="w-full text-left px-5 py-4 flex items-center justify-between bg-primary-50 font-semibold text-neutral-900">
-                  <span class="text-[15px] font-medium leading-snug">Can I actually afford this house?</span>
-                  <svg class="w-5 h-5 shrink-0 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                </div>
-                <div class="engine-panel p-5 border-t border-neutral-100">
-                  <div class="space-y-3">
-                    <div>
-                      <p class="text-sm text-neutral-500 mb-1">You could afford up to</p>
-                      <p class="text-2xl sm:text-3xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
-                        ${formatNumber(Math.round(defaultMaxPrice))}
-                      </p>
-                    </div>
-                    <p class="text-sm text-neutral-500">
-                      ${formatNumber(Math.round(defaultMortgagePayment))}/mo at {(MORTGAGE_RATE * 100).toFixed(2)}%
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">What does $500/mo grow into?</div>
-              <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">When can I retire?</div>
-              <div class="rounded-xl border border-neutral-200/80 px-5 py-4 text-neutral-600 text-[15px] font-medium">What's my take-home pay?</div>
-            </div>
-          </div>
-
+        <p class="d-sub">The same questions, live — answers as you type. No signup, no ads.</p>
+        <div class="d-engine-wrap">
           <DecisionEngine client:idle />
         </div>
       </div>
@@ -405,13 +385,13 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     {/* D2 — decisions, priced */}
     <section class="d-section d-board">
       <div class="d-inner d-inner-narrow">
-        <p class="d-kicker reveal">Live calculations</p>
-        <h2 class="d-title d-title-sm"><span class="d-mask"><span class="d-mask-inner">Good financial decisions create value</span></span></h2>
-        <p class="d-sub reveal">Every number below comes from a CalcRun calculator. Open one and run your own.</p>
+        <p class="d-kicker">Live calculations</p>
+        <h2 class="d-title d-title-sm">Good financial decisions create value</h2>
+        <p class="d-sub">Every number below comes from a CalcRun calculator. Open one and run your own.</p>
         <ul class="decision-rows">
           {DECISIONS.map((d) => (
             <li>
-              <a class={`decision-row reveal kind-${d.kind}`} href={d.href}>
+              <a class={`decision-row kind-${d.kind}`} href={d.href}>
                 <span class="decision-q"><span class="d-region" aria-hidden="true">{d.region}</span>{d.q}</span>
                 <span class="decision-a tabular-nums" data-count={d.n} data-pre={d.pre} data-suf={d.suf}>{d.pre}{formatNumber(d.n)}{d.suf}</span>
               </a>
@@ -424,11 +404,11 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     {/* D2.5 — every category, bento */}
     <section class="d-section d-bento">
       <div class="d-inner">
-        <p class="d-kicker reveal">The full toolkit</p>
-        <h2 class="d-title d-title-sm"><span class="d-mask"><span class="d-mask-inner">Every corner of your money</span></span></h2>
+        <p class="d-kicker">The full toolkit</p>
+        <h2 class="d-title d-title-sm">Every corner of your money</h2>
         <div class="bento">
           {BENTO.filter((b) => b.size !== 'sm').map((b) => (
-            <a class={`bento-tile area-${b.slug} tone-${b.tone} reveal`} href={`/tools/#${b.slug}`}>
+            <a class={`bento-tile area-${b.slug} tone-${b.tone}`} href={`/tools/#${b.slug}`}>
               {b.motif === 'growth' && (
                 <svg class="bento-motif" viewBox="0 0 300 140" preserveAspectRatio="none" aria-hidden="true"><path d="M0,132 C90,128 190,96 300,10" fill="none" stroke="currentColor" stroke-width="2.5" /><path d="M0,132 C90,128 190,96 300,10 L300,140 L0,140 Z" fill="currentColor" opacity="0.18" stroke="none" /></svg>
               )}
@@ -454,17 +434,9 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
           ))}
           <div class="bento-stack">
             {BENTO.filter((b) => b.size === 'sm').map((b) => (
-              <a class={`bento-tile bento-mini tone-${b.tone} reveal`} href={`/tools/#${b.slug}`}>
+              <a class={`bento-tile bento-mini tone-${b.tone}`} href={`/tools/#${b.slug}`}>
                 <div class="bento-head">
-                  <h3 class="bento-label bento-label-sm">
-                    <span class="bento-mini-icon" aria-hidden="true">
-                      {b.slug === 'utility' ? (
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                      ) : (
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
-                      )}
-                    </span>{b.label}
-                  </h3>
+                  <h3 class="bento-label bento-label-sm">{b.label}</h3>
                   <span class="bento-count tabular-nums">{b.count}</span>
                 </div>
                 <p class="bento-tagline bento-tagline-sm">{b.tagline}</p>
@@ -473,7 +445,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             ))}
           </div>
         </div>
-        <div class="d-viewall reveal">
+        <div class="d-viewall">
           {/* Single span for the label — flex gap between text fragments would
               otherwise split "View all | 46 | tools" into gapped pieces */}
           <a class="cta-viewall" href="/tools/">
@@ -488,7 +460,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     <section class="py-10 sm:py-14 bg-neutral-50">
       <div class="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-10">
-          <div class="reveal">
+          <div>
             <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Popular calculators</h2>
             <div class="space-y-0">
               {flagshipTools.map((tool) => (
@@ -504,12 +476,12 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
               ))}
             </div>
             <a href="/tools/" class="inline-flex items-center gap-1.5 mt-5 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-150">
-              See all tools
+              See all <span class="tabular-nums">{TOOL_COUNT}</span> tools
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
             </a>
           </div>
 
-          <div class="reveal">
+          <div>
             <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Comparisons</h2>
             <div class="space-y-0">
               {FEATURED_COMPARISONS.map((comp) => (
@@ -518,7 +490,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
                   class="group flex items-center justify-between py-3 border-b border-neutral-200/60 hover:border-primary-300/50 transition-colors duration-150"
                 >
                   <span class="text-[15px] font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-150 pr-4">
-                    {comp.title}
+                    {comp.region && <span class="d-region">{comp.region}</span>}{comp.title}
                   </span>
                   <svg class="w-4 h-4 shrink-0 text-neutral-300 group-hover:text-primary-500 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </a>
@@ -530,7 +502,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
             </a>
           </div>
 
-          <div class="reveal">
+          <div>
             <h2 class="font-serif text-xl sm:text-2xl font-bold text-neutral-900 mb-5">Instant answers</h2>
             <div class="space-y-0">
               {FEATURED_SCENARIOS.map((scenario) => (
@@ -559,9 +531,9 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     {/* D4 — newsletter */}
     <section class="py-10 sm:py-14">
       <div class="max-w-[560px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-surface border border-neutral-200/80 rounded-lg p-6 sm:p-8 reveal">
+        <div class="bg-surface border border-neutral-200/80 rounded-lg p-6 sm:p-8">
           <h2 class="text-lg font-bold text-neutral-900 mb-1">One worked money question, weekly</h2>
-          <p class="text-sm text-neutral-500 mb-4">New tools, scenarios, and money maths worth knowing. Unsubscribe anytime.</p>
+          <p class="text-sm text-neutral-600 mb-4">New tools, scenarios, and money maths worth knowing. Unsubscribe anytime.</p>
           <EmailCapture client:visible variant="newsletter" />
         </div>
       </div>
@@ -570,26 +542,98 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     {/* D5 — trust + close */}
     <section class="d-section d-close">
       <div class="d-inner">
-        <p class="d-trust reveal">
+        <p class="d-trust">
           <span class="trust-item">Built by an ACA-qualified accountant</span>
-          <span class="trust-item">Tax rates verified for <span class="tabular-nums">{UK_TAX_YEAR}</span> (UK) &amp; <span class="tabular-nums">{US_TAX_YEAR}</span> (US)</span>
+          <span class="trust-item">Tax rates verified for <span class="tabular-nums">{UK_TAX_YEAR}</span> (UK), <span class="tabular-nums">{US_TAX_YEARS.join(' and ')}</span> (US)</span>
           <span class="trust-item">Every calculator documents its formula</span>
         </p>
-        <p class="d-close-link reveal"><a href="/scenarios/">Browse 100+ instant answers →</a></p>
-        <p class="d-replay"><button type="button" id="replay-intro">↺ Watch the intro again</button></p>
+        <p class="d-close-link"><a href="/scenarios/">Browse <span class="tabular-nums">{SCENARIO_PAGE_COUNT}</span> worked scenarios &rarr;</a></p>
+        <p class="d-replay"><button type="button" id="replay-intro">&#8634; Watch the intro again</button></p>
       </div>
     </section>
   </div>
 
   <style is:global>
-    /* ════ Theater base — :has(#track) pins this to the homepage even if the
-       bundler ever merges this stylesheet into a shared chunk ════ */
-    html:not(.intro-seen) body:has(#track) { background: #0a0b0d; }
+    /* ════ Every mode: the hero. Default (no class, no JS, returning visitor,
+       reduced motion) is the compact light hero; html.intro-play below turns
+       the same markup into the theater. ════ */
+    /* Outside intro mode the track is not a box at all: the hero inside it
+       sits in normal flow and #track itself is hidden */
+    .track { display: contents; }
+    .stage { position: relative; }
+    .wash,
+    .line-stage,
+    .scroll-cue,
+    .stage-skip,
+    .chapter,
+    .dawn-hint { display: none; }
 
-    /* Returning visitors this session: the theater collapses, daylight is the page */
-    html.intro-seen .story-header,
-    html.intro-seen .track,
-    html.intro-seen .dawn-hint { display: none; }
+    .act-0 {
+      padding: clamp(40px, 7vh, 72px) 24px 4px;
+      text-align: center;
+    }
+    .hero-title { margin: 0; }
+    .hero-noun {
+      display: block;
+      margin-bottom: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--color-neutral-600);
+    }
+    .question {
+      display: block;
+      margin: 0 auto;
+      max-width: 20ch;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: clamp(2rem, 4.6vw, 3.2rem);
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      text-wrap: balance;
+      color: var(--color-neutral-900);
+    }
+    .q-accent .q-char { color: var(--color-primary-600); }
+    .q-word { display: inline-block; white-space: nowrap; }
+    .q-char { display: inline-block; }
+    .question-sub {
+      margin: 16px auto 0;
+      max-width: 52ch;
+      font-size: clamp(1rem, 1.4vw, 1.1rem);
+      line-height: 1.55;
+      color: var(--color-neutral-600);
+    }
+    .question-sub .sub-quiet { display: block; margin-top: 4px; font-size: 0.92em; color: var(--color-neutral-600); }
+
+    /* Recently used (returning visitors; space exists only when there is something to show) */
+    .hero-recents { display: none; }
+    html.intro-seen.has-recents .hero-recents {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px 12px;
+      margin: 20px auto 0;
+      max-width: 720px;
+    }
+    .hero-recents-label { font-size: 13px; color: var(--color-neutral-600); }
+    .hero-recents-list { display: contents; list-style: none; }
+    .hero-recents-list a {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-neutral-800);
+      background: var(--color-surface);
+      border: 1px solid var(--color-neutral-200);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: border-color 150ms ease, color 150ms ease;
+    }
+    .hero-recents-list a:hover { color: var(--color-primary-700); border-color: var(--color-primary-600); }
+
     .d-replay { display: none; margin: 18px 0 0; }
     html.intro-seen .d-replay { display: block; }
     .d-replay button {
@@ -598,67 +642,57 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       padding: 6px 8px;
       font: inherit;
       font-size: 13px;
-      color: var(--color-neutral-500);
+      color: var(--color-neutral-600);
       cursor: pointer;
       transition: color 0.2s ease;
     }
     .d-replay button:hover { color: var(--color-primary-600); }
 
-    .story-header {
-      position: fixed;
-      inset: 0 0 auto 0;
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 24px;
-      color: #fcfcfa;
-      transition: background-color 0.4s ease, opacity 0.35s ease;
-    }
-    .story-wordmark {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      text-decoration: none;
-      color: #fcfcfa;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 19px;
-      letter-spacing: -0.02em;
-      transition: color 0.4s ease;
-    }
-    .story-wordmark em { font-style: normal; color: #38aeae; }
-    .story-skip {
-      color: #8b93a1;
-      text-decoration: none;
-      font-size: 14px;
-      padding: 8px 14px;
-      border: 1px solid rgba(139, 147, 161, 0.35);
-      border-radius: 8px;
-      transition: color 0.2s ease, border-color 0.2s ease;
-    }
-    .story-skip:hover { color: #fcfcfa; border-color: #8b93a1; }
-    .story-header.light .story-wordmark { color: #14161a; }
-    .story-header.light .story-wordmark em { color: #0b6e6e; }
-    .story-header.light .story-skip { color: #555a66; border-color: #e4e4e0; }
-    .story-header.light .story-skip:hover { color: #14161a; }
-    .story-header.gone {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: opacity 0.35s ease, visibility 0s 0.35s;
-    }
-
-    /* ════ Stage ════ */
-    .track { height: 700vh; position: relative; color: #fcfcfa; }
-    .stage {
+    /* ════ Intro mode: the theater ════ */
+    /* :has(#track) pins this to the homepage even if the bundler ever merges
+       this stylesheet into a shared chunk */
+    html.intro-play body:has(#track) { background: #0a0b0d; }
+    html.intro-play .track { display: block; position: relative; height: 700vh; color: #fcfcfa; }
+    html.intro-play .stage {
       position: sticky;
       top: 0;
       height: 100vh;
       overflow: hidden;
     }
 
-    .wash {
+    /* The real site header stays usable over the theater, in a night tone,
+       until the dawn turns the page light (html.intro-day) */
+    html.intro-play:not(.intro-day) .site-header {
+      background: rgba(10, 11, 13, 0.72);
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+    }
+    html.intro-play:not(.intro-day) .site-header .logo-word { color: #fcfcfa; }
+    html.intro-play:not(.intro-day) .site-header .logo-accent { color: #5fd3d3; }
+    html.intro-play:not(.intro-day) .site-header .nav-trigger,
+    html.intro-play:not(.intro-day) .site-header .nav-link,
+    html.intro-play:not(.intro-day) .site-header .theme-toggle,
+    html.intro-play:not(.intro-day) .site-header .search-toggle,
+    html.intro-play:not(.intro-day) .site-header .menu-btn,
+    html.intro-play:not(.intro-day) .site-header .nojs-menu-link { color: #c9ced6; }
+    html.intro-play:not(.intro-day) .site-header .nav-trigger:hover,
+    html.intro-play:not(.intro-day) .site-header .nav-link:hover,
+    html.intro-play:not(.intro-day) .site-header .nav-item.is-open .nav-trigger,
+    html.intro-play:not(.intro-day) .site-header .theme-toggle:hover,
+    html.intro-play:not(.intro-day) .site-header .search-toggle:hover,
+    html.intro-play:not(.intro-day) .site-header .menu-btn:hover { color: #ffffff; background: rgba(255, 255, 255, 0.08); }
+    @media (min-width: 1024px) {
+      html.intro-play:not(.intro-day) .site-header .search-input {
+        color: #fcfcfa;
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+      html.intro-play:not(.intro-day) .site-header .search-input::placeholder { color: #a3abb7; }
+      html.intro-play:not(.intro-day) .site-header .search-field-icon { color: #a3abb7; }
+    }
+
+    html.intro-play .wash {
+      display: block;
       position: absolute;
       inset: -20% 0;
       opacity: 0;
@@ -671,58 +705,68 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       background: radial-gradient(110% 58% at 50% 64%, rgba(232, 96, 76, 0.20), rgba(240, 138, 112, 0.06) 52%, transparent 76%);
     }
 
-    .line-stage {
+    html.intro-play .line-stage {
+      display: block;
       position: absolute;
       inset: 12% 0 8% 0;
       width: 100%;
       height: 80%;
       pointer-events: none;
-      /* the line is a floating data ribbon, not a wall-to-wall divider */
-      mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
-      -webkit-mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
     }
 
-    .act {
+    html.intro-play .act {
       position: absolute;
       inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 88px 24px 24px;
       text-align: center;
     }
 
+    html.intro-play .stage-skip {
+      display: inline-flex;
+      position: absolute;
+      top: 80px;
+      right: 24px;
+      z-index: 5;
+      color: #aeb5bf;
+      text-decoration: none;
+      font-size: 14px;
+      padding: 8px 14px;
+      border: 1px solid rgba(139, 147, 161, 0.4);
+      border-radius: 8px;
+      background: rgba(10, 11, 13, 0.4);
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+    html.intro-play .stage-skip:hover { color: #fcfcfa; border-color: #8b93a1; }
+
     /* ════ Act 0 — the question ════ */
-    .question {
-      margin: 0;
-      font-family: 'Space Grotesk', sans-serif;
+    html.intro-play .hero-noun { color: #8b93a1; margin-bottom: 22px; }
+    html.intro-play .question {
+      max-width: 15ch;
       font-weight: 560;
       font-size: clamp(2.9rem, 7.8vw, 6.2rem);
       letter-spacing: -0.045em;
       line-height: 1.03;
-      max-width: 15ch;
-      text-wrap: balance;
       color: #fcfcfa;
     }
-    .q-accent .q-char {
+    html.intro-play .q-accent .q-char {
       color: #5fd3d3;
       /* tight halo hugging the letterforms + faint ambient bloom */
       text-shadow: 0 0 16px rgba(95, 211, 211, 0.5), 0 0 44px rgba(56, 174, 174, 0.26);
     }
-    .q-word { display: inline-block; white-space: nowrap; }
-    .q-char { display: inline-block; will-change: transform, opacity; }
-
-    .question-sub {
+    html.intro-play .question-sub {
       margin: 26px 0 0;
       font-size: clamp(1rem, 1.6vw, 1.2rem);
       color: #aeb5bf;
       max-width: 44ch;
-      line-height: 1.55;
     }
-    .question-sub .sub-quiet { display: block; color: #8b93a1; font-size: 0.88em; margin-top: 6px; }
+    html.intro-play .question-sub .sub-quiet { color: #8b93a1; font-size: 0.88em; margin-top: 6px; }
 
-    .dawn-hint {
+    html.intro-play .dawn-hint {
+      display: block;
       position: fixed;
       top: 44%;
       left: 50%;
@@ -738,15 +782,13 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       white-space: nowrap;
       will-change: transform, opacity;
     }
-    .static-story .dawn-hint { display: none; }
-    .static-story .story-header { position: absolute; }
 
-    .scroll-cue {
+    html.intro-play .scroll-cue {
+      display: flex;
       position: absolute;
       bottom: 34px;
       left: 50%;
       transform: translateX(-50%);
-      display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
@@ -771,7 +813,8 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     }
 
     /* ════ Chapters ════ */
-    .chapter {
+    html.intro-play .chapter {
+      display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
@@ -782,7 +825,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       visibility: hidden;
       pointer-events: none;
     }
-    .chapter.active { pointer-events: auto; }
+    html.intro-play .chapter.active { pointer-events: auto; }
 
     .chapter-copy { max-width: 30rem; }
     .kicker {
@@ -907,9 +950,11 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       background: var(--color-bg);
       color: var(--color-neutral-900);
     }
+    .daylight:focus { outline: none; }
     .d-section { padding: clamp(64px, 11vh, 130px) 24px; }
-    .d-engine { padding-top: clamp(40px, 7vh, 80px); }
-    .d-board { background: var(--color-neutral-50); border-block: 1px solid var(--color-border); }
+    .d-engine { padding-top: clamp(28px, 5vh, 56px); }
+    html.intro-play .d-engine { padding-top: clamp(40px, 7vh, 80px); }
+    .d-board { background: var(--color-neutral-50); border-block: 1px solid var(--color-neutral-200); }
     .d-inner { max-width: 1100px; margin: 0 auto; }
 
     .d-kicker {
@@ -918,7 +963,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       font-size: 12px;
       letter-spacing: 0.3em;
       text-transform: uppercase;
-      color: var(--color-neutral-500);
+      color: var(--color-neutral-600);
       text-align: center;
     }
     .d-title {
@@ -930,6 +975,8 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       font-size: clamp(2.3rem, 5vw, 3.8rem);
       color: var(--color-neutral-900);
     }
+    /* Returning visitors already have the hero H1 above: the engine heading steps down */
+    html:not(.intro-play) .d-engine .d-title { font-size: clamp(1.9rem, 4vw, 2.9rem); }
     .d-title-sm { font-size: clamp(1.9rem, 4vw, 2.9rem); }
     .d-sub {
       margin: 16px auto 40px;
@@ -939,29 +986,8 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       line-height: 1.6;
     }
     .d-board .d-sub { max-width: 42ch; }
-    .d-mask { display: block; overflow: hidden; }
-    .d-mask-inner { display: block; }
 
     .d-engine-wrap { margin-top: 8px; }
-    .engine-panel {
-      background: var(--color-surface, #fff);
-      border: 1px solid var(--color-neutral-200, #e5e5e5);
-      border-radius: 0.75rem;
-      color: var(--color-text, #1A1A2E);
-    }
-    .engine-panel .shimmer-line {
-      background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-    [data-theme="dark"] .engine-panel {
-      background: var(--color-surface, #1E2128);
-      border-color: var(--color-neutral-700, #3f3f46);
-    }
-    [data-theme="dark"] .engine-panel .shimmer-line {
-      background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
-      background-size: 200% 100%;
-    }
 
     /* Decision ledger */
     .d-inner-narrow { max-width: 860px; }
@@ -972,11 +998,11 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       justify-content: space-between;
       gap: 28px;
       padding: 21px 4px;
-      border-top: 1px solid var(--color-border);
+      border-top: 1px solid var(--color-neutral-200);
       text-decoration: none;
       transition: background-color 0.25s ease;
     }
-    .decision-rows li:last-child .decision-row { border-bottom: 1px solid var(--color-border); }
+    .decision-rows li:last-child .decision-row { border-bottom: 1px solid var(--color-neutral-200); }
     .decision-row:hover { background: rgba(11, 110, 110, 0.035); }
     [data-theme="dark"] .decision-row:hover { background: rgba(56, 174, 174, 0.07); }
     .decision-q {
@@ -990,8 +1016,8 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       font-family: 'JetBrains Mono', monospace;
       font-size: 9.5px;
       letter-spacing: 0.14em;
-      color: var(--color-neutral-500);
-      border: 1px solid var(--color-border);
+      color: var(--color-neutral-600);
+      border: 1px solid var(--color-neutral-200);
       border-radius: 5px;
       padding: 2px 6px 1px;
       margin-right: 9px;
@@ -1032,15 +1058,15 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       flex-direction: column;
       gap: 8px;
       padding: 28px 28px 24px;
-      border: 1px solid var(--color-border);
-      border-radius: 16px;
+      border: 1px solid var(--color-neutral-200);
+      border-radius: 12px;
       background: var(--color-surface);
       text-decoration: none;
       overflow: hidden;
       transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     }
     .bento-tile:hover {
-      transform: translateY(-3px);
+      transform: translateY(-2px);
       box-shadow: 0 16px 38px rgba(20, 22, 26, 0.08);
       border-color: var(--tone);
     }
@@ -1079,19 +1105,6 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       color: var(--color-neutral-900);
     }
     .bento-label-sm { font-size: 1.1rem; }
-    .bento-mini-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px;
-      height: 26px;
-      border-radius: 7px;
-      background: color-mix(in srgb, var(--tone) 10%, var(--color-surface));
-      border: 1px solid color-mix(in srgb, var(--tone) 18%, var(--color-surface));
-      color: var(--tone);
-      margin-right: 9px;
-      vertical-align: -6px;
-    }
     .bento-count {
       font-size: 12px;
       font-weight: 700;
@@ -1117,7 +1130,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       /* solid ground under the links — card art always fades before text */
       background: linear-gradient(to top, var(--color-surface) 72%, transparent);
     }
-    .bento-samples li { font-size: 13px; color: var(--color-neutral-500); }
+    .bento-samples li { font-size: 13px; color: var(--color-neutral-600); }
     .bento-samples li::before { content: '·'; margin-right: 6px; color: var(--tone); }
     .bento-go {
       position: absolute;
@@ -1152,7 +1165,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       font-size: clamp(1.05rem, 1.6vw, 1.3rem);
       letter-spacing: -0.01em;
       padding: 18px 34px;
-      border-radius: 14px;
+      border-radius: 12px;
       transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
       box-shadow: 0 10px 28px rgba(11, 110, 110, 0.22);
     }
@@ -1161,7 +1174,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     .cta-viewall:hover svg { transform: translateX(3px); }
 
     /* Close */
-    .d-close { text-align: center; border-top: 1px solid var(--color-border); }
+    .d-close { text-align: center; border-top: 1px solid var(--color-neutral-200); }
     .d-trust {
       margin: 0 auto 30px;
       font-size: 14px;
@@ -1175,10 +1188,11 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     }
     /* Trust items wrap whole, never mid-phrase */
     .trust-item { white-space: nowrap; }
+    @media (max-width: 480px) { .trust-item { white-space: normal; } }
 
     /* ════ Mobile ════ */
     @media (max-width: 820px) {
-      .chapter { flex-direction: column; justify-content: center; gap: 26px; text-align: center; padding: 88px 20px 20px; }
+      html.intro-play .chapter { flex-direction: column; justify-content: center; gap: 26px; text-align: center; padding: 88px 20px 20px; }
       .chapter-copy { max-width: none; }
       .chapter-lede { margin-inline: auto; }
       .chapter-figures { width: 100%; max-width: 440px; }
@@ -1191,21 +1205,25 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       .bento { grid-template-columns: 1fr; grid-template-areas: "sg" "dl" "ip" "ec" "mini"; gap: 12px; }
       .area-saving-and-growth, .area-debt-and-loans { min-height: 210px; }
       .area-income-and-planning, .area-economic { min-height: 170px; }
-      .line-stage { inset: 6% 0 4% 0; height: 90%; opacity: 0.6; }
-      .story-skip { font-size: 13px; padding: 7px 11px; }
+      html.intro-play .line-stage { inset: 6% 0 4% 0; height: 90%; opacity: 0.6; }
+      html.intro-play .stage-skip { top: 76px; right: 16px; font-size: 13px; padding: 7px 11px; }
     }
 
-    /* ════ Reduced motion: every act settled, plain scroll ════ */
+    /* ════ Reduced motion ════ */
     @media (prefers-reduced-motion: reduce) {
       .cue-line { animation: none; opacity: 0.7; }
     }
-    .static-story .track { height: auto; }
-    .static-story .stage { position: static; height: auto; overflow: visible; }
-    .static-story .act { position: static; min-height: 92vh; opacity: 1 !important; visibility: visible !important; }
-    .static-story .mask-inner { transform: none; }
-    .static-story .figure-row { transform: none; opacity: 1; }
-    .static-story .line-stage, .static-story .wash, .static-story .scroll-cue { display: none; }
-    .static-story .q-char { transform: none !important; opacity: 1 !important; }
+    /* Replay asked for with reduced motion: every act settled, plain scroll */
+    html.intro-play.intro-static .track { height: auto; }
+    html.intro-play.intro-static .stage { position: static; height: auto; overflow: visible; }
+    html.intro-play.intro-static .act { position: static; min-height: 92vh; opacity: 1 !important; visibility: visible !important; }
+    html.intro-play.intro-static .mask-inner { transform: none; }
+    html.intro-play.intro-static .figure-row { transform: none; opacity: 1; }
+    html.intro-play.intro-static .line-stage,
+    html.intro-play.intro-static .wash,
+    html.intro-play.intro-static .scroll-cue,
+    html.intro-play.intro-static .dawn-hint { display: none; }
+    html.intro-play.intro-static .q-char { transform: none !important; opacity: 1 !important; }
   </style>
 
   <script>
@@ -1213,40 +1231,39 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
     import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
     const html = document.documentElement;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const seen = html.classList.contains('intro-seen');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const playing = html.classList.contains('intro-play') && !html.classList.contains('intro-static');
     const track = document.getElementById('track');
     const ga = (name: string, params?: Record<string, string>) =>
       (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag?.('event', name, params);
 
-    if (reduced) {
-      document.body.classList.add('static-story');
-    }
-    if (!reduced) {
+    if (!reducedMotion || playing) {
       gsap.registerPlugin(ScrollTrigger);
 
-      /* The engine's SSR skeleton collapses when React hydrates (after the
-         load-event refresh), shifting everything below it up by its height —
-         re-measure trigger positions the moment that happens, or every
-         daylight trigger sits several hundred px too low and never fires. */
-      const skeleton = document.getElementById('engine-skeleton');
-      if (skeleton) {
-        const mo = new MutationObserver(() => {
-          if (skeleton.style.display === 'none') {
-            ScrollTrigger.refresh();
-            mo.disconnect();
-          }
-        });
-        mo.observe(skeleton, { attributes: true, attributeFilter: ['style'] });
+      /* R2.1: anything that changes the daylight's height after load (the
+         engine hydrating, fonts swapping) must re-measure every trigger, or
+         triggers below it sit too low and never fire. A ResizeObserver covers
+         every cause; it replaced the old #engine-skeleton MutationObserver
+         when the skeleton was removed. */
+      const daylight = document.getElementById('daylight');
+      if (daylight && 'ResizeObserver' in window) {
+        let lastH = daylight.offsetHeight;
+        let t: ReturnType<typeof setTimeout> | undefined;
+        new ResizeObserver(() => {
+          const h = daylight.offsetHeight;
+          if (Math.abs(h - lastH) < 2) return;
+          lastH = h;
+          clearTimeout(t);
+          t = setTimeout(() => ScrollTrigger.refresh(), 120);
+        }).observe(daylight);
       }
-      /* Font swap also nudges layout — one more re-measure once fonts settle */
       document.fonts?.ready.then(() => ScrollTrigger.refresh());
     }
 
-    /* ── The theater — first homepage visit of the session only ── */
-    if (!reduced && !seen && track) {
+    /* ── The theater — intro mode only ── */
+    if (playing && track) {
       /* ── Path shapes: equal-length point arrays, lerped for morphs ── */
-      const N = 140;
+      const N = 96;
       const pts = (fn: (t: number) => number) =>
         Array.from({ length: N }, (_, i) => {
           const t = i / (N - 1);
@@ -1317,6 +1334,11 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       const dawnMid2 = isDark ? '#1A1B1E' : '#EFE9E1';
       const tealFinal = getComputedStyle(html).getPropertyValue('--color-primary-600').trim() || '#0B6E6E';
 
+      /* Progress at the current viewport width. A rotation first scrolls the page
+         (same pixels, new vh-based track), so progress read after the resize is
+         wrong; this anchor is only updated while the width is unchanged. */
+      const anchor = { p: 0, w: window.innerWidth };
+
       /* ── Master timeline, scrubbed over the track ── */
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
@@ -1325,6 +1347,9 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
           start: 'top top',
           end: 'bottom bottom',
           scrub: 1.1,
+          onUpdate: (self) => {
+            if (window.innerWidth === anchor.w) anchor.p = self.progress;
+          },
         },
       });
 
@@ -1341,7 +1366,7 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
         ease: 'power2.inOut',
         stagger: { each: 0.07, from: 'random' },
       }, 6);
-      tl.to(['#question-sub', '#scroll-cue'], { duration: 4, opacity: 0, y: -30 }, 6);
+      tl.to(['.hero-noun', '#question-sub', '#scroll-cue'], { duration: 4, opacity: 0, y: -30 }, 6);
       tl.to(['#line-core', '#line-glow'], { duration: 3, opacity: 1 }, 9);
       tl.to(['#line-core', '#line-glow'], { duration: 6, strokeDashoffset: 0, ease: 'power1.inOut' }, 9);
 
@@ -1388,7 +1413,8 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
          flat grey */
       tl.add(morph(OWE, HAIR).duration(6), 57);
       tl.to(['#line-glow'], { duration: 4, opacity: 0 }, 60);
-      tl.to(['#line-core'], { duration: 6, stroke: tealFinal, opacity: 0.5 }, 60);
+      tl.to('#line-core', { duration: 6, opacity: 0.5 }, 60);
+      tl.to('.core-stop', { duration: 6, stopColor: tealFinal }, 60);
       tl.to(document.body, { duration: 4.5, backgroundColor: dawnMid1, ease: 'power1.in' }, 60);
       tl.to(document.body, { duration: 3.5, backgroundColor: dawnMid2, ease: 'none' }, 64.5);
       tl.to(document.body, { duration: 3, backgroundColor: bgFinal, ease: 'power1.out' }, 68);
@@ -1396,16 +1422,13 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       tl.to('#dawn-glow', { duration: 4.5, opacity: 0, ease: 'sine.out' }, 66.5);
       tl.to({}, { duration: 3.5 }); // hold through the dawn settle
 
-      /* Header flip that works in both scroll directions. In dark theme the
-         dawn stays dark, so the header keeps its night styling throughout. */
-      if (!isDark) {
-        ScrollTrigger.create({
-          trigger: '#track',
-          start: '93% bottom',
-          onEnter: () => document.getElementById('story-header')?.classList.add('light'),
-          onLeaveBack: () => document.getElementById('story-header')?.classList.remove('light'),
-        });
-      }
+      /* The header leaves its night tone when the page turns light (both scroll directions) */
+      ScrollTrigger.create({
+        trigger: '#track',
+        start: '93% bottom',
+        onEnter: () => html.classList.add('intro-day'),
+        onLeaveBack: () => html.classList.remove('intro-day'),
+      });
 
       /* ── The baton pass: the fixed "Run your numbers" hint travels into the
          static daylight heading of the same words, tracking its live position
@@ -1467,90 +1490,54 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
         },
       });
 
-      /* Real site navigation takes over in daylight; the story header bows out
-         the moment daylight first peeks over the fold — one brand header on
-         screen at any scroll position, never two */
       ScrollTrigger.create({
         trigger: '#daylight',
         start: 'top bottom',
-        onEnter: () => {
-          document.getElementById('story-header')?.classList.add('gone');
-          mark('daylight');
-        },
-        onLeaveBack: () => document.getElementById('story-header')?.classList.remove('gone'),
+        onEnter: () => mark('daylight'),
       });
 
-      /* Gentle chapter snapping — desktop pointers only (?nosnap disables for QA) */
-      if (window.matchMedia('(pointer: fine)').matches && !location.search.includes('nosnap')) {
-        const total = tl.duration();
-        ScrollTrigger.create({
-          trigger: '#track',
-          start: 'top top',
-          end: 'bottom bottom',
-          snap: {
-            snapTo: [0, 22 / total, 36 / total, 50 / total, 1],
-            duration: { min: 0.4, max: 0.9 },
-            ease: 'power3.inOut',
-            delay: 0.15,
-          },
-        });
-      }
+      /* Rotation / resize mid-intro: keep the timeline where it was. The track
+         is measured in vh, so a new viewport height moves every pixel offset;
+         restore the same progress after ScrollTrigger re-measures
+         (HOME-CHROME-14). No snapping anywhere (HOME-CHROME-02). */
+      let savedProgress: number | null = null;
+      ScrollTrigger.addEventListener('refreshInit', () => {
+        const st = tl.scrollTrigger;
+        const p = window.innerWidth !== anchor.w ? anchor.p : st ? st.progress : 0;
+        savedProgress = p > 0 && p < 1 ? p : null;
+      });
+      ScrollTrigger.addEventListener('refresh', () => {
+        const st = tl.scrollTrigger;
+        if (savedProgress !== null && st) {
+          const y = st.start + savedProgress * (st.end - st.start);
+          if (Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y);
+          anchor.p = savedProgress;
+        }
+        anchor.w = window.innerWidth;
+        savedProgress = null;
+      });
 
-      /* Skip pill: jump straight to the daylight product (native anchor as fallback) */
+      /* Skip: jump straight to the daylight product (native anchor as fallback) */
       document.getElementById('story-skip')?.addEventListener('click', (e) => {
         e.preventDefault();
-        const daylight = document.getElementById('daylight');
-        if (daylight) {
-          window.scrollTo({ top: daylight.getBoundingClientRect().top + window.scrollY, behavior: 'instant' as ScrollBehavior });
+        const target = document.getElementById('daylight');
+        if (target) {
+          window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY, behavior: 'instant' as ScrollBehavior });
+          target.focus({ preventScroll: true });
         }
         ga('story_skip');
       });
     }
 
-    /* ── Daylight choreography: reveals, masked titles, count-ups ── */
-    if (!reduced) {
+    /* ── Daylight count-ups. Everything is visible in the server HTML; only
+       figures that start below the fold count up when they arrive, and the
+       real value is in the text until then (crawlers and screen readers get
+       it). ── */
+    if (!reducedMotion) {
       const fmtInt = (v: number) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-      gsap.set('.reveal', { opacity: 0, y: 26 });
-      gsap.set('.d-mask-inner', { yPercent: 112 });
-
-      /* Per-element triggers with a rAF micro-queue for the stagger.
-         (ScrollTrigger.batch stopped firing for later elements on this page
-         once some reveals fired at load — create() is reliable.) */
-      let revealQueue: HTMLElement[] = [];
-      let revealFlushScheduled = false;
-      const flushReveals = () => {
-        gsap.to(revealQueue, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.08 });
-        revealQueue = [];
-        revealFlushScheduled = false;
-      };
-      gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) => {
-        ScrollTrigger.create({
-          trigger: el,
-          start: 'top 88%',
-          once: true,
-          onEnter: () => {
-            revealQueue.push(el);
-            if (!revealFlushScheduled) {
-              revealFlushScheduled = true;
-              requestAnimationFrame(flushReveals);
-            }
-          },
-        });
-      });
-
-      gsap.utils.toArray<HTMLElement>('.d-mask-inner').forEach((el) => {
-        ScrollTrigger.create({
-          trigger: el,
-          start: 'top 88%',
-          once: true,
-          onEnter: () => gsap.to(el, { yPercent: 0, duration: 1.05, ease: 'power4.out' }),
-        });
-      });
-
       gsap.utils.toArray<HTMLElement>('.decision-a').forEach((el) => {
         const target = parseFloat(el.dataset.count || '0');
-        if (!target) return;
+        if (!target || el.getBoundingClientRect().top < window.innerHeight) return;
         const pre = el.dataset.pre || '';
         const suf = el.dataset.suf || '';
         ScrollTrigger.create({
@@ -1570,9 +1557,16 @@ const defaultDownPct = ((defaultDown / defaultMaxPrice) * 100).toFixed(0);
       });
     }
 
-    /* ── Replay: clear the session flag and start the theater from the top ── */
+    /* ── Replay: mark this history entry to play the intro, then start from the top ── */
     document.getElementById('replay-intro')?.addEventListener('click', () => {
-      try { sessionStorage.removeItem('calcrun.introSeen'); } catch { /* storage blocked — reload alone still replays */ }
+      try {
+        history.replaceState({ ...(history.state || {}), calcrunIntro: 1 }, '');
+      } catch {
+        // history unavailable: clear the "seen" flags so the reload plays the intro
+        const store = (window as unknown as { calcrunStore?: { remove(k: string): boolean; sremove(k: string): boolean } }).calcrunStore;
+        store?.remove('calcrun.introSeen');
+        store?.sremove('calcrun.introSeen');
+      }
       ga('story_replay');
       // Without this the browser restores the pre-reload scroll position and
       // the theater reopens mid-track instead of at the question

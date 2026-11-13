@@ -1,36 +1,173 @@
 ---
+/**
+ * Not-found page (plan HO-6; HOME-CHROME-13): search, a best guess from the
+ * URL, popular calculators and guides -- never a dead end. Served for every
+ * missing URL once the platform 404 handling is on (plan PL-1).
+ */
 import BaseLayout from '@layouts/BaseLayout.astro';
-import ToolIcon from '@components/ui/ToolIcon.astro';
+import SiteSearch from '@components/ui/SiteSearch.astro';
+import { TOOL_COUNT, getToolBySlug, getToolPath, type ToolMeta } from '@lib/tools-data';
+
+const pick = (slugs: string[]) => slugs.map((s) => getToolBySlug(s)).filter((t): t is ToolMeta => t !== undefined);
+const popular = pick(['salary-uk', 'salary-us', 'mortgage-payment', 'mortgage-affordability', 'compound-interest', 'stamp-duty', 'pdf-compress']);
+const guides = [
+  { label: 'UK take-home pay by salary', href: '/scenarios/uk-take-home-pay/' },
+  { label: 'US take-home pay by salary', href: '/scenarios/us-take-home-pay/' },
+  { label: 'Mortgage payments by amount', href: '/scenarios/mortgage-payments-by-amount/' },
+  { label: 'Worked scenarios', href: '/scenarios/' },
+  { label: 'Comparisons', href: '/comparisons/' },
+];
 ---
 
-<BaseLayout title="Page Not Found | CalcRun" description="The page you're looking for doesn't exist." noindex={true}>
-  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
-    {/* Icon */}
-    <div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary-50 text-primary-600 mb-8 mx-auto">
-      <ToolIcon name="search" size={32} />
+<BaseLayout title="Page Not Found | CalcRun" description="The page you're looking for doesn't exist. Search CalcRun or pick a popular calculator." noindex={true}>
+  <section class="border-b border-neutral-200/80 bg-bg">
+    <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 text-center">
+      <p class="text-sm font-semibold text-primary-700 uppercase tracking-wider mb-2">Error 404</p>
+      <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">We couldn't find that page</h1>
+      <p class="mt-3 text-neutral-600 leading-relaxed max-w-[460px] mx-auto">
+        It may have moved, or the address has a typo. Search for what you need, or start from one of the pages below.
+      </p>
+      <div class="mt-7">
+        <SiteSearch id="notfound-search" variant="page" placeholder="Search for a calculator or guide" />
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+    {/* Best guess from the URL the visitor typed; space reserved so nothing jumps */}
+    <section class="nf-suggest" id="nf-suggest" aria-labelledby="nf-suggest-title" aria-live="polite">
+      <h2 id="nf-suggest-title" class="text-lg font-bold text-neutral-900 mb-3">Were you looking for</h2>
+      <ul id="nf-suggest-list" class="nf-list"></ul>
+      <p id="nf-suggest-empty" class="text-sm text-neutral-600"></p>
+    </section>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-10">
+      <section aria-labelledby="nf-popular">
+        <h2 id="nf-popular" class="text-lg font-bold text-neutral-900 mb-3">Popular calculators</h2>
+        <ul class="nf-list">
+          {popular.map((tool) => (
+            <li><a href={getToolPath(tool)} class="nf-link">{tool.name}</a></li>
+          ))}
+        </ul>
+      </section>
+      <section aria-labelledby="nf-guides">
+        <h2 id="nf-guides" class="text-lg font-bold text-neutral-900 mb-3">Guides</h2>
+        <ul class="nf-list">
+          {guides.map((g) => (
+            <li><a href={g.href} class="nf-link">{g.label}</a></li>
+          ))}
+        </ul>
+      </section>
     </div>
 
-    <p class="text-sm font-semibold text-primary-600 uppercase tracking-wider mb-2">Error 404</p>
-    <h1 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Page Not Found</h1>
-    <p class="text-neutral-500 mb-10 max-w-[400px] mx-auto leading-relaxed">
-      The page you're looking for doesn't exist or has been moved. Let's get you back on track.
-    </p>
-
-    <div class="flex flex-col sm:flex-row gap-3 justify-center">
-      <a
-        href="/"
-        class="inline-flex items-center justify-center gap-2 bg-primary-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-600/20 hover:shadow-primary-700/25 transition-all duration-200 hover:-translate-y-0.5"
-      >
-        <ToolIcon name="home" size={18} />
-        Go to Homepage
+    <div class="mt-12 flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/" class="inline-flex items-center justify-center bg-primary-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-primary-700 transition-all duration-200">
+        Go to the homepage
       </a>
-      <a
-        href="/tools/"
-        class="inline-flex items-center justify-center gap-2 bg-white text-neutral-700 font-semibold px-6 py-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200"
-      >
-        <ToolIcon name="calculator" size={18} />
-        Browse Tools
+      <a href="/tools/" class="inline-flex items-center justify-center bg-surface text-neutral-800 font-semibold px-6 py-3 rounded-lg border border-neutral-200/80 hover:bg-neutral-50 transition-all duration-200">
+        Browse all {TOOL_COUNT} tools
       </a>
     </div>
   </div>
 </BaseLayout>
+
+<style is:global>
+  /* Global: the suggestion links are created by script, outside Astro's scoping */
+  .nf-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-neutral-200); }
+  .nf-list li { border-bottom: 1px solid var(--color-neutral-200); }
+  .nf-link {
+    display: block;
+    padding: 0.75rem 0.25rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-neutral-900);
+    transition: color 150ms ease;
+  }
+  .nf-link:hover { color: var(--color-primary-700); }
+  .nf-meta { display: block; font-size: 0.8125rem; font-weight: 400; color: var(--color-neutral-600); }
+  /* Suggestions: shown (with reserved height) only when JS can fill them */
+  .nf-suggest { display: none; }
+  html.js .nf-suggest.is-active {
+    display: block;
+    min-height: 11rem;
+    margin-bottom: 2.5rem;
+  }
+  .nf-suggest .nf-list { opacity: 0; transition: opacity 200ms ease; }
+  .nf-suggest.is-ready .nf-list { opacity: 1; }
+</style>
+
+<script>
+  // Turn the missing URL into a query ("/tools/debt-and-loans/mortage-calc/"
+  // -> "mortage calc") and show the top matches from the site search index.
+  const box = document.getElementById('nf-suggest');
+  const list = document.getElementById('nf-suggest-list');
+  const empty = document.getElementById('nf-suggest-empty');
+  let path = location.pathname;
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    path = location.pathname; // malformed %-escape: match on the raw path instead
+  }
+  // A category in the path ("/tools/debt-and-loans/...") is a strong hint:
+  // its tools are preferred, and a bare category URL lists them.
+  const CATEGORY_SLUGS = ['saving-and-growth', 'debt-and-loans', 'income-and-planning', 'economic', 'utility', 'file-tools'];
+  const segments = path.split('/').filter((seg) => seg && seg !== '404.html');
+  const category = segments.find((seg) => CATEGORY_SLUGS.includes(seg)) || null;
+  const words = segments
+    .filter((seg) => !CATEGORY_SLUGS.includes(seg) && !/^(tools|scenarios|comparisons|how-we-calculate)$/.test(seg))
+    .slice(-2)
+    .join(' ')
+    .replace(/[-_.]+/g, ' ')
+    .replace(/\b(html?|php|aspx?)\b/g, '')
+    .trim();
+
+  async function suggest() {
+    if (!box || !list || !empty || (!words && !category)) return;
+    box.classList.add('is-active');
+    try {
+      const [lib, res] = await Promise.all([import('@lib/search-index'), fetch('/search-index.json')]);
+      if (!res.ok) throw new Error(`index ${res.status}`);
+      const data = (await res.json()) as { entries: import('@lib/search-index').SearchEntry[] };
+      const index = lib.prepareIndex(data.entries);
+      const region = (window as unknown as { calcrunRegion?: string }).calcrunRegion;
+      const inCategory = (u: string) => !!category && u.startsWith(`/tools/${category}/`);
+      const ranked = (q: string) => {
+        const r = lib.searchIndex(index, q, { region, limit: 12 });
+        // Stable: matches inside the URL's category first, others after
+        return [...r.filter((e) => inCategory(e.u)), ...r.filter((e) => !inCategory(e.u))];
+      };
+      let results = words ? ranked(words) : [];
+      // Typos rarely match every word: try each longer word, then its first
+      // four letters ("mortage" -> "mort"), always preferring the category
+      const tries = words.split(' ').filter((w) => w.length >= 3).sort((x, y) => y.length - x.length);
+      for (const q of [...tries, ...tries.filter((w) => w.length >= 5).map((w) => w.slice(0, 4))]) {
+        if (results.length && (!category || inCategory(results[0].u))) break;
+        const r = ranked(q);
+        if (r.length && (!results.length || (category && inCategory(r[0].u)))) results = r;
+      }
+      // Nothing matched (or only a category URL): list that category's tools
+      if (!results.length && category) results = data.entries.filter((e) => e.k === 'tool' && inCategory(e.u));
+      results = results.slice(0, 4);
+      results.forEach((e) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = e.u;
+        a.className = 'nf-link';
+        a.textContent = e.t;
+        if (e.d) {
+          const meta = document.createElement('span');
+          meta.className = 'nf-meta';
+          meta.textContent = e.d;
+          a.appendChild(meta);
+        }
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+      if (!results.length) empty.textContent = 'No close match for that address. Try the search above.';
+    } catch {
+      empty.textContent = 'Suggestions could not load. Try the search above or the lists below.';
+    }
+    box.classList.add('is-ready');
+  }
+  void suggest();
+</script>

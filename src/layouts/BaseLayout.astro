@@ -2,6 +2,9 @@
 import Navigation from '@components/ui/Navigation.astro';
 import Footer from '@components/ui/Footer.astro';
 import CookieBanner from '@components/ui/CookieBanner.astro';
+import { SAFE_STORAGE_INLINE_JS } from '@lib/safe-storage';
+import { REGION_INLINE_JS } from '@lib/region';
+import { THEME_INLINE_JS } from '@lib/theme-boot';
 import '../styles/global.css';
 
 interface Props {
@@ -11,9 +14,24 @@ interface Props {
   ogImage?: string;
   structuredData?: string[];
   noindex?: boolean;
-  /** Page renders its own <Navigation /> (e.g. the homepage theater's daylight) */
+  /** Page renders its own <Navigation /> (kept for compatibility; the homepage no longer uses it) */
   hideNav?: boolean;
+  /** id the "Skip to ..." link jumps to (the homepage skips its intro theatre) */
+  skipTo?: string;
+  /** Visible text of the skip link */
+  skipLabel?: string;
+  /** og:locale, e.g. en_GB for UK pages */
+  ogLocale?: string;
+  /** Never load analytics on this page (tools that handle sensitive input, DEVTOOLS-26) */
+  noAnalytics?: boolean;
 }
+
+/**
+ * Tools that handle secrets (generated passwords, bearer tokens) never load
+ * analytics, whatever the visitor chose (DEVTOOLS-26). Keyed by slug so the
+ * tool route needs no per-tool wiring.
+ */
+const NO_ANALYTICS_TOOL_SLUGS = ['password-generator', 'jwt-decoder'];
 
 const {
   title,
@@ -23,14 +41,104 @@ const {
   structuredData = [],
   noindex = false,
   hideNav = false,
+  skipTo = 'main-content',
+  skipLabel = 'Skip to main content',
+  ogLocale = 'en_US',
+  noAnalytics: noAnalyticsProp = false,
 } = Astro.props;
 
 const SITE_URL = 'https://www.calcrun.com';
-const fullTitle = title.includes('CalcRun') ? title : `${title} | CalcRun`;
+// Brand suffix only while it fits: long titles stay whole in results
+const fullTitle = title.includes('CalcRun') || title.length > 50 ? title : `${title} | CalcRun`;
 // Normalize canonical to always use production domain (not pages.dev or localhost)
 const pathname = Astro.url.pathname;
+const toolSlug = pathname.match(/^\/tools\/[a-z-]+\/([a-z0-9-]+)\/?$/)?.[1];
+const noAnalytics = noAnalyticsProp || (toolSlug !== undefined && NO_ANALYTICS_TOOL_SLUGS.includes(toolSlug));
 const canonical = canonicalUrl || `${SITE_URL}${pathname}`;
 const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogImage}`;
+
+/** Article / TechArticle in the page's JSON-LD (top level, arrays or @graph). */
+function findArticle(node: unknown): { published?: string; modified?: string } | null {
+  if (!node || typeof node !== 'object') return null;
+  if (Array.isArray(node)) {
+    for (const n of node) {
+      const found = findArticle(n);
+      if (found) return found;
+    }
+    return null;
+  }
+  const o = node as Record<string, unknown>;
+  const types = Array.isArray(o['@type']) ? (o['@type'] as unknown[]) : [o['@type']];
+  if (types.includes('Article') || types.includes('TechArticle')) {
+    return {
+      published: typeof o.datePublished === 'string' ? o.datePublished : undefined,
+      modified: typeof o.dateModified === 'string' ? o.dateModified : undefined,
+    };
+  }
+  return o['@graph'] ? findArticle(o['@graph']) : null;
+}
+// Invalid JSON-LD throws here on purpose: the build should fail loudly.
+const article = structuredData.map((d) => findArticle(JSON.parse(d))).find((a) => a !== null) ?? null;
+
+/*
+ * Render the page body first so the head can preload only the fonts it uses
+ * (A11Y-PERF F-22: JetBrains Mono was preloaded on pages with no figures).
+ * DM Sans (body) and Space Grotesk (h1/h2) are on every page; the mono face
+ * is used by every money figure (.tabular-nums) and by code (font-mono).
+ */
+const bodyHtml = await Astro.slots.render('default');
+const usesMono = /\btabular-nums\b|\bfont-mono\b/.test(bodyHtml);
+
+/*
+ * Head boot script -- runs before first paint and never throws:
+ * - calcrunStore: storage helpers that survive blocked storage (HOME-CHROME-18)
+ * - calcrunRegion: 'UK' | 'EEA' | 'US' | 'OTHER' from time zone / language (plan D5)
+ * - html.js marks script-dependent controls as usable
+ * - theme: a stored choice ('light'|'dark') wins, otherwise the OS setting; the
+ *   page follows later OS changes while there is no stored choice (HO-8)
+ */
+const BOOT_JS = SAFE_STORAGE_INLINE_JS + REGION_INLINE_JS + THEME_INLINE_JS;
+
+/*
+ * Google Analytics, consent-aware (plan D1; HOME-CHROME-06):
+ * - EEA + Switzerland (calcrunRegion 'EEA'): gtag.js is NOT loaded until the
+ *   visitor presses Accept.
+ * - Everywhere else: loaded by default (owner decision, Jul 2026) with
+ *   analytics_storage granted, and Decline really stops it.
+ * - A stored Decline: gtag.js is never loaded and existing _ga* cookies are
+ *   deleted. Decline mid-page sets Google's opt-out flag, denies storage and
+ *   deletes the cookies.
+ * - Embeds (?embed, /embed/<tool>/, or any framed page) and pages built with
+ *   noAnalytics: never loaded. On a noAnalytics page the banner still records
+ *   the site-wide choice, but Accept does not load GA there.
+ * - Google Signals and ad personalisation are off in the config; ad storage
+ *   stays denied (no ads product).
+ * window.calcrunConsent is the single API the cookie banner and the footer's
+ * "Cookie settings" button use. It runs at the end of <head> so the async GA
+ * request never competes with render-critical CSS and fonts.
+ */
+const GA_ID = 'G-K0ZB3P48QG';
+const CONSENT_JS =
+  '(function(){var ID="' + GA_ID + '",KEY="calcrun-cookie-consent";' +
+  'var region=typeof window.calcrunRegion==="string"?window.calcrunRegion:"OTHER";var framed=false;' +
+  'try{framed=window.self!==window.top}catch(e){framed=true}' +
+  'var embed=framed||/[?&]embed(?:[=&]|$)/.test(location.search)||/^\\/embed\\/[^\\/]+/.test(location.pathname);' +
+  'var choice=calcrunStore.get(KEY);if(choice!=="accepted"&&choice!=="declined")choice=null;' +
+  'var c=window.calcrunConsent={id:ID,key:KEY,region:region,required:region==="EEA",embed:embed,off:' + (noAnalytics ? 'true' : 'false') + ',choice:choice,loaded:false};' +
+  'c.clearCookies=function(){var host=location.hostname,doms=["",host,"."+host],p=host.split("."),i,j;' +
+  'for(i=1;i<p.length-1;i++)doms.push("."+p.slice(i).join("."));' +
+  'var names=document.cookie.split(";");for(i=0;i<names.length;i++){var n=names[i].split("=")[0].replace(/^\\s+|\\s+$/g,"");' +
+  'if(!/^(_ga|_gid|_gat)/.test(n))continue;for(j=0;j<doms.length;j++){' +
+  'document.cookie=n+"=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"+(doms[j]?"; domain="+doms[j]:"")}}};' +
+  'c.load=function(){if(c.loaded||c.embed||c.off)return;c.loaded=true;window["ga-disable-"+ID]=false;' +
+  'window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer.push(arguments)};' +
+  'gtag("consent","default",{ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",analytics_storage:"granted"});' +
+  'gtag("js",new Date());gtag("config",ID,{allow_google_signals:false,allow_ad_personalization_signals:false});' +
+  'var s=document.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id="+ID;document.head.appendChild(s)};' +
+  'c.set=function(v){if(v!=="accepted"&&v!=="declined")return;c.choice=v;calcrunStore.set(KEY,v);' +
+  'if(v==="declined"){window["ga-disable-"+ID]=true;if(c.loaded&&window.gtag)gtag("consent","update",{analytics_storage:"denied"});c.clearCookies()}' +
+  'else if(c.loaded){window["ga-disable-"+ID]=false;gtag("consent","update",{analytics_storage:"granted"})}else{c.load()}};' +
+  'if(choice==="declined")c.clearCookies();else if(!embed&&!c.off&&(choice==="accepted"||!c.required))c.load()})();';
 ---
 
 <!doctype html>
@@ -38,12 +146,15 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* Theme before paint, storage-safe; region for currency defaults and consent */}
+    <script is:inline set:html={BOOT_JS} />
     <meta name="impact-site-verification" value="d22855a7-f8b7-4391-9e83-81eab87deb9a" />
 
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
-    <link rel="canonical" href={canonical} />
+    {/* A noindex page (the 404) has no canonical */}
+    {!noindex && <link rel="canonical" href={canonical} />}
 
     <!-- Favicons -->
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
@@ -52,22 +163,19 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#0B6E6E" />
 
-    <!-- Dark mode: prevent FOUC by setting theme before paint -->
-    <script is:inline>
-      (function(){var t=localStorage.getItem('calcrun.theme');if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();
-    </script>
-
-    <!-- Font preloads for LCP -->
+    <!-- Font preloads for LCP: only the faces this page uses -->
     <link rel="preload" href="/fonts/DMSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/JetBrainsMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    {usesMono && <link rel="preload" href="/fonts/JetBrainsMono-Variable.woff2" as="font" type="font/woff2" crossorigin />}
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    {article?.published && <meta property="article:published_time" content={article.published} />}
+    {article?.modified && <meta property="article:modified_time" content={article.modified} />}
+    <meta property="og:locale" content={ogLocale} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:image" content={absoluteOgImage} />
     <meta property="og:image:alt" content={title} />
     <meta property="og:site_name" content="CalcRun" />
@@ -83,16 +191,11 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
       <script is:inline type="application/ld+json" set:html={data} />
     ))}
 
-    <!-- Page-specific pre-paint head additions (e.g. homepage intro-seen flag) -->
+    <!-- Page-specific pre-paint head additions (e.g. homepage intro gate) -->
     <slot name="head" />
 
-    <!-- Google Analytics with Consent Mode v2: analytics_storage defaults to
-         GRANTED (owner decision, Jul 2026 — default-deny cratered measurement);
-         the cookie banner's Decline is honored as a genuine opt-out (stored
-         choice re-applied on later visits). Ad signals stay denied — no ads
-         product. Loaded at the end of <head> so it never competes with
-         render-critical CSS/fonts. -->
-    <Fragment set:html={`<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'granted'});try{if(localStorage.getItem('calcrun-cookie-consent')==='declined'){gtag('consent','update',{analytics_storage:'denied'});}}catch(e){}gtag('js',new Date());gtag('config','G-K0ZB3P48QG');</script><script async src="https://www.googletagmanager.com/gtag/js?id=G-K0ZB3P48QG"></script>`} />
+    <!-- Google Analytics: consent-aware loader (see CONSENT_JS above) -->
+    <script is:inline set:html={CONSENT_JS} />
   </head>
   <body class="min-h-screen flex flex-col bg-bg text-neutral-900 overflow-x-hidden">
     <script is:inline>
@@ -100,10 +203,12 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
         document.body.classList.add('embed-mode');
       }
     </script>
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold">
-      Skip to main content
+    <a href={`#${skipTo}`} class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold">
+      {skipLabel}
     </a>
     <script>
+      import { safeGet, safeSet } from '@lib/safe-storage';
+
       // Any table wider than its container gets wrapped in a horizontal scroll
       // box with a right-edge fade cue — wide tables scroll in place instead of
       // clipping or forcing page-level horizontal scroll. Tables that fit keep
@@ -129,7 +234,50 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
           wrap.addEventListener('scroll', updateEnd, { passive: true });
           updateEnd();
         });
+        markScrollRegions();
       }
+
+      /** Accessible name for a horizontally scrolling box: its table caption, else the nearest heading above it. */
+      function scrollRegionLabel(el: HTMLElement): string {
+        const caption = el.querySelector('caption')?.textContent?.trim();
+        if (caption) return `${caption} (scrollable table)`;
+        let node: Element | null = el;
+        while (node && node !== document.body) {
+          let prev = node.previousElementSibling;
+          while (prev) {
+            const h = prev.matches('h2, h3, h4') ? prev : prev.querySelector('h2, h3, h4');
+            const text = h?.textContent?.trim();
+            if (text) return `${text} (scrollable table)`;
+            prev = prev.previousElementSibling;
+          }
+          node = node.parentElement;
+        }
+        return 'Scrollable table';
+      }
+
+      // Keyboard users must be able to scroll wide tables (A11Y-PERF-18, axe
+      // scrollable-region-focusable): a box that actually scrolls becomes a
+      // focusable, named region; it reverts when it no longer scrolls.
+      function markScrollRegions() {
+        document.querySelectorAll<HTMLElement>('main .table-scroll, main .overflow-x-auto').forEach((el) => {
+          if (el.closest('astro-island') || !el.querySelector('table')) return;
+          const scrollable = el.scrollWidth > el.clientWidth + 1;
+          if (scrollable && !el.hasAttribute('tabindex')) {
+            el.tabIndex = 0;
+            el.dataset.scrollRegion = '1';
+            if (!el.hasAttribute('role')) el.setAttribute('role', 'region');
+            if (!el.hasAttribute('aria-label') && !el.hasAttribute('aria-labelledby')) {
+              el.setAttribute('aria-label', scrollRegionLabel(el));
+            }
+          } else if (!scrollable && el.dataset.scrollRegion) {
+            el.removeAttribute('tabindex');
+            el.removeAttribute('role');
+            el.removeAttribute('aria-label');
+            delete el.dataset.scrollRegion;
+          }
+        });
+      }
+
       wrapWideTables();
       // Font swap can widen tables after first pass — re-check once fonts land
       document.fonts?.ready.then(() => wrapWideTables());
@@ -140,10 +288,25 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogI
         clearTimeout(tableResizeTimer);
         tableResizeTimer = setTimeout(wrapWideTables, 250);
       }, { passive: true });
+
+      // "Recently used" tools for the homepage return hook (HOME-CHROME-11).
+      // Local to this browser, never sent anywhere; listed on /privacy/.
+      const toolMatch = location.pathname.match(/^\/tools\/[a-z-]+\/([a-z0-9-]+)\/$/);
+      if (toolMatch && document.querySelector('[data-calc-section]') && !document.body.classList.contains('embed-mode')) {
+        const slug = toolMatch[1];
+        let recent: string[] = [];
+        try {
+          const parsed: unknown = JSON.parse(safeGet('calcrun.recentTools') || '[]');
+          if (Array.isArray(parsed)) recent = parsed.filter((s): s is string => typeof s === 'string');
+        } catch {
+          recent = []; // corrupt value: start a fresh list
+        }
+        safeSet('calcrun.recentTools', JSON.stringify([slug, ...recent.filter((s) => s !== slug)].slice(0, 4)));
+      }
     </script>
     {!hideNav && <Navigation />}
     <main id="main-content" class="flex-1">
-      <slot />
+      <Fragment set:html={bodyHtml} />
     </main>
     <Footer />
     <CookieBanner />
