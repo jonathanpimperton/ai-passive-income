@@ -44,7 +44,7 @@ faq:
   - question: "What does 'maintain aspect ratio' mean?"
     answer: "Aspect ratio is the proportional relationship between width and height. A 4000×3000 image has a 4:3 aspect ratio. When 'maintain aspect ratio' is on, changing the width automatically adjusts the height (and vice versa) to keep the image from stretching or squishing. Turn it off only if you intentionally want to distort the proportions."
   - question: "What's the maximum image size I can resize?"
-    answer: "This tool allows outputs up to 16,384 pixels on either side and 100 megapixels in total (about 16.7 megapixels on iPhone and iPad, whose browsers have a lower limit). If you ask for more, it tells you instead of producing a broken file. Very large photos may be slow on older devices."
+    answer: "This tool allows outputs up to 16,384 pixels on either side and about 268 megapixels in total (about 16.7 megapixels on iPhone and iPad, whose browsers have a lower limit). If you ask for more, it tells you instead of producing a broken file. Very large photos may be slow, or run out of memory, on older devices."
   - question: "What format is the resized image saved in?"
     answer: "The same format as the original: a JPG stays a JPG and a WebP stays a WebP, with a quality setting, so the file does not balloon. PNG stays PNG. SVG and GIF images are saved as PNG. You can also pick JPG, PNG or WebP explicitly."
 ---

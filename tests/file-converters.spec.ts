@@ -17,7 +17,7 @@
  * HEIC test must pass with it on (review FILES-01: dev and preview servers
  * ignore _headers, which is how the HEIC CSP breakage shipped unnoticed).
  */
-import { test, expect, Page, Download } from '@playwright/test';
+import { test, expect, type Page, type Download } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
@@ -724,6 +724,30 @@ test.describe('Image Compressor (FILES-03, FILES-10)', () => {
     await expect(page.getByText(/^test-photo(_compressed)?\.jpg$/)).toHaveCount(0);
   });
 
+  for (const [fixture, mime] of [['gps-q30.jpg', 'jpeg'], ['meta.png', 'png'], ['meta.webp', 'webp']] as const) {
+    test(`location and other metadata are removed from ${fixture}, even when the original is kept`, async ({ page }) => {
+      await page.goto('/tools/file-tools/image-compressor/');
+      await page.waitForLoadState('networkidle');
+      await uploadFile(page, path.join(FT, fixture));
+      await expect(page.getByText(/1 file compressed/)).toBeVisible({ timeout: 30000 });
+      const { bytes } = await downloadBytes(page, () => page.getByRole('button', { name: /^download /i }).first().click());
+      const text = bytes.toString('latin1');
+      expect(text).not.toContain('secret-owner');
+      expect(text).not.toContain('TestCam');
+      expect(text).not.toContain('51N 0W');
+      const sharp = (await import('sharp')).default;
+      const meta = await sharp(bytes).metadata();
+      expect(meta.format).toBe(mime);
+      if (mime === 'jpeg') {
+        // Only the date taken may remain (the default "keep date" option): a tiny Exif block, no GPS IFD.
+        expect(meta.exif === undefined || meta.exif.length < 120).toBe(true);
+        expect(meta.exif?.includes(Buffer.from([0x88, 0x25])) ?? false).toBe(false);
+      } else {
+        expect(meta.exif).toBeUndefined();
+      }
+    });
+  }
+
   test('a damaged image is named in the error (FILES-12)', async ({ page }) => {
     await page.goto('/tools/file-tools/image-compressor/');
     await page.waitForLoadState('networkidle');
@@ -745,7 +769,7 @@ test.describe('Images to PDF (FILES-04, FILES-22)', () => {
     const doc = await PDFDocument.load(bytes);
     const img = doc.context.enumerateIndirectObjects()
       .map(([, o]) => o)
-      .find((o) => o instanceof PDFRawStream && o.dict.get(PDFName.of('Subtype'))?.toString() === '/Image') as InstanceType<typeof PDFRawStream>;
+      .find((o) => o instanceof PDFRawStream && o.dict.get(PDFName.of('Subtype'))?.toString() === '/Image') as unknown as { contents: Uint8Array };
     // (100,100) is fully transparent in the source: it must come out white, not black.
     near(await rgbAt(Buffer.from(img.contents), 100, 100), [255, 255, 255], 10);
     await expect(page.getByText(/Saved transparent-800x600\.pdf/)).toBeVisible();
@@ -804,6 +828,18 @@ test.describe('SVG to PNG (FILES-07, FILES-12)', () => {
     await expect(page.getByText(/756 × 378px/)).toBeVisible({ timeout: 15000 });
     await uploadFile(page, path.join(FT, 'percent-size.svg'));
     await expect(page.getByText(/2000 × 1000px/)).toBeVisible({ timeout: 15000 });
+  });
+
+  test('prefixed SVGs are accepted and prefixed scripts removed (namespace-aware sanitiser)', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.goto('/tools/file-tools/svg-to-png/');
+    await page.waitForLoadState('networkidle');
+    await uploadFile(page, path.join(FT, 'prefixed.svg'));
+    await expect(page.getByText(/40 × 20px/)).toBeVisible({ timeout: 15000 });
+    const { bytes } = await downloadBytes(page, () => page.getByRole('button', { name: /download png/i }).click());
+    near(await rgbAt(bytes, 20, 10), [0, 255, 0], 10);
+    expect(errors).toEqual([]);
   });
 
   test('invalid and impossibly large SVGs get messages, not a stuck spinner', async ({ page }) => {

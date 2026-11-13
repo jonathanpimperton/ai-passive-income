@@ -42,7 +42,7 @@ faq:
   - question: "What's the difference between JPG, PNG, and WebP compression?"
     answer: "JPG is best for photos and complex images — it compresses well but doesn't support transparency. PNG is best for graphics, logos, and images needing transparency — larger files but lossless. WebP offers the best of both worlds with smaller files than JPG and transparency support, but some older browsers don't support it."
   - question: "Why did an image come back the same size?"
-    answer: "If re-encoding would not make a file smaller (for example a JPG that is already heavily compressed, or a PNG that is already optimised), the tool keeps your original file and labels it 'original kept' rather than giving you a bigger file. Lower the quality, set a max width, or choose a different output format to go smaller."
+    answer: "If re-encoding would not make a file smaller (for example a JPG that is already heavily compressed, or a PNG that is already optimised), the tool keeps your original image data and labels it 'original kept' rather than giving you a bigger file. Its metadata is still removed (location and camera details; the date taken stays only if you ask for it). Lower the quality, set a max width, or choose a different output format to go smaller."
   - question: "Will it change my image's format?"
     answer: "Only if you ask it to. 'Same as original' is the default, so a PNG stays a PNG and keeps its transparency. You can choose JPG (smallest for photos, but transparent areas become white), WebP (small and keeps transparency) or PNG instead. Safari cannot create WebP files, so on Safari a WebP choice is saved as PNG and the tool tells you."
   - question: "How much can I reduce an image's file size?"
@@ -60,7 +60,7 @@ This tool uses your browser's built-in image decoder and Canvas API, plus a buil
 1. You drop or select images
 2. Your browser decodes the image pixels (photos are rotated upright using their orientation tag)
 3. JPG and WebP are re-encoded at your chosen quality; PNG is optimised losslessly, or reduced to 256 colours when that stays visually identical at your quality setting
-4. If the result is not smaller, your original is kept
+4. If the result is not smaller, your original image data is kept (with its metadata removed)
 5. You download each result, or all of them as one ZIP file
 
 Change the quality, width or format afterwards and the images are re-compressed automatically. Location (GPS) data is always removed; the date a photo was taken can be kept for JPG output.

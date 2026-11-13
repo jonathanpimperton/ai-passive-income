@@ -21,6 +21,11 @@ describe('wrapping never truncates (FILES-05)', () => {
     expect(wrapCell('a\rb\nc', 20, m)).toEqual(['a', 'b', 'c']);
     expect(wrapCell('', 5, m)).toEqual(['']);
   });
+  it('keeps a word that exactly fills the column whole, despite float noise', () => {
+    // 0.1 + 0.2 style noise: the measured width is a hair above the column width.
+    const noisy = (s: string) => Array.from(s).length * 0.1 + (s === 'Category' ? 0.30000000000000004 - 0.3 : 0);
+    expect(wrapParagraph('Category', 0.8, noisy)).toEqual(['Category']);
+  });
   it('measures natural and longest-word widths', () => {
     expect(naturalWidth('ab\nabcdef', m)).toBe(6);
     expect(longestWordWidth('a very longword', m)).toBe(8);
@@ -81,7 +86,18 @@ describe('countTitleRows', () => {
     expect(countTitleRows([['only'], ['col']])).toBe(0);
   });
   it('never consumes every row', () => {
-    expect(countTitleRows([['x', ''], ['y', '']])).toBe(1);
+    expect(countTitleRows([['x', ''], ['y', '']])).toBe(0);
+    expect(countTitleRows([['Title', '']])).toBe(0);
+  });
+  it('does not swallow sparse data rows', () => {
+    const rows = [['Alice', '', ''], ['', 'Bob', ''], ['Carol', '', ''], ['', '', 'Dan'], ['Eve', '', ''], ['x', 'y', 'z']];
+    expect(countTitleRows(rows)).toBe(0);
+    expect(countTitleRows([['2024', '', ''], ['Date', 'Vendor', 'Amount']])).toBe(0); // a number is data, not a title
+    expect(countTitleRows([['', 'Note', ''], ['Date', 'Vendor', 'Amount']])).toBe(0); // title must be in column 1
+  });
+  it('accepts up to three title rows above a real header', () => {
+    const rows = [['Company Ltd', '', ''], ['Q3 Expense Report', '', ''], ['Date', 'Vendor', 'Amount'], ['1', '2', '3']];
+    expect(countTitleRows(rows)).toBe(2);
   });
 });
 

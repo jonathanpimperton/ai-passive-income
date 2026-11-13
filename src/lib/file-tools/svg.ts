@@ -108,7 +108,9 @@ export function sanitizeSvgCss(css: string): string {
     .replace(/expression\s*\(/gi, '(');
 }
 
-const REMOVE_TAGS = ['script', 'foreignObject', 'iframe', 'object', 'embed', 'audio', 'video', 'canvas'];
+const SVG_NS = 'http://www.w3.org/2000/svg';
+/** Removed by local name in ANY namespace, so prefixed forms such as <s:script> cannot slip through. */
+const REMOVE_LOCAL_NAMES = new Set(['script', 'foreignobject', 'iframe', 'object', 'embed', 'audio', 'video', 'canvas', 'handler', 'listener']);
 
 /**
  * Sanitise a parsed SVG document in place (browser DOM). Keeps <style> and
@@ -118,25 +120,27 @@ const REMOVE_TAGS = ['script', 'foreignObject', 'iframe', 'object', 'embed', 'au
  */
 export function sanitizeSvgDocument(doc: Document): boolean {
   const root = doc.documentElement;
-  if (!root || root.nodeName.toLowerCase() !== 'svg' || doc.getElementsByTagName('parsererror').length > 0) return false;
-  for (const tag of REMOVE_TAGS) {
-    Array.from(doc.getElementsByTagName(tag)).forEach((el) => el.parentNode?.removeChild(el));
+  // Accept <svg> with any prefix (<svg:svg>), but only in the SVG namespace.
+  if (!root || root.localName !== 'svg' || root.namespaceURI !== SVG_NS) return false;
+  if (doc.getElementsByTagNameNS('*', 'parsererror').length > 0) return false;
+  for (const el of Array.from(doc.getElementsByTagNameNS('*', '*'))) {
+    if (el !== root && REMOVE_LOCAL_NAMES.has(el.localName.toLowerCase())) el.parentNode?.removeChild(el);
   }
-  Array.from(doc.getElementsByTagName('style')).forEach((el) => {
+  Array.from(doc.getElementsByTagNameNS('*', 'style')).forEach((el) => {
     el.textContent = sanitizeSvgCss(el.textContent ?? '');
   });
-  const all = [root, ...Array.from(root.getElementsByTagName('*'))];
+  const all = [root, ...Array.from(root.getElementsByTagNameNS('*', '*'))];
   for (const el of all) {
     for (const attr of Array.from(el.attributes)) {
-      const name = attr.name.toLowerCase();
+      const local = (attr.localName || attr.name).toLowerCase();
       const value = attr.value.trim().toLowerCase().replace(/[\s\u0000-\u001f]+/g, '');
-      if (name.startsWith('on')) { el.removeAttribute(attr.name); continue; }
-      if (value.includes('javascript:') || value.includes('vbscript:')) { el.removeAttribute(attr.name); continue; }
-      if ((name === 'href' || name === 'xlink:href') && !value.startsWith('#') && !value.startsWith('data:image/')) {
-        el.removeAttribute(attr.name);
+      if (local.startsWith('on')) { el.removeAttributeNode(attr); continue; }
+      if (value.includes('javascript:') || value.includes('vbscript:')) { el.removeAttributeNode(attr); continue; }
+      if (local === 'href' && !value.startsWith('#') && !value.startsWith('data:image/')) {
+        el.removeAttributeNode(attr);
         continue;
       }
-      if (name === 'style') el.setAttribute(attr.name, sanitizeSvgCss(attr.value));
+      if (local === 'style') attr.value = sanitizeSvgCss(attr.value);
     }
   }
   return true;

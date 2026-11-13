@@ -182,9 +182,13 @@ export default function ImagesToPdf() {
           : 1;
         const w = Math.max(1, Math.round(entry.width * scale));
         const h = Math.max(1, Math.round(entry.height * scale));
-        const decoded = await decodeImage(entry.file);
-        const { canvas, ctx } = createCanvas(w, h);
+        let decoded: Awaited<ReturnType<typeof decodeImage>> | null = null;
+        let canvas: HTMLCanvasElement | null = null;
         try {
+          decoded = await decodeImage(entry.file);
+          const made = createCanvas(w, h); // may throw a canvas-limit message
+          canvas = made.canvas;
+          const ctx = made.ctx;
           // White first: JPEG has no alpha, and an unfilled canvas encodes transparency as black (FILES-04).
           ctx.fillStyle = '#FFFFFF';
           ctx.fillRect(0, 0, w, h);
@@ -193,8 +197,8 @@ export default function ImagesToPdf() {
           const jpeg = await readBytes((await encodeCanvas(canvas, 'image/jpeg', preset.quality)).blob);
           pdf.addImage(jpeg, 'JPEG', x, y, drawW, drawH, undefined, 'NONE');
         } finally {
-          decoded.release();
-          releaseCanvas(canvas);
+          decoded?.release();
+          if (canvas) releaseCanvas(canvas);
         }
         await nextFrame();
       }

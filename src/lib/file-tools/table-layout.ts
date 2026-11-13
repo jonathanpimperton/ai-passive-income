@@ -17,6 +17,14 @@
 
 export type Measure = (text: string) => number;
 
+/**
+ * Widths come from the same measurements they are compared with, so allow for
+ * floating-point noise; otherwise a word exactly as wide as its column breaks
+ * mid-word ("Categor|y").
+ */
+const FIT_TOLERANCE = 1e-3;
+const fits = (width: number, maxWidth: number) => width <= maxWidth + FIT_TOLERANCE;
+
 /** Wrap one paragraph (no newlines) to `maxWidth`. Long words are broken by characters. */
 export function wrapParagraph(text: string, maxWidth: number, measure: Measure): string[] {
   if (text === '') return [''];
@@ -26,7 +34,7 @@ export function wrapParagraph(text: string, maxWidth: number, measure: Measure):
   const pushBroken = (word: string) => {
     let chunk = '';
     for (const ch of Array.from(word)) {
-      if (chunk !== '' && measure(chunk + ch) > maxWidth) {
+      if (chunk !== '' && !fits(measure(chunk + ch), maxWidth)) {
         lines.push(chunk);
         chunk = ch;
       } else {
@@ -37,12 +45,12 @@ export function wrapParagraph(text: string, maxWidth: number, measure: Measure):
   };
   for (const word of words) {
     const candidate = current === '' ? word : `${current} ${word}`;
-    if (measure(candidate) <= maxWidth) {
+    if (fits(measure(candidate), maxWidth)) {
       current = candidate;
       continue;
     }
     if (current !== '') lines.push(current);
-    current = measure(word) <= maxWidth ? word : pushBroken(word);
+    current = fits(measure(word), maxWidth) ? word : pushBroken(word);
   }
   lines.push(current);
   return lines;
@@ -162,20 +170,29 @@ export function planColumns(
 }
 
 /**
- * Leading rows that are titles rather than data: at most one filled cell in
- * a sheet that has two or more columns (for example a merged
- * "Q3 Expense Report" banner). Never consumes every row.
+ * Leading rows that are titles rather than data (for example a merged
+ * "Q3 Expense Report" banner). A title row has exactly one filled cell, in the
+ * first column, holding text rather than a number; at most 3 such rows; and
+ * the row after them must look like a header (at least two filled cells and
+ * at least half the columns). Otherwise nothing is treated as a title, so
+ * sparse data rows are never swallowed. Never consumes every row.
  */
 export function countTitleRows(rows: string[][]): number {
   const columns = rows.reduce((m, r) => Math.max(m, r.length), 0);
   if (columns < 2) return 0;
+  const filledCount = (row: string[]) => row.filter((v) => v.trim() !== '').length;
   let n = 0;
-  while (n < rows.length - 1 && n < 5) {
-    const filled = rows[n].filter((v) => v.trim() !== '').length;
-    if (filled > 1) break;
+  while (n < rows.length - 1 && n < 3) {
+    const row = rows[n];
+    const first = (row[0] ?? '').trim();
+    const isTitle = filledCount(row) === 1 && first !== '' && !/^[-+(]?[\d.,%$£€¥\s)]+$/.test(first);
+    if (!isTitle) break;
     n += 1;
   }
-  return n;
+  if (n === 0) return 0;
+  const header = rows[n] ?? [];
+  const headerFilled = filledCount(header);
+  return headerFilled >= 2 && headerFilled >= Math.ceil(columns / 2) ? n : 0;
 }
 
 /** Spreadsheet column letters: 0 -> "A", 25 -> "Z", 26 -> "AA". */

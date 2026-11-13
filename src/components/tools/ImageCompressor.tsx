@@ -27,6 +27,7 @@ import {
   encodePngLossless, encodePngIndexed, quantizeRgba, expandIndexed, psnr, psnrGateForQuality,
 } from '../../lib/file-tools/png-encode';
 import { readCaptureDate, writeJpegCaptureDate } from '../../lib/file-tools/exif-date';
+import { stripImageMetadata } from '../../lib/file-tools/strip-metadata';
 import { buildZip } from '../../lib/file-tools/zip';
 import {
   decodeImage, createCanvas, encodeCanvas, releaseCanvas, downloadBlob, readBytes, bytesToBlob, errorMessage,
@@ -143,13 +144,24 @@ async function compressOne(file: File, s: Settings): Promise<CompressedFile> {
     const changedSize = scale !== 1;
     const changedFormat = target !== inputType;
     let keptOriginal = false;
-    if (blob.size >= file.size && !changedSize && !changedFormat) {
-      // Never hand back a bigger file (FILES-03).
-      blob = file.slice(0, file.size, inputType);
-      target = inputType;
-      keptOriginal = true;
-      notes.unshift('Already optimised: no smaller version at these settings, so your original is kept.');
-    } else if (blob.size > file.size) {
+    if (!changedSize && !changedFormat) {
+      // Never hand back a bigger file (FILES-03) - but never hand back the
+      // original's metadata either: strip Exif/GPS/XMP/text without re-encoding.
+      let original = stripImageMetadata(bytes);
+      if (original && inputType === 'image/jpeg' && s.keepDate) {
+        const date = readCaptureDate(bytes);
+        if (date) original = writeJpegCaptureDate(original, date);
+      }
+      if (original && blob.size >= original.length) {
+        blob = bytesToBlob(original, inputType);
+        target = inputType;
+        keptOriginal = true;
+        notes.unshift('Already optimised: no smaller version at these settings, so your original image is kept, with location and other metadata removed.');
+      } else if (!original && blob.size >= file.size) {
+        notes.push('This copy is slightly larger than the original: re-encoding was the only safe way to remove its metadata.');
+      }
+    }
+    if (!keptOriginal && blob.size > file.size && (changedSize || changedFormat)) {
       notes.push(`This is larger than the original because of the ${changedFormat ? 'format change' : 'settings'}.`);
     }
     return {

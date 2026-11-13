@@ -77,8 +77,12 @@ describe('canvasSizeProblem (FILES-12)', () => {
   it('allows normal sizes and explains impossible ones', () => {
     expect(canvasSizeProblem(4032, 3024)).toBeNull();
     expect(canvasSizeProblem(32000, 24000)).toMatch(/16,384/);
-    expect(canvasSizeProblem(MAX_CANVAS_SIDE, MAX_CANVAS_SIDE)).toMatch(/megapixels/);
-    expect(canvasSizeProblem(5000, 5000, true)).toMatch(/megapixels/);
+    // 108 MP and 200 MP phone photos are allowed on desktop.
+    expect(canvasSizeProblem(12000, 9000)).toBeNull();
+    expect(canvasSizeProblem(16320, 12240)).toBeNull();
+    expect(canvasSizeProblem(MAX_CANVAS_SIDE, MAX_CANVAS_SIDE)).toBeNull();
+    expect(canvasSizeProblem(5000, 5000, true)).toMatch(/iPhone and iPad/);
+    expect(canvasSizeProblem(5000, 5000, true)).toMatch(/maximum width/);
     expect(canvasSizeProblem(0, 10)).toMatch(/at least/);
     expect(canvasSizeProblem(NaN, 10)).toMatch(/at least/);
   });
