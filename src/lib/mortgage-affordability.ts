@@ -13,22 +13,31 @@
  *   https://www.consumerfinance.gov/ask-cfpb/what-is-a-debt-to-income-ratio-en-1791/
  *
  * UK (GBP) -- income multiple plus a stress-rate payment check.
- *   1. Loan-to-income cap: most lenders cap borrowing around 4.5x income
- *      because the Bank of England FPC limits lending at or above 4.5x to 15%
- *      of each lender's new mortgages (UK_MORTGAGE.incomeMultipleCap).
+ *   1. Loan-to-income cap, default 4.5x income (UK_MORTGAGE.incomeMultipleCap).
+ *      The FPC limits lending at 4.5x income or more to about 15% of new
+ *      mortgages. Since 28 Oct 2026 that 15% is a MARKET-WIDE limit, not a
+ *      per-lender cap: individual lenders may go above it while the aggregate
+ *      stays within it (PRA PS19/26 / FCA FG26/11, published 14 Oct 2026;
+ *      https://www.bankofengland.co.uk/prudential-regulation/publication/2026/october/high-loan-to-income-lending-policy-statement,
+ *      https://www.fca.org.uk/publications/finalised-guidance/fg26-11-high-loan-income-lending,
+ *      accessed 2026-11-13). Most lenders still cap around 4.5x, so 4.5x
+ *      stays the default; the UI lets users go to 5.5x.
  *   2. Stress (rate-rise) check at a lender-typical stress rate: the higher
  *      of the product rate and lenders' standard variable (revert-to) rate,
- *      plus a margin. The FCA notes that "many firms currently stress test
- *      affordability by adding a margin to their current reversion rate"
- *      (https://www.fca.org.uk/firms/interest-rate-stress-test-rule) and that
- *      the test assumes rates rise by at least 1 percentage point (FCA DP25/2,
- *      para 2.26), so the default margin is 1 point on the Bank of England's
- *      average revert-to rate (market-rates.ts). The stressed payment plus
- *      other committed debts must stay within 50% of take-home pay -- the line
- *      above which the government-backed MoneyHelper affordability tool flags
- *      a budget as high risk (40-50% typical):
+ *      plus a margin. The FCA's page on MCOB 11.6.18R says many firms stress
+ *      test by adding a margin to their current reversion rate, and that no
+ *      stress test is required where the rate is fixed for the initial 5 years
+ *      or more (https://www.fca.org.uk/firms/interest-rate-stress-test-rule);
+ *      FCA DP25/2 (para 2.26) describes a minimum assumed rise of 1 point. So
+ *      the default margin is 1 point on the Bank of England's average
+ *      revert-to rate (market-rates.ts). A margin of 0 means no stress test:
+ *      the payment is checked at the product rate (a 5-year-plus fix).
+ *      The stressed payment plus other committed debts must stay within 50%
+ *      of take-home pay. That threshold is NOT a lender rule: it is the
+ *      budgeting line above which the government-backed MoneyHelper
+ *      affordability tool flags a budget as high risk (40-50% typical):
  *      https://www.gov.uk/algorithmic-transparency-records/money-and-pensions-service-mortgage-affordability-calculator
- *      (all accessed 2026-11-12).
+ *      (accessed 2026-11-12).
  *   The answer is the smaller of the two limits; both are reported.
  *
  * Euro area (EUR) -- one combined limit on loan payments plus other debts as
@@ -58,9 +67,11 @@ export const AFFORDABILITY_DEFAULTS = {
   /** CFPB 28/36 guideline */
   frontEndPct: 28,
   backEndPct: 36,
-  /** UK: FPC 4.5x loan-to-income flow limit */
+  /** UK: typical lender cap at the FPC's 4.5x loan-to-income threshold */
   ltiCap: UK_MORTGAGE.incomeMultipleCap,
-  /** UK stress test: margin over the higher of product rate and revert-to rate */
+  /** UK: committed monthly credit payments start at 0 (the US $500 default does not carry over) */
+  ukMonthlyDebts: 0,
+  /** UK stress test: margin over the higher of product rate and revert-to rate (0 = 5-year-plus fix, no stress test) */
   stressMarginPct: 1,
   /** UK lenders' average revert-to (standard variable) rate, % */
   revertRatePct: MARKET_RATES.uk.revertRate.value,
@@ -103,7 +114,7 @@ export interface UkAffordabilityInput extends CommonInput {
   ltiCap?: number;
   /** Lenders' revert-to rate the stress test starts from (default: BoE average) */
   revertRatePct?: number;
-  /** Points added to max(product rate, revert-to rate) */
+  /** Points added to max(product rate, revert-to rate); 0 = no stress test (check at the product rate) */
   stressMarginPct?: number;
   maxShareOfTakeHomePct?: number;
 }
@@ -311,7 +322,10 @@ export function solveUkAffordability(input: UkAffordabilityInput): UkAffordabili
   const termMonths = Math.round(pos(input.termYears) * 12);
   const ltiCap = pos(input.ltiCap ?? AFFORDABILITY_DEFAULTS.ltiCap);
   const revertRatePct = pos(input.revertRatePct ?? AFFORDABILITY_DEFAULTS.revertRatePct);
-  const stressRatePct = Math.max(pos(input.ratePct), revertRatePct) + pos(input.stressMarginPct ?? AFFORDABILITY_DEFAULTS.stressMarginPct);
+  const margin = pos(input.stressMarginPct ?? AFFORDABILITY_DEFAULTS.stressMarginPct);
+  // Margin 0 = no stress test (MCOB 11.6.18R exempts fixes of 5 years or
+  // more): the payment is checked at the product rate itself.
+  const stressRatePct = margin > 0 ? Math.max(pos(input.ratePct), revertRatePct) + margin : pos(input.ratePct);
   const maxShare = pos(input.maxShareOfTakeHomePct ?? AFFORDABILITY_DEFAULTS.maxShareOfTakeHomePct);
   const takeHome = input.monthlyTakeHome !== undefined ? pos(input.monthlyTakeHome) : estimateUkTakeHome(income);
 

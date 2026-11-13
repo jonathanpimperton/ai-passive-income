@@ -253,6 +253,24 @@ describe('UK mode: income multiple + rate-rise check (D11)', () => {
     expect(solveUkAffordability({ ...UK, revertRatePct: 6, stressMarginPct: 3 }).stressRatePct).toBeCloseTo(9, 9);
   });
 
+  it('margin 0 = no stress test (5-year-plus fix): checked at the product rate', () => {
+    const r = solveUkAffordability({ ...UK, ratePct: 5.19, stressMarginPct: 0 });
+    expect(r.stressRatePct).toBeCloseTo(5.19, 9);
+    expect(r.stressedPayment).toBeCloseTo(r.monthlyPI, 9);
+  });
+
+  it('UK defaults: no commitments, 4.5x not reached only because of the stress test', () => {
+    expect(AFFORDABILITY_DEFAULTS.ukMonthlyDebts).toBe(0);
+    const r = solveUkAffordability({ ...UK, monthlyDebts: AFFORDABILITY_DEFAULTS.ukMonthlyDebts });
+    expect(r.status).toBe('ok');
+    expect(r.incomeMultiple).toBeGreaterThan(3.9);
+    expect(r.incomeMultiple).toBeLessThanOrEqual(4.5);
+    // A 5-year fix with no stress test reaches the 4.5x cap.
+    const fix5 = solveUkAffordability({ ...UK, ratePct: 5.19, monthlyDebts: 0, stressMarginPct: 0 });
+    expect(fix5.binding).toBe('lti');
+    expect(fix5.incomeMultiple).toBeCloseTo(4.5, 9);
+  });
+
   it('stress check binds with commitments: stressed payment + debts = 50% of take-home', () => {
     const r = solveUkAffordability({ ...UK, monthlyDebts: 500 });
     expect(r.binding).toBe('stress');

@@ -50,6 +50,7 @@ export default function MortgageAffordabilityCalc() {
 
   const [annualIncome, setAnnualIncome] = useState<number>(D.annualIncome);
   const [monthlyDebt, setMonthlyDebt] = useState<number>(D.monthlyDebts);
+  const [debtTouched, setDebtTouched] = useState(false);
   const [downPayment, setDownPayment] = useState<number>(D.deposit);
   const [interestRate, setInterestRate] = useState(() => defaultMortgageRate('us', 30));
   const [rateTouched, setRateTouched] = useState(false);
@@ -77,6 +78,22 @@ export default function MortgageAffordabilityCalc() {
   useEffect(() => {
     if (!rateTouched) setInterestRate(defaultMortgageRate(region, loanTerm));
   }, [region, loanTerm, rateTouched]);
+  // UK commitments start at £0: the US $500 debt default is not a UK norm.
+  const regionDefaultDebt = isUK ? D.ukMonthlyDebts : D.monthlyDebts;
+  useEffect(() => {
+    if (!debtTouched) setMonthlyDebt(regionDefaultDebt);
+  }, [regionDefaultDebt, debtTouched]);
+
+  const handleDebtChange = useCallback((v: number) => {
+    setDebtTouched(true);
+    setMonthlyDebt(v);
+  }, []);
+  // A typed take-home figure belongs to the income it was typed for: when the
+  // income changes, go back to the estimate rather than keep a stale override.
+  const handleIncomeChange = useCallback((v: number) => {
+    setAnnualIncome(v);
+    setTakeHomeOverride(null);
+  }, []);
 
   const handleRateChange = useCallback((v: number) => {
     setRateTouched(true);
@@ -85,7 +102,8 @@ export default function MortgageAffordabilityCalc() {
 
   const handleReset = useCallback(() => {
     setAnnualIncome(D.annualIncome);
-    setMonthlyDebt(D.monthlyDebts);
+    setMonthlyDebt(regionDefaultDebt);
+    setDebtTouched(false);
     setDownPayment(D.deposit);
     setLoanTerm(regionDefaultTerm);
     setTermTouched(false);
@@ -102,7 +120,8 @@ export default function MortgageAffordabilityCalc() {
     setMaxShare(D.maxShareOfTakeHomePct);
     setTakeHomeOverride(null);
     setEurLimit(D.eurMaxDebtServicePct);
-  }, [regionDefaultTerm, region]);
+    setShowAdvanced(false);
+  }, [regionDefaultTerm, region, regionDefaultDebt]);
 
   const estimatedTakeHome = useMemo(() => Math.round(estimateUkTakeHome(annualIncome)), [annualIncome]);
   const takeHome = takeHomeOverride ?? estimatedTakeHome;
@@ -257,7 +276,7 @@ export default function MortgageAffordabilityCalc() {
               textMax={1000000}
               minLabel={`${currencySymbol}10K`}
               maxLabel={`${currencySymbol}500K`}
-              onChange={setAnnualIncome}
+              onChange={handleIncomeChange}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
             />
@@ -290,7 +309,7 @@ export default function MortgageAffordabilityCalc() {
               step={25}
               minLabel={`${currencySymbol}0`}
               maxLabel={`${currencySymbol}5K`}
-              onChange={setMonthlyDebt}
+              onChange={handleDebtChange}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
             />
@@ -412,9 +431,9 @@ export default function MortgageAffordabilityCalc() {
                 )}
                 {isUK && (
                   <>
-                    <SliderInput label="Income Multiple Cap" hint="Most lenders cap borrowing around 4.5x income; some go to 5-5.5x for higher earners" id="afford-lti" value={ltiCap} min={LTI_RANGE.min} max={LTI_RANGE.max} step={0.25} onChange={setLtiCap} suffix="x" formatDisplay={(v) => v.toFixed(2)} />
-                    <SliderInput label="Stress Test Margin" hint={`Added to the higher of your rate and lenders' average standard variable rate (${D.revertRatePct}%, ${rateAttribution(MARKET_RATES.uk.revertRate)})`} id="afford-stress" value={stressMargin} min={0} max={3} step={0.25} onChange={setStressMargin} suffix=" pts" formatDisplay={(v) => v.toFixed(2)} />
-                    <SliderInput label="Max Share of Take-Home Pay" hint="Payments above half of take-home pay are high risk (MoneyHelper)" id="afford-share" value={maxShare} min={30} max={60} step={1} onChange={setMaxShare} suffix="%" formatDisplay={(v) => v.toFixed(0)} />
+                    <SliderInput label="Income Multiple Cap" hint="Most lenders cap borrowing around 4.5x income; some lend 5-5.5x, often to higher earners" id="afford-lti" value={ltiCap} min={LTI_RANGE.min} max={LTI_RANGE.max} step={0.25} onChange={setLtiCap} suffix="x" formatDisplay={(v) => v.toFixed(2)} />
+                    <SliderInput label="Stress Test Margin" hint={`Added to the higher of your rate and lenders' average standard variable rate (${D.revertRatePct}%, ${rateAttribution(MARKET_RATES.uk.revertRate)}). 0 = no stress test, as for fixes of 5 years or more`} id="afford-stress" value={stressMargin} min={0} max={3} step={0.25} onChange={setStressMargin} suffix=" pts" formatDisplay={(v) => v.toFixed(2)} />
+                    <SliderInput label="Max Share of Take-Home Pay" hint="A budgeting guide, not a lender rule: MoneyHelper flags payments above half of take-home pay as high risk" id="afford-share" value={maxShare} min={30} max={60} step={1} onChange={setMaxShare} suffix="%" formatDisplay={(v) => v.toFixed(0)} />
                   </>
                 )}
                 {region === 'eur' && (
@@ -471,8 +490,11 @@ export default function MortgageAffordabilityCalc() {
                   {us.needsPMI ? '' : us.maxLoan > 0 && Math.abs(us.maxLoan - downPayment * 4) < 1 ? ' Stopping at exactly 20% down avoids PMI.' : ''}</>
                 )}
                 {isUK && (
-                  <>Lenders check you could still pay at a higher rate. Here that is {uk.stressRatePct.toFixed(2)}% (the higher of your rate and the {D.revertRatePct}% average standard variable rate, plus {stressMargin} point{stressMargin === 1 ? '' : 's'}): {fmt(uk.stressedPayment)} a month
-                  {monthlyDebt > 0 ? ` plus ${fmt(monthlyDebt)} of other commitments` : ''}. MoneyHelper treats more than half of take-home pay as high risk.</>
+                  <>{stressMargin > 0
+                    ? <>Lenders check you could still pay at a higher rate. Here that is {uk.stressRatePct.toFixed(2)}% (the higher of your rate and the {D.revertRatePct}% average standard variable rate, plus {stressMargin} point{stressMargin === 1 ? '' : 's'}): {fmt(uk.stressedPayment)} a month</>
+                    : <>No stress test (stress margin 0): the payment is checked at your {interestRate}% rate: {fmt(uk.stressedPayment)} a month</>}
+                  {monthlyDebt > 0 ? ` plus ${fmt(monthlyDebt)} of other commitments` : ''}. The {maxShare}% ceiling is MoneyHelper's budgeting guide, not a lender rule: it treats more than half of take-home pay as high risk.
+                  {stressMargin > 0 && <span className="block mt-1">Fixing for 5 years or more? Lenders usually skip the stress test then — set the stress margin to 0 in Affordability Limits.</span>}</>
                 )}
                 {region === 'eur' && (
                   <>Lending rules differ across the euro area, and many lenders cap payments as a share of net income. Check your lender's own limit.</>
@@ -498,13 +520,13 @@ export default function MortgageAffordabilityCalc() {
                     <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums whitespace-nowrap">{fmt(uk.ltiLimitLoan)}</td>
                   </tr>
                   <tr>
-                    <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">Stress test ({maxShare}% of take-home at {uk.stressRatePct.toFixed(2)}%){uk.binding === 'stress' ? ' — sets your maximum' : ''}</th>
+                    <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">Stress test: payment at {uk.stressRatePct.toFixed(2)}% within {maxShare}% of take-home (MoneyHelper guide){uk.binding === 'stress' ? ' — sets your maximum' : ''}</th>
                     <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums whitespace-nowrap">{fmt(uk.stressLimitLoan)}</td>
                   </tr>
                 </tbody>
               </table>
               <p className="px-4 py-3 text-xs text-neutral-600 leading-relaxed border-t border-neutral-100">
-                This is {uk.incomeMultiple.toFixed(2)}x your income. The Bank of England limits lending at 4.5x income or more to 15% of each lender's new mortgages, so most cap around 4.5x; each lender then runs its own affordability check.
+                This is {uk.incomeMultiple.toFixed(2)}x your income. Bank of England rules keep lending at 4.5x income or more to about 15% of all new mortgages across the market (since 28 Oct 2026 a market-wide limit, so some lenders go higher). Most lenders still cap around 4.5x, and each runs its own affordability check.
                 {uk.lowDeposit && <span className="block mt-1 font-medium text-amber-800">Your deposit is under 5% of this price. Most lenders need at least 5%.</span>}
               </p>
             </div>
