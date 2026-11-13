@@ -277,9 +277,14 @@ export const SDLT_NON_RESIDENT_MIN_PRICE = UK_SDLT.nonResidentMinPrice;
 export const UK_MORTGAGE = {
   /**
    * Typical lender cap on borrowing as a multiple of gross income.
-   * The Bank of England FPC's loan-to-income flow limit restricts lending at or
-   * above 4.5x income to 15% of a lender's new mortgages, so most UK lenders
-   * cap around 4.5x and stress-test affordability on top.
+   * The Bank of England FPC's loan-to-income flow limit keeps new mortgages at
+   * or above 4.5x income to 15% of lending. Since 28 Oct 2026 that 15% is an
+   * aggregate, market-wide limit: the firm-level cap was removed, so an
+   * individual lender may exceed 15% while the market stays within it
+   * (PRA PS19/26 and the matching FCA guidance, published 14 Oct 2026:
+   * https://www.bankofengland.co.uk/prudential-regulation/publication/2026/october/high-loan-to-income-lending-policy-statement,
+   * accessed 2026-11-13). Most lenders still cap around 4.5x and stress-test
+   * affordability on top.
    */
   incomeMultipleCap: 4.5,
 };
