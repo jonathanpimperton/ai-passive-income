@@ -22,22 +22,24 @@ workedExamples:
   - title: "Uploading to a government portal"
     inputs:
       quality: 60
-    description: "A business owner needs to submit a 45MB tax document to a portal with a 5MB limit. At 60% quality, the file shrinks to 4.2MB while keeping all text and forms readable."
+    description: "A business owner needs to submit an 18MB scanned tax document to a portal with a 5MB limit. At 60% quality and a 1500px maximum image resolution, the scans shrink to about 4MB, while the text stays selectable and the form fields keep working."
   - title: "Archiving project documents"
     inputs:
       quality: 50
-    description: "A project manager has 200MB of project PDFs to archive. At 50% quality, the collection shrinks to 40MB — saving 80% of storage while keeping documents readable for reference."
+    description: "A project manager archives a dozen photo-heavy project PDFs of up to 40MB each, compressing them one at a time. At 50% quality most shrink by well over half, keeping the photos readable for reference. Text-only reports barely change, because they have no images to recompress."
 faq:
   - question: "How does PDF compression work?"
-    answer: "Our tool renders each PDF page as an image at your chosen quality level, then rebuilds the PDF with these optimized images. This is most effective on PDFs with embedded photos and graphics — the visual quality is reduced slightly to achieve much smaller file sizes."
+    answer: "The tool finds the photos and other raster images embedded in the PDF (JPEG and PNG-style images), re-encodes them as JPEG at your chosen quality, downsizes any larger than your maximum resolution, and swaps them into the same place in the file. Text, fonts, vector graphics, links and form fields are not touched. If the result would not be smaller than your original, nothing is offered for download."
   - question: "Will compressed PDFs still be readable?"
     answer: "Yes. At 70-80% quality, most people cannot tell the difference from the original. Text remains clear and images look good on screen. Below 50%, you may notice some blurriness in photos, but text is still readable."
   - question: "Why didn't my PDF get smaller?"
-    answer: "Some PDFs are already well-optimized. Text-heavy PDFs with few images won't shrink much since the text is re-rendered as an image. This tool works best on PDFs containing photos, charts, and graphics."
+    answer: "Only embedded images are compressed, so text-only PDFs have little to gain. Images that are already compressed further than your settings are left as they are, and so are CMYK images (to avoid colour shifts), JPEG 2000 and black-and-white fax/JBIG2 images, and transparency masks. The result screen says how many images were recompressed and why the others were skipped. Try a lower quality or resolution for image-heavy files."
   - question: "Does compression affect text searchability?"
-    answer: "Yes — the compressed PDF renders pages as images, so text is no longer selectable or searchable. If you need searchable text, keep the original for reference and use the compressed version only for sharing."
+    answer: "No. Text is not converted to images, so it stays selectable and searchable, and links and form fields keep working. Only the embedded pictures change."
   - question: "What's the best quality setting?"
-    answer: "For sharing via email: 60-70%. For web uploads: 50-70%. For archival (where you want reasonable quality): 75-85%. For maximum compression regardless of quality: 30-50%."
+    answer: "For sharing via email: 60-70%. For web uploads: 50-70%. For archival (where you want reasonable quality): 75-85%. For maximum compression regardless of quality: 30-50%. Lowering the maximum image resolution (for example to 1200-1500px) often saves more than lowering quality, because scans are usually far larger than any screen."
+  - question: "Can I compress a password-protected or restricted PDF?"
+    answer: "No. Encrypted PDFs, including bank statements that open without a password but block editing, cannot be rewritten safely in a browser, and doing so would produce a broken file. The tool refuses them and explains the workaround: open the PDF, choose Print, select 'Save as PDF' (or 'Microsoft Print to PDF'), and compress the new copy."
 ---
 
 ## Why Compress PDFs?
@@ -48,12 +50,14 @@ PDFs with embedded images can balloon to tens of megabytes. Email services typic
 
 1. Upload a PDF file
 2. Adjust the quality slider (lower = smaller file)
-3. Click "Compress PDF" — your browser renders each page and rebuilds the file
+3. Click "Compress PDF" — your browser recompresses the embedded images and saves a new copy
 4. Download the compressed result
 
 Everything happens locally. No files are uploaded anywhere.
 
 ## Quality Guide
+
+Typical results for photo-heavy PDFs (text-only PDFs change little):
 
 | Quality | File Size Reduction | Visual Quality | Best For |
 |---------|-------------------|----------------|----------|
@@ -65,5 +69,6 @@ Everything happens locally. No files are uploaded anywhere.
 ## Limitations
 
 - **Text-heavy PDFs** with few images won't compress much since there's little image data to optimize.
-- **Text becomes non-selectable** in compressed output (pages are rendered as images).
-- **Very large PDFs** (100+ pages) may take 30-60 seconds to process in your browser.
+- **Some images are left unchanged**: CMYK, JPEG 2000, JBIG2/fax and mask images, to avoid colour shifts or damage.
+- **Encrypted PDFs are not supported** (see the FAQ for the print-to-PDF workaround).
+- **Files up to 50MB**; very large PDFs (100+ pages) may take 30-60 seconds to process in your browser.

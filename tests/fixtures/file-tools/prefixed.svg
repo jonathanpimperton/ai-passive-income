@@ -1,0 +1,1 @@
+<s:svg xmlns:s="http://www.w3.org/2000/svg" width="20" height="10"><s:script>throw new Error("x")</s:script><s:foreignObject width="20" height="10"><div xmlns="http://www.w3.org/1999/xhtml">x</div></s:foreignObject><s:rect width="20" height="10" fill="#00ff00"/></s:svg>

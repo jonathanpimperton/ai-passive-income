@@ -2,12 +2,16 @@
  * PNG to ICO (Favicon Generator) — converts PNG images to multi-size ICO files.
  * ICO assembly is done inline (~40 lines) — no external dependency needed.
  * Uses Canvas API for resizing to standard favicon dimensions.
+ *
+ * Every failure path (unreadable image, canvas encode failure, ICO build
+ * failure) now shows a message instead of failing silently (review FILES-12).
  */
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Download, Trash2, Image, Check } from 'lucide-react';
 import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
 import { assembleIco } from '../../lib/converter-utils';
+import { decodeImage, encodeCanvas, releaseCanvas, downloadBlob, errorMessage, type DecodedImage } from '../../lib/file-tools/browser';
 
 const FAVICON_SIZES = [16, 32, 48, 64, 128, 256] as const;
 const DEFAULT_SIZES = new Set([16, 32, 48]);
@@ -19,56 +23,66 @@ interface PreviewImage {
 }
 
 /** Resize an image to a specific size using Canvas with high-quality rendering */
-function resizeImage(img: HTMLImageElement, size: number): Promise<{ dataUrl: string; blob: Blob }> {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
+async function resizeImage(img: CanvasImageSource, size: number): Promise<{ dataUrl: string; blob: Blob }> {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  try {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Your browser could not create a drawing surface.');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, 0, 0, size, size);
     const dataUrl = canvas.toDataURL('image/png');
-    canvas.toBlob((blob) => {
-      resolve({ dataUrl, blob: blob! });
-    }, 'image/png');
-  });
+    const { blob } = await encodeCanvas(canvas, 'image/png');
+    return { dataUrl, blob };
+  } finally {
+    releaseCanvas(canvas);
+  }
+}
+
+interface SourceInfo {
+  width: number;
+  height: number;
 }
 
 export default function PngToIco() {
-  const [sourceImage, setSourceImage] = useState<HTMLImageElement | null>(null);
+  const [sourceImage, setSourceImage] = useState<SourceInfo | null>(null);
   const [sourceName, setSourceName] = useState('');
   const [selectedSizes, setSelectedSizes] = useState<Set<number>>(new Set(DEFAULT_SIZES));
   const [previews, setPreviews] = useState<PreviewImage[]>([]);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
-  const imgRef = useRef<HTMLImageElement | null>(null);
+  const decodedRef = useRef<DecodedImage | null>(null);
+
+  useEffect(() => () => decodedRef.current?.release(), []);
 
   const handleFileUpload = useCallback(async (files: File[]) => {
     const file = files[0];
     if (!file) return;
-    setSourceName(file.name);
     setError('');
-
-    const img = new window.Image();
-    const objectUrl = URL.createObjectURL(file);
-    img.onload = async () => {
-      setSourceImage(img);
-      imgRef.current = img;
-
+    decodedRef.current?.release();
+    decodedRef.current = null;
+    try {
+      const decoded = await decodeImage(file);
+      decodedRef.current = decoded;
       // Generate previews for all sizes
       const newPreviews: PreviewImage[] = [];
       for (const size of FAVICON_SIZES) {
-        const { dataUrl, blob } = await resizeImage(img, size);
+        const { dataUrl, blob } = await resizeImage(decoded.source, size);
         newPreviews.push({ size, dataUrl, pngBlob: blob });
       }
+      setSourceName(file.name);
+      setSourceImage({ width: decoded.width, height: decoded.height });
       setPreviews(newPreviews);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      setError('Could not load this image — it may be corrupted or unsupported.');
-    };
-    img.src = objectUrl;
+      decoded.release();
+    } catch (e) {
+      decodedRef.current?.release();
+      decodedRef.current = null;
+      setSourceImage(null);
+      setPreviews([]);
+      setError(`"${file.name}": ${errorMessage(e, 'could not be loaded. It may be damaged or in an unsupported format.')}`);
+    }
   }, []);
 
   const toggleSize = useCallback((size: number) => {
@@ -100,13 +114,9 @@ export default function PngToIco() {
       );
 
       const icoBuffer = assembleIco(pngBuffers);
-      const icoBlob = new Blob([icoBuffer], { type: 'image/x-icon' });
-      const url = URL.createObjectURL(icoBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'favicon.ico';
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(new Blob([icoBuffer], { type: 'image/x-icon' }), 'favicon.ico');
+    } catch (e) {
+      setError(`The ICO file could not be created: ${errorMessage(e, 'unknown error.')}`);
     } finally {
       setGenerating(false);
     }
@@ -117,7 +127,9 @@ export default function PngToIco() {
     setSourceName('');
     setPreviews([]);
     setSelectedSizes(new Set(DEFAULT_SIZES));
-    if (imgRef.current?.src) URL.revokeObjectURL(imgRef.current.src);
+    setError('');
+    decodedRef.current?.release();
+    decodedRef.current = null;
   }, []);
 
   return (
@@ -145,8 +157,8 @@ export default function PngToIco() {
               <div>
                 <p className="text-sm font-semibold text-neutral-900">{sourceName}</p>
                 <p className="text-xs text-neutral-500">
-                  {sourceImage.naturalWidth} × {sourceImage.naturalHeight} px
-                  {sourceImage.naturalWidth !== sourceImage.naturalHeight && (
+                  {sourceImage.width} × {sourceImage.height} px
+                  {sourceImage.width !== sourceImage.height && (
                     <span className="text-warning-600 ml-2">
                       (not square — will be stretched to fit)
                     </span>
@@ -156,7 +168,8 @@ export default function PngToIco() {
             </div>
             <button
               onClick={handleClear}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
+              type="button"
+              className="inline-flex items-center gap-1.5 min-h-11 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-150"
               aria-label="Remove image"
             >
               <Trash2 size={14} aria-hidden="true" />

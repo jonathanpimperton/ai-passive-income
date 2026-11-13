@@ -6,7 +6,6 @@ description: "HEIC to JPG converter — turn iPhone photos into JPG with adjusta
 keywords:
   - "HEIC to JPG converter"
   - "convert HEIC to JPG"
-  - "HEIC to PNG"
   - "iPhone photo converter"
   - "HEIC converter no upload"
   - "convert HEIC to JPG privately"
@@ -20,7 +19,7 @@ workedExamples:
   - title: "Vacation photos for Windows laptop"
     inputs:
       quality: 85
-    description: "A traveler returns from vacation with 200 HEIC photos on their iPhone. Their Windows laptop can't open any of them. Batch converting at 85% quality produces JPGs that open everywhere — each around 2-3MB compared to the 1.5MB HEIC originals. The slight size increase is worth universal compatibility."
+    description: "A traveler returns from vacation with 200 HEIC photos on their iPhone. Their Windows laptop can't open any of them. Batch converting at 85% quality produces JPGs that open everywhere, downloaded together as one ZIP file — each around 2-3MB compared to the 1.5MB HEIC originals. The slight size increase is worth universal compatibility, and the date each photo was taken is kept so the JPGs still sort correctly."
   - title: "Real estate listing photos"
     inputs:
       quality: 92
@@ -38,6 +37,10 @@ faq:
     answer: "With CalcRun, yes — your photos never leave your device. The conversion happens entirely in your browser. Most other HEIC converters upload your personal photos to remote servers for processing, which is a significant privacy concern — especially for family photos, sensitive documents, or anything you wouldn't want a third party to see."
   - question: "Can I convert HEIC photos on an iPhone directly?"
     answer: "Yes, but it's not straightforward. You can change Settings > Camera > Formats to 'Most Compatible' to save new photos as JPG, but this doesn't convert existing HEIC photos. To convert existing photos, you can share them via email (iOS auto-converts to JPG) or use this tool from your iPhone's browser."
+  - question: "Does the JPG keep the date taken and the location?"
+    answer: "By default the JPG keeps only the date and time the photo was taken, so photo apps still sort it correctly. Location (GPS), camera details and all other metadata are always removed. Untick 'Keep the date the photo was taken' if you want no metadata at all."
+  - question: "Why is the first conversion slower in Chrome, Edge or Firefox?"
+    answer: "Only Safari can decode HEIC by itself. In other browsers the tool downloads an open-source HEIC decoder (libheif, about 2.7MB) the first time you convert, then decodes each photo on your device. A 12-megapixel iPhone photo usually takes several seconds; nothing is uploaded."
   - question: "Will converting HEIC to JPG reduce quality?"
     answer: "There is a minimal quality reduction because HEIC uses a different compression algorithm than JPG. At 85-90% JPG quality, the difference is virtually invisible. The converted JPG may be slightly larger than the HEIC original because JPG compression is less efficient, but the universal compatibility makes it worth the trade-off."
 ---
@@ -52,22 +55,21 @@ Your photos are personal. Family vacations, financial documents, medical records
 
 Most online HEIC converters work by uploading your photos to their servers, converting them, and sending back the result. Even if they promise to delete the files, you have no way to verify that.
 
-**CalcRun is different.** All conversion happens in your browser using the Canvas API and, when needed, a WASM-based decoder. Your photos never leave your device — not even for a moment.
+**CalcRun is different.** All conversion happens in your browser: Safari decodes HEIC itself, and other browsers use an open-source HEIC decoder (libheif) that runs on your device. Your photos never leave your device — not even for a moment.
 
 ## How It Works
 
 1. **Drop your HEIC files** into the upload area (or click to browse)
-2. **Your browser decodes the HEIC data** using native support (Safari, Chrome 128+) or a WASM fallback
+2. **Your browser decodes the HEIC data**: Safari natively, other browsers with the built-in libheif decoder
 3. **The image is re-encoded as JPG** at your chosen quality level
-4. **Download the result** — the JPG works everywhere
+4. **Download the result** — one JPG at a time, or all of them as a ZIP file
 
 ## Browser Compatibility
 
-| Browser | HEIC Support |
+| Browser | How HEIC is decoded |
 |---------|-------------|
-| Safari (macOS/iOS) | Native — fastest conversion |
-| Chrome 128+ | Native support added in 2024 |
-| Firefox | Uses WASM fallback (slightly slower) |
-| Edge | Uses WASM fallback |
+| Safari (macOS/iOS) | Natively by the browser — fastest |
+| Chrome, Edge (desktop and Android) | Built-in libheif decoder, downloaded on first use |
+| Firefox | Built-in libheif decoder, downloaded on first use |
 
-All modern browsers work — Safari and recent Chrome are fastest because they decode HEIC natively.
+All modern browsers work. Safari is fastest because it decodes HEIC itself; Chrome, Edge and Firefox have no native HEIC support, so the tool decodes the photo for them, which takes a few seconds per large photo.

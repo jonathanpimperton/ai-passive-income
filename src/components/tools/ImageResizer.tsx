@@ -1,96 +1,168 @@
 /**
  * Image Resizer — client-side image resizing using Canvas API.
  * Resize by pixels or percentage, maintain aspect ratio option.
+ *
+ * Review fixes (FILES-11, FILES-12, FILES-23):
+ * - Keeps the input format (JPG stays JPG, WebP stays WebP) with a quality
+ *   setting, instead of always writing a PNG that was often bigger than the
+ *   original. SVG and GIF inputs are saved as PNG. A different format can be
+ *   chosen explicitly.
+ * - Nothing is encoded until Download, so large photos are not re-encoded on
+ *   every keystroke; the preview is the original image scaled by the browser.
+ * - The size fields accept free typing (they no longer snap to "1" when
+ *   cleared, which turned "800" into "1800").
+ * - Impossible sizes (canvas limits) and unreadable images get a clear
+ *   message, and the file name always matches the real output size.
  */
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Download, Image as ImageIcon, Link, Unlink } from 'lucide-react';
 import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
+import SliderInput from '../ui/SliderInput';
+import { ToolMessages, ProcessingBanner } from '../ui/FileToolKit';
+import { formatBytes, baseName } from '../../lib/file-tools/names';
+import { detectImageKind, isAnimatedImage } from '../../lib/file-tools/image-sniff';
+import { canvasSizeProblem, isIosLike } from '../../lib/file-tools/canvas-limits';
+import { encodePngLossless } from '../../lib/file-tools/png-encode';
+import { parseNumericInput } from '../../lib/parse-number';
+import {
+  decodeImage, createCanvas, encodeCanvas, releaseCanvas, downloadBlob, readBytes, bytesToBlob, errorMessage,
+  extensionForType, labelForType, type DecodedImage,
+} from '../../lib/file-tools/browser';
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+type OutputChoice = 'same' | 'image/jpeg' | 'image/png' | 'image/webp';
+
+const PNG_OPTIMISER_MAX_PIXELS = 16_000_000;
+
+/** Parse a dimension field: whole pixels, 1 or more. */
+function parseDimension(text: string): number | null {
+  const res = parseNumericInput(text, { min: 1, max: 100000 });
+  if (!res.ok || !Number.isFinite(res.value) || res.value < 1) return null;
+  return Math.round(res.value);
 }
 
 export default function ImageResizer() {
   const [file, setFile] = useState<File | null>(null);
+  const [inputType, setInputType] = useState('image/png');
   const [origW, setOrigW] = useState(0);
   const [origH, setOrigH] = useState(0);
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
+  const [widthText, setWidthText] = useState('');
+  const [heightText, setHeightText] = useState('');
   const [keepAspect, setKeepAspect] = useState(true);
+  const [output, setOutput] = useState<OutputChoice>('same');
+  const [quality, setQuality] = useState(85);
   const [preview, setPreview] = useState('');
-  const [resizedBlob, setResizedBlob] = useState<Blob | null>(null);
-  const [resizedSize, setResizedSize] = useState(0);
-  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [progress, setProgress] = useState('');
+  const [errors, setErrors] = useState<string[]>([]);
+  const [notices, setNotices] = useState<string[]>([]);
+  const decodedRef = useRef<DecodedImage | null>(null);
+  const previewRef = useRef('');
 
-  const handleFiles = useCallback((files: File[]) => {
-    const f = files[0];
-    if (!f) return;
-    setFile(f);
-    setResizedBlob(null);
-    setResizedSize(0);
-    const img = new window.Image();
-    const srcUrl = URL.createObjectURL(f);
-    img.onload = () => {
-      imgRef.current = img;
-      setOrigW(img.width);
-      setOrigH(img.height);
-      setWidth(img.width);
-      setHeight(img.height);
-      setPreview(srcUrl);
-    };
-    img.onerror = () => URL.revokeObjectURL(srcUrl);
-    img.src = srcUrl;
+  previewRef.current = preview;
+  useEffect(() => () => {
+    decodedRef.current?.release();
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
   }, []);
 
-  const handleWidthChange = (val: string) => {
-    const w = Math.max(1, parseInt(val) || 1);
-    setWidth(w);
-    if (keepAspect && origW > 0) setHeight(Math.round((w / origW) * origH));
+  const handleFiles = useCallback(async (files: File[]) => {
+    const f = files[0];
+    if (!f) return;
+    setErrors([]);
+    setNotices([]);
+    decodedRef.current?.release();
+    decodedRef.current = null;
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    setPreview('');
+    setFile(null);
+    setProgress('Reading image...');
+    try {
+      const bytes = await readBytes(f);
+      const kind = detectImageKind(bytes);
+      const type = kind === 'jpeg' ? 'image/jpeg' : kind === 'webp' ? 'image/webp' : 'image/png';
+      const decoded = await decodeImage(kind === 'svg' ? new Blob([bytes as Uint8Array<ArrayBuffer>], { type: 'image/svg+xml' }) : f);
+      decodedRef.current = decoded;
+      setInputType(type);
+      setOrigW(decoded.width);
+      setOrigH(decoded.height);
+      setWidthText(String(decoded.width));
+      setHeightText(String(decoded.height));
+      setPreview(URL.createObjectURL(f));
+      setFile(f);
+      const notes: string[] = [];
+      if (isAnimatedImage(bytes)) notes.push('Animated image: only the first frame will be resized.');
+      if (kind === 'svg' || kind === 'gif') notes.push(`${labelForType(`image/${kind}`)} images are saved as PNG.`);
+      setNotices(notes);
+    } catch (e) {
+      setErrors([`"${f.name}": ${errorMessage(e, 'could not be read as an image.')}`]);
+    } finally {
+      setProgress('');
+    }
+  }, []);
+
+  const width = parseDimension(widthText);
+  const height = parseDimension(heightText);
+
+  const onWidthChange = (text: string) => {
+    setWidthText(text);
+    const w = parseDimension(text);
+    if (keepAspect && w && origW > 0) setHeightText(String(Math.max(1, Math.round((w / origW) * origH))));
+  };
+  const onHeightChange = (text: string) => {
+    setHeightText(text);
+    const h = parseDimension(text);
+    if (keepAspect && h && origH > 0) setWidthText(String(Math.max(1, Math.round((h / origH) * origW))));
+  };
+  const applyPercent = (pct: number) => {
+    setWidthText(String(Math.max(1, Math.round(origW * (pct / 100)))));
+    setHeightText(String(Math.max(1, Math.round(origH * (pct / 100)))));
   };
 
-  const handleHeightChange = (val: string) => {
-    const h = Math.max(1, parseInt(val) || 1);
-    setHeight(h);
-    if (keepAspect && origH > 0) setWidth(Math.round((h / origH) * origW));
+  const targetType = output === 'same' ? inputType : output;
+  const sizeProblem = width && height ? canvasSizeProblem(width, height, isIosLike()) : null;
+  const fieldProblem = file && (!width || !height) ? 'Enter a whole number of pixels (1 or more) for width and height.' : null;
+
+  const download = async () => {
+    const decoded = decodedRef.current;
+    if (!file || !decoded || !width || !height || sizeProblem) return;
+    setErrors([]);
+    setNotices([]);
+    setProgress('Resizing...');
+    let canvas: HTMLCanvasElement | null = null;
+    try {
+      const made = createCanvas(width, height);
+      canvas = made.canvas;
+      const ctx = made.ctx;
+      if (targetType === 'image/jpeg') {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+      }
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(decoded.source, 0, 0, width, height);
+      let type: string = targetType;
+      let blob: Blob;
+      if (targetType === 'image/png') {
+        blob = width * height <= PNG_OPTIMISER_MAX_PIXELS
+          ? bytesToBlob(encodePngLossless(ctx.getImageData(0, 0, width, height).data, width, height), 'image/png')
+          : (await encodeCanvas(canvas, 'image/png')).blob;
+      } else {
+        const enc = await encodeCanvas(canvas, targetType, quality / 100);
+        blob = enc.blob;
+        type = enc.type;
+      }
+      const name = `${baseName(file.name)}_${width}x${height}${extensionForType(type) || '.png'}`;
+      downloadBlob(blob, name);
+      const notes = [`Saved ${name} (${formatBytes(blob.size)}; original ${formatBytes(file.size)}).`];
+      if (type !== targetType) notes.push(`This browser cannot create ${labelForType(targetType)} files, so it was saved as ${labelForType(type)}.`);
+      setNotices(notes);
+    } catch (e) {
+      setErrors([errorMessage(e, 'The image could not be resized.')]);
+    } finally {
+      if (canvas) releaseCanvas(canvas);
+      setProgress('');
+    }
   };
 
-  const resize = useCallback(() => {
-    const img = imgRef.current;
-    if (!img || width <= 0 || height <= 0) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.drawImage(img, 0, 0, width, height);
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return;
-        setResizedBlob(blob);
-        setResizedSize(blob.size);
-        if (preview) URL.revokeObjectURL(preview);
-        setPreview(URL.createObjectURL(blob));
-      },
-      'image/png',
-    );
-  }, [width, height]);
-
-  useEffect(() => {
-    if (file && width > 0 && height > 0) resize();
-  }, [width, height, resize, file]);
-
-  const download = () => {
-    if (!resizedBlob || !file) return;
-    const url = URL.createObjectURL(resizedBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name.replace(/\.[^.]+$/, '') + `_${width}x${height}.png`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const processing = progress !== '';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -98,34 +170,38 @@ export default function ImageResizer() {
       <div className="lg:col-span-2 space-y-5">
         <PrivacyBadge />
         <FileDropZone
-          accept="image/jpeg,image/png,image/webp,image/svg+xml"
-          acceptLabel="Supports: JPG, PNG, WebP, SVG"
+          accept="image/jpeg,image/png,image/webp,image/svg+xml,image/gif,.jpg,.jpeg,.png,.webp,.svg,.gif"
+          acceptLabel="Supports: JPG, PNG, WebP, SVG, GIF"
           onFiles={handleFiles}
+          disabled={processing}
         />
 
         {file && (
           <div className="bg-white rounded-lg border border-neutral-200/80 p-5 space-y-4">
             <p className="text-xs text-neutral-500">
-              Original: {origW} × {origH}px ({formatSize(file.size)})
+              Original: {origW} × {origH}px ({labelForType(inputType)}, {formatBytes(file.size)})
             </p>
 
             <div className="flex items-end gap-3">
               <div className="flex-1">
-                <label htmlFor="resize-w" className="block text-sm font-medium text-neutral-700 mb-1">Width</label>
+                <label htmlFor="resize-w" className="block text-sm font-medium text-neutral-700 mb-1">Width (px)</label>
                 <input
                   id="resize-w"
-                  type="number"
-                  min={1}
-                  value={width}
-                  onChange={(e) => handleWidthChange(e.target.value)}
-                  className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={widthText}
+                  onChange={(e) => onWidthChange(e.target.value)}
+                  aria-invalid={!width || undefined}
+                  className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base px-3
                     focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
                 />
               </div>
 
               <button
+                type="button"
                 onClick={() => setKeepAspect(!keepAspect)}
-                className={`mb-0.5 p-2 rounded-lg border transition-colors duration-150 ${
+                className={`mb-0 w-11 h-11 inline-flex items-center justify-center rounded-lg border transition-colors duration-150 ${
                   keepAspect
                     ? 'border-primary-300 bg-primary-50 text-primary-600'
                     : 'border-neutral-200 bg-white text-neutral-500 hover:text-neutral-600'
@@ -137,18 +213,23 @@ export default function ImageResizer() {
               </button>
 
               <div className="flex-1">
-                <label htmlFor="resize-h" className="block text-sm font-medium text-neutral-700 mb-1">Height</label>
+                <label htmlFor="resize-h" className="block text-sm font-medium text-neutral-700 mb-1">Height (px)</label>
                 <input
                   id="resize-h"
-                  type="number"
-                  min={1}
-                  value={height}
-                  onChange={(e) => handleHeightChange(e.target.value)}
-                  className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-sm px-3
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={heightText}
+                  onChange={(e) => onHeightChange(e.target.value)}
+                  aria-invalid={!height || undefined}
+                  className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base px-3
                     focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
                 />
               </div>
             </div>
+            {(fieldProblem || sizeProblem) && (
+              <p className="text-xs text-red-700" role="alert">{fieldProblem || sizeProblem}</p>
+            )}
 
             {/* Quick presets */}
             <div>
@@ -156,14 +237,10 @@ export default function ImageResizer() {
               <div className="flex flex-wrap gap-2">
                 {[25, 50, 75, 150, 200].map((pct) => (
                   <button
+                    type="button"
                     key={pct}
-                    onClick={() => {
-                      const w = Math.round(origW * (pct / 100));
-                      const h = Math.round(origH * (pct / 100));
-                      setWidth(w);
-                      setHeight(h);
-                    }}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 bg-white text-neutral-600
+                    onClick={() => applyPercent(pct)}
+                    className="min-h-11 px-3 text-sm font-medium rounded-lg border border-neutral-200 bg-white text-neutral-600
                       hover:border-primary-300 hover:text-primary-600 transition-colors duration-150"
                   >
                     {pct}%
@@ -171,37 +248,72 @@ export default function ImageResizer() {
                 ))}
               </div>
             </div>
+
+            <div>
+              <label htmlFor="resize-format" className="block text-sm font-medium text-neutral-700 mb-1">Save as</label>
+              <select
+                id="resize-format"
+                value={output}
+                onChange={(e) => setOutput(e.target.value as OutputChoice)}
+                className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base px-3 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
+              >
+                <option value="same">Same format as original ({labelForType(inputType)})</option>
+                <option value="image/jpeg">JPG</option>
+                <option value="image/png">PNG</option>
+                <option value="image/webp">WebP</option>
+              </select>
+            </div>
+            {targetType !== 'image/png' && (
+              <SliderInput
+                label="Quality"
+                id="resize-quality"
+                value={quality}
+                min={10}
+                max={100}
+                step={5}
+                onChange={setQuality}
+                suffix="%"
+                minLabel="10%"
+                maxLabel="100%"
+                hint="Higher = sharper, larger file"
+              />
+            )}
           </div>
         )}
       </div>
 
       {/* Output */}
-      <div className="lg:col-span-3 space-y-4" aria-live="polite">
+      <div className="lg:col-span-3 space-y-4">
+        <div aria-live="polite" className="space-y-4">
+          {processing && <ProcessingBanner label={progress} />}
+          <ToolMessages errors={errors} notices={notices} />
+        </div>
         {preview && file ? (
           <div className="space-y-4">
             <div className="bg-white rounded-lg border border-neutral-200/80 p-4 overflow-hidden">
               <img
                 src={preview}
-                alt={`Resized preview of ${file.name}`}
-                className="max-w-full max-h-[400px] mx-auto rounded-lg object-contain"
+                alt={`Preview of ${file.name}`}
+                className={`max-w-full max-h-[400px] mx-auto rounded-lg ${keepAspect ? "object-contain" : "object-fill"}`}
+                style={width && height ? { aspectRatio: `${width} / ${height}` } : undefined}
               />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-neutral-600">
-                {width} × {height}px
-                {resizedSize > 0 && <span className="ml-2 text-neutral-500">({formatSize(resizedSize)})</span>}
+                {width && height ? `${width} × ${height}px` : 'Enter a size'} · {labelForType(targetType)}
               </p>
               <button
+                type="button"
                 onClick={download}
-                disabled={!resizedBlob}
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg transition-colors duration-150"
+                disabled={!width || !height || !!sizeProblem || processing}
+                className="inline-flex items-center gap-2 min-h-11 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors duration-150"
               >
                 <Download size={16} aria-hidden="true" />
-                Download PNG
+                Download {labelForType(targetType)}
               </button>
             </div>
           </div>
-        ) : (
+        ) : !processing && errors.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ImageIcon size={48} className="text-neutral-300 mb-3" aria-hidden="true" />
             <p className="text-sm text-neutral-500">Upload an image to resize it</p>

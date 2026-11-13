@@ -22,7 +22,8 @@ workedExamples:
       orientation: "portrait"
       fitMode: "fit"
       margin: 10
-    description: "A student photographs 8 pages of a handwritten assignment with their phone. Combining them into a single A4 portrait PDF with 10mm margins creates a clean document for online submission. Each photo becomes one page, centered with consistent margins."
+      imageQuality: "Medium"
+    description: "A student photographs 8 pages of a handwritten assignment with their phone. Combining them into a single A4 portrait PDF with 10mm margins creates a clean document for online submission. The Medium quality setting keeps the handwriting sharp while keeping the PDF small enough for a portal upload limit."
   - title: "Photo portfolio for client"
     inputs:
       pageSize: "letter"
@@ -47,7 +48,11 @@ faq:
   - question: "Can I reorder the pages?"
     answer: "Yes — use the arrow controls next to each image to move it up or down in the list. The order you see is the order they'll appear in the PDF. You can also remove individual images or clear all and start over."
   - question: "Is the PDF quality good enough for printing?"
-    answer: "Yes, if your source images are high resolution. The tool uses 92% JPEG quality when encoding images into the PDF. For best print results, use source images with at least 300 pixels per inch at the final print size. For example, for a full A4 page, your image should be at least 2480 × 3508 pixels."
+    answer: "Yes, if your source images are high resolution. Choose 'High' (images up to 2400 pixels on the long side, 85% JPEG quality) or 'Original size' (full resolution, 92% quality) for printing. For best print results, use source images with at least 300 pixels per inch at the final print size; a full A4 page needs about 2480 × 3508 pixels."
+  - question: "How do I make the PDF smaller for an upload limit?"
+    answer: "Use the 'Image quality and file size' setting. Medium (1600 pixels, 75%) and Small (1100 pixels, 65%) shrink phone photos a lot while staying readable. The tool shows the final file size after saving, so you can step down a setting if it is still too big."
+  - question: "What happens to transparent PNG images?"
+    answer: "Transparent areas are placed on a white page background, so logos and screenshots with transparency look as expected instead of turning black."
 ---
 
 ## When to Combine Images into PDF
@@ -64,9 +69,9 @@ Common use cases:
 This tool uses jsPDF to generate PDFs entirely in your browser. No images are uploaded to any server.
 
 1. **Upload images** — drag and drop or click to browse (JPG, PNG, WebP supported)
-2. **Arrange order** — move images up or down to set page order
-3. **Configure settings** — choose page size, orientation, image fit mode, and margins
-4. **Download PDF** — click to generate and save the PDF file
+2. **Arrange order** — move images up or down with the arrow buttons to set page order
+3. **Configure settings** — choose page size, orientation, image fit, margins, image quality and the file name
+4. **Download PDF** — click to generate and save the PDF file; its size is shown afterwards
 
 Each image becomes one page in the output PDF.
 
@@ -87,3 +92,9 @@ Each image becomes one page in the output PDF.
 
 ### Margin
 Adjustable from 0mm (full bleed) to 30mm. Default is 10mm, which provides a clean border that also keeps content within most printers' printable area.
+
+### Image quality and file size
+- **Original size**: full resolution, largest file
+- **High** (default): up to 2400 pixels, good for printing
+- **Medium**: up to 1600 pixels, good for email and upload portals
+- **Small**: up to 1100 pixels, smallest file

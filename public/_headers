@@ -70,3 +70,15 @@
   ! X-Frame-Options
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors *; upgrade-insecure-requests
 # END W1-LAYOUT
+
+# BEGIN W1-FILES
+# HEIC to JPG decodes with heic-to's CSP build inside a blob: Worker. With no
+# worker-src the browser falls back to script-src, which has no blob:, so the
+# worker is refused and conversion fails in every non-Safari browser (review
+# FILES-01). This route detaches the /tools/* policy and re-sets the SAME policy
+# plus "worker-src 'self' blob:" (no 'unsafe-eval' is needed by the CSP build).
+# Keep this copy in sync whenever the /tools/* Content-Security-Policy changes.
+/tools/file-tools/heic-to-jpg/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors *; upgrade-insecure-requests; worker-src 'self' blob:
+# END W1-FILES
