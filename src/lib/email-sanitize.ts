@@ -3,11 +3,27 @@
  *
  * The results email goes out from hello@calcrun.com, so nothing a client sends may be
  * rendered as free text:
- *  - LABELS are rendered only when they match the tool's allowlist in tool-registry.ts.
- *  - VALUES must be numeric / currency / percent / duration text, or short option text
- *    built only from the fixed VALUE_WORDS vocabulary below. URLs, e-mail addresses,
- *    domain-like text, bidi controls and zero-width characters never pass.
+ *  - LABELS are rendered only when they match the tool's `labels` templates in
+ *    tool-registry.ts.
+ *  - VALUES are rendered only when they match one of the tool's `values` phrase templates
+ *    (or a shared phrase such as "N/A"), or when they are a short, well-formed figure:
+ *    an amount, percentage, duration or unit value with at most two numbers.
+ *    Digit runs that are not ONE well-formed number (phone-number shapes such as
+ *    "0800 123 4567", dotted quads, long unseparated runs) never pass, and neither do
+ *    words outside a small unit vocabulary.
  * Rows that fail are dropped (not rendered), and the count is reported to the caller.
+ *
+ * Template syntax (labels and value phrases):
+ *  - `{n}`        one well-formed number: optional sign and currency symbol, then either
+ *                 1-3 digits with ","/"." thousands groups and an optional decimal part,
+ *                 or up to 5 digits with an optional decimal part; optional trailing
+ *                 "%", currency or cent sign
+ *  - `{dur}`      a duration such as "29 years 10 months", "6 yrs 2 mo", "10 months"
+ *  - `{month}`    an English month name
+ *  - `{taxcode}`  a UK PAYE tax code shape such as 1257L, S1257L, K475, BR, D0, 0T (W1/M1/X)
+ *  - `{a|b|c}`    one of the listed literal phrases
+ *  - `{item}`     labels only: a user-named row; the user's text is NEVER rendered, it is
+ *                 replaced by "<itemNoun> <n>"
  *
  * Pure module: no DOM, no Workers APIs, so it runs in vitest and in the Worker.
  */
@@ -20,7 +36,10 @@ export interface EmailRow {
 }
 
 export const MAX_LABEL_CHARS = 120;
-export const MAX_VALUE_CHARS = 80;
+/** Longest value accepted at all (phrase templates can be sentence-length). */
+export const MAX_VALUE_CHARS = 160;
+/** Longest value accepted by the free numeric grammar (no phrase template). */
+export const MAX_NUMERIC_VALUE_CHARS = 40;
 
 // Format, bidi, zero-width, variation-selector and other invisible code points.
 // eslint-disable-next-line no-control-regex
@@ -40,83 +59,24 @@ export function cleanText(input: string): string {
     .trim();
 }
 
-/* \u2500\u2500 Values \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+/* -- Template tokens ------------------------------------------------------- */
 
-/** Characters a value may contain after cleanText(). No ':', '@', '#', '?', '=', '_' or quotes. */
-const VALUE_CHARS_RE = /^[A-Za-z0-9 \u00A3$\u20AC\u00A2%.,()+\-\u2013\u2014\u2212/&!<>\u2264\u2265'~]+$/;
+/** Digits of one well-formed number (no sign, no symbols). */
+const DIGITS_SRC = String.raw`(?:\d{1,3}(?:,\d{3})+(?:\.\d{1,4})?|\d{1,3}(?:\.\d{3})+(?:,\d{1,4})?|\d{1,5}(?:[.,]\d{1,4})?)`;
+const WELL_FORMED_RE = new RegExp(`^${DIGITS_SRC}$`);
 
-/**
- * Every alphabetic word in a value must be one of these (lower-case). They cover units,
- * durations and the option labels the calculators send (strategy, filing status, tax band,
- * student-loan plan, buyer type, compounding, region...). Deliberately excludes anything a
- * general-purpose message needs (verify, click, login, account, call, visit, link...).
- */
-export const VALUE_WORDS = new Set<string>([
-  // units and durations
-  'year', 'years', 'yr', 'yrs', 'month', 'months', 'mo', 'mos', 'week', 'weeks', 'day', 'days',
-  'hr', 'hrs', 'hour', 'hours', 'age', 'kwh', 'kwp', 'kw', 'p', 'x', 'k', 'm', 'bn', 'min', 'max',
-  'base', 'per', 'n', 'a', 'na',
-  // compounding and timing
-  'annually', 'semi', 'quarterly', 'monthly', 'weekly', 'daily', 'end', 'beginning', 'of', 'period',
-  // modes and strategies
-  'avalanche', 'snowball', 'highest', 'lowest', 'rate', 'first', 'balance', 'historical', 'future',
-  'projection', 'amount', 'contribution', 'return', 'starting', 'time', 'target', 'required',
-  'savings', 'needed', 'goal', 'solve',
-  // filing status, country, tax band, region
-  'single', 'married', 'filing', 'jointly', 'separately', 'joint', 'head', 'household', 'qualifying',
-  'surviving', 'spouse', 'united', 'states', 'kingdom', 'long', 'short', 'term', 'basic', 'higher',
-  'additional', 'intermediate', 'starter', 'advanced', 'top', 'scotland', 'scottish', 'wales',
-  'england', 'northern', 'ireland', 'rest', 'uk', 'us', 'eu',
-  // UK student loans, pensions, tax codes
-  'plan', 'pre', 'post', 'postgraduate', 'loan', 'student', 'salary', 'sacrifice', 'relief', 'net',
-  'pay', 'source', 'br', 'nt', 'sbr', 'cbr', 'cnt', 'snt', 'emergency', 'code',
-  // car finance and property
-  'pcp', 'hp', 'hire', 'purchase', 'personal', 'cash', 'buyer', 'moving', 'home', 'property',
-  'standard', 'non', 'resident', 'battery', 'included', 'tariff',
-  // states and connectives used in result text
-  'no', 'none', 'yes', 'from', 'not', 'reachable', 'never', 'already', 'funded', 'adjust', 'inputs',
-  'to', 'see', 'results', 'paid', 'off', 'or', 'more', 'over', 'under', 'than', 'and', 'the', 'in',
-  'on', 'with', 'without', 'payment', 'payments', 'below', 'interest', 'covered', 'cover', 'does',
-  'only', 'minimum', 'fixed', 'percent', 'total', 'free', 'debt', 'income', 'gain', 'loss', 'exempt',
-  'allowance', 'taxable', 'tax', 'deposit', 'down',
-  // US salary tax-year and age options (W1-TAX)
-  'paycheck', 'paychecks', 'one', 'both',
-  // UK salary and stamp duty options (W1-UK)
-  'arrangement', 'recognised', 'used', 'less',
-]);
+/** `{n}`: one well-formed number with optional sign, currency prefix and %/currency/cent suffix. */
+const NUM_SRC = String.raw`[-+\u2212]?(?:[\u00A3$\u20AC] ?)?${DIGITS_SRC}(?: ?[\u00A3\u20AC\u00A2%])?`;
+const DUR_SRC = String.raw`\d{1,3} (?:years?|yrs?|months?|mo)(?:,? \d{1,2} (?:months?|mo))?`;
+const MONTH_SRC = '(?:January|February|March|April|May|June|July|August|September|October|November|December)';
+const TAXCODE_SRC = String.raw`[SC]?(?:\d{1,4}[LMNT]|K\d{1,4}|BR|D[0-2]|NT|0T)(?: ?(?:W1|M1|X))?`;
 
-/** Short alphanumeric codes such as UK tax codes (1257L, S1257L, K475, D0) or "28p". */
-const SHORT_CODE_RE = /^[A-Za-z]{0,2}\d{1,5}[A-Za-z]{0,3}$/;
-
-/** True when an already-cleaned value is safe to render in the email. */
-export function isSafeValue(value: string): boolean {
-  if (!value || value.length > MAX_VALUE_CHARS) return false;
-  if (!VALUE_CHARS_RE.test(value)) return false;
-  // Belt and braces: anything URL-, address- or domain-shaped.
-  if (/www|https?|ftp|mailto/i.test(value)) return false;
-  if (/[A-Za-z]\s*\.\s*[A-Za-z]/.test(value)) return false;
-  for (const token of value.match(/[A-Za-z0-9]+/g) ?? []) {
-    if (/^\d+$/.test(token)) continue;
-    if (/^[A-Za-z]+$/.test(token)) {
-      if (!VALUE_WORDS.has(token.toLowerCase())) return false;
-      continue;
-    }
-    if (!SHORT_CODE_RE.test(token)) return false;
-  }
-  return true;
-}
-
-/* \u2500\u2500 Labels \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
-
-/** One numeric token: pound, dollar, euro or cent amounts such as "1,500,001", "1.234 EUR", "12%", "-50", "2000". */
-const NUM_SRC = String.raw`[-+\u2212]?(?:[\u00A3$\u20AC\u00A2] ?)?\d+(?:[.,]\d+)*(?: ?[\u00A3$\u20AC\u00A2%])?`;
-
-interface CompiledLabel {
+interface Compiled {
   template: string;
   re: RegExp;
-  /** Exact templates render as written in the registry. */
+  /** No tokens: rendered exactly as written in the registry. */
   exact: boolean;
-  /** Templates with `{item}` render "<noun> <index>" in place of the user's text. */
+  /** Has `{item}`: rendered as "<noun> <index>" in place of the user's text. */
   hasItem: boolean;
 }
 
@@ -124,7 +84,8 @@ function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export function compileLabel(template: string): CompiledLabel {
+/** Compile a label or value template. `{item}` is only allowed when `allowItem`. */
+export function compileTemplate(template: string, allowItem = true): Compiled {
   let src = '';
   let tokens = 0;
   let hasItem = false;
@@ -134,7 +95,11 @@ export function compileLabel(template: string): CompiledLabel {
       tokens++;
       const inner = part.slice(1, -1);
       if (inner === 'n') src += `(?:${NUM_SRC})`;
+      else if (inner === 'dur') src += `(?:${DUR_SRC})`;
+      else if (inner === 'month') src += MONTH_SRC;
+      else if (inner === 'taxcode') src += `(?:${TAXCODE_SRC})`;
       else if (inner === 'item') {
+        if (!allowItem) throw new Error(`{item} is not allowed in value templates: ${template}`);
         src += '(.{1,80}?)';
         hasItem = true;
       } else src += '(?:' + inner.split('|').map(escapeRe).join('|') + ')';
@@ -145,14 +110,108 @@ export function compileLabel(template: string): CompiledLabel {
   return { template, re: new RegExp('^' + src + '$', 'i'), exact: tokens === 0, hasItem };
 }
 
-const compiledCache = new Map<string, CompiledLabel[]>();
-function compiledFor(slug: string): CompiledLabel[] {
-  let list = compiledCache.get(slug);
+/** Backwards-compatible name used by the tests. */
+export const compileLabel = (template: string) => compileTemplate(template, true);
+
+/* -- Values ---------------------------------------------------------------- */
+
+/** Phrases any tool may send (shared option and empty-state words). */
+export const GLOBAL_VALUE_PHRASES = ['N/A', 'n/a', 'None', 'Yes', 'No', 'Never', '{n}+ years', '--'];
+
+/** Characters the free numeric grammar allows (phrases can contain more). */
+const NUMERIC_CHARS_RE = /^[A-Za-z0-9 \u00A3$\u20AC\u00A2%.,()+\-\u2013\u2212/~]+$/;
+
+/** Unit words a free numeric value may contain (lower-case). Nothing else. */
+const UNIT_WORDS = new Set([
+  'year', 'years', 'yr', 'yrs', 'y', 'month', 'months', 'mo', 'mos', 'week', 'weeks', 'day', 'days',
+  'hr', 'hrs', 'hour', 'hours', 'kwh', 'kwp', 'kw', 'p', 'x', 'k', 'm', 'bn', 'min',
+]);
+/** A number glued to a unit, such as "28p", "4x", "3y", "2mo", "50k". */
+const NUMBER_UNIT_RE = /^\d+(?:y|yr|yrs|mo|mos|p|x|k|m|bn|kwh|kwp|kw|hr|hrs)$/i;
+const TAXCODE_TOKEN_RE = /^(?:[SC]?(?:\d{1,4}[LMNT]|K\d{1,4}|BR|D[0-2]|NT|0T)|W1|M1)$/i;
+/** Separators that, alone between two bare numbers, make a phone-number shape. */
+const PHONE_GAP_RE = /^[\s\-().+\u2013\u2212]*$/;
+
+/**
+ * Free numeric grammar: a short amount / percentage / duration / unit value.
+ * Exported for tests; the worker uses isSafeValue().
+ */
+export function isNumericValue(value: string): boolean {
+  if (!value || value.length > MAX_NUMERIC_VALUE_CHARS) return false;
+  if (!NUMERIC_CHARS_RE.test(value)) return false;
+  if (/[A-Za-z]\s*\.\s*[A-Za-z]/.test(value)) return false;
+
+  let taxCodeOnly = true;
+  for (const token of value.match(/[A-Za-z0-9]+/g) ?? []) {
+    if (/^\d+$/.test(token)) {
+      taxCodeOnly = false;
+      continue;
+    }
+    if (TAXCODE_TOKEN_RE.test(token)) continue;
+    taxCodeOnly = false;
+    if (/^[A-Za-z]+$/.test(token) ? UNIT_WORDS.has(token.toLowerCase()) : NUMBER_UNIT_RE.test(token)) continue;
+    return false;
+  }
+
+  const runs = [...value.matchAll(/\d(?:[\d.,]*\d)?/g)];
+  if (runs.length === 0) return taxCodeOnly;
+  if (runs.length > 2) return false;
+  for (const r of runs) if (!WELL_FORMED_RE.test(r[0])) return false;
+  if (runs.length === 2) {
+    const [a, b] = runs;
+    const around = (r: RegExpMatchArray) => {
+      const start = r.index ?? 0;
+      const end = start + r[0].length;
+      return {
+        before: value.slice(0, start).trimEnd().slice(-1),
+        after: value.slice(end).trimStart().charAt(0),
+        grouped: /\d[.,]\d{3}(?:\D|$)/.test(r[0]),
+      };
+    };
+    // Money-like: currency prefix, percent/currency/cent suffix, or thousands grouping.
+    const moneyLike = (r: RegExpMatchArray) => {
+      const x = around(r);
+      return x.grouped || /[\u00A3$\u20AC]/.test(x.before) || /[%\u00A3\u20AC\u00A2]/.test(x.after);
+    };
+    const bare = (r: RegExpMatchArray) => !moneyLike(r) && !/[A-Za-z]/.test(around(r).after);
+    if (!moneyLike(a) && !moneyLike(b)) {
+      // Two plain counts ("3 yrs 2 mo") are short; longer pairs look like phone numbers.
+      if (a[0].replace(/\D/g, '').length + b[0].replace(/\D/g, '').length > 6) return false;
+      const gap = value.slice((a.index ?? 0) + a[0].length, b.index ?? 0);
+      if (bare(a) && bare(b) && PHONE_GAP_RE.test(gap)) return false;
+    }
+  }
+  return true;
+}
+
+const valueCache = new Map<string, Compiled[]>();
+function valuePhrasesFor(slug: string): Compiled[] {
+  let list = valueCache.get(slug);
   if (!list) {
-    const all = TOOL_REGISTRY[slug].labels.map(compileLabel);
+    const own = isKnownTool(slug) ? TOOL_REGISTRY[slug].values ?? [] : [];
+    list = [...GLOBAL_VALUE_PHRASES, ...own].map((t) => compileTemplate(t, false));
+    valueCache.set(slug, list);
+  }
+  return list;
+}
+
+/** True when an already-cleaned value may be rendered in `slug`'s results email. */
+export function isSafeValue(slug: string, value: string): boolean {
+  if (!value || value.length > MAX_VALUE_CHARS) return false;
+  if (valuePhrasesFor(slug).some((c) => c.re.test(value))) return true;
+  return isNumericValue(value);
+}
+
+/* -- Labels ---------------------------------------------------------------- */
+
+const labelCache = new Map<string, Compiled[]>();
+function labelsFor(slug: string): Compiled[] {
+  let list = labelCache.get(slug);
+  if (!list) {
+    const all = TOOL_REGISTRY[slug].labels.map((t) => compileTemplate(t, true));
     // Exact labels win over templates (so "Total Debt" never becomes "{item} ...").
     list = [...all.filter((c) => c.exact), ...all.filter((c) => !c.exact)];
-    compiledCache.set(slug, list);
+    labelCache.set(slug, list);
   }
   return list;
 }
@@ -168,12 +227,16 @@ export function newLabelContext(): LabelContext {
 
 /**
  * Map a cleaned client label to the label to render, or null when it is not allowed.
- * Exact entries return the registry text; numeric templates return the (validated)
- * client text; `{item}` templates return "<noun> <n> <suffix>".
+ * Exact entries return the registry text (a case-sensitive match is preferred, so two
+ * entries that differ only in case render as sent); token templates return the
+ * validated client text; `{item}` templates return "<noun> <n> <suffix>".
  */
 export function matchLabel(slug: string, label: string, ctx: LabelContext): string | null {
   if (!isKnownTool(slug) || !label || label.length > MAX_LABEL_CHARS) return null;
-  for (const c of compiledFor(slug)) {
+  const list = labelsFor(slug);
+  const sameCase = list.find((c) => c.exact && c.template === label);
+  if (sameCase) return sameCase.template;
+  for (const c of list) {
     const m = c.re.exec(label);
     if (!m) continue;
     if (c.exact) return c.template;
@@ -192,7 +255,7 @@ export function matchLabel(slug: string, label: string, ctx: LabelContext): stri
   return null;
 }
 
-/* \u2500\u2500 Rows \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+/* -- Rows ------------------------------------------------------------------ */
 
 export interface SanitizedRows {
   inputs: EmailRow[];
@@ -222,7 +285,7 @@ export function sanitizeRows(slug: string, rawInputs: unknown[], rawResults: unk
     for (const raw of rows) {
       const row = readRow(raw);
       const label = row ? matchLabel(slug, row.label, ctx) : null;
-      if (!row || !label || !isSafeValue(row.value)) {
+      if (!row || !label || !isSafeValue(slug, row.value)) {
         dropped++;
         continue;
       }

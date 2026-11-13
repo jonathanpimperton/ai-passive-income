@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  cleanText, isSafeValue, matchLabel, newLabelContext, sanitizeRows, compileLabel,
+  cleanText, isSafeValue, isNumericValue, matchLabel, newLabelContext, sanitizeRows, compileLabel, compileTemplate,
 } from './email-sanitize';
 
 // Build non-ASCII test characters from code points so this file stays ASCII.
@@ -31,47 +31,80 @@ describe('cleanText', () => {
   });
 });
 
-describe('isSafeValue accepts what the calculators really send', () => {
+describe('isNumericValue accepts well-formed figures', () => {
   const ok = [
-    '$1,234', `${POUND}50,000`, `1.234 ${EURO}`, `-1.234 ${EURO}`, '-$1,000', '5%', '5.00%', '0.0%',
-    '2% (min $25)', '20% ($80,000)', '5 years', '1 year', '3 yrs 2 mo', '7 yr 3 mo', '1 year, 3 months',
-    '25+ years', 'Age 67', '30 years', 'N/A', 'Not reachable', 'Already funded!',
-    'Adjust inputs to see results', 'United States', 'United Kingdom', 'Long-term (> 1 year)',
-    `Short-term (${LE} 1 year)`, 'Single', 'Married Filing Jointly', 'Married (joint)', 'Head of household',
-    'Head of Household', 'Basic rate', 'Higher/additional rate', 'Avalanche (highest rate first)',
-    'Snowball (lowest balance first)', 'Annually', 'Semi-annually', 'Quarterly', 'Monthly', 'Daily',
-    'End of period', 'Beginning of period', 'Historical', 'Future Projection', 'End Amount', 'Contribution',
-    'Return Rate', 'Starting Amount', 'Time', 'Monthly Savings Needed', 'Time to Goal', '1257L', 'S1257L',
-    'K475', 'BR', 'D0', 'NT', 'Scotland', 'No Student Loan', 'Plan 1 (pre-2012 England/Wales)',
-    'Plan 2 (post-2012 England/Wales)', 'Plan 4 (Scotland)', 'Plan 5 (from 2023)', 'Postgraduate Loan',
-    'Salary Sacrifice', '4 kWp', `10 kWh ($5,000)`, 'No', '28p/kWh', `15${CENT}/kWh`, '80% (30% base)',
-    '120 months', '$36.00/hr', '40 hrs', '40', '52', 'PCP', 'Hire Purchase', 'Personal Loan', 'Cash',
-    'First-time buyer', 'Moving home', 'Additional property', '2000', '$1,000/mo', '1.5%/yr', '$1,200/yr',
-    '6.500%', '15 yr 0 mo', '4 years, 2 months', '0 months',
-    // W1-TAX salary options
-    '2026 tax year (filing in 2027)', '2027 paychecks', 'Yes', 'One of us', 'Both of us',
-    // W1-UK option words
-    'Salary sacrifice arrangement', 'Not recognised', 'Allowance used', 'Less than 1 year',
+    '$1,234', `${POUND}50,000`, `1.234 ${EURO}`, `-1.234 ${EURO}`, '-$1,000', '5%', '5.00%', '0.0%', '6.500%',
+    '2% (min $25)', '20% ($80,000)', '5 years', '1 year', '3 yrs 2 mo', '7 yr 3 mo', '15 yr 0 mo',
+    '1 year, 3 months', '4 years, 2 months', '0 months', '25+ years', '8 mo', '3y 2mo', '120 months', '360',
+    '$36.00/hr', '40 hrs', '40', '52', '2000', '$1,000/mo', '1.5%/yr', '$1,200/yr', '4 kWp', '10 kWh ($5,000)',
+    '1,050 kWh/kWp', '28p/kWh', `15${CENT}/kWh`, `12.5${CENT}/kWh`, '4.5x', '12x/yr', '28% / 36%', '12.5% / 30.1%',
+    '$1,234,567.89', '1257L', 'S1257L', 'K475', 'BR', 'D0', 'NT', '0T', 'C1257L', '1257L W1', '1257L X', '$50k',
   ];
   for (const v of ok) {
-    it(JSON.stringify(v), () => expect(isSafeValue(cleanText(v))).toBe(true));
+    it(JSON.stringify(v), () => expect(isNumericValue(cleanText(v))).toBe(true));
   }
 });
 
-describe('isSafeValue rejects free text, links and addresses', () => {
+describe('isNumericValue rejects phone shapes, codes and words', () => {
   const bad = [
-    'https://evil.example/login', 'Verify at https://evil.example', 'evil.example', 'evil . example',
-    'www evil', 'visit us', 'Call 0800 now', 'a@b.c', 'probe@example', 'Account notice', 'click here',
-    '<script>', '"quoted"', 'Pay: now', 'login', '1257L verify', 'javascript', `evil${FULLWIDTH_DOT}example`,
-    'x'.repeat(81), '', 'password reset', 'bitcoin', 'reply to this', 'mailto', 'ftp', '#hash', 'a=b', 'a_b',
-    'AB123456', // over-long code-shaped token
+    // phone-number shapes (review must-fix 1)
+    'Emergency tax code 1-800-555-0199', '0800 123 4567', '+1 (800) 555-0199', '1-800-555-0199', '(800) 555-0199',
+    '555-0199', '0800 123', '07700 900123', '08001234567', '0800.123.4567', '08001 mo 23456',
+    // not one well-formed number
+    '123.45.67.89', '1.2.3', '12,34,56', '1,23,456',
+    // more than two numbers, free words, codes that are not tax codes
+    '1 2 3', 'pay $500 cash or loan not paid', 'g00gle', 'bc1q', 'ab12345cde', 'AB123456', 'Call 0800 now',
+    // links, addresses, markup, punctuation outside the grammar
+    'https://evil.example/login', 'Verify at https://evil.example', 'evil.example', 'evil . example', 'www evil',
+    'a@b.c', '<script>', '"quoted"', 'Pay: now', 'a=b', 'a_b', '#hash', `evil${FULLWIDTH_DOT}example`,
+    'x'.repeat(41), '', 'Account notice', 'Yes', 'Annually',
   ];
   for (const v of bad) {
-    it(JSON.stringify(v), () => expect(isSafeValue(cleanText(v))).toBe(false));
+    it(JSON.stringify(v), () => expect(isNumericValue(cleanText(v))).toBe(false));
   }
-  it('bidi and zero-width characters are removed before checking, never rendered', () => {
-    expect(cleanText(`$1,000${RLO}`)).toBe('$1,000');
-    expect(isSafeValue(`$1,000${RLO}`)).toBe(false); // uncleaned input is refused outright
+});
+
+describe('isSafeValue: per-tool phrases plus the numeric grammar', () => {
+  const accepted: Array<[string, string]> = [
+    ['salary', '2026 tax year (filing in 2027)'], ['salary', '2027 paychecks'], ['salary', 'One of us'],
+    ['salary', 'Married Filing Jointly'], ['salary-uk', '1257L'], ['salary-uk', 'Plan 2 (post-2012 England/Wales)'],
+    ['salary-uk', 'S1257L (not recognised, 1257L used)'], ['salary-uk', `${POUND}2,400 a year`],
+    ['capital-gains-tax', `Short-term (${LE} 1 year)`], ['capital-gains-tax', 'Long-term (> 1 year)'],
+    ['savings-goal', 'Already reached'], ['savings-goal', 'Not reached within 100 years'],
+    ['savings-goal', '$0: current savings already meet the goal'], ['retirement-age', 'Age 64 (in 29 years 10 months)'],
+    ['retirement-age', 'Not reached by age 100'], ['retirement-contribution', 'Not available: retirement age must be after current age'],
+    ['mortgage-affordability', 'Not affordable'], ['mortgage-affordability', '$4,120 (estimated)'],
+    ['mortgage-affordability', 'None (fixed 5+ years): payment checked at your 5.19% rate; max 50% of take-home pay'],
+    ['mortgage-affordability', '7.58% (the higher of your 5.19% rate and the 7.5% average standard variable rate, + 2 pt); max 50% of take-home pay'],
+    ['mortgage-affordability', 'Your monthly commitments already use 55.0% of take-home pay (limit 50%).'],
+    ['rent-vs-buy', 'Even'], ['rent-vs-buy', '3.0% of price'], ['rent-vs-buy', 'Not included'],
+    ['emergency-fund', '3y 2mo (interest only)'], ['emergency-fund', 'More than 50 years at this rate'],
+    ['inflation', '2026 (October)'], ['inflation', 'CPI-U, U.S. city average, all items (BLS); latest month October 2026'],
+    ['solar-payback', 'Not applicable (no net cost)'], ['solar-payback', '70% (30% base, year 1)'],
+    ['debt-payoff', 'Never - the payments do not keep up with the interest'], ['debt-payoff', 'Not within 50 years'],
+    ['credit-card-payoff', 'Never - the payment does not cover the interest'], ['credit-card-payoff', '3% of balance (min $25)'],
+    ['compound-interest', 'Beyond any realistic outcome - check your inputs'], ['car-finance', 'Hire Purchase'],
+    ['stamp-duty', 'First-time buyer'], ['investment-return', 'Not achievable'], ['loan-amortization', 'N/A'],
+  ];
+  for (const [slug, v] of accepted) {
+    it(`${slug}: ${JSON.stringify(v)}`, () => expect(isSafeValue(slug, cleanText(v))).toBe(true));
+  }
+
+  const refused: Array<[string, string]> = [
+    ['salary-uk', 'Emergency tax code 1-800-555-0199'], ['salary-uk', '0800 123 4567'], ['salary-uk', 'g00gle'],
+    ['car-finance', 'pay $500 cash or loan not paid'], ['salary', '+1 (800) 555-0199 tax year (filing in 2027)'],
+    ['salary', '0800 123 4567 paychecks'], ['savings-goal', 'Not reached within 0800 123 years'],
+    ['inflation', '123.45.67.89 (October)'], ['mortgage-affordability', '0800.123.4567 (estimated)'],
+    // A phrase registered for one tool is not accepted for another.
+    ['compound-interest', 'Not affordable'], ['salary', 'Already reached'],
+    ['compound-interest', 'Verify at https://evil.example'], ['compound-interest', 'x'.repeat(161)],
+  ];
+  for (const [slug, v] of refused) {
+    it(`${slug} refuses ${JSON.stringify(v).slice(0, 60)}`, () => expect(isSafeValue(slug, cleanText(v))).toBe(false));
+  }
+
+  it('value templates may not contain {item}', () => {
+    expect(() => compileTemplate('{item} owed', false)).toThrow();
   });
 });
 
@@ -81,11 +114,15 @@ describe('matchLabel', () => {
     expect(matchLabel('compound-interest', 'final balance', ctx)).toBe('Final Balance');
     expect(matchLabel('compound-interest', 'Final Balance', ctx)).toBe('Final Balance');
   });
+  it('prefers a same-case entry when two entries differ only in case', () => {
+    const ctx = newLabelContext();
+    expect(matchLabel('rent-vs-buy', 'Buying costs', ctx)).toBe('Buying costs');
+    expect(matchLabel('rent-vs-buy', 'Buying Costs', ctx)).toBe('Buying Costs');
+  });
   it('rejects labels that are not on the tool allowlist', () => {
     const ctx = newLabelContext();
     expect(matchLabel('compound-interest', 'Account notice', ctx)).toBeNull();
     expect(matchLabel('compound-interest', 'Visit', ctx)).toBeNull();
-    // A label allowed for one tool is not allowed for another.
     expect(matchLabel('compound-interest', 'National Insurance', ctx)).toBeNull();
     expect(matchLabel('salary-uk', 'National Insurance', ctx)).toBe('National Insurance');
   });
@@ -95,49 +132,43 @@ describe('matchLabel', () => {
     expect(matchLabel('__proto__', 'Final Balance', ctx)).toBeNull();
     expect(matchLabel('constructor', 'Final Balance', ctx)).toBeNull();
   });
-  it('numeric templates accept numbers only in the numeric slots', () => {
+  it('numeric slots accept ONE well-formed number only', () => {
     const ctx = newLabelContext();
-    expect(matchLabel('rent-vs-buy', 'Over 10 years, buying saves you', ctx)).toBe('Over 10 years, buying saves you');
-    expect(matchLabel('rent-vs-buy', 'Over 10 years, renting saves you', ctx)).toBe('Over 10 years, renting saves you');
-    expect(matchLabel('rent-vs-buy', 'Over evil.example years, buying saves you', ctx)).toBeNull();
-    expect(matchLabel('rent-vs-buy', 'Over 10 years, someone saves you', ctx)).toBeNull();
-    expect(matchLabel('investment-fee', 'Balance at 1% fee', ctx)).toBe('Balance at 1% fee');
+    expect(matchLabel('rent-vs-buy', 'Over 10 years, renting leaves you better off by', ctx)).toBe('Over 10 years, renting leaves you better off by');
+    expect(matchLabel('rent-vs-buy', 'Over evil.example years, buying and renting come out even', ctx)).toBeNull();
     expect(matchLabel('investment-fee', 'Balance at 0.05% fee', ctx)).toBe('Balance at 0.05% fee');
     expect(matchLabel('investment-fee', 'Balance at click here fee', ctx)).toBeNull();
-    expect(matchLabel('inflation', '$1,000 in 2000 equals', ctx)).toBe('$1,000 in 2000 equals');
-    expect(matchLabel('inflation', cleanText(`1.000${NBSP}${EURO} in 2000 equals`), ctx)).toBe(`1.000 ${EURO} in 2000 equals`);
-    expect(matchLabel('inflation', `${POUND}1,000 today will cost`, ctx)).toBe(`${POUND}1,000 today will cost`);
+    expect(matchLabel('inflation', '$1,000 in 2000 equals (in 2026 (October) prices)', ctx)).toBe('$1,000 in 2000 equals (in 2026 (October) prices)');
+    expect(matchLabel('inflation', cleanText(`1.000${NBSP}${EURO} in 2000 equals (in 2010 prices)`), ctx)).toBe(`1.000 ${EURO} in 2000 equals (in 2010 prices)`);
+    // review must-fix 1: dotted digit runs in a numeric slot
+    expect(matchLabel('inflation', '0800.123.4567 in 1990 equals (in 2000 prices)', ctx)).toBeNull();
+    expect(matchLabel('inflation', '$1,000 in 123.45.67.89 equals (in 2000 prices)', ctx)).toBeNull();
+    expect(matchLabel('inflation', '$1,000 in 0800 123 equals (in 2000 prices)', ctx)).toBeNull();
     expect(matchLabel('solar-payback', '25-Year Savings', ctx)).toBe('25-Year Savings');
-    expect(matchLabel('emergency-fund', 'Recommended Target (6 months)', ctx)).toBe('Recommended Target (6 months)');
-    expect(matchLabel('roi', 'Final Value (B)', ctx)).toBe('Final Value (B)');
+    expect(matchLabel('emergency-fund', 'Time to Reach 6-Month Target', ctx)).toBe('Time to Reach 6-Month Target');
     expect(matchLabel('roi', 'Final Value (C)', ctx)).toBeNull();
-    expect(matchLabel('car-finance', 'Hire Purchase True Cost', ctx)).toBe('Hire Purchase True Cost');
     expect(matchLabel('car-finance', 'Evil True Cost', ctx)).toBeNull();
-    for (const l of ['Tax Year', 'Hourly Rate', 'Aged 65 or Older', 'Overtime Deduction', 'Senior Deduction']) {
-      expect(matchLabel('salary', l, ctx)).toBe(l);
-    }
-    for (const l of ['Into Your Pension', 'Adjusted Net Income']) expect(matchLabel('salary-uk', l, ctx)).toBe(l);
-    for (const l of ['Non-UK Resident', 'Total Cost (Price + SDLT)']) expect(matchLabel('stamp-duty', l, ctx)).toBe(l);
+    expect(matchLabel('retirement-age', "Inflation-Adjusted Value (Today's pounds)", ctx)).toBe("Inflation-Adjusted Value (Today's pounds)");
+    expect(matchLabel('mortgage-affordability', 'Payment check: Share of Take-Home Pay', ctx)).toBe('Payment check: Share of Take-Home Pay');
   });
   it('stamp duty band labels', () => {
     const ctx = newLabelContext();
     const band = `${POUND}125,001 ${EN_DASH} ${POUND}250,000 (2%)`;
     expect(matchLabel('stamp-duty', band, ctx)).toBe(band);
-    const top = `${POUND}1,500,001 ${EN_DASH} ... (12%)`;
-    expect(matchLabel('stamp-duty', top, ctx)).toBe(top);
+    expect(matchLabel('stamp-duty', `${POUND}1,500,001 ${EN_DASH} ... (12%)`, ctx)).toBe(`${POUND}1,500,001 ${EN_DASH} ... (12%)`);
     expect(matchLabel('stamp-duty', `${POUND}1 ${EN_DASH} evil (2%)`, ctx)).toBeNull();
   });
   it('replaces user-named rows with a numbered noun and never renders the user text', () => {
     const ctx = newLabelContext();
     expect(matchLabel('debt-payoff', 'Chase Visa Balance', ctx)).toBe('Debt 1 Balance');
     expect(matchLabel('debt-payoff', 'Chase Visa APR', ctx)).toBe('Debt 1 APR');
-    expect(matchLabel('debt-payoff', 'Car Loan Min Payment', ctx)).toBe('Debt 2 Min Payment');
+    expect(matchLabel('debt-payoff', 'Car Loan', ctx)).toBe('Debt 2');
     expect(matchLabel('debt-payoff', 'Verify at https://evil.example Balance', ctx)).toBe('Debt 3 Balance');
     // Exact labels win over the {item} templates.
     expect(matchLabel('debt-payoff', 'Total Debt', ctx)).toBe('Total Debt');
     expect(matchLabel('debt-payoff', 'Extra Monthly Payment', ctx)).toBe('Extra Monthly Payment');
   });
-  it('every registry template compiles', () => {
+  it('templates compile', () => {
     expect(() => compileLabel('{n} in {n} equals')).not.toThrow();
   });
 });
@@ -153,13 +184,14 @@ describe('sanitizeRows', () => {
     expect(out.results).toEqual([]);
     expect(out.dropped).toBe(2);
   });
-  it('drops allowed labels carrying unsafe values', () => {
+  it('drops allowed labels carrying unsafe values, including phone shapes', () => {
     const out = sanitizeRows('compound-interest', [], [
       { label: 'Final Balance', value: 'Verify at evil.example', highlight: true },
-      { label: 'Interest Earned', value: '$5,000' },
+      { label: 'Interest Earned', value: '0800 123 4567' },
+      { label: 'Total Contributions', value: '$5,000' },
     ]);
-    expect(out.results).toEqual([{ label: 'Interest Earned', value: '$5,000' }]);
-    expect(out.dropped).toBe(1);
+    expect(out.results).toEqual([{ label: 'Total Contributions', value: '$5,000' }]);
+    expect(out.dropped).toBe(2);
   });
   it('keeps only the first highlighted result and never highlights inputs', () => {
     const out = sanitizeRows(
@@ -182,6 +214,10 @@ describe('sanitizeRows', () => {
     expect(out.inputs).toEqual([]);
     expect(out.results).toEqual([{ label: 'Final Balance', value: '$1' }]);
     expect(out.dropped).toBe(5);
+  });
+  it('keeps a savings-goal email whose only result is "Already reached"', () => {
+    const out = sanitizeRows('savings-goal', [], [{ label: 'Time to Reach Goal', value: 'Already reached', highlight: true }]);
+    expect(out.results).toEqual([{ label: 'Time to Reach Goal', value: 'Already reached', highlight: true }]);
   });
   it('accepts a 10-debt Debt Payoff email (32 input rows) and renumbers the debts', () => {
     const inputs: Array<{ label: string; value: string }> = [];

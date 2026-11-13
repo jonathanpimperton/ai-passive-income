@@ -419,7 +419,9 @@ describe('POST /api/email-results (EDGE-02, S1-16)', () => {
   });
   it('escapes HTML in values that pass the filter', async () => {
     const { res } = await call(post('/api/email-results', resultsBody({
-      results: [{ label: 'Final Balance', value: 'Long-term (> 1 year)', highlight: true }],
+      toolSlug: 'capital-gains-tax',
+      inputs: [{ label: 'Holding Period', value: 'Long-term (> 1 year)' }],
+      results: [{ label: 'Capital Gains Tax', value: '$1,000', highlight: true }],
     })));
     expect(res.status).toBe(200);
     expect(sentEmail().html).toContain('Long-term (&gt; 1 year)');
