@@ -2,6 +2,9 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
+  // tests/prod/** needs the production emulator (serve-prod, real worker); it runs
+  // only via `npm run test:prod` (playwright.prod.config.ts), never against the dev server.
+  testIgnore: ['**/prod/**'],
   timeout: 60000,
   expect: { timeout: 15000 },
   fullyParallel: false,

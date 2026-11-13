@@ -1,90 +1,47 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Mail, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import type { ResultItem } from '../../lib/email-types';
+import { useState, useRef, useEffect } from 'react';
+import { Mail, Send, CheckCircle, AlertCircle, Loader2, RotateCcw } from 'lucide-react';
+import type { ResultItem, EmailResultsBody } from '../../lib/email-types';
 import type { PdfInput } from '../../lib/pdf-export';
-
-/**
- * Cloudflare Turnstile site key (public — safe to embed in client code).
- * Set to empty string to disable Turnstile on the client side (server
- * will also skip verification if TURNSTILE_SECRET_KEY is not set).
- */
-const TURNSTILE_SITE_KEY = '0x4AAAAAACnZPz-6NCP1yfgb';
+import { postJson, useTurnstile } from '../../lib/email-client';
 
 interface EmailResultsButtonProps {
   toolSlug: string;
-  toolName: string;
+  /** Unused: the server derives the tool name from its own registry. Kept for call-site compatibility. */
+  toolName?: string;
   getInputs: () => PdfInput[];
   getResults: () => ResultItem[];
 }
 
+/**
+ * "Email my results": sends the current inputs and results to the visitor's own address.
+ * The newsletter opt-in is a separate, UNTICKED checkbox (consent must be a positive act).
+ * Turnstile loads only when the form is first opened.
+ */
 export default function EmailResultsButton({
   toolSlug,
-  toolName,
   getInputs,
   getResults,
 }: EmailResultsButtonProps) {
   const [expanded, setExpanded] = useState(false);
   const [email, setEmail] = useState('');
-  const [subscribe, setSubscribe] = useState(true);
+  const [subscribe, setSubscribe] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [subscribeFailed, setSubscribeFailed] = useState(false);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const errorRef = useRef<HTMLParagraphElement>(null);
-  const turnstileTokenRef = useRef<string>('');
-  const turnstileWidgetRef = useRef<HTMLDivElement>(null);
-  const turnstileWidgetIdRef = useRef<string | null>(null);
+  const turnstile = useTurnstile('email-results');
+  const startTurnstile = turnstile.start;
 
-  // Load Turnstile script + render invisible widget when the form is first
-  // expanded. Deferring the third-party script to expand (instead of mount)
-  // means calculator pages don't pay the Turnstile cost unless the visitor
-  // actually opens the email form.
+  // Defer the third-party Turnstile script until the visitor opens the form.
   useEffect(() => {
-    if (!expanded || !TURNSTILE_SITE_KEY || !turnstileWidgetRef.current) return;
-    if (turnstileWidgetIdRef.current !== null) return;
+    if (expanded) startTurnstile();
+  }, [expanded, startTurnstile]);
 
-    // Inject the script once (dedupe across islands/expands); the render
-    // loop below polls until window.turnstile is ready.
-    if (!document.querySelector('script[src*="turnstile"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-      script.async = true;
-      document.head.appendChild(script);
-    }
-
-    let cancelled = false;
-    const tryRender = () => {
-      if (cancelled) return;
-      const turnstile = (window as any).turnstile;
-      if (!turnstile) {
-        setTimeout(tryRender, 200);
-        return;
-      }
-      turnstileWidgetIdRef.current = turnstile.render(turnstileWidgetRef.current, {
-        sitekey: TURNSTILE_SITE_KEY,
-        size: 'invisible',
-        callback: (token: string) => {
-          turnstileTokenRef.current = token;
-        },
-      });
-    };
-    tryRender();
-
-    return () => {
-      cancelled = true;
-      const turnstile = (window as any).turnstile;
-      if (turnstile && turnstileWidgetIdRef.current !== null) {
-        turnstile.remove(turnstileWidgetIdRef.current);
-        turnstileWidgetIdRef.current = null;
-      }
-    };
-  }, [expanded]);
-
-  // Focus error message when it appears for screen reader users
+  // Focus the error message when it appears, for screen reader and keyboard users.
   useEffect(() => {
-    if (status === 'error' && errorRef.current) {
-      errorRef.current.focus();
-    }
+    if (status === 'error' && errorRef.current) errorRef.current.focus();
   }, [status, errorMsg]);
 
   function handleToggle() {
@@ -98,22 +55,11 @@ export default function EmailResultsButton({
     }
   }
 
-  const getTurnstileToken = useCallback(async (): Promise<string> => {
-    if (!TURNSTILE_SITE_KEY) return '';
-    // If we already have a token, use it
-    if (turnstileTokenRef.current) return turnstileTokenRef.current;
-    // Otherwise trigger explicit execution
-    const turnstile = (window as any).turnstile;
-    if (turnstile && turnstileWidgetIdRef.current !== null) {
-      turnstile.execute(turnstileWidgetIdRef.current);
-      // Wait up to 5s for token
-      for (let i = 0; i < 25; i++) {
-        await new Promise(r => setTimeout(r, 200));
-        if (turnstileTokenRef.current) return turnstileTokenRef.current;
-      }
-    }
-    return '';
-  }, []);
+  function handleRetry() {
+    setStatus('idle');
+    setErrorMsg('');
+    turnstile.reset();
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -122,83 +68,85 @@ export default function EmailResultsButton({
     setStatus('loading');
     setErrorMsg('');
 
+    let turnstileToken: string;
     try {
-      const turnstileToken = await getTurnstileToken();
-
-      const response = await fetch('/api/email-results', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim(),
-          toolSlug,
-          toolName,
-          inputs: getInputs(),
-          results: getResults(),
-          subscribe,
-          honeypot: honeypotRef.current?.value || '',
-          turnstileToken,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setStatus('success');
-        if ((window as any).gtag) {
-          (window as any).gtag('event', 'email_capture_submit', {
-            variant: 'results',
-          });
-        }
-      } else {
-        setStatus('error');
-        setErrorMsg(data.error || 'Failed to send. Please try again.');
-        // Reset Turnstile for retry
-        const turnstile = (window as any).turnstile;
-        if (turnstile && turnstileWidgetIdRef.current !== null) {
-          turnstile.reset(turnstileWidgetIdRef.current);
-          turnstileTokenRef.current = '';
-        }
-      }
-    } catch {
+      turnstileToken = await turnstile.getToken();
+    } catch (err) {
       setStatus('error');
-      setErrorMsg('Network error. Please try again.');
+      setErrorMsg(err instanceof Error ? err.message : 'The spam check failed. Please press Retry.');
+      return;
     }
+
+    const body: EmailResultsBody = {
+      email: email.trim(),
+      toolSlug,
+      inputs: getInputs(),
+      results: getResults(),
+      subscribe,
+      honeypot: honeypotRef.current?.value || '',
+      turnstileToken,
+    };
+    const result = await postJson('/api/email-results', body);
+
+    if (result.ok) {
+      setSubscribeFailed(result.data?.subscribeFailed === true);
+      setStatus('success');
+      if (window.gtag) window.gtag('event', 'email_capture_submit', { variant: 'results' });
+      return;
+    }
+    setStatus('error');
+    setErrorMsg(result.message);
+    // Tokens are single-use: fetch a fresh one for the next attempt.
+    turnstile.reset();
   }
 
   if (status === 'success') {
     return (
-      <div
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl text-primary-700 bg-primary-50 border border-primary-200/60"
-        data-pdf-hide
-      >
-        <CheckCircle size={16} aria-hidden="true" />
-        Results sent!
+      <div data-pdf-hide data-embed-hide className="inline-flex flex-col items-start gap-1" role="status">
+        <div className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl text-primary-700 bg-primary-50 border border-primary-200/60">
+          <CheckCircle size={16} aria-hidden="true" />
+          Results sent!
+        </div>
+        {subscribeFailed && (
+          <p className="text-xs text-neutral-600 max-w-xs">
+            We couldn't add you to the tips list this time. Your results email was still sent.
+          </p>
+        )}
       </div>
     );
   }
 
+  const showTurnstileError = turnstile.status === 'error' && status !== 'loading';
+  const message = status === 'error' && errorMsg ? errorMsg : showTurnstileError ? turnstile.error : '';
+  const canRetry = turnstile.status === 'error' || (status === 'error' && /spam check|verification/i.test(errorMsg));
+
   return (
     // items-start keeps this button aligned with its siblings when the parent
     // flex row wraps on mobile (items-end staggered the wrapped rows)
-    <div data-pdf-hide className="inline-flex flex-col items-start">
+    // data-embed-hide: embed layouts hide email capture (W1-LAYOUT embed CSS).
+    <div data-pdf-hide data-embed-hide className="inline-flex flex-col items-start">
       <button
         type="button"
         onClick={handleToggle}
         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 text-primary-600 bg-primary-50 border border-primary-200/60 hover:bg-primary-100"
         aria-expanded={expanded}
-        aria-label="Email my results"
+        aria-controls={`email-results-panel-${toolSlug}`}
       >
         <Mail size={16} aria-hidden="true" />
         Email my results
       </button>
 
       <div
+        id={`email-results-panel-${toolSlug}`}
+        // Collapsed: not focusable, not clickable, hidden from assistive technology.
+        inert={!expanded}
+        aria-hidden={!expanded}
         className={`overflow-hidden transition-all duration-200 ${
-          expanded ? 'max-h-48 opacity-100 mt-2' : 'max-h-0 opacity-0'
+          expanded ? 'max-h-[28rem] opacity-100 mt-2' : 'max-h-0 opacity-0'
         }`}
       >
         <form onSubmit={handleSubmit} className="space-y-2">
-          {/* Honeypot — hidden from humans */}
+          {/* Honeypot: hidden from humans */}
           <input
             ref={honeypotRef}
             type="text"
@@ -208,11 +156,9 @@ export default function EmailResultsButton({
             className="absolute opacity-0 h-0 w-0 pointer-events-none"
             aria-hidden="true"
           />
-          {/* Turnstile invisible widget container */}
-          <div ref={turnstileWidgetRef} />
           <div className="flex items-center gap-2">
             <label htmlFor={`email-results-${toolSlug}`} className="sr-only">
-              Email address
+              Your email address
             </label>
             <input
               ref={inputRef}
@@ -220,6 +166,7 @@ export default function EmailResultsButton({
               type="email"
               required
               maxLength={254}
+              autoComplete="email"
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -233,31 +180,47 @@ export default function EmailResultsButton({
               disabled={status === 'loading' || !email.trim()}
               className="inline-flex items-center gap-1.5 h-10 sm:h-9 px-3 text-sm font-medium rounded-lg transition-all duration-200
                 text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-60"
-              aria-label="Send results to email"
             >
               {status === 'loading' ? (
                 <Loader2 size={14} className="animate-spin" aria-hidden="true" />
               ) : (
                 <Send size={14} aria-hidden="true" />
               )}
-              Send
+              {status === 'loading' ? 'Sending...' : 'Send'}
             </button>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-start gap-2 cursor-pointer max-w-xs">
             <input
               type="checkbox"
+              name="subscribe"
               checked={subscribe}
               onChange={(e) => setSubscribe(e.target.checked)}
-              className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20"
             />
-            <span className="text-xs text-neutral-500">Also send me financial tips</span>
+            <span className="text-xs text-neutral-600 leading-relaxed">
+              Optional: also email me occasional money tips. Unsubscribe anytime.
+            </span>
           </label>
+          {/* Turnstile renders here; it stays invisible unless Cloudflare needs an interaction. */}
+          <div ref={turnstile.containerRef} />
         </form>
-        {status === 'error' && errorMsg && (
-          <p ref={errorRef} tabIndex={-1} role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600 focus:outline-none">
-            <AlertCircle size={12} aria-hidden="true" />
-            {errorMsg}
-          </p>
+        {message && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 max-w-xs">
+            <p ref={errorRef} tabIndex={-1} role="alert" className="flex items-start gap-1 text-xs text-red-600 focus:outline-none">
+              <AlertCircle size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
+              {message}
+            </p>
+            {canRetry && (
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2 transition-colors duration-150"
+              >
+                <RotateCcw size={12} aria-hidden="true" />
+                Retry
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

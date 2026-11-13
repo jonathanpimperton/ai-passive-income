@@ -490,14 +490,12 @@ When starting a new session on this project:
      - a frozen tab on the Investment Return Time tab;
      - HEIC broken in production since March (CSP);
      - encrypted PDFs giving corrupt output;
-     - security hardening needed in one developer tool and the email endpoints (details only
-       in the untracked review docs; see "Public repo" below);
      - about 1 in 3 hand-written content figures wrong;
      - a pre-ticked marketing opt-in.
    - Facts have also moved: UK Budget 28 Oct 2026, BoE 4.00% on 5 Nov 2026, IRS TY2027 on
      5 Nov 2026.
-   - The rates freshness guard will FAIL EVERY BUILD from 1 Jan 2027 until plan task TX-1/TX-3
-     lands.
+   - The rates freshness guard passes after W1-TAX. It fails from 6 Apr 2027 until a UK 2027/28
+     dataset is added (by design).
    - The fix plan is `docs/plan-2026-11.md`. **Status: plan written, execution not started.**
      The owner will run it in a fresh session.
 2c. **Process rules (owner, 10 Nov 2026), binding for plan-2026-11:**

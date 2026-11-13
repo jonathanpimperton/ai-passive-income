@@ -1,0 +1,120 @@
+---
+/**
+ * The primary interactive island of a tool page or an embed.
+ *
+ * Hydration is `client:load` (plan task LA-1, review A11Y-PERF-05/01): the
+ * calculator is the reason the page exists, so it hydrates as soon as its JS
+ * arrives instead of waiting for browser idle, which on a throttled phone came
+ * seconds later and left early-typed values out of step with the result.
+ *
+ * Every component is imported statically: Astro must see literal `client:*`
+ * usages to bundle islands, so the slug -> component switch can't be dynamic.
+ * The slug -> component-name map lives in `src/lib/tool-islands.ts`; the
+ * tool-islands unit test keeps this switch and that map in step.
+ */
+import { TOOL_COMPONENTS } from '@lib/tool-islands';
+import PlaceholderCalc from '@components/tools/PlaceholderCalc.tsx';
+import CompoundInterestCalc from '@components/tools/CompoundInterestCalc.tsx';
+import LoanAmortizationCalc from '@components/tools/LoanAmortizationCalc.tsx';
+import InvestmentReturnCalc from '@components/tools/InvestmentReturnCalc.tsx';
+import InvestmentFeeCalc from '@components/tools/InvestmentFeeCalc.tsx';
+import RetirementSavingsCalc from '@components/tools/RetirementSavingsCalc.tsx';
+import RetirementContributionCalc from '@components/tools/RetirementContributionCalc.tsx';
+import RetirementAgeCalc from '@components/tools/RetirementAgeCalc.tsx';
+import DebtPayoffCalc from '@components/tools/DebtPayoffCalc.tsx';
+import SavingsGoalCalc from '@components/tools/SavingsGoalCalc.tsx';
+import QrCodeGenerator from '@components/tools/QrCodeGenerator.tsx';
+import PasswordGenerator from '@components/tools/PasswordGenerator.tsx';
+import EmergencyFundCalc from '@components/tools/EmergencyFundCalc.tsx';
+import RoiCalc from '@components/tools/RoiCalc.tsx';
+import InflationCalc from '@components/tools/InflationCalc.tsx';
+import SalaryCalc from '@components/tools/SalaryCalc.tsx';
+import SalaryUkCalc from '@components/tools/SalaryUkCalc.tsx';
+import NetWorthCalc from '@components/tools/NetWorthCalc.tsx';
+import RentVsBuyCalc from '@components/tools/RentVsBuyCalc.tsx';
+import MortgagePaymentCalc from '@components/tools/MortgagePaymentCalc.tsx';
+import MortgageAffordabilityCalc from '@components/tools/MortgageAffordabilityCalc.tsx';
+import PercentageCalculator from '@components/tools/PercentageCalculator.tsx';
+import JsonFormatter from '@components/tools/JsonFormatter.tsx';
+import ImageCompressor from '@components/tools/ImageCompressor.tsx';
+import ImageResizer from '@components/tools/ImageResizer.tsx';
+import ImageFormatConverter from '@components/tools/ImageFormatConverter.tsx';
+import SvgToPngConverter from '@components/tools/SvgToPngConverter.tsx';
+import HeicToJpgConverter from '@components/tools/HeicToJpgConverter.tsx';
+import CsvJsonConverter from '@components/tools/CsvJsonConverter.tsx';
+import MarkdownHtmlConverter from '@components/tools/MarkdownHtmlConverter.tsx';
+import ImagesToPdf from '@components/tools/ImagesToPdf.tsx';
+import PdfMerge from '@components/tools/PdfMerge.tsx';
+import PdfSplit from '@components/tools/PdfSplit.tsx';
+import PdfCompress from '@components/tools/PdfCompress.tsx';
+import PdfToImage from '@components/tools/PdfToImage.tsx';
+import ExcelToPdf from '@components/tools/ExcelToPdf.tsx';
+import Base64EncodeDecode from '@components/tools/Base64EncodeDecode.tsx';
+import UrlEncodeDecode from '@components/tools/UrlEncodeDecode.tsx';
+import JwtDecoder from '@components/tools/JwtDecoder.tsx';
+import JsonYamlConverter from '@components/tools/JsonYamlConverter.tsx';
+import JsonXmlConverter from '@components/tools/JsonXmlConverter.tsx';
+import PngToIco from '@components/tools/PngToIco.tsx';
+import CreditCardPayoffCalc from '@components/tools/CreditCardPayoffCalc.tsx';
+import SolarPaybackCalc from '@components/tools/SolarPaybackCalc.tsx';
+import CarFinanceCalc from '@components/tools/CarFinanceCalc.tsx';
+import StampDutyCalc from '@components/tools/StampDutyCalc.tsx';
+import CapitalGainsTaxCalc from '@components/tools/CapitalGainsTaxCalc.tsx';
+
+interface Props {
+  slug: string;
+  /** Tool name, shown by the placeholder for tools without a calculator. */
+  name: string;
+}
+
+const { slug, name } = Astro.props;
+const hasCalculator = slug in TOOL_COMPONENTS;
+---
+
+{slug === 'compound-interest' && <CompoundInterestCalc client:load />}
+{slug === 'loan-amortization' && <LoanAmortizationCalc client:load />}
+{slug === 'investment-return' && <InvestmentReturnCalc client:load />}
+{slug === 'investment-fee' && <InvestmentFeeCalc client:load />}
+{slug === 'retirement-savings' && <RetirementSavingsCalc client:load />}
+{slug === 'retirement-contribution' && <RetirementContributionCalc client:load />}
+{slug === 'retirement-age' && <RetirementAgeCalc client:load />}
+{slug === 'debt-payoff' && <DebtPayoffCalc client:load />}
+{slug === 'savings-goal' && <SavingsGoalCalc client:load />}
+{slug === 'qr-code' && <QrCodeGenerator client:load />}
+{slug === 'password-generator' && <PasswordGenerator client:load />}
+{slug === 'emergency-fund' && <EmergencyFundCalc client:load />}
+{slug === 'roi' && <RoiCalc client:load />}
+{slug === 'inflation' && <InflationCalc client:load />}
+{slug === 'salary-us' && <SalaryCalc client:load />}
+{slug === 'salary-uk' && <SalaryUkCalc client:load />}
+{slug === 'net-worth' && <NetWorthCalc client:load />}
+{slug === 'rent-vs-buy' && <RentVsBuyCalc client:load />}
+{slug === 'mortgage-payment' && <MortgagePaymentCalc client:load />}
+{slug === 'mortgage-affordability' && <MortgageAffordabilityCalc client:load />}
+{slug === 'percentage-calculator' && <PercentageCalculator client:load />}
+{slug === 'json-formatter' && <JsonFormatter client:load />}
+{slug === 'image-compressor' && <ImageCompressor client:load />}
+{slug === 'image-resizer' && <ImageResizer client:load />}
+{slug === 'image-format-converter' && <ImageFormatConverter client:load />}
+{slug === 'svg-to-png' && <SvgToPngConverter client:load />}
+{slug === 'heic-to-jpg' && <HeicToJpgConverter client:load />}
+{slug === 'csv-json' && <CsvJsonConverter client:load />}
+{slug === 'markdown-html' && <MarkdownHtmlConverter client:load />}
+{slug === 'images-to-pdf' && <ImagesToPdf client:load />}
+{slug === 'pdf-merge' && <PdfMerge client:load />}
+{slug === 'pdf-split' && <PdfSplit client:load />}
+{slug === 'pdf-compress' && <PdfCompress client:load />}
+{slug === 'pdf-to-image' && <PdfToImage client:load />}
+{slug === 'excel-to-pdf' && <ExcelToPdf client:load />}
+{slug === 'base64-encode-decode' && <Base64EncodeDecode client:load />}
+{slug === 'url-encode-decode' && <UrlEncodeDecode client:load />}
+{slug === 'jwt-decoder' && <JwtDecoder client:load />}
+{slug === 'json-yaml' && <JsonYamlConverter client:load />}
+{slug === 'json-xml' && <JsonXmlConverter client:load />}
+{slug === 'png-to-ico' && <PngToIco client:load />}
+{slug === 'credit-card-payoff' && <CreditCardPayoffCalc client:load />}
+{slug === 'solar-payback' && <SolarPaybackCalc client:load />}
+{slug === 'car-finance' && <CarFinanceCalc client:load />}
+{slug === 'stamp-duty' && <StampDutyCalc client:load />}
+{slug === 'capital-gains-tax' && <CapitalGainsTaxCalc client:load />}
+{!hasCalculator && <PlaceholderCalc name={name} client:load />}

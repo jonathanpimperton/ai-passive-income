@@ -4,6 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 import rehypeMonoFigures from './src/lib/rehype-mono-figures.mjs';
+import { remarkFiguresPlugin } from './src/lib/remark-figures.mjs';
 
 import rehypeTableA11y from './src/lib/rehype-table-a11y.mjs';
 import { buildLastmodMap, ensureFullHistory } from './src/lib/sitemap-lastmod.mjs';
@@ -41,6 +42,8 @@ export default defineConfig({
     defaultStrategy: 'hover',
   },
   markdown: {
+    // Build-time figure tokens {{ ... }} resolved from the src/lib engines (docs/figures.md)
+    remarkPlugins: [remarkFiguresPlugin],
     // Mono numerals on financial figures inside markdown tables + bold stats
     rehypePlugins: [rehypeMonoFigures, rehypeTableA11y],
     // (rehypeTableA11y: column scopes and heading-derived captions on markdown tables, F-25)
