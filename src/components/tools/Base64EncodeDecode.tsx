@@ -231,8 +231,8 @@ export default function Base64EncodeDecode() {
           ) : (
             <div className="space-y-2">
               <FileDropZone
-                accept={direction === 'encode' ? '*/*' : '.txt,.b64,text/plain'}
-                acceptLabel={direction === 'encode' ? 'Any file type' : 'A text or .b64 file containing Base64'}
+                accept={direction === 'encode' ? '*/*' : '.txt,.text,.b64,.base64,text/plain,application/base64'}
+                acceptLabel={direction === 'encode' ? 'Any file type' : 'A .txt, .b64 or .base64 file containing Base64'}
                 onFiles={handleFileUpload}
                 maxSizeMB={10}
               />

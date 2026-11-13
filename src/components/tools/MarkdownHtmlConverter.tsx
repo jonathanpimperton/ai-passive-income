@@ -176,8 +176,9 @@ export default function MarkdownHtmlConverter() {
     if (!f) return;
     const text = await f.text();
     setInput(text);
-    if (f.name.endsWith('.html') || f.name.endsWith('.htm')) setMode('html-to-md');
-    else if (f.name.endsWith('.md') || f.name.endsWith('.markdown')) setMode('md-to-html');
+    const name = f.name.toLowerCase();
+    if (/\.(html?|xhtml)$/.test(name)) setMode('html-to-md');
+    else if (/\.(md|markdown|mdown|mkd)$/.test(name)) setMode('md-to-html');
   }, []);
 
   const downloadResult = () => {
@@ -256,8 +257,8 @@ export default function MarkdownHtmlConverter() {
             {mode === 'md-to-html' ? 'Markdown Input' : 'HTML Input'}
           </label>
           <FileDropZone
-            accept=".md,.markdown,.html,.htm,text/markdown,text/html"
-            acceptLabel="Drop a .md or .html file"
+            accept=".md,.markdown,.mdown,.mkd,.txt,.html,.htm,.xhtml,text/markdown,text/x-markdown,text/plain,text/html,application/xhtml+xml"
+            acceptLabel="Drop a .md, .txt or .html file"
             onFiles={handleFiles}
           />
           <textarea

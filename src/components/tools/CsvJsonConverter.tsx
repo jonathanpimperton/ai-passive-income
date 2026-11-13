@@ -86,8 +86,9 @@ export default function CsvJsonConverter() {
     const text = await f.text();
     setInput(text);
     // Auto-detect mode from file extension
-    if (f.name.endsWith('.json')) setMode('json-to-csv');
-    else if (f.name.endsWith('.csv') || f.name.endsWith('.tsv') || f.name.endsWith('.txt')) setMode('csv-to-json');
+    const name = f.name.toLowerCase();
+    if (/\.(json|geojson)$/.test(name)) setMode('json-to-csv');
+    else if (/\.(csv|tsv|tab)$/.test(name)) setMode('csv-to-json');
   }, []);
 
   const downloadResult = () => {
@@ -172,7 +173,7 @@ export default function CsvJsonConverter() {
             {mode === 'csv-to-json' ? 'CSV Input' : 'JSON Input'}
           </label>
           <FileDropZone
-            accept={mode === 'csv-to-json' ? '.csv,.tsv,.txt,text/csv,text/tab-separated-values' : '.json,application/json'}
+            accept={mode === 'csv-to-json' ? '.csv,.tsv,.tab,.txt,text/csv,text/tab-separated-values,text/plain,application/vnd.ms-excel' : '.json,.geojson,.txt,application/json,text/json,application/geo+json,text/plain'}
             acceptLabel={mode === 'csv-to-json' ? 'Drop a .csv or .tsv file' : 'Drop a .json file'}
             onFiles={handleFiles}
           />
