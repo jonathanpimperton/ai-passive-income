@@ -7,7 +7,7 @@
  * APR conventions differ by jurisdiction, so the monthly rate does too:
  * - UK and EU (GBP/EUR): the APR is an ANNUAL EFFECTIVE rate. The UK APR
  *   equation discounts each payment by (1 + APR)^-t with t in years and a
- *   month as 1/12 year (Consumer Credit (Total Cost of Credit) Regulations
+ *   month as 1/12 year (Consumer Credit (Total Charge for Credit) Regulations
  *   2010, SI 2010/1011, Schedule, designated as rules in FCA CONC App 1.2;
  *   https://www.legislation.gov.uk/uksi/2010/1011/schedule/made, accessed
  *   2026-11-12 -- the same equation as Annex I of EU Directive 2008/48/EC,

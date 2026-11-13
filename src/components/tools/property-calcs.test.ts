@@ -117,6 +117,10 @@ describe('property-shared helpers', () => {
     expect(compactCurrency(950, 'USD')).toBe('$950');
     expect(compactCurrency(0, 'USD')).toBe('$0');
     expect(compactCurrency(Number.NaN, 'USD')).toBe('');
+    expect(compactCurrency(-0.4, 'USD')).toBe('$0');
+    expect(compactCurrency(-999_600, 'USD')).toBe('-$1M');
+    expect(compactCurrency(999_400, 'GBP')).toBe('£999K');
+    expect(compactCurrency(999.6, 'USD')).toBe('$1K');
   });
 
   it('Collapse is inert and aria-hidden only while closed', () => {

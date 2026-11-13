@@ -188,7 +188,7 @@ export default function CarFinanceCalc() {
                 formatDisplay={formatNumber}
               />
               {depositNotice && (
-                <p className="mt-1.5 text-xs text-amber-800" role="status">{depositNotice}</p>
+                <p className="mt-1.5 text-xs text-amber-800">{depositNotice}</p>
               )}
             </div>
             <SliderInput
@@ -263,9 +263,19 @@ export default function CarFinanceCalc() {
           <ResultAnnouncer text={announcement} />
           {/* Winner badge */}
           <div data-pdf-section className="mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-100 text-success-700 text-sm font-medium mb-3">
-              <Trophy size={14} aria-hidden="true" />
-              {LABELS[cheapest.type]} has the lowest true cost
+            {/* The answer sits first, above the cards, so it is on screen on phones. */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-100 text-success-700 text-sm font-medium">
+                <Trophy size={14} aria-hidden="true" />
+                {LABELS[cheapest.type]} has the lowest true cost
+              </div>
+              <p
+                data-headline-result
+                data-headline-label={`${LABELS[cheapest.type]} — lowest true cost`}
+                className="text-2xl font-bold text-neutral-900 tabular-nums whitespace-nowrap"
+              >
+                {fmt(Math.round(cheapest.trueCost))}
+              </p>
             </div>
             <p className="text-sm text-neutral-500 leading-relaxed">
               <strong>True cost</strong> = total payments + the investment returns you give up by spending money earlier.
@@ -294,11 +304,7 @@ export default function CarFinanceCalc() {
 
                 <div className="mb-2">
                   <p className="text-xs text-neutral-500 mb-0.5">True Cost</p>
-                  <p
-                    data-headline-result={o.type === cheapest.type ? '' : undefined}
-                    data-headline-label={o.type === cheapest.type ? `${LABELS[o.type]} — True Cost` : undefined}
-                    className="text-2xl font-bold text-neutral-900 tabular-nums"
-                  >
+                  <p className="text-2xl font-bold text-neutral-900 tabular-nums">
                     {fmt(Math.round(o.trueCost))}
                   </p>
                 </div>

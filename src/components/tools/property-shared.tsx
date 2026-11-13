@@ -70,9 +70,14 @@ function trimDecimal(n: number): string {
 export function compactCurrency(value: number, currency: string): string {
   if (!Number.isFinite(value)) return '';
   const symbol = getCurrencyConfig(currency).symbol;
-  const sign = value < 0 ? '-' : '';
   const abs = Math.abs(value);
-  if (abs >= 1_000_000) return `${sign}${symbol}${trimDecimal(abs / 1_000_000)}M`;
-  if (abs >= 1_000) return `${sign}${symbol}${Math.round(abs / 1_000)}K`;
-  return `${sign}${symbol}${Math.round(abs)}`;
+  // Pick the unit from the ROUNDED value so 999,600 reads "1M", not "1000K".
+  const thousands = Math.round(abs / 1_000);
+  let body: string;
+  if (abs >= 1_000_000 || thousands >= 1_000) body = `${trimDecimal(abs / 1_000_000)}M`;
+  else if (abs >= 1_000 || Math.round(abs) >= 1_000) body = `${thousands}K`;
+  else body = `${Math.round(abs)}`;
+  // No sign on anything that rounds to zero ("-$0" for -0.4 reads as a loss).
+  const sign = value < 0 && body !== '0' ? '-' : '';
+  return `${sign}${symbol}${body}`;
 }

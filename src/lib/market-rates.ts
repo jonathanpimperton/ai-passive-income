@@ -89,7 +89,7 @@ const UK_FIXED_2YR_75: MarketRate = {
   asOf: '2026-10-31',
   source: 'Bank of England Bankstats, series IUMBV34 (quoted household interest rates)',
   shortSource: 'Bank of England',
-  url: 'https://www.bankofengland.co.uk/boeapps/database/FromShowColumns.asp?SeriesCodes=IUMBV34&UsingCodes=Y',
+  url: 'https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes&Datefrom=01/Jan/2026&Dateto=now&SeriesCodes=IUMBV34,IUMBV42,IUMTLMV&CSVF=TN&UsingCodes=Y&VPD=Y&VFD=N',
   checked: '2026-11-12',
 };
 
@@ -99,7 +99,7 @@ const UK_FIXED_5YR_75: MarketRate = {
   asOf: '2026-10-31',
   source: 'Bank of England Bankstats, series IUMBV42 (quoted household interest rates)',
   shortSource: 'Bank of England',
-  url: 'https://www.bankofengland.co.uk/boeapps/database/FromShowColumns.asp?SeriesCodes=IUMBV42&UsingCodes=Y',
+  url: 'https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes&Datefrom=01/Jan/2026&Dateto=now&SeriesCodes=IUMBV34,IUMBV42,IUMTLMV&CSVF=TN&UsingCodes=Y&VPD=Y&VFD=N',
   checked: '2026-11-12',
 };
 
@@ -109,7 +109,7 @@ const UK_REVERT_RATE: MarketRate = {
   asOf: '2026-10-31',
   source: 'Bank of England Bankstats, series IUMTLMV (quoted household interest rates)',
   shortSource: 'Bank of England',
-  url: 'https://www.bankofengland.co.uk/boeapps/database/FromShowColumns.asp?SeriesCodes=IUMTLMV&UsingCodes=Y',
+  url: 'https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes&Datefrom=01/Jan/2026&Dateto=now&SeriesCodes=IUMBV34,IUMBV42,IUMTLMV&CSVF=TN&UsingCodes=Y&VPD=Y&VFD=N',
   checked: '2026-11-12',
 };
 
