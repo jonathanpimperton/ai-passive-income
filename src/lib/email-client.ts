@@ -170,6 +170,8 @@ export function useTurnstile(action: string) {
   const [error, setError] = useState('');
   const startedRef = useRef(false);
   const errorRef = useRef('');
+  /** True while Cloudflare shows an interactive challenge; the wait must not time out then. */
+  const interactiveRef = useRef(false);
 
   const fail = useCallback((message: string) => {
     tokenRef.current = '';
@@ -215,7 +217,13 @@ export function useTurnstile(action: string) {
             tokenRef.current = '';
             setStatus('loading');
           },
-          'timeout-callback': () => fail(TURNSTILE_MESSAGES.slow),
+          'before-interactive-callback': () => { interactiveRef.current = true; },
+          'after-interactive-callback': () => { interactiveRef.current = false; },
+          // Turnstile's own timeout for an unsolved interactive challenge.
+          'timeout-callback': () => {
+            interactiveRef.current = false;
+            fail(TURNSTILE_MESSAGES.slow);
+          },
           'unsupported-callback': () => fail(TURNSTILE_MESSAGES.loadFailed),
         });
         widgetIdRef.current = id ?? null;
@@ -226,20 +234,32 @@ export function useTurnstile(action: string) {
       });
   }, [action, fail]);
 
-  /** Resolve with a token (waiting up to `timeoutMs`), or reject with a visible message. */
+  /**
+   * Resolve with a token (waiting up to `timeoutMs`), or reject with a visible message.
+   * While an interactive challenge is on screen the wait is extended; Turnstile's own
+   * timeout-callback ends it if the visitor never solves the challenge.
+   */
   const getToken = useCallback((timeoutMs = 12_000): Promise<string> => {
     if (tokenRef.current) return Promise.resolve(tokenRef.current);
     // A widget that already failed needs Retry; don't make the visitor wait for nothing.
     if (errorRef.current && startedRef.current) return Promise.reject(new Error(errorRef.current));
     if (!startedRef.current) start();
     return new Promise<string>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        waitersRef.current = waitersRef.current.filter((w) => w.resolve !== wrappedResolve);
-        fail(TURNSTILE_MESSAGES.slow);
-        reject(new Error(TURNSTILE_MESSAGES.slow));
-      }, timeoutMs);
+      let timer: ReturnType<typeof setTimeout>;
+      const arm = () => {
+        timer = setTimeout(() => {
+          if (interactiveRef.current) {
+            arm();
+            return;
+          }
+          waitersRef.current = waitersRef.current.filter((w) => w.resolve !== wrappedResolve);
+          fail(TURNSTILE_MESSAGES.slow);
+          reject(new Error(TURNSTILE_MESSAGES.slow));
+        }, timeoutMs);
+      };
       const wrappedResolve = (t: string) => { clearTimeout(timer); resolve(t); };
       const wrappedReject = (e: Error) => { clearTimeout(timer); reject(e); };
+      arm();
       waitersRef.current.push({ resolve: wrappedResolve, reject: wrappedReject });
     });
   }, [fail, start]);

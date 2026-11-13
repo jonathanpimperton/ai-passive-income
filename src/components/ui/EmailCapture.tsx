@@ -74,9 +74,9 @@ export default function EmailCapture({ toolSlug, variant = 'tool' }: EmailCaptur
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <p className="text-base font-semibold text-neutral-900">You're signed up!</p>
+        <p className="text-base font-semibold text-neutral-900">Thanks, check your inbox</p>
         <p className="text-sm text-neutral-500 mt-1">
-          We'll send you tips and insights to help you make smarter financial decisions.
+          If we have sent you a confirmation email, click the link in it to start getting tips.
         </p>
       </div>
     );

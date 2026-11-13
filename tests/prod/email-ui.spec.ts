@@ -225,7 +225,7 @@ test.describe('Newsletter signup (EmailCapture, homepage)', () => {
     await expect.poll(() => page.evaluate(() => (window as unknown as { __tsRenders?: Array<{ action: string }> }).__tsRenders?.[0]?.action)).toBe('subscribe');
     await page.locator(INPUT).fill('reader@example.org');
     await page.getByRole('button', { name: 'Subscribe' }).click();
-    await expect(page.getByText("You're signed up!")).toBeVisible();
+    await expect(page.getByText('Thanks, check your inbox')).toBeVisible();
     expect(sent!.turnstileToken).toBe(TS_DUMMY_TOKEN);
     expect(sent!.email).toBe('reader@example.org');
   });
@@ -244,7 +244,7 @@ test.describe('Newsletter signup (EmailCapture, homepage)', () => {
     await openNewsletter(page);
     await page.locator(INPUT).fill('reader@example.org');
     await page.getByRole('button', { name: 'Subscribe' }).click();
-    await expect(page.getByText("You're signed up!")).toBeVisible();
+    await expect(page.getByText('Thanks, check your inbox')).toBeVisible();
     const { calls } = await (await page.request.get('/__serve-prod/upstream')).json();
     expect(calls.some((c: { url: string }) => c.url.includes('connect.mailerlite.com'))).toBe(true);
   });
