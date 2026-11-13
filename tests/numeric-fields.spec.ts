@@ -7,7 +7,9 @@
  *   number replaces the old one (it used to be appended: 6,500 + 12000 became
  *   65,001,200), and so does Playwright's fill().
  * - Text typed before the island hydrated survives the blur that happens
- *   after hydration (the blur used to commit an empty value and clear it).
+ *   after hydration (the blur used to commit an empty value and clear it),
+ *   and typing can carry on across hydration (it used to be reformatted
+ *   mid-typing: 12 + 000 became 1.2 or 7).
  * - Text that cannot be read ("1e9") puts back the value from before the edit
  *   and explains why, instead of keeping a prefix of what was typed.
  *
@@ -128,6 +130,48 @@ for (const c of CASES) {
       expect(errorId).toBeTruthy();
       await expect(page.locator(`#${errorId!.split(' ')[0]}`)).toContainText(/number/i);
       expect(await headline(page)).toBe(before);
+    });
+
+    test('typing carries on across hydration without reformatting or mangling', async ({ browser }) => {
+      // Reference: the same value typed after hydration.
+      const refCtx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
+      await prepare(refCtx);
+      const ref = await refCtx.newPage();
+      await ref.goto(c.path);
+      await hydrated(ref);
+      const refField = ref.locator(c.field).first();
+      await refField.fill(c.typed);
+      await refField.press('Tab');
+      const expected = await headline(ref);
+      await refCtx.close();
+
+      // Type the first digits on the static HTML, let the island hydrate, then keep typing.
+      const ctx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
+      await prepare(ctx);
+      let release!: () => void;
+      const gate = new Promise<void>((r) => (release = r));
+      await ctx.route(new RegExp(`${c.component}[^/]*\.(js|tsx)`), async (route) => {
+        await gate;
+        await route.continue();
+      });
+      const page = await ctx.newPage();
+      await page.goto(c.path, { waitUntil: 'domcontentloaded' });
+      const field = page.locator(c.field).first();
+      await field.waitFor();
+      expect(await page.locator('astro-island[ssr] [data-headline-result]').count()).toBe(1);
+      await field.click();
+      await field.press('ControlOrMeta+a');
+      await field.pressSequentially(c.typed.slice(0, 2), { delay: 20 });
+      release();
+      await hydrated(page);
+      await page.waitForTimeout(300); // the field must not have been reformatted under the cursor
+      expect(await field.inputValue()).toBe(c.typed.slice(0, 2));
+      await page.keyboard.type(c.typed.slice(2), { delay: 20 });
+      expect(await field.inputValue()).toBe(c.typed); // still plain text while typing
+      await page.keyboard.press('Tab');
+      await expect(field).toHaveValue(c.shown);
+      expect(await headline(page)).toBe(expected);
+      await ctx.close();
     });
 
     test('typed before hydration, left after hydration: the value stays', async ({ browser }) => {

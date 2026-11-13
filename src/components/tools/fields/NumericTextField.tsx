@@ -12,13 +12,15 @@
  *   navigation) with React state, so results never disagree with the box.
  * - 16px text so iOS does not zoom on focus.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   formatEditableNumber,
   interpretNumericText,
   textForEditing,
   type NumericFieldRules,
 } from '../../../lib/numeric-field';
+
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export interface NumericTextFieldProps extends NumericFieldRules {
   id: string;
@@ -62,10 +64,31 @@ export default function NumericTextField({
   const display = editing ? text : formatEditableNumber(value, rules.currency, maxFractionDigits);
 
   // Text typed before hydration (or restored by bfcache/Back) wins over the
-  // SSR default, so the results match what the person sees in the box.
-  useEffect(() => {
-    const dom = inputRef.current?.value ?? '';
-    if (dom === formatEditableNumber(value, rules.currency, maxFractionDigits)) return;
+  // SSR default, so the results match what the person sees in the box. A layout
+  // effect: it runs before anything can re-render the box over their text.
+  useIsoLayoutEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const dom = el.value;
+    const untouched = dom === formatEditableNumber(value, rules.currency, maxFractionDigits);
+    if (document.activeElement === el) {
+      // Still in the box: carry on as a normal edit instead of reformatting under their fingers.
+      focusValueRef.current = { value };
+      setEditing(true);
+      if (untouched) {
+        const raw = textForEditing(value, rules.currency);
+        if (el.value !== raw) el.value = raw;
+        el.select();
+        setText(raw);
+        return;
+      }
+      setText(dom);
+      const r = interpretNumericText(dom, rules);
+      if (r.kind === 'value') onChange(r.value);
+      else if (r.kind === 'empty') onChange(null);
+      return;
+    }
+    if (untouched) return;
     const r = interpretNumericText(dom, rules);
     if (r.kind === 'value') onChange(r.value);
     else if (r.kind === 'empty') onChange(null);
