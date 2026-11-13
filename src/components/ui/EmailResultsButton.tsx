@@ -102,7 +102,7 @@ export default function EmailResultsButton({
 
   if (status === 'success') {
     return (
-      <div data-pdf-hide className="inline-flex flex-col items-start gap-1" role="status">
+      <div data-pdf-hide data-embed-hide className="inline-flex flex-col items-start gap-1" role="status">
         <div className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl text-primary-700 bg-primary-50 border border-primary-200/60">
           <CheckCircle size={16} aria-hidden="true" />
           Results sent!
@@ -123,7 +123,8 @@ export default function EmailResultsButton({
   return (
     // items-start keeps this button aligned with its siblings when the parent
     // flex row wraps on mobile (items-end staggered the wrapped rows)
-    <div data-pdf-hide className="inline-flex flex-col items-start">
+    // data-embed-hide: embed layouts hide email capture (W1-LAYOUT embed CSS).
+    <div data-pdf-hide data-embed-hide className="inline-flex flex-col items-start">
       <button
         type="button"
         onClick={handleToggle}
