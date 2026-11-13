@@ -215,42 +215,48 @@ for (const c of CASES) {
       await ctx.close();
     });
 
-    test('EUR visitor: "5.000" typed before hydration means 5,000, not 5', async ({ browser }) => {
-      // Reference: 5000 typed after hydration (unambiguous in every convention).
-      const refCtx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
-      await prepare(refCtx, 'EUR');
-      const ref = await refCtx.newPage();
-      await ref.goto(c.path);
-      await hydrated(ref);
-      const refField = ref.locator(c.field).first();
-      await refField.fill('5000');
-      await refField.press('Tab');
-      await expect(refField).toHaveValue('5.000'); // EUR display
-      const expected = await headline(ref);
-      await refCtx.close();
+    // The visitor either leaves the field before the island hydrates (then the mount reconcile
+    // reads the text: with the hydration render's USD it was 5) or is still in it (the blur after
+    // hydration reads it).
+    for (const leftBeforeHydration of [true, false]) {
+      test(`EUR visitor: "5.000" typed before hydration means 5,000, not 5 (${leftBeforeHydration ? 'left the field before hydration' : 'still in the field at hydration'})`, async ({ browser }) => {
+        // Reference: 5000 typed after hydration (unambiguous in every convention).
+        const refCtx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
+        await prepare(refCtx, 'EUR');
+        const ref = await refCtx.newPage();
+        await ref.goto(c.path);
+        await hydrated(ref);
+        const refField = ref.locator(c.field).first();
+        await refField.fill('5000');
+        await refField.press('Tab');
+        await expect(refField).toHaveValue('5.000'); // EUR display
+        const expected = await headline(ref);
+        await refCtx.close();
 
-      // Hold the island's module so "5.000" is typed on the static HTML, then let it hydrate.
-      const ctx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
-      await prepare(ctx, 'EUR');
-      let release!: () => void;
-      const gate = new Promise<void>((r) => (release = r));
-      await ctx.route(new RegExp(`${c.component}[^/]*\\.(js|tsx)`), async (route) => {
-        await gate;
-        await route.continue();
+        // Hold the island's module so "5.000" is typed on the static HTML, then let it hydrate.
+        const ctx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
+        await prepare(ctx, 'EUR');
+        let release!: () => void;
+        const gate = new Promise<void>((r) => (release = r));
+        await ctx.route(new RegExp(`${c.component}[^/]*\\.(js|tsx)`), async (route) => {
+          await gate;
+          await route.continue();
+        });
+        const page = await ctx.newPage();
+        await page.goto(c.path, { waitUntil: 'domcontentloaded' });
+        const field = page.locator(c.field).first();
+        await field.waitFor();
+        expect(await page.locator('astro-island[ssr] [data-headline-result]').count()).toBe(1);
+        await field.click();
+        await field.fill('5.000');
+        if (leftBeforeHydration) await field.press('Tab'); // plain HTML: nothing reformats or reads it yet
+        release();
+        await hydrated(page);
+        if (!leftBeforeHydration) await field.press('Tab'); // the blur happens after hydration
+        await expect(field).toHaveValue('5.000'); // five thousand, shown the EUR way (it was "5" before the fix)
+        expect(await headline(page)).toBe(expected);
+        await ctx.close();
       });
-      const page = await ctx.newPage();
-      await page.goto(c.path, { waitUntil: 'domcontentloaded' });
-      const field = page.locator(c.field).first();
-      await field.waitFor();
-      expect(await page.locator('astro-island[ssr] [data-headline-result]').count()).toBe(1);
-      await field.click();
-      await field.fill('5.000');
-      release();
-      await hydrated(page);
-      await field.press('Tab'); // the blur happens after hydration
-      await expect(field).toHaveValue('5.000'); // five thousand, shown the EUR way (it was "5" before the fix)
-      expect(await headline(page)).toBe(expected);
-      await ctx.close();
-    });
+    }
   });
 }

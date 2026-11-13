@@ -191,3 +191,28 @@ for (const h of HUBS) {
     }
   });
 }
+
+/* -- 4. Net worth: server and client agree, load after load ------------------ */
+
+// Row ids used to come from a module-level counter: the server kept counting across
+// requests (dev server) or pages (build: tool page, then embed page), so its ids
+// ("item-46-name") differed from the client's ("item-1-name") and React reported a
+// hydration mismatch. Loads in a row, on the tool page and the embed page, must be clean.
+const NET_WORTH_PAGES = ['/tools/income-and-planning/net-worth/', '/embed/net-worth/'];
+
+for (const currency of [undefined, 'GBP', 'EUR']) {
+  test(`net worth hydrates without a mismatch, load after load (${currency ?? 'nothing stored'})`, async ({ page, context }) => {
+    await prepare(context, currency);
+    const errors: string[] = [];
+    page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+    page.on('pageerror', (e) => errors.push(String(e)));
+    for (const path of [...NET_WORTH_PAGES, ...NET_WORTH_PAGES]) {
+      await page.goto(path);
+      await hydrated(page);
+      await page.waitForTimeout(300);
+      // The server's first row is item-1, the same as the client's.
+      expect(await page.locator('input#item-1-name').count(), path).toBe(1);
+      expect(errors.filter((e) => /418|423|425|hydrat|did(n't| not) match/i.test(e)), path).toEqual([]);
+    }
+  });
+}
