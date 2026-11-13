@@ -41,6 +41,23 @@ export type JwtDecodeResult =
 /** NumericDate values above this (about the year 5138) are almost certainly milliseconds. */
 const MS_THRESHOLD = 1e11;
 
+/** The largest absolute millisecond value a JavaScript Date can hold (year 275760). */
+const MAX_DATE_MS = 8.64e15;
+
+/** "2024-05-01" for a millisecond timestamp, or null when it is outside the range of real dates. */
+function isoDay(ms: number): string | null {
+  if (!Number.isFinite(ms) || Math.abs(ms) > MAX_DATE_MS) return null;
+  const iso = new Date(ms).toISOString();
+  return iso.slice(0, iso.indexOf('T'));
+}
+
+/** What a time claim written in seconds means, in words that stay valid for any number. */
+function describeAsSeconds(v: number): string {
+  const ms = v * 1000;
+  if (!Number.isFinite(ms) || Math.abs(ms) > MAX_DATE_MS) return 'a date outside the range of real dates';
+  return `the year ${new Date(ms).getUTCFullYear()}`;
+}
+
 export function algInfo(alg: unknown): { name: string; family: AlgFamily; verifyWith: string } {
   const name = typeof alg === 'string' ? alg : 'unknown';
   if (name.toLowerCase() === 'none') return { name, family: 'none', verifyWith: 'nothing: the token is not signed' };
@@ -141,18 +158,21 @@ export function decodeJwtToken(input: string, nowMs: number = Date.now()): JwtDe
   if (h.alg === undefined) warnings.push('The header has no "alg" claim.');
 
   const times: Partial<Record<TimeClaim['name'], TimeClaim>> = {};
+  const notNumbers = new Set<TimeClaim['name']>();
   for (const name of ['exp', 'nbf', 'iat'] as const) {
     const v = p[name];
     if (v === undefined) continue;
     if (typeof v !== 'number' || !Number.isFinite(v)) {
-      warnings.push(`"${name}" should be a number of seconds since 1970 (RFC 7519 NumericDate), but it is ${typeof v === 'string' ? `the string "${v}"` : typeof v}.`);
+      notNumbers.add(name);
+      warnings.push(`"${name}" should be a number of seconds since 1970 (RFC 7519 NumericDate), but it is ${typeof v === 'string' ? `the string "${v}"` : typeof v === 'number' ? 'not a finite number' : typeof v}.`);
       continue;
     }
     const looksLikeMs = Math.abs(v) >= MS_THRESHOLD;
     times[name] = { name, seconds: v, looksLikeMs };
     if (looksLikeMs) {
+      const asMs = isoDay(v);
       warnings.push(
-        `"${name}" looks like milliseconds (${v}). JWT times are seconds since 1970, so as written it means the year ${new Date(Math.min(v * SECOND, 8.64e15)).getUTCFullYear() || 'far future'}; as milliseconds it would be ${new Date(v).toISOString().slice(0, 10)}.`,
+        `"${name}" looks like milliseconds (${v}). JWT times are seconds since 1970, so as written it means ${describeAsSeconds(v)}; as milliseconds it would be ${asMs ?? 'a date outside the range of real dates'}.`,
       );
     }
   }
@@ -168,6 +188,7 @@ export function decodeJwtToken(input: string, nowMs: number = Date.now()): JwtDe
   else if (nbf !== undefined && nbf > nowMs) status = { label: `Not active yet: starts in ${formatSpan(nbf - nowMs)}`, tone: 'warn' };
   else if (exp !== undefined) status = { label: `Not expired: expires in ${formatSpan(exp - nowMs)}`, tone: exp - nowMs < HOUR ? 'warn' : 'ok' };
   else if (times.exp?.looksLikeMs) status = { label: 'Expiry unclear: "exp" looks like milliseconds', tone: 'warn' };
+  else if (notNumbers.has('exp')) status = { label: 'Expiry unclear: "exp" is not a number', tone: 'warn' };
   else status = { label: 'No expiry: this token has no "exp" claim', tone: 'warn' };
 
   return { ok: true, header: h, payload: p, signature: parts[2], alg, times, status, warnings, notes };

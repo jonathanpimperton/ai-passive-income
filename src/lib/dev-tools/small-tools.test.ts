@@ -208,6 +208,29 @@ describe('JWT decoding (DEVTOOLS-15)', () => {
     expect(r.ok && r.status.label).toMatch(/Expiry unclear/);
   });
 
+  it('decodes tokens whose time claims are far outside the range of real dates', () => {
+    for (const v of [8.7e15, 1e16, 1e20, -1e20, 1e300, -1e300]) {
+      for (const claim of ['exp', 'nbf', 'iat']) {
+        const r = decodeJwtToken(token({ [claim]: v }), NOW);
+        expect(r.ok, `${claim}=${v}`).toBe(true);
+        if (r.ok) expect(r.warnings.join(' '), `${claim}=${v}`).toMatch(new RegExp(`"${claim}" looks like milliseconds`));
+      }
+    }
+    const huge = decodeJwtToken(token({ exp: 1e20 }), NOW);
+    expect(huge.ok && huge.warnings.join(' ')).toMatch(/outside the range of real dates/);
+    const edge = decodeJwtToken(token({ exp: 8.64e15 }), NOW);
+    expect(edge.ok && edge.warnings.join(' ')).toMatch(/as milliseconds it would be [+]275760-09-13./);
+    const neverFinite = decodeJwtToken(`${b64({ alg: 'HS256' })}.${encodeText('{"exp":1e999}', { urlSafe: true })}.c2ln`, NOW);
+    expect(neverFinite.ok && neverFinite.warnings.join(' ')).toMatch(/not a finite number/);
+  });
+
+  it('says the expiry is not a number when "exp" is the wrong type, not that it is missing', () => {
+    const r = decodeJwtToken(token({ exp: '1893456000' }), NOW);
+    expect(r.ok && r.warnings.join(' ')).toMatch(/"exp" should be a number/);
+    expect(r.ok && r.status.label).toBe('Expiry unclear: "exp" is not a number');
+    expect(r.ok && r.status.label).not.toMatch(/no "exp" claim/);
+  });
+
   it('accepts a Bearer prefix and line breaks', () => {
     const r = decodeJwtToken(`Bearer ${token({ sub: '1' })}`, NOW);
     expect(r.ok && r.notes[0]).toMatch(/Bearer/);

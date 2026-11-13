@@ -6,8 +6,9 @@
 import { useState, useMemo } from 'react';
 import { Copy, Check, AlertCircle, AlertTriangle, Clock, Shield, Key, Info } from 'lucide-react';
 import PrivacyBadge from '../ui/PrivacyBadge';
-import { decodeJwtToken, type JwtStatus } from '../../lib/dev-tools/jwt';
+import { decodeJwtToken, type JwtDecodeResult, type JwtStatus } from '../../lib/dev-tools/jwt';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 const SAMPLE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
@@ -69,7 +70,10 @@ export default function JwtDecoder() {
   const [input, setInput] = useState(SAMPLE_JWT);
   const { copy, copiedKey, message: copyMessage } = useCopyFeedback();
 
-  const decoded = useMemo(() => decodeJwtToken(input), [input]);
+  const decoded = useMemo(
+    () => safely<JwtDecodeResult>(() => decodeJwtToken(input), (message) => ({ ok: false, error: message })),
+    [input],
+  );
 
   return (
     <div className="space-y-6">
