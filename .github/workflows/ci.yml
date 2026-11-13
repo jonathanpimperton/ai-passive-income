@@ -30,12 +30,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests
-        run: npm test
-
+      # Build first: some unit tests (hub-figures-spotcheck) read the built HTML.
       # prebuild runs scripts/check-rates-freshness.mjs, so stale tax data fails here too.
       - name: Build
         run: npm run build
+
+      - name: Unit tests
+        run: npm test
 
       - name: Link, anchor and redirect integrity
         run: node scripts/qa-link-check.mjs

@@ -51,7 +51,21 @@ export default defineConfig({
         stderr: 'pipe',
       },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Belt and braces with the route-abort in tests/prod/fixtures.ts: GA/GTM hosts
+        // resolve to nothing, as in the repo's playwright.config.ts.
+        launchOptions: {
+          args: [
+            '--host-resolver-rules=MAP google-analytics.com ~NOTFOUND, MAP *.google-analytics.com ~NOTFOUND, ' +
+              'MAP googletagmanager.com ~NOTFOUND, MAP *.googletagmanager.com ~NOTFOUND, ' +
+              'MAP analytics.google.com ~NOTFOUND, MAP *.analytics.google.com ~NOTFOUND',
+          ],
+        },
+      },
+    },
     // Browser-sensitive CSP checks also run in Firefox (HEIC conversion under production CSP).
     { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testMatch: /heic\.spec\.ts$/ },
   ],

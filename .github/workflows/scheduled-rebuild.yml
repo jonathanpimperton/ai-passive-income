@@ -47,8 +47,12 @@ jobs:
           status=$(printf '%s\n' "$response" | tail -n 1)
           body=$(printf '%s\n' "$response" | sed '$d')
           echo "Deploy hook answered HTTP $status"
-          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ] || ! printf '%s' "$body" | grep -q '"success":true'; then
+          # jq is preinstalled on GitHub's ubuntu runners.
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ] || ! printf '%s' "$body" | jq -e '.success == true' > /dev/null 2>&1; then
             echo "::error::Deploy hook call failed (HTTP $status)."
             exit 1
           fi
-          echo "Build queued: $(printf '%s' "$body" | grep -o '"build_uuid":"[^"]*"' || echo 'uuid not reported')"
+          echo "Build queued: $(printf '%s' "$body" | jq -r '.result.build_uuid // "uuid not reported"')"
+          if [ "$(printf '%s' "$body" | jq -r '.result.already_exists // false')" = "true" ]; then
+            echo "A build for this branch was already queued; Cloudflare reused it."
+          fi

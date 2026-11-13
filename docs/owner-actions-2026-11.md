@@ -101,6 +101,12 @@ Transport Security (HSTS) -> Enable HSTS:
   if you want it (removal from the preload list is slow).
 - No-Sniff header: On.
 
+Note: `public/_headers` already sends `Strict-Transport-Security` on every www response.
+With zone HSTS on as well, www responses carry the header twice. Browsers handle that (they
+use the first valid one), but to keep it tidy you can ask for the line to be removed from
+`_headers` once zone HSTS is confirmed on, or set the zone to the same value
+(`max-age=31536000; includeSubDomains; preload`).
+
 ## 7. WAF rate-limiting rule (O-8)
 
 Cloudflare dashboard -> `calcrun.com` -> Security -> WAF -> Rate limiting rules (newer
