@@ -24,6 +24,7 @@ import {
   defaultUkTaxYear,
   daysBetween,
   toIsoDate,
+  pinnedToday,
 } from './tax-years.mjs';
 import { US_RATES_BY_YEAR, US_TAX_YEARS } from './us-rates';
 import { UK_RATES_BY_YEAR, UK_TAX_YEARS } from './uk-rates';
@@ -206,7 +207,14 @@ describe('default year follows the date (aliases switch on 1 January)', () => {
     expect(mod.US_TAX_YEAR).toBe('2027');
   });
 
-  it('CALCRUN_TODAY pins the build clock for rollover rehearsals', async () => {
+  const local = () => {
+    // These tests describe a LOCAL rehearsal; CI runners set CI=true.
+    vi.stubEnv('CI', '');
+    vi.stubEnv('WORKERS_CI', '');
+  };
+
+  it('CALCRUN_TODAY pins the build clock for local rollover rehearsals', async () => {
+    local();
     vi.stubEnv('CALCRUN_TODAY', '2027-01-02');
     vi.resetModules();
     const mod = await import('./us-rates');
@@ -214,9 +222,37 @@ describe('default year follows the date (aliases switch on 1 January)', () => {
   });
 
   it('an invalid CALCRUN_TODAY fails loudly', async () => {
+    local();
     vi.stubEnv('CALCRUN_TODAY', 'next tuesday');
     vi.resetModules();
     await expect(import('./us-rates')).rejects.toThrow(/CALCRUN_TODAY/);
+  });
+
+  it('CALCRUN_TODAY is ignored in CI and Cloudflare builds (cannot freeze the server-rendered year)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 13, 12));
+    vi.stubEnv('CALCRUN_TODAY', '2027-01-02');
+    vi.stubEnv('CI', '');
+    vi.stubEnv('WORKERS_CI', '1');
+    vi.resetModules();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const mod = await import('./us-rates');
+    expect(mod.US_DEFAULT_TAX_YEAR).toBe(2026);
+    expect(warn.mock.calls.flat().join(' ')).toMatch(/CALCRUN_TODAY=2027-01-02 IGNORED: WORKERS_CI is set/);
+    warn.mockRestore();
+  });
+});
+
+describe('pinnedToday()', () => {
+  it('applies locally, is ignored when CI or WORKERS_CI is set, and rejects malformed dates', () => {
+    expect(pinnedToday({}).date).toBeNull();
+    expect(toIsoDate(pinnedToday({ CALCRUN_TODAY: '2027-01-02' }).date as Date)).toBe('2027-01-02');
+    expect(pinnedToday({ CALCRUN_TODAY: '2027-01-02', CI: 'true' })).toMatchObject({ ignored: true, date: null });
+    expect(pinnedToday({ CALCRUN_TODAY: '2027-01-02', WORKERS_CI: '1' })).toMatchObject({ ignored: true, date: null });
+    expect(pinnedToday({ CALCRUN_TODAY: '2027-01-02', CI: 'false' }).ignored).toBe(false);
+    expect(pinnedToday({ CALCRUN_TODAY: '2027-01-02', CI: '0' }).ignored).toBe(false);
+    expect(pinnedToday({ CALCRUN_TODAY: 'garbage', CI: 'true' }).ignored).toBe(true);
+    expect(() => pinnedToday({ CALCRUN_TODAY: '2027-02-30' })).toThrow(/CALCRUN_TODAY/);
   });
 });
 
@@ -247,5 +283,22 @@ describe('scripts/check-rates-freshness.mjs (prebuild guard CLI)', () => {
 
   it('rejects a malformed --today', () => {
     expect(run('2027-13-01').status).toBe(2);
+  });
+
+  it('announces a pinned date loudly', () => {
+    expect(run('2027-01-02').stderr).toMatch(/DATE PINNED BY --today=2027-01-02/);
+    const env = { ...process.env, CALCRUN_TODAY: '2027-01-02', CI: '', WORKERS_CI: '', GITHUB_ACTIONS: '' };
+    const r = spawnSync(process.execPath, ['scripts/check-rates-freshness.mjs'], { encoding: 'utf8', env });
+    expect(r.status).toBe(0);
+    expect(r.stderr).toMatch(/DATE PINNED BY CALCRUN_TODAY=2027-01-02/);
+    expect(r.stdout).toMatch(/on 2027-01-02/);
+  });
+
+  it('ignores CALCRUN_TODAY in a Cloudflare build (WORKERS_CI) and checks the real date', () => {
+    const env = { ...process.env, CALCRUN_TODAY: '2030-01-01', CI: '', WORKERS_CI: '1', GITHUB_ACTIONS: '' };
+    const r = spawnSync(process.execPath, ['scripts/check-rates-freshness.mjs'], { encoding: 'utf8', env });
+    expect(r.stderr).toMatch(/CALCRUN_TODAY=2030-01-01 IGNORED because WORKERS_CI is set/);
+    expect(r.stdout).not.toMatch(/on 2030-01-01/);
+    expect(r.status).toBe(0); // 2030 has no data: honouring the pin would have failed
   });
 });

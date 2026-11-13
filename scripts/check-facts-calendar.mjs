@@ -2,9 +2,13 @@
  * Dated-facts checker for docs/freshness-calendar.md. Dependency-free Node,
  * run weekly by the CI freshness workflow (and by hand).
  *
- * Exits 1 when any fact is overdue or due within the window (default 30
- * days), or when the calendar cannot be read; exits 0 otherwise. GitHub then
- * emails the owner about the failed run.
+ * Exit codes:
+ *   0 = every fact is more than the window away (default 30 days);
+ *   1 = a fact is overdue or due within the window, or the calendar cannot be
+ *       read or resolved (GitHub then emails the owner about the failed run);
+ *   2 = bad arguments (--today, --within) or a malformed CALCRUN_TODAY.
+ * A pinned date (--today=, or CALCRUN_TODAY outside CI) is announced loudly;
+ * CALCRUN_TODAY is ignored, with a warning, when CI or WORKERS_CI is set.
  *
  * Usage:
  *   node scripts/check-facts-calendar.mjs
@@ -17,7 +21,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { daysBetween, parseIsoDate, taxClockNow, toIsoDate } from '../src/lib/tax-years.mjs';
+import { daysBetween, parseIsoDate, pinnedToday, toIsoDate } from '../src/lib/tax-years.mjs';
 
 export const DEFAULT_WITHIN_DAYS = 30;
 const BEGIN = '<!-- BEGIN FACTS -->';
@@ -152,10 +156,25 @@ function main(argv) {
     return 2;
   }
   const todayRaw = opt('today');
-  const today = todayRaw === undefined ? taxClockNow() : parseIsoDate(todayRaw);
-  if (!today) {
-    console.error(`--today must be a real date in YYYY-MM-DD form, got "${todayRaw}"`);
-    return 2;
+  let today;
+  if (todayRaw !== undefined) {
+    today = parseIsoDate(todayRaw);
+    if (!today) {
+      console.error(`--today must be a real date in YYYY-MM-DD form, got "${todayRaw}"`);
+      return 2;
+    }
+    console.warn(`*** DATE PINNED BY --today=${todayRaw}: checking ${toIsoDate(today)}, not the real date ***`);
+  } else {
+    let pin;
+    try {
+      pin = pinnedToday();
+    } catch (e) {
+      console.error(String(e instanceof Error ? e.message : e));
+      return 2;
+    }
+    if (pin.ignored) console.warn(`*** CALCRUN_TODAY=${pin.raw} IGNORED because ${pin.reason}; checking the real date. ***`);
+    else if (pin.date) console.warn(`*** DATE PINNED BY CALCRUN_TODAY=${pin.raw}: checking ${toIsoDate(pin.date)}, not the real date ***`);
+    today = pin.date ?? new Date();
   }
   if (!existsSync(file)) {
     console.error(`Freshness calendar not found: ${file}`);

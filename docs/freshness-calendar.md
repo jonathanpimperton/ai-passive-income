@@ -16,8 +16,20 @@ emails the owner when either fails:
   `src/lib/us-rates.ts` and `src/lib/uk-rates.ts`; the manifest of years is
   `src/lib/tax-years.mjs`.
 - `node scripts/check-facts-calendar.mjs` reads the table below. It exits 1
-  when any fact is due within 30 days or overdue. Use
-  `--today=YYYY-MM-DD` to rehearse a date and `--within=N` to change the window.
+  when any fact is due within 30 days or overdue, or when the calendar cannot
+  be read. Use `--today=YYYY-MM-DD` to rehearse a date and `--within=N` to
+  change the window.
+
+Exit codes for both scripts: 0 = pass (the rates guard may still print
+warnings), 1 = failed (stale, missing or due), 2 = bad arguments (`--today`,
+`--within`) or a malformed `CALCRUN_TODAY`.
+
+`CALCRUN_TODAY=YYYY-MM-DD` pins the date for a LOCAL rehearsal of both scripts
+and of `npm run build` (for example `CALCRUN_TODAY=2027-01-02 npm run build`).
+Any pinned date is announced with a `DATE PINNED BY ...` line. When `CI` or
+`WORKERS_CI` is set (GitHub Actions, Cloudflare Workers Builds) the variable is
+ignored with a warning, so a forgotten setting can never bypass the guard or
+freeze the server-rendered tax year. Never set it in Cloudflare.
 
 ## How to use it
 

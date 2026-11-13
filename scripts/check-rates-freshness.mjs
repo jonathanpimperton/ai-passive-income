@@ -14,25 +14,52 @@
  * Usage:
  *   node scripts/check-rates-freshness.mjs
  *   node scripts/check-rates-freshness.mjs --today=2027-01-02   # rehearse a date
- *   CALCRUN_TODAY=2027-01-02 node scripts/check-rates-freshness.mjs
+ *   CALCRUN_TODAY=2027-01-02 node scripts/check-rates-freshness.mjs   # local only
+ * A pinned date is announced loudly. CALCRUN_TODAY is IGNORED (with a warning)
+ * when CI or WORKERS_CI is set, so it can never bypass the guard in CI or a
+ * Cloudflare build.
+ *
+ * Exit codes: 0 = pass (warnings may be printed), 1 = guard failed,
+ * 2 = bad arguments.
  */
-import { evaluateRatesFreshness, parseIsoDate, taxClockNow } from '../src/lib/tax-years.mjs';
+import { evaluateRatesFreshness, parseIsoDate, pinnedToday, toIsoDate } from '../src/lib/tax-years.mjs';
+
+const inActions = process.env.GITHUB_ACTIONS === 'true';
 
 function resolveToday(argv) {
   const arg = argv.find((a) => a.startsWith('--today='));
-  if (!arg) return taxClockNow();
-  const value = arg.slice('--today='.length);
-  const date = parseIsoDate(value);
-  if (!date) {
-    console.error(`--today must be a real date in YYYY-MM-DD form, got "${value}"`);
+  if (arg) {
+    const value = arg.slice('--today='.length);
+    const date = parseIsoDate(value);
+    if (!date) {
+      console.error(`--today must be a real date in YYYY-MM-DD form, got "${value}"`);
+      process.exit(2);
+    }
+    console.warn(`*** DATE PINNED BY --today=${value}: checking ${toIsoDate(date)}, not the real date ***`);
+    return date;
+  }
+  let pin;
+  try {
+    pin = pinnedToday();
+  } catch (e) {
+    console.error(String(e instanceof Error ? e.message : e));
     process.exit(2);
   }
-  return date;
+  if (pin.ignored) {
+    const msg = `CALCRUN_TODAY=${pin.raw} IGNORED because ${pin.reason}; checking the real date.`;
+    console.warn(`*** ${msg} ***`);
+    if (inActions) console.log(`::warning title=Rates freshness::${msg}`);
+    return new Date();
+  }
+  if (pin.date) {
+    console.warn(`*** DATE PINNED BY CALCRUN_TODAY=${pin.raw}: checking ${toIsoDate(pin.date)}, not the real date. Never set it in Cloudflare or CI. ***`);
+    return pin.date;
+  }
+  return new Date();
 }
 
 const today = resolveToday(process.argv.slice(2));
 const report = evaluateRatesFreshness(today);
-const inActions = process.env.GITHUB_ACTIONS === 'true';
 
 if (report.warnings.length) {
   console.warn('');

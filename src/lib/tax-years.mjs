@@ -96,19 +96,52 @@ export function daysBetween(from, to) {
 }
 
 /**
- * Today's date for tax-year purposes. A build or script can pin it with the
- * environment variable CALCRUN_TODAY=YYYY-MM-DD to rehearse a rollover
- * (e.g. `CALCRUN_TODAY=2027-01-02 npm run build`). Browsers have no
- * `process`, so they always use the real date.
+ * True when an environment flag such as CI=true or WORKERS_CI=1 is set.
+ * @param {string | undefined} value
+ */
+function flagSet(value) {
+  if (value === undefined) return false;
+  const v = String(value).trim().toLowerCase();
+  return v !== '' && v !== '0' && v !== 'false';
+}
+
+/**
+ * How CALCRUN_TODAY applies in an environment. It is a local rehearsal tool
+ * only: in CI (CI) or Cloudflare Workers Builds (WORKERS_CI) it is IGNORED,
+ * so a forgotten variable can never bypass the freshness guard or freeze the
+ * server-rendered tax year. Throws for a malformed value that would apply.
+ * @param {Record<string, string | undefined> | undefined} [env]
+ * @returns {{ raw: string | null, date: Date | null, ignored: boolean, reason: string | null }}
+ */
+export function pinnedToday(env = typeof process !== 'undefined' && process && process.env ? process.env : undefined) {
+  const raw = env && env.CALCRUN_TODAY ? String(env.CALCRUN_TODAY) : null;
+  if (!raw) return { raw: null, date: null, ignored: false, reason: null };
+  if (flagSet(env.CI) || flagSet(env.WORKERS_CI)) {
+    const which = flagSet(env.WORKERS_CI) ? 'WORKERS_CI' : 'CI';
+    return { raw, date: null, ignored: true, reason: `${which} is set (CI or Cloudflare build)` };
+  }
+  const date = parseIsoDate(raw);
+  if (!date) throw new Error(`CALCRUN_TODAY must be a real date in YYYY-MM-DD form, got "${raw}"`);
+  return { raw, date, ignored: false, reason: null };
+}
+
+let warnedIgnoredPin = false;
+
+/**
+ * Today's date for tax-year purposes. A LOCAL build or script can pin it with
+ * CALCRUN_TODAY=YYYY-MM-DD to rehearse a rollover
+ * (e.g. `CALCRUN_TODAY=2027-01-02 npm run build`); it is ignored, with a
+ * warning, in CI and Cloudflare builds. Browsers have no `process`, so they
+ * always use the real date.
  * @returns {Date}
  */
 export function taxClockNow() {
-  const env = typeof process !== 'undefined' && process && process.env ? process.env : undefined;
-  const pinned = env ? env.CALCRUN_TODAY : undefined;
-  if (!pinned) return new Date();
-  const date = parseIsoDate(pinned);
-  if (!date) throw new Error(`CALCRUN_TODAY must be a real date in YYYY-MM-DD form, got "${pinned}"`);
-  return date;
+  const pin = pinnedToday();
+  if (pin.ignored && !warnedIgnoredPin) {
+    warnedIgnoredPin = true;
+    console.warn(`CALCRUN_TODAY=${pin.raw} IGNORED: ${pin.reason}. Using the real date.`);
+  }
+  return pin.date ?? new Date();
 }
 
 /* ── Tax years ──────────────────────────────────────────────── */
