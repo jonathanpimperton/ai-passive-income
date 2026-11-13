@@ -74,7 +74,7 @@ const HUBS: Array<{ slug: string; props: HubOgProps }> = [
     props: {
       title: `US take-home pay by salary (${US_TAX_YEAR})`,
       figure: `${usd(usTakeHomeMonthly)}/month`,
-      chips: ['$40K–$200K', `${US_TAX_YEAR} rates`, 'IRS-verified'],
+      chips: ['$40K–$250K', `${US_TAX_YEAR} rates`, 'IRS-verified'],
     },
   },
   {

@@ -1,23 +1,18 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
+import type { KeyboardEvent } from 'react';
+import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import {
-  monthlySavingsRequired,
-  compoundInterestSchedule,
-  solveForTime,
-  formatCurrency,
-  formatNumber,
-} from '../../lib/calculator-utils';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+  monthlyForGoal,
+  timeToGoal,
+  savingsPath,
+  formatMonthsShort,
+  MAX_GOAL_MONTHS,
+  type SavingsPathRow,
+} from '../../lib/savings-goal';
 import { RotateCcw, Target, Wallet, Sparkles } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
+import ChartSkeleton from '../ui/ChartSkeleton';
+import ChartDataTable from '../ui/ChartDataTable';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
@@ -25,8 +20,11 @@ import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
+import { monthLabel } from './charts/chart-format';
+
+const SavingsGoalChart = lazy(() => import('./charts/SavingsGoalChart'));
+const CHART_HEIGHT = 256;
 
 /* ── Tabs ─────────────────────────────────────────────────── */
 type Mode = 'monthly' | 'time';
@@ -47,7 +45,6 @@ const DEFAULTS = {
 
 /* ── Main Calculator ──────────────────────────────────────── */
 export default function SavingsGoalCalc() {
-  const ct = useChartTheme();
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
@@ -59,92 +56,63 @@ export default function SavingsGoalCalc() {
   const [annualRate, setAnnualRate] = useState(DEFAULTS.annualRate);
   const [months, setMonths] = useState(DEFAULTS.months);
 
-  /* ── Derived calculations ──────────────────────────────── */
   const rateDecimal = annualRate / 100;
 
-  // Mode 1: monthly savings needed
-  const monthlySavings = useMemo(() => {
-    if (mode !== 'monthly') return 0;
-    if (months <= 0 || goalAmount <= 0) return 0;
-    const result = monthlySavingsRequired(goalAmount, currentSavings, rateDecimal, months);
-    return Math.max(0, result);
-  }, [mode, goalAmount, currentSavings, rateDecimal, months]);
+  /* ── Core calculations (src/lib/savings-goal.ts) ─────────── */
+  const needed = useMemo(
+    () => monthlyForGoal({ goal: goalAmount, current: currentSavings, annualRate: rateDecimal, months }),
+    [goalAmount, currentSavings, rateDecimal, months],
+  );
+  const time = useMemo(
+    () => timeToGoal({ goal: goalAmount, current: currentSavings, monthly: monthlyContribution, annualRate: rateDecimal }),
+    [goalAmount, currentSavings, monthlyContribution, rateDecimal],
+  );
 
-  // Mode 2: time to goal (in years, converted to months for display)
-  const timeToGoalYears = useMemo(() => {
-    if (mode !== 'time') return 0;
-    if (monthlyContribution <= 0 && rateDecimal <= 0) return Infinity;
-    if (goalAmount <= currentSavings) return 0;
-    const years = solveForTime(currentSavings, monthlyContribution, rateDecimal, goalAmount, 12);
-    return Math.max(0, years);
-  }, [mode, currentSavings, monthlyContribution, rateDecimal, goalAmount]);
+  const monthlySavings = needed.status === 'ok' ? needed.monthly : 0;
+  const progressPercent = goalAmount > 0 ? Math.min(100, (currentSavings / goalAmount) * 100) : 0;
 
-  const timeToGoalMonths = Math.ceil(timeToGoalYears * 12);
-
-  // Progress bar: % of goal already saved
-  const progressPercent = useMemo(() => {
-    if (goalAmount <= 0) return 0;
-    return Math.min(100, (currentSavings / goalAmount) * 100);
-  }, [currentSavings, goalAmount]);
-
-  // Chart data: savings growth over time
-  const chartData = useMemo(() => {
+  const chartRows: SavingsPathRow[] = useMemo(() => {
     if (mode === 'monthly') {
-      // Show growth using the calculated monthly savings
-      const yearsToChart = Math.ceil(months / 12);
-      const schedule = compoundInterestSchedule(
-        currentSavings,
-        monthlySavings,
-        rateDecimal,
-        yearsToChart,
-        12
-      );
-      return schedule.map((row) => ({
-        year: row.year,
-        'Projected Balance': row.balance,
-        Contributions: row.totalContributions,
-        'Interest Earned': row.totalInterest,
-      }));
-    } else {
-      // Show growth using the entered monthly contribution until goal
-      const yearsToChart = Math.min(Math.ceil(timeToGoalYears) + 1, 100);
-      if (yearsToChart <= 0 || !isFinite(yearsToChart)) return [];
-      const schedule = compoundInterestSchedule(
-        currentSavings,
-        monthlyContribution,
-        rateDecimal,
-        yearsToChart,
-        12
-      );
-      return schedule.map((row) => ({
-        year: row.year,
-        'Projected Balance': Math.min(row.balance, goalAmount * 1.1),
-        Contributions: row.totalContributions,
-        'Interest Earned': row.totalInterest,
-      }));
+      return needed.status === 'reached' ? [] : savingsPath(currentSavings, monthlySavings, rateDecimal, months);
     }
-  }, [mode, currentSavings, monthlySavings, monthlyContribution, rateDecimal, months, timeToGoalYears, goalAmount]);
+    if (time.status === 'ok') return savingsPath(currentSavings, monthlyContribution, rateDecimal, time.months);
+    if (time.status === 'unreachable') return savingsPath(currentSavings, monthlyContribution, rateDecimal, MAX_GOAL_MONTHS);
+    return [];
+  }, [mode, needed.status, currentSavings, monthlySavings, monthlyContribution, rateDecimal, months, time]);
 
-  // Summary stats
-  const summaryStats = useMemo(() => {
+  // Summary figures for the current mode, or null where they would mislead.
+  const summary = useMemo(() => {
     if (mode === 'monthly') {
-      const totalContributions = currentSavings + monthlySavings * months;
-      const interestEarned = goalAmount - totalContributions;
-      return { totalContributions, interestEarned };
-    } else {
-      // Guard: if time is infinite, goal is unreachable
-      if (!isFinite(timeToGoalYears)) return { totalContributions: 0, interestEarned: 0 };
-      // Use precise time value (not ceiling) to avoid overshoot
-      const preciseMonths = timeToGoalYears * 12;
-      const totalContributions = currentSavings + monthlyContribution * preciseMonths;
-      const interestEarned = goalAmount - totalContributions;
-      return { totalContributions, interestEarned };
+      if (needed.status === 'ok') return { contributions: needed.totalContributions, interest: needed.interestEarned };
+      if (needed.status === 'on-track') return { contributions: currentSavings, interest: needed.projected - currentSavings };
+      return null;
     }
-  }, [mode, currentSavings, monthlySavings, monthlyContribution, months, timeToGoalYears, goalAmount]);
+    if (time.status === 'ok') return { contributions: time.totalContributions, interest: time.interestEarned };
+    return null;
+  }, [mode, needed, time, currentSavings]);
 
   const animatedMonthlySavings = useAnimatedNumber(monthlySavings);
-  const animatedTimeMonths = useAnimatedNumber(timeToGoalMonths);
+  const animatedTimeMonths = useAnimatedNumber(time.status === 'ok' ? time.months : 0);
 
+  const timeText = time.status === 'ok'
+    ? formatMonthsShort(time.months)
+    : time.status === 'reached'
+      ? 'Already reached'
+      : 'Not within 100 years';
+
+  const liveText = mode === 'monthly'
+    ? needed.status === 'reached'
+      ? `Your savings already meet your ${fmt(goalAmount)} goal.`
+      : needed.status === 'on-track'
+        ? `No monthly saving needed: interest alone reaches ${fmt(goalAmount)} in ${months} months.`
+        : `Save ${fmt(monthlySavings)} a month to reach ${fmt(goalAmount)} in ${months} months.`
+    : time.status === 'ok'
+      ? `You reach ${fmt(goalAmount)} in ${formatMonthsShort(time.months)}.`
+      : time.status === 'reached'
+        ? `Your savings already meet your ${fmt(goalAmount)} goal.`
+        : `${fmt(goalAmount)} is not reached within 100 years at this rate.`;
+
+  /* ── PDF / email ─────────────────────────────────────────── */
   const getInputs = useCallback(() => {
     const inputs = [
       { label: 'Mode', value: mode === 'monthly' ? 'Monthly Savings Needed' : 'Time to Goal' },
@@ -162,25 +130,34 @@ export default function SavingsGoalCalc() {
 
   const getResults = useCallback((): ResultItem[] => {
     if (mode === 'monthly') {
+      if (needed.status === 'reached') {
+        return [{ label: 'Monthly Savings Needed', value: `${fmt(0)}: current savings already meet the goal`, highlight: true }];
+      }
+      if (needed.status === 'on-track') {
+        return [
+          { label: 'Monthly Savings Needed', value: `${fmt(0)}: interest alone reaches the goal`, highlight: true },
+          { label: `Projected Balance after ${months} months`, value: fmt(needed.projected) },
+        ];
+      }
       return [
-        { label: 'Monthly Savings Needed', value: fmt(monthlySavings), highlight: true },
-        { label: 'Total Contributions', value: fmt(Math.max(0, summaryStats.totalContributions)) },
-        { label: 'Interest Earned', value: fmt(Math.max(0, summaryStats.interestEarned)) },
+        { label: 'Monthly Savings Needed', value: fmt(needed.monthly), highlight: true },
+        { label: 'Total Contributions', value: fmt(needed.totalContributions) },
+        { label: 'Interest Earned', value: fmt(needed.interestEarned) },
       ];
     }
-    const totalMonths = timeToGoalMonths;
-    const years = Math.floor(totalMonths / 12);
-    const rem = totalMonths % 12;
-    const timeStr = !isFinite(totalMonths) ? 'Not reachable' :
-      years === 0 ? `${rem} month${rem !== 1 ? 's' : ''}` :
-      rem === 0 ? `${years} year${years !== 1 ? 's' : ''}` :
-      `${years} yr${years !== 1 ? 's' : ''} ${rem} mo`;
+    if (time.status === 'ok') {
+      return [
+        { label: 'Time to Reach Goal', value: formatMonthsShort(time.months), highlight: true },
+        { label: 'Total Contributions', value: fmt(time.totalContributions) },
+        { label: 'Interest Earned', value: fmt(time.interestEarned) },
+      ];
+    }
+    if (time.status === 'reached') return [{ label: 'Time to Reach Goal', value: 'Already reached', highlight: true }];
     return [
-      { label: 'Time to Reach Goal', value: timeStr, highlight: true },
-      { label: 'Total Contributions', value: fmt(Math.max(0, summaryStats.totalContributions)) },
-      { label: 'Interest Earned', value: fmt(Math.max(0, summaryStats.interestEarned)) },
+      { label: 'Time to Reach Goal', value: 'Not reached within 100 years', highlight: true },
+      { label: 'Balance after 100 years', value: fmt(time.balanceAtMax) },
     ];
-  }, [mode, monthlySavings, timeToGoalMonths, summaryStats, currency]);
+  }, [mode, needed, time, months, currency]);
 
   const handleReset = useCallback(() => {
     setGoalAmount(DEFAULTS.goalAmount);
@@ -190,15 +167,21 @@ export default function SavingsGoalCalc() {
     setMonths(DEFAULTS.months);
   }, []);
 
-  // Format time to goal for display
-  const formatTimeResult = (totalMonths: number): string => {
-    if (!isFinite(totalMonths) || totalMonths <= 0) return '0 months';
-    const years = Math.floor(totalMonths / 12);
-    const remainingMonths = totalMonths % 12;
-    if (years === 0) return `${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
-    if (remainingMonths === 0) return `${years} year${years !== 1 ? 's' : ''}`;
-    return `${years} yr${years !== 1 ? 's' : ''} ${remainingMonths} mo`;
+  /* ── Tabs: APG keyboard pattern (arrows, Home, End) ──────── */
+  const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const last = TABS.length - 1;
+    const next = e.key === 'ArrowRight' ? (index === last ? 0 : index + 1)
+      : e.key === 'ArrowLeft' ? (index === 0 ? last : index - 1)
+        : e.key === 'Home' ? 0
+          : e.key === 'End' ? last
+            : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    setMode(TABS[next].key);
+    document.getElementById(`sg-tab-${TABS[next].key}`)?.focus();
   };
+
+  const tableRows = chartRows.map((r) => ({ ...r, interest: r.balance - r.contributions }));
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -207,10 +190,13 @@ export default function SavingsGoalCalc() {
       </div>
       {/* ── Tab Bar ──────────────────────────────────────── */}
       <div className="flex overflow-x-auto border-b border-neutral-200/80" role="tablist" aria-label="Savings goal mode">
-        {TABS.map((tab) => (
+        {TABS.map((tab, i) => (
           <button
             key={tab.key}
+            id={`sg-tab-${tab.key}`}
+            type="button"
             onClick={() => setMode(tab.key)}
+            onKeyDown={(e) => onTabKeyDown(e, i)}
             className={`flex-1 min-w-[140px] py-3.5 px-4 text-sm font-medium whitespace-nowrap transition-all duration-150
               ${mode === tab.key
                 ? 'bg-white border-b-2 border-primary-500 text-primary-900'
@@ -218,6 +204,7 @@ export default function SavingsGoalCalc() {
               }`}
             aria-selected={mode === tab.key}
             aria-controls="sg-results"
+            tabIndex={mode === tab.key ? 0 : -1}
             role="tab"
           >
             {tab.label}
@@ -317,69 +304,73 @@ export default function SavingsGoalCalc() {
           </div>
 
           {/* ── Progress Indicator ──────────────────────── */}
-          <div className="mt-6 pt-5">
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
+          <div className="mt-6 pt-5 border-t border-neutral-200/80">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-neutral-700">Current Progress</span>
               <span className="text-sm font-semibold text-primary-700 tabular-nums">
                 {progressPercent.toFixed(1)}%
               </span>
             </div>
-            <div className="w-full h-3 bg-neutral-200 rounded-full overflow-hidden">
+            <div className="w-full h-3 bg-neutral-200 rounded-full overflow-hidden" aria-hidden="true">
               <div
-                className="h-full rounded-full transition-all duration-300 ease-out"
-                style={{
-                  width: `${progressPercent}%`,
-                  background: progressPercent >= 100
-                    ? '#22A06B'
-                    : 'linear-gradient(90deg, #0B6E6E, #2AADAD)',
-                }}
+                className={`h-full rounded-full transition-all duration-300 ease-out ${progressPercent >= 100 ? 'bg-success-600' : 'bg-primary-600'}`}
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
             <div className="flex items-center justify-between mt-1.5">
-              <span className="text-xs text-neutral-500 tabular-nums">
-                {fmt(currentSavings)} saved
-              </span>
-              <span className="text-xs text-neutral-500 tabular-nums">
-                {fmt(goalAmount)} goal
-              </span>
+              <span className="text-xs text-neutral-500 tabular-nums">{fmt(currentSavings)} saved</span>
+              <span className="text-xs text-neutral-500 tabular-nums">{fmt(goalAmount)} goal</span>
             </div>
           </div>
         </div>
 
         {/* ── Results Panel ──────────────────────────────── */}
-        <div id="sg-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite" ref={resultsRef}>
+        <div
+          id="sg-results"
+          role="tabpanel"
+          aria-labelledby={`sg-tab-${mode}`}
+          className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start"
+          ref={resultsRef}
+        >
+          <p className="sr-only" aria-live="polite">{liveText}</p>
+
           {/* Big Number Result */}
           <div data-pdf-section className="mb-6">
             {mode === 'monthly' ? (
               <>
                 <p className="text-sm text-neutral-500 mb-1">Monthly Savings Needed</p>
-                <p data-headline-result data-headline-label="Monthly Savings Needed" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-                  {fmt(animatedMonthlySavings)}
-                </p>
+                {needed.status === 'reached' ? (
+                  <p data-headline-result data-headline-label="Monthly Savings Needed" className="text-3xl sm:text-4xl font-bold text-success-600">
+                    Already reached
+                  </p>
+                ) : (
+                  <p data-headline-result data-headline-label="Monthly Savings Needed" className={`text-3xl sm:text-4xl font-bold tabular-nums ${needed.status === 'on-track' ? 'text-success-600' : 'result-number'}`}>
+                    {fmt(animatedMonthlySavings)}
+                  </p>
+                )}
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-                  Save {fmt(monthlySavings)}/month for {months} month{months !== 1 ? 's' : ''}{' '}
-                  ({(months / 12).toFixed(1)} yr{months !== 12 ? 's' : ''}) to reach your{' '}
-                  {fmt(goalAmount)} goal at {annualRate}% annual return
+                  {needed.status === 'reached'
+                    ? `Your ${fmt(currentSavings)} already covers your ${fmt(goalAmount)} goal.`
+                    : needed.status === 'on-track'
+                      ? `Interest alone grows your ${fmt(currentSavings)} to ${fmt(needed.projected)} in ${months} months at ${annualRate}%, so no monthly saving is needed.`
+                      : `Save ${fmt(monthlySavings)}/month for ${months} month${months !== 1 ? 's' : ''} (${(months / 12).toFixed(1)} yr${months !== 12 ? 's' : ''}) to reach your ${fmt(goalAmount)} goal at ${annualRate}% annual return`}
                 </p>
               </>
             ) : (
               <>
                 <p className="text-sm text-neutral-500 mb-1">Time to Reach Your Goal</p>
-                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-                  {!isFinite(timeToGoalMonths) ? (
-                    <span className="text-negative-600">Not reachable</span>
-                  ) : goalAmount <= currentSavings ? (
-                    <span className="text-success-600">Already reached!</span>
-                  ) : (
-                    formatTimeResult(Math.round(animatedTimeMonths))
-                  )}
+                <p
+                  data-headline-result
+                  data-headline-label="Time to Reach Your Goal"
+                  className={`text-3xl sm:text-4xl font-bold tabular-nums ${time.status === 'unreachable' ? 'text-red-600' : time.status === 'reached' ? 'text-success-600' : 'result-number'}`}
+                >
+                  {time.status === 'ok' ? formatMonthsShort(Math.round(animatedTimeMonths)) : timeText}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-                  {!isFinite(timeToGoalMonths)
-                    ? 'Increase your monthly contribution or expected return rate to reach your goal.'
-                    : goalAmount <= currentSavings
-                      ? `Your current savings of ${fmt(currentSavings)} already exceed your ${fmt(goalAmount)} goal.`
+                  {time.status === 'unreachable'
+                    ? `After 100 years you would have ${fmt(time.balanceAtMax)}. Increase your monthly contribution or expected return to reach ${fmt(goalAmount)}.`
+                    : time.status === 'reached'
+                      ? `Your current savings of ${fmt(currentSavings)} already meet your ${fmt(goalAmount)} goal.`
                       : `Contributing ${fmt(monthlyContribution)}/month at ${annualRate}% annual return to reach ${fmt(goalAmount)}`}
                 </p>
               </>
@@ -387,30 +378,28 @@ export default function SavingsGoalCalc() {
           </div>
 
           {/* Summary Cards */}
-          <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <Wallet size={16} aria-hidden="true" />
+          {summary && (
+            <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
+                <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Wallet size={16} aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
+                  <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(summary.contributions)}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Total Contributions</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {fmt(Math.max(0, summaryStats.totalContributions))}
-                </p>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5">
-                <Sparkles size={16} aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Interest Earned</p>
-                <p className="text-lg font-semibold text-success-600 tabular-nums">
-                  {fmt(Math.max(0, summaryStats.interestEarned))}
-                </p>
+              <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
+                <div className="w-8 h-8 rounded-lg bg-success-50 text-success-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles size={16} aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-0.5">Interest Earned</p>
+                  <p className="text-lg font-semibold text-success-600 tabular-nums">{fmt(summary.interest)}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Remaining amount card */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
@@ -421,16 +410,12 @@ export default function SavingsGoalCalc() {
                 </div>
                 <div>
                   <p className="text-xs text-neutral-500 mb-0.5">Remaining to Save</p>
-                  <p className="text-lg font-semibold text-primary-700 tabular-nums">
-                    {fmt(Math.max(0, goalAmount - currentSavings))}
-                  </p>
+                  <p className="text-lg font-semibold text-primary-700 tabular-nums">{fmt(Math.max(0, goalAmount - currentSavings))}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-xs text-neutral-500 mb-0.5">Goal Amount</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                  {fmt(goalAmount)}
-                </p>
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(goalAmount)}</p>
               </div>
             </div>
           </div>
@@ -442,49 +427,29 @@ export default function SavingsGoalCalc() {
           </div>
 
           {/* Chart */}
-          {chartData.length > 1 && (
+          {chartRows.length > 1 && (
             <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
               <h3 className="text-sm font-medium text-neutral-700 mb-3">Savings Growth Projection</h3>
-              <div className="h-56 sm:h-64">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                    <CartesianGrid stroke={ct.grid} vertical={false} />
-                    <XAxis
-                      dataKey="year"
-                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                      tickLine={false}
-                      axisLine={{ stroke: ct.axis }}
-                      interval="preserveStartEnd"
-                      minTickGap={24}
-                      label={{ value: 'Year', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: ct.axisText }}
-                    />
-                    <YAxis
-                      tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={60}
-                    />
-                    <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                    <Area
-                      type="monotone"
-                      dataKey="Projected Balance"
-                      stroke={ct.series1}
-                      strokeWidth={2}
-                      fill={ct.series1Fill}
-                      animationDuration={600}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="Contributions"
-                      stroke={ct.series2}
-                      strokeWidth={2}
-                      fill={ct.series2Fill}
-                      animationDuration={600}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              <Suspense fallback={<ChartSkeleton height={CHART_HEIGHT} />}>
+                <SavingsGoalChart
+                  rows={chartRows}
+                  goal={goalAmount}
+                  currency={currency}
+                  height={CHART_HEIGHT}
+                  ariaLabel={`Savings growth from ${fmt(currentSavings)} toward the ${fmt(goalAmount)} goal over ${formatMonthsShort(chartRows[chartRows.length - 1].month)}, ending at ${fmt(chartRows[chartRows.length - 1].balance)}.`}
+                />
+              </Suspense>
+              <ChartDataTable
+                className="mt-3"
+                caption="Savings balance over time"
+                columns={[
+                  { key: 'month', label: 'When', format: (v) => monthLabel(Number(v)) },
+                  { key: 'balance', label: 'Balance', format: (v) => fmt(Number(v)) },
+                  { key: 'contributions', label: 'Contributions', format: (v) => fmt(Number(v)) },
+                  { key: 'interest', label: 'Interest', format: (v) => fmt(Number(v)) },
+                ]}
+                rows={tableRows}
+              />
             </div>
           )}
 

@@ -11,9 +11,9 @@ relatedTools:
   - "savings-goal"
 verdict: "A high-yield savings account is the better default for most emergency funds. Money market accounts make sense if you have a large balance and want check-writing access."
 comparisonTable:
-  - feature: "Typical APY (2026)"
-    option1: "3.50–4.25%"
-    option2: "3.25–4.00%"
+  - feature: "Typical rate"
+    option1: "Close to money market rates"
+    option2: "Close to savings rates; varies by bank"
   - feature: "FDIC / NCUA insured"
     option1: "Yes (up to $250,000)"
     option2: "Yes (up to $250,000)"
@@ -37,7 +37,7 @@ affiliatePrograms:
   - "SoFi"
   - "Ally"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "FDIC — Deposit insurance"
     url: "https://www.fdic.gov/resources/deposit-insurance/"
@@ -65,7 +65,7 @@ Money market accounts add features that savings accounts don't have: debit cards
 
 The trade-off is that money market accounts frequently require higher minimum balances — $1,000 to $10,000 to open, and sometimes $2,500+ to avoid monthly fees. If your emergency fund is still small (under $5,000), these minimums can be a barrier or eat into your balance with fees.
 
-Rates on money market accounts are competitive with savings accounts, though they tend to be slightly lower at the top end (3.25-4.00% vs 3.50-4.25% for the best savings accounts). The gap is usually 0.10-0.25%.
+Rates on money market accounts are competitive with savings accounts. At the top of the market the two are usually close: some banks pay slightly more on their money market account, others slightly less. Compare the specific rates rather than the account type.
 
 ## Which is better for an emergency fund?
 
@@ -73,7 +73,7 @@ Rates on money market accounts are competitive with savings accounts, though the
 
 - No minimum balance means you can [start with any amount and grow it](/scenarios/save-10k-emergency-in-1-year/)
 - No risk of fees reducing your emergency cushion
-- Top rates are equal to or slightly better than money market rates
+- Top rates are usually as good as money market rates, without the minimums
 - Transfer to checking is fast enough for true emergencies (same-day at most banks)
 
 **Money market makes sense when:**

@@ -6,22 +6,22 @@ const sections = [
   {
     icon: 'target',
     title: 'Our Standard',
-    content: 'We aim to meet <strong>WCAG 2.1 Level AA</strong> across all pages. Every commit is tested against axe-core automated accessibility checks covering contrast, structure, keyboard access, and ARIA usage.',
+    content: 'We aim to meet <strong>WCAG 2.2 Level AA</strong> across all pages. Before releases we run axe-core automated checks on a sample of pages, in light and dark mode, and the November 2026 audit also tested key journeys with a keyboard. Automated tools catch only some problems, and these checks do not yet run on every page or every update.',
   },
   {
     icon: 'keyboard',
     title: 'Keyboard Navigation',
-    content: 'Every calculator, tool, and interactive element on CalcRun is fully operable using a keyboard. Tab moves between controls, Enter and Space activate buttons, and Escape closes dropdowns and menus. All focused elements show a visible focus ring.',
+    content: 'Calculators, tools and menus can be operated with a keyboard. Tab moves between controls, Enter and Space activate buttons, arrow keys move sliders, and Escape closes the mobile menu and returns focus to its button. Focused elements show a visible focus ring. The known gaps are listed below.',
   },
   {
     icon: 'sun',
     title: 'Colour & Contrast',
-    content: 'All text meets a minimum contrast ratio of 4.5:1 against its background. CalcRun supports both light and dark modes, and both are tested for WCAG AA compliance. The site respects your system colour scheme preference.',
+    content: 'We design text to meet a minimum contrast ratio of 4.5:1 against its background in both light and dark modes, and the site follows your system colour scheme preference. A few places currently fall short; they are listed below.',
   },
   {
     icon: 'monitor',
     title: 'Screen Readers',
-    content: 'Pages use semantic HTML (headings, landmarks, lists, labels). Decorative icons are hidden from assistive technology. Calculator results are announced via <code>aria-live</code> regions so they update without requiring a page reload.',
+    content: 'Pages use semantic HTML (headings, landmarks, lists, labels). Decorative icons are hidden from assistive technology. Calculator results are announced through <code>aria-live</code> regions as they update, without a page reload.',
   },
   {
     icon: 'move',
@@ -31,36 +31,36 @@ const sections = [
   {
     icon: 'smartphone',
     title: 'Responsive Design',
-    content: 'CalcRun works across screen sizes from 320px to ultrawide. Text inputs are at least 16px to prevent auto-zoom on iOS. Touch targets meet minimum size recommendations.',
+    content: 'CalcRun works on screens from 320px wide upwards without sideways scrolling. Some inputs are still smaller than the 16px that stops iOS zooming in when you tap them (see below).',
   },
   {
     icon: 'alert-circle',
     title: 'Known Limitations',
-    content: 'Some interactive charts (powered by Recharts) may not fully convey data to screen reader users. We provide the same information as tabular data alongside every chart. If you encounter an accessibility issue we have missed, please let us know.',
+    content: 'An accessibility audit in November 2026 found the problems below. Fixes are being released in stages, and this page will be updated as they land.<ul class="list-disc pl-5 mt-2 space-y-1.5"><li>Charts are not fully readable with a screen reader, and seven calculators (debt payoff, emergency fund, inflation, net worth, rent vs buy, ROI and savings goal) do not yet have a data table alongside the chart.</li><li>When a calculator result changes, the screen reader announcement includes much more than the headline figure, which can be noisy.</li><li>Some collapsed panels, such as the &ldquo;Email my results&rdquo; form and advanced settings, can still receive keyboard focus while hidden.</li><li>On slow connections, values typed into a calculator before it has finished loading may not be picked up.</li><li>At 400% zoom, the sticky header, results bar and cookie banner cover most of the screen, and they can hide the focused control at normal zoom too.</li><li>In dark mode on phones, the sticky results bar has very low contrast, and a few other elements fall below 4.5:1.</li><li>In Windows high-contrast (forced colours) mode, on/off switches and slider tracks are not visible.</li><li>The header search box has no visible label, and the desktop tools menu cannot be closed with Escape when it was opened by hovering.</li><li>Some inputs, including several calculator inputs on phones and the developer tools&rsquo; text editors, use 14px text, so iOS zooms in when you tap them.</li></ul>',
   },
   {
     icon: 'mail',
     title: 'Feedback',
-    content: 'If you experience any difficulty using CalcRun, or have suggestions for improving accessibility, contact us at <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">hello@calcrun.com</a>. We take accessibility reports seriously and aim to respond within 7 days.',
+    content: 'If you have difficulty using CalcRun, or have suggestions for improving accessibility, email <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">hello@calcrun.com</a> with the page address and what went wrong.',
   },
 ];
 ---
 
 <BaseLayout
   title="Accessibility | CalcRun"
-  description="CalcRun's accessibility commitment. We aim for WCAG 2.1 AA compliance across all calculators and tools."
+  description="CalcRun's accessibility statement: we aim for WCAG 2.2 AA, and this page lists what works today and the known problems we are fixing."
 >
   {/* Page header */}
   <section class="border-b border-neutral-200/80 bg-bg">
     <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">Accessibility</h1>
-      <p class="mt-2 text-sm text-neutral-500">Last updated: March 2026</p>
+      <p class="mt-2 text-sm text-neutral-500">Last updated: November 2026</p>
     </div>
   </section>
 
   <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
     <p class="text-neutral-700 leading-relaxed mb-8">
-      CalcRun is designed to be usable by everyone, including people who use assistive technology. We test continuously and fix issues as we find them.
+      We want CalcRun to be usable by everyone, including people who use assistive technology. This statement describes where the site stands today, including the problems we know about.
     </p>
 
     <div class="space-y-6">
@@ -72,7 +72,7 @@ const sections = [
             </div>
             <div>
               <h2 class="text-base font-bold text-neutral-900 mb-2">{section.title}</h2>
-              <p class="text-sm text-neutral-700 leading-relaxed" set:html={section.content} />
+              <div class="text-sm text-neutral-700 leading-relaxed" set:html={section.content} />
             </div>
           </div>
         </section>

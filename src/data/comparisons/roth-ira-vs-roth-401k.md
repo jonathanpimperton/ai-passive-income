@@ -16,13 +16,13 @@ verdict: "If your employer offers a Roth 401(k) with a match, contribute there f
 comparisonTable:
   - feature: "2026 contribution limit"
     option1: "$7,500 ($8,600 if 50+)"
-    option2: "$24,500 ($32,500 if 50+)"
+    option2: "$24,500 ($32,500 if 50+; $35,750 at 60–63)"
   - feature: "Income limit to contribute"
     option1: "Phases out at $153,000–$168,000 (single)"
     option2: "No income limit"
   - feature: "Employer match"
     option1: "No"
-    option2: "Yes — match goes into Traditional bucket"
+    option2: "Yes — usually pre-tax; some plans let you take it as Roth"
   - feature: "Investment choices"
     option1: "Wide — any stock, bond, ETF, or fund"
     option2: "Limited to plan's fund menu"
@@ -31,7 +31,7 @@ comparisonTable:
     option2: "None (since SECURE 2.0)"
   - feature: "Early withdrawal of contributions"
     option1: "Anytime, tax and penalty free"
-    option2: "Not allowed without penalty before 59½"
+    option2: "Usually only on leaving or hardship; earnings share taxed + 10% before 59½"
   - feature: "Loans from account"
     option1: "Not permitted"
     option2: "Some plans allow 401(k) loans"
@@ -40,12 +40,20 @@ affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "IRS — Roth IRAs"
     url: "https://www.irs.gov/retirement-plans/roth-iras"
   - name: "IRS — 401(k) plans"
     url: "https://www.irs.gov/retirement-plans/401k-plans"
+  - name: "IRS — 2026 contribution limits (IR-2025-111)"
+    url: "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500"
+  - name: "IRS — Catch-up contributions"
+    url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-catch-up-contributions"
+  - name: "IRS — Tax on early distributions"
+    url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-tax-on-early-distributions"
+  - name: "IRS — Notice 2024-2 (SECURE 2.0 Roth matching contributions)"
+    url: "https://www.irs.gov/pub/irs-drop/n-24-02.pdf"
 ---
 
 ## Same Roth tax treatment, different wrappers
@@ -56,7 +64,7 @@ Where they differ is in who offers them, how much you can put in, and what happe
 
 ## The contribution limit gap
 
-The most obvious difference is how much you can contribute each year. A Roth IRA caps at $7,500 ($8,600 if you're 50 or older). A Roth 401(k) allows $24,500 ($32,500 if 50+) — more than three times the IRA limit.
+The most obvious difference is how much you can contribute each year. For 2026, a Roth IRA caps at $7,500 ($8,600 if you're 50 or older). A Roth 401(k) allows $24,500 ($32,500 if 50+, or $35,750 if you turn 60 to 63 in 2026, thanks to the higher $11,250 catch-up) — more than three times the IRA limit.
 
 For aggressive savers who want to shelter as much as possible from future taxes, the Roth 401(k) is the bigger bucket. [Contributing the maximum to both accounts](/tools/income-and-planning/retirement-contribution/) would put $32,000 into Roth accounts annually ($41,100 if 50+).
 
@@ -78,7 +86,7 @@ If your 401(k) fund menu is expensive (look for [expense ratios above 0.50%](/to
 
 ## The employer match catch
 
-When your employer matches Roth 401(k) contributions, the match itself goes into a [*Traditional* (pre-tax) bucket](/comparisons/roth-vs-traditional-401k/) — not Roth. This is a tax law requirement, not an employer choice. So even with a Roth 401(k), you'll have some pre-tax money in your plan that will be taxed on withdrawal.
+When your employer matches Roth 401(k) contributions, the match usually goes into a [*Traditional* (pre-tax) bucket](/comparisons/roth-vs-traditional-401k/), not Roth. That is now a plan choice rather than a legal requirement: since SECURE 2.0, a plan can let you take matching contributions as Roth, in which case you pay income tax on the match in the year it is paid in. Many plans don't offer this yet, so most Roth 401(k) savers still end up with some pre-tax money that will be taxed on withdrawal.
 
 This actually provides useful tax diversification. In retirement, you can withdraw from the Roth portion tax-free and the Traditional match portion at whatever your retirement tax rate is.
 
@@ -86,7 +94,7 @@ This actually provides useful tax diversification. In retirement, you can withdr
 
 Roth IRA contributions (not earnings) can be withdrawn at any time, at any age, with no tax or penalty. If you contributed $30,000 over the years, you can pull out up to $30,000 whenever you want. Earnings are a different story — they're subject to tax and a 10% penalty before age 59½ unless you meet an exception.
 
-The Roth 401(k) is stricter. You generally cannot withdraw *any* money — contributions or earnings — before 59½ without penalty, unless you leave the employer or qualify for a hardship distribution. Some plans allow 401(k) loans (you borrow from yourself and repay with interest), but not all.
+The Roth 401(k) is stricter. While you still work for the employer, you usually can't take money out at all, except through a hardship distribution if your plan allows one. Leaving the job or a hardship gives you access, not penalty relief: a withdrawal before 59½ comes out pro rata, part contributions and part earnings, and the earnings share is taxed and hit with the 10% additional tax. The main exception is the rule of 55 — leave the employer in or after the year you turn 55 and withdrawals from that plan escape the 10% (though the earnings are still taxed until the account qualifies). Some plans allow 401(k) loans (you borrow from yourself and repay with interest), but not all.
 
 This difference makes the Roth IRA a partial backup for emergencies, while the Roth 401(k) is purely a retirement vehicle.
 

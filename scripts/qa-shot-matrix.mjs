@@ -44,12 +44,19 @@ const VIEWPORTS = [
 const DARK_PAGES = new Set(['home', 'calc-compound', 'scenario', 'tools-index']);
 
 const browser = await chromium.launch();
+
+// Block Google Analytics / Tag Manager in every context: the built HTML carries the
+// production GA tag, so an unblocked local run would send real hits (plan 2.4).
+const GA_HOSTS = ['google-analytics.com', 'googletagmanager.com', 'analytics.google.com'];
+const isGaUrl = (url) => GA_HOSTS.some((d) => url.hostname === d || url.hostname.endsWith('.' + d));
+let gaBlocked = 0;
 let n = 0;
 for (const [pname, path] of PAGES) {
   for (const [vname, w, h] of VIEWPORTS) {
     for (const dark of [false, true]) {
       if (dark && !(DARK_PAGES.has(pname) && vname !== 't768')) continue;
       const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+      await ctx.route(isGaUrl, (r) => { gaBlocked++; return r.abort(); });
       const page = await ctx.newPage();
       await page.addInitScript((t) => localStorage.setItem('calcrun.theme', t), dark ? 'dark' : 'light');
       await page.goto(BASE + path, { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
@@ -75,4 +82,5 @@ for (const [pname, path] of PAGES) {
   }
 }
 await browser.close();
+console.log(`GA requests blocked: ${gaBlocked}`);
 console.log(`DONE ${n} screenshots -> ${OUT}`);

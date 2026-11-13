@@ -1,25 +1,7 @@
-import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
-import {
-  loanMonthlyPayment,
-  amortizationSchedule,
-  formatCurrency,
-  formatNumber,
-} from '../../lib/calculator-utils';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
-import { ChevronDown, RotateCcw, Banknote, Percent, DollarSign } from 'lucide-react';
+import { useState, useMemo, useCallback, useEffect, useRef, useDeferredValue, Fragment, lazy } from 'react';
+import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
+import { ChevronDown, RotateCcw, Banknote, Percent, Wallet } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
@@ -27,33 +9,31 @@ import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { useChartTheme } from '../../lib/useChartTheme';
+import { buildAmortization, type AmortizationYear } from '../../lib/mortgage-payment';
+import { defaultMortgageRate, defaultMortgageRateInfo, rateAttribution, regionForCurrency } from '../../lib/market-rates';
 import ResultAffiliate from '../ui/ResultAffiliate';
+import { Collapse, DeferredChart, ResultAnnouncer } from './property-shared';
+
+const LoanAmortizationCharts = lazy(() => import('./charts/LoanAmortizationCharts'));
+
+/** Up to 3 decimals, no trailing zeros: the field shows exactly the rate used. */
+const fmtRate = (v: number) => String(parseFloat(v.toFixed(3)));
 
 /* ── Collapsible Year-Group Table ─────────────────────────── */
-interface YearGroup {
-  year: number;
-  startBalance: number;
-  endBalance: number;
-  totalPrincipal: number;
-  totalInterest: number;
-  totalPayment: number;
-  months: Array<{ month: number; payment: number; principal: number; interest: number; balance: number }>;
-}
-
-function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: string }) {
+function AmortizationTable({ yearGroups, cc }: { yearGroups: AmortizationYear[]; cc: string }) {
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
   const fmt = (v: number) => formatCurrency(v, cc);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-neutral-200/80">
       <table className="w-full text-sm">
+        <caption className="sr-only">Amortization schedule by year; select a year to show its months</caption>
         <thead>
           <tr className="bg-neutral-50 border-b border-neutral-200/80 sticky top-0 z-10">
-            <th className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600">Principal</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600">Interest</th>
-            <th className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Balance</th>
+            <th scope="col" className="text-left py-3 px-4 font-medium text-neutral-600">Year</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600">Principal</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600">Interest</th>
+            <th scope="col" className="text-right py-3 px-4 font-medium text-neutral-600 hidden sm:table-cell">Balance</th>
           </tr>
         </thead>
         <tbody>
@@ -78,14 +58,14 @@ function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: st
                   </span>
                 </td>
                 <td className="py-2.5 px-4 text-right text-neutral-900 tabular-nums">{fmt(group.totalPrincipal)}</td>
-                <td className="py-2.5 px-4 text-right text-negative-600 tabular-nums">{fmt(group.totalInterest)}</td>
+                <td className="py-2.5 px-4 text-right text-red-600 tabular-nums">{fmt(group.totalInterest)}</td>
                 <td className="py-2.5 px-4 text-right font-semibold text-neutral-900 tabular-nums hidden sm:table-cell">{fmt(group.endBalance)}</td>
               </tr>
               {expandedYear === group.year && group.months.map((m) => (
                 <tr key={`month-${m.month}`} className="bg-primary-50/30 border-b border-primary-100/50">
                   <td className="py-1.5 px-4 pl-10 text-xs text-neutral-500 tabular-nums">Month {m.month}</td>
                   <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums">{fmt(m.principal)}</td>
-                  <td className="py-1.5 px-4 text-right text-xs text-negative-600 tabular-nums">{fmt(m.interest)}</td>
+                  <td className="py-1.5 px-4 text-right text-xs text-red-600 tabular-nums">{fmt(m.interest)}</td>
                   <td className="py-1.5 px-4 text-right text-xs text-neutral-600 tabular-nums hidden sm:table-cell">{fmt(m.balance)}</td>
                 </tr>
               ))}
@@ -98,114 +78,68 @@ function AmortizationTable({ yearGroups, cc }: { yearGroups: YearGroup[]; cc: st
 }
 
 /* ── Main Calculator ──────────────────────────────────────── */
-const DEFAULTS = { loanAmount: 300000, annualRate: 6.5, termYears: 30, extraPayment: 0 };
+const DEFAULTS = { loanAmount: 300000, termYears: 30, extraPayment: 0 };
 
 export default function LoanAmortizationCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
+  const region = regionForCurrency(currency);
   const [loanAmount, setLoanAmount] = useState(DEFAULTS.loanAmount);
-  const [rate, setRate] = useState(DEFAULTS.annualRate);
+  const [rate, setRate] = useState(() => defaultMortgageRate('us', DEFAULTS.termYears));
+  const [rateTouched, setRateTouched] = useState(false);
   const [termYears, setTermYears] = useState(DEFAULTS.termYears);
   const [extraPayment, setExtraPayment] = useState(DEFAULTS.extraPayment);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const ct = useChartTheme();
+
+  // The default rate is today's mortgage benchmark for the currency's region,
+  // until the user types their own.
+  useEffect(() => {
+    if (!rateTouched) setRate(defaultMortgageRate(region, termYears));
+  }, [region, termYears, rateTouched]);
+
+  const handleRateChange = useCallback((v: number) => {
+    setRateTouched(true);
+    setRate(v);
+  }, []);
 
   const termMonths = termYears * 12;
 
-  const monthlyPayment = useMemo(
-    () => loanMonthlyPayment(loanAmount, rate / 100, termMonths),
-    [loanAmount, rate, termMonths]
+  const schedule = useMemo(
+    () => buildAmortization(loanAmount, rate, termMonths, extraPayment),
+    [loanAmount, rate, termMonths, extraPayment],
+  );
+  const baseInterest = useMemo(
+    () => (extraPayment > 0 ? buildAmortization(loanAmount, rate, termMonths, 0).totalInterest : schedule.totalInterest),
+    [loanAmount, rate, termMonths, extraPayment, schedule],
   );
 
-  // Generate schedule with extra payments applied
-  const schedule = useMemo(() => {
-    if (extraPayment === 0) {
-      return amortizationSchedule(loanAmount, rate / 100, termMonths);
-    }
-    // Custom schedule with extra payments
-    const r = rate / 100 / 12;
-    let balance = loanAmount;
-    const result: Array<{ month: number; payment: number; principal: number; interest: number; balance: number }> = [];
-    for (let month = 1; month <= termMonths && balance > 0.01; month++) {
-      const interestPayment = balance * r;
-      const basePrincipal = monthlyPayment - interestPayment;
-      const totalPrincipal = Math.min(balance, basePrincipal + extraPayment);
-      const totalPayment = interestPayment + totalPrincipal;
-      balance = Math.max(0, balance - totalPrincipal);
-      result.push({
-        month,
-        payment: Math.round(totalPayment * 100) / 100,
-        principal: Math.round(totalPrincipal * 100) / 100,
-        interest: Math.round(interestPayment * 100) / 100,
-        balance: Math.round(balance * 100) / 100,
-      });
-    }
-    return result;
-  }, [loanAmount, rate, termMonths, extraPayment, monthlyPayment]);
-
-  const totalInterest = useMemo(
-    () => schedule.reduce((sum, row) => sum + row.interest, 0),
-    [schedule]
-  );
-
+  const monthlyPayment = schedule.scheduledPayment;
+  const totalInterest = schedule.totalInterest;
   const totalCost = loanAmount + totalInterest;
-  const actualMonths = schedule.length;
-  const monthsSaved = termMonths - actualMonths;
+  const monthsSaved = termMonths - schedule.payoffMonths;
+  const interestSaved = baseInterest - totalInterest;
 
-  // Interest saved compared to base schedule (no extra payments)
-  const interestSaved = useMemo(() => {
-    if (extraPayment === 0) return 0;
-    const baseSchedule = amortizationSchedule(loanAmount, rate / 100, termMonths);
-    const baseInterest = baseSchedule.reduce((s, r) => s + r.interest, 0);
-    return baseInterest - totalInterest;
-  }, [loanAmount, rate, termMonths, extraPayment, totalInterest]);
-
-  const pieData = [
-    { name: 'Principal', value: loanAmount },
-    { name: 'Interest', value: totalInterest },
-  ];
-
-  // Group schedule into years
-  const yearGroups: YearGroup[] = useMemo(() => {
-    const groups: YearGroup[] = [];
-    const totalYears = Math.ceil(schedule.length / 12);
-    for (let y = 0; y < totalYears; y++) {
-      const startIdx = y * 12;
-      const months = schedule.slice(startIdx, startIdx + 12);
-      if (months.length === 0) break;
-      groups.push({
-        year: y + 1,
-        startBalance: y === 0 ? loanAmount : schedule[startIdx - 1]?.balance ?? 0,
-        endBalance: months[months.length - 1].balance,
-        totalPrincipal: months.reduce((s, m) => s + m.principal, 0),
-        totalInterest: months.reduce((s, m) => s + m.interest, 0),
-        totalPayment: months.reduce((s, m) => s + m.payment, 0),
-        months,
-      });
-    }
-    return groups;
-  }, [schedule, loanAmount]);
-
-  // Chart data: yearly principal vs interest paid
-  const chartData = useMemo(
-    () =>
-      yearGroups.map((g) => ({
-        year: g.year,
-        'Remaining Balance': g.endBalance,
-        'Cumulative Principal': loanAmount - g.endBalance,
-        'Cumulative Interest': yearGroups
-          .slice(0, g.year)
-          .reduce((s, gg) => s + gg.totalInterest, 0),
-      })),
-    [yearGroups, loanAmount]
+  // Table and charts may lag a slider drag; the headline never does.
+  const deferred = useDeferredValue(schedule);
+  const balanceByYear = useMemo(
+    () => deferred.yearGroups.map((g) => ({ year: g.year, balance: g.endBalance })),
+    [deferred],
   );
+
+  const animatedPayment = useAnimatedNumber(monthlyPayment);
+  const announcement = extraPayment > 0
+    ? `Monthly payment ${fmt(monthlyPayment)}. Paying ${fmt(extraPayment)} extra saves ${fmt(interestSaved)} in interest.`
+    : `Monthly payment ${fmt(monthlyPayment)}; ${fmt(totalInterest)} total interest.`;
+
+  const rateInfo = defaultMortgageRateInfo(region, termYears);
+  const rateHint = `Use your loan's rate. Average ${rateInfo.label.split(',')[0].toLowerCase()}: ${rateInfo.value}% (${rateAttribution(rateInfo)})`;
 
   const getInputs = useCallback(() => {
     const inputs = [
       { label: 'Loan Amount', value: fmt(loanAmount) },
-      { label: 'Annual Interest Rate', value: `${rate}%` },
+      { label: 'Annual Interest Rate', value: `${fmtRate(rate)}%` },
       { label: 'Loan Term', value: `${termYears} year${termYears !== 1 ? 's' : ''}` },
     ];
     if (extraPayment > 0) {
@@ -214,18 +148,26 @@ export default function LoanAmortizationCalc() {
     return inputs;
   }, [loanAmount, rate, termYears, extraPayment, currency]);
 
-  const getResults = useCallback((): ResultItem[] => [
-    { label: 'Monthly Payment', value: fmt(monthlyPayment), highlight: true },
-    { label: 'Total Interest', value: fmt(totalInterest) },
-    { label: 'Total Cost', value: fmt(totalCost) },
-  ], [monthlyPayment, totalInterest, totalCost, currency]);
+  const getResults = useCallback((): ResultItem[] => {
+    const items: ResultItem[] = [
+      { label: 'Monthly Payment', value: fmt(monthlyPayment), highlight: true },
+      { label: 'Total Interest', value: fmt(totalInterest) },
+      { label: 'Total Cost', value: fmt(totalCost) },
+    ];
+    if (extraPayment > 0) {
+      items.push({ label: 'Interest Saved by Extra Payments', value: fmt(interestSaved) });
+      items.push({ label: 'Months Saved', value: String(monthsSaved) });
+    }
+    return items;
+  }, [monthlyPayment, totalInterest, totalCost, extraPayment, interestSaved, monthsSaved, currency]);
 
   const handleReset = useCallback(() => {
     setLoanAmount(DEFAULTS.loanAmount);
-    setRate(DEFAULTS.annualRate);
     setTermYears(DEFAULTS.termYears);
+    setRate(defaultMortgageRate(region, DEFAULTS.termYears));
+    setRateTouched(false);
     setExtraPayment(DEFAULTS.extraPayment);
-  }, []);
+  }, [region]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -249,69 +191,72 @@ export default function LoanAmortizationCalc() {
               minLabel={`${currencySymbol}1K`} maxLabel={`${currencySymbol}1M`} onChange={setLoanAmount}
               prefix={currencySymbol} formatDisplay={(v) => formatNumber(v)} hint="Total amount you're borrowing" />
             <SliderInput label="Annual Interest Rate" id="la-rate" value={rate}
-              min={0.1} max={20} step={0.1} onChange={setRate}
-              suffix="%" formatDisplay={(v) => v.toFixed(1)} hint="Your loan's interest rate (check your loan terms)" />
+              min={0.125} max={20} step={0.125} onChange={handleRateChange}
+              suffix="%" formatDisplay={fmtRate} hint={rateHint} />
             <SliderInput label="Loan Term (Years)" id="la-term" value={termYears}
               min={1} max={50} step={1} onChange={setTermYears} hint="How long you have to pay it back" />
           </div>
 
           <div className="mt-6 pt-5">
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent mb-5" />
-            <button onClick={() => setShowAdvanced(!showAdvanced)}
+            <div className="h-px bg-neutral-200/80 mb-5" />
+            <button type="button" onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-600 transition-colors duration-150"
-              aria-expanded={showAdvanced}>
+              aria-expanded={showAdvanced} aria-controls="la-advanced">
               <ChevronDown size={14} className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
               Advanced settings
             </button>
-            <div className={`overflow-hidden transition-all duration-200 ${showAdvanced ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
-              <SliderInput label="Extra Monthly Payment" id="la-extra" value={extraPayment}
-                min={0} max={5000} step={25}
-                minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setExtraPayment}
-                prefix={currencySymbol} formatDisplay={(v) => formatNumber(v)} hint="Any extra amount above your minimum — saves interest" />
-            </div>
+            <Collapse open={showAdvanced} id="la-advanced">
+              <div className="pt-4">
+                <SliderInput label="Extra Monthly Payment" id="la-extra" value={extraPayment}
+                  min={0} max={5000} step={25}
+                  minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setExtraPayment}
+                  prefix={currencySymbol} formatDisplay={(v) => formatNumber(v)} hint="Any extra amount above your minimum — saves interest" />
+              </div>
+            </Collapse>
           </div>
         </div>
 
         {/* ── Results ────────────────────────────────── */}
-        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite">
+        <div ref={resultsRef} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start">
+          <ResultAnnouncer text={announcement} />
           <div data-pdf-section className="mb-6">
             <p className="text-sm text-neutral-500 mb-1">Monthly Payment</p>
             <p data-headline-result data-headline-label="Monthly Payment" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {fmt(useAnimatedNumber(monthlyPayment))}
+              {fmt(animatedPayment)}
             </p>
             <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               {extraPayment > 0 ? (
-                <>Paying {fmt(extraPayment)} extra/mo saves {fmt(interestSaved)} in interest and {monthsSaved} month{monthsSaved !== 1 ? 's' : ''}</>
+                <>Paying <span className="tabular-nums">{fmt(extraPayment)}</span> extra/mo saves <span className="tabular-nums">{fmt(interestSaved)}</span> in interest and {monthsSaved} month{monthsSaved !== 1 ? 's' : ''}</>
               ) : (
-                <>You&apos;ll pay {fmt(totalInterest)} in total interest over {termYears} years</>
+                <>You&apos;ll pay <span className="tabular-nums">{fmt(totalInterest)}</span> in total interest over {termYears} year{termYears !== 1 ? 's' : ''}</>
               )}
             </p>
           </div>
 
           <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Banknote size={16} aria-hidden="true" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Principal</p>
                 <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{fmt(loanAmount)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
                 <Percent size={16} aria-hidden="true" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Interest</p>
                 <p className="text-base sm:text-lg font-semibold text-red-600 tabular-nums">{fmt(totalInterest)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3">
+            <div className="bg-white rounded-xl border border-neutral-200/80 p-3 sm:p-4 flex items-start gap-3 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <DollarSign size={16} aria-hidden="true" />
+                <Wallet size={16} aria-hidden="true" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-neutral-500 mb-0.5">Total Cost</p>
                 <p className="text-base sm:text-lg font-semibold text-neutral-900 tabular-nums">{fmt(totalCost)}</p>
               </div>
@@ -324,50 +269,21 @@ export default function LoanAmortizationCalc() {
             <ExportPdfButton toolName="Loan Amortization Calculator" getInputs={getInputs} resultsRef={resultsRef} />
           </div>
 
-          {/* Pie + Area Charts */}
-          <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <h3 className="text-sm font-medium text-neutral-700 mb-2">Principal vs Interest</h3>
-              <div className="relative h-40">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <PieChart>
-                    <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={2}
-                      animationDuration={600}>
-                      {pieData.map((d, idx) => (
-                        <Cell key={idx} fill={d.name === 'Interest' ? ct.cost : ct.series1} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                {/* Donut center KPI — the monthly payment */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
-                  <span className="font-mono tabular-nums text-sm font-semibold text-neutral-900">{fmt(monthlyPayment)}</span>
-                  <span className="text-[9px] uppercase tracking-wide text-neutral-500">monthly</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4">
-              <h3 className="text-sm font-medium text-neutral-700 mb-2">Balance Over Time</h3>
-              <div className="h-40">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-                    <CartesianGrid stroke={ct.grid} vertical={false} />
-                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }} tickLine={false} interval="preserveStartEnd" minTickGap={24} />
-                    <YAxis tickFormatter={(v: number) => { const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$'; return `${s}${v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`; }}
-                      tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }} tickLine={false} axisLine={false} width={45} />
-                    <Tooltip content={<ChartTooltip formatValue={fmt} />} />
-                    <Area type="monotone" dataKey="Remaining Balance" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} animationDuration={600} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
+          {/* Pie + Area Charts (lazy) */}
+          <DeferredChart height={230} className="mb-6">
+            <LoanAmortizationCharts
+              currency={currency}
+              principal={loanAmount}
+              totalInterest={deferred.totalInterest}
+              monthlyPayment={deferred.scheduledPayment}
+              balanceByYear={balanceByYear}
+            />
+          </DeferredChart>
 
           {/* Amortization Table */}
           <div data-pdf-section>
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Amortization Schedule</h3>
-            <AmortizationTable yearGroups={yearGroups} cc={currency} />
+            <AmortizationTable yearGroups={deferred.yearGroups} cc={currency} />
           </div>
 
           <ResultAffiliate toolSlug="loan-amortization" />
