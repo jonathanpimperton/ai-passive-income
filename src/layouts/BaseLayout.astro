@@ -21,6 +21,8 @@ interface Props {
   skipLabel?: string;
   /** og:locale, e.g. en_GB for UK pages */
   ogLocale?: string;
+  /** Never load analytics on this page (tools that handle sensitive input, DEVTOOLS-26) */
+  noAnalytics?: boolean;
 }
 
 const {
@@ -34,6 +36,7 @@ const {
   skipTo = 'main-content',
   skipLabel = 'Skip to main content',
   ogLocale = 'en_US',
+  noAnalytics = false,
 } = Astro.props;
 
 const SITE_URL = 'https://www.calcrun.com';
@@ -104,7 +107,9 @@ const BOOT_JS = SAFE_STORAGE_INLINE_JS + REGION_INLINE_JS + THEME_JS;
  * - A stored Decline: gtag.js is never loaded and existing _ga* cookies are
  *   deleted. Decline mid-page sets Google's opt-out flag, denies storage and
  *   deletes the cookies.
- * - Embeds (?embed, /embed/<tool>/, or any framed page): never loaded.
+ * - Embeds (?embed, /embed/<tool>/, or any framed page) and pages built with
+ *   noAnalytics: never loaded. On a noAnalytics page the banner still records
+ *   the site-wide choice, but Accept does not load GA there.
  * - Google Signals and ad personalisation are off in the config; ad storage
  *   stays denied (no ads product).
  * window.calcrunConsent is the single API the cookie banner and the footer's
@@ -118,13 +123,13 @@ const CONSENT_JS =
   'try{framed=window.self!==window.top}catch(e){framed=true}' +
   'var embed=framed||/[?&]embed(?:[=&]|$)/.test(location.search)||/^\\/embed\\/[^\\/]+/.test(location.pathname);' +
   'var choice=calcrunStore.get(KEY);if(choice!=="accepted"&&choice!=="declined")choice=null;' +
-  'var c=window.calcrunConsent={id:ID,key:KEY,region:region,required:region==="EEA",embed:embed,choice:choice,loaded:false};' +
+  'var c=window.calcrunConsent={id:ID,key:KEY,region:region,required:region==="EEA",embed:embed,off:' + (noAnalytics ? 'true' : 'false') + ',choice:choice,loaded:false};' +
   'c.clearCookies=function(){var host=location.hostname,doms=["",host,"."+host],p=host.split("."),i,j;' +
   'for(i=1;i<p.length-1;i++)doms.push("."+p.slice(i).join("."));' +
   'var names=document.cookie.split(";");for(i=0;i<names.length;i++){var n=names[i].split("=")[0].replace(/^\\s+|\\s+$/g,"");' +
   'if(!/^(_ga|_gid|_gat)/.test(n))continue;for(j=0;j<doms.length;j++){' +
   'document.cookie=n+"=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"+(doms[j]?"; domain="+doms[j]:"")}}};' +
-  'c.load=function(){if(c.loaded||c.embed)return;c.loaded=true;window["ga-disable-"+ID]=false;' +
+  'c.load=function(){if(c.loaded||c.embed||c.off)return;c.loaded=true;window["ga-disable-"+ID]=false;' +
   'window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer.push(arguments)};' +
   'gtag("consent","default",{ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",analytics_storage:"granted"});' +
   'gtag("js",new Date());gtag("config",ID,{allow_google_signals:false,allow_ad_personalization_signals:false});' +
@@ -132,7 +137,7 @@ const CONSENT_JS =
   'c.set=function(v){if(v!=="accepted"&&v!=="declined")return;c.choice=v;calcrunStore.set(KEY,v);' +
   'if(v==="declined"){window["ga-disable-"+ID]=true;if(c.loaded&&window.gtag)gtag("consent","update",{analytics_storage:"denied"});c.clearCookies()}' +
   'else if(c.loaded){window["ga-disable-"+ID]=false;gtag("consent","update",{analytics_storage:"granted"})}else{c.load()}};' +
-  'if(choice==="declined")c.clearCookies();else if(!embed&&(choice==="accepted"||!c.required))c.load()})();';
+  'if(choice==="declined")c.clearCookies();else if(!embed&&!c.off&&(choice==="accepted"||!c.required))c.load()})();';
 ---
 
 <!doctype html>

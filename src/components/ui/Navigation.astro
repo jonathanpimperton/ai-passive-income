@@ -299,6 +299,11 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
      "already in view". */
   :global(.site-header),
   :global(.site-header *) { scroll-margin-block: -100vh; }
+  /* Text fields reveal their caret with a separate scroll that ignores
+     scroll-margin but applies the global scroll-padding-top (80px): while
+     focus is in the header, drop that padding so typing in the header search
+     never scrolls the page (class set by the script below) */
+  :global(html.header-focus) { scroll-padding-top: 0; }
 
   /* ── Desktop menus ── */
   .nav-trigger,
@@ -480,6 +485,15 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
 </style>
 
 <script>
+  /* ── Focus inside the sticky header must not scroll the page (see the style above) ── */
+  const siteHeader = document.getElementById('site-header');
+  siteHeader?.addEventListener('focusin', () => document.documentElement.classList.add('header-focus'));
+  siteHeader?.addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (!siteHeader.contains(document.activeElement)) document.documentElement.classList.remove('header-focus');
+    }, 0);
+  });
+
   /* ── Desktop menus: click, hover, keyboard ── */
   const items = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-item]'));
   const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
