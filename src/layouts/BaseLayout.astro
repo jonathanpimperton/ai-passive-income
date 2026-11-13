@@ -4,6 +4,7 @@ import Footer from '@components/ui/Footer.astro';
 import CookieBanner from '@components/ui/CookieBanner.astro';
 import { SAFE_STORAGE_INLINE_JS } from '@lib/safe-storage';
 import { REGION_INLINE_JS } from '@lib/region';
+import { THEME_INLINE_JS } from '@lib/theme-boot';
 import '../styles/global.css';
 
 interface Props {
@@ -25,6 +26,13 @@ interface Props {
   noAnalytics?: boolean;
 }
 
+/**
+ * Tools that handle secrets (generated passwords, bearer tokens) never load
+ * analytics, whatever the visitor chose (DEVTOOLS-26). Keyed by slug so the
+ * tool route needs no per-tool wiring.
+ */
+const NO_ANALYTICS_TOOL_SLUGS = ['password-generator', 'jwt-decoder'];
+
 const {
   title,
   description = 'Financial calculators with interactive charts and plain-English explanations. No signup, no ads, no data harvesting.',
@@ -36,7 +44,7 @@ const {
   skipTo = 'main-content',
   skipLabel = 'Skip to main content',
   ogLocale = 'en_US',
-  noAnalytics = false,
+  noAnalytics: noAnalyticsProp = false,
 } = Astro.props;
 
 const SITE_URL = 'https://www.calcrun.com';
@@ -44,6 +52,8 @@ const SITE_URL = 'https://www.calcrun.com';
 const fullTitle = title.includes('CalcRun') || title.length > 50 ? title : `${title} | CalcRun`;
 // Normalize canonical to always use production domain (not pages.dev or localhost)
 const pathname = Astro.url.pathname;
+const toolSlug = pathname.match(/^\/tools\/[a-z-]+\/([a-z0-9-]+)\/?$/)?.[1];
+const noAnalytics = noAnalyticsProp || (toolSlug !== undefined && NO_ANALYTICS_TOOL_SLUGS.includes(toolSlug));
 const canonical = canonicalUrl || `${SITE_URL}${pathname}`;
 const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${SITE_URL}${ogImage}`;
 
@@ -87,16 +97,7 @@ const usesMono = /\btabular-nums\b|\bfont-mono\b/.test(bodyHtml);
  * - theme: a stored choice ('light'|'dark') wins, otherwise the OS setting; the
  *   page follows later OS changes while there is no stored choice (HO-8)
  */
-const THEME_JS =
-  '(function(){var d=document.documentElement;d.classList.add("js");var mq=null;' +
-  'try{mq=window.matchMedia("(prefers-color-scheme: dark)")}catch(e){mq=null}' +
-  'function pick(){var t=calcrunStore.get("calcrun.theme");if(t==="dark"||t==="light")return t;return mq&&mq.matches?"dark":"light"}' +
-  'd.setAttribute("data-theme",pick());' +
-  'if(mq){var on=function(){if(calcrunStore.get("calcrun.theme"))return;d.setAttribute("data-theme",pick());' +
-  // Old browsers without the Event constructor get the legacy createEvent path
-  'try{window.dispatchEvent(new Event("calcrun:themechange"))}catch(e){var ev=document.createEvent("Event");ev.initEvent("calcrun:themechange",false,false);window.dispatchEvent(ev)}};' +
-  'if(mq.addEventListener)mq.addEventListener("change",on);else if(mq.addListener)mq.addListener(on)}})();';
-const BOOT_JS = SAFE_STORAGE_INLINE_JS + REGION_INLINE_JS + THEME_JS;
+const BOOT_JS = SAFE_STORAGE_INLINE_JS + REGION_INLINE_JS + THEME_INLINE_JS;
 
 /*
  * Google Analytics, consent-aware (plan D1; HOME-CHROME-06):

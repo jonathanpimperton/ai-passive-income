@@ -59,6 +59,7 @@ const storageKeys = [
         <li><strong>UK, US and everywhere outside continental Europe:</strong> Google Analytics loads when you open a page. A banner tells you, and <strong>Decline</strong> turns it off.</li>
         <li><strong>EEA (EU countries, Iceland, Liechtenstein, Norway), Switzerland and, to be safe, every other European time zone outside the UK:</strong> Google Analytics does not load at all unless you press <strong>Accept</strong>.</li>
         <li><strong>Embedded calculators</strong> on other websites never load Google Analytics or show the banner.</li>
+        <li><strong>The password generator and the JWT decoder</strong> never load Google Analytics, whatever you choose, because you type or generate secrets there.</li>
       </ul>
       <p>We decide which rule applies from your device's time zone (and its language setting, if the time zone does not say). This happens in your browser; it is not stored or sent anywhere. If we get it wrong you can still accept or decline.</p>
 
