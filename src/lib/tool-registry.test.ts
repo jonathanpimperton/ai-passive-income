@@ -109,10 +109,6 @@ const DYNAMIC: Record<string, Record<string, string[]>> = {
   },
   'salary-uk': {
     'taxCode.trim().toUpperCase()': ['1257L', 'S1257L', 'C1257L', 'K475', 'BR', 'D0', 'NT', '0T', '1257L W1', '1257L X'],
-    'PENSION_METHOD_LABEL[pensionMethod]': ['Net pay arrangement', 'Relief at source', 'Salary sacrifice'], // (W1-UK) pending
-  },
-  'capital-gains-tax': {
-    'UK_BAND_LABEL[ukResult.incomeBand]': ['Basic rate', 'Higher rate', 'Additional rate'], // (W1-UK) pending
   },
 };
 
@@ -121,9 +117,8 @@ const DYNAMIC: Record<string, Record<string, string[]>> = {
  * The stale-key test skips them; once the branch lands the expression is in the source and
  * the normal per-calculator test verifies the outputs, so delete the entry then.
  */
-const PENDING_MERGE = new Set([
-  'salary-uk: PENSION_METHOD_LABEL[pensionMethod]', // W1-UK
-  'capital-gains-tax: UK_BAND_LABEL[ukResult.incomeBand]', // W1-UK
+const PENDING_MERGE = new Set<string>([
+  // Empty since W1-UK merged (its PENSION_METHOD_LABEL / UK_BAND_LABEL maps are now read from source).
 ]);
 
 /** Representative UK affordability settings: with and without a stress test. */

@@ -895,7 +895,7 @@ const fns: FigureFunction[] = [
       checkUkYear(a);
       // 'basic' makes the engine derive the band from income: unused basic band
       // is taxed at the basic CGT rate, the rest at the higher rate.
-      return calculateUKCgt(0, a.num('gain'), 'basic', a.num('income')).totalTax;
+      return calculateUKCgt(0, a.num('gain'), a.num('income')).totalTax;
     },
   },
   {
