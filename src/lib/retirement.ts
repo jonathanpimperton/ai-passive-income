@@ -291,6 +291,24 @@ export function usFullRetirementAge(dob: CalendarDate): number {
 const fmtUsd = (v: number) => `$${Math.round(v).toLocaleString('en-US')}`;
 
 /**
+ * Fields W1-TAX's multi-year us-rates.ts adds to US_401K. Read structurally so
+ * this file works before and after that merge; afterwards they are plain reads.
+ * - catchUp60to63: SECURE 2.0 higher catch-up for ages 60-63 ($11,250 for 2026,
+ *   IRS Notice 2025-67). While absent, ages 60-63 get the 'higher-catch-up'
+ *   status instead of being compared with the age-50 limit.
+ * - published: false when the IRS has not yet published the default year's
+ *   limits and the values are carried from the prior year (absent = published).
+ */
+const US_401K_EXT = US_401K as typeof US_401K & { catchUp60to63?: number; published?: boolean };
+const CATCH_UP_60_TO_63: number | undefined = US_401K_EXT.catchUp60to63;
+const LIMITS_PUBLISHED: boolean = US_401K_EXT.published ?? true;
+
+/** "2027 limits not yet published; using 2026 limits" when the default year's figures are carried over. */
+export function limitsYearNote(year: string = US_TAX_YEAR, published: boolean = LIMITS_PUBLISHED): string | null {
+  return published ? null : `${year} limits not yet published; using ${Number(year) - 1} limits`;
+}
+
+/**
  * Milestone ages after currentAge for a retirement chart; those after endAge
  * come back with onChart = false (listed in the legend, not drawn).
  * UK ages come from uk-pension-ages.ts (worked out from the current age, since
@@ -345,7 +363,7 @@ export function retirementMilestones(
     out.push({
       age: 50,
       marker: 'Catch-up',
-      text: `401(k) catch-up contributions allowed from 50: an extra ${fmtUsd(US_401K.catchUp)} a year on top of the ${fmtUsd(US_401K.limit)} limit (${year}).`,
+      text: `401(k) catch-up contributions allowed from 50: an extra ${fmtUsd(US_401K.catchUp)} a year on top of the ${fmtUsd(US_401K.limit)} limit (${limitsYearNote() ?? year}).`,
     });
     out.push({
       age: 59.5,
@@ -355,7 +373,9 @@ export function retirementMilestones(
     out.push({
       age: 60,
       marker: '60-63',
-      text: 'Ages 60 to 63: a higher 401(k) catch-up limit applies.',
+      text: CATCH_UP_60_TO_63 === undefined
+        ? 'Ages 60 to 63: a higher 401(k) catch-up limit applies.'
+        : `Ages 60 to 63: a higher 401(k) catch-up of ${fmtUsd(CATCH_UP_60_TO_63)} a year replaces the age-50 one (${limitsYearNote() ?? year}).`,
     });
     out.push({
       age: 62,
@@ -380,15 +400,6 @@ export function retirementMilestones(
 
 /* ── US contribution limit check (SV-6 / MTH-21) ──────────── */
 
-/**
- * Higher catch-up for ages 60-63 (SECURE 2.0): $11,250 for 2026 (IRS Notice
- * 2025-67). us-rates.ts does not carry it yet (REQUEST to W1-TAX); until it
- * does this stays undefined and ages 60-63 get the 'higher-catch-up' status
- * instead of being compared with the age-50 limit. When the field lands,
- * this becomes: `const CATCH_UP_60_TO_63 = US_401K.catchUp60to63;`
- */
-const CATCH_UP_60_TO_63: number | undefined = undefined;
-
 export type CatchUpBand = 'none' | '50+' | '60-63';
 
 export interface Us401kCheck {
@@ -407,6 +418,8 @@ export interface Us401kCheck {
    *   catch-up applies whose figure is not in us-rates.ts yet, so no verdict.
    */
   status: 'within' | 'exceeds' | 'higher-catch-up';
+  /** False when the default year's limits are carried over from the prior year (not yet published). */
+  limitsPublished: boolean;
 }
 
 /**
@@ -440,6 +453,7 @@ export function check401kLimit(monthlyContribution: number, age: number): Us401k
     annualLimit,
     annualContribution,
     status,
+    limitsPublished: LIMITS_PUBLISHED,
   };
 }
 

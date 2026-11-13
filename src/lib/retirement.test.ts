@@ -9,6 +9,7 @@ import {
   retirementMilestones,
   usFullRetirementAge,
   check401kLimit,
+  limitsYearNote,
   formatDuration,
 } from './retirement';
 import { compoundInterest } from './calculator-utils';
@@ -225,8 +226,8 @@ describe('retirementMilestones', () => {
   it('US: catch-up text uses the us-rates.ts limits, and FRA is 67 for a 30-year-old', () => {
     const ms = retirementMilestones('us', 30, 90, TODAY);
     expect(ms.map((m) => m.age)).toEqual([50, 59.5, 60, 62, 67]);
-    expect(ms[0].text).toContain(US_401K.catchUp.toLocaleString('en-US'));
-    expect(ms[0].text).toContain(US_401K.limit.toLocaleString('en-US'));
+    expect(ms[0].text).toContain(`$${US_401K.catchUp.toLocaleString('en-US')}`);
+    expect(ms[0].text).toContain(`$${US_401K.limit.toLocaleString('en-US')}`);
   });
 
   it('EUR has no milestones', () => {
@@ -258,17 +259,31 @@ describe('check401kLimit (SV-6)', () => {
     expect(check401kLimit((US_401K.limit + US_401K.catchUp) / 12 + 1, 64).status).toBe('exceeds');
   });
 
-  it('ages 60-63: never judged against the age-50 limit (higher catch-up applies)', () => {
-    // Reviewer repro: $33,523 a year at 61 is above $24,500 + $8,000 but within the 60-63 limit.
+  it('ages 60-63: never judged against the age-50 limit', () => {
+    // Reviewer repro: $33,523 a year at 61 is above $24,500 + $8,000 but within the 60-63 limit ($35,750 in 2026).
+    const ext = US_401K as typeof US_401K & { catchUp60to63?: number };
     const r = check401kLimit(33_523 / 12, 61);
     expect(r.catchUpBand).toBe('60-63');
-    expect(r.status).toBe('higher-catch-up');
-    expect(r.annualLimit).toBeNull();
+    if (ext.catchUp60to63 === undefined) {
+      // Before W1-TAX's us-rates.ts field lands: no verdict and no limit quoted.
+      expect(r.status).toBe('higher-catch-up');
+      expect(r.annualLimit).toBeNull();
+    } else {
+      expect(r.annualLimit).toBe(US_401K.limit + ext.catchUp60to63);
+      expect(r.status).toBe(33_523 > US_401K.limit + ext.catchUp60to63 ? 'exceeds' : 'within');
+    }
     for (const age of [60, 61, 62, 63]) {
-      expect(check401kLimit(5_000, age).status).not.toBe('exceeds');
+      expect(check401kLimit((US_401K.limit + US_401K.catchUp) / 12 + 50, age).status).not.toBe('exceeds');
       expect(check401kLimit(2_000, age).status).toBe('within');
     }
     expect(check401kLimit(33_523 / 12, 59).status).toBe('exceeds');
+  });
+
+  it('reports whether the default year limits are published', () => {
+    const ext = US_401K as typeof US_401K & { published?: boolean };
+    expect(check401kLimit(1_000, 40).limitsPublished).toBe(ext.published ?? true);
+    expect(limitsYearNote('2027', false)).toBe('2027 limits not yet published; using 2026 limits');
+    expect(limitsYearNote('2026', true)).toBeNull();
   });
 });
 

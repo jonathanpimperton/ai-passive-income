@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 import { formatCurrency } from '../../lib/calculator-utils';
 import { todayLocal, type CalendarDate } from '../../lib/uk-pension-ages';
-import type { Milestone, ProjectionRow, RetirementRegion, Us401kCheck } from '../../lib/retirement';
+import { limitsYearNote, type Milestone, type ProjectionRow, type RetirementRegion, type Us401kCheck } from '../../lib/retirement';
 
 export function regionFor(currency: string): RetirementRegion {
   return currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
@@ -126,7 +126,7 @@ export function Limit401kNote({ check, showWithin = false }: { check: Us401kChec
       <>
         That is {amount} a year, more than the {check.year} 401(k) employee limit of{' '}
         <span className="tabular-nums">{usd(check.annualLimit)}</span>
-        {check.catchUpBand === '50+' ? ' (including the age-50+ catch-up)' : ''}. The rest would need an IRA or a taxable
+        {check.catchUpBand === '50+' ? ' (including the age-50+ catch-up)' : check.catchUpBand === '60-63' ? ' (including the age 60-63 catch-up)' : ''}. The rest would need an IRA or a taxable
         account; employer contributions do not count toward this limit.
       </>
     );
@@ -149,7 +149,14 @@ export function Limit401kNote({ check, showWithin = false }: { check: Us401kChec
       </>
     );
   }
-  return <p className="text-sm text-neutral-600 leading-relaxed border-l-2 border-neutral-300 pl-3 mb-4">{body}</p>;
+  // e.g. "2027 limits not yet published; using 2026 limits" while the IRS figures are carried over.
+  const yearNote = limitsYearNote(check.year, check.limitsPublished);
+  return (
+    <p className="text-sm text-neutral-600 leading-relaxed border-l-2 border-neutral-300 pl-3 mb-4">
+      {body}
+      {yearNote && <span className="block mt-1 text-xs text-neutral-500">{yearNote}.</span>}
+    </p>
+  );
 }
 
 /** Every-5-years summary table under the chart (the chart's text equivalent). */
