@@ -96,6 +96,30 @@
   @media (min-width: 640px) {
     :global(html.cookie-banner-open body) { padding-bottom: 11rem; }
   }
+
+  /* Short viewports (landscape phones): one compact strip, text beside the
+     buttons, so the banner never covers most of the screen */
+  @media (max-height: 500px) {
+    .cookie-banner {
+      left: 0.5rem;
+      right: 0.5rem;
+      bottom: 0.5rem;
+      max-width: 680px;
+      border: 1px solid var(--color-neutral-200);
+      border-radius: 0.5rem;
+    }
+    .cookie-banner > div { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; }
+    .cookie-banner > div > div:first-child {
+      position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+    }
+    .cookie-banner.is-settings > div > div:first-child { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; order: 3; }
+    #cookie-banner-text { margin: 0; flex: 1; font-size: 0.8125rem; line-height: 1.35; }
+    #cookie-banner-status { margin: 0; font-size: 0.8125rem; }
+    .cookie-banner > div > div:last-child { margin: 0; flex-wrap: nowrap; }
+    .cookie-banner > div > div:last-child a { margin-left: 0.25rem; font-size: 0.8125rem; white-space: nowrap; }
+    :global(html.cookie-banner-open) { scroll-padding-bottom: 6rem; }
+    :global(html.cookie-banner-open body) { padding-bottom: 6rem; }
+  }
 </style>
 
 <script is:inline>
