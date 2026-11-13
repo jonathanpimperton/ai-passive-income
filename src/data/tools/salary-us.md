@@ -2,7 +2,7 @@
 name: "US Salary & Take-Home Calculator"
 slug: "salary-us"
 category: "income-and-planning"
-description: "US paycheck calculator for 2026 — federal tax, state tax, FICA, and 401(k) in a full gross-to-net breakdown of your take-home pay."
+description: "US paycheck calculator: federal income tax, FICA, 401(k) and a state tax estimate in a full gross-to-net breakdown of your take-home pay."
 keywords:
   - "salary to hourly calculator"
   - "hourly to salary"

@@ -1,14 +1,6 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
-import { ChevronDown, RotateCcw, Home, Percent, Banknote, DollarSign, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { useState, useMemo, useCallback, useEffect, useRef, lazy, type ReactNode } from 'react';
+import { ChevronDown, RotateCcw, Home, Percent, Banknote, PiggyBank, AlertTriangle, ShieldCheck } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
@@ -16,49 +8,31 @@ import CurrencySelector, { useCurrency } from '../ui/CurrencySelector';
 import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
-import { UK_MORTGAGE } from '../../lib/uk-rates';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { useChartTheme } from '../../lib/useChartTheme';
+import { MARKET_RATES, defaultMortgageRate, defaultMortgageRateInfo, rateAttribution, regionForCurrency } from '../../lib/market-rates';
+import {
+  AFFORDABILITY_DEFAULTS,
+  LTI_RANGE,
+  estimateUkTakeHome,
+  solveUsAffordability,
+  solveUkAffordability,
+  solveEurAffordability,
+} from '../../lib/mortgage-affordability';
 import ResultAffiliate from '../ui/ResultAffiliate';
+import { ukCheckName, ukCheckedPaymentLabel, ukResultItems, ukStressTestInput, type UkStressSettings } from '../../lib/affordability-report';
+import { Collapse, DeferredChart, ResultAnnouncer } from './property-shared';
 
-/* ── Mortgage affordability helpers ──────────────────────── */
+const AffordabilityChart = lazy(() => import('./charts/AffordabilityChart'));
 
-/**
- * Calculate monthly P&I payment from a loan amount.
- * M = L * [r(1+r)^n] / [(1+r)^n - 1]
- */
-function calcMonthlyPI(loanAmount: number, annualRate: number, years: number): number {
-  if (loanAmount <= 0 || years <= 0) return 0;
-  if (annualRate <= 0) return loanAmount / (years * 12);
-  const r = annualRate / 100 / 12;
-  const n = years * 12;
-  return (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-}
+const D = AFFORDABILITY_DEFAULTS;
 
-/**
- * Calculate max loan amount from a target monthly P&I payment.
- * L = P&I * [(1+r)^n - 1] / [r(1+r)^n]
- */
-function calcMaxLoan(monthlyPI: number, annualRate: number, years: number): number {
-  if (monthlyPI <= 0 || years <= 0) return 0;
-  if (annualRate <= 0) return monthlyPI * years * 12;
-  const r = annualRate / 100 / 12;
-  const n = years * 12;
-  return monthlyPI * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
-}
+const TERM_OPTIONS = {
+  us: [15, 30],
+  uk: [20, 25, 30, 35],
+  eur: [20, 25, 30],
+} as const;
 
-const DEFAULTS = {
-  annualIncome: 80000,
-  monthlyDebt: 500,
-  downPayment: 40000,
-  interestRate: 6.75,
-  loanTerm: 30,
-  propertyTaxRate: 1.2,
-  insuranceAnnual: 1500,
-  hoaMonthly: 0,
-  dtiLimit: 36,
-  pmiRate: 0.5,
-};
+const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
 export default function MortgageAffordabilityCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -66,167 +40,154 @@ export default function MortgageAffordabilityCalc() {
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
 
-  // Region follows the display currency — US-specific costs (property tax %,
-  // homeowners insurance, HOA, PMI) only apply in USD mode.
-  const region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
+  // Region follows the display currency: US 28/36 model, UK income multiple +
+  // stress-rate payment check, euro-area single limit (D11).
+  const region = regionForCurrency(currency);
   const isUS = region === 'us';
-  const depositLabel = region === 'uk' ? 'Deposit' : 'Down Payment';
-  const termOptions = isUS ? [15, 30] : [20, 25, 30];
-  const regionDefaultTerm = isUS ? DEFAULTS.loanTerm : 25;
+  const isUK = region === 'uk';
+  const depositLabel = isUK ? 'Deposit' : 'Down Payment';
+  const termOptions = TERM_OPTIONS[region];
+  const regionDefaultTerm = isUS ? 30 : 25;
 
-  const [annualIncome, setAnnualIncome] = useState(DEFAULTS.annualIncome);
-  const [monthlyDebt, setMonthlyDebt] = useState(DEFAULTS.monthlyDebt);
-  const [downPayment, setDownPayment] = useState(DEFAULTS.downPayment);
-  const [interestRate, setInterestRate] = useState(DEFAULTS.interestRate);
-  const [loanTerm, setLoanTerm] = useState(DEFAULTS.loanTerm);
+  const [annualIncome, setAnnualIncome] = useState<number>(D.annualIncome);
+  const [monthlyDebt, setMonthlyDebt] = useState<number>(D.monthlyDebts);
+  const [debtTouched, setDebtTouched] = useState(false);
+  const [downPayment, setDownPayment] = useState<number>(D.deposit);
+  const [interestRate, setInterestRate] = useState(() => defaultMortgageRate('us', 30));
+  const [rateTouched, setRateTouched] = useState(false);
+  const [loanTerm, setLoanTerm] = useState(30);
   const [termTouched, setTermTouched] = useState(false);
-  const [propertyTaxRate, setPropertyTaxRate] = useState(DEFAULTS.propertyTaxRate);
-  const [insuranceAnnual, setInsuranceAnnual] = useState(DEFAULTS.insuranceAnnual);
-  const [hoaMonthly, setHoaMonthly] = useState(DEFAULTS.hoaMonthly);
+  const [propertyTaxRate, setPropertyTaxRate] = useState<number>(D.propertyTaxRate);
+  const [insuranceAnnual, setInsuranceAnnual] = useState<number>(D.insuranceAnnual);
+  const [hoaMonthly, setHoaMonthly] = useState<number>(D.hoaMonthly);
+  const [pmiRate, setPmiRate] = useState<number>(D.pmiRate);
+  const [frontEndPct, setFrontEndPct] = useState<number>(D.frontEndPct);
+  const [backEndPct, setBackEndPct] = useState<number>(D.backEndPct);
+  const [ltiCap, setLtiCap] = useState<number>(D.ltiCap);
+  const [stressMargin, setStressMargin] = useState<number>(D.stressMarginPct);
+  const [maxShare, setMaxShare] = useState<number>(D.maxShareOfTakeHomePct);
+  const [takeHomeOverride, setTakeHomeOverride] = useState<number | null>(null);
+  const [eurLimit, setEurLimit] = useState<number>(D.eurMaxDebtServicePct);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [dtiLimit, setDtiLimit] = useState(DEFAULTS.dtiLimit);
-  const [pmiRate, setPmiRate] = useState(DEFAULTS.pmiRate);
-  const ct = useChartTheme();
 
-  // Regional default term (30yr US, 25yr UK/EUR) — only applies while the
-  // user hasn't picked a term themselves; never stomps an explicit choice.
+  // Regional term and market rate apply only while the user hasn't chosen
+  // their own; never stomp an explicit choice on a currency switch.
   useEffect(() => {
     if (!termTouched) setLoanTerm(regionDefaultTerm);
-  }, [regionDefaultTerm, termTouched]);
+    else if (!(termOptions as readonly number[]).includes(loanTerm)) setLoanTerm(regionDefaultTerm);
+  }, [region, regionDefaultTerm, termTouched]);
+  useEffect(() => {
+    if (!rateTouched) setInterestRate(defaultMortgageRate(region, loanTerm));
+  }, [region, loanTerm, rateTouched]);
+  // UK commitments start at £0: the US $500 debt default is not a UK norm.
+  const regionDefaultDebt = isUK ? D.ukMonthlyDebts : D.monthlyDebts;
+  useEffect(() => {
+    if (!debtTouched) setMonthlyDebt(regionDefaultDebt);
+  }, [regionDefaultDebt, debtTouched]);
+
+  const handleDebtChange = useCallback((v: number) => {
+    setDebtTouched(true);
+    setMonthlyDebt(v);
+  }, []);
+  // A typed take-home figure belongs to the income it was typed for: when the
+  // income changes, go back to the estimate rather than keep a stale override.
+  const handleIncomeChange = useCallback((v: number) => {
+    setAnnualIncome(v);
+    setTakeHomeOverride(null);
+  }, []);
+
+  const handleRateChange = useCallback((v: number) => {
+    setRateTouched(true);
+    setInterestRate(v);
+  }, []);
 
   const handleReset = useCallback(() => {
-    setAnnualIncome(DEFAULTS.annualIncome);
-    setMonthlyDebt(DEFAULTS.monthlyDebt);
-    setDownPayment(DEFAULTS.downPayment);
-    setInterestRate(DEFAULTS.interestRate);
+    setAnnualIncome(D.annualIncome);
+    setMonthlyDebt(regionDefaultDebt);
+    setDebtTouched(false);
+    setDownPayment(D.deposit);
     setLoanTerm(regionDefaultTerm);
     setTermTouched(false);
-    setPropertyTaxRate(DEFAULTS.propertyTaxRate);
-    setInsuranceAnnual(DEFAULTS.insuranceAnnual);
-    setHoaMonthly(DEFAULTS.hoaMonthly);
-    setDtiLimit(DEFAULTS.dtiLimit);
-    setPmiRate(DEFAULTS.pmiRate);
-  }, [regionDefaultTerm]);
+    setInterestRate(defaultMortgageRate(region, regionDefaultTerm));
+    setRateTouched(false);
+    setPropertyTaxRate(D.propertyTaxRate);
+    setInsuranceAnnual(D.insuranceAnnual);
+    setHoaMonthly(D.hoaMonthly);
+    setPmiRate(D.pmiRate);
+    setFrontEndPct(D.frontEndPct);
+    setBackEndPct(D.backEndPct);
+    setLtiCap(D.ltiCap);
+    setStressMargin(D.stressMarginPct);
+    setMaxShare(D.maxShareOfTakeHomePct);
+    setTakeHomeOverride(null);
+    setEurLimit(D.eurMaxDebtServicePct);
+    setShowAdvanced(false);
+  }, [regionDefaultTerm, region, regionDefaultDebt]);
 
-  const result = useMemo(() => {
-    // Hidden inputs in UK/EUR mode must also contribute 0 to the solver —
-    // hiding the UI alone would leave stale US defaults polluting results.
-    const effPropertyTaxRate = isUS ? propertyTaxRate : 0;
-    const effInsuranceAnnual = isUS ? insuranceAnnual : 0;
-    const effHoaMonthly = isUS ? hoaMonthly : 0;
-    const effPmiRate = isUS ? pmiRate : 0;
+  const estimatedTakeHome = useMemo(() => Math.round(estimateUkTakeHome(annualIncome)), [annualIncome]);
+  const takeHome = takeHomeOverride ?? estimatedTakeHome;
 
-    const grossMonthlyIncome = annualIncome / 12;
-    const maxTotalHousing = grossMonthlyIncome * (dtiLimit / 100) - monthlyDebt;
+  const common = { annualIncome, monthlyDebts: monthlyDebt, deposit: downPayment, ratePct: interestRate, termYears: loanTerm };
+  const us = useMemo(
+    () => solveUsAffordability({ region: 'us', ...common, propertyTaxRate, insuranceAnnual, hoaMonthly, pmiRate, frontEndPct, backEndPct }),
+    [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, pmiRate, frontEndPct, backEndPct],
+  );
+  const uk = useMemo(
+    () => solveUkAffordability({ region: 'uk', ...common, monthlyTakeHome: takeHome, ltiCap, stressMarginPct: stressMargin, maxShareOfTakeHomePct: maxShare }),
+    [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, takeHome, ltiCap, stressMargin, maxShare],
+  );
+  const eur = useMemo(
+    () => solveEurAffordability({ region: 'eur', ...common, maxDebtServicePct: eurLimit }),
+    [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, eurLimit],
+  );
+  const result = isUS ? us : isUK ? uk : eur;
+  const affordable = result.status === 'ok';
 
-    if (maxTotalHousing <= 0) {
-      return {
-        maxHomePrice: 0,
-        maxLoanAmount: 0,
-        monthlyPI: 0,
-        monthlyTax: 0,
-        monthlyInsurance: 0,
-        monthlyPMI: 0,
-        monthlyHOA: effHoaMonthly,
-        totalMonthly: 0,
-        dtiRatio: monthlyDebt / grossMonthlyIncome * 100,
-        needsPMI: false,
-        grossMonthlyIncome,
-      };
-    }
+  const animatedHomePrice = useAnimatedNumber(result.maxPrice);
 
-    // Iterative solver: PMI depends on loan amount, loan amount depends on PMI.
-    // Start without PMI, iterate until convergence.
-    let maxHomePrice = 0;
-    let maxLoanAmount = 0;
-    let monthlyPMI = 0;
+  /* ── Headline copy ─────────────────────────────────────── */
+  const headlineLabel = affordable ? 'You could afford up to' : 'No home fits these limits';
+  const subline = !affordable
+    ? result.status === 'costs-exceed'
+      ? 'Insurance and HOA fees alone use up your housing budget.'
+      : isUK
+        ? `Your monthly commitments already use ${fmtPct(uk.stressedShareOfTakeHome)} of take-home pay (limit ${maxShare}%).`
+        : `Your existing debts already use up the ${isUS ? `${backEndPct}% debt-to-income` : `${eurLimit}% of income`} limit.`
+    : result.maxLoan > 0
+      ? `With a ${fmt(downPayment)} ${isUK ? 'deposit' : 'down payment'} and a ${fmt(result.maxLoan)} loan`
+      : 'Cash only: your budget does not stretch to a loan at these costs';
+  const announcement = affordable
+    ? `You could afford up to ${fmt(result.maxPrice)}, with a ${fmt(result.maxLoan)} loan.`
+    : `${headlineLabel}. ${subline}`;
 
-    for (let iteration = 0; iteration < 20; iteration++) {
-      // Estimate monthly property tax based on current home price guess
-      const monthlyTaxEstimate = maxHomePrice * (effPropertyTaxRate / 100) / 12;
-      const monthlyInsurance = effInsuranceAnnual / 12;
+  // Risk band for the indicator box.
+  type Band = 'good' | 'ok' | 'stretched';
+  const band: Band = isUS
+    ? (us.backEndRatio <= 28 ? 'good' : us.backEndRatio <= 36 ? 'ok' : 'stretched')
+    : isUK
+      ? (uk.stressedShareOfTakeHome <= D.comfortableShareOfTakeHomePct ? 'good' : uk.stressedShareOfTakeHome <= 50 ? 'ok' : 'stretched')
+      : (eur.debtServiceRatio <= 28 ? 'good' : eur.debtServiceRatio <= 36 ? 'ok' : 'stretched');
+  const bandStyle = {
+    good: { box: 'bg-success-50 border-success-100', text: 'text-success-600', label: 'Comfortable' },
+    ok: { box: 'bg-amber-50 border-amber-200', text: 'text-amber-800', label: isUK ? 'Stretched' : 'Moderate' },
+    stretched: { box: 'bg-red-50 border-red-200', text: 'text-red-600', label: 'High risk' },
+  }[band];
 
-      // Available for P&I after subtracting fixed costs
-      const availableForPI = maxTotalHousing - monthlyTaxEstimate - monthlyInsurance - monthlyPMI - effHoaMonthly;
+  const stressSettings: UkStressSettings = {
+    stressMarginPct: stressMargin,
+    ratePct: interestRate,
+    revertRatePct: D.revertRatePct,
+    maxShareOfTakeHomePct: maxShare,
+  };
+  const checkName = ukCheckName(stressSettings);
 
-      if (availableForPI <= 0) {
-        maxHomePrice = downPayment;
-        maxLoanAmount = 0;
-        break;
-      }
-
-      // Calculate max loan from available P&I budget
-      const newLoanAmount = calcMaxLoan(availableForPI, interestRate, loanTerm);
-      const newHomePrice = newLoanAmount + downPayment;
-
-      // Check if PMI applies (down payment < 20% of home price)
-      const downPaymentPct = newHomePrice > 0 ? (downPayment / newHomePrice) * 100 : 100;
-      const newPMI = downPaymentPct < 20 ? (newLoanAmount * (effPmiRate / 100)) / 12 : 0;
-
-      // Check convergence
-      if (Math.abs(newHomePrice - maxHomePrice) < 1) {
-        maxHomePrice = newHomePrice;
-        maxLoanAmount = newLoanAmount;
-        monthlyPMI = newPMI;
-        break;
-      }
-
-      maxHomePrice = newHomePrice;
-      maxLoanAmount = newLoanAmount;
-      monthlyPMI = newPMI;
-    }
-
-    const monthlyPI = calcMonthlyPI(maxLoanAmount, interestRate, loanTerm);
-    const monthlyTax = maxHomePrice * (effPropertyTaxRate / 100) / 12;
-    const monthlyInsurance = effInsuranceAnnual / 12;
-    const needsPMI = isUS && maxHomePrice > 0 && (downPayment / maxHomePrice) * 100 < 20;
-    const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + monthlyPMI + effHoaMonthly;
-
-    // Actual DTI ratio
-    const dtiRatio = grossMonthlyIncome > 0
-      ? ((totalMonthly + monthlyDebt) / grossMonthlyIncome) * 100
-      : 0;
-
-    return {
-      maxHomePrice: Math.max(0, maxHomePrice),
-      maxLoanAmount: Math.max(0, maxLoanAmount),
-      monthlyPI,
-      monthlyTax,
-      monthlyInsurance,
-      monthlyPMI,
-      monthlyHOA: effHoaMonthly,
-      totalMonthly,
-      dtiRatio,
-      needsPMI,
-      grossMonthlyIncome,
-    };
-  }, [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, dtiLimit, pmiRate, isUS]);
-
-  const animatedHomePrice = useAnimatedNumber(result.maxHomePrice);
-
-  // DTI color indicator
-  const dtiColor = result.dtiRatio <= 28
-    ? 'text-success-600'
-    : result.dtiRatio <= 36
-      ? 'text-amber-600'
-      : 'text-red-600';
-
-  const dtiBg = result.dtiRatio <= 28
-    ? 'bg-success-50 border-success-100'
-    : result.dtiRatio <= 36
-      ? 'bg-amber-50 border-amber-200'
-      : 'bg-red-50 border-red-200';
-
-  const dtiLabel = result.dtiRatio <= 28
-    ? 'Conservative'
-    : result.dtiRatio <= 36
-      ? 'Moderate'
-      : 'Stretched';
+  const rateInfo = defaultMortgageRateInfo(region, loanTerm);
+  const rateHint = `Average ${rateInfo.label.split(',')[0].toLowerCase()}: ${rateInfo.value}% (${rateAttribution(rateInfo)})`;
 
   const getInputs = useCallback(() => {
     const inputs = [
-      { label: 'Annual Gross Income', value: fmt(annualIncome) },
-      { label: 'Monthly Debt Payments', value: fmt(monthlyDebt) },
+      { label: isUK ? 'Gross Household Income' : 'Annual Gross Income', value: fmt(annualIncome) },
+      { label: isUK ? 'Monthly Credit Commitments' : 'Monthly Debt Payments', value: fmt(monthlyDebt) },
       { label: depositLabel, value: fmt(downPayment) },
       { label: 'Interest Rate', value: `${interestRate}%` },
       { label: 'Loan Term', value: `${loanTerm} years` },
@@ -234,60 +195,62 @@ export default function MortgageAffordabilityCalc() {
     if (isUS) {
       inputs.push({ label: 'Property Tax Rate', value: `${propertyTaxRate}%` });
       inputs.push({ label: 'Annual Insurance', value: fmt(insuranceAnnual) });
-      if (hoaMonthly > 0) {
-        inputs.push({ label: 'HOA Fees', value: `${fmt(hoaMonthly)}/mo` });
-      }
-    }
-    if (showAdvanced) {
-      inputs.push({
-        label: isUS ? 'DTI Limit' : 'Income Spent on Housing',
-        value: `${dtiLimit}%`,
-      });
-      if (isUS) {
-        inputs.push({ label: 'PMI Rate', value: `${pmiRate}%` });
-      }
+      if (hoaMonthly > 0) inputs.push({ label: 'HOA Fees', value: `${fmt(hoaMonthly)}/mo` });
+      inputs.push({ label: 'DTI Limits (front / back)', value: `${frontEndPct}% / ${backEndPct}%` });
+      inputs.push({ label: 'PMI Rate', value: `${pmiRate}%` });
+    } else if (isUK) {
+      inputs.push({ label: 'Monthly Take-Home Pay', value: `${fmt(takeHome)}${takeHomeOverride === null ? ' (estimated)' : ''}` });
+      inputs.push({ label: 'Income Multiple Cap', value: `${ltiCap}x` });
+      inputs.push(ukStressTestInput(stressSettings, uk.stressRatePct));
+    } else {
+      inputs.push({ label: 'Max Share of Gross Income', value: `${eurLimit}%` });
     }
     return inputs;
-  }, [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, showAdvanced, dtiLimit, pmiRate, currency]);
+  }, [annualIncome, monthlyDebt, downPayment, interestRate, loanTerm, propertyTaxRate, insuranceAnnual, hoaMonthly, frontEndPct, backEndPct, pmiRate, takeHome, takeHomeOverride, ltiCap, stressMargin, maxShare, eurLimit, uk, region, currency]);
 
-  const getResults = useCallback((): ResultItem[] => [
-    { label: 'Maximum Home Price', value: fmt(result.maxHomePrice), highlight: true },
-    { label: 'Loan Amount', value: fmt(result.maxLoanAmount) },
-    { label: 'Total Monthly Payment', value: fmt(result.totalMonthly) },
-    {
-      label: isUS ? 'Debt-to-Income Ratio' : 'Share of Income on Housing & Debt',
-      value: `${result.dtiRatio.toFixed(1)}%`,
-    },
-  ], [result, currency]);
-
-  // Pie chart data for monthly payment breakdown
-  // Semantic slice colors: P&I = primary teal (builds equity), recurring
-  // taxes/fees = cost family differentiated by opacity steps.
-  const sliceStyle = (name: string): { fill: string; opacity: number } => {
-    switch (name) {
-      case 'Principal & Interest': return { fill: ct.series1, opacity: 1 };
-      case 'Property Tax': return { fill: ct.cost, opacity: 1 };
-      case 'Insurance': return { fill: ct.cost, opacity: 0.7 };
-      case 'PMI': return { fill: ct.cost, opacity: 0.5 };
-      case 'HOA': return { fill: ct.cost, opacity: 0.32 };
-      default: return { fill: ct.segments[1], opacity: 1 };
+  const getResults = useCallback((): ResultItem[] => {
+    if (!affordable) {
+      return [
+        { label: headlineLabel, value: 'Not affordable', highlight: true },
+        { label: 'Why', value: subline },
+      ];
     }
-  };
-
-  const pieData = useMemo(() => {
-    const data = [
-      { name: 'Principal & Interest', value: Math.round(result.monthlyPI) },
-      { name: 'Property Tax', value: Math.round(result.monthlyTax) },
-      { name: 'Insurance', value: Math.round(result.monthlyInsurance) },
+    const items: ResultItem[] = [
+      { label: 'Maximum Home Price', value: fmt(result.maxPrice), highlight: true },
+      { label: 'Loan Amount', value: fmt(result.maxLoan) },
     ];
-    if (result.monthlyPMI > 0) {
-      data.push({ name: 'PMI', value: Math.round(result.monthlyPMI) });
+    if (isUS) {
+      items.push({ label: 'Total Monthly Housing Payment', value: fmt(us.totalMonthly) });
+      items.push({ label: 'Housing / All-Debt Ratios', value: `${fmtPct(us.frontEndRatio)} / ${fmtPct(us.backEndRatio)}` });
+    } else if (isUK) {
+      items.push(...ukResultItems(uk, stressSettings, fmt));
+    } else {
+      items.push({ label: 'Monthly Payment', value: fmt(eur.monthlyPI) });
+      items.push({ label: 'Share of Gross Income on Loan Payments', value: fmtPct(eur.debtServiceRatio) });
     }
-    if (result.monthlyHOA > 0) {
-      data.push({ name: 'HOA', value: Math.round(result.monthlyHOA) });
-    }
-    return data.filter(d => d.value > 0);
-  }, [result]);
+    return items;
+  }, [result, us, uk, eur, affordable, headlineLabel, subline, interestRate, stressMargin, maxShare, region, currency]);
+
+  const slices = useMemo(() => {
+    const data = [
+      { name: 'Principal & Interest', value: Math.round(us.monthlyPI) },
+      { name: 'Property Tax', value: Math.round(us.monthlyTax) },
+      { name: 'Insurance', value: Math.round(us.monthlyInsurance) },
+      { name: 'PMI', value: Math.round(us.monthlyPMI) },
+      { name: 'HOA', value: Math.round(us.monthlyHOA) },
+    ];
+    return data.filter((d) => d.value > 0);
+  }, [us]);
+
+  const card = (icon: ReactNode, label: string, value: string, valueClass = 'text-neutral-900') => (
+    <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
+      <div className="hidden sm:flex w-8 h-8 rounded-lg bg-primary-50 text-primary-600 items-center justify-center shrink-0 mt-0.5">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-xs text-neutral-500 mb-0.5">{label}</p>
+        <p className={`text-base sm:text-lg font-semibold whitespace-nowrap tabular-nums ${valueClass}`}>{value}</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -310,23 +273,42 @@ export default function MortgageAffordabilityCalc() {
 
           <div className="space-y-5">
             <SliderInput
-              label="Annual Gross Income"
-              hint="Your total yearly income before taxes"
+              label={isUK ? 'Gross Household Income' : 'Annual Gross Income'}
+              hint={isUK ? 'Total yearly income before tax — add both incomes for a joint mortgage' : 'Your total yearly income before taxes'}
               id="afford-income"
               value={annualIncome}
-              min={30000}
+              min={10000}
               max={500000}
               step={1000}
               textMax={1000000}
-              minLabel={`${currencySymbol}30K`}
+              minLabel={`${currencySymbol}10K`}
               maxLabel={`${currencySymbol}500K`}
-              onChange={setAnnualIncome}
+              onChange={handleIncomeChange}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
             />
+            {isUK && (
+              <SliderInput
+                label="Monthly Take-Home Pay"
+                hint={takeHomeOverride === null
+                  ? 'Estimated for one earner at rest-of-UK tax and NI — edit for joint, Scottish or pension-adjusted pay'
+                  : 'Your household take-home pay after tax, NI and pension'}
+                id="afford-takehome"
+                value={takeHome}
+                min={500}
+                max={30000}
+                textMax={100000}
+                step={50}
+                minLabel={`${currencySymbol}500`}
+                maxLabel={`${currencySymbol}30K`}
+                onChange={setTakeHomeOverride}
+                prefix={currencySymbol}
+                formatDisplay={formatNumber}
+              />
+            )}
             <SliderInput
-              label="Monthly Debt Payments"
-              hint="Car loans, student loans, credit cards, etc."
+              label={isUK ? 'Monthly Credit Commitments' : 'Monthly Debt Payments'}
+              hint={isUK ? 'Loans, car finance, credit card and student loan payments' : 'Car loans, student loans, credit cards, etc.'}
               id="afford-debt"
               value={monthlyDebt}
               min={0}
@@ -334,13 +316,13 @@ export default function MortgageAffordabilityCalc() {
               step={25}
               minLabel={`${currencySymbol}0`}
               maxLabel={`${currencySymbol}5K`}
-              onChange={setMonthlyDebt}
+              onChange={handleDebtChange}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
             />
             <SliderInput
               label={depositLabel}
-              hint={region === 'uk' ? 'Amount you have saved for the deposit' : 'Amount you have saved to put down'}
+              hint={isUK ? 'Amount you have saved for the deposit' : 'Amount you have saved to put down'}
               id="afford-down"
               value={downPayment}
               min={0}
@@ -357,30 +339,32 @@ export default function MortgageAffordabilityCalc() {
               label="Interest Rate"
               id="afford-rate"
               value={interestRate}
-              min={2}
-              max={12}
+              min={1}
+              max={15}
               step={0.125}
-              onChange={setInterestRate}
+              onChange={handleRateChange}
               suffix="%"
               formatDisplay={(v) => v.toFixed(3)}
+              hint={rateHint}
             />
 
             {/* Loan term toggle */}
             <div>
-              <label id="afford-term-label" className="block text-sm font-medium text-neutral-700 mb-2">Loan Term</label>
-              <div className={`grid ${termOptions.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2`} role="radiogroup" aria-labelledby="afford-term-label">
+              <span id="afford-term-label" className="block text-sm font-medium text-neutral-700 mb-2">{isUK ? 'Mortgage Term' : 'Loan Term'}</span>
+              <div className={`grid ${termOptions.length === 4 ? 'grid-cols-4' : termOptions.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2`} role="group" aria-labelledby="afford-term-label">
                 {termOptions.map((term) => (
                   <button
                     key={term}
+                    type="button"
                     onClick={() => { setLoanTerm(term); setTermTouched(true); }}
                     aria-pressed={loanTerm === term}
                     className={`py-2.5 rounded-lg text-sm font-medium transition-all duration-150 border ${
                       loanTerm === term
-                        ? 'bg-primary-600 text-white border-primary-500 shadow-sm'
+                        ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
                         : 'bg-white text-neutral-600 border-neutral-200 hover:border-primary-300 hover:bg-primary-50'
                     }`}
                   >
-                    {term} years
+                    {term} yrs
                   </button>
                 ))}
               </div>
@@ -390,10 +374,10 @@ export default function MortgageAffordabilityCalc() {
               <>
                 <SliderInput
                   label="Property Tax Rate"
-                  hint="Annual property tax as % of home value"
+                  hint="Annual property tax as % of home value — check your county assessor"
                   id="afford-tax"
                   value={propertyTaxRate}
-                  min={0.1}
+                  min={0}
                   max={4}
                   step={0.1}
                   onChange={setPropertyTaxRate}
@@ -402,14 +386,14 @@ export default function MortgageAffordabilityCalc() {
                 />
                 <SliderInput
                   label="Homeowners Insurance"
-                  hint="Annual homeowners insurance cost"
+                  hint="Annual premium — get a quote for the area you're buying in"
                   id="afford-ins"
                   value={insuranceAnnual}
                   min={0}
-                  max={5000}
+                  max={6000}
                   step={100}
                   minLabel={`${currencySymbol}0`}
-                  maxLabel={`${currencySymbol}5K`}
+                  maxLabel={`${currencySymbol}6K`}
                   onChange={setInsuranceAnnual}
                   prefix={currencySymbol}
                   formatDisplay={formatNumber}
@@ -433,145 +417,127 @@ export default function MortgageAffordabilityCalc() {
 
             {/* Advanced toggle */}
             <button
+              type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
               aria-expanded={showAdvanced}
+              aria-controls="afford-advanced"
               className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150"
             >
-              <ChevronDown
-                size={16}
-                className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
-                aria-hidden="true"
-              />
-              {showAdvanced ? 'Hide' : 'Show'} Advanced Settings
+              <ChevronDown size={16} className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
+              {showAdvanced ? 'Hide' : 'Show'} {isUS ? 'Lender Limits' : 'Affordability Limits'}
             </button>
 
-            {showAdvanced && (
+            <Collapse open={showAdvanced} id="afford-advanced">
               <div className="space-y-5 pt-1">
-                <SliderInput
-                  label={isUS ? 'DTI Limit' : 'Income Spent on Housing'}
-                  hint={isUS
-                    ? 'Max debt-to-income ratio your lender allows (28-45%)'
-                    : 'Max share of gross income spent on housing and debts (28-45%)'}
-                  id="afford-dti"
-                  value={dtiLimit}
-                  min={28}
-                  max={45}
-                  step={1}
-                  onChange={setDtiLimit}
-                  suffix="%"
-                  formatDisplay={(v) => v.toFixed(0)}
-                />
-                {/* Only show PMI rate if down payment could result in < 20% */}
-                {isUS && downPayment < (result.maxHomePrice * 0.2) && (
-                  <SliderInput
-                    label="PMI Rate"
-                    hint="Annual private mortgage insurance rate"
-                    id="afford-pmi"
-                    value={pmiRate}
-                    min={0}
-                    max={2}
-                    step={0.1}
-                    onChange={setPmiRate}
-                    suffix="%"
-                    formatDisplay={(v) => v.toFixed(1)}
-                  />
+                {isUS && (
+                  <>
+                    <SliderInput label="Housing Limit (Front-End DTI)" hint="Max share of gross income for the housing payment — 28% guideline" id="afford-front" value={frontEndPct} min={20} max={45} step={1} onChange={setFrontEndPct} suffix="%" formatDisplay={(v) => v.toFixed(0)} />
+                    <SliderInput label="All-Debt Limit (Back-End DTI)" hint="Max share of gross income for housing plus other debts — 36% guideline" id="afford-back" value={backEndPct} min={28} max={50} step={1} onChange={setBackEndPct} suffix="%" formatDisplay={(v) => v.toFixed(0)} />
+                    <SliderInput label="PMI Rate" hint="Annual private mortgage insurance, % of the loan, while your down payment is under 20%" id="afford-pmi" value={pmiRate} min={0} max={2} step={0.1} onChange={setPmiRate} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
+                  </>
+                )}
+                {isUK && (
+                  <>
+                    <SliderInput label="Income Multiple Cap" hint="Most lenders cap borrowing around 4.5x income; some lend 5-5.5x, often to higher earners" id="afford-lti" value={ltiCap} min={LTI_RANGE.min} max={LTI_RANGE.max} step={0.25} onChange={setLtiCap} suffix="x" formatDisplay={(v) => v.toFixed(2)} />
+                    <SliderInput label="Stress Test Margin" hint={`Added to the higher of your rate and lenders' average standard variable rate (${D.revertRatePct}%, ${rateAttribution(MARKET_RATES.uk.revertRate)}). 0 = no stress test, as for fixes of 5 years or more`} id="afford-stress" value={stressMargin} min={0} max={3} step={0.25} onChange={setStressMargin} suffix=" pts" formatDisplay={(v) => v.toFixed(2)} />
+                    <SliderInput label="Max Share of Take-Home Pay" hint="A budgeting guide, not a lender rule: MoneyHelper flags payments above half of take-home pay as high risk" id="afford-share" value={maxShare} min={30} max={60} step={1} onChange={setMaxShare} suffix="%" formatDisplay={(v) => v.toFixed(0)} />
+                  </>
+                )}
+                {region === 'eur' && (
+                  <SliderInput label="Max Share of Gross Income" hint="Loan payments plus other debts. Rules differ by country; many lenders cap payments at about a third of net income" id="afford-eur-limit" value={eurLimit} min={20} max={45} step={1} onChange={setEurLimit} suffix="%" formatDisplay={(v) => v.toFixed(0)} />
                 )}
               </div>
-            )}
+            </Collapse>
           </div>
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" ref={resultsRef}>
+          <ResultAnnouncer text={announcement} />
           {/* Big number */}
           <div data-pdf-section className="mb-6">
-            <p className="text-sm text-neutral-500 mb-1">You can afford up to</p>
-            <p data-headline-result data-headline-label="You can afford up to" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {fmt(animatedHomePrice)}
+            <p className="text-sm text-neutral-500 mb-1">{headlineLabel}</p>
+            <p data-headline-result data-headline-label={headlineLabel} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+              {affordable ? fmt(animatedHomePrice) : 'Not affordable'}
             </p>
-            <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-              With a {fmt(downPayment)} {region === 'uk' ? 'deposit' : 'down payment'} and {fmt(result.maxLoanAmount)} loan
-            </p>
+            <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">{subline}</p>
           </div>
 
-          {/* Key stats cards */}
-          <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <Home size={16} aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Loan Amount</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.maxLoanAmount)}</p>
-              </div>
+          {affordable && (
+            <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
+              {card(<Home size={16} aria-hidden="true" />, 'Loan Amount', fmt(result.maxLoan))}
+              {isUS && card(<Banknote size={16} aria-hidden="true" />, 'Total Monthly', fmt(us.totalMonthly))}
+              {isUK && card(<Banknote size={16} aria-hidden="true" />, 'Monthly Payment', fmt(uk.monthlyPI))}
+              {region === 'eur' && card(<Banknote size={16} aria-hidden="true" />, 'Monthly Payment', fmt(eur.monthlyPI))}
+              {card(<PiggyBank size={16} aria-hidden="true" />, depositLabel, fmt(downPayment))}
+              {isUS && card(<Percent size={16} aria-hidden="true" />, 'Monthly P&I', fmt(us.monthlyPI))}
+              {isUK && (stressMargin > 0
+                ? card(<Percent size={16} aria-hidden="true" />, ukCheckedPaymentLabel(stressSettings, uk.stressRatePct), fmt(uk.stressedPayment))
+                : card(<Percent size={16} aria-hidden="true" />, 'Share of Take-Home Pay', fmtPct(uk.shareOfTakeHome)))}
+              {region === 'eur' && card(<Percent size={16} aria-hidden="true" />, 'Share of Income', fmtPct(eur.debtServiceRatio))}
             </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <Banknote size={16} aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Total Monthly</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.totalMonthly)}</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <DollarSign size={16} aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">{depositLabel}</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(downPayment)}</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5">
-                <Percent size={16} aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Monthly P&I</p>
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums">{fmt(result.monthlyPI)}</p>
-              </div>
-            </div>
-          </div>
+          )}
 
-          {/* DTI indicator */}
-          <div data-pdf-section className={`mb-6 p-4 rounded-xl border ${dtiBg}`}>
-            <div className="flex items-center gap-2 mb-1">
-              {result.dtiRatio <= 28 ? (
-                <ShieldCheck size={16} className="text-success-600" aria-hidden="true" />
-              ) : result.dtiRatio <= 36 ? (
-                <AlertTriangle size={16} className="text-amber-600" aria-hidden="true" />
-              ) : (
-                <AlertTriangle size={16} className="text-red-600" aria-hidden="true" />
-              )}
-              <p className={`text-sm font-semibold ${dtiColor}`}>
-                {isUS ? 'Debt-to-Income' : 'Income spent on housing & debts'}: {result.dtiRatio.toFixed(1)}% ({dtiLabel})
+          {/* Ratio / stress indicator */}
+          {affordable && (
+            <div data-pdf-section className={`mb-6 p-4 rounded-xl border ${bandStyle.box}`}>
+              <div className="flex items-center gap-2 mb-1">
+                {band === 'good'
+                  ? <ShieldCheck size={16} className={bandStyle.text} aria-hidden="true" />
+                  : <AlertTriangle size={16} className={bandStyle.text} aria-hidden="true" />}
+                <p className={`text-sm font-semibold ${bandStyle.text}`}>
+                  {isUS && <>Housing {fmtPct(us.frontEndRatio)} · All debts {fmtPct(us.backEndRatio)} of gross income ({bandStyle.label})</>}
+                  {isUK && <>{checkName}: {fmtPct(uk.stressedShareOfTakeHome)} of take-home pay ({bandStyle.label})</>}
+                  {region === 'eur' && <>Loan and debt payments: {fmtPct(eur.debtServiceRatio)} of gross income ({bandStyle.label})</>}
+                </p>
+              </div>
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                {isUS && (
+                  <>Your maximum is set by the {us.binding === 'front-end'
+                    ? `${frontEndPct}% housing limit (front-end)`
+                    : `${backEndPct}% all-debt limit (back-end), after your ${fmt(monthlyDebt)}/month of other debts`}.
+                  {us.needsPMI ? '' : us.maxLoan > 0 && Math.abs(us.maxLoan - downPayment * 4) < 1 ? ' Stopping at exactly 20% down avoids PMI.' : ''}</>
+                )}
+                {isUK && (
+                  <>{stressMargin > 0
+                    ? <>Lenders check you could still pay at a higher rate. Here that is {uk.stressRatePct.toFixed(2)}% (the higher of your rate and the {D.revertRatePct}% average standard variable rate, plus {stressMargin} point{stressMargin === 1 ? '' : 's'}): {fmt(uk.stressedPayment)} a month</>
+                    : <>No stress test (stress margin 0): the payment is checked at your {interestRate}% rate: {fmt(uk.stressedPayment)} a month</>}
+                  {monthlyDebt > 0 ? ` plus ${fmt(monthlyDebt)} of other commitments` : ''}. The {maxShare}% ceiling is MoneyHelper's budgeting guide, not a lender rule: it treats more than half of take-home pay as high risk.
+                  {stressMargin > 0 && <span className="block mt-1">Fixing for 5 years or more? Lenders usually skip the stress test then — use your 5-year fixed rate (average {MARKET_RATES.uk.fixed5yr75.value}%) and set the stress margin to 0 in Affordability Limits.</span>}</>
+                )}
+                {region === 'eur' && (
+                  <>Lending rules differ across the euro area, and many lenders cap payments as a share of net income. Check your lender's own limit.</>
+                )}
               </p>
             </div>
-            <p className="text-xs text-neutral-600 leading-relaxed">
-              {result.dtiRatio <= 28
-                ? (isUS
-                    ? 'Well within the recommended 28% housing DTI. You have room for other financial goals.'
-                    : 'A comfortable share of your gross income. You have room for other financial goals.')
-                : result.dtiRatio <= 36
-                  ? (isUS
-                      ? 'Within typical lender limits. Consider whether this leaves enough for savings and emergencies.'
-                      : 'A moderate share of your gross income. Consider whether this leaves enough for savings and emergencies.')
-                  : (isUS
-                      ? 'Above the recommended 36% total DTI. Lenders may still approve, but this leaves little buffer.'
-                      : 'A large share of your gross income. Lenders may still approve, but this leaves little buffer.')}
-            </p>
-          </div>
+          )}
 
-          {/* UK income-multiple context */}
-          {region === 'uk' && (
-            <div data-pdf-section className="mb-6 p-3 rounded-xl border border-neutral-200/80 bg-white text-xs text-neutral-600 leading-relaxed">
-              UK lenders typically cap borrowing around {UK_MORTGAGE.incomeMultipleCap}x income and stress-test affordability.
-              {result.maxLoanAmount > annualIncome * UK_MORTGAGE.incomeMultipleCap && (
-                <span className="block mt-1 font-medium text-amber-700">
-                  This result is above the ~{UK_MORTGAGE.incomeMultipleCap}x income multiple most UK lenders allow.
-                </span>
-              )}
+          {/* UK: which limit binds, deposit warning */}
+          {isUK && affordable && (
+            <div data-pdf-section className="mb-6 bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
+              <table className="w-full text-sm">
+                <caption className="sr-only">UK borrowing limits</caption>
+                <thead>
+                  <tr className="bg-neutral-50 border-b border-neutral-200/60">
+                    <th scope="col" className="text-left py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Limit</th>
+                    <th scope="col" className="text-right py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Max loan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-neutral-100">
+                    <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">Income multiple ({ltiCap}x income){uk.binding === 'lti' ? ' — sets your maximum' : ''}</th>
+                    <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums whitespace-nowrap">{fmt(uk.ltiLimitLoan)}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">{checkName}: payment at {uk.stressRatePct.toFixed(2)}% within {maxShare}% of take-home (MoneyHelper guide){uk.binding === 'stress' ? ' — sets your maximum' : ''}</th>
+                    <td className="py-2.5 px-4 text-right text-neutral-700 tabular-nums whitespace-nowrap">{fmt(uk.stressLimitLoan)}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="px-4 py-3 text-xs text-neutral-600 leading-relaxed border-t border-neutral-100">
+                This is {uk.incomeMultiple.toFixed(2)}x your income. Bank of England rules keep lending at 4.5x income or more to about 15% of all new mortgages across the market (since 28 Oct 2026 a market-wide limit, so some lenders go higher). Most lenders still cap around 4.5x, and each runs its own affordability check.
+                {uk.lowDeposit && <span className="block mt-1 font-medium text-amber-800">Your deposit is under 5% of this price. Most lenders need at least 5%.</span>}
+              </p>
             </div>
           )}
 
@@ -583,115 +549,127 @@ export default function MortgageAffordabilityCalc() {
           </div>
 
           {/* PMI warning */}
-          {result.needsPMI && (
+          {isUS && us.needsPMI && (
             <div data-pdf-section className="mb-6 p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800 leading-relaxed">
               <strong>PMI required:</strong> Your down payment is less than 20% of the home price.
-              Expect ~{fmt(result.monthlyPMI)}/month in Private Mortgage Insurance until you reach 20% equity.
+              Expect about <span className="tabular-nums">{fmt(us.monthlyPMI)}</span>/month in private mortgage insurance until you reach 20% equity.
             </div>
           )}
 
-          {/* Monthly payment breakdown table */}
-          <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden mb-6">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-neutral-50 border-b border-neutral-200/60">
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Component</th>
-                  <th className="text-right py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Monthly</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { label: 'Principal & Interest', value: result.monthlyPI },
-                  ...(isUS ? [
-                    { label: 'Property Tax', value: result.monthlyTax },
-                    { label: 'Insurance', value: result.monthlyInsurance },
-                  ] : []),
-                  ...(result.needsPMI ? [{ label: 'PMI (est.)', value: result.monthlyPMI }] : []),
-                  ...(result.monthlyHOA > 0 ? [{ label: 'HOA', value: result.monthlyHOA }] : []),
-                ].map((row, i) => (
-                  <tr key={row.label} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
-                    <td className="py-2.5 px-4 font-medium text-neutral-700">{row.label}</td>
-                    <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">{fmt(row.value)}</td>
-                  </tr>
-                ))}
-                <tr className="bg-neutral-50 font-semibold">
-                  <td className="py-2.5 px-4 text-neutral-900">Total Monthly Payment</td>
-                  <td className="py-2.5 px-4 text-right text-primary-700 tabular-nums">{fmt(result.totalMonthly)}</td>
-                </tr>
-              </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Pie chart — payment breakdown */}
-          {pieData.length > 0 && result.totalMonthly > 0 && (
-            <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
-              <h3 className="text-sm font-medium text-neutral-700 mb-3">Monthly Payment Breakdown</h3>
-              <div className="relative h-[200px]">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={45}
-                      outerRadius={75}
-                      paddingAngle={3}
-                      dataKey="value"
-                      animationDuration={600}
-                    >
-                      {pieData.map((d, i) => {
-                        const s = sliceStyle(d.name);
-                        return <Cell key={i} fill={s.fill} fillOpacity={s.opacity} />;
-                      })}
-                    </Pie>
-                    <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                {/* Donut center KPI — the total monthly payment */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
-                  <span className="font-mono tabular-nums text-lg font-semibold text-neutral-900">{fmt(result.totalMonthly)}</span>
-                  <span className="text-[10px] uppercase tracking-wide text-neutral-500">monthly</span>
+          {/* US monthly payment breakdown table + donut */}
+          {isUS && affordable && (
+            <>
+              <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden mb-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <caption className="sr-only">Monthly housing payment breakdown</caption>
+                    <thead>
+                      <tr className="bg-neutral-50 border-b border-neutral-200/60">
+                        <th scope="col" className="text-left py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Component</th>
+                        <th scope="col" className="text-right py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Monthly</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { label: 'Principal & Interest', value: us.monthlyPI },
+                        { label: 'Property Tax', value: us.monthlyTax },
+                        { label: 'Insurance', value: us.monthlyInsurance },
+                        ...(us.needsPMI ? [{ label: 'PMI (est.)', value: us.monthlyPMI }] : []),
+                        ...(us.monthlyHOA > 0 ? [{ label: 'HOA', value: us.monthlyHOA }] : []),
+                      ].map((row, i) => (
+                        <tr key={row.label} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
+                          <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">{row.label}</th>
+                          <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">{fmt(row.value)}</td>
+                        </tr>
+                      ))}
+                      <tr className="bg-neutral-50 font-semibold">
+                        <th scope="row" className="py-2.5 px-4 text-left text-neutral-900">Total Monthly Payment</th>
+                        <td className="py-2.5 px-4 text-right text-primary-700 tabular-nums">{fmt(us.totalMonthly)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-2">
-                {pieData.map((d) => {
-                  const s = sliceStyle(d.name);
-                  return (
-                    <div key={d.name} className="flex items-center gap-1.5 text-xs text-neutral-600">
-                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.fill, opacity: s.opacity }} />
-                      {d.name}: {fmt(d.value)}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+
+              {slices.length > 1 && (
+                <DeferredChart height={260} className="mb-6">
+                  <AffordabilityChart slices={slices} currency={currency} total={us.totalMonthly} />
+                </DeferredChart>
+              )}
+            </>
           )}
 
           {/* Income context */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
-            <h3 className="text-sm font-medium text-neutral-700 mb-3">Income Breakdown</h3>
+            <h3 className="text-sm font-medium text-neutral-700 mb-3">How the Budget Is Set</h3>
             <div className="space-y-2.5">
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Gross monthly income</span>
-                <span className="font-medium text-neutral-900 tabular-nums">{fmt(result.grossMonthlyIncome)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Max housing payment ({dtiLimit}% {isUS ? 'DTI' : 'of income'})</span>
-                <span className="font-medium text-neutral-900 tabular-nums">{fmt(result.grossMonthlyIncome * (dtiLimit / 100))}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Less existing debt</span>
-                <span className="font-medium text-red-600 tabular-nums">-{fmt(monthlyDebt)}</span>
-              </div>
-              <div className="h-px bg-neutral-200" />
-              <div className="flex justify-between text-sm">
-                <span className="font-medium text-neutral-900">Available for housing</span>
-                <span className="font-semibold text-primary-700 tabular-nums">
-                  {fmt(Math.max(0, result.grossMonthlyIncome * (dtiLimit / 100) - monthlyDebt))}
-                </span>
-              </div>
+              {isUS && (
+                <>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-neutral-600">Gross monthly income</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(us.grossMonthlyIncome)}</span>
+                  </div>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-neutral-600">Housing limit ({frontEndPct}% of income)</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(us.frontEndBudget)}</span>
+                  </div>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-neutral-600">All-debt limit ({backEndPct}%{monthlyDebt > 0 ? ' minus other debts' : ''})</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(Math.max(0, us.backEndBudget))}</span>
+                  </div>
+                  <div className="h-px bg-neutral-200" />
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="font-medium text-neutral-900">Available for housing (lower of the two)</span>
+                    <span className="font-semibold text-primary-700 tabular-nums whitespace-nowrap">{fmt(Math.max(0, us.housingBudget))}</span>
+                  </div>
+                </>
+              )}
+              {isUK && (
+                <>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-neutral-600">Take-home pay{takeHomeOverride === null ? ' (estimated)' : ''}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(takeHome)}</span>
+                  </div>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-neutral-600">{maxShare}% of take-home pay</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt((takeHome * maxShare) / 100)}</span>
+                  </div>
+                  {monthlyDebt > 0 && (
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-neutral-600">Less credit commitments</span>
+                      <span className="font-medium text-red-600 tabular-nums whitespace-nowrap">-{fmt(monthlyDebt)}</span>
+                    </div>
+                  )}
+                  <div className="h-px bg-neutral-200" />
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="font-medium text-neutral-900">Mortgage payment allowed at {uk.stressRatePct.toFixed(2)}%</span>
+                    <span className="font-semibold text-primary-700 tabular-nums whitespace-nowrap">{fmt(Math.max(0, (takeHome * maxShare) / 100 - monthlyDebt))}</span>
+                  </div>
+                </>
+              )}
+              {region === 'eur' && (
+                <>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-neutral-600">Gross monthly income</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt(eur.grossMonthlyIncome)}</span>
+                  </div>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-neutral-600">{eurLimit}% of income</span>
+                    <span className="font-medium text-neutral-900 tabular-nums whitespace-nowrap">{fmt((eur.grossMonthlyIncome * eurLimit) / 100)}</span>
+                  </div>
+                  {monthlyDebt > 0 && (
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-neutral-600">Less existing debt</span>
+                      <span className="font-medium text-red-600 tabular-nums whitespace-nowrap">-{fmt(monthlyDebt)}</span>
+                    </div>
+                  )}
+                  <div className="h-px bg-neutral-200" />
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="font-medium text-neutral-900">Available for the mortgage payment</span>
+                    <span className="font-semibold text-primary-700 tabular-nums whitespace-nowrap">{fmt(Math.max(0, eur.paymentBudget))}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

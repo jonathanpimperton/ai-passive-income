@@ -1,5 +1,5 @@
 ---
-title: "Capital Gains Tax on Selling a Second Home in 2026/27"
+title: "Capital Gains Tax on a Second Home in 2026/27"
 slug: "cgt-second-home-2026-27"
 description: "UK capital gains tax on a second home in 2026/27: 18% and 24% rates, the £3,000 allowance, a worked £100,000 gain, and the 60-day reporting deadline."
 keywords: ["capital gains tax second home", "CGT on second property UK", "capital gains tax property 2026", "selling a second home tax", "60 day CGT reporting"]

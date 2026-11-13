@@ -1,5 +1,5 @@
 ---
-title: "$75,000 to $100,000: What a $25K Raise Actually Pays"
+title: "$75K to $100K: What a $25K Raise Actually Pays"
 slug: "pay-rise-shock-us"
 description: "A $25,000 raise from $75,000 to $100,000 adds $17,588 a year — $1,466 a month — after federal tax and FICA. Why a raise never shrinks your take-home pay."
 keywords: ["25k raise after taxes", "75k to 100k salary raise", "how much of a raise do you keep", "pay raise tax calculator", "does a raise put you in a higher tax bracket"]

@@ -1,16 +1,6 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { useState, useMemo, useCallback, useRef, lazy } from 'react';
 import { ChevronDown, RotateCcw, Trophy } from 'lucide-react';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
@@ -20,19 +10,17 @@ import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { useChartTheme } from '../../lib/useChartTheme';
 import ResultAffiliate from '../ui/ResultAffiliate';
-import { calcMonthly, calcPcpMonthly, calcOpportunityCost } from '../../lib/car-finance';
+import {
+  aprConventionForCurrency,
+  compareCarFinance,
+  maxDepositFor,
+  MIN_FINANCE_AMOUNT,
+  type CarFinanceOption,
+  type CarFinanceOptionType,
+} from '../../lib/car-finance';
+import { Collapse, DeferredChart, ResultAnnouncer } from './property-shared';
 
-interface FinanceResult {
-  type: string;
-  label: string;
-  monthly: number;
-  totalPaid: number;
-  totalInterest: number;
-  opportunityCost: number;
-  trueCost: number;
-  ownAtEnd: string;
-  note: string;
-}
+const CarFinanceChart = lazy(() => import('./charts/CarFinanceChart'));
 
 const DEFAULTS = {
   carPrice: 25000,
@@ -45,15 +33,24 @@ const DEFAULTS = {
   investReturnRate: 4.5,
 };
 
+const LABELS: Record<CarFinanceOptionType, string> = {
+  pcp: 'PCP',
+  hp: 'Hire Purchase',
+  loan: 'Personal Loan',
+  cash: 'Cash',
+};
+
 export default function CarFinanceCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency } = useCurrency();
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   const ct = useChartTheme();
+  const aprConvention = aprConventionForCurrency(currency);
 
   const [carPrice, setCarPrice] = useState(DEFAULTS.carPrice);
   const [deposit, setDeposit] = useState(DEFAULTS.deposit);
+  const [depositNotice, setDepositNotice] = useState<string | null>(null);
   const [termMonths, setTermMonths] = useState(DEFAULTS.termMonths);
   const [pcpApr, setPcpApr] = useState(DEFAULTS.pcpApr);
   const [pcpBalloonPct, setPcpBalloonPct] = useState(DEFAULTS.pcpBalloonPct);
@@ -65,6 +62,7 @@ export default function CarFinanceCalc() {
   const handleReset = useCallback(() => {
     setCarPrice(DEFAULTS.carPrice);
     setDeposit(DEFAULTS.deposit);
+    setDepositNotice(null);
     setTermMonths(DEFAULTS.termMonths);
     setPcpApr(DEFAULTS.pcpApr);
     setPcpBalloonPct(DEFAULTS.pcpBalloonPct);
@@ -73,123 +71,72 @@ export default function CarFinanceCalc() {
     setInvestReturnRate(DEFAULTS.investReturnRate);
   }, []);
 
-  /* ── Derived constraints ──────────────────────────────────── */
-  const financeAmount = Math.max(0, carPrice - deposit);
-  // Balloon + deposit must not exceed car price
-  const maxBalloonPct = Math.min(60, Math.floor((financeAmount / carPrice) * 100));
-  const effectiveBalloonPct = Math.min(Math.max(0, pcpBalloonPct), Math.max(0, maxBalloonPct));
-  const balloon = Math.round(carPrice * effectiveBalloonPct / 100);
+  // A lower price must never leave a deposit larger than the car (CALC-UX-A-07):
+  // pull the deposit down with it and say so.
+  const handlePriceChange = useCallback((price: number) => {
+    setCarPrice(price);
+    const cap = maxDepositFor(price);
+    if (deposit > cap) {
+      setDeposit(cap);
+      setDepositNotice(`Deposit reduced to ${formatCurrency(cap, currency)} so at least ${formatCurrency(MIN_FINANCE_AMOUNT, currency)} is financed.`);
+    }
+  }, [deposit, currency]);
 
-  /* ── Core calculation ───────────────────────────────────── */
-  const results = useMemo((): FinanceResult[] => {
-    // --- PCP (keep the car — pay balloon at end) ---
-    const pcpMonthly = calcPcpMonthly(financeAmount, balloon, pcpApr, termMonths);
-    const pcpTotalPaid = deposit + pcpMonthly * termMonths + balloon;
-    const pcpInterest = pcpTotalPaid - carPrice;
-    // Opportunity cost: deposit paid at month 0, monthly payments each month, balloon at end (0 opp cost)
-    const pcpOpp = calcOpportunityCost(deposit, pcpMonthly, termMonths, investReturnRate);
-    const pcpTrue = pcpTotalPaid + pcpOpp;
+  const handleDepositChange = useCallback((v: number) => {
+    setDepositNotice(null);
+    setDeposit(v);
+  }, []);
 
-    // --- HP ---
-    const hpMonthly = calcMonthly(financeAmount, hpApr, termMonths);
-    const hpTotalPaid = deposit + hpMonthly * termMonths;
-    const hpInterest = hpTotalPaid - carPrice;
-    const hpOpp = calcOpportunityCost(deposit, hpMonthly, termMonths, investReturnRate);
-    const hpTrue = hpTotalPaid + hpOpp;
+  const comparison = useMemo(
+    () => compareCarFinance({ carPrice, deposit, termMonths, pcpApr, pcpBalloonPct, hpApr, loanApr, investReturnRate, aprConvention }),
+    [carPrice, deposit, termMonths, pcpApr, pcpBalloonPct, hpApr, loanApr, investReturnRate, aprConvention],
+  );
+  const { options, cheapest, balloon, balloonPct, maxBalloonPct } = comparison;
+  const usedDeposit = comparison.deposit;
+  const depositMax = maxDepositFor(carPrice);
 
-    // --- Personal Loan ---
-    const loanMonthly = calcMonthly(financeAmount, loanApr, termMonths);
-    const loanTotalPaid = deposit + loanMonthly * termMonths;
-    const loanInterest = loanTotalPaid - carPrice;
-    const loanOpp = calcOpportunityCost(deposit, loanMonthly, termMonths, investReturnRate);
-    const loanTrue = loanTotalPaid + loanOpp;
+  const note = (o: CarFinanceOption): string => {
+    switch (o.type) {
+      case 'pcp': return `Lower monthly payments, but a ${fmt(balloon)} balloon is due at month ${termMonths} to keep the car.`;
+      case 'hp': return 'Higher monthly payments than PCP, but you own the car at the end with no final payment.';
+      case 'loan': return 'You own the car outright immediately. Often the lowest APR with good credit.';
+      case 'cash': return `No interest, but you give up ${fmt(Math.round(o.opportunityCost))} in potential investment returns over ${termMonths} months.`;
+    }
+  };
+  const ownAtEnd = (o: CarFinanceOption): string => {
+    switch (o.type) {
+      case 'pcp': return `Yes (${fmt(balloon)} balloon at end)`;
+      case 'hp': return 'Yes';
+      case 'loan': return 'Yes (from day one)';
+      case 'cash': return 'Yes (immediate)';
+    }
+  };
 
-    // --- Cash ---
-    // All money spent on day 1 → maximum opportunity cost
-    const cashOpp = calcOpportunityCost(carPrice, 0, termMonths, investReturnRate);
-    const cashTrue = carPrice + cashOpp;
+  const chartData = useMemo(
+    () => options.map((o) => ({ name: LABELS[o.type], payments: Math.round(o.totalPaid), opportunity: Math.round(o.opportunityCost) })),
+    [options],
+  );
 
-    return [
-      {
-        type: 'pcp',
-        label: 'PCP',
-        monthly: pcpMonthly,
-        totalPaid: pcpTotalPaid,
-        totalInterest: pcpInterest,
-        opportunityCost: pcpOpp,
-        trueCost: pcpTrue,
-        ownAtEnd: `Yes (${fmt(balloon)} balloon at end)`,
-        note: `Lower monthly payments, but a ${fmt(balloon)} balloon is due at month ${termMonths} to keep the car.`,
-      },
-      {
-        type: 'hp',
-        label: 'Hire Purchase',
-        monthly: hpMonthly,
-        totalPaid: hpTotalPaid,
-        totalInterest: hpInterest,
-        opportunityCost: hpOpp,
-        trueCost: hpTrue,
-        ownAtEnd: 'Yes',
-        note: 'Higher monthly payments than PCP, but you own the car at the end with no final payment.',
-      },
-      {
-        type: 'loan',
-        label: 'Personal Loan',
-        monthly: loanMonthly,
-        totalPaid: loanTotalPaid,
-        totalInterest: loanInterest,
-        opportunityCost: loanOpp,
-        trueCost: loanTrue,
-        ownAtEnd: 'Yes (from day one)',
-        note: 'You own the car outright immediately. Often the lowest APR with good credit.',
-      },
-      {
-        type: 'cash',
-        label: 'Cash',
-        monthly: 0,
-        totalPaid: carPrice,
-        totalInterest: 0,
-        opportunityCost: cashOpp,
-        trueCost: cashTrue,
-        ownAtEnd: 'Yes (immediate)',
-        note: `No interest, but you lose ${fmt(Math.round(cashOpp))} in potential investment returns over ${termMonths} months.`,
-      },
-    ];
-  }, [carPrice, deposit, financeAmount, balloon, termMonths, pcpApr, effectiveBalloonPct, hpApr, loanApr, investReturnRate, currency]);
-
-  // Find cheapest by true cost (all options included — all end with ownership)
-  const cheapest = useMemo(() => {
-    return results.reduce((best, r) => r.trueCost < best.trueCost ? r : best, results[0]);
-  }, [results]);
-
-  // Chart data — stacked bar: payments + opportunity cost = true cost
-  const chartData = useMemo(() =>
-    results.map(r => ({
-      name: r.label,
-      payments: Math.round(r.totalPaid),
-      opportunity: Math.round(r.opportunityCost),
-    })),
-  [results]);
+  // The deposit clamp notice is plain text; the one status region reads it out.
+  const announcement = `${depositNotice ? `${depositNotice} ` : ''}${LABELS[cheapest.type]} has the lowest true cost: ${fmt(Math.round(cheapest.trueCost))}.`;
 
   /* ── Callbacks for PDF / Email ──────────────────────────── */
   const getInputs = useCallback(() => [
     { label: 'Car Price', value: fmt(carPrice) },
-    { label: 'Deposit', value: fmt(deposit) },
+    { label: 'Deposit', value: fmt(usedDeposit) },
     { label: 'Term', value: `${termMonths} months` },
     { label: 'PCP APR', value: `${pcpApr}%` },
-    { label: 'PCP Balloon', value: `${effectiveBalloonPct}% (${fmt(balloon)})` },
+    { label: 'PCP Balloon', value: `${balloonPct}% (${fmt(balloon)})` },
     { label: 'HP APR', value: `${hpApr}%` },
     { label: 'Loan APR', value: `${loanApr}%` },
     { label: 'Investment Return', value: `${investReturnRate}%` },
-  ], [carPrice, deposit, termMonths, pcpApr, effectiveBalloonPct, balloon, hpApr, loanApr, investReturnRate, currency]);
+  ], [carPrice, usedDeposit, termMonths, pcpApr, balloonPct, balloon, hpApr, loanApr, investReturnRate, currency]);
 
-  const getResults = useCallback((): ResultItem[] => {
-    return [
-      { label: 'Cheapest Option (True Cost)', value: cheapest.label, highlight: true },
-      ...results.map(r => ({ label: `${r.label} True Cost`, value: fmt(Math.round(r.trueCost)) })),
-      ...results.map(r => ({ label: `${r.label} Monthly`, value: r.monthly > 0 ? fmt(Math.round(r.monthly)) : 'N/A' })),
-    ];
-  }, [results, cheapest, currency]);
+  const getResults = useCallback((): ResultItem[] => [
+    { label: 'Cheapest Option (True Cost)', value: LABELS[cheapest.type], highlight: true },
+    ...options.map((o) => ({ label: `${LABELS[o.type]} True Cost`, value: fmt(Math.round(o.trueCost)) })),
+    ...options.map((o) => ({ label: `${LABELS[o.type]} Monthly`, value: o.monthly > 0 ? fmt(Math.round(o.monthly)) : 'N/A' })),
+  ], [options, cheapest, currency]);
 
   /* ── Render ─────────────────────────────────────────────── */
   return (
@@ -222,24 +169,29 @@ export default function CarFinanceCalc() {
               step={500}
               minLabel={`${currencySymbol}3K`}
               maxLabel={`${currencySymbol}150K`}
-              onChange={setCarPrice}
+              onChange={handlePriceChange}
               prefix={currencySymbol}
               formatDisplay={formatNumber}
             />
-            <SliderInput
-              label="Deposit"
-              hint="Upfront payment or trade-in value"
-              id="car-deposit"
-              value={deposit}
-              min={0}
-              max={Math.min(carPrice - 1000, 75000)}
-              step={500}
-              minLabel={`${currencySymbol}0`}
-              maxLabel={fmt(Math.min(carPrice - 1000, 75000))}
-              onChange={setDeposit}
-              prefix={currencySymbol}
-              formatDisplay={formatNumber}
-            />
+            <div>
+              <SliderInput
+                label="Deposit"
+                hint="Upfront payment or trade-in value"
+                id="car-deposit"
+                value={usedDeposit}
+                min={0}
+                max={depositMax}
+                step={500}
+                minLabel={`${currencySymbol}0`}
+                maxLabel={fmt(depositMax)}
+                onChange={handleDepositChange}
+                prefix={currencySymbol}
+                formatDisplay={formatNumber}
+              />
+              {depositNotice && (
+                <p className="mt-1.5 text-xs text-amber-800">{depositNotice}</p>
+              )}
+            </div>
             <SliderInput
               label="Term"
               hint="How long you'll finance the car"
@@ -253,7 +205,7 @@ export default function CarFinanceCalc() {
               formatDisplay={(v) => v.toFixed(0)}
             />
 
-            <div className="h-px bg-gradient-to-r from-transparent via-primary-300/30 to-transparent" />
+            <div className="h-px bg-neutral-200/80" />
 
             <SliderInput
               label="Expected Investment Return"
@@ -270,81 +222,61 @@ export default function CarFinanceCalc() {
 
             {/* Advanced toggle for APR and balloon settings */}
             <button
+              type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
               aria-expanded={showAdvanced}
+              aria-controls="car-advanced"
               className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors duration-150"
             >
-              <ChevronDown
-                size={16}
-                className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
-                aria-hidden="true"
-              />
+              <ChevronDown size={16} className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
               {showAdvanced ? 'Hide' : 'Adjust'} Interest Rates
             </button>
 
-            {showAdvanced && (
+            <Collapse open={showAdvanced} id="car-advanced">
               <div className="space-y-4 pt-1 pl-3 border-l-2 border-primary-100">
-                <SliderInput
-                  label="PCP APR"
-                  id="car-pcp-apr"
-                  value={pcpApr}
-                  min={0}
-                  max={25}
-                  step={0.1}
-                  onChange={setPcpApr}
-                  suffix="%"
-                  formatDisplay={(v) => v.toFixed(1)}
-                />
+                <p className="text-xs text-neutral-500 leading-relaxed">
+                  {aprConvention === 'effective'
+                    ? 'APRs are treated as annual effective rates, as UK and EU lenders quote them.'
+                    : 'APRs are treated as US lenders quote them: the monthly rate is the APR divided by 12.'}
+                </p>
+                <SliderInput label="PCP APR" id="car-pcp-apr" value={pcpApr} min={0} max={25} step={0.1} onChange={setPcpApr} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
                 <SliderInput
                   label="PCP Balloon / GMFV"
                   hint={`Final payment to own the car (${fmt(balloon)})`}
                   id="car-pcp-balloon"
-                  value={effectiveBalloonPct}
+                  value={balloonPct}
                   min={0}
                   max={Math.max(0, maxBalloonPct)}
                   step={1}
                   onChange={setPcpBalloonPct}
-                  suffix={`% of price`}
+                  suffix="% of price"
                   formatDisplay={(v) => v.toFixed(0)}
                 />
-                <SliderInput
-                  label="HP APR"
-                  id="car-hp-apr"
-                  value={hpApr}
-                  min={0}
-                  max={25}
-                  step={0.1}
-                  onChange={setHpApr}
-                  suffix="%"
-                  formatDisplay={(v) => v.toFixed(1)}
-                />
-                <SliderInput
-                  label="Personal Loan APR"
-                  id="car-loan-apr"
-                  value={loanApr}
-                  min={0}
-                  max={25}
-                  step={0.1}
-                  onChange={setLoanApr}
-                  suffix="%"
-                  formatDisplay={(v) => v.toFixed(1)}
-                />
+                <SliderInput label="HP APR" id="car-hp-apr" value={hpApr} min={0} max={25} step={0.1} onChange={setHpApr} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
+                <SliderInput label="Personal Loan APR" id="car-loan-apr" value={loanApr} min={0} max={25} step={0.1} onChange={setLoanApr} suffix="%" formatDisplay={(v) => v.toFixed(1)} />
               </div>
-            )}
+            </Collapse>
           </div>
         </div>
 
         {/* ───── Results ───── */}
-        <div
-          className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start"
-          aria-live="polite"
-          ref={resultsRef}
-        >
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" ref={resultsRef}>
+          <ResultAnnouncer text={announcement} />
           {/* Winner badge */}
           <div data-pdf-section className="mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-100 text-success-700 text-sm font-medium mb-3">
-              <Trophy size={14} aria-hidden="true" />
-              {cheapest.label} has the lowest true cost
+            {/* The answer sits first, above the cards, so it is on screen on phones. */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-100 text-success-700 text-sm font-medium">
+                <Trophy size={14} aria-hidden="true" />
+                {LABELS[cheapest.type]} has the lowest true cost
+              </div>
+              <p
+                data-headline-result
+                data-headline-label={`${LABELS[cheapest.type]} — lowest true cost`}
+                className="text-2xl font-bold text-neutral-900 tabular-nums whitespace-nowrap"
+              >
+                {fmt(Math.round(cheapest.trueCost))}
+              </p>
             </div>
             <p className="text-sm text-neutral-500 leading-relaxed">
               <strong>True cost</strong> = total payments + the investment returns you give up by spending money earlier.
@@ -354,71 +286,55 @@ export default function CarFinanceCalc() {
 
           {/* Comparison cards */}
           <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-            {results.map((r, i) => (
+            {options.map((o, i) => (
               <div
-                key={r.type}
+                key={o.type}
                 className={`bg-white rounded-xl border p-4 relative overflow-hidden ${
-                  r.type === cheapest.type
-                    ? 'border-emerald-300 ring-1 ring-emerald-200'
-                    : 'border-neutral-200/80'
+                  o.type === cheapest.type ? 'border-emerald-300 ring-1 ring-emerald-200' : 'border-neutral-200/80'
                 }`}
               >
-                {r.type === cheapest.type && (
+                {o.type === cheapest.type && (
                   <div className="absolute top-0 right-0 bg-success-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wide">
                     Best Value
                   </div>
                 )}
                 <div className="flex items-center gap-2 mb-3">
-                  <span
-                    className="inline-block w-3 h-3 rounded-full shrink-0"
-                    style={{ backgroundColor: ct.segments[i % ct.segments.length] }}
-                    aria-hidden="true"
-                  />
-                  <h3 className="text-sm font-semibold text-neutral-800">{r.label}</h3>
+                  <span className="inline-block w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: ct.segments[i % ct.segments.length] }} aria-hidden="true" />
+                  <h3 className="text-sm font-semibold text-neutral-800">{LABELS[o.type]}</h3>
                 </div>
 
-                {/* Primary metric: True Cost */}
                 <div className="mb-2">
                   <p className="text-xs text-neutral-500 mb-0.5">True Cost</p>
-                  <p
-                    data-headline-result={r.type === cheapest.type ? '' : undefined}
-                    data-headline-label={r.type === cheapest.type ? `${r.label} — True Cost` : undefined}
-                    className="text-2xl font-bold text-neutral-900 tabular-nums"
-                  >
-                    {fmt(Math.round(r.trueCost))}
+                  <p className="text-2xl font-bold text-neutral-900 tabular-nums">
+                    {fmt(Math.round(o.trueCost))}
                   </p>
                 </div>
 
-                {/* Monthly payment */}
                 <div className="mb-3">
                   <p className="text-xs text-neutral-500 mb-0.5">Monthly Payment</p>
                   <p className="text-lg font-semibold text-neutral-700 tabular-nums">
-                    {r.monthly > 0 ? `${fmt(Math.round(r.monthly))}/mo` : '—'}
+                    {o.monthly > 0 ? `${fmt(Math.round(o.monthly))}/mo` : '—'}
                   </p>
                 </div>
 
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Total paid</span>
-                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(Math.round(r.totalPaid))}</span>
+                    <span className="font-medium text-neutral-900 tabular-nums">{fmt(Math.round(o.totalPaid))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Interest</span>
-                    <span className={`font-medium tabular-nums ${r.totalInterest > 0 ? 'text-red-600' : 'text-success-600'}`}>
-                      {fmt(Math.round(r.totalInterest))}
+                    <span className={`font-medium tabular-nums ${o.totalInterest > 0.5 ? 'text-red-600' : 'text-neutral-900'}`}>
+                      {fmt(Math.round(o.totalInterest))}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Opportunity cost</span>
-                    <span className="font-medium text-neutral-500 tabular-nums">
-                      {fmt(Math.round(r.opportunityCost))}
-                    </span>
+                    <span className="font-medium text-neutral-500 tabular-nums">{fmt(Math.round(o.opportunityCost))}</span>
                   </div>
                 </div>
 
-                <p className="mt-3 pt-3 border-t border-neutral-100 text-xs text-neutral-500 leading-relaxed">
-                  {r.note}
-                </p>
+                <p className="mt-3 pt-3 border-t border-neutral-100 text-xs text-neutral-500 leading-relaxed">{note(o)}</p>
               </div>
             ))}
           </div>
@@ -433,85 +349,70 @@ export default function CarFinanceCalc() {
           {/* True cost stacked bar chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4 mb-6">
             <h3 className="text-sm font-medium text-neutral-700 mb-1">True Cost Breakdown</h3>
-            <p className="text-xs text-neutral-400 mb-3">Payments + opportunity cost (what your cash could have earned)</p>
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                  <CartesianGrid stroke={ct.grid} vertical={false} />
-                  <XAxis dataKey="name" tick={{ fill: ct.axisText, fontSize: 11, fontFamily: ct.monoFont }} stroke={ct.axis} interval="preserveStartEnd" minTickGap={24} />
-                  <YAxis tick={{ fill: ct.axisText, fontSize: 11, fontFamily: ct.monoFont }} stroke={ct.axis} tickFormatter={(v: number) => `${currencySymbol}${formatNumber(v)}`} />
-                  <Tooltip content={<ChartTooltip labelPrefix="" formatValue={fmt} />} />
-                  <Bar dataKey="payments" name="Total Paid" stackId="a" fill={ct.series1} radius={[0, 0, 0, 0]} animationDuration={600} />
-                  <Bar dataKey="opportunity" name="Opportunity Cost" stackId="a" fill={ct.cost} radius={[4, 4, 0, 0]} animationDuration={600} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <p className="text-xs text-neutral-500 mb-3">Payments + opportunity cost (what your cash could have earned)</p>
+            <DeferredChart height={220}>
+              <CarFinanceChart data={chartData} currency={currency} />
+            </DeferredChart>
           </div>
 
           {/* Detailed comparison table */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Scrolls sideways on phones; focusable so keyboard users can scroll it too. */}
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Car finance options compared (scrolls sideways)">
               <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-neutral-50 border-b border-neutral-200/60">
-                  <th className="text-left py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Metric</th>
-                  {results.map(r => (
-                    <th key={r.type} className="text-right py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                      {r.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-neutral-100 bg-white">
-                  <td className="py-2.5 px-3 font-medium text-neutral-700">Monthly Payment</td>
-                  {results.map(r => (
-                    <td key={r.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums">
-                      {r.monthly > 0 ? fmt(Math.round(r.monthly)) : '—'}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b border-neutral-100 bg-neutral-50/50">
-                  <td className="py-2.5 px-3 font-medium text-neutral-700">Total Paid</td>
-                  {results.map(r => (
-                    <td key={r.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums">
-                      {fmt(Math.round(r.totalPaid))}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b border-neutral-100 bg-white">
-                  <td className="py-2.5 px-3 font-medium text-neutral-700">Interest</td>
-                  {results.map(r => (
-                    <td key={r.type} className={`py-2.5 px-3 text-right tabular-nums ${r.totalInterest > 0 ? 'text-red-600' : 'text-success-600'}`}>
-                      {fmt(Math.round(r.totalInterest))}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b border-neutral-100 bg-neutral-50/50">
-                  <td className="py-2.5 px-3 font-medium text-neutral-700">Opportunity Cost</td>
-                  {results.map(r => (
-                    <td key={r.type} className="py-2.5 px-3 text-right text-neutral-500 tabular-nums">
-                      {fmt(Math.round(r.opportunityCost))}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b border-neutral-100 bg-success-50/50 font-semibold">
-                  <td className="py-2.5 px-3 text-neutral-900">True Cost</td>
-                  {results.map(r => (
-                    <td key={r.type} className={`py-2.5 px-3 text-right tabular-nums ${r.type === cheapest.type ? 'text-success-700' : 'text-neutral-900'}`}>
-                      {fmt(Math.round(r.trueCost))}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="bg-neutral-50/50">
-                  <td className="py-2.5 px-3 font-medium text-neutral-700">Own at End?</td>
-                  {results.map(r => (
-                    <td key={r.type} className="py-2.5 px-3 text-right text-neutral-600 text-xs">
-                      {r.ownAtEnd}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
+                <caption className="sr-only">Car finance options compared</caption>
+                <thead>
+                  <tr className="bg-neutral-50 border-b border-neutral-200/60">
+                    <th scope="col" className="text-left py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Metric</th>
+                    {options.map((o) => (
+                      <th scope="col" key={o.type} className="text-right py-2.5 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                        {LABELS[o.type]}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-neutral-100 bg-white">
+                    <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Monthly Payment</th>
+                    {options.map((o) => (
+                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums whitespace-nowrap">{o.monthly > 0 ? fmt(Math.round(o.monthly)) : '—'}</td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-neutral-100 bg-neutral-50/50">
+                    <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Total Paid</th>
+                    {options.map((o) => (
+                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-600 tabular-nums whitespace-nowrap">{fmt(Math.round(o.totalPaid))}</td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-neutral-100 bg-white">
+                    <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Interest</th>
+                    {options.map((o) => (
+                      <td key={o.type} className={`py-2.5 px-3 text-right tabular-nums whitespace-nowrap ${o.totalInterest > 0.5 ? 'text-red-600' : 'text-neutral-600'}`}>
+                        {fmt(Math.round(o.totalInterest))}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-neutral-100 bg-neutral-50/50">
+                    <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Opportunity Cost</th>
+                    {options.map((o) => (
+                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-500 tabular-nums whitespace-nowrap">{fmt(Math.round(o.opportunityCost))}</td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-neutral-100 bg-success-50/50 font-semibold">
+                    <th scope="row" className="py-2.5 px-3 text-left text-neutral-900">True Cost</th>
+                    {options.map((o) => (
+                      <td key={o.type} className={`py-2.5 px-3 text-right tabular-nums whitespace-nowrap ${o.type === cheapest.type ? 'text-success-700' : 'text-neutral-900'}`}>
+                        {fmt(Math.round(o.trueCost))}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="bg-neutral-50/50">
+                    <th scope="row" className="py-2.5 px-3 text-left font-medium text-neutral-700">Own at End?</th>
+                    {options.map((o) => (
+                      <td key={o.type} className="py-2.5 px-3 text-right text-neutral-600 text-xs">{ownAtEnd(o)}</td>
+                    ))}
+                  </tr>
+                </tbody>
               </table>
             </div>
           </div>

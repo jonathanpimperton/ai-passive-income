@@ -1,5 +1,5 @@
 ---
-title: "ISA vs General Investment Account: Which Should You Use?"
+title: "ISA vs General Investment Account: Which to Use?"
 slug: "isa-vs-general-investment"
 description: "Compare Stocks & Shares ISAs with general investment accounts. See the tax savings, contribution limits, and when each account type makes sense."
 keywords:

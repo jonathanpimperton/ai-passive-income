@@ -1,7 +1,7 @@
 ---
-title: "Renting vs Buying a Home in 2026: Full Cost Comparison"
+title: "Renting vs Buying a Home: Full Cost Comparison"
 slug: "renting-vs-buying-2026"
-description: "Should you rent or buy in 2026? Compare total costs including mortgage rates, appreciation, tax benefits, and opportunity cost of your down payment."
+description: "Should you rent or buy? Compare total costs including mortgage rates, appreciation, tax benefits, and the opportunity cost of your down payment."
 keywords:
   - "rent vs buy 2026"
   - "should I buy a house in 2026"
