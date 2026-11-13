@@ -1,5 +1,5 @@
 ---
-title: "LISA vs Regular ISA: Which Should UK Savers Choose?"
+title: "LISA vs Regular ISA: Which Suits UK Savers?"
 slug: "lisa-vs-regular-isa"
 description: "Compare the Lifetime ISA and regular Stocks & Shares ISA. See the 25% bonus, withdrawal penalties, age limits, and which works for your goals."
 keywords:
@@ -25,10 +25,10 @@ comparisonTable:
     option1: "None"
     option2: "None"
   - feature: "Withdrawal penalty"
-    option1: "25% on non-qualifying withdrawals"
+    option1: "25% on non-qualifying withdrawals (20% on a first home over £450K)"
     option2: "None — fully flexible"
   - feature: "Qualifying withdrawals"
-    option1: "First home (under £450K) or age 60+"
+    option1: "First home (£450K or less) or age 60+"
     option2: "Any purpose, any time"
   - feature: "Counts toward ISA allowance"
     option1: "Yes — part of £20,000 total"
@@ -38,19 +38,27 @@ affiliatePrograms:
   - "InvestEngine"
   - "Nutmeg"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "GOV.UK — Lifetime ISA"
     url: "https://www.gov.uk/lifetime-isa"
   - name: "GOV.UK — Individual Savings Accounts"
     url: "https://www.gov.uk/individual-savings-accounts"
+  - name: "GOV.UK — Withdrawing money from your Lifetime ISA"
+    url: "https://www.gov.uk/lifetime-isa/withdrawing-money-from-your-lifetime-isa"
+  - name: "HMRC — Lifetime ISA withdrawal charge (from 29 October 2026)"
+    url: "https://www.gov.uk/government/publications/lifetime-isa-withdrawal-charge"
+  - name: "HM Treasury — First Time Buyer ISA consultation and response"
+    url: "https://www.gov.uk/government/consultations/first-time-buyer-isa-consultation"
 ---
 
 ## How the Lifetime ISA works
 
-The Lifetime ISA (LISA) lets you save up to £4,000 per year and receive a 25% government bonus — that's up to £1,000 of free money annually. You can use the funds for two purposes: [buying your first home](/tools/economic/stamp-duty/) (property valued under £450,000) or retirement income after age 60.
+The Lifetime ISA (LISA) lets you save up to £4,000 per year and receive a 25% government bonus — that's up to £1,000 of free money annually. You can use the funds for two purposes: [buying your first home](/tools/economic/stamp-duty/) (costing £450,000 or less) or retirement income after age 60.
 
 You must be between 18 and 39 to open a LISA. You can keep contributing until you turn 50. After that, the account stays open and continues to grow tax-free, but no new contributions or bonuses are added.
+
+**The LISA is closing to new savers.** The Budget on 28 October 2026 confirmed that a new First Time Buyer ISA will replace the LISA for new savers from 6 April 2029, with no upper age limit to open one. LISAs opened before then can carry on under the existing rules.
 
 The bonus is paid monthly (usually within 4-8 weeks of your contribution), so your money starts earning returns on the full bonus-included amount quickly.
 
@@ -62,7 +70,7 @@ This penalty is worse than it sounds. You don't just lose the bonus — you lose
 
 Example: You contribute £4,000. The government adds £1,000 bonus. Your account holds £5,000. If you withdraw for a non-qualifying reason, the 25% penalty is applied to £5,000 = £1,250 deducted. You get back £3,750 — that's £250 less than you put in.
 
-The penalty was temporarily reduced to 20% during COVID (making it break-even), but it has returned to 25%. This means the LISA effectively locks your money away unless you use it for a first home or retirement.
+The penalty was temporarily reduced to 20% during COVID (making it break-even), and it is 25% again for most early withdrawals. The one exception, since 29 October 2026, is a first-time buyer buying above the £450,000 cap, who pays 20% (see below). Outside that, the LISA effectively locks your money away unless you use it for a first home or retirement.
 
 ## First-time buyer: LISA almost always wins
 
@@ -72,7 +80,7 @@ Saving £4,000 per year for 5 years gives you £20,000 of your own money plus £
 
 The same £4,000 per year in a regular ISA with no bonus and the same 6% return gives you about £23,100. The LISA is ahead by £5,800 — entirely from the government bonus and its compounded growth.
 
-**Watch out for the £450,000 property cap.** In London and the South East, this limit excludes many properties. If you think your first home will cost more than £450,000, the LISA bonus becomes inaccessible for that purpose and you'd face the 25% penalty to withdraw it. In this situation, a regular ISA is safer.
+**Watch out for the £450,000 property cap.** In London and the South East, this limit excludes many properties. Since 29 October 2026, using a LISA for a first home that costs more than £450,000 carries a 20% withdrawal charge rather than 25%. The charge takes back the government bonus but leaves you your own contributions and the growth on them: on the £5,000 example above you would get back £4,000, exactly what you paid in. So going over the cap no longer costs you your own money, but the LISA then gives you nothing a regular ISA wouldn't.
 
 ## Retirement saving: LISA vs pension vs ISA
 
@@ -100,11 +108,11 @@ A Stocks & Shares ISA beats the LISA when:
 - **You're already a homeowner** and don't need the first-home benefit. The LISA bonus only helps if you'll leave the money until 60.
 - **You might need the money before 60** for any purpose — career change, emergency, education. The 25% penalty makes early access costly.
 - **You want to invest more than £4,000 per year.** The ISA allows £20,000. You can hold both, but the LISA counts toward the £20,000 total allowance.
-- **Your first home will cost over £450,000.** The LISA's property cap makes the bonus unreachable.
-- **You're over 40.** You cannot open a new LISA, so a regular ISA is your only option.
+- **Your first home will cost over £450,000.** Above the cap the 20% charge takes the bonus back, so the LISA adds nothing over a regular ISA.
+- **You're over 40.** You cannot open a new LISA, so a regular ISA is your only option for now. The First Time Buyer ISA due in April 2029 will have no upper age limit.
 
 ## The best approach for most under-40s
 
-If you can afford it, do both. Contribute £4,000 to a LISA to capture the full £1,000 bonus, then put additional savings into a regular ISA. Your £20,000 total ISA allowance covers £4,000 LISA + £16,000 regular ISA. One thing to plan for: from April 2027 the Cash ISA limit is due to drop to £12,000 for under-65s, so if that £16,000 would sit in cash rather than stocks and shares, the split changes.
+If you can afford it, do both. Contribute £4,000 to a LISA to capture the full £1,000 bonus, then put additional savings into a regular ISA. Your £20,000 total ISA allowance covers £4,000 LISA + £16,000 regular ISA. The planned cut to the Cash ISA limit was cancelled at the Budget on 28 October 2026, so that £16,000 can sit in cash or in stocks and shares.
 
 This gives you the guaranteed 25% bonus on the first £4,000, plus full flexibility on the remaining £16,000. Run the numbers through a [compound interest calculator](/tools/saving-and-growth/compound-interest/) to see what the combined approach looks like over your specific time horizon.

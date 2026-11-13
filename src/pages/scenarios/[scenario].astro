@@ -7,6 +7,7 @@ import AffiliateLinks from '@components/ui/AffiliateLinks.astro';
 import Byline from '@components/ui/Byline.astro';
 import { TOOLS, getToolPath, type ToolMeta } from '@lib/tools-data';
 import { buildArticleSchema, buildFaqSchema } from '@lib/seo';
+import { relatedScenarios as rankRelatedScenarios } from '@lib/internal-links';
 
 export async function getStaticPaths() {
   const scenarios = await getCollection('scenarios');
@@ -33,11 +34,15 @@ const articleSchema = buildArticleSchema({
 });
 const structuredData = faq && faq.length > 0 ? [articleSchema, buildFaqSchema(faq)] : [articleSchema];
 
-// Get related scenarios (same tool, excluding current)
-const allScenarios = await getCollection('scenarios');
-const relatedScenarios = allScenarios
-  .filter((s) => s.data.toolSlug === toolSlug && s.data.slug !== slug)
-  .slice(0, 4);
+// Related scenarios: same calculator first, then same audience (UK/US),
+// in a deterministic order (src/lib/internal-links.ts)
+const allScenarios = (await getCollection('scenarios')).map((s) => s.data);
+const relatedScenarios = rankRelatedScenarios(scenario.data, allScenarios);
+
+// Methodology page for the calculator used, when one exists (links the
+// "How we calculate" pages from every scenario, GROWTH-SEO-05)
+const methodologies = await getCollection('methodologies');
+const methodologyPath = methodologies.some((m) => m.data.slug === toolSlug) ? `/how-we-calculate/${toolSlug}/` : null;
 
 const breadcrumbs = [
   { name: 'Home', url: '/' },
@@ -91,6 +96,7 @@ const breadcrumbs = [
         {/* Try it yourself CTA */}
         <a
           href={toolPath}
+          data-astro-prefetch
           data-scenario-cta
           data-scenario-slug={slug}
           data-tool-slug={toolSlug}
@@ -162,6 +168,14 @@ const breadcrumbs = [
                 <p class="text-xs text-neutral-500 mt-0.5">{toolMeta.description}</p>
               </div>
             </a>
+            {methodologyPath && (
+              <a
+                href={methodologyPath}
+                class="mt-4 pt-3 border-t border-neutral-200/80 block text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline transition-colors duration-150"
+              >
+                How the numbers are calculated &rarr;
+              </a>
+            )}
           </div>
         )}
 
@@ -173,14 +187,15 @@ const breadcrumbs = [
               {relatedScenarios.map((related) => (
                 <li>
                   <a
-                    href={`/scenarios/${related.data.slug}/`}
+                    href={`/scenarios/${related.slug}/`}
+                    data-astro-prefetch
                     class="group block"
                   >
                     <span class="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors duration-200">
-                      {related.data.title}
+                      {related.title}
                     </span>
                     <span class="block text-xs text-primary-600 font-semibold tabular-nums mt-0.5">
-                      {related.data.resultSummary}
+                      {related.resultSummary}
                     </span>
                   </a>
                 </li>

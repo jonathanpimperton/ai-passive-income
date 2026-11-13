@@ -1,5 +1,5 @@
 ---
-title: "Roth vs Traditional 401(k): Which Is Better for You?"
+title: "Roth vs Traditional 401(k): Which Is Better?"
 slug: "roth-vs-traditional-401k"
 description: "Compare Roth and Traditional 401(k) contributions. See which saves more based on your current tax bracket and expected retirement income."
 keywords:
@@ -28,8 +28,8 @@ comparisonTable:
     option1: "Lower bracket now, higher later"
     option2: "Higher bracket now, lower later"
   - feature: "2026 contribution limit"
-    option1: "$24,500 ($32,500 if 50+)"
-    option2: "$24,500 ($32,500 if 50+)"
+    option1: "$24,500 ($32,500 if 50+; $35,750 at 60–63)"
+    option2: "$24,500; any 50+ catch-up must be Roth if your 2025 wages there topped $150,000"
   - feature: "Immediate tax benefit"
     option1: "None"
     option2: "Reduces taxable income today"
@@ -38,12 +38,14 @@ affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "IRS — 401(k) plans"
     url: "https://www.irs.gov/retirement-plans/401k-plans"
   - name: "IRS — Tax Topics"
     url: "https://www.irs.gov/taxtopics"
+  - name: "IRS — Catch-up contributions (Roth catch-up rule from 2026)"
+    url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-catch-up-contributions"
 ---
 
 ## The real question: where will your tax rate be?
@@ -65,12 +67,12 @@ Several trends favour the Roth:
 
 The Traditional 401(k) is better when:
 
-- You're in the **32% bracket or higher** and confident you'll be in a lower bracket in retirement
+- You're in the **32% bracket or higher** and confident you'll be in a lower bracket in retirement. One limit applies to many of these earners: from 2026, if you're 50 or older and your wages from this employer were over $150,000 the year before, your catch-up contributions must go in as Roth. Only the first $24,500 can be Traditional, and if your plan has no Roth option you can't make catch-up contributions at all.
 - You need the tax deduction now to qualify for other benefits (child tax credit, education credits)
 - You're [close to retirement](/tools/income-and-planning/retirement-age/) with little time for Roth growth to compound
 - Your employer match goes into Traditional regardless — so having both provides tax diversification
 
-A $24,500 Traditional contribution saves someone [in the 24% bracket](/tools/income-and-planning/salary-us/) **$5,880** in taxes this year. That's real money you can invest elsewhere.
+A $24,500 Traditional contribution saves someone [in the 24% bracket](/tools/income-and-planning/salary-us/) **$5,880** in federal tax for 2026. That's real money you can invest elsewhere.
 
 ## The math on a $24,500 contribution
 

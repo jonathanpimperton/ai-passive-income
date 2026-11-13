@@ -59,7 +59,7 @@ const taperEnd = UK_INCOME_TAX.paTaperLimit;
 const plan2 = UK_STUDENT_LOANS.plan2;
 const plan5 = UK_STUDENT_LOANS.plan5;
 
-const title = `UK Take-Home Pay by Salary: £20,000 to £150,000 (${UK_TAX_YEAR})`;
+const title = `UK Take-Home Pay by Salary: £20k-£150k (${UK_TAX_YEAR})`;
 const description = `UK take-home pay for every salary from £20,000 to £150,000 — income tax, National Insurance, and monthly net pay for ${UK_TAX_YEAR}, verified against HMRC rates.`;
 
 const articleSchema = buildArticleSchema({
@@ -95,7 +95,7 @@ const lastChecked = new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateSt
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
-        UK take-home pay by salary <span class="text-neutral-500 font-normal">({UK_TAX_YEAR})</span>
+        UK take-home pay by salary: <span class="tabular-nums">&pound;20k&ndash;&pound;150k</span> <span class="text-neutral-500 font-normal">({UK_TAX_YEAR})</span>
       </h1>
       <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
       <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">

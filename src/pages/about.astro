@@ -1,8 +1,12 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
 import { UK_TAX_YEAR } from '@lib/uk-rates';
 import { US_TAX_YEAR } from '@lib/us-rates';
+
+// Counted from the content collection so the number can't drift (it said 44 when there were 46).
+const toolCount = (await getCollection('tools')).length;
 ---
 
 <BaseLayout
@@ -29,14 +33,19 @@ import { US_TAX_YEAR } from '@lib/us-rates';
         <div>
           <h2 class="text-xl font-bold text-neutral-900 mb-2">Who built this</h2>
           <p class="text-neutral-700 leading-relaxed mb-3">
-            CalcRun is built by Jonathan, an ACA-qualified accountant with experience across
+            CalcRun is run by Jonathan, an ACA-qualified accountant with experience across
             UK, US, and Australian tax systems. The site exists because most online calculators
             are either ad-heavy, outdated, or won't show their working. This one does.
           </p>
+          <p class="text-neutral-700 leading-relaxed mb-3">
+            The code and most of the text are written with an AI assistant working to his
+            instructions; <a href="/author/#how-this-site-is-made" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">how this site is made</a>
+            explains what that means and how it is checked.
+          </p>
           <p class="text-neutral-700 leading-relaxed">
             Every formula is documented, every tax rate is sourced from official data (HMRC, IRS, SSA),
-            and every calculation runs in your browser — nothing is sent to a server.
-            If you find an error, <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">email me</a> and I'll fix it.
+            and every calculation runs in your browser.
+            If you find an error, <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">email me</a> and I'll check it against the primary source and correct it.
           </p>
         </div>
       </div>
@@ -49,14 +58,14 @@ import { US_TAX_YEAR } from '@lib/us-rates';
     <section class="mb-12">
       <h2 class="text-xl font-bold text-neutral-900 mb-4">What we build</h2>
       <p class="text-neutral-700 leading-relaxed mb-4">
-        CalcRun offers 44 tools across six categories: savings and growth calculators,
+        CalcRun offers {toolCount} tools across six categories: savings and growth calculators,
         debt and loan tools, income and tax planning, economic indicators, developer utilities,
-        and file converters. Every financial calculator includes interactive charts, a year-by-year
-        breakdown table, and educational content explaining the underlying formulas.
+        and file converters. The financial calculators update as you type, most include a chart
+        and a breakdown table, and each links to a page explaining its formula.
       </p>
       <p class="text-neutral-700 leading-relaxed">
         UK tax calculators use {UK_TAX_YEAR} HMRC rates. US tax calculators use {US_TAX_YEAR} IRS brackets.
-        Rate-dependent tools display their data sources and the date we last verified them.
+        The tax calculators show their data sources and the date their rates were last checked.
       </p>
     </section>
 
@@ -73,8 +82,12 @@ import { US_TAX_YEAR } from '@lib/us-rates';
           <h2 class="text-xl font-bold text-neutral-900 mb-2">How privacy works</h2>
           <p class="text-neutral-700 leading-relaxed">
             All calculations run client-side in your browser. The numbers you type into a calculator
-            never leave your device — we cannot see them. We use Google Analytics for aggregate
-            traffic data (page views, country). We do not sell data or run tracking pixels for ad networks.
+            stay on your device. The exception is "Email my results": if you use it, your email
+            address, inputs and results are sent to our email provider so it can deliver the email.
+            If you also tick "Also send me financial tips", your address and the name of the
+            calculator you used are added to our newsletter list at MailerLite.
+            We use Google Analytics for aggregate traffic data (page views, country). We do not sell
+            data or run tracking pixels for ad networks.
             Read our <a href="/privacy/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">privacy policy</a> for full details.
           </p>
         </div>
@@ -90,14 +103,14 @@ import { US_TAX_YEAR } from '@lib/us-rates';
         <div>
           <h2 class="text-xl font-bold text-neutral-900 mb-2">How it's funded</h2>
           <p class="text-neutral-700 leading-relaxed">
-            Some calculator pages include affiliate links to financial products. If you click through
-            and open an account, we may earn a commission at no extra cost to you. Calculator results
+            Some pages link to financial and security products, and some of those links are affiliate
+            links: if you sign up through one, we may earn a commission at no extra cost to you. Calculator results
             are never affected by affiliate partnerships — the same formula runs regardless of which
             links appear on the page. See our
             <a href="/disclosure/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">
               affiliate disclosure
             </a>
-            for the full list of partners.
+            for which links can earn a commission.
           </p>
         </div>
       </div>
@@ -121,7 +134,7 @@ import { US_TAX_YEAR } from '@lib/us-rates';
             </li>
             <li class="flex items-start gap-2">
               <svg class="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" /></svg>
-              <span><strong>Last-checked dates.</strong> Every rate-dependent calculator shows when we last verified its data against official sources.</span>
+              <span><strong>Last-checked dates.</strong> Each tax calculator shows when its rates were last checked against official sources.</span>
             </li>
             <li class="flex items-start gap-2">
               <svg class="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" /></svg>
@@ -129,7 +142,7 @@ import { US_TAX_YEAR } from '@lib/us-rates';
             </li>
             <li class="flex items-start gap-2">
               <svg class="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" /></svg>
-              <span><strong>Corrections.</strong> If you find an error, email <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline">hello@calcrun.com</a> and we'll fix it within 24 hours.</span>
+              <span><strong>Corrections.</strong> If you find an error, email <a href="mailto:hello@calcrun.com" class="text-primary-600 hover:text-primary-700 underline">hello@calcrun.com</a> and we'll check it against the primary source and correct it.</span>
             </li>
           </ul>
         </div>
