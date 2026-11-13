@@ -653,7 +653,7 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
                 )}
               </div>
             </div>
-            <div className="col-span-2 bg-white rounded-lg border border-neutral-200/80 p-4 min-w-0">
+            <div className="col-span-full bg-white rounded-lg border border-neutral-200/80 p-4 min-w-0">
               <p className="text-xs text-neutral-500 mb-0.5">Adjusted net income</p>
               <p className="text-lg font-semibold text-neutral-900 tabular-nums">{formatGBP(result.adjustedNetIncome)}</p>
               <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed">
