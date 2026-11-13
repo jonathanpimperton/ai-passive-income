@@ -43,6 +43,15 @@ describe('the real freshness calendar', () => {
       ['salary-sacrifice NI cap (Apr 2029)', /salary-sacrificed/],
       ['savings income rates (Apr 2027)', /savings and property income/],
       ['US default-year redeploy', /default tax year switches to 2027/],
+      ['next UK Autumn Budget', /autumn budget 2027/],
+      ['BLS CPI monthly', /cpi-u monthly/],
+      ['BLS CPI annual average', /annual average cpi-u/],
+      ['Ofgem price cap', /ofgem energy price cap/],
+      ['UK 0% VAT on solar/battery', /0% vat on installing energy-saving materials/],
+      ['EIA monthly', /eia electric power monthly/],
+      ['Eurostat half-yearly', /eurostat household electricity prices/],
+      ['DESNZ solar costs', /desnz small-scale solar pv cost/],
+      ['UK NMPA 57 in 2028', /normal minimum pension age rises from 55 to 57/],
     ];
     for (const [name, re] of topics) expect(text, name).toMatch(re);
   });
