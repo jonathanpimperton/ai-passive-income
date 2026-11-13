@@ -1,52 +1,28 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { useState, useMemo, useCallback, useRef, useEffect, lazy, Suspense } from 'react';
+import type { KeyboardEvent } from 'react';
 import { RotateCcw, Percent, Wallet, ArrowUpDown } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
+import ChartSkeleton from '../ui/ChartSkeleton';
+import ChartDataTable from '../ui/ChartDataTable';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
-import { useChartTheme } from '../../lib/useChartTheme';
+import {
+  CPI_FIRST_YEAR,
+  CPI_LAST_YEAR,
+  CPI_U_LATEST,
+  CPI_SOURCE,
+  adjustForInflation,
+  projectInflation,
+  historicalSeries,
+  cpiYearLabel,
+} from '../../lib/inflation';
 
-/**
- * Average annual CPI-U inflation rates by year (BLS data).
- * Used for historical purchasing power calculations.
- */
-const CPI_DATA: Record<number, number> = {
-  1913: 9.9, 1914: 10.0, 1915: 10.1, 1916: 10.9, 1917: 12.8, 1918: 15.0,
-  1919: 17.3, 1920: 20.0, 1921: 17.9, 1922: 16.8, 1923: 17.1, 1924: 17.1,
-  1925: 17.5, 1926: 17.7, 1927: 17.4, 1928: 17.2, 1929: 17.2, 1930: 16.7,
-  1931: 15.2, 1932: 13.6, 1933: 12.9, 1934: 13.4, 1935: 13.7, 1936: 13.9,
-  1937: 14.4, 1938: 14.1, 1939: 13.9, 1940: 14.0, 1941: 14.7, 1942: 16.3,
-  1943: 17.3, 1944: 17.6, 1945: 18.0, 1946: 19.5, 1947: 22.3, 1948: 24.0,
-  1949: 23.8, 1950: 24.1, 1951: 26.0, 1952: 26.6, 1953: 26.8, 1954: 26.9,
-  1955: 26.8, 1956: 27.2, 1957: 28.1, 1958: 28.9, 1959: 29.2, 1960: 29.6,
-  1961: 29.9, 1962: 30.3, 1963: 30.6, 1964: 31.0, 1965: 31.5, 1966: 32.5,
-  1967: 33.4, 1968: 34.8, 1969: 36.7, 1970: 38.8, 1971: 40.5, 1972: 41.8,
-  1973: 44.4, 1974: 49.3, 1975: 53.8, 1976: 56.9, 1977: 60.6, 1978: 65.2,
-  1979: 72.6, 1980: 82.4, 1981: 90.9, 1982: 96.5, 1983: 99.6, 1984: 103.9,
-  1985: 107.6, 1986: 109.6, 1987: 113.6, 1988: 118.3, 1989: 124.0, 1990: 130.7,
-  1991: 136.2, 1992: 140.3, 1993: 144.5, 1994: 148.2, 1995: 152.4, 1996: 156.9,
-  1997: 160.5, 1998: 163.0, 1999: 166.6, 2000: 172.2, 2001: 177.1, 2002: 179.9,
-  2003: 184.0, 2004: 188.9, 2005: 195.3, 2006: 201.6, 2007: 207.3, 2008: 215.3,
-  2009: 214.5, 2010: 218.1, 2011: 224.9, 2012: 229.6, 2013: 233.0, 2014: 236.7,
-  2015: 237.0, 2016: 240.0, 2017: 245.1, 2018: 251.1, 2019: 255.7, 2020: 258.8,
-  2021: 271.0, 2022: 292.7, 2023: 304.7, 2024: 313.0, 2025: 319.0,
-};
-
-const MIN_YEAR = Math.min(...Object.keys(CPI_DATA).map(Number));
-const MAX_YEAR = Math.max(...Object.keys(CPI_DATA).map(Number));
+const InflationChart = lazy(() => import('./charts/InflationChart'));
+const CHART_HEIGHT = 260;
 
 type Mode = 'historical' | 'future';
 
@@ -58,9 +34,16 @@ const TABS: { key: Mode; label: string }[] = [
 const DEFAULTS = {
   amount: 1000,
   startYear: 2000,
-  endYear: 2025,
+  // The latest CPI month stands in for "today".
+  endYear: CPI_LAST_YEAR,
   futureYears: 10,
   inflationRate: 3,
+};
+
+const usd = (v: number) => formatCurrency(v, 'USD');
+const yearsText = (y: number) => {
+  const rounded = Math.round(y * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} year${rounded === 1 ? '' : 's'}`;
 };
 
 export default function InflationCalc() {
@@ -68,10 +51,12 @@ export default function InflationCalc() {
   const [mode, setMode] = useState<Mode>('historical');
   const [amount, setAmount] = useState(DEFAULTS.amount);
   const [startYear, setStartYear] = useState(DEFAULTS.startYear);
-  const [endYear, setEndYear] = useState(DEFAULTS.endYear);
+  const [endYear, setEndYear] = useState<number>(DEFAULTS.endYear);
   const [futureYears, setFutureYears] = useState(DEFAULTS.futureYears);
   const [inflationRate, setInflationRate] = useState(DEFAULTS.inflationRate);
-  const ct = useChartTheme();
+  // Calendar year for the projection axis; set on the client so server HTML and hydration agree.
+  const [baseYear, setBaseYear] = useState<number>(CPI_U_LATEST.year);
+  useEffect(() => setBaseYear(new Date().getFullYear()), []);
 
   const handleReset = useCallback(() => {
     setAmount(DEFAULTS.amount);
@@ -81,43 +66,32 @@ export default function InflationCalc() {
     setInflationRate(DEFAULTS.inflationRate);
   }, []);
 
-  const historicalResult = useMemo(() => {
-    if (mode !== 'historical') return null;
-    const cpiStart = CPI_DATA[startYear];
-    const cpiEnd = CPI_DATA[endYear];
-    if (!cpiStart || !cpiEnd || startYear >= endYear) return null;
+  /* ── Core calculations (src/lib/inflation.ts) ────────────── */
+  const historicalResult = useMemo(() => adjustForInflation(amount, startYear, endYear), [amount, startYear, endYear]);
+  const futureResult = useMemo(() => projectInflation(amount, inflationRate / 100, futureYears), [amount, inflationRate, futureYears]);
 
-    const adjustedValue = amount * (cpiEnd / cpiStart);
-    const totalInflation = (cpiEnd - cpiStart) / cpiStart;
-    const years = endYear - startYear;
-    const avgAnnualRate = Math.pow(cpiEnd / cpiStart, 1 / years) - 1;
-    const purchasingPower = amount * (cpiStart / cpiEnd);
+  const animatedHistorical = useAnimatedNumber(historicalResult?.adjusted ?? 0);
+  const animatedFuture = useAnimatedNumber(futureResult.futureCost);
 
-    return { adjustedValue, totalInflation, avgAnnualRate, purchasingPower, years };
-  }, [mode, amount, startYear, endYear]);
+  const startLabel = cpiYearLabel(startYear);
+  const endLabel = cpiYearLabel(endYear);
+  const backwards = endYear < startYear;
 
-  const futureResult = useMemo(() => {
-    if (mode !== 'future') return null;
-    const rate = inflationRate / 100;
-    const futureValue = amount * Math.pow(1 + rate, futureYears);
-    const purchasingPower = amount / Math.pow(1 + rate, futureYears);
-    const totalInflation = Math.pow(1 + rate, futureYears) - 1;
-
-    return { futureValue, purchasingPower, totalInflation };
-  }, [mode, amount, futureYears, inflationRate]);
-
-  const animatedHistorical = useAnimatedNumber(historicalResult?.adjustedValue ?? 0);
-  const animatedFuture = useAnimatedNumber(futureResult?.futureValue ?? 0);
+  const liveText = mode === 'historical'
+    ? historicalResult
+      ? `${usd(amount)} in ${startLabel} equals ${usd(historicalResult.adjusted)} in ${endLabel} prices.`
+      : 'Choose two different years to compare.'
+    : `${usd(amount)} today will cost ${usd(futureResult.futureCost)} in ${futureYears} years at ${inflationRate.toFixed(1)}% inflation.`;
 
   const getInputs = useCallback(() => {
     const inputs = [
       { label: 'Mode', value: mode === 'historical' ? 'Historical' : 'Future Projection' },
-      { label: 'Dollar Amount', value: formatCurrency(amount) },
+      { label: 'Dollar Amount', value: usd(amount) },
     ];
     if (mode === 'historical') {
       inputs.push(
-        { label: 'Start Year', value: String(startYear) },
-        { label: 'End Year', value: String(endYear) },
+        { label: 'Start Year', value: startLabel },
+        { label: 'End Year', value: endLabel },
       );
     } else {
       inputs.push(
@@ -126,65 +100,68 @@ export default function InflationCalc() {
       );
     }
     return inputs;
-  }, [mode, amount, startYear, endYear, futureYears, inflationRate]);
+  }, [mode, amount, startLabel, endLabel, futureYears, inflationRate]);
 
   const getResults = useCallback((): ResultItem[] => {
-    if (mode === 'historical' && historicalResult) {
+    if (mode === 'historical') {
+      if (!historicalResult) return [{ label: 'Result', value: 'Choose two different years to compare', highlight: true }];
       return [
-        { label: `${formatCurrency(amount)} in ${startYear} equals`, value: formatCurrency(historicalResult.adjustedValue), highlight: true },
-        { label: 'Average Annual Inflation', value: `${(historicalResult.avgAnnualRate * 100).toFixed(2)}%` },
-        { label: 'Purchasing Power Today', value: formatCurrency(historicalResult.purchasingPower) },
+        { label: `${usd(amount)} in ${startLabel} equals (in ${endLabel} prices)`, value: usd(historicalResult.adjusted), highlight: true },
+        { label: 'Average Annual Inflation', value: `${(historicalResult.averageAnnual * 100).toFixed(2)}%` },
+        { label: 'Cumulative Inflation', value: `${(historicalResult.cumulativeChange * 100).toFixed(1)}%` },
+        { label: 'Data', value: `${CPI_SOURCE.name}; latest month ${CPI_U_LATEST.label}` },
       ];
     }
-    if (mode === 'future' && futureResult) {
-      return [
-        { label: `${formatCurrency(amount)} today will cost`, value: formatCurrency(futureResult.futureValue), highlight: true },
-        { label: 'Purchasing Power Lost', value: formatCurrency(amount - futureResult.purchasingPower) },
-      ];
-    }
-    return [{ label: 'Result', value: 'Adjust inputs to see results', highlight: true }];
-  }, [mode, amount, startYear, historicalResult, futureResult]);
+    return [
+      { label: `${usd(amount)} today will cost`, value: usd(futureResult.futureCost), highlight: true },
+      { label: 'Purchasing Power Lost', value: usd(amount - futureResult.purchasingPower) },
+    ];
+  }, [mode, amount, startLabel, endLabel, historicalResult, futureResult]);
 
-  const chartData = useMemo(() => {
+  /* ── Chart + table rows ──────────────────────────────────── */
+  const chartRows = useMemo(() => {
     if (mode === 'historical') {
       if (!historicalResult) return [];
-      const data = [];
-      const cpiStart = CPI_DATA[startYear];
-      for (let y = startYear; y <= endYear; y++) {
-        const cpi = CPI_DATA[y];
-        if (!cpi) continue;
-        data.push({
-          year: y,
-          'Equivalent Value': Math.round(amount * (cpi / cpiStart)),
-          'Original Amount': amount,
-        });
-      }
-      return data;
-    } else {
-      const rate = inflationRate / 100;
-      const data = [];
-      for (let y = 0; y <= futureYears; y++) {
-        data.push({
-          year: new Date().getFullYear() + y,
-          'Cost in Future Dollars': Math.round(amount * Math.pow(1 + rate, y)),
-          'Purchasing Power': Math.round(amount / Math.pow(1 + rate, y)),
-        });
-      }
-      return data;
+      // Amount anchored at the start year, expressed in each year's prices.
+      return historicalSeries(amount, startYear, endYear).map((r) => ({ year: r.year, value: Math.round(r.value), original: amount }));
     }
-  }, [mode, amount, startYear, endYear, futureYears, inflationRate, historicalResult]);
+    const rows: Array<Record<string, number>> = [];
+    for (let y = 0; y <= futureYears; y++) {
+      const p = projectInflation(amount, inflationRate / 100, y);
+      rows.push({ year: baseYear + y, futureCost: Math.round(p.futureCost), purchasingPower: Math.round(p.purchasingPower) });
+    }
+    return rows;
+  }, [mode, amount, startYear, endYear, futureYears, inflationRate, historicalResult, baseYear]);
+
+  /* ── Tabs: APG keyboard pattern ──────────────────────────── */
+  const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const last = TABS.length - 1;
+    const next = e.key === 'ArrowRight' ? (index === last ? 0 : index + 1)
+      : e.key === 'ArrowLeft' ? (index === 0 ? last : index - 1)
+        : e.key === 'Home' ? 0
+          : e.key === 'End' ? last
+            : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    setMode(TABS[next].key);
+    document.getElementById(`inf-tab-${TABS[next].key}`)?.focus();
+  };
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       {/* Tabs */}
       <div className="flex border-b border-neutral-200/80" role="tablist" aria-label="Inflation calculation mode">
-        {TABS.map((tab) => (
+        {TABS.map((tab, i) => (
           <button
             key={tab.key}
+            id={`inf-tab-${tab.key}`}
+            type="button"
             role="tab"
             aria-selected={mode === tab.key}
             aria-controls="inf-results"
+            tabIndex={mode === tab.key ? 0 : -1}
             onClick={() => setMode(tab.key)}
+            onKeyDown={(e) => onTabKeyDown(e, i)}
             className={`flex-1 py-3 text-sm font-medium transition-colors duration-150 ${
               mode === tab.key
                 ? 'text-primary-600 border-b-2 border-primary-500 bg-primary-50/40'
@@ -214,7 +191,7 @@ export default function InflationCalc() {
           </div>
           <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-200/60 mb-5">
             <p className="text-xs text-neutral-500 leading-relaxed">
-              Historical mode uses US CPI data ({MIN_YEAR}–{MAX_YEAR}); projections apply to any currency.
+              Historical mode uses US CPI data ({CPI_FIRST_YEAR}–{CPI_U_LATEST.label}); projections apply to any currency.
             </p>
           </div>
           <div className="space-y-5">
@@ -222,11 +199,24 @@ export default function InflationCalc() {
 
             {mode === 'historical' ? (
               <>
-                <SliderInput label="Start Year" id="inf-start" value={startYear} min={MIN_YEAR} max={MAX_YEAR - 1} step={1} onChange={(v) => { setStartYear(v); if (v >= endYear) setEndYear(Math.min(v + 1, MAX_YEAR)); }} formatDisplay={(v) => String(Math.round(v))} />
-                <SliderInput label="End Year" id="inf-end" value={endYear} min={startYear + 1} max={MAX_YEAR} step={1} onChange={setEndYear} formatDisplay={(v) => String(Math.round(v))} />
+                <SliderInput label="Start Year" id="inf-start" value={startYear} min={CPI_FIRST_YEAR} max={CPI_LAST_YEAR} step={1} onChange={setStartYear} formatDisplay={(v) => String(Math.round(v))} hint="The year the amount is from" />
+                <SliderInput
+                  label="End Year"
+                  id="inf-end"
+                  value={endYear}
+                  min={CPI_FIRST_YEAR}
+                  max={CPI_LAST_YEAR}
+                  step={1}
+                  onChange={setEndYear}
+                  formatDisplay={(v) => String(Math.round(v))}
+                  hint={`The year whose prices to use. ${CPI_LAST_YEAR} uses the latest month, ${CPI_U_LATEST.label}.`}
+                />
                 <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-200/60">
                   <p className="text-xs text-neutral-500 leading-relaxed">
-                    Using U.S. Bureau of Labor Statistics CPI-U data ({MIN_YEAR}–{MAX_YEAR}).
+                    Using U.S. Bureau of Labor Statistics CPI-U annual averages ({CPI_FIRST_YEAR}–{CPI_LAST_YEAR - 1}) and the latest monthly index ({CPI_U_LATEST.label}).{' '}
+                    <a href={CPI_SOURCE.url} target="_blank" rel="noopener noreferrer" className="text-primary-700 underline underline-offset-2 hover:text-primary-800">
+                      BLS data
+                    </a>
                   </p>
                 </div>
               </>
@@ -240,16 +230,18 @@ export default function InflationCalc() {
         </div>
 
         {/* Results */}
-        <div id="inf-results" role="tabpanel" className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite" ref={resultsRef}>
+        <div id="inf-results" role="tabpanel" aria-labelledby={`inf-tab-${mode}`} className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" ref={resultsRef}>
+          <p className="sr-only" aria-live="polite">{liveText}</p>
+
           {mode === 'historical' && historicalResult && (
             <>
               <div data-pdf-section className="mb-6">
-                <p className="text-sm text-neutral-500 mb-1">{formatCurrency(amount)} in {startYear} equals</p>
-                <p data-headline-result data-headline-label={`${formatCurrency(amount)} in ${startYear} equals`} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-                  {formatCurrency(animatedHistorical)}
+                <p className="text-sm text-neutral-500 mb-1">{usd(amount)} in {startLabel} equals</p>
+                <p data-headline-result data-headline-label={`${usd(amount)} in ${startLabel} equals`} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                  {usd(animatedHistorical)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
-                  in {endYear} dollars ({historicalResult.years} years, {(historicalResult.totalInflation * 100).toFixed(1)}% cumulative inflation)
+                  in {endLabel} prices ({yearsText(historicalResult.years)}, {(historicalResult.cumulativeChange * 100).toFixed(1)}% cumulative {historicalResult.cumulativeChange >= 0 ? 'inflation' : 'deflation'}{backwards ? `, counting back from ${startLabel}` : ''})
                 </p>
               </div>
               <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
@@ -258,18 +250,18 @@ export default function InflationCalc() {
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Avg. Annual Inflation</p>
                     <p className="text-lg font-semibold text-neutral-900 tabular-nums">
-                      {(historicalResult.avgAnnualRate * 100).toFixed(2)}%
+                      {(historicalResult.averageAnnual * 100).toFixed(2)}%
                     </p>
                   </div>
                 </div>
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
                   <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
                   <div>
-                    <p className="text-xs text-neutral-500 mb-0.5">{endYear} Purchasing Power</p>
+                    <p className="text-xs text-neutral-500 mb-0.5">{endLabel} Purchasing Power</p>
                     <p className="text-lg font-semibold text-red-600 tabular-nums">
-                      {formatCurrency(historicalResult.purchasingPower)}
+                      {usd(historicalResult.adjusted > 0 ? (amount * amount) / historicalResult.adjusted : 0)}
                     </p>
-                    <p className="text-xs text-neutral-500">of original {formatCurrency(amount)}</p>
+                    <p className="text-xs text-neutral-500">{startLabel} value of {usd(amount)} in {endLabel}</p>
                   </div>
                 </div>
               </div>
@@ -278,18 +270,16 @@ export default function InflationCalc() {
 
           {mode === 'historical' && !historicalResult && (
             <div className="text-sm text-neutral-500 mb-6">
-              Select a valid start and end year to see results.
+              Choose two different years to compare.
             </div>
           )}
 
-          {mode === 'future' && futureResult && (
+          {mode === 'future' && (
             <>
               <div data-pdf-section className="mb-6">
-                <p className="text-sm text-neutral-500 mb-1">
-                  {formatCurrency(amount)} today will cost
-                </p>
-                <p className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-                  {formatCurrency(animatedFuture)}
+                <p className="text-sm text-neutral-500 mb-1">{usd(amount)} today will cost</p>
+                <p data-headline-result data-headline-label={`${usd(amount)} today will cost`} className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
+                  {usd(animatedFuture)}
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
                   in {futureYears} years at {inflationRate.toFixed(1)}% annual inflation ({(futureResult.totalInflation * 100).toFixed(1)}% total)
@@ -299,10 +289,8 @@ export default function InflationCalc() {
                 <div className="bg-white rounded-xl border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
                   <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5"><Wallet size={16} aria-hidden="true" /></div>
                   <div>
-                    <p className="text-xs text-neutral-500 mb-0.5">Your {formatCurrency(amount)} Will Buy</p>
-                    <p className="text-lg font-semibold text-red-600 tabular-nums">
-                      {formatCurrency(futureResult.purchasingPower)}
-                    </p>
+                    <p className="text-xs text-neutral-500 mb-0.5">Your {usd(amount)} Will Buy</p>
+                    <p className="text-lg font-semibold text-red-600 tabular-nums">{usd(futureResult.purchasingPower)}</p>
                     <p className="text-xs text-neutral-500">worth of today's goods</p>
                   </div>
                 </div>
@@ -310,11 +298,9 @@ export default function InflationCalc() {
                   <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 mt-0.5"><ArrowUpDown size={16} aria-hidden="true" /></div>
                   <div>
                     <p className="text-xs text-neutral-500 mb-0.5">Purchasing Power Lost</p>
-                    <p className="text-lg font-semibold text-red-600 tabular-nums">
-                      {formatCurrency(amount - futureResult.purchasingPower)}
-                    </p>
-                    <p className="text-xs text-neutral-500">
-                      {((1 - futureResult.purchasingPower / amount) * 100).toFixed(1)}% decrease
+                    <p className="text-lg font-semibold text-red-600 tabular-nums">{usd(amount - futureResult.purchasingPower)}</p>
+                    <p className="text-xs text-neutral-500 tabular-nums">
+                      {amount > 0 ? `${((1 - futureResult.purchasingPower / amount) * 100).toFixed(1)}% decrease` : '—'}
                     </p>
                   </div>
                 </div>
@@ -329,47 +315,39 @@ export default function InflationCalc() {
           </div>
 
           {/* Chart */}
-          <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
-            <h3 className="text-sm font-medium text-neutral-700 mb-3">
-              {mode === 'historical' ? 'Value Over Time' : 'Purchasing Power Over Time'}
-            </h3>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <CartesianGrid stroke={ct.grid} vertical={false} />
-                  <XAxis
-                    dataKey="year"
-                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                    tickLine={false}
-                    axisLine={{ stroke: ct.axis }}
-                    interval="preserveStartEnd"
-                    minTickGap={24}
-                  />
-                  <YAxis
-                    tickFormatter={(v: number) =>
-                      `$${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`
-                    }
-                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                    tickLine={false}
-                    axisLine={false}
-                    width={60}
-                  />
-                  <Tooltip content={<ChartTooltip labelPrefix="" />} />
-                  {mode === 'historical' ? (
-                    <>
-                      <Area type="monotone" dataKey="Equivalent Value" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} animationDuration={600} />
-                      <Area type="monotone" dataKey="Original Amount" stroke={ct.series2} strokeWidth={2} fill={ct.series2Fill} animationDuration={600} />
-                    </>
-                  ) : (
-                    <>
-                      <Area type="monotone" dataKey="Cost in Future Dollars" stroke={ct.series1} strokeWidth={2} fill={ct.series1Fill} animationDuration={600} />
-                      <Area type="monotone" dataKey="Purchasing Power" stroke={ct.series2} strokeWidth={2} fill={ct.series2Fill} animationDuration={600} />
-                    </>
-                  )}
-                </AreaChart>
-              </ResponsiveContainer>
+          {chartRows.length > 1 && (
+            <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
+              <h3 className="text-sm font-medium text-neutral-700 mb-3">
+                {mode === 'historical' ? 'Value Over Time' : 'Purchasing Power Over Time'}
+              </h3>
+              <Suspense fallback={<ChartSkeleton height={CHART_HEIGHT} />}>
+                <InflationChart
+                  mode={mode}
+                  rows={chartRows}
+                  height={CHART_HEIGHT}
+                  yearLabel={cpiYearLabel}
+                  ariaLabel={mode === 'historical' && historicalResult
+                    ? `${usd(amount)} from ${startLabel} expressed in each year's prices up to ${endLabel}, reaching ${usd(historicalResult.adjusted)}.`
+                    : `${usd(amount)} over the next ${futureYears} years at ${inflationRate.toFixed(1)}% inflation: future cost rises to ${usd(futureResult.futureCost)} while purchasing power falls to ${usd(futureResult.purchasingPower)}.`}
+                />
+              </Suspense>
+              <ChartDataTable
+                className="mt-3"
+                caption={mode === 'historical' ? `${usd(amount)} from ${startLabel} in each year's prices` : 'Future cost and purchasing power by year'}
+                columns={mode === 'historical'
+                  ? [
+                      { key: 'year', label: 'Year', numeric: true, format: (v) => cpiYearLabel(Number(v)) },
+                      { key: 'value', label: `Value of ${usd(amount)} from ${startLabel}`, format: (v) => usd(Number(v)) },
+                    ]
+                  : [
+                      { key: 'year', label: 'Year', numeric: true },
+                      { key: 'futureCost', label: 'Future cost', format: (v) => usd(Number(v)) },
+                      { key: 'purchasingPower', label: 'Purchasing power', format: (v) => usd(Number(v)) },
+                    ]}
+                rows={chartRows}
+              />
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

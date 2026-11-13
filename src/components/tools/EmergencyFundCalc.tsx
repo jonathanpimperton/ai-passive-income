@@ -1,18 +1,9 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from 'recharts';
+import { useState, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { RotateCcw, Target, TrendingUp } from 'lucide-react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import SliderInput from '../ui/SliderInput';
-import ChartTooltip from '../ui/ChartTooltip';
+import ChartSkeleton from '../ui/ChartSkeleton';
+import ChartDataTable from '../ui/ChartDataTable';
 import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
@@ -21,6 +12,11 @@ import { getCurrencyConfig } from '../../lib/currency';
 import type { ResultItem } from '../../lib/email-types';
 import { useChartTheme } from '../../lib/useChartTheme';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
+import { emergencyTargets, fundPath, type TimeToTargetResult } from '../../lib/emergency-fund';
+import { monthLabel } from './charts/chart-format';
+
+const EmergencyFundChart = lazy(() => import('./charts/EmergencyFundChart'));
+const CHART_HEIGHT = 260;
 
 const DEFAULTS = {
   housing: 1500,
@@ -35,8 +31,15 @@ const DEFAULTS = {
   savingsRate: 4,
 };
 
-const TARGETS = [3, 6, 12] as const;
 const TARGET_LABELS: Record<number, string> = { 3: '3 Months', 6: '6 Months', 12: '12 Months' };
+
+/** "8 mo", "3y 2mo", or a plain-English reason when the target is never reached. */
+function timeLabel(t: TimeToTargetResult): string {
+  if (t.status === 'funded') return 'Fully funded';
+  if (t.status === 'never') return t.reason === 'no-saving' ? 'Add a monthly amount to reach this' : 'More than 50 years at this rate';
+  const span = t.months < 12 ? `${t.months} mo` : `${Math.floor(t.months / 12)}y ${t.months % 12}mo`;
+  return t.interestOnly ? `${span} (interest only)` : span;
+}
 
 export default function EmergencyFundCalc() {
   const ct = useChartTheme();
@@ -52,14 +55,15 @@ export default function EmergencyFundCalc() {
   const currencySymbol = getCurrencyConfig(currency).symbol;
   const fmt = (v: number) => formatCurrency(v, currency);
   // Region-aware wording: US quotes APY, UK quotes AER, EUR stays generic.
+  // The model treats the rate as an annual equivalent rate (compounding included).
   const region = currency === 'GBP' ? 'uk' : currency === 'EUR' ? 'eur' : 'us';
   const savingsRateLabel =
-    region === 'uk' ? 'Savings interest rate (AER)' : region === 'eur' ? 'Savings interest rate' : 'Savings interest rate (APY)';
+    region === 'uk' ? 'Savings interest rate (AER)' : region === 'eur' ? 'Savings interest rate (annual)' : 'Savings interest rate (APY)';
   const savingsRateHint =
     region === 'uk'
       ? 'Interest rate on your savings account — easy-access savings accounts offer ~4-5%'
       : region === 'eur'
-        ? 'Interest rate on your savings account'
+        ? 'Annual equivalent rate on your savings account'
         : 'Interest rate on your savings account — high-yield accounts offer ~4-5%';
   const [housing, setHousing] = useState(DEFAULTS.housing);
   const [food, setFood] = useState(DEFAULTS.food);
@@ -86,33 +90,29 @@ export default function EmergencyFundCalc() {
   }, []);
 
   const monthlyExpenses = housing + food + transportation + utilities + insurance + debtPayments + other;
+  const aer = savingsRate / 100;
 
-  const targets = useMemo(() => {
-    return TARGETS.map((months) => {
-      const target = monthlyExpenses * months;
-      const remaining = Math.max(0, target - currentSavings);
-      const monthlyRate = savingsRate / 100 / 12;
+  /* ── Core calculation (src/lib/emergency-fund.ts) ────────── */
+  const targets = useMemo(
+    () => emergencyTargets({ monthlyExpenses, current: currentSavings, monthly: monthlySaving, aer }),
+    [monthlyExpenses, currentSavings, monthlySaving, aer],
+  );
+  const sixMonth = targets[1];
+  const recommended = monthlyExpenses * 6;
 
-      let monthsToReach: number;
-      if (remaining <= 0) {
-        monthsToReach = 0;
-      } else if (monthlySaving <= 0) {
-        monthsToReach = Infinity;
-      } else if (monthlyRate <= 0) {
-        monthsToReach = Math.ceil(remaining / monthlySaving);
-      } else {
-        monthsToReach = Math.ceil(
-          Math.log((remaining * monthlyRate) / monthlySaving + 1) / Math.log(1 + monthlyRate)
-        );
-      }
+  const chartRows = useMemo(() => {
+    const reachable = targets
+      .map((t) => (t.time.status === 'ok' ? t.time.months : null))
+      .filter((m): m is number => m !== null);
+    const horizon = Math.min(60, Math.max(12, ...reachable.map((m) => m + 3)));
+    return fundPath(currentSavings, monthlySaving, aer, horizon);
+  }, [targets, currentSavings, monthlySaving, aer]);
 
-      const pctFunded = target > 0 ? Math.min(1, currentSavings / target) : 1;
+  const animatedRecommendedTarget = useAnimatedNumber(recommended);
 
-      return { months, target, remaining, monthsToReach, pctFunded };
-    });
-  }, [monthlyExpenses, currentSavings, monthlySaving, savingsRate]);
-
-  const animatedRecommendedTarget = useAnimatedNumber(monthlyExpenses * 6);
+  const liveText = monthlyExpenses <= 0
+    ? 'Enter your monthly expenses to see your targets.'
+    : `Recommended target ${fmt(recommended)}; ${sixMonth.time.status === 'ok' ? `reached in ${timeLabel(sixMonth.time)}` : timeLabel(sixMonth.time).toLowerCase()}.`;
 
   const getInputs = useCallback(() => [
     { label: 'Housing / Rent', value: fmt(housing) },
@@ -126,43 +126,18 @@ export default function EmergencyFundCalc() {
     { label: 'Current Emergency Savings', value: fmt(currentSavings) },
     { label: 'Monthly Savings Contribution', value: fmt(monthlySaving) },
     { label: savingsRateLabel, value: `${savingsRate.toFixed(1)}%` },
-  ], [housing, food, transportation, utilities, insurance, debtPayments, other, monthlyExpenses, currentSavings, monthlySaving, savingsRate, currency]);
+  ], [housing, food, transportation, utilities, insurance, debtPayments, other, monthlyExpenses, currentSavings, monthlySaving, savingsRate, savingsRateLabel, currency]);
 
   const getResults = useCallback((): ResultItem[] => {
-    const sixMonthTarget = targets.find((t) => t.months === 6);
-    const items: ResultItem[] = [
-      { label: 'Recommended Target (6 months)', value: fmt(monthlyExpenses * 6), highlight: true },
-      { label: 'Monthly Savings Needed', value: fmt(monthlySaving) },
+    if (monthlyExpenses <= 0) {
+      return [{ label: 'Recommended Target (6 months)', value: 'Enter your monthly expenses to see a target', highlight: true }];
+    }
+    return [
+      { label: 'Recommended Target (6 months)', value: fmt(recommended), highlight: true },
+      { label: 'Monthly Contribution', value: fmt(monthlySaving) },
+      { label: 'Time to Reach 6-Month Target', value: sixMonth.time.status === 'funded' ? 'Already funded' : timeLabel(sixMonth.time) },
     ];
-    if (sixMonthTarget && isFinite(sixMonthTarget.monthsToReach)) {
-      const y = Math.floor(sixMonthTarget.monthsToReach / 12);
-      const m = sixMonthTarget.monthsToReach % 12;
-      const timeStr = y > 0 ? `${y} yr${y !== 1 ? 's' : ''} ${m} mo` : `${m} month${m !== 1 ? 's' : ''}`;
-      items.push({ label: 'Time to Reach Goal', value: sixMonthTarget.monthsToReach === 0 ? 'Already funded!' : timeStr });
-    }
-    return items;
-  }, [monthlyExpenses, monthlySaving, targets, currency]);
-
-  const chartData = useMemo(() => {
-    const maxMonths = Math.min(
-      60,
-      Math.max(12, ...targets.map((t) => (isFinite(t.monthsToReach) ? t.monthsToReach + 3 : 24)))
-    );
-    const monthlyRate = savingsRate / 100 / 12;
-    const data = [];
-    for (let m = 0; m <= maxMonths; m++) {
-      let balance: number;
-      if (monthlyRate > 0) {
-        balance =
-          currentSavings * Math.pow(1 + monthlyRate, m) +
-          monthlySaving * ((Math.pow(1 + monthlyRate, m) - 1) / monthlyRate);
-      } else {
-        balance = currentSavings + monthlySaving * m;
-      }
-      data.push({ month: m, Savings: Math.round(balance) });
-    }
-    return data;
-  }, [currentSavings, monthlySaving, savingsRate, targets]);
+  }, [monthlyExpenses, recommended, monthlySaving, sixMonth, currency]);
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
@@ -190,7 +165,7 @@ export default function EmergencyFundCalc() {
             <SliderInput label="Debt Payments" id="ef-debt" value={debtPayments} min={0} max={5000} step={25} textMax={10000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}5K`} onChange={setDebtPayments} prefix={currencySymbol} formatDisplay={formatNumber} />
             <SliderInput label="Other Expenses" id="ef-other" value={other} min={0} max={2000} step={10} textMax={5000} minLabel={`${currencySymbol}0`} maxLabel={`${currencySymbol}2K`} onChange={setOther} prefix={currencySymbol} formatDisplay={formatNumber} />
 
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+            <div className="h-px bg-neutral-200/80" />
 
             <div className="bg-primary-50/60 rounded-xl p-4 border border-primary-100/60">
               <p className="text-xs text-neutral-500 mb-0.5">Total Monthly Expenses</p>
@@ -204,42 +179,34 @@ export default function EmergencyFundCalc() {
         </div>
 
         {/* Results */}
-        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" aria-live="polite" ref={resultsRef}>
+        <div className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start" ref={resultsRef}>
+          <p className="sr-only" aria-live="polite">{liveText}</p>
           <h2 className="text-lg font-semibold text-neutral-900 mb-4">Your Emergency Fund Targets</h2>
+
+          {monthlyExpenses <= 0 && (
+            <p className="text-sm text-neutral-500 mb-4">Enter your monthly expenses to see your 3, 6 and 12-month targets.</p>
+          )}
 
           <div data-pdf-section className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             {targets.map((t) => (
-              <div
-                key={t.months}
-                className="bg-white rounded-xl border border-neutral-200/80 p-4"
-              >
+              <div key={t.coverMonths} className="bg-white rounded-xl border border-neutral-200/80 p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: TARGET_COLORS[t.months] }} />
-                  <p className="text-xs font-medium text-neutral-500">{TARGET_LABELS[t.months]}</p>
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: TARGET_COLORS[t.coverMonths] }} aria-hidden="true" />
+                  <p className="text-xs font-medium text-neutral-500">{TARGET_LABELS[t.coverMonths]}</p>
                 </div>
                 <p className="text-xl font-bold text-neutral-900 tabular-nums">{fmt(t.target)}</p>
-                {t.pctFunded >= 1 ? (
+                {t.funded >= 1 ? (
                   <p className="text-xs text-success-600 font-medium mt-1">Fully funded</p>
                 ) : (
                   <>
-                    <div className="w-full h-1.5 bg-neutral-100 rounded-full mt-2 overflow-hidden">
+                    <div className="w-full h-1.5 bg-neutral-100 rounded-full mt-2 overflow-hidden" aria-hidden="true">
                       <div
                         className="h-full rounded-full transition-all duration-300"
-                        style={{ width: `${t.pctFunded * 100}%`, backgroundColor: TARGET_COLORS[t.months] }}
+                        style={{ width: `${t.funded * 100}%`, backgroundColor: TARGET_COLORS[t.coverMonths] }}
                       />
                     </div>
-                    <p className="text-xs text-neutral-500 mt-1.5 tabular-nums">
-                      {fmt(t.remaining)} remaining
-                      {isFinite(t.monthsToReach) && t.monthsToReach > 0 && (
-                        <span className="text-neutral-500">
-                          {' '}· {t.monthsToReach < 12
-                            ? `${t.monthsToReach} mo`
-                            : `${Math.floor(t.monthsToReach / 12)}y ${t.monthsToReach % 12}mo`}
-                        </span>
-                      )}
-                      {!isFinite(t.monthsToReach) && (
-                        <span className="text-neutral-500"> · Start saving to reach this</span>
-                      )}
+                    <p className="text-xs text-neutral-500 mt-1.5">
+                      <span className="tabular-nums">{fmt(t.remaining)}</span> remaining · <span className="tabular-nums">{timeLabel(t.time)}</span>
                     </p>
                   </>
                 )}
@@ -262,7 +229,7 @@ export default function EmergencyFundCalc() {
               <div>
                 <p className="text-xs text-neutral-500 mb-0.5">Current Progress</p>
                 <p className="text-lg font-semibold text-success-600 tabular-nums">
-                  {monthlyExpenses > 0 ? `${((currentSavings / (monthlyExpenses * 6)) * 100).toFixed(0)}%` : '—'}
+                  {monthlyExpenses > 0 ? `${((currentSavings / recommended) * 100).toFixed(0)}%` : '—'}
                 </p>
                 <p className="text-xs text-neutral-500">of 6-month target</p>
               </div>
@@ -278,56 +245,27 @@ export default function EmergencyFundCalc() {
           {/* Chart */}
           <div data-pdf-section className="bg-white rounded-xl border border-neutral-200/80 p-4">
             <h3 className="text-sm font-medium text-neutral-700 mb-3">Savings Growth Timeline</h3>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <CartesianGrid stroke={ct.grid} vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                    tickLine={false}
-                    axisLine={{ stroke: ct.axis }}
-                    interval="preserveStartEnd"
-                    minTickGap={24}
-                    label={{ value: 'Month', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: ct.axisText }}
-                  />
-                  <YAxis
-                    tickFormatter={(v: number) => {
-                      const s = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$';
-                      return `${s}${v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`;
-                    }}
-                    tick={{ fontSize: 11, fill: ct.axisText, fontFamily: ct.monoFont }}
-                    tickLine={false}
-                    axisLine={false}
-                    width={60}
-                  />
-                  <Tooltip content={<ChartTooltip labelPrefix="Month" formatValue={fmt} />} />
-                  {TARGETS.map((m) => (
-                    <ReferenceLine
-                      key={m}
-                      y={monthlyExpenses * m}
-                      stroke={TARGET_COLORS[m]}
-                      strokeWidth={1.5}
-                      label={{
-                        value: TARGET_LABELS[m],
-                        position: 'right',
-                        fill: TARGET_COLORS[m],
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    />
-                  ))}
-                  <Area
-                    type="monotone"
-                    dataKey="Savings"
-                    stroke={ct.series1}
-                    strokeWidth={2}
-                    fill={ct.series1Fill}
-                    animationDuration={600}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            <Suspense fallback={<ChartSkeleton height={CHART_HEIGHT} />}>
+              <EmergencyFundChart
+                rows={chartRows}
+                targets={targets.map((t) => ({ coverMonths: t.coverMonths, target: t.target }))}
+                currency={currency}
+                height={CHART_HEIGHT}
+                ariaLabel={`Emergency savings over ${chartRows.length - 1} months, from ${fmt(currentSavings)} to ${fmt(chartRows[chartRows.length - 1]?.balance ?? currentSavings)}, against targets of ${targets.map((t) => fmt(t.target)).join(', ')}.`}
+              />
+            </Suspense>
+            <p className="mt-2 text-xs text-neutral-500 leading-relaxed">
+              Interest is earned on the savings you already have as well as on each monthly deposit, at the annual rate entered.
+            </p>
+            <ChartDataTable
+              className="mt-2"
+              caption="Emergency savings by month"
+              columns={[
+                { key: 'month', label: 'When', format: (v) => monthLabel(Number(v)) },
+                { key: 'balance', label: 'Savings', format: (v) => fmt(Number(v)) },
+              ]}
+              rows={chartRows}
+            />
           </div>
         </div>
       </div>
