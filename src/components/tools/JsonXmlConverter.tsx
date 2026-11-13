@@ -10,6 +10,7 @@ import { parseJsonLossless } from '../../lib/dev-tools/json-lossless';
 import { jsonToXml, xmlToJson, isNcName, type FxpModule } from '../../lib/dev-tools/xml';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
 import { useSizeAwareDebounce } from '../../lib/dev-tools/use-size-aware-debounce';
+import { safely } from '../../lib/dev-tools/safe-compute';
 
 type Mode = 'json-to-xml' | 'xml-to-json';
 type IndentSize = 2 | 4;
@@ -75,7 +76,7 @@ export default function JsonXmlConverter() {
 
   const rootNameError = rootName.trim() && !isNcName(rootName.trim()) ? 'Use letters, digits, _, - or . and start with a letter or _.' : '';
 
-  const result = useMemo<Result>(() => {
+  const result = useMemo<Result>(() => safely<Result>(() => {
     const none: Result = { output: '', error: '', warnings: [], switchHint: false };
     if (!settledInput.trim()) return none;
     if (mode === 'json-to-xml') {
@@ -91,7 +92,7 @@ export default function JsonXmlConverter() {
       const built = jsonToXml(parsed.value, { rootName: rootName.trim() || 'root', indent: indentSize });
       if (!built.ok) return { ...none, error: built.error };
       const rejected = browserRejects(built.xml);
-      if (rejected) return { ...none, error: `The generated XML did not pass the browser's XML check (${rejected}). Please report this input.` };
+      if (rejected) return { ...none, error: `The generated XML did not pass the browser's XML check (${rejected}). Try simplifying the key names in the JSON.` };
       const duplicates = parsed.warnings.filter((w) => w.kind === 'duplicate-key').map((w) => w.message);
       return { ...none, output: built.xml, warnings: [...built.warnings, ...duplicates] };
     }
@@ -102,7 +103,7 @@ export default function JsonXmlConverter() {
       return { ...none, error: converted.error, switchHint: t.startsWith('{') || t.startsWith('[') };
     }
     return { ...none, output: converted.json, warnings: converted.warnings };
-  }, [settledInput, mode, indentSize, rootName, fxp, loadError]);
+  }, (message) => ({ output: '', error: message, warnings: [], switchHint: false })), [settledInput, mode, indentSize, rootName, fxp, loadError]);
 
   const waitingForLibrary = mode === 'xml-to-json' && !fxp && !loadError && !!input.trim();
 

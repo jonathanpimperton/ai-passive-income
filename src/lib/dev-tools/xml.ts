@@ -43,6 +43,21 @@ export const XML_PARSE_OPTIONS: Record<string, unknown> = {
   ignorePiTags: true,
 };
 
+/**
+ * Parser options for one conversion. The parser renames a few element names
+ * that collide with built-in object members (hasOwnProperty, toString, ...)
+ * to "__name"; `onReserved` lets the caller tell the user when that happens.
+ */
+export function xmlParseOptions(onReserved?: (name: string) => void): Record<string, unknown> {
+  return {
+    ...XML_PARSE_OPTIONS,
+    onDangerousProperty: (name: string) => {
+      onReserved?.(name);
+      return '__' + name;
+    },
+  };
+}
+
 export type XmlToJsonResult = { ok: true; json: string; warnings: string[] } | { ok: false; error: string };
 
 function friendlyValidationError(xml: string, e: ValidationError['err']): string {
@@ -60,6 +75,41 @@ function friendlyValidationError(xml: string, e: ValidationError['err']): string
     return `${where}: attribute ${name ? `'${name}' ` : ''}has no value. XML attributes need name="value" (element names cannot contain spaces).`;
   }
   return `${where}: ${e.msg}`;
+}
+
+/**
+ * Plain-language message for an error thrown by the XML parser (a reserved
+ * element name, a DOCTYPE the parser refuses, a size or depth limit). The
+ * parser's own wording is only used as a last resort.
+ */
+export function describeParseFailure(e: unknown): string {
+  const raw = (e instanceof Error ? e.message : String(e)).replace(/^\[[^\]]+\]\s*/, '');
+  const short = (t: string) => (t.length > 60 ? t.slice(0, 57) + '...' : t);
+
+  const reserved = raw.match(/Invalid name: "([^"]*)"/);
+  if (reserved) {
+    return `The element or attribute name "${short(reserved[1])}" is not accepted: the XML parser reserves the names "constructor", "prototype" and "__proto__". Rename it and try again.`;
+  }
+  const size = raw.match(/Entity "([^"]*)" size \((\d+)\) exceeds maximum allowed size \((\d+)\)/);
+  if (size) {
+    return `The entity "&${short(size[1])};" declared in the DOCTYPE is too long (${size[2]} characters; the limit is ${size[3]}). Shorten or remove it and try again.`;
+  }
+  const count = raw.match(/Entity count \((\d+)\) exceeds maximum allowed \((\d+)\)/);
+  if (count) return `The DOCTYPE declares more than ${count[2]} entities, which this converter does not accept. Remove some and try again.`;
+  if (/Parameter entities are not supported|Invalid entity name\s*%/.test(raw)) {
+    return 'The DOCTYPE declares a parameter entity (<!ENTITY % ...>), which this converter does not support. Remove it and try again.';
+  }
+  if (/External entities are not supported/.test(raw)) {
+    return 'The DOCTYPE declares an external entity (SYSTEM ...), which this converter never loads. Remove it and try again.';
+  }
+  const expanded = raw.match(/(?:Expanded content length|expansion count) limit exceeded: \d+ > (\d+)/);
+  if (expanded) {
+    return `Entity references expand to more than ${Number(expanded[1]).toLocaleString('en-US')} ${/length/.test(raw) ? 'characters' : 'replacements'}, which this converter does not accept. Use fewer entity references and try again.`;
+  }
+  if (/Maximum nested tags exceeded/.test(raw)) {
+    return 'Elements are nested more than 100 levels deep, which this converter does not accept.';
+  }
+  return `The XML could not be converted: ${raw.length > 160 ? raw.slice(0, 157) + '...' : raw}`;
 }
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
@@ -108,10 +158,25 @@ function tidy(root: Record<string, unknown>, mixed: string[]): void {
 }
 
 export function xmlToJson(fxp: FxpModule, xml: string, indent: number): XmlToJsonResult {
+  try {
+    return convertXml(fxp, xml, indent);
+  } catch (e) {
+    // The parser throws on some inputs that pass validation; report them
+    // instead of letting the exception unmount the tool.
+    return { ok: false, error: describeParseFailure(e) };
+  }
+}
+
+function convertXml(fxp: FxpModule, xml: string, indent: number): XmlToJsonResult {
   const check = fxp.XMLValidator.validate(xml, { allowBooleanAttributes: false });
   if (check !== true) return { ok: false, error: friendlyValidationError(xml, check.err) };
 
-  const parsed = new fxp.XMLParser(XML_PARSE_OPTIONS).parse(xml);
+  const reserved: string[] = [];
+  const parsed = new fxp.XMLParser(
+    xmlParseOptions((name) => {
+      if (!reserved.includes(name)) reserved.push(name);
+    }),
+  ).parse(xml);
   if (!isPlainObject(parsed)) return { ok: false, error: 'No XML element was found.' };
 
   const topText = parsed[TEXT_KEY];
@@ -133,6 +198,13 @@ export function xmlToJson(fxp: FxpModule, xml: string, indent: number): XmlToJso
   if (mixed.length) {
     warnings.push(
       `${mixed.map((m) => `<${m}>`).join(', ')} mix${mixed.length === 1 ? 'es' : ''} text with child elements. The text is kept in "${TEXT_KEY}" with its pieces joined by spaces, but JSON cannot record where it sat between the child elements.`,
+    );
+  }
+  if (reserved.length) {
+    const shown = reserved.slice(0, 3);
+    const more = reserved.length > 3 ? ', ...' : '';
+    warnings.push(
+      `${shown.map((n) => `<${n}>`).join(', ')}${more} ${reserved.length === 1 ? 'is a name' : 'are names'} that JavaScript objects already use, so ${reserved.length === 1 ? 'it appears' : 'they appear'} in the JSON as ${shown.map((n) => `"__${n}"`).join(', ')}${more}.`,
     );
   }
   return { ok: true, json: JSON.stringify(parsed, null, indent), warnings };
@@ -262,6 +334,7 @@ export function jsonToXml(root: JsonNode, opts: JsonToXmlOptions): JsonToXmlResu
   const pad = (depth: number) => (indent ? ' '.repeat(indent * depth) : '');
 
   const renamed = new Map<string, string>();
+  const mergedAttrs = new Set<string>();
   const emptyArrays = new Set<string>();
   let badChars = 0;
 
@@ -319,12 +392,16 @@ export function jsonToXml(root: JsonNode, opts: JsonToXmlOptions): JsonToXmlResu
       const declared = attrs.map((a) => a.key.slice(ATTR_PREFIX.length)).filter((k) => k.startsWith('xmlns:')).map((k) => k.slice(6));
       if (declared.length) scope = new Set([...scope, ...declared]);
       const name = nameFor(task.name, scope, false);
-      const attrText = attrs
-        .map((a) => {
-          const value = scalarText(a.value);
-          return ` ${nameFor(a.key.slice(ATTR_PREFIX.length), scope, true)}="${value === null ? '' : text(value, true)}"`;
-        })
-        .join('');
+      // XML allows each attribute once. Repeated keys, or keys that map to the
+      // same name after renaming, keep the last value (as most JSON parsers do).
+      const attrValues = new Map<string, string>();
+      for (const a of attrs) {
+        const attrName = nameFor(a.key.slice(ATTR_PREFIX.length), scope, true);
+        const value = scalarText(a.value);
+        if (attrValues.has(attrName)) mergedAttrs.add(attrName);
+        attrValues.set(attrName, value === null ? '' : text(value, true));
+      }
+      const attrText = [...attrValues].map(([attrName, value]) => ` ${attrName}="${value}"`).join('');
 
       // Expand children: arrays become repeated elements with the member's name.
       const childTasks: Task[] = [];
@@ -375,6 +452,12 @@ export function jsonToXml(root: JsonNode, opts: JsonToXmlOptions): JsonToXmlResu
     const examples = [...renamed.entries()].slice(0, 3).map(([from, to]) => `"${from}" -> <${to}>`).join(', ');
     warnings.push(`${renamed.size} key${renamed.size === 1 ? ' is' : 's are'} not a valid XML name and ${renamed.size === 1 ? 'was' : 'were'} renamed: ${examples}${renamed.size > 3 ? ', ...' : ''}.`);
   }
+  if (mergedAttrs.size) {
+    const names = [...mergedAttrs].slice(0, 3).map((n) => `"${n}"`).join(', ');
+    warnings.push(
+      `${mergedAttrs.size} attribute${mergedAttrs.size === 1 ? '' : 's'} (${names}${mergedAttrs.size > 3 ? ', ...' : ''}) would have appeared more than once on the same element, either as a repeated key or because two keys became the same XML name. XML allows each attribute once, so only the last value was kept.`,
+    );
+  }
   if (emptyArrays.size) {
     warnings.push(`Empty arrays have no XML equivalent and were left out: ${[...emptyArrays].slice(0, 3).join(', ')}${emptyArrays.size > 3 ? ', ...' : ''}.`);
   }
@@ -387,7 +470,13 @@ export function jsonToXml(root: JsonNode, opts: JsonToXmlOptions): JsonToXmlResu
 /** Well-formedness check used by the tests (the browser also checks with DOMParser). */
 export function isWellFormed(fxp: FxpModule, xml: string): boolean {
   if (fxp.XMLValidator.validate(xml, { allowBooleanAttributes: false }) !== true) return false;
-  const parsed = new fxp.XMLParser({ ...XML_PARSE_OPTIONS }).parse(xml);
+  let parsed: unknown;
+  try {
+    parsed = new fxp.XMLParser(xmlParseOptions()).parse(xml);
+  } catch {
+    // A parser refusal means the document cannot be handled as written.
+    return false;
+  }
   if (!isPlainObject(parsed)) return false;
   delete parsed[TEXT_KEY];
   const roots = Object.keys(parsed);

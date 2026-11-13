@@ -181,3 +181,99 @@ describe('XML names', () => {
     expect(isNcName(toNcName('a:b/c d'))).toBe(true);
   });
 });
+
+describe('XML to JSON reports what the parser refuses instead of throwing', () => {
+  const failure = (xml: string) => {
+    const r = xmlToJson(FXP, xml, 2);
+    if (r.ok) throw new Error('expected an error');
+    return r.error;
+  };
+
+  it.each(['constructor', 'prototype', '__proto__'])('names the reserved element <%s>', (name) => {
+    const msg = failure(`<root><${name}>1</${name}></root>`);
+    expect(msg).toContain(`"${name}"`);
+    expect(msg).toMatch(/Rename it/);
+    expect(failure(`<${name}>1</${name}>`)).toContain(`"${name}"`);
+  });
+
+  it('explains a DOCTYPE that declares a parameter entity', () => {
+    expect(failure('<!DOCTYPE a [<!ENTITY % p "x">]><a>1</a>')).toMatch(/parameter entity/);
+  });
+
+  it('explains a DOCTYPE that declares an external entity', () => {
+    expect(failure('<!DOCTYPE a [<!ENTITY e SYSTEM "x.txt">]><a>&e;</a>')).toMatch(/external entity/);
+  });
+
+  it('names an entity that is over the size limit', () => {
+    const msg = failure(`<!DOCTYPE a [<!ENTITY big "${'x'.repeat(10001)}">]><a>&big;</a>`);
+    expect(msg).toContain('&big;');
+    expect(msg).toMatch(/too long \(10001 characters; the limit is 10000\)/);
+  });
+
+  it('explains entity references that expand past the limit', () => {
+    const msg = failure(`<!DOCTYPE a [<!ENTITY big "${'x'.repeat(9000)}">]><a>${'&big;'.repeat(20)}</a>`);
+    expect(msg).toMatch(/expand to more than 100,000 characters/);
+  });
+
+  it('explains too many entity declarations and too much nesting', () => {
+    const decls = Array.from({ length: 1001 }, (_, i) => `<!ENTITY e${i} "v">`).join('');
+    expect(failure(`<!DOCTYPE a [${decls}]><a>1</a>`)).toMatch(/more than 1000 entities/);
+    expect(failure('<a>'.repeat(150) + '</a>'.repeat(150))).toMatch(/nested more than 100 levels/);
+  });
+
+  it('never throws, whatever the input', () => {
+    const inputs = [
+      '<a><constructor/></a>',
+      '<!DOCTYPE a [<!ENTITY % p "x">]><a/>',
+      '<!DOCTYPE a><!DOCTYPE b><a/>',
+      '<a b="&#0;"/>',
+      '<a>&#xD800;</a>',
+      '<' + 'a'.repeat(5000) + '/>',
+    ];
+    for (const xml of inputs) {
+      expect(() => xmlToJson(FXP, xml, 2), xml.slice(0, 40)).not.toThrow();
+    }
+  });
+
+  it('isWellFormed treats a parser refusal as not well-formed', () => {
+    expect(isWellFormed(FXP, '<root><constructor>1</constructor></root>')).toBe(false);
+  });
+});
+
+describe('XML to JSON warns when it renames names JavaScript objects already use', () => {
+  it('maps hasOwnProperty and toString to "__" names and says so', () => {
+    const { value, warnings } = toJson('<a><hasOwnProperty>1</hasOwnProperty><toString>2</toString><ok>3</ok></a>');
+    expect(value.a.__hasOwnProperty).toBe('1');
+    expect(value.a.__toString).toBe('2');
+    expect(value.a.ok).toBe('3');
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatch(/<hasOwnProperty>, <toString>/);
+    expect(warnings[0]).toMatch(/"__hasOwnProperty", "__toString"/);
+  });
+
+  it('does not warn for ordinary names', () => {
+    expect(toJson('<a><b>1</b></a>').warnings).toEqual([]);
+  });
+});
+
+describe('JSON to XML writes each attribute once', () => {
+  it('keeps the last value of a repeated @_ key and warns', () => {
+    const { xml, warnings } = toXml('{"user":{"@_id":"1","@_id":"2","name":"A"}}');
+    expect(xml).toContain('<user id="2">');
+    expect(xml.match(/id="/g)).toHaveLength(1);
+    expect(isWellFormed(FXP, xml)).toBe(true);
+    expect(warnings.some((w) => /"id"/.test(w) && /only the last value was kept/.test(w))).toBe(true);
+  });
+
+  it('merges keys that become the same attribute name after renaming', () => {
+    const { xml, warnings } = toXml('{"r":{"@_a b":"1","@_a_b":"2"}}');
+    expect(xml).toContain('<r a_b="2"/>');
+    expect(isWellFormed(FXP, xml)).toBe(true);
+    expect(warnings.some((w) => /"a_b"/.test(w))).toBe(true);
+  });
+
+  it('does not warn when attribute names are distinct', () => {
+    const { warnings } = toXml('{"r":{"@_a":"1","@_b":"2"}}');
+    expect(warnings).toEqual([]);
+  });
+});
