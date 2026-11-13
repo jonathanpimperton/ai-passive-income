@@ -56,6 +56,42 @@ describe('MATH-US-F01: qualified overtime deduction (TY2026 repro figures)', () 
   });
 });
 
+describe('only FLSA overtime (hours over 40 in a week) qualifies', () => {
+  it('hourly $20, 30 h + 5 OT: paid at 1.5x but no hour is over 40, so no deduction', () => {
+    const r = computeUsSalary(base({ mode: 'hourly', hourlyRate: 20, hoursPerWeek: 30, overtimeHours: 5 }));
+    expect(r.overtimePay).toBeCloseTo(5 * 30 * 52, 6); // gross pay stays as entered
+    expect(r.grossAnnual).toBeCloseTo((30 * 20 + 5 * 30) * 52, 6);
+    expect(r.qualifyingOvertimeHoursPerWeek).toBe(0);
+    expect(r.qualifiedOvertimePremium).toBe(0);
+    expect(r.overtimeDeduction).toBe(0);
+  });
+
+  it('salaried 37.5 h + 5 OT: only the 2.5 hours over 40 qualify', () => {
+    // $78,000 / (37.5 h x 52) = $40/hr base; premium 2.5 h x $20 x 52 = $2,600
+    const r = computeUsSalary(base({ salary: 78_000, hoursPerWeek: 37.5, overtimeHours: 5 }));
+    expect(r.qualifyingOvertimeHoursPerWeek).toBe(2.5);
+    expect(r.qualifiedOvertimePremium).toBeCloseTo(2_600, 6);
+    expect(r.overtimePremium).toBeCloseTo(5_200, 6);
+    expect(r.overtimeDeduction).toBeCloseTo(2_600, 6);
+  });
+
+  it('boundaries at exactly 40 hours', () => {
+    const q = (over: Partial<UsSalaryInputs>) => computeUsSalary(base(over)).qualifyingOvertimeHoursPerWeek;
+    expect(q({ mode: 'hourly', hoursPerWeek: 40, overtimeHours: 0 })).toBe(0);
+    expect(q({ mode: 'hourly', hoursPerWeek: 35, overtimeHours: 5 })).toBe(0);
+    expect(q({ mode: 'hourly', hoursPerWeek: 35, overtimeHours: 6 })).toBe(1);
+    expect(q({ mode: 'hourly', hoursPerWeek: 41, overtimeHours: 0 })).toBe(1);
+    expect(q({ mode: 'annual', hoursPerWeek: 40, overtimeHours: 0 })).toBe(0);
+    expect(q({ mode: 'annual', hoursPerWeek: 40, overtimeHours: 1 })).toBe(1);
+  });
+
+  it('a salary covering 45 hours with no overtime pay earns no premium to deduct', () => {
+    const r = computeUsSalary(base({ hoursPerWeek: 45, overtimeHours: 0 }));
+    expect(r.qualifiedOvertimePremium).toBe(0);
+    expect(r.overtimeDeduction).toBe(0);
+  });
+});
+
 describe('overtime phase-out follows Schedule 1-A (whole $1,000 steps)', () => {
   const r2026 = getUsRates(2026);
   it('IRM example: $165,000 MAGI cuts a $12,500 maximum to $11,000', () => {
@@ -207,6 +243,8 @@ describe('invariants', () => {
       expect(r.netAnnual + r.totalDeductions).toBeCloseTo(r.grossAnnual, 4);
       expect(r.netAnnual).toBeLessThanOrEqual(r.grossAnnual + 1e-6);
       expect(r.taxableIncome).toBeGreaterThanOrEqual(0);
+      expect(r.qualifiedOvertimePremium).toBeLessThanOrEqual(r.overtimePremium + 1e-9);
+      expect(r.qualifyingOvertimeHoursPerWeek).toBeLessThanOrEqual(Math.max(0, inp.hoursPerWeek + inp.overtimeHours - 40));
       const noOt = computeUsSalary({ ...inp, overtimeQualifies: false });
       expect(r.federalTax).toBeLessThanOrEqual(noOt.federalTax + 1e-6);
       const noSeniors = computeUsSalary({ ...inp, seniors: 0 });

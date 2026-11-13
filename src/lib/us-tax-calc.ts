@@ -142,7 +142,11 @@ export interface UsSalaryInputs {
   weeksPerYear: number;
   /** Extra overtime hours per week, paid at 1.5x */
   overtimeHours: number;
-  /** Overtime is required by the FLSA (non-exempt), so its premium qualifies for the deduction */
+  /**
+   * The worker is FLSA non-exempt, so the premium on hours over 40 in a week
+   * qualifies for the deduction. Overtime paid for hours at or under 40 a week
+   * never qualifies (it is not FLSA section 7 overtime).
+   */
   overtimeQualifies: boolean;
   /** Effective state income tax rate, in percent, applied to pay after 401(k) */
   stateTaxRate: number;
@@ -160,8 +164,12 @@ export interface UsSalaryResult {
   hoursWorkedPerYear: number;
   /** Overtime pay at 1.5x included in gross */
   overtimePay: number;
-  /** The FLSA premium half of overtime pay */
+  /** The premium half of all overtime pay entered (hours paid at 1.5x) */
   overtimePremium: number;
+  /** Overtime hours per week that are over 40 hours worked (FLSA section 7) */
+  qualifyingOvertimeHoursPerWeek: number;
+  /** Premium half of pay for those hours: the amount the deduction can use, before cap and phase-out */
+  qualifiedOvertimePremium: number;
   retirement401k: number;
   /** 401(k) limit used (true when the IRS has not published this year's limit) */
   retirement401kLimit: number;
@@ -202,24 +210,30 @@ export function computeUsSalary(raw: UsSalaryInputs): UsSalaryResult {
   const hours = Math.max(0, finiteOr0(raw.hoursPerWeek));
   const extraOt = Math.max(0, finiteOr0(raw.overtimeHours));
 
+  // Gross pay is as entered: every overtime hour is paid at 1.5x.
   let grossAnnual: number;
-  let overtimePay: number;
-  let overtimePremium: number;
+  let baseRate: number;
+  let paidOtHours: number; // per week, paid at 1.5x
   if (raw.mode === 'annual') {
     const salary = Math.max(0, finiteOr0(raw.salary));
     const baseHours = hours * weeks;
-    const baseHourly = baseHours > 0 ? salary / baseHours : 0;
-    overtimePay = baseHourly * 1.5 * extraOt * weeks;
-    overtimePremium = baseHourly * 0.5 * extraOt * weeks;
-    grossAnnual = salary + overtimePay;
+    baseRate = baseHours > 0 ? salary / baseHours : 0;
+    paidOtHours = extraOt;
+    grossAnnual = salary + baseRate * 1.5 * paidOtHours * weeks;
   } else {
-    const rate = Math.max(0, finiteOr0(raw.hourlyRate));
+    baseRate = Math.max(0, finiteOr0(raw.hourlyRate));
     const regularHours = Math.min(hours, 40);
-    const otHours = Math.max(0, hours - 40) + extraOt;
-    overtimePay = otHours * rate * 1.5 * weeks;
-    overtimePremium = otHours * rate * 0.5 * weeks;
-    grossAnnual = regularHours * rate * weeks + overtimePay;
+    paidOtHours = Math.max(0, hours - 40) + extraOt;
+    grossAnnual = (regularHours * baseRate + paidOtHours * baseRate * 1.5) * weeks;
   }
+  const overtimePay = paidOtHours * baseRate * 1.5 * weeks;
+  const overtimePremium = paidOtHours * baseRate * 0.5 * weeks;
+  // Qualified overtime (Notice 2025-69, Schedule 1-A Part III) is only the
+  // FLSA section 7 premium: hours over 40 in a workweek. Overtime paid for
+  // hours at or under 40 (e.g. 30 regular + 5 extra) does not qualify, and a
+  // salary covering more than 40 hours earns no premium unless overtime is paid.
+  const qualifyingOvertimeHoursPerWeek = Math.min(paidOtHours, Math.max(0, hours + extraOt - 40));
+  const qualifiedOvertimePremium = qualifyingOvertimeHoursPerWeek * baseRate * 0.5 * weeks;
   const hoursWorkedPerYear = (hours + extraOt) * weeks;
 
   // 401(k): reduces federal and state taxable pay, not FICA.
@@ -238,7 +252,7 @@ export function computeUsSalary(raw: UsSalaryInputs): UsSalaryResult {
   const additionalStandardDeduction = seniors * perSenior;
   const standardDeduction = rates.standardDeduction[status] + additionalStandardDeduction;
   const otDeduction = raw.overtimeQualifies
-    ? overtimeDeduction(overtimePremium, agi, status, rates)
+    ? overtimeDeduction(qualifiedOvertimePremium, agi, status, rates)
     : 0;
   const senior = seniorDeduction(seniors, agi, status, rates);
   const taxableIncome = Math.max(0, agi - standardDeduction - otDeduction - senior);
@@ -261,6 +275,8 @@ export function computeUsSalary(raw: UsSalaryInputs): UsSalaryResult {
     hoursWorkedPerYear,
     overtimePay,
     overtimePremium,
+    qualifyingOvertimeHoursPerWeek,
+    qualifiedOvertimePremium,
     retirement401k,
     retirement401kLimit: k.limit,
     retirement401kLimitPublished: k.published,

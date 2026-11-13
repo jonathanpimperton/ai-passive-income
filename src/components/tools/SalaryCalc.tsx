@@ -302,7 +302,9 @@ export default function SalaryCalc({ defaults }: SalaryCalcProps = {}) {
   const pctKept = result.grossAnnual > 0 ? Math.round((result.netAnnual / result.grossAnnual) * 100) : 0;
   const chartLabel = `Income breakdown: ${pctKept}% of gross pay kept as take-home pay.`;
 
-  const otQualifyingShown = result.overtimePremium > 0 && rates.obbba !== null;
+  const otQualifyingShown = result.qualifiedOvertimePremium > 0 && rates.obbba !== null;
+  // Overtime entered, but none of it is over 40 hours a week, so none can qualify.
+  const otUnder40Shown = result.overtimePay > 0 && result.qualifiedOvertimePremium === 0 && rates.obbba !== null;
   const k401Hint = rates.retirement401k.published
     ? `Pre-tax; cuts federal and state tax, not FICA. Capped at the ${taxYear} limit of ${formatCurrency(rates.retirement401k.limit)}.`
     : `Pre-tax; cuts federal and state tax, not FICA. The IRS has not published the ${taxYear} limit yet, so the ${formatCurrency(rates.retirement401k.limit)} limit from ${taxYear - 1} is used.`;
@@ -401,10 +403,19 @@ export default function SalaryCalc({ defaults }: SalaryCalcProps = {}) {
                 <span>
                   My overtime is required by federal law (FLSA)
                   <span id="sal-ot-qual-hint" className="block text-xs text-neutral-500 mt-0.5 leading-relaxed">
-                    Most hourly, non-exempt jobs. The extra half of time-and-a-half is deductible for 2025-2028, up to {formatCurrency(rates.obbba.overtime.cap[filingStatus])} a year, phasing out above {formatCurrency(rates.obbba.overtime.phaseOutStart[filingStatus])} of income.
+                    Most hourly, non-exempt jobs. Only hours over 40 in a week count
+                    ({formatNumber(result.qualifyingOvertimeHoursPerWeek, result.qualifyingOvertimeHoursPerWeek % 1 ? 1 : 0)} a week here):
+                    the extra half of time-and-a-half on them is deductible for 2025-2028, up to {formatCurrency(rates.obbba.overtime.cap[filingStatus])} a year,
+                    phasing out above {formatCurrency(rates.obbba.overtime.phaseOutStart[filingStatus])} of income.
                   </span>
                 </span>
               </label>
+            )}
+            {otUnder40Shown && (
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                No overtime deduction: under federal law (FLSA) only hours over 40 in a week count as overtime,
+                and this adds up to {formatNumber(hoursPerWeek + overtimeHours, (hoursPerWeek + overtimeHours) % 1 ? 1 : 0)} hours a week.
+              </p>
             )}
 
             <div className="h-px bg-neutral-200/80" />
