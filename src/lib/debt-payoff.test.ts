@@ -16,6 +16,7 @@ import {
   prepareDebts,
   debtLabel,
   DEBT_HORIZON_MONTHS,
+  DEBT_CLASSIFY_CAP_MONTHS,
   type Debt,
   type DebtRowInput,
 } from './debt-payoff';
@@ -176,6 +177,21 @@ describe('never / beyond horizon (S1-11: MATH-US-03)', { timeout: 60000 }, () =>
     expect(long.months).toBeGreaterThan(DEBT_HORIZON_MONTHS);
   });
 
+  it('reviewer repro: a growing non-target debt does not hide "never" (avalanche and snowball)', () => {
+    // Avalanche targets the card (min $200 + $50 pool < $416 interest) while the loan gets
+    // only its $4 minimum against $5 interest: both grow forever.
+    const debts: Debt[] = [
+      { name: 'Card', balance: 20000, rate: 0.2499, minPayment: 200 },
+      { name: 'Loan', balance: 2000, rate: 0.03, minPayment: 4 },
+    ];
+    for (const strategy of ['avalanche', 'snowball'] as const) {
+      const r = simulateDebtPayoff(debts, 50, strategy);
+      expect(r.status).toBe('never');
+      expect(r.months).toBe(DEBT_HORIZON_MONTHS);
+      expect(r.timeline).toHaveLength(DEBT_HORIZON_MONTHS);
+    }
+  });
+
   it('a slow but shrinking debt is beyondHorizon, not never', () => {
     // $50,000 at 6% paying $251: interest $250 a month, shrinks by about $1 a month at first (about 92 years).
     const r = simulateDebtPayoff([{ name: 'Slow', balance: 50000, rate: 0.06, minPayment: 251 }], 0, 'avalanche');
@@ -206,6 +222,11 @@ describe('never / beyond horizon (S1-11: MATH-US-03)', { timeout: 60000 }, () =>
           if (r.status === 'never') {
             // "never" must be provable: a much longer run still cannot clear it.
             expect(simulateDebtPayoff(debts, extra, strategy, { horizonMonths: 2400 }).status).not.toBe('paid');
+          } else {
+            // beyondHorizon must be honest too: either it clears within the cap, or it
+            // is still not provably never at the cap (a cap-length run never says "never").
+            const atCap = simulateDebtPayoff(debts, extra, strategy, { horizonMonths: DEBT_CLASSIFY_CAP_MONTHS });
+            expect(atCap.status).not.toBe('never');
           }
         }
         expect(Number.isFinite(r.totalInterest)).toBe(true);

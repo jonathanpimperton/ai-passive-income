@@ -16,17 +16,22 @@
  * Outcomes (review MATH-US-03: the old code printed "50 years" and "$40M
  * interest" for a debt that never shrinks):
  * - 'paid':          every debt cleared within the horizon; totals exact.
- * - 'never':         provably never cleared: at the end of the horizon every
- *                    open debt's interest is at least the most it could be
- *                    paid (its own minimum plus the whole extra/rollover
- *                    pool). Then no balance can fall, so no debt can clear,
- *                    so the pool never grows and the interest only rises.
- *                    Totals are unbounded and must not be shown.
- * - 'beyondHorizon': not cleared within the horizon and "never" is not
- *                    provable (a trend at month 600 is not decisive with
- *                    several debts: a slowly shrinking debt can clear decades
- *                    later and release its minimum). Totals cover the horizon
- *                    only.
+ * - 'never':         provably never cleared. After the horizon the same loop
+ *                    keeps running (classification only: no totals, no
+ *                    timeline) until the never-condition holds: every open
+ *                    debt's monthly interest is at least the most it can be
+ *                    paid. Under avalanche that is minimum + the whole pool
+ *                    for the target (highest rate; the order never changes)
+ *                    and its own minimum for every other debt. Under snowball
+ *                    the order can change, so every open debt must cover
+ *                    minimum + pool. Once that holds no balance can fall, no
+ *                    debt can clear, the pool never grows and interest only
+ *                    rises. Totals are unbounded and must not be shown.
+ * - 'beyondHorizon': not cleared within the horizon and not provably never:
+ *                    either it clears later (a slowly shrinking debt can
+ *                    clear decades on and release its minimum) or the
+ *                    classification cap (12,000 months) is reached first.
+ *                    Totals cover the horizon only.
  * - 'empty':         no debts.
  * Debts are tracked by position, so two debts with the same name are kept
  * apart (review MATH-US-04).
@@ -77,6 +82,100 @@ export interface DebtSimulation {
 }
 
 export const DEBT_HORIZON_MONTHS = 600;
+/** How far past the horizon the loop may run purely to tell "never" from "later". */
+export const DEBT_CLASSIFY_CAP_MONTHS = 12_000;
+
+interface LoopState {
+  balances: number[];
+  paidOff: boolean[];
+  /** Minimums of cleared debts, rolled into the pool permanently. */
+  rolled: number;
+}
+
+/**
+ * One month of the payoff loop (interest, own minimums, then the pool in
+ * strategy order). Mutates `st`; calls `onClear` for each debt cleared.
+ */
+function stepMonth(
+  st: LoopState,
+  rates: number[],
+  mins: number[],
+  extra: number,
+  strategy: Strategy,
+  onClear: (i: number) => void,
+): { interest: number; paid: number } {
+  const { balances, paidOff } = st;
+  let monthInterest = 0;
+  let paid = 0;
+  for (let i = 0; i < balances.length; i++) {
+    if (balances[i] <= 0) continue;
+    const interest = balances[i] * (rates[i] / 12);
+    balances[i] += interest;
+    monthInterest += interest;
+  }
+
+  let available = extra + st.rolled;
+  for (let i = 0; i < balances.length; i++) {
+    if (balances[i] <= 0) continue;
+    const payment = Math.min(mins[i], balances[i]);
+    balances[i] -= payment;
+    paid += payment;
+    if (balances[i] <= 0.01) {
+      balances[i] = 0;
+      available += mins[i] - payment;
+      if (!paidOff[i]) {
+        paidOff[i] = true;
+        st.rolled += mins[i];
+      }
+      onClear(i);
+    }
+  }
+
+  const open = balances
+    .map((b, i) => ({ idx: i, balance: b, rate: rates[i] }))
+    .filter((d) => d.balance > 0);
+  if (strategy === 'snowball') open.sort((a, b) => a.balance - b.balance);
+  else open.sort((a, b) => b.rate - a.rate);
+
+  for (const d of open) {
+    if (available <= 0) break;
+    const payment = Math.min(available, balances[d.idx]);
+    balances[d.idx] -= payment;
+    paid += payment;
+    available -= payment;
+    if (balances[d.idx] <= 0.01) {
+      balances[d.idx] = 0;
+      if (!paidOff[d.idx]) {
+        paidOff[d.idx] = true;
+        st.rolled += mins[d.idx];
+      }
+      onClear(d.idx);
+    }
+  }
+  return { interest: monthInterest, paid };
+}
+
+/**
+ * True when no open balance can ever fall again (see the module comment):
+ * avalanche - the target covers minimum + pool, every other debt its own
+ * minimum; snowball - every open debt covers minimum + pool (the target can
+ * change as balances grow).
+ */
+function provablyNever(st: LoopState, rates: number[], mins: number[], extra: number, strategy: Strategy): boolean {
+  const open: number[] = [];
+  st.balances.forEach((b, i) => {
+    if (b > 0.01) open.push(i);
+  });
+  if (open.length === 0) return false;
+  const pool = extra + st.rolled;
+  const interest = (i: number) => st.balances[i] * (rates[i] / 12);
+  if (strategy === 'avalanche') {
+    // Same stable order as stepMonth: highest rate first, ties by position.
+    const target = [...open].sort((a, b) => rates[b] - rates[a])[0];
+    return open.every((i) => interest(i) + 1e-9 >= mins[i] + (i === target ? pool : 0));
+  }
+  return open.every((i) => interest(i) + 1e-9 >= mins[i] + pool);
+}
 
 export function simulateDebtPayoff(
   debts: Debt[],
@@ -114,61 +213,15 @@ export function simulateDebtPayoff(
   const timeline: DebtTimelinePoint[] = [];
   let totalInterest = 0;
   let totalPaid = 0;
-  // Minimums freed by cleared debts roll into the pool permanently.
-  let rolledMinimums = 0;
-  const paidOff = debts.map((_, i) => clearedMonth[i] !== null);
+  const state: LoopState = { balances, paidOff: debts.map((_, i) => clearedMonth[i] !== null), rolled: 0 };
   let month = 0;
 
   while (balances.some((b) => b > 0.01) && month < horizon) {
     month++;
-    let monthInterest = 0;
-    for (let i = 0; i < balances.length; i++) {
-      if (balances[i] <= 0) continue;
-      const interest = balances[i] * (rates[i] / 12);
-      balances[i] += interest;
-      monthInterest += interest;
-    }
-    totalInterest += monthInterest;
-
-    let available = extra + rolledMinimums;
-    for (let i = 0; i < balances.length; i++) {
-      if (balances[i] <= 0) continue;
-      const payment = Math.min(mins[i], balances[i]);
-      balances[i] -= payment;
-      totalPaid += payment;
-      if (balances[i] <= 0.01) {
-        balances[i] = 0;
-        available += mins[i] - payment;
-        if (!paidOff[i]) {
-          paidOff[i] = true;
-          rolledMinimums += mins[i];
-        }
-        markCleared(i, month);
-      }
-    }
-
-    const open = balances
-      .map((b, i) => ({ idx: i, balance: b, rate: rates[i] }))
-      .filter((d) => d.balance > 0);
-    if (strategy === 'snowball') open.sort((a, b) => a.balance - b.balance);
-    else open.sort((a, b) => b.rate - a.rate);
-
-    for (const d of open) {
-      if (available <= 0) break;
-      const payment = Math.min(available, balances[d.idx]);
-      balances[d.idx] -= payment;
-      totalPaid += payment;
-      available -= payment;
-      if (balances[d.idx] <= 0.01) {
-        balances[d.idx] = 0;
-        if (!paidOff[d.idx]) {
-          paidOff[d.idx] = true;
-          rolledMinimums += mins[d.idx];
-        }
-        markCleared(d.idx, month);
-      }
-    }
-
+    const m = month;
+    const r = stepMonth(state, rates, mins, extra, strategy, (i) => markCleared(i, m));
+    totalInterest += r.interest;
+    totalPaid += r.paid;
     timeline.push({
       month,
       totalBalance: balances.reduce((s, b) => s + Math.max(0, b), 0),
@@ -180,11 +233,23 @@ export function simulateDebtPayoff(
   let status: DebtPayoffStatus;
   if (debts.length === 0) status = 'empty';
   else if (!balances.some((b) => b > 0.01)) status = 'paid';
+  else if (provablyNever(state, rates, mins, extra, strategy)) status = 'never';
   else {
-    const pool = extra + rolledMinimums;
-    const open = balances.map((b, i) => i).filter((i) => balances[i] > 0.01);
-    const provablyNever = open.every((i) => mins[i] + pool <= balances[i] * (rates[i] / 12) + 1e-9);
-    status = provablyNever ? 'never' : 'beyondHorizon';
+    // Classification only: run a copy past the horizon until it clears, becomes
+    // provably never, or reaches the cap. Totals and timeline stay at the horizon.
+    const probe: LoopState = { balances: [...balances], paidOff: [...state.paidOff], rolled: state.rolled };
+    const cap = Math.max(DEBT_CLASSIFY_CAP_MONTHS, horizon);
+    status = 'beyondHorizon';
+    for (let m = horizon; m < cap; m++) {
+      stepMonth(probe, rates, mins, extra, strategy, () => {});
+      if (!probe.balances.some((b) => b > 0.01)) break; // clears later
+      const runaway = probe.balances.some((b) => !Number.isFinite(b) || b > 1e250);
+      const never = provablyNever(probe, rates, mins, extra, strategy);
+      if (never || runaway) {
+        status = never ? 'never' : 'beyondHorizon';
+        break;
+      }
+    }
   }
 
   const clearances: DebtClearance[] = [
