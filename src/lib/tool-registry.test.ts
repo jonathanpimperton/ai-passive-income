@@ -17,6 +17,12 @@
  * calculator-utils.ts) in USD, GBP and EUR, and every sample goes through cleanText()
  * first, exactly as the worker does. Calculators that use the guarded formatters also get
  * their extreme outputs ("Over $1 trillion", "Over 1,000,000%") as top-level values.
+ * Known blind spot: an identifier that is neither declared in the calculator file nor listed in
+ * DYNAMIC, used inside a template literal and not text-like by name, is sampled as the number
+ * 12 (so a text constant imported from another module would not be checked there; the render
+ * test in email-render.test.ts covers the default state of those). Declared names are read
+ * from source first, so this only affects imports.
+ *
  * Hand-written DYNAMIC lists rot (an option label was renamed in W1-DEBT and the stale list
  * hid it), so labels that come from a calculator's own option arrays or result object are
  * read from its source via FROM_SOURCE, and a test fails on keys that no longer occur.
@@ -51,8 +57,6 @@ const TODAYS = ["Today's dollars", "Today's pounds", "Today's euros"];
 const MONTH_COUNTS = [0, 1, 11, 12, 13, 27, 99, 600];
 const monthsLong = MONTH_COUNTS.map(formatMonthsLong);
 const monthsShortResult = MONTH_COUNTS.map(formatMonthsShortResult);
-const guardedPercents = [0.125, 1e5, -1e5].map((v) => formatPercentGuarded(v));
-const YEARS_PLURAL = ['12 years', '1 year'];
 const CARD_HORIZON_YEARS = String(CARD_HORIZON_MONTHS / 12);
 const DEBT_HORIZON_YEARS = String(DEBT_HORIZON_MONTHS / 12);
 
@@ -63,32 +67,14 @@ const DEBT_HORIZON_YEARS = String(DEBT_HORIZON_MONTHS / 12);
 const DYNAMIC: Record<string, Record<string, string[]>> = {
   // compound-interest and investment-return: option labels and the solved result are read
   // from the calculators' own source (FROM_SOURCE below).
-  'investment-return': { yearsText: YEARS_PLURAL, 'formatMonthsShort(s.months)': monthsShortResult },
-  'credit-card-payoff': {
-    // Every output of the local timeText(): the early returns in getResults mean only the
-    // first and last reach the email today, but all must stay renderable.
-    'timeText(r)': [...monthsLong, 'Never', `Over ${CARD_HORIZON_YEARS} years`],
-    HORIZON_YEARS: [CARD_HORIZON_YEARS],
-  },
+  'investment-return': { 'formatMonthsShort(s.months)': monthsShortResult },
+  // Every output of a local helper (timeText, statusTime, yearsText, ratioText, annualText) and
+  // every const of literals or ternaries (labels, units, wording) is read from the calculator
+  // source by deriveLocal(); only values that come from elsewhere are listed here.
+  'credit-card-payoff': { HORIZON_YEARS: [CARD_HORIZON_YEARS] },
   'debt-payoff': {
-    'statusTime(r)': [...monthsLong, 'Never', `Over ${DEBT_HORIZON_YEARS} years`, '--'],
     HORIZON_YEARS: [DEBT_HORIZON_YEARS],
     'd.name': ['Credit Card', 'Car Loan'], // raw debt names become "Debt N"
-  },
-  'investment-fee': { yearsText: YEARS_PLURAL },
-  'net-worth': { 'ratioText(summary.debtToAsset)': ['--', '12.5%'] },
-  roi: {
-    'yearsText(yearsHeld)': YEARS_PLURAL,
-    'yearsText(yearsB)': YEARS_PLURAL,
-    'annualText(resultA)': ['--', ...guardedPercents],
-    'annualText(resultB)': ['--', ...guardedPercents],
-  },
-  'emergency-fund': {
-    savingsRateLabel: ['Savings interest rate (AER)', 'Savings interest rate', 'Savings interest rate (APY)'],
-    'timeLabel(sixMonth.time)': [
-      'Fully funded', 'Add a monthly amount to reach this', 'More than 50 years at this rate',
-      '8 mo', '3y 2mo', '8 mo (interest only)', '3y 2mo (interest only)',
-    ],
   },
   inflation: {
     startLabel: ['2000', LATEST_CPI_YEAR],
@@ -97,8 +83,6 @@ const DYNAMIC: Record<string, Record<string, string[]>> = {
     'CPI_U_LATEST.label': [CPI_U_LATEST.label],
   },
   'mortgage-affordability': {
-    depositLabel: ['Deposit', 'Down Payment'],
-    headlineLabel: ['You could afford up to', 'No home fits these limits'],
     subline: [
       'Insurance and HOA fees alone use up your housing budget.',
       'Your monthly commitments already use 55.0% of take-home pay (limit 50%).',
@@ -108,19 +92,8 @@ const DYNAMIC: Record<string, Record<string, string[]>> = {
       'Cash only: your budget does not stretch to a loan at these costs',
     ],
   },
-  'mortgage-payment': {
-    priceLabel: ['Property Price', 'Home Price'],
-    piLabel: ['Monthly Payment (P&I)', 'Monthly Payment'],
-    downLabel: ['Deposit', 'Down Payment'],
-  },
   'rent-vs-buy': {
-    propertyChargesLabel: ['Property Tax Rate', 'Annual property charges (% of home value)'],
-    verdictLabel: [
-      'Over 10 years, buying and renting come out even', 'Over 10 years, buying leaves you better off by',
-      'Over 30 years, renting leaves you better off by',
-    ],
     'costsNote.label': ['Buying and selling costs', 'Buying costs', 'Selling costs'],
-    'FILING_OPTIONS.find((o) => o.value === filingStatus)?.label': ['Single', 'Married (joint)', 'Head of household'],
   },
   'retirement-age': {
     realLabel: TODAYS,
@@ -131,33 +104,14 @@ const DYNAMIC: Record<string, Record<string, string[]>> = {
   },
   'retirement-savings': { realLabel: TODAYS },
   'savings-goal': { 'formatMonthsShort(time.months)': durations },
-  'solar-payback': {
-    paybackDisplay: ['Pays back immediately', '7 yr 3 mo', 'Never', '25+ years'],
-    roiText: ['12%', 'n/a'],
-    tariffUnit: ['p', String.fromCharCode(0xa2)],
-  },
   salary: {
     yearLabel: Object.values(TAX_YEAR_LABELS),
-    'FILING_LABELS[filingStatus]': ['Single', 'Married Filing Jointly', 'Head of Household'],
-    'SENIOR_OPTIONS[filingStatus].find((o) => o.value === seniorsShown)?.label': ['No', 'Yes', 'Neither of us', 'One of us', 'Both of us'],
   },
   'salary-uk': {
     'taxCode.trim().toUpperCase()': ['1257L', 'S1257L', 'C1257L', 'K475', 'BR', 'D0', 'NT', '0T', '1257L W1', '1257L X'],
-    'STUDENT_LOAN_LABELS[studentLoan]': [
-      'No Student Loan', 'Plan 1 (pre-2012 England/Wales)', 'Plan 2 (post-2012 England/Wales)', 'Plan 4 (Scotland)',
-      'Plan 5 (from 2023)', 'Postgraduate Loan',
-    ],
     'PENSION_METHOD_LABEL[pensionMethod]': ['Net pay arrangement', 'Relief at source', 'Salary sacrifice'], // (W1-UK) pending
   },
-  'car-finance': {
-    'LABELS[o.type]': ['PCP', 'Hire Purchase', 'Personal Loan', 'Cash'],
-    'LABELS[cheapest.type]': ['PCP', 'Hire Purchase', 'Personal Loan', 'Cash'],
-  },
-  'stamp-duty': {
-    'BUYER_TYPES.find((b) => b.key === buyerType)?.label': ['First-time buyer', 'Moving home', 'Additional property'],
-  },
   'capital-gains-tax': {
-    'FILING_OPTIONS.find((f) => f.key === filing)?.label': ['Single', 'Married (joint)', 'Head of household'],
     'UK_BAND_LABEL[ukResult.incomeBand]': ['Basic rate', 'Higher rate', 'Additional rate'], // (W1-UK) pending
   },
 };
@@ -257,9 +211,19 @@ function keyExpressions(body: string, key: 'label' | 'value' | 'formatted' | 'co
   return out;
 }
 
-/** Arguments of `.push(...)` calls that are not object literals (helper-built rows). */
+/**
+ * Row sources that are not object literals: arguments of `.push(...)` calls, and spreads of a
+ * helper call inside an array literal (`[...helperRows(x), { label, value }]`).
+ */
 function pushedHelpers(body: string): string[] {
   const out: string[] = [];
+  const spread = /\.\.\.(?=\s*[A-Za-z_$][\w$.]*\()/g;
+  let sm: RegExpExecArray | null;
+  while ((sm = spread.exec(body))) {
+    const arg = norm(body.slice(sm.index, scanExpression(body, sm.index)));
+    // A spread that writes its own `label:` literals (options.map(...)) is already scanned.
+    if (!/\blabel:/.test(arg) && !out.includes(arg)) out.push(arg);
+  }
   const re = /\.push\(/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(body))) {
@@ -268,7 +232,7 @@ function pushedHelpers(body: string): string[] {
       while (/\s/.test(body[i])) i++;
       const end = scanExpression(body, i);
       const arg = norm(body.slice(i, end));
-      if (arg && !arg.startsWith('{')) out.push(arg);
+      if (arg && !arg.startsWith('{') && !/\blabel:/.test(arg) && !out.includes(arg)) out.push(arg);
       if (body[end] !== ',') break;
       i = end + 1;
     }
@@ -320,6 +284,8 @@ const env = {
   guardedMoney: false,
   guardedPercent: false,
   derived: {} as Record<string, () => string[]>,
+  src: '',
+  deriving: new Set<string>(),
 };
 
 /** Real money output for `expr` (a fmt(...) or cents(...) call) in the sample currency. */
@@ -345,6 +311,109 @@ function unquote(lit: string): string {
   return lit.slice(1, -1).replace(new RegExp(`${BS}${BS}(.)`, 'g'), '$1');
 }
 
+/* -- outputs read from local declarations -------------------------------------------- */
+
+/** Expressions after each `return` in a `{ ... }` block. */
+function returnExpressions(block: string): string[] {
+  const out: string[] = [];
+  const re = /\breturn\s+/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(block))) {
+    const start = m.index + m[0].length;
+    out.push(norm(block.slice(start, scanExpression(block, start))));
+  }
+  return out;
+}
+
+/** `(params) => body`, `x => body`, with an optional return type; returns the body source or null. */
+function arrowBody(init: string): string | null {
+  const head = /^(?:async\s+)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*(?::\s*[^=]+?)?=>\s*/.exec(init);
+  if (!head) return null;
+  const rest = init.slice(head[0].length);
+  return rest.startsWith('{') ? rest.slice(0, scanExpression(rest, 1, false) + 1) : rest;
+}
+
+/**
+ * Source expressions a local name can take: `const NAME = <expr>` for a bare identifier, or the
+ * returned expressions of `function NAME(..) {..}` / `const NAME = (..) => ..` for a call.
+ */
+function localExpressions(src: string, name: string, isCall: boolean): string[] {
+  const out: string[] = [];
+  const decl = new RegExp(`${BS}bconst ${name}${BS}b${BS}s*(?::[^=]+?)?=(?![=>])${BS}s*`, 'g');
+  let m: RegExpExecArray | null;
+  while ((m = decl.exec(src))) {
+    const start = m.index + m[0].length;
+    const init = src.slice(start, scanExpression(src, start));
+    const body = arrowBody(init);
+    if (body === null) {
+      if (!isCall) out.push(norm(init));
+    } else if (isCall) {
+      out.push(...(body.startsWith('{') ? returnExpressions(body) : [norm(body)]));
+    }
+  }
+  if (isCall) {
+    const fn = new RegExp(`${BS}bfunction ${name}${BS}s*${BS}(`, 'g');
+    while ((m = fn.exec(src))) {
+      const open = m.index + m[0].length - 1;
+      const close = scanExpression(src, open + 1, false);
+      const brace = src.indexOf('{', close);
+      if (brace >= 0) out.push(...returnExpressions(src.slice(brace, scanExpression(src, brace + 1, false) + 1)));
+    }
+  }
+  return out;
+}
+
+/** Source of the array or object literal assigned to `const NAME` (after any type annotation), or ''. */
+function constLiteralBody(src: string, name: string): string {
+  const decl = new RegExp(`\\bconst ${name}\\b[^=]*=\\s*(?=[\\[{])`).exec(src);
+  if (!decl) return '';
+  const open = decl.index + decl[0].length;
+  return src.slice(open, scanExpression(src, open + 1, false) + 1);
+}
+
+/**
+ * `OPTIONS.find(..)?.label` and `OPTIONS[key].find(..)?.label` (the label of an option in a
+ * const array or map of arrays), and `LABELS[key]` (a value of a const map of strings), read
+ * from the literal in the source. Null when the const is not declared in this file.
+ */
+function deriveLookup(expr: string, slug: string): string[] | null {
+  const find = /^([A-Za-z_$][\w$]*)(?:\[[^\]]+\])?\.find\(.*\)\?\.label$/s.exec(expr);
+  const map = /^([A-Za-z_$][\w$]*)\[[^\]]+\]$/.exec(expr);
+  const name = find?.[1] ?? map?.[1];
+  if (!name || !env.src) return null;
+  const body = constLiteralBody(env.src, name);
+  if (!body) return null;
+  const scratch: string[] = [];
+  const out = find
+    ? keyExpressions(body, 'label').flatMap((e) => evaluate(e, slug, scratch))
+    : [...body.matchAll(/:\s*('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g)].map((m) => unquote(m[1]));
+  return scratch.length === 0 && out.length > 0 ? [...new Set(out)] : null;
+}
+
+/**
+ * Outputs of a bare local identifier (`const label = a ? 'x' : 'y'`) or of a call to a local
+ * helper (`function timeText(r) {..}`), read from the calculator source. Null when the name is
+ * not declared in the source or any of its expressions is beyond the evaluator, so the caller
+ * falls back to DYNAMIC / FROM_SOURCE or reports the expression.
+ */
+function deriveLocal(expr: string, slug: string, inTemplate: boolean): string[] | null {
+  const m = /^([A-Za-z_$][\w$]*)(\(.*\))?$/s.exec(expr);
+  if (!m || (m[2] !== undefined && scanExpression(expr, m[1].length + 1, false) !== expr.length - 1)) return null;
+  if (MONEY_FORMATTERS.test(expr) || PERCENT_FORMATTERS.test(expr) || NUMBER_FORMATTERS.test(expr)) return null;
+  const name = m[1];
+  if (!env.src || env.deriving.has(name)) return null;
+  const exprs = localExpressions(env.src, name, m[2] !== undefined);
+  if (exprs.length === 0) return null;
+  env.deriving.add(name);
+  try {
+    const scratch: string[] = [];
+    const out = exprs.flatMap((e) => evaluate(e, slug, scratch, inTemplate));
+    return scratch.length === 0 && out.length > 0 ? [...new Set(out)] : null;
+  } finally {
+    env.deriving.delete(name);
+  }
+}
+
 /** Concrete sample strings for an expression; unknown shapes are reported in `problems`. */
 function evaluate(expr: string, slug: string, problems: string[], inTemplate = false): string[] {
   expr = norm(expr);
@@ -355,6 +424,8 @@ function evaluate(expr: string, slug: string, problems: string[], inTemplate = f
   if (known) return known;
   const derived = env.derived[expr];
   if (derived) return derived();
+  const local = deriveLocal(expr, slug, inTemplate) ?? deriveLookup(expr, slug);
+  if (local) return local;
   const nullish = splitTop(expr, '??');
   if (nullish) return evaluate(nullish[0], slug, problems, inTemplate); // fallback is a defensive default
   const tern = splitTop(expr, '?');
@@ -366,6 +437,7 @@ function evaluate(expr: string, slug: string, problems: string[], inTemplate = f
   if (expr.startsWith('`') && expr.endsWith('`')) return expandTemplate(expr.slice(1, -1), slug, problems);
   if (MONEY_FORMATTERS.test(expr)) return moneySamples(expr, inTemplate);
   if (PERCENT_FORMATTERS.test(expr)) return percentSamples(expr, inTemplate);
+  if (/^formatMonthsLong\(/.test(expr)) return monthsLong;
   if (NUMBER_FORMATTERS.test(expr) || /\.toFixed\(\d\)$/.test(expr) || /\.length$/.test(expr)) return ['12.5'];
   if (inTemplate && !/\(/.test(expr.replace(/\.toLowerCase\(\)|\.trim\(\)/g, '')) && !TEXTY.test(expr)) return ['12'];
   problems.push(`new dynamic expression \`${expr}\` -- list its outputs in DYNAMIC (tool-registry.test.ts)`);
@@ -429,6 +501,8 @@ const FROM_SOURCE: Record<string, Record<string, SourceRule>> = {
 
 /** Point `env` at one calculator: its derived outputs and which guarded formatters it uses. */
 function setEnv(src: string, slug: string, problems: string[]): void {
+  env.src = src;
+  env.deriving.clear();
   env.guardedMoney = /formatMoneyGuarded\(/.test(src);
   env.guardedPercent = /formatPercentGuarded\(/.test(src);
   env.derived = {};
@@ -469,6 +543,14 @@ describe('tool registry', () => {
     expect(isKnownTool('compound-interest')).toBe(true);
   });
 
+  it('no template puts two bare {n} slots next to each other (phone-number shape): use {money} / {pct}', () => {
+    for (const [slug, entry] of Object.entries(TOOL_REGISTRY)) {
+      for (const t of [...entry.labels, ...(entry.values ?? [])]) {
+        expect(/\{n\}[^A-Za-z0-9{}]*\{n\}/.test(t), `${slug}: ${t}`).toBe(false);
+      }
+    }
+  });
+
   it('every template compiles; {item} labels carry no other token; values never use {item}', () => {
     for (const [slug, entry] of Object.entries(TOOL_REGISTRY)) {
       for (const t of entry.labels) {
@@ -486,9 +568,40 @@ describe('tool registry', () => {
     const p: string[] = [];
     expect(evaluate("x === 1 ? 'A' : 'B'", 'salary', p)).toEqual(['A', 'B']);
     expect(evaluate("`${years} year${years !== 1 ? 's' : ''}`", 'salary', p)).toEqual(['12 years', '12 year']);
-    expect(evaluate("FILING_LABELS[filingStatus]", 'salary', p)).toContain('Married Filing Jointly');
     expect(p).toEqual([]);
+    setEnv('', 'salary', p);
     expect(evaluate('someHelper(x)', 'salary', p)).toEqual([]);
+    expect(p.length).toBe(1);
+  });
+
+  it('finds rows spread from a helper call and ignores spreads that write their own labels', () => {
+    expect(pushedHelpers('return [...helperRows(a, b), { label: "x", value: "1" }];')).toEqual(['...helperRows(a, b)']);
+    expect(pushedHelpers('rows.push(...extra(a)); rows.push({ label: "x", value: "1" });')).toEqual(['...extra(a)']);
+    expect(pushedHelpers('return [...xs.map((o) => ({ label: o.n, value: o.v }))];')).toEqual([]);
+  });
+
+  it('reads local consts, helpers and option tables from the calculator source', () => {
+    const p: string[] = [];
+    const src = [
+      "const unit = region === 'uk' ? 'p' : region === 'eur' ? 'c' : '\u00A2';",
+      "const LABELS: Record<string, string> = { a: 'One', b: 'Two' };",
+      "const OPTIONS = [{ key: 'x', label: 'Ex' }, { key: 'y', label: 'Why' }] as const;",
+      'function status(r) {',
+      "  if (r.done) return 'Done';",
+      "  if (r.never) return 'Never';",
+      '  return `Over ${HORIZON} years`;',
+      '}',
+      "const shout = (v: number | null) => (v === null ? '--' : `${(v * 100).toFixed(1)}%`);",
+    ].join('\n');
+    setEnv(src, 'salary', p);
+    expect(evaluate('unit', 'salary', p)).toEqual(['p', 'c', '\u00A2']);
+    expect(evaluate('LABELS[k]', 'salary', p)).toEqual(['One', 'Two']);
+    expect(evaluate('OPTIONS.find((o) => o.key === k)?.label', 'salary', p)).toEqual(['Ex', 'Why']);
+    expect(evaluate('status(r)', 'salary', p)).toEqual(['Done', 'Never', 'Over 12 years']);
+    expect(evaluate('shout(x)', 'salary', p)).toEqual(['--', '12.5%']);
+    expect(p).toEqual([]);
+    // Unknown names are still reported rather than guessed.
+    expect(evaluate('mystery', 'salary', p)).toEqual([]);
     expect(p.length).toBe(1);
   });
 
@@ -501,6 +614,15 @@ describe('tool registry', () => {
         if (!slugs.has(slug)) stale.push(`${table}: unknown tool ${slug}`);
         for (const key of Object.keys(keys)) {
           if (!text.includes(key) && !PENDING_MERGE.has(`${slug}: ${key}`)) stale.push(`${table}[${slug}]: ${key}`);
+        }
+        // A hand-written list for something the source declares locally (a const of literals or
+        // ternaries, a helper function) would drift from it: the source is read instead.
+        if (table === 'DYNAMIC') {
+          const src = emailing.find((e) => e.slug === slug)?.src ?? '';
+          setEnv(src, slug, []);
+          for (const key of Object.keys(keys)) {
+            if ((deriveLocal(key, slug, false) ?? deriveLookup(key, slug)) !== null) stale.push(`DYNAMIC[${slug}]: ${key} is declared in the source; delete this entry`);
+          }
         }
       }
     }
