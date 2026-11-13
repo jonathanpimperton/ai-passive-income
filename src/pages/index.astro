@@ -38,7 +38,7 @@ import { calcIncomeTax, calcNI } from '@lib/uk-tax-calc';
 import { calcFederalTax, calcFICA } from '@lib/us-tax-calc';
 import { calculateSdlt } from '@lib/stamp-duty';
 import { UK_TAX_YEAR } from '@lib/uk-rates';
-import { US_TAX_YEAR } from '@lib/us-rates';
+import { US_TAX_YEARS } from '@lib/us-rates';
 import { TOOLS, TOOL_COUNT, CATEGORIES, getToolPath } from '@lib/tools-data';
 import { HUBS } from '@lib/search-index';
 
@@ -544,7 +544,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
       <div class="d-inner">
         <p class="d-trust">
           <span class="trust-item">Built by an ACA-qualified accountant</span>
-          <span class="trust-item">Tax rates verified for <span class="tabular-nums">{UK_TAX_YEAR}</span> (UK) &amp; <span class="tabular-nums">{US_TAX_YEAR}</span> (US)</span>
+          <span class="trust-item">Tax rates verified for <span class="tabular-nums">{UK_TAX_YEAR}</span> (UK), <span class="tabular-nums">{US_TAX_YEARS.join(' and ')}</span> (US)</span>
           <span class="trust-item">Every calculator documents its formula</span>
         </p>
         <p class="d-close-link"><a href="/scenarios/">Browse <span class="tabular-nums">{SCENARIO_PAGE_COUNT}</span> worked scenarios &rarr;</a></p>
@@ -1188,6 +1188,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
     }
     /* Trust items wrap whole, never mid-phrase */
     .trust-item { white-space: nowrap; }
+    @media (max-width: 480px) { .trust-item { white-space: normal; } }
 
     /* ════ Mobile ════ */
     @media (max-width: 820px) {
