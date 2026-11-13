@@ -1,5 +1,5 @@
 ---
-title: "The £100K Childcare Cliff: When a Pay Rise Costs More Than It Pays"
+title: "£100K Childcare Cliff: When a Pay Rise Costs You"
 slug: "100k-childcare-cliff-uk"
 description: "£100k childcare cliff: cross £100,000 adjusted net income and you lose Tax-Free Childcare and 30 funded hours on top of the 62% tax trap. What it really costs."
 keywords: ["100k childcare cliff", "tax free childcare 100k limit", "30 free hours 100k salary", "adjusted net income childcare", "lose free childcare over 100k", "childcare 100k threshold uk"]
