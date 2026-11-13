@@ -39,7 +39,7 @@ affiliatePrograms:
   - "Nutmeg"
   - "InvestEngine"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "GOV.UK — Individual Savings Accounts"
     url: "https://www.gov.uk/individual-savings-accounts"
@@ -47,6 +47,8 @@ sources:
     url: "https://www.gov.uk/income-tax-rates"
   - name: "GOV.UK — Lifetime ISA"
     url: "https://www.gov.uk/lifetime-isa"
+  - name: "HMRC — Salary sacrifice reform for pension contributions (from 6 April 2029)"
+    url: "https://www.gov.uk/government/publications/salary-sacrifice-reform-for-pension-contributions-effective-from-6-april-2029/salary-sacrifice-reform-for-pension-contributions"
 ---
 
 ## The order matters more than the choice
@@ -74,7 +76,7 @@ Put numbers on it. Take a basic-rate taxpayer with £300 a month of take-home pa
 
 The pension pot isn't all yours to spend. 25% (about £106,000) comes out tax-free; the rest is taxed as income when you draw it. Even if every pound of the remaining 75% were taxed at basic rate — ignoring the personal allowance, which makes it better still — you'd keep **around £361,000**. That's nearly £120,000 more than the ISA, from the same £300 of take-home pay. The relief and the employer money do the heavy lifting; the ISA's advantage is purely access and flexibility.
 
-**Salary sacrifice widens the gap further.** If your employer offers it, contributions come out of gross pay before National Insurance as well as income tax. A £50,000 earner sits below the £50,270 NI upper earnings limit, so their marginal NI rate is 8% — sacrifice £100 of salary into the pension and the net cost is just **£72** (£20 income tax plus £8 NI saved). For a higher-rate earner above £50,270, it's **£58 per £100** (40% tax plus 2% NI). Some employers also pass on part of their own 15% employer-NI saving, cheapening it further.
+**Salary sacrifice widens the gap further.** If your employer offers it, contributions come out of gross pay before National Insurance as well as income tax. A £50,000 earner sits below the £50,270 NI upper earnings limit, so their marginal NI rate is 8% — sacrifice £100 of salary into the pension and the net cost is just **£72** (£20 income tax plus £8 NI saved). For a higher-rate earner above £50,270, it's **£58 per £100** (40% tax plus 2% NI). Some employers also pass on part of their own 15% employer-NI saving, cheapening it further. One change is coming: from 6 April 2029, only the first £2,000 a year you sacrifice into a pension will be free of National Insurance. Anything above that will pay employee and employer NI like ordinary pay. The change affects National Insurance only, so the income tax saving stays as it is.
 
 ## Why the ISA comes second, not never
 

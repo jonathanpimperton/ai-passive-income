@@ -11,7 +11,7 @@ inputs:
   Retirement Length: "30 years"
 resultSummary: "Buys only $412,000 worth of goods after 30 years"
 datePublished: "2026-03-04"
-dateModified: "2026-07-02"
+dateModified: "2026-11-12"
 ---
 
 ## Your $1 million buys only $412,000 worth of goods after 30 years
@@ -51,7 +51,7 @@ The study found that a 60/40 stock/bond portfolio survived 30 years with this es
 Social Security includes annual cost-of-living adjustments (COLAs) indexed to inflation. In theory, this protects the government benefit from erosion. In practice:
 
 - COLAs are based on CPI-W, which may not reflect retiree-specific inflation (healthcare costs rise faster than general prices).
-- The average Social Security benefit of $1,907/month loses purchasing power if medical inflation outpaces the CPI-W adjustment.
+- The average retired-worker benefit (estimated at $2,170/month from January 2027, after a 3.6% COLA) loses purchasing power if medical inflation outpaces the CPI-W adjustment.
 - COLAs are applied annually, creating a lag effect in high-inflation years.
 
 Retirees who depend primarily on Social Security are partially protected. Those relying on fixed pensions without COLA adjustments are fully exposed.

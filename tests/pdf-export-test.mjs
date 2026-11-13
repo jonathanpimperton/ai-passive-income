@@ -79,8 +79,12 @@ async function testCalculator(page, calc) {
   return { name: calc.name, ok: true, filename, size };
 }
 
+// Analytics must never be reached (plan 2.4): the pages carry the production GA tag.
+const GA_RESOLVER_RULES =
+  '--host-resolver-rules=MAP google-analytics.com ~NOTFOUND, MAP *.google-analytics.com ~NOTFOUND, MAP googletagmanager.com ~NOTFOUND, MAP *.googletagmanager.com ~NOTFOUND, MAP analytics.google.com ~NOTFOUND, MAP *.analytics.google.com ~NOTFOUND';
+
 async function main() {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, args: [GA_RESOLVER_RULES] });
   const context = await browser.newContext({ acceptDownloads: true });
   const page = await context.newPage();
 

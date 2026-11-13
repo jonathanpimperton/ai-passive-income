@@ -1,7 +1,7 @@
 ---
-title: "Renting vs Buying a Home in 2026: Full Cost Comparison"
+title: "Renting vs Buying a Home: Full Cost Comparison"
 slug: "renting-vs-buying-2026"
-description: "Should you rent or buy in 2026? Compare total costs including mortgage rates, appreciation, tax benefits, and opportunity cost of your down payment."
+description: "Should you rent or buy? Compare total costs including mortgage rates, appreciation, tax benefits, and the opportunity cost of your down payment."
 keywords:
   - "rent vs buy 2026"
   - "should I buy a house in 2026"
@@ -35,17 +35,21 @@ affiliateContext: "Get pre-approved for a mortgage"
 affiliatePrograms:
   - "LendingTree"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "CFPB — Owning a Home"
     url: "https://www.consumerfinance.gov/owning-a-home/"
   - name: "IRS — Tax Topics"
     url: "https://www.irs.gov/taxtopics"
+  - name: "Freddie Mac — Primary Mortgage Market Survey"
+    url: "https://www.freddiemac.com/pmms"
+  - name: "FHFA — House Price Index, August 2026 (released 27 October 2026)"
+    url: "https://www.fhfa.gov/news/news-release/fhfa-house-price-index-up-0.3-percent-in-august-up-2.4-percent-from-last-year"
 ---
 
-## The 2026 landscape
+## Where rates and prices stand
 
-Mortgage rates have stabilised in the 5.5–6.5% range after the highs of 2023-24. Home prices have continued rising modestly in most markets (3-5% annually). Rents have grown more slowly, narrowing the gap in many cities.
+Mortgage rates have climbed again. Freddie Mac's weekly survey put the average 30-year fixed rate at 7.11% on 12 November 2026, up from 6.24% a year earlier, after the Federal Reserve raised its target range in September. Home prices are rising slowly: the FHFA House Price Index was up 2.4% in the year to August 2026.
 
 The key question isn't whether buying is *ever* better — it almost always is over a long enough timeline. The question is whether *your* timeline and *your* market make it better *now*.
 
@@ -59,6 +63,8 @@ Most buyers focus on the mortgage payment and forget the rest. For [a $400,000 h
 - **Maintenance:** $333/month (1% of home value)
 - **PMI:** $150/month (until 20% equity)
 - **Total: $3,225/month**
+
+The example uses 6% to keep the arithmetic simple. At the 7.11% survey average, principal and interest on the same $360,000 loan would be $2,422 a month, $263 more, so run the comparison at the rate you are actually quoted.
 
 If comparable rent is $2,200/month, the monthly gap is $1,025. That's the price of building equity — but only about $500/month of the early mortgage payment actually goes to principal.
 

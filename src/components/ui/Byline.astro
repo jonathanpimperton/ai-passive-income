@@ -4,6 +4,9 @@
  * on scenario and comparison pages. Name links to the author page; dates are
  * the same values emitted in the page's Article JSON-LD, so what Google sees
  * matches what readers see.
+ *
+ * The "with AI assistance" link is the site's one-line AI disclosure (Nov 2026
+ * review, decision D3). It points at the author page section that explains it.
  */
 import { AUTHOR } from '@lib/seo';
 
@@ -27,7 +30,8 @@ const showModified = dateModified !== datePublished;
 ---
 
 <p class="mt-3 text-sm text-neutral-500">
-  By <a href="/author/" class="font-medium text-neutral-700 underline decoration-neutral-300 underline-offset-2 hover:text-primary-700 hover:decoration-primary-400 transition-all duration-150">{AUTHOR.name}</a>, {AUTHOR.credential}
+  By <a href="/author/" class="font-medium text-neutral-700 underline decoration-neutral-300 underline-offset-2 hover:text-primary-700 hover:decoration-primary-400 transition-all duration-150">{AUTHOR.name}</a>, {AUTHOR.credential},
+  <a href="/author/#how-this-site-is-made" class="underline decoration-neutral-300 underline-offset-2 hover:text-primary-700 hover:decoration-primary-400 transition-all duration-150">with AI assistance</a>
   <span aria-hidden="true" class="mx-1.5 text-neutral-300">&middot;</span>
   {showModified ? (
     <span>Updated <time datetime={dateModified}>{modified}</time></span>
