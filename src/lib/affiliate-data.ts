@@ -139,8 +139,9 @@ export const AFFILIATE_PARTNERS: Record<string, AffiliatePartner> = {
 };
 
 /**
- * Pages whose content only applies in one region. Keys are tool slugs and
- * comparison slugs (the `toolSlug` AffiliateLinks/ResultAffiliate receive).
+ * Pages whose content only applies in one region. Keys are tool slugs,
+ * comparison slugs (the `toolSlug` AffiliateLinks/ResultAffiliate receive) and
+ * the last path segment of a hub page that embeds a one-country calculator.
  */
 export const PAGE_REGIONS: Readonly<Record<string, PartnerRegion>> = {
   // Tools
@@ -148,6 +149,10 @@ export const PAGE_REGIONS: Readonly<Record<string, PartnerRegion>> = {
   'salary-uk': 'UK',
   'salary-us': 'US',
   inflation: 'US', // US CPI-U data
+  // Hub pages that embed one country's salary calculator: same region (and so the
+  // same GBP/USD number convention for unprefixed fields) as that tool's own page.
+  'uk-take-home-pay': 'UK',
+  'us-take-home-pay': 'US',
   // Comparisons
   'cash-isa-vs-savings-account': 'UK',
   'isa-vs-general-investment': 'UK',

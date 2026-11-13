@@ -20,6 +20,7 @@ import {
 } from './affiliate-data';
 import { resolveInlineAffiliate, INLINE_AFFILIATE_TOOLS } from '../components/ui/ResultAffiliate';
 import { currencyRegion, type CurrencyCode } from './currency';
+import { cgtPartnerRegion } from './capital-gains';
 
 const CALCULATORS = [
   'compound-interest', 'investment-return', 'roi', 'savings-goal', 'loan-amortization', 'mortgage-payment',
@@ -94,6 +95,19 @@ describe('fixed-region pages', () => {
     expect(visibleNextStep('salary-us', 'GBP').length).toBeGreaterThan(0);
   });
 
+  it('capital gains inline partner follows the tab on screen, not the visitor currency', () => {
+    // CapitalGainsTaxCalc passes cgtPartnerRegion(country) to ResultAffiliate, which
+    // then ignores the visitor's currency: US tab -> US partner, UK tab -> UK partner
+    // (any currency; the Playwright case in tests/followups.spec.ts covers the wiring).
+    expect(resolveInlineAffiliate('capital-gains-tax', cgtPartnerRegion('us'))?.partner.id).toBe('Betterment');
+    expect(resolveInlineAffiliate('capital-gains-tax', cgtPartnerRegion('uk'))?.partner.id).toBe('Nutmeg');
+    for (const country of ['us', 'uk'] as const) {
+      const region = cgtPartnerRegion(country);
+      const inline = resolveInlineAffiliate('capital-gains-tax', region);
+      expect(inline && partnerServes(inline.partner, region)).toBe(true);
+    }
+  });
+
   it('capital gains offers a UK alternative inline for GBP', () => {
     expect(visibleInline('capital-gains-tax', 'USD')?.partner.id).toBe('Betterment');
     expect(visibleInline('capital-gains-tax', 'GBP')?.partner.id).toBe('Nutmeg');
@@ -106,6 +120,18 @@ describe('fixed-currency pages', () => {
     expect(fixedCurrencyFor('salary-uk')).toBe('GBP');
     expect(fixedCurrencyFor('stamp-duty')).toBe('GBP');
     expect(fixedCurrencyFor('salary-us')).toBe('USD');
+  });
+  it('the take-home-pay hubs use the number convention of the calculator they embed (no "5,0" for an EUR visitor)', () => {
+    // The hub's slug is its file name; each one embeds a one-country calculator.
+    for (const [file, calc, currency, region] of [
+      ['uk-take-home-pay', 'SalaryUkCalc', 'GBP', 'UK'],
+      ['us-take-home-pay', 'SalaryCalc', 'USD', 'US'],
+    ] as const) {
+      const page = readFileSync(resolve(__dirname, `../pages/scenarios/${file}.astro`), 'utf8');
+      expect(page).toContain(`<${calc} `);
+      expect(fixedCurrencyFor(file)).toBe(currency);
+      expect(pageRegionFor(file)).toBe(region);
+    }
   });
   it('every other page follows the visitor', () => {
     expect(fixedCurrencyFor('compound-interest')).toBeNull();
