@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * IndexNow submission for the URLs that changed since a given commit.
  *
