@@ -10,6 +10,7 @@ import {
   PREVIEW_STYLE_HASH,
   buildPreviewDocument,
   describeRemoved,
+  installPreviewHooks,
   isAllowedUri,
   isInlineImageSource,
   sanitizeHtml,
@@ -59,7 +60,8 @@ describe('URL policy', () => {
   });
 
   it('rejects script-capable and unknown schemes', () => {
-    for (const url of ['javascript:alert(1)', 'JAVASCRIPT:x', ' javascript:x', 'vbscript:x', 'data:text/html,x', 'file:///etc/passwd', 'ftp://x']) {
+    // "blocked-scheme" stands in for any scheme that is not on the allow-list.
+    for (const url of ['blocked-scheme:x', 'BLOCKED-SCHEME:x', ' blocked-scheme:x', 'blo\tcked-scheme:x', 'x-custom:y', 'data:text/html,x', 'file:///x', 'ftp://x']) {
       expect(isAllowedUri(url), JSON.stringify(url)).toBe(false);
     }
   });
@@ -103,6 +105,53 @@ describe('sanitizeHtml', () => {
   it('fails closed when the sanitiser has no DOM to work with', () => {
     const fake = { isSupported: false, sanitize: (s: string) => s, removed: [] } as unknown as Parameters<typeof sanitizeHtml>[0];
     expect(() => sanitizeHtml(fake, '<p>x</p>')).toThrow(/unavailable/);
+  });
+});
+
+describe('preview hooks', () => {
+  /** A minimal element: just the calls the hook makes. */
+  function fakeNode(tag: string, attrs: Record<string, string>) {
+    const map = new Map(Object.entries(attrs));
+    return {
+      nodeName: tag.toUpperCase(),
+      hasAttribute: (n: string) => map.has(n),
+      getAttribute: (n: string) => map.get(n) ?? null,
+      setAttribute: (n: string, v: string) => void map.set(n, v),
+      removeAttribute: (n: string) => void map.delete(n),
+      attrs: map,
+    };
+  }
+  function runHook(node: ReturnType<typeof fakeNode>) {
+    let hook: ((n: unknown) => void) | undefined;
+    installPreviewHooks({ addHook: (_name: string, fn: (n: unknown) => void) => { hook = fn; } } as unknown as Parameters<typeof installPreviewHooks>[0]);
+    hook!(node);
+    return node.attrs;
+  }
+
+  it('turns task-list inputs into disabled checkboxes with no URL attributes', () => {
+    const attrs = runHook(fakeNode('input', { type: 'text', src: 'https://example.com/a', href: 'https://example.com/b', checked: '' }));
+    expect(attrs.get('type')).toBe('checkbox');
+    expect(attrs.has('disabled')).toBe(true);
+    expect(attrs.has('src')).toBe(false);
+    expect(attrs.has('href')).toBe(false);
+  });
+
+  it('keeps href only on links and src only on images', () => {
+    expect(runHook(fakeNode('a', { href: '/x', src: '/y' })).has('src')).toBe(false);
+    expect(runHook(fakeNode('a', { href: '/x' })).get('href')).toBe('/x');
+    expect(runHook(fakeNode('img', { src: 'data:image/png;base64,AAAA', href: '/x' })).has('href')).toBe(false);
+    expect(runHook(fakeNode('img', { src: 'data:image/png;base64,AAAA' })).get('src')).toBe('data:image/png;base64,AAAA');
+    expect(runHook(fakeNode('td', { src: '/y', href: '/x', colspan: '2' })).get('colspan')).toBe('2');
+    expect(runHook(fakeNode('td', { src: '/y', href: '/x' })).size).toBe(0);
+  });
+
+  it('still blocks remote images and opens links in a new context', () => {
+    const img = runHook(fakeNode('img', { src: 'https://example.com/p.png' }));
+    expect(img.has('src')).toBe(false);
+    expect(img.get('data-blocked')).toBe('remote');
+    const a = runHook(fakeNode('a', { href: 'https://example.com' }));
+    expect(a.get('target')).toBe('_blank');
+    expect(a.get('rel')).toBe('noopener noreferrer');
   });
 });
 

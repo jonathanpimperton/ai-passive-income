@@ -100,7 +100,9 @@ export function isInlineImageSource(src: string): boolean {
  *   them does nothing instead of loading another site inside the page;
  * - remote images lose their src (no request leaves the browser) and are
  *   shown as their alt text;
- * - task-list inputs are forced to disabled checkboxes.
+ * - task-list inputs are forced to disabled checkboxes;
+ * - URL attributes are kept only where they belong: href on links, src on
+ *   images. Any other element loses them.
  */
 export function installPreviewHooks(purify: DOMPurify): void {
   purify.addHook('afterSanitizeAttributes', (node) => {
@@ -121,6 +123,8 @@ export function installPreviewHooks(purify: DOMPurify): void {
       node.setAttribute('type', 'checkbox');
       node.setAttribute('disabled', '');
     }
+    if (tag !== 'a') node.removeAttribute('href');
+    if (tag !== 'img') node.removeAttribute('src');
   });
 }
 
