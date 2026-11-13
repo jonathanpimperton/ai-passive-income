@@ -594,6 +594,24 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
     });
   }
 
+  /** Controls in the open dialog that can take focus now (collapsed groups are inert, hidden ones skipped). */
+  function menuFocusables(): HTMLElement[] {
+    if (!mobileMenu) return [];
+    return Array.from(
+      mobileMenu.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+    ).filter((el) => !el.closest('[inert]') && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden');
+  }
+
+  /**
+   * Focus an item without moving the page, then scroll it into the dialog's
+   * scrolling panel: the panel is taller than a phone screen, so a wrapped-to
+   * item (last or first) would otherwise stay out of view.
+   */
+  function focusInMenu(el: HTMLElement) {
+    el.focus({ preventScroll: true });
+    el.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+  }
+
   function openMenu() {
     if (!mobileMenu) return;
     clearTimeout(closeTimer);
@@ -634,20 +652,27 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
       closeMenu();
       return;
     }
-    // Focus trap: keep Tab inside the dialog (skipping collapsed groups)
+    // Focus trap: keep Tab inside the dialog
     if (e.key === 'Tab') {
-      const focusable = Array.from(
-        mobileMenu.querySelectorAll<HTMLElement>('a[href], button, [tabindex]:not([tabindex="-1"])')
-      ).filter((el) => !el.closest('[inert]'));
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      const items = menuFocusables();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
-        last.focus({ preventScroll: true });
+        focusInMenu(last);
       } else if (!e.shiftKey && document.activeElement === last) {
         e.preventDefault();
-        first.focus({ preventScroll: true });
+        focusInMenu(first);
+      } else {
+        // Browsers that skip links when tabbing (Safari by default) have a
+        // different first/last tab stop than the list above: if the browser
+        // moved focus out to the page behind the dialog, bring it back
+        const backwards = e.shiftKey;
+        setTimeout(() => {
+          if (mobileMenu.classList.contains('hidden') || mobileMenu.classList.contains('closing')) return;
+          if (!mobileMenu.contains(document.activeElement)) focusInMenu(backwards ? last : first);
+        }, 0);
       }
     }
   });

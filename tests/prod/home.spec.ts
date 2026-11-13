@@ -220,6 +220,66 @@ test.describe('header', () => {
   });
 });
 
+/* ---------------- mobile menu focus trap ---------------- */
+
+test.describe('mobile menu focus trap', () => {
+  test.use({ timezoneId: 'Europe/London', locale: 'en-GB' });
+
+  // The menu panel is taller than a phone screen at all of these sizes, so a wrapped-to item
+  // starts out of view unless the trap scrolls it into the panel.
+  for (const [w, h] of [[390, 844], [360, 640], [844, 390]]) {
+    test(`${w}x${h}: Tab and Shift+Tab wrap inside the menu, the item is in view and the page stays put`, async ({ page }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await page.addInitScript(() => {
+        try { localStorage.setItem('calcrun-cookie-consent', 'accepted'); } catch { /* storage blocked */ }
+      });
+      await page.goto(TOOL);
+      await page.waitForLoadState('networkidle');
+      // Short screens (<= 500px high) un-stick the header, so the menu button is only reachable at the top
+      await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), h <= 500 ? 0 : 1500);
+      await page.waitForTimeout(500);
+      const y0 = await page.evaluate(() => Math.round(window.scrollY));
+      const btn = (await page.locator('#mobile-menu-btn').boundingBox())!;
+      await page.mouse.click(btn.x + btn.width / 2, btn.y + btn.height / 2);
+      await expect(page.locator('#mobile-menu .mobile-panel')).toBeVisible();
+      await page.waitForTimeout(500); // slide-in animation
+
+      const state = () => page.evaluate(() => {
+        const menu = document.getElementById('mobile-menu')!;
+        const panel = menu.querySelector('.mobile-panel') as HTMLElement;
+        const items = Array.from(menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+          .filter((el) => !el.closest('[inert]') && el.getClientRects().length > 0);
+        const a = document.activeElement as HTMLElement;
+        const p = panel.getBoundingClientRect();
+        const r = a.getBoundingClientRect();
+        return {
+          inMenu: menu.contains(a),
+          isFirst: a === items[0],
+          isLast: a === items[items.length - 1],
+          inView: r.height > 0 && r.top >= p.top - 1 && r.bottom <= p.bottom + 1,
+          scrollY: Math.round(window.scrollY),
+        };
+      });
+
+      // Start on the first item, at the top of the panel
+      await page.evaluate(() => {
+        const menu = document.getElementById('mobile-menu')!;
+        const items = Array.from(menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+          .filter((el) => !el.closest('[inert]') && el.getClientRects().length > 0);
+        (menu.querySelector('.mobile-panel') as HTMLElement).scrollTop = 0;
+        items[0].focus({ preventScroll: true });
+      });
+      await page.keyboard.press('Shift+Tab');
+      await page.waitForTimeout(150);
+      expect(await state()).toEqual({ inMenu: true, isFirst: false, isLast: true, inView: true, scrollY: y0 });
+
+      await page.keyboard.press('Tab');
+      await page.waitForTimeout(150);
+      expect(await state()).toEqual({ inMenu: true, isFirst: true, isLast: false, inView: true, scrollY: y0 });
+    });
+  }
+});
+
 /* ---------------- heading order (HOME-CHROME / DEV request) ---------------- */
 
 test('no page has a heading before its h1 (nav and menus use no headings)', () => {
