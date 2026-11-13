@@ -174,7 +174,9 @@ export const US_RATES_BY_YEAR: Record<UsTaxYear, UsYearRates> = {
       },
       niit: { rate: 0.038, threshold: NIIT_THRESHOLD },
     },
-    // [N25-67] and [COLA]: $24,500; catch-up $8,000; ages 60-63 $11,250
+    // [N25-67] and [COLA]: $24,500; catch-up (50+) $8,000; higher catch-up for
+    // ages 60-63 $11,250 (https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500,
+    // accessed 2026-11-12)
     retirement401k: { limit: 24_500, catchUp: 8_000, catchUp60to63: 11_250, published: true },
     obbba: OBBBA_2025_2028,
   },

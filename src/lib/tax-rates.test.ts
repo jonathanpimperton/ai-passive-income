@@ -17,6 +17,11 @@ import {
   UK_SCOTTISH_TAX,
   UK_CGT,
   UK_RATES_LAST_CHECKED,
+  UK_PENSION_ANNUAL_ALLOWANCE,
+  UK_CHILDCARE_ANI_LIMIT,
+  UK_SDLT,
+  SDLT_NON_RESIDENT_SURCHARGE,
+  SDLT_NON_RESIDENT_MIN_PRICE,
 } from './uk-rates';
 import {
   getUsRates,
@@ -80,6 +85,17 @@ describe('UK tax rates 2026/27', () => {
     expect(byName.Top.rate).toBe(0.48);
   });
 
+  it('has the pension annual allowance and the £100,000 childcare limit', () => {
+    expect(uk.pensionAnnualAllowance).toBe(60_000);
+    expect(uk.childcareAniLimit).toBe(100_000);
+  });
+
+  it('has the SDLT non-resident surcharge and its £40,000 floor (not year-keyed)', () => {
+    expect(SDLT_NON_RESIDENT_SURCHARGE).toBe(0.02);
+    expect(SDLT_NON_RESIDENT_MIN_PRICE).toBe(40_000);
+    expect(UK_SDLT.nonResidentSurcharge).toBe(0.02);
+  });
+
   it('has correct CGT values', () => {
     expect(uk.cgt.annualExempt).toBe(3_000);
     expect(uk.cgt.basicRate).toBe(0.18);
@@ -106,6 +122,8 @@ describe('UK stable aliases point at the default year', () => {
     expect(UK_STATE_PENSION).toBe(d.statePension);
     expect(UK_SCOTTISH_TAX).toBe(d.scottishTax);
     expect(UK_CGT).toBe(d.cgt);
+    expect(UK_PENSION_ANNUAL_ALLOWANCE).toBe(d.pensionAnnualAllowance);
+    expect(UK_CHILDCARE_ANI_LIMIT).toBe(d.childcareAniLimit);
   });
 });
 
@@ -241,8 +259,15 @@ describe('US stable aliases point at the default year', () => {
     expect(US_MEDICARE).toBe(d.medicare);
     expect(US_CAPITAL_GAINS).toBe(d.capitalGains);
     expect(US_401K).toBe(d.retirement401k);
-    // Legacy shape kept for existing importers.
+    // Legacy shape kept for existing importers, plus the ages 60-63 catch-up.
     expect(typeof US_401K.limit).toBe('number');
     expect(typeof US_401K.catchUp).toBe('number');
+    expect(US_401K.catchUp60to63).toBe(d.retirement401k.catchUp60to63);
+  });
+
+  it('401(k) ages 60-63 catch-up: $11,250 for 2026, carried (unpublished) for 2027', () => {
+    expect(getUsRates(2026).retirement401k.catchUp60to63).toBe(11_250);
+    expect(getUsRates(2027).retirement401k.catchUp60to63).toBe(11_250);
+    expect(getUsRates(2027).retirement401k.published).toBe(false);
   });
 });

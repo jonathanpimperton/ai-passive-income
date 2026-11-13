@@ -95,6 +95,13 @@ export interface UkYearRates {
   studentLoans: UkStudentLoans;
   cgt: UkCgt;
   scottishTax: UkScottishTax;
+  /** Pension annual allowance (before any taper), per tax year */
+  pensionAnnualAllowance: number;
+  /**
+   * Adjusted net income limit for Tax-Free Childcare and working-parent free
+   * childcare hours: you cannot claim if either parent's expected ANI is over it.
+   */
+  childcareAniLimit: number;
 }
 
 /* ── Per-year datasets ─────────────────────────────────────── */
@@ -119,7 +126,9 @@ export const UK_RATES_BY_YEAR: Record<UkTaxYear, UkYearRates> = {
     employerNi: { secondaryThreshold: 5_000, rate: 0.15 },
     // Full new State Pension 2026/27 (4.8% triple-lock uprating, April 2026)
     statePension: { weeklyRate: 241.30, source: 'https://www.gov.uk/new-state-pension/what-youll-get' },
-    // Thresholds from 6 April 2026. Plan 5 frozen at £25,000; first repayments from 6 April 2026.
+    // Thresholds from 6 April 2026. Plan 5 threshold £25,000. Plan 5 repayments start the April
+    // after leaving a course, so the first graduates (3-year courses from Sept 2023) start in
+    // April 2027 at the earliest (CONTENT-24; https://www.gov.uk/repaying-your-student-loan/when-you-start-repaying).
     studentLoans: {
       plan1: { threshold: 26_900, rate: 0.09 },
       plan2: { threshold: 29_385, rate: 0.09 },
@@ -147,6 +156,13 @@ export const UK_RATES_BY_YEAR: Record<UkTaxYear, UkYearRates> = {
         { from: 125_140, rate: 0.48, name: 'Top' },
       ],
     },
+    // "This is £60,000 this tax year." https://www.gov.uk/tax-on-your-private-pension/annual-allowance
+    // (accessed 2026-11-13)
+    pensionAnnualAllowance: 60_000,
+    // "you or your partner's expected adjusted net income ... is over £100,000 for the current tax year"
+    // https://www.gov.uk/tax-free-childcare/check-if-youre-eligible (accessed 2026-11-13); the same limit
+    // applies to free childcare for working parents: https://www.gov.uk/check-eligible-free-childcare-if-youre-working
+    childcareAniLimit: 100_000,
   },
 };
 
@@ -189,10 +205,18 @@ export const UK_STATE_PENSION = DEFAULT_RATES.statePension;
 export const UK_STUDENT_LOANS = DEFAULT_RATES.studentLoans;
 export const UK_CGT = DEFAULT_RATES.cgt;
 export const UK_SCOTTISH_TAX = DEFAULT_RATES.scottishTax;
+/** Pension annual allowance (£60,000 in 2026/27), default year */
+export const UK_PENSION_ANNUAL_ALLOWANCE = DEFAULT_RATES.pensionAnnualAllowance;
+/** £100,000 adjusted-net-income limit for Tax-Free Childcare / free childcare hours, default year */
+export const UK_CHILDCARE_ANI_LIMIT = DEFAULT_RATES.childcareAniLimit;
 
 /* ── Not tied to a tax year ────────────────────────────────── */
 
 /**
+ * @deprecated Use src/lib/uk-pension-ages.ts (W1-SAVE, Nov 2026), which holds
+ * the pension-age rules with dates. Kept so existing importers and
+ * tax-rates.test.ts keep working; remove once nothing imports it.
+ *
  * Legislated pension age milestones -- stable facts, not annual rates.
  * - Normal minimum pension age (private/workplace pension access):
  *   https://www.gov.uk/government/publications/increasing-normal-minimum-pension-age
@@ -231,8 +255,23 @@ export const UK_SDLT = {
   firstTimeBuyerCap: 500_000,
   /** Additional property surcharge (from 31 Oct 2024) */
   additionalSurcharge: 0.05,
+  /** Non-UK resident surcharge (England and Northern Ireland) */
+  nonResidentSurcharge: 0.02,
+  /** The non-resident surcharge applies only from this price (freehold; leasehold: premium) */
+  nonResidentMinPrice: 40_000,
   source: 'https://www.gov.uk/stamp-duty-land-tax/residential-property-rates',
 };
+
+/**
+ * SDLT 2% surcharge for non-UK residents buying residential property in
+ * England or Northern Ireland. It applies to a freehold bought for £40,000 or
+ * more (leasehold: premium of £40,000 or more, or relevant rent of £1,000 or
+ * more). https://www.gov.uk/guidance/rates-of-stamp-duty-land-tax-for-non-uk-residents
+ * and https://www.gov.uk/stamp-duty-land-tax/residential-property-rates (accessed 2026-11-13)
+ */
+export const SDLT_NON_RESIDENT_SURCHARGE = UK_SDLT.nonResidentSurcharge;
+/** Price from which the non-resident surcharge applies (see SDLT_NON_RESIDENT_SURCHARGE) */
+export const SDLT_NON_RESIDENT_MIN_PRICE = UK_SDLT.nonResidentMinPrice;
 
 /** Mortgage lending (loan-to-income convention) -- a market convention, not a tax rate. */
 export const UK_MORTGAGE = {
