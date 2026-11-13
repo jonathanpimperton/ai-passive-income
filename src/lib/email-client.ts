@@ -174,6 +174,7 @@ export function useTurnstile(action: string) {
   const interactiveRef = useRef(false);
 
   const fail = useCallback((message: string) => {
+    interactiveRef.current = false; // a failed widget shows no challenge; never keep waiting on it
     tokenRef.current = '';
     errorRef.current = message;
     setStatus('error');
@@ -200,6 +201,7 @@ export function useTurnstile(action: string) {
           retry: 'auto',
           'refresh-expired': 'auto',
           callback: (token: string) => {
+            interactiveRef.current = false;
             tokenRef.current = token;
             errorRef.current = '';
             setStatus('ready');
@@ -266,6 +268,7 @@ export function useTurnstile(action: string) {
 
   /** Discard the current token and get a new one (after a submission or on Retry). */
   const reset = useCallback(() => {
+    interactiveRef.current = false;
     tokenRef.current = '';
     errorRef.current = '';
     setError('');

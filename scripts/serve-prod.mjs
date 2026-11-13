@@ -56,6 +56,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -351,8 +352,9 @@ function assetResponse(method, rawPath, search, reqHeaders) {
 const DUMMY_TOKEN = 'XXXX.DUMMY.TOKEN.XXXX';
 const upstreamLog = [];
 const upstreamMode = { mailerlite: 'ok', mailersend: 'ok', siteverify: 'ok' };
-/** API path being handled, so the siteverify mock can report the matching action. */
-let currentApiPath = '';
+/** API path of the request being handled (per request, so concurrent requests cannot mix), so the
+ * siteverify mock can report the matching action. */
+const apiPathStore = new AsyncLocalStorage();
 let workerModule = null;
 
 async function loadWorker() {
@@ -390,7 +392,7 @@ async function mockedFetch(input, init = {}) {
   if (url.startsWith('https://challenges.cloudflare.com/turnstile/v0/siteverify')) {
     const pass = upstreamMode.siteverify === 'ok' && body?.response === DUMMY_TOKEN;
     return new Response(JSON.stringify(pass
-      ? { success: true, hostname: 'localhost', action: currentApiPath === '/api/subscribe' ? 'subscribe' : 'email-results' }
+      ? { success: true, hostname: 'localhost', action: apiPathStore.getStore() === '/api/subscribe' ? 'subscribe' : 'email-results' }
       : { success: false, 'error-codes': ['invalid-input-response'] }), { status: 200 });
   }
   if (host === 'connect.mailerlite.com') {
@@ -474,8 +476,7 @@ async function handle(req, res) {
     }
     headers.set('CF-Connecting-IP', req.socket.remoteAddress || '127.0.0.1');
     const request = new Request(url, { method, headers, body });
-    currentApiPath = url.pathname;
-    const response = await workerModule.fetch(request, WORKER_ENV);
+    const response = await apiPathStore.run(url.pathname, () => workerModule.fetch(request, WORKER_ENV));
     const out = Buffer.from(await response.arrayBuffer());
     // Worker-generated responses do NOT get _headers in production; pass them through.
     return send(res, method, response.status, Object.fromEntries(response.headers), out.length ? out : null);
