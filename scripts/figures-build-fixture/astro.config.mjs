@@ -5,6 +5,8 @@ import { remarkFiguresPlugin } from '../../src/lib/remark-figures.mjs';
 
 export default defineConfig({
   cacheDir: './.astro-cache',
+  // Keep Vite's dependency cache inside the cache dir the check script deletes.
+  vite: { cacheDir: './.astro-cache/vite' },
   markdown: {
     remarkPlugins: [remarkFiguresPlugin],
   },

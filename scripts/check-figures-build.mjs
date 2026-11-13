@@ -26,7 +26,7 @@ const probe = join(pagesDir, 'zz-probe.md');
 const astroBin = join(repo, 'node_modules', 'astro', 'astro.js');
 
 function clean() {
-  for (const p of [join(fixture, '.astro-cache'), join(fixture, '.astro'), probe]) {
+  for (const p of [join(fixture, '.astro-cache'), join(fixture, '.astro'), join(fixture, 'node_modules', '.vite'), probe]) {
     rmSync(p, { recursive: true, force: true });
   }
 }
