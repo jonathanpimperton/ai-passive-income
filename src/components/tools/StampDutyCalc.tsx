@@ -138,18 +138,18 @@ export default function StampDutyCalc() {
   ], [result, price]);
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-700 rounded-lg shadow-card overflow-hidden">
+    <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
         {/* -- Input Panel -------------------------------- */}
-        <div className="p-6 lg:p-8 lg:border-r border-neutral-100 dark:border-neutral-700">
+        <div className="p-6 lg:p-8 lg:border-r border-neutral-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+            <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
               Inputs
             </h2>
             <button
               type="button"
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-150"
+              className="flex items-center gap-1 text-xs text-neutral-500 hover:text-primary-600 transition-colors duration-150"
               aria-label="Reset calculator to defaults"
             >
               <RotateCcw size={12} aria-hidden="true" />
@@ -158,7 +158,7 @@ export default function StampDutyCalc() {
           </div>
 
           {/* Currency locked notice */}
-          <div className="mb-4 flex items-start gap-2 text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800 rounded-lg px-3 py-2 border border-neutral-200/60 dark:border-neutral-700 leading-relaxed">
+          <div className="mb-4 flex items-start gap-2 text-xs text-neutral-500 bg-neutral-50 rounded-lg px-3 py-2 border border-neutral-200/60 leading-relaxed">
             <PoundSterling size={14} className="shrink-0 mt-0.5" aria-hidden="true" />
             <span>SDLT applies in England and Northern Ireland. Scotland (LBTT) and Wales (LTT) have their own taxes. Currency locked to GBP.</span>
           </div>
@@ -182,7 +182,7 @@ export default function StampDutyCalc() {
 
             {/* Buyer Type (native radios: arrow keys work) */}
             <div>
-              <p id={`${uid}-buyer-label`} className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+              <p id={`${uid}-buyer-label`} className="block text-sm font-medium text-neutral-700 mb-2">
                 Buyer Type
               </p>
               <div className="space-y-2" role="radiogroup" aria-labelledby={`${uid}-buyer-label`}>
@@ -191,8 +191,8 @@ export default function StampDutyCalc() {
                     key={bt.key}
                     className={`block cursor-pointer px-4 py-3 rounded-lg border transition-all duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500 ${
                       buyerType === bt.key
-                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-600'
-                        : 'bg-white dark:bg-neutral-800 border-neutral-200/80 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'
+                        ? 'bg-primary-50 border-primary-300'
+                        : 'bg-white border-neutral-200/80 hover:border-neutral-300'
                     }`}
                   >
                     <input
@@ -204,11 +204,11 @@ export default function StampDutyCalc() {
                       className="sr-only"
                     />
                     <span className={`block text-sm font-medium ${
-                      buyerType === bt.key ? 'text-primary-700 dark:text-primary-400' : 'text-neutral-900 dark:text-neutral-100'
+                      buyerType === bt.key ? 'text-primary-700' : 'text-neutral-900'
                     }`}>
                       {bt.label}
                     </span>
-                    <span className="block text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{bt.hint}</span>
+                    <span className="block text-xs text-neutral-500 mt-0.5">{bt.hint}</span>
                   </label>
                 ))}
               </div>
@@ -224,9 +224,9 @@ export default function StampDutyCalc() {
                   aria-describedby={`${uid}-nonres-hint`}
                   className="mt-1 h-4 w-4 shrink-0 rounded border-neutral-300 accent-primary-600"
                 />
-                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Buyer is not UK resident</span>
+                <span className="text-sm font-medium text-neutral-700">Buyer is not UK resident</span>
               </label>
-              <p id={`${uid}-nonres-hint`} className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 ml-7 leading-relaxed">
+              <p id={`${uid}-nonres-hint`} className="text-xs text-neutral-500 mt-1 ml-7 leading-relaxed">
                 Not in the UK for at least 183 days in the 12 months before buying. Adds {pctLabel(SDLT_NON_RESIDENT_SURCHARGE)} to every
                 band, on purchases of {fmt(SDLT_SURCHARGE_FLOOR)} or more; some buyers can reclaim it later.{' '}
                 <a
@@ -261,17 +261,17 @@ export default function StampDutyCalc() {
           )}
 
           {/* Rate bands reference */}
-          <div className="mt-6 pt-5 border-t border-neutral-200/80 dark:border-neutral-700">
-            <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
+          <div className="mt-6 pt-5 border-t border-neutral-200/80">
+            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3">
               {referenceTitle}
             </p>
             <div className="space-y-1.5">
               {referenceBands.map((band) => (
                 <div key={band.from} className="flex justify-between text-xs">
-                  <span className="text-neutral-600 dark:text-neutral-400 tabular-nums">
+                  <span className="text-neutral-600 tabular-nums">
                     {fmt(band.from)} to {band.to === Infinity ? 'above' : fmt(band.to)}
                   </span>
-                  <span className="font-medium text-neutral-900 dark:text-neutral-100 tabular-nums">{pctLabel(band.rate + surcharge)}</span>
+                  <span className="font-medium text-neutral-900 tabular-nums">{pctLabel(band.rate + surcharge)}</span>
                 </div>
               ))}
             </div>
@@ -281,42 +281,42 @@ export default function StampDutyCalc() {
         {/* -- Results Panel -------------------------------- */}
         <div
           ref={resultsRef}
-          className="p-6 lg:p-8 bg-neutral-50/50 dark:bg-neutral-800/30 lg:sticky lg:top-20 lg:self-start"
+          className="p-6 lg:p-8 bg-neutral-50/50 lg:sticky lg:top-20 lg:self-start"
         >
           <p className="sr-only" role="status" aria-live="polite">{liveText}</p>
           {/* Big number */}
           <div data-pdf-section className="mb-6">
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
+            <p className="text-sm text-neutral-500 mb-1">
               Stamp Duty (SDLT) to pay
             </p>
-            <p data-headline-result data-headline-label="Stamp Duty (SDLT) to pay" className="text-3xl sm:text-4xl font-bold result-number tabular-nums text-neutral-900 dark:text-neutral-100">
+            <p data-headline-result data-headline-label="Stamp Duty (SDLT) to pay" className="text-3xl sm:text-4xl font-bold result-number tabular-nums text-neutral-900">
               {fmt(Math.round(animatedTax))}
             </p>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
+            <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
               on a <span className="tabular-nums">{fmt(price)}</span> property{describeBuyer()}
             </p>
           </div>
 
           {/* Stat cards */}
           <div data-pdf-section className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200/80 dark:border-neutral-700 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
-              <Percent size={16} className="text-primary-600 dark:text-primary-400 shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="bg-white rounded-lg border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
+              <Percent size={16} className="text-primary-600 shrink-0 mt-0.5" aria-hidden="true" />
               <div className="min-w-0">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-0.5">
+                <p className="text-xs text-neutral-500 mb-0.5">
                   Effective Rate
                 </p>
-                <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
                   {result.effectiveRate.toFixed(2)}%
                 </p>
               </div>
             </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200/80 dark:border-neutral-700 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
+            <div className="bg-white rounded-lg border border-neutral-200/80 p-4 flex items-start gap-3 min-w-0 overflow-hidden">
               <Building2 size={16} className="text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
               <div className="min-w-0">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-0.5">
+                <p className="text-xs text-neutral-500 mb-0.5">
                   Total Cost (Price + SDLT)
                 </p>
-                <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums">
                   {fmt(price + result.totalTax)}
                 </p>
               </div>
@@ -325,9 +325,9 @@ export default function StampDutyCalc() {
 
           {/* Band breakdown table */}
           {result.bands.length > 0 && (
-            <div data-pdf-section className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200/80 dark:border-neutral-700 overflow-hidden mb-6">
-              <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
-                <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <div data-pdf-section className="bg-white rounded-lg border border-neutral-200/80 overflow-hidden mb-6">
+              <div className="px-4 py-3 border-b border-neutral-100">
+                <h3 className="text-sm font-medium text-neutral-700">
                   Tax Breakdown by Band
                 </h3>
               </div>
@@ -335,32 +335,32 @@ export default function StampDutyCalc() {
                 <table className="w-full text-sm">
                   <caption className="sr-only">Stamp duty by price band</caption>
                   <thead>
-                    <tr className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200/80 dark:border-neutral-700">
-                      <th scope="col" className="text-left py-2.5 px-4 font-medium text-neutral-600 dark:text-neutral-400">Band</th>
-                      <th scope="col" className="text-right py-2.5 px-4 font-medium text-neutral-600 dark:text-neutral-400">Rate</th>
-                      <th scope="col" className="text-right py-2.5 px-4 font-medium text-neutral-600 dark:text-neutral-400">Tax</th>
+                    <tr className="bg-neutral-50 border-b border-neutral-200/80">
+                      <th scope="col" className="text-left py-2.5 px-4 font-medium text-neutral-600">Band</th>
+                      <th scope="col" className="text-right py-2.5 px-4 font-medium text-neutral-600">Rate</th>
+                      <th scope="col" className="text-right py-2.5 px-4 font-medium text-neutral-600">Tax</th>
                     </tr>
                   </thead>
                   <tbody>
                     {result.bands.map((band, i) => (
-                      <tr key={band.from} className={`border-b border-neutral-100 dark:border-neutral-700/50 ${i % 2 === 0 ? 'bg-white dark:bg-neutral-800/50' : 'bg-neutral-50/50 dark:bg-neutral-800'}`}>
-                        <th scope="row" className="py-2 px-4 text-left font-normal text-neutral-700 dark:text-neutral-300 tabular-nums">
+                      <tr key={band.from} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
+                        <th scope="row" className="py-2 px-4 text-left font-normal text-neutral-700 tabular-nums">
                           {fmt(band.from)} to {fmt(band.to)}
                         </th>
-                        <td className="py-2 px-4 text-right text-neutral-900 dark:text-neutral-100 font-medium tabular-nums">
+                        <td className="py-2 px-4 text-right text-neutral-900 font-medium tabular-nums">
                           {pctLabel(band.rate)}
                         </td>
-                        <td className="py-2 px-4 text-right text-neutral-900 dark:text-neutral-100 font-semibold tabular-nums">
+                        <td className="py-2 px-4 text-right text-neutral-900 font-semibold tabular-nums">
                           {fmt(band.tax)}
                         </td>
                       </tr>
                     ))}
-                    <tr className="bg-primary-50/50 dark:bg-primary-900/20">
-                      <th scope="row" className="py-2.5 px-4 text-left font-semibold text-neutral-900 dark:text-neutral-100">Total</th>
-                      <td className="py-2.5 px-4 text-right text-neutral-600 dark:text-neutral-400 tabular-nums">
+                    <tr className="bg-primary-50">
+                      <th scope="row" className="py-2.5 px-4 text-left font-semibold text-neutral-900">Total</th>
+                      <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">
                         {result.effectiveRate.toFixed(2)}%
                       </td>
-                      <td className="py-2.5 px-4 text-right font-bold text-primary-700 dark:text-primary-400 tabular-nums">
+                      <td className="py-2.5 px-4 text-right font-bold text-primary-700 tabular-nums">
                         {fmt(result.totalTax)}
                       </td>
                     </tr>
@@ -378,11 +378,11 @@ export default function StampDutyCalc() {
           </div>
 
           {/* Chart: SDLT at different price points (lazy) + text alternative */}
-          <div data-pdf-section className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200/80 dark:border-neutral-700 p-4">
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+          <div data-pdf-section className="bg-white rounded-lg border border-neutral-200/80 p-4">
+            <h3 className="text-sm font-medium text-neutral-700 mb-1">
               Stamp Duty by Property Price
             </h3>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">Your price is the highlighted bar.</p>
+            <p className="text-xs text-neutral-500 mb-3">Your price is the highlighted bar.</p>
             <LazyChartFrame height={256}>
               <StampDutyChart
                 data={chartData}
