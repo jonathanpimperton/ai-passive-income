@@ -854,6 +854,14 @@ if (hasSources) tabs.push({ id: 'sources', label: 'Sources' });
     calcSection.addEventListener('click', (e) => {
       if ((e.target as Element).closest?.('astro-island button')) arm(e);
     });
+    // Slider keys: SliderInput handles them itself (preventDefault + onChange),
+    // so no native input/change event fires. Capture phase, in case a handler
+    // ever stops propagation.
+    const SLIDER_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
+    calcSection.addEventListener('keydown', (e) => {
+      const target = e.target as Element;
+      if (SLIDER_KEYS.has(e.key) && target.matches?.('astro-island input[type="range"]')) arm(e);
+    }, true);
 
     // Keep keyboard focus clear of the bar (WCAG 2.4.11): when focus lands
     // under the visible bar, scroll it clear; if the page can't scroll that

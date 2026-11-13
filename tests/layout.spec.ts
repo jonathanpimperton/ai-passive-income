@@ -126,6 +126,20 @@ test.describe('Tool page layout', () => {
     await expect(page.locator('#mobile-result-value')).not.toHaveText('');
   });
 
+  test('mobile result bar also arms on slider keyboard changes', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/tools/debt-and-loans/mortgage-payment/');
+    await waitForHydration(page);
+    const bar = page.locator('#mobile-result-bar');
+    await expect(bar).toBeHidden();
+
+    // SliderInput handles arrow keys itself (no native input/change event).
+    await page.locator('astro-island input[type="range"]').first().focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('[data-headline-result]').first()).not.toBeInViewport();
+    await expect(bar).toBeVisible();
+  });
+
   test('back-to-calculator button is out of the tab order while hidden', async ({ page }) => {
     await page.goto('/tools/debt-and-loans/mortgage-payment/');
     await expect(page.locator('#back-to-calc-btn')).toHaveCSS('visibility', 'hidden');
