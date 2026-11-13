@@ -7,18 +7,34 @@
  * what the worker will render. A failure means the worker would silently DROP that row
  * (and if it is the only result, refuse the whole email). Fix it by adding the label or
  * value phrase to TOOL_REGISTRY[slug] in src/lib/tool-registry.ts; if the message says
- * "new dynamic expression", also list the expression's possible outputs in DYNAMIC below.
+ * "new dynamic expression", also list the expression's possible outputs in DYNAMIC below
+ * (or, when the outputs live in the calculator's own source, in FROM_SOURCE).
  *
  * Rows built by shared helpers (pushed rather than written as object literals) must be
  * listed in ROW_HELPERS; the test calls the real helper with representative settings.
+ *
+ * Money and percentage samples come from the real formatters (result-format.ts,
+ * calculator-utils.ts) in USD, GBP and EUR, and every sample goes through cleanText()
+ * first, exactly as the worker does. Calculators that use the guarded formatters also get
+ * their extreme outputs ("Over $1 trillion", "Over 1,000,000%") as top-level values.
+ * Hand-written DYNAMIC lists rot (an option label was renamed in W1-DEBT and the stale list
+ * hid it), so labels that come from a calculator's own option arrays or result object are
+ * read from its source via FROM_SOURCE, and a test fails on keys that no longer occur.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { TOOL_REGISTRY, isKnownTool } from './tool-registry';
-import { matchLabel, newLabelContext, compileTemplate, isSafeValue } from './email-sanitize';
+import { matchLabel, newLabelContext, compileTemplate, isSafeValue, cleanText } from './email-sanitize';
 import { formatDuration } from './retirement';
 import { formatMonthsShort } from './savings-goal';
+import {
+  formatMonthsLong, formatMoneyGuarded, formatMoneyCents, formatPercentGuarded,
+  formatMonthsShort as formatMonthsShortResult,
+} from './result-format';
+import { formatCurrency } from './calculator-utils';
+import { CARD_HORIZON_MONTHS } from './credit-card';
+import { DEBT_HORIZON_MONTHS } from './debt-payoff';
 import { TAX_YEAR_LABELS } from './us-rates';
 import { CPI_SOURCE, CPI_U_LATEST, cpiYearLabel } from './inflation';
 import { excludedCostsNote } from './rent-vs-buy';
@@ -31,31 +47,41 @@ const durations = [0, 1, 11, 12, 13, 24, 30, 358, 1199].flatMap((m) => [formatDu
 const LATEST_CPI_YEAR = cpiYearLabel(CPI_U_LATEST.year);
 const TODAYS = ["Today's dollars", "Today's pounds", "Today's euros"];
 
+// W1-DEBT result-format.ts helpers (real outputs, not hand-typed text).
+const MONTH_COUNTS = [0, 1, 11, 12, 13, 27, 99, 600];
+const monthsLong = MONTH_COUNTS.map(formatMonthsLong);
+const monthsShortResult = MONTH_COUNTS.map(formatMonthsShortResult);
+const guardedPercents = [0.125, 1e5, -1e5].map((v) => formatPercentGuarded(v));
+const YEARS_PLURAL = ['12 years', '1 year'];
+const CARD_HORIZON_YEARS = String(CARD_HORIZON_MONTHS / 12);
+const DEBT_HORIZON_YEARS = String(DEBT_HORIZON_MONTHS / 12);
+
 /**
  * Possible outputs of identifiers and helper calls used in labels or values, keyed by the
  * expression source (whitespace collapsed). Checked by hand against the calculators.
  */
 const DYNAMIC: Record<string, Record<string, string[]>> = {
-  'compound-interest': {
-    freqLabel: ['Annually', 'Semi-annually', 'Quarterly', 'Monthly', 'Daily', '12x/yr'],
-    timingLabel: ['End of period', 'Beginning of period'],
-  },
-  'investment-return': {
-    freqLabel: ['Annually', 'Semi-annually', 'Quarterly', 'Monthly', 'Daily', '12x/yr'],
-    timingLabel: ['End of period', 'Beginning of period'],
-    modeLabel: ['End Amount', 'Contribution', 'Return Rate', 'Starting Amount', 'Time'],
-    'result.label': ['End Amount', 'Monthly Contribution', 'Required Return Rate', 'Starting Amount', 'Time Required', 'Result'],
-    'result.formatted': ['$1,234', '12.50%', 'Not achievable', 'Not reachable', '12 yrs 3 mo', '1 yr 1 mo', '12 years', '1 year', '--'],
-  },
+  // compound-interest and investment-return: option labels and the solved result are read
+  // from the calculators' own source (FROM_SOURCE below).
+  'investment-return': { yearsText: YEARS_PLURAL, 'formatMonthsShort(s.months)': monthsShortResult },
   'credit-card-payoff': {
-    'formatMonths(activeResult.months)': ['100+ years', '0 months', '1 year', '2 years, 3 months', '11 months'],
+    // Every output of the local timeText(): the early returns in getResults mean only the
+    // first and last reach the email today, but all must stay renderable.
+    'timeText(r)': [...monthsLong, 'Never', `Over ${CARD_HORIZON_YEARS} years`],
+    HORIZON_YEARS: [CARD_HORIZON_YEARS],
   },
   'debt-payoff': {
-    'formatMonths(activeResult.months)': ['0 months', '1 year', '2 years, 3 months', '11 months'],
-    '`${d.name} Balance`': ['Credit Card Balance'],
-    '`${d.name} APR`': ['Credit Card APR'],
-    '`${d.name} Min Payment`': ['Credit Card Min Payment'],
-    'd.name': ['Credit Card', 'Car Loan'], // (W1-DEBT) raw debt names become "Debt N"
+    'statusTime(r)': [...monthsLong, 'Never', `Over ${DEBT_HORIZON_YEARS} years`, '--'],
+    HORIZON_YEARS: [DEBT_HORIZON_YEARS],
+    'd.name': ['Credit Card', 'Car Loan'], // raw debt names become "Debt N"
+  },
+  'investment-fee': { yearsText: YEARS_PLURAL },
+  'net-worth': { 'ratioText(summary.debtToAsset)': ['--', '12.5%'] },
+  roi: {
+    'yearsText(yearsHeld)': YEARS_PLURAL,
+    'yearsText(yearsB)': YEARS_PLURAL,
+    'annualText(resultA)': ['--', ...guardedPercents],
+    'annualText(resultB)': ['--', ...guardedPercents],
   },
   'emergency-fund': {
     savingsRateLabel: ['Savings interest rate (AER)', 'Savings interest rate', 'Savings interest rate (APY)'],
@@ -121,7 +147,7 @@ const DYNAMIC: Record<string, Record<string, string[]>> = {
       'No Student Loan', 'Plan 1 (pre-2012 England/Wales)', 'Plan 2 (post-2012 England/Wales)', 'Plan 4 (Scotland)',
       'Plan 5 (from 2023)', 'Postgraduate Loan',
     ],
-    'PENSION_METHOD_LABEL[pensionMethod]': ['Net pay arrangement', 'Relief at source', 'Salary sacrifice'], // (W1-UK)
+    'PENSION_METHOD_LABEL[pensionMethod]': ['Net pay arrangement', 'Relief at source', 'Salary sacrifice'], // (W1-UK) pending
   },
   'car-finance': {
     'LABELS[o.type]': ['PCP', 'Hire Purchase', 'Personal Loan', 'Cash'],
@@ -132,9 +158,19 @@ const DYNAMIC: Record<string, Record<string, string[]>> = {
   },
   'capital-gains-tax': {
     'FILING_OPTIONS.find((f) => f.key === filing)?.label': ['Single', 'Married (joint)', 'Head of household'],
-    'UK_BAND_LABEL[ukResult.incomeBand]': ['Basic rate', 'Higher rate', 'Additional rate'], // (W1-UK)
+    'UK_BAND_LABEL[ukResult.incomeBand]': ['Basic rate', 'Higher rate', 'Additional rate'], // (W1-UK) pending
   },
 };
+
+/**
+ * DYNAMIC keys pre-registered for a branch that has not merged yet ("<slug>: <expression>").
+ * The stale-key test skips them; once the branch lands the expression is in the source and
+ * the normal per-calculator test verifies the outputs, so delete the entry then.
+ */
+const PENDING_MERGE = new Set([
+  'salary-uk: PENSION_METHOD_LABEL[pensionMethod]', // W1-UK
+  'capital-gains-tax: UK_BAND_LABEL[ukResult.incomeBand]', // W1-UK
+]);
 
 /** Representative UK affordability settings: with and without a stress test. */
 const UK_SETTINGS: UkStressSettings[] = [
@@ -159,8 +195,11 @@ const ROW_HELPERS: Record<string, Record<string, () => Array<{ label: string; va
 
 const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
 
-/** Index just past the expression starting at `i` (stops at a top-level , ; or closing bracket). */
-function scanExpression(src: string, i: number): number {
+/**
+ * Index just past the expression starting at `i` (stops at a top-level , ; or closing
+ * bracket). With `separators` false only the closing bracket of the enclosing group stops it.
+ */
+function scanExpression(src: string, i: number, separators = true): number {
   let depth = 0;
   let quote: string | null = null;
   let tpl = 0;
@@ -178,27 +217,40 @@ function scanExpression(src: string, i: number): number {
     else if (c === ')' || c === ']' || c === '}') {
       if (depth === 0) return i;
       depth--;
-    } else if ((c === ',' || c === ';') && depth === 0) return i;
+    } else if (separators && (c === ',' || c === ';') && depth === 0) return i;
   }
   return i;
 }
 
-/** Return the source text of the useCallback(...) call that defines `name`, or ''. */
-function callbackBody(src: string, name: string): string {
-  const start = src.indexOf(`const ${name} = useCallback(`);
+/** Return the source text of the useCallback/useMemo(...) call that defines `name`, or ''. */
+function callbackBody(src: string, name: string, hook: 'useCallback' | 'useMemo' = 'useCallback'): string {
+  const start = src.indexOf(`const ${name} = ${hook}(`);
   if (start < 0) return '';
   const open = src.indexOf('(', start);
   return src.slice(start, scanExpression(src, open + 1) + 1);
 }
 
-/** Expressions that follow `key:` inside a body. */
-function keyExpressions(body: string, key: 'label' | 'value'): string[] {
+/** Source text of the array literal assigned to `const NAME`, or ''. */
+function constArrayBody(src: string, name: string): string {
+  const start = src.indexOf(`const ${name}`);
+  if (start < 0) return '';
+  const open = src.indexOf('[', src.indexOf('=', start));
+  return open < 0 ? '' : src.slice(open, scanExpression(src, open + 1, false) + 1);
+}
+
+/**
+ * Expressions that follow `key:` inside a body. With `tail`, only objects whose remaining
+ * properties (after this one) match it are kept.
+ */
+function keyExpressions(body: string, key: 'label' | 'value' | 'formatted' | 'context', tail?: RegExp): string[] {
   const out: string[] = [];
   const re = new RegExp(`${BS}b${key}:${BS}s*`, 'g');
   let m: RegExpExecArray | null;
   while ((m = re.exec(body))) {
     const start = m.index + m[0].length;
-    const expr = norm(body.slice(start, scanExpression(body, start)));
+    const end = scanExpression(body, start);
+    const expr = norm(body.slice(start, end));
+    if (tail && !tail.test(body.slice(end, scanExpression(body, end, false)))) continue;
     // Skip TypeScript annotations such as `{ label: string; value: string }[]`.
     if (!/^(string|number|boolean)$/.test(expr)) out.push(expr);
   }
@@ -254,6 +306,37 @@ function splitTop(expr: string, token: string): [string, string] | null {
 
 const MONEY_FORMATTERS = /^(fmt|formatCurrency|formatGBP|usd|gbp|money|cents)\(/;
 const PERCENT_FORMATTERS = /^(fmtPct|formatPercentGuarded)\(/;
+
+/**
+ * Sampling context for one test run, set by the test loop before evaluating:
+ *  - currency: the real formatters are called in USD, GBP and EUR (one currency per pass,
+ *    so a template with several amounts never mixes currencies);
+ *  - guardedMoney / guardedPercent: the calculator uses formatMoneyGuarded /
+ *    formatPercentGuarded, so top-level values may also be the guarded extremes;
+ *  - derived: outputs read from the calculator's own source (FROM_SOURCE).
+ */
+const env = {
+  currency: 'USD',
+  guardedMoney: false,
+  guardedPercent: false,
+  derived: {} as Record<string, () => string[]>,
+};
+
+/** Real money output for `expr` (a fmt(...) or cents(...) call) in the sample currency. */
+function moneySamples(expr: string, inTemplate: boolean): string[] {
+  if (/^cents\(/.test(expr)) return [formatMoneyCents(1234.5, env.currency)];
+  const amounts = inTemplate ? [1234.5] : [1234.5, 123456789];
+  const plain = amounts.map((v) => (env.guardedMoney ? formatMoneyGuarded(v, env.currency) : formatCurrency(v, env.currency)));
+  // Extremes only as whole values: inside a sentence they would need an unbounded input.
+  const extreme = env.guardedMoney && !inTemplate ? [2e12, -2e12].map((v) => formatMoneyGuarded(v, env.currency)) : [];
+  return [...plain, ...extreme];
+}
+
+function percentSamples(expr: string, inTemplate: boolean): string[] {
+  if (!/^formatPercentGuarded\(/.test(expr)) return ['12.5%'];
+  const extreme = env.guardedPercent && !inTemplate ? [1e5, -1e5].map((v) => formatPercentGuarded(v)) : [];
+  return [formatPercentGuarded(0.125), ...extreme];
+}
 const NUMBER_FORMATTERS = /^(formatNumber|fmtRate|formatPercent|String|Number|Math\.\w+)\(/;
 /** Identifiers whose value is probably text: these must be resolved, never sampled as numbers. */
 const TEXTY = /label|name|text|display|source|note|unit|type|status|mode|why|subline|reason|word|code|plan|verdict|headline/i;
@@ -270,6 +353,8 @@ function evaluate(expr: string, slug: string, problems: string[], inTemplate = f
   }
   const known = DYNAMIC[slug]?.[expr];
   if (known) return known;
+  const derived = env.derived[expr];
+  if (derived) return derived();
   const nullish = splitTop(expr, '??');
   if (nullish) return evaluate(nullish[0], slug, problems, inTemplate); // fallback is a defensive default
   const tern = splitTop(expr, '?');
@@ -279,8 +364,8 @@ function evaluate(expr: string, slug: string, problems: string[], inTemplate = f
   }
   if (/^'(?:[^'\\]|\\.)*'$/.test(expr) || /^"(?:[^"\\]|\\.)*"$/.test(expr)) return [unquote(expr)];
   if (expr.startsWith('`') && expr.endsWith('`')) return expandTemplate(expr.slice(1, -1), slug, problems);
-  if (MONEY_FORMATTERS.test(expr)) return ['$1,234'];
-  if (PERCENT_FORMATTERS.test(expr)) return ['12.5%'];
+  if (MONEY_FORMATTERS.test(expr)) return moneySamples(expr, inTemplate);
+  if (PERCENT_FORMATTERS.test(expr)) return percentSamples(expr, inTemplate);
   if (NUMBER_FORMATTERS.test(expr) || /\.toFixed\(\d\)$/.test(expr) || /\.length$/.test(expr)) return ['12.5'];
   if (inTemplate && !/\(/.test(expr.replace(/\.toLowerCase\(\)|\.trim\(\)/g, '')) && !TEXTY.test(expr)) return ['12'];
   problems.push(`new dynamic expression \`${expr}\` -- list its outputs in DYNAMIC (tool-registry.test.ts)`);
@@ -309,6 +394,58 @@ function expandTemplate(body: string, slug: string, problems: string[]): string[
   }
   flush();
   return results;
+}
+
+/* -- outputs read from a calculator's own source ------------------------------------- */
+
+/** Computes the possible outputs of one expression from the calculator source. */
+type SourceRule = (src: string, slug: string, problems: string[]) => string[];
+
+/** Labels of the objects in `const NAME = [ { label: '...', ... }, ... ]`. */
+const optionLabels = (name: string): SourceRule => (src, slug, problems) =>
+  keyExpressions(constArrayBody(src, name), 'label').flatMap((e) => evaluate(e, slug, problems));
+
+/** Every `key:` expression inside `const NAME = useMemo(...)` (for example a solved result). */
+const memoField = (name: string, key: 'label' | 'formatted' | 'context', tail?: RegExp): SourceRule => (src, slug, problems) =>
+  keyExpressions(callbackBody(src, name, 'useMemo'), key, tail).flatMap((e) => evaluate(e, slug, problems));
+
+/** Expression source -> where its outputs are defined in the calculator. */
+const FROM_SOURCE: Record<string, Record<string, SourceRule>> = {
+  'compound-interest': {
+    freqLabel: optionLabels('COMPOUND_OPTIONS'),
+    timingLabel: optionLabels('TIMING_OPTIONS'),
+  },
+  'investment-return': {
+    freqLabel: optionLabels('COMPOUND_OPTIONS'),
+    timingLabel: optionLabels('TIMING_OPTIONS'),
+    modeLabel: optionLabels('TABS'),
+    'result.label': memoField('result', 'label'),
+    'result.formatted': memoField('result', 'formatted'),
+    // getResults sends the context as a "Note" row only when there is no chart summary,
+    // which is exactly when the solved result has `effective: null`.
+    'result.context.slice(0, 200)': memoField('result', 'context', /\beffective:\s*null\b/),
+  },
+};
+
+/** Point `env` at one calculator: its derived outputs and which guarded formatters it uses. */
+function setEnv(src: string, slug: string, problems: string[]): void {
+  env.guardedMoney = /formatMoneyGuarded\(/.test(src);
+  env.guardedPercent = /formatPercentGuarded\(/.test(src);
+  env.derived = {};
+  for (const [expr, rule] of Object.entries(FROM_SOURCE[slug] ?? {})) {
+    env.derived[expr] = () => rule(src, slug, problems);
+  }
+}
+
+/** Every cleaned sample of `expr` across the sample currencies (the worker cleans text first). */
+function samples(expr: string, src: string, slug: string, problems: string[]): string[] {
+  const out = new Set<string>();
+  for (const currency of ['USD', 'GBP', 'EUR']) {
+    env.currency = currency;
+    setEnv(src, slug, problems);
+    for (const sample of evaluate(expr, slug, problems)) out.add(cleanText(sample));
+  }
+  return [...out];
 }
 
 /* -- the tests ------------------------------------------------------------------ */
@@ -355,6 +492,39 @@ describe('tool registry', () => {
     expect(p.length).toBe(1);
   });
 
+  it('DYNAMIC, FROM_SOURCE and ROW_HELPERS only name expressions that still occur in their calculator', () => {
+    const slugs = new Set(emailing.map((e) => e.slug));
+    const stale: string[] = [];
+    for (const [table, entries] of [['DYNAMIC', DYNAMIC], ['FROM_SOURCE', FROM_SOURCE], ['ROW_HELPERS', ROW_HELPERS]] as const) {
+      for (const [slug, keys] of Object.entries(entries)) {
+        const text = norm(emailing.find((e) => e.slug === slug)?.src ?? '');
+        if (!slugs.has(slug)) stale.push(`${table}: unknown tool ${slug}`);
+        for (const key of Object.keys(keys)) {
+          if (!text.includes(key) && !PENDING_MERGE.has(`${slug}: ${key}`)) stale.push(`${table}[${slug}]: ${key}`);
+        }
+      }
+    }
+    expect(stale).toEqual([]);
+  });
+
+  it('FROM_SOURCE rules find their outputs in the calculator source', () => {
+    const problems: string[] = [];
+    for (const [slug, rules] of Object.entries(FROM_SOURCE)) {
+      const src = emailing.find((e) => e.slug === slug)!.src;
+      for (const expr of Object.keys(rules)) {
+        const out = samples(expr, src, slug, problems);
+        expect(out.length, `${slug}: ${expr} found nothing`).toBeGreaterThan(0);
+      }
+    }
+    expect(problems).toEqual([]);
+    // The W1-DEBT rename that a hand-written list once hid: the timing options are sent as written.
+    for (const slug of ['compound-interest', 'investment-return']) {
+      const src = emailing.find((e) => e.slug === slug)!.src;
+      expect(samples('timingLabel', src, slug, problems)).toEqual(['End of each month', 'Start of each month']);
+      expect(samples('freqLabel', src, slug, problems)).toContain('Semi-annually');
+    }
+  });
+
   for (const { file, src, slug } of emailing) {
     it(`${file}: every label and value getInputs/getResults can send is rendered (${slug})`, () => {
       const bodies = [callbackBody(src, 'getInputs'), callbackBody(src, 'getResults')];
@@ -362,15 +532,25 @@ describe('tool registry', () => {
       expect(bodies[1].length, `${file}: getResults not found`).toBeGreaterThan(0);
       const problems: string[] = [];
       const ctx = newLabelContext();
+      // One line per rejected sample, listing every expression that can produce it.
+      const rejected = new Map<string, Set<string>>();
+      const reject = (kind: string, sample: string, expr: string) => {
+        const key = `${kind}: "${sample}"`;
+        rejected.set(key, (rejected.get(key) ?? new Set()).add(expr));
+      };
       for (const expr of bodies.flatMap((b) => keyExpressions(b, 'label'))) {
-        for (const sample of evaluate(expr, slug, problems)) {
-          if (!matchLabel(slug, sample, ctx)) problems.push(`label not allowed: "${sample}" (from ${expr})`);
+        for (const sample of samples(expr, src, slug, problems)) {
+          if (!matchLabel(slug, sample, ctx)) reject('label not allowed', sample, expr);
         }
       }
       for (const expr of bodies.flatMap((b) => keyExpressions(b, 'value'))) {
-        for (const sample of evaluate(expr, slug, problems)) {
-          if (!isSafeValue(slug, sample)) problems.push(`value would be dropped: "${sample}" (from ${expr})`);
+        for (const sample of samples(expr, src, slug, problems)) {
+          if (!isSafeValue(slug, sample)) reject('value would be dropped', sample, expr);
         }
+      }
+      for (const [key, exprs] of rejected) {
+        const list = [...exprs];
+        problems.push(`${key} (from ${list.slice(0, 3).join(', ')}${list.length > 3 ? `, +${list.length - 3} more` : ''})`);
       }
       for (const helper of bodies.flatMap(pushedHelpers)) {
         const gen = ROW_HELPERS[slug]?.[helper];
@@ -379,11 +559,13 @@ describe('tool registry', () => {
           continue;
         }
         for (const row of gen()) {
-          if (!matchLabel(slug, row.label, ctx)) problems.push(`helper label not allowed: "${row.label}" (from ${helper})`);
-          if (!isSafeValue(slug, row.value)) problems.push(`helper value would be dropped: "${row.value}" (from ${helper})`);
+          const label = cleanText(row.label);
+          const value = cleanText(row.value);
+          if (!matchLabel(slug, label, ctx)) problems.push(`helper label not allowed: "${label}" (from ${helper})`);
+          if (!isSafeValue(slug, value)) problems.push(`helper value would be dropped: "${value}" (from ${helper})`);
         }
       }
-      expect(problems).toEqual([]);
+      expect([...new Set(problems)]).toEqual([]);
     });
   }
 

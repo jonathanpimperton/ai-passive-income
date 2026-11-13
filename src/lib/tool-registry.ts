@@ -37,7 +37,11 @@ export interface ToolEntry {
 }
 
 const COMPOUNDING_LABELS = ['Compounding Frequency', 'Contribution Timing'];
-const COMPOUNDING_VALUES = ['Annually', 'Semi-annually', 'Quarterly', 'Monthly', 'Daily', 'End of period', 'Beginning of period'];
+const COMPOUNDING_VALUES = ['Annually', 'Semi-annually', 'Quarterly', 'Monthly', 'Daily', 'End of each month', 'Start of each month'];
+// Extremes printed by formatMoneyGuarded / formatPercentGuarded (src/lib/result-format.ts):
+// "Over $1 trillion", "Under -$1 trillion", "Over 1,000,000%", "Under -1,000,000%".
+const GUARDED_MONEY_VALUES = ['Over {n} trillion', 'Under {n} trillion'];
+const GUARDED_PERCENT_VALUES = ['Over {n}%', 'Under {n}%'];
 const TODAYS_MONEY = "{Today's dollars|Today's pounds|Today's euros}";
 const RETIREMENT_INPUTS = [
   'Current Age', 'Retirement Age', 'Current Savings', 'Monthly Contribution', 'Target Balance',
@@ -56,7 +60,7 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       'Final Balance', 'Total Contributions', 'Interest Earned',
       'Note', // (W1-DEBT)
     ],
-    values: [...COMPOUNDING_VALUES, 'Beyond any realistic outcome - check your inputs'],
+    values: [...COMPOUNDING_VALUES, ...GUARDED_MONEY_VALUES, 'Beyond any realistic outcome - check your inputs'],
   },
   'loan-amortization': {
     name: 'Loan Amortization Calculator',
@@ -79,8 +83,18 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       'Note', // (W1-DEBT)
     ],
     values: [
-      ...COMPOUNDING_VALUES, 'End Amount', 'Contribution', 'Return Rate', 'Starting Amount', 'Time',
-      'Not achievable', 'Not reachable', 'Beyond any realistic outcome - check your inputs',
+      ...COMPOUNDING_VALUES, ...GUARDED_MONEY_VALUES, ...GUARDED_PERCENT_VALUES,
+      'End Amount', 'Contribution', 'Return Rate', 'Starting Amount', 'Time',
+      'Beyond any realistic outcome - check your inputs',
+      // Solver outcomes shown instead of a figure (InvestmentReturnCalc result.formatted).
+      'No growth needed', 'Over 100% a year', 'Already there', 'Not within {n} years',
+      // "Note" row: the result's context sentence when there is no chart (result.effective is null).
+      'Adjust the inputs to calculate.',
+      'Even losing 99% a year leaves {n} after {n} {year|years}, above your {n} target, so there is no rate to solve for.',
+      'Even 100% a year would only reach {n} in {n} {year|years}. Raise the contribution or time, or lower the target.',
+      'Add a starting amount or a monthly contribution to calculate a rate.',
+      'Your {n} starting amount already meets the {n} target.',
+      'Target not reached within {n} years: after {n} years the balance would be {n}. Raise the contribution or return, or lower the target.',
     ],
   },
   'retirement-savings': {
@@ -131,7 +145,9 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
     values: [
       'Avalanche (highest rate first)', 'Snowball (lowest balance first)',
       'Never - the payments do not keep up with the interest', 'Not within {n} years', // (W1-DEBT)
+      'Over {n} years', // statusTime() when the simulation runs past the horizon
       '{n} at {n} APR, min {n}/mo', // (W1-DEBT) per-debt row
+      ...GUARDED_MONEY_VALUES,
     ],
   },
   'savings-goal': {
@@ -219,6 +235,7 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       'Total Return', 'Annualized Return', 'Net Profit',
       'Net Loss', 'Investment B Total Return', 'Investment B Annualized Return', // (W1-DEBT)
     ],
+    values: [...GUARDED_MONEY_VALUES, ...GUARDED_PERCENT_VALUES],
   },
   'net-worth': {
     name: 'Net Worth Calculator',
@@ -228,6 +245,7 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       'Total Assets', 'Total Liabilities', 'Number of Assets', 'Number of Liabilities', 'Net Worth',
       'Debt-to-Asset Ratio', // (W1-DEBT)
     ],
+    values: GUARDED_MONEY_VALUES,
   },
   'rent-vs-buy': {
     name: 'Rent vs Buy Calculator',
@@ -271,7 +289,7 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       'Your Fund Fee', 'Comparison Fee',
       'Fee Difference Cost', 'Balance at {n} fee', 'Total Contributions', 'Returns Lost to Fee Gap',
     ],
-    values: ['All of them, plus {n} of contributions'], // (W1-DEBT)
+    values: ['All of them, plus {n} of contributions', ...GUARDED_MONEY_VALUES], // (W1-DEBT)
   },
   'mortgage-affordability': {
     name: 'Mortgage Affordability Calculator',
@@ -319,6 +337,8 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       // (W1-DEBT)
       'Never - the payment does not cover the interest', 'Not within {n} years', 'At least {n}/mo',
       '{n} of balance (min {n})', 'Interest + {n} of balance (min {n})',
+      'Over {n} years', // timeText() when the schedule runs past the horizon
+      ...GUARDED_MONEY_VALUES,
     ],
   },
   'solar-payback': {

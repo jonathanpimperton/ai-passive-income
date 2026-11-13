@@ -84,7 +84,12 @@ describe('isSafeValue: per-tool phrases plus the numeric grammar', () => {
     ['debt-payoff', 'Never - the payments do not keep up with the interest'], ['debt-payoff', 'Not within 50 years'],
     ['credit-card-payoff', 'Never - the payment does not cover the interest'], ['credit-card-payoff', '3% of balance (min $25)'],
     ['compound-interest', 'Beyond any realistic outcome - check your inputs'], ['car-finance', 'Hire Purchase'],
-    ['stamp-duty', 'First-time buyer'], ['investment-return', 'Not achievable'], ['loan-amortization', 'N/A'],
+    ['stamp-duty', 'First-time buyer'], ['investment-return', 'Not within 100 years'], ['loan-amortization', 'N/A'],
+    // W1-DEBT calculators: option labels, solver outcomes and the guarded-formatter extremes.
+    ['compound-interest', 'Start of each month'], ['investment-return', 'End of each month'],
+    ['investment-return', 'Over 100% a year'], ['investment-return', 'Under -$1 trillion'],
+    ['roi', 'Over 1,000,000%'], ['roi', 'Under -1,000,000%'], ['roi', 'Over \u00A31 trillion'],
+    ['net-worth', 'Over $1 trillion'], ['debt-payoff', 'Over 50 years'], ['credit-card-payoff', 'Over 50 years'],
   ];
   for (const [slug, v] of accepted) {
     it(`${slug}: ${JSON.stringify(v)}`, () => expect(isSafeValue(slug, cleanText(v))).toBe(true));
@@ -97,6 +102,8 @@ describe('isSafeValue: per-tool phrases plus the numeric grammar', () => {
     ['inflation', '123.45.67.89 (October)'], ['mortgage-affordability', '0800.123.4567 (estimated)'],
     // A phrase registered for one tool is not accepted for another.
     ['compound-interest', 'Not affordable'], ['salary', 'Already reached'],
+    ['salary', 'Over $1 trillion'], ['salary', 'Over 1,000,000%'], ['compound-interest', 'Over 1,000,000%'],
+    ['net-worth', 'Over 0800 123 4567 trillion'], ['roi', 'Over $1 trillion, see evil.example'],
     ['compound-interest', 'Verify at https://evil.example'], ['compound-interest', 'x'.repeat(161)],
   ];
   for (const [slug, v] of refused) {
