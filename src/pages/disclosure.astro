@@ -1,6 +1,14 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ToolIcon from '@components/ui/ToolIcon.astro';
+import { AFFILIATE_PARTNERS } from '@lib/affiliate-data';
+
+// Built from affiliate-data.ts so this page lists exactly what the site links to.
+// `tracked` partners use a live affiliate tracking link (they can pay a commission);
+// the rest are plain links with UTM tags and earn nothing.
+const partners = Object.values(AFFILIATE_PARTNERS);
+const paidPartners = partners.filter((p) => p.tracked);
+const unpaidPartners = partners.filter((p) => !p.tracked);
 ---
 
 <BaseLayout
@@ -11,7 +19,7 @@ import ToolIcon from '@components/ui/ToolIcon.astro';
   <section class="border-b border-neutral-200/80 bg-bg">
     <div class="max-w-[768px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">Affiliate Disclosure</h1>
-      <p class="mt-2 text-sm text-neutral-500">Last updated: February 2026</p>
+      <p class="mt-2 text-sm text-neutral-500">Last updated: November 2026</p>
     </div>
   </section>
 
@@ -25,9 +33,10 @@ import ToolIcon from '@components/ui/ToolIcon.astro';
           <div>
             <h2 class="text-base font-bold text-neutral-900 mb-2">How CalcRun Makes Money</h2>
             <p class="text-sm text-neutral-700 leading-relaxed">
-              CalcRun earns commissions from some links on this site. When you click an affiliate link
-              and sign up for a financial product, we may receive a referral fee. This helps us keep all
-              our calculators and tools free.
+              CalcRun can earn commissions from some links on this site. When you click an affiliate link
+              and sign up for a product, we may receive a referral fee. This helps us keep all our
+              calculators and tools free. Only the partners listed under "Links that can earn a
+              commission" below pay us anything.
             </p>
           </div>
         </div>
@@ -76,34 +85,42 @@ import ToolIcon from '@components/ui/ToolIcon.astro';
           </div>
           <div>
             <h2 class="text-base font-bold text-neutral-900 mb-3">Our Affiliate Partners</h2>
+            <h3 class="text-sm font-semibold text-neutral-900 mb-2">Links that can earn a commission</h3>
             <p class="text-sm text-neutral-700 leading-relaxed mb-3">
-              CalcRun currently has or intends to establish affiliate relationships with:
+              These partners pay us a referral fee if you sign up through a link on CalcRun:
             </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {[
-                { name: 'Betterment', desc: 'Investing & high-yield savings' },
-                { name: 'Wealthfront', desc: 'Automated investing' },
-                { name: 'SoFi', desc: 'Loans & investing' },
-                { name: 'LendingTree', desc: 'Mortgage comparison' },
-                { name: 'Ally', desc: 'Savings & banking' },
-                { name: 'NordPass', desc: 'Password management' },
-                { name: 'NordVPN', desc: 'Online privacy & security' },
-                { name: 'Nutmeg', desc: 'UK investing' },
-                { name: 'InvestEngine', desc: 'UK ETF investing' },
-              ].map((partner) => (
+              {paidPartners.map((partner) => (
                 <div class="flex items-center gap-2 bg-neutral-50 rounded-lg px-3 py-2.5">
                   <div class="w-1.5 h-1.5 rounded-full bg-primary-600 shrink-0"></div>
                   <div>
                     <span class="text-sm font-medium text-neutral-900">{partner.name}</span>
-                    <span class="text-xs text-neutral-500 ml-1.5">{partner.desc}</span>
+                    <span class="text-xs text-neutral-500 ml-1.5">{partner.category}</span>
                   </div>
                 </div>
               ))}
             </div>
-            <p class="text-xs text-neutral-500 mt-3">
-              This list is updated as new partnerships are established. Not all listed programs
-              may be active at any given time.
-            </p>
+            {unpaidPartners.length > 0 && (
+              <>
+                <h3 class="text-sm font-semibold text-neutral-900 mt-5 mb-2">Other providers we link to</h3>
+                <p class="text-sm text-neutral-700 leading-relaxed mb-3">
+                  Some pages also suggest these providers. We don't currently earn anything from these
+                  links; they carry tags that only tell us which page sent the visit. If any of them
+                  starts paying us, it will move to the list above.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {unpaidPartners.map((partner) => (
+                    <div class="flex items-center gap-2 bg-neutral-50 rounded-lg px-3 py-2.5">
+                      <div class="w-1.5 h-1.5 rounded-full bg-neutral-400 shrink-0"></div>
+                      <div>
+                        <span class="text-sm font-medium text-neutral-900">{partner.name}</span>
+                        <span class="text-xs text-neutral-500 ml-1.5">{partner.category}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>

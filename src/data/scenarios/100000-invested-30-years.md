@@ -16,7 +16,7 @@ affiliatePrograms:
   - "Betterment"
   - "InvestEngine"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 ---
 
 ## $100,000 grows to $811,650 — without adding a dollar
@@ -58,7 +58,7 @@ This is why investment fees matter so much at this scale. A fund charging 1% in 
 
 ## What $811,650 means for retirement
 
-At a 4% safe withdrawal rate, $811,650 supports $32,466 per year ($2,706/month). Combined with Social Security (average benefit: $1,907/month in 2025), that is a total of $4,613/month — enough for a comfortable retirement in most U.S. markets outside major coastal cities.
+At a 4% safe withdrawal rate, $811,650 supports $32,466 per year ($2,706/month). Combined with Social Security (the average retired-worker benefit is estimated at $2,170/month from January 2027), that is a total of $4,876/month — enough for a comfortable retirement in most U.S. markets outside major coastal cities.
 
 If you invest $100,000 at age 35 and leave it alone until 65, you have $811,650 without contributing another dollar. That is the power of a large lump sum given enough time.
 

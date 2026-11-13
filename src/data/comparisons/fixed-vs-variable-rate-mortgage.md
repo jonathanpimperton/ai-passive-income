@@ -36,10 +36,12 @@ affiliateContext: "Compare mortgage rates"
 affiliatePrograms:
   - "LendingTree"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
-  - name: "Bank of England — Monetary policy"
-    url: "https://www.bankofengland.co.uk/monetary-policy"
+  - name: "Bank of England — Monetary Policy Summary, November 2026"
+    url: "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/november-2026"
+  - name: "Federal Reserve — FOMC statement, 28 October 2026"
+    url: "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"
   - name: "CFPB — Owning a Home"
     url: "https://www.consumerfinance.gov/owning-a-home/"
   - name: "FCA — Consumer information"
@@ -62,13 +64,13 @@ Take a £250,000 mortgage over 25 years, with a 5-year fix at 4.5% and a 2-year 
 
 The break-even point: if rates rise by more than about 0.5% on average over your mortgage term, the fixed rate saves money. If rates stay flat or fall, the variable rate wins.
 
-## The 2026 rate environment
+## Where rates are now
 
-Central banks in the US and UK raised rates aggressively in 2022-23 to fight inflation, then began cutting in 2024. As of mid-2026, the Bank of England base rate sits at 3.75% and the US Federal Funds rate at 3.50-3.75%.
+Central banks in the US and UK raised rates aggressively in 2022-23 to fight inflation, then began cutting in 2024. That direction has now reversed. The Bank of England raised Bank Rate from 3.75% to 4% on 5 November 2026, citing inflationary pressure. The US Federal Reserve raised its target range to 3.75-4.00% on 16 September 2026 and held it there on 28 October, with two members voting for a further rise.
 
-Markets expect rates to hold near current levels through 2026, with any further cuts coming slowly. If cuts do materialise, variable-rate borrowers benefit automatically. Fixed-rate borrowers stay locked at today's rates and miss the reduction — though they can remortgage when their fix ends.
+While rates are rising, a tracker or SVR payment goes up with each increase, and a fixed-rate borrower is protected until the fix ends. That doesn't make a fix automatically right: lenders price the rises they expect into fixed deals, so the real comparison is between today's fixed rate and where you think Bank Rate will go over the fixed period, not today's Bank Rate.
 
-This creates an unusual situation: short-term fixes (2 years) let you lock in current rates while giving you the option to remortgage at lower rates relatively soon. Long fixes (5+ years) protect you if rate cuts don't happen or reverse.
+Short fixes (2 years) protect you for less time and bring your next decision forward. Long fixes (5+ years) buy certainty for longer, usually with larger early repayment charges if you need to leave early.
 
 ## Break-even analysis: how to calculate yours
 

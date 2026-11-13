@@ -36,12 +36,12 @@ affiliatePrograms:
   - "InvestEngine"
   - "Nutmeg"
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-12"
 sources:
   - name: "GOV.UK — Individual Savings Accounts"
     url: "https://www.gov.uk/individual-savings-accounts"
-  - name: "GOV.UK — Money and tax"
-    url: "https://www.gov.uk/browse/tax"
+  - name: "HM Treasury — Budget 2026 (cash ISA limit kept at £20,000)"
+    url: "https://www.gov.uk/government/publications/budget-2026-document/budget-2026-html"
   - name: "FCA — Consumer information"
     url: "https://www.fca.org.uk/consumers"
 ---
@@ -87,4 +87,4 @@ The priority order for most people:
 
 With the personal savings allowance (£1,000 for basic rate, £500 for higher rate), [most people don't pay tax on cash savings anyway](/comparisons/cash-isa-vs-savings-account/). Using your ISA allowance on cash wastes its potential — the real value of an ISA is sheltering investment *growth* from capital gains and dividend tax, which can be substantial over decades.
 
-Unless you're a higher-rate taxpayer with large cash holdings, put your ISA allowance into stocks and shares. From April 2027 the rules push the same way — the annual Cash ISA limit is due to drop to £12,000 for under-65s, while the overall £20,000 allowance stays.
+Unless you're a higher-rate taxpayer with large cash holdings, put your ISA allowance into stocks and shares. The rules leave that choice to you: the planned cut to the Cash ISA limit was cancelled at the Budget on 28 October 2026, so the whole £20,000 can still go into cash. For long-term money, though, stocks and shares remain the better use of the allowance.

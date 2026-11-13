@@ -15,12 +15,12 @@ affiliateContext: "Open a retirement account"
 affiliatePrograms:
   - "Betterment"
 datePublished: "2026-03-04"
-dateModified: "2026-07-02"
+dateModified: "2026-11-12"
 ---
 
 ## $500K supports $20,000/year — tight but possible with a plan
 
-**At a 4% withdrawal rate, $500,000 provides $20,000 per year ($1,667/month) in retirement income.** That is below the federal poverty line for a household of one ($15,060 in 2024) when combined with no other income — but the picture improves significantly once Social Security kicks in at 62. Whether $500K is "enough" depends on your expenses, other income, and how you bridge the gap.
+**At a 4% withdrawal rate, $500,000 provides $20,000 per year ($1,667/month) in retirement income.** With no other income, that is only about 25% above the 2026 federal poverty guideline for a one-person household ($15,960), but the picture improves significantly once Social Security kicks in at 62. Whether $500K is "enough" depends on your expenses, other income, and how you bridge the gap.
 
 ## The first two years: the hardest part
 
