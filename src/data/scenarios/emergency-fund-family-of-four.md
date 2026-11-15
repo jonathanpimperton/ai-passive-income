@@ -55,12 +55,12 @@ For these reasons, many financial planners recommend 6 months as the minimum for
 
 {{ 6500 * 6 | usd }} is a large number. Break it into milestones. The timings below assume $1,100 saved a month into an account earning an assumed 4.5% a year (an example rate, not a quote):
 
-1. **$2,000 — starter fund (month {{ savingsMonths(2000, 0, 1100, 4.5) | int }}).** Covers a car repair, appliance replacement, or ER copay. Prevents credit card debt for small emergencies.
-2. **$10,000 — about {{ 10000 / 6500 | num(1) }} months of expenses (month {{ savingsMonths(10000, 0, 1100, 4.5) | int }}).** A full month of expenses plus a buffer.
-3. **$20,000 — about {{ 20000 / 6500 | num(1) }} months (month {{ savingsMonths(20000, 0, 1100, 4.5) | int }}).** Enough to job search without panic.
-4. **{{ 6500 * 6 | usd }} — full 6 months (month {{ savingsMonths(6500 * 6, 0, 1100, 4.5) | int }}).** Complete safety net.
+1. **$2,000 — starter fund (month {{ emergencyMonths(2000, 0, 1100, 4.5) | int }}).** Covers a car repair, appliance replacement, or ER copay. Prevents credit card debt for small emergencies.
+2. **$10,000 — about {{ 10000 / 6500 | num(1) }} months of expenses (month {{ emergencyMonths(10000, 0, 1100, 4.5) | int }}).** A full month of expenses plus a buffer.
+3. **$20,000 — about {{ 20000 / 6500 | num(1) }} months (month {{ emergencyMonths(20000, 0, 1100, 4.5) | int }}).** Enough to job search without panic.
+4. **{{ 6500 * 6 | usd }} — full 6 months (month {{ emergencyMonths(6500 * 6, 0, 1100, 4.5) | int }}).** Complete safety net.
 
-With no interest at all, $1,100 a month takes {{ savingsMonths(6500 * 6, 0, 1100, 0) | int }} months ({{ savingsMonths(6500 * 6, 0, 1100, 0) | months }}). At the assumed 4.5%, you get there {{ savingsMonths(6500 * 6, 0, 1100, 0) - savingsMonths(6500 * 6, 0, 1100, 4.5) | int }} months earlier, in {{ savingsMonths(6500 * 6, 0, 1100, 4.5) | months }}.
+With no interest at all, $1,100 a month takes {{ emergencyMonths(6500 * 6, 0, 1100, 0) | int }} months ({{ emergencyMonths(6500 * 6, 0, 1100, 0) | months }}). At the assumed 4.5%, you get there {{ emergencyMonths(6500 * 6, 0, 1100, 0) - emergencyMonths(6500 * 6, 0, 1100, 4.5) | int }} months earlier, in {{ emergencyMonths(6500 * 6, 0, 1100, 4.5) | months }}.
 
 ## Where the money should sit
 

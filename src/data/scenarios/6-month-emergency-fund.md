@@ -74,7 +74,7 @@ Avoid CDs with early withdrawal penalties, brokerage accounts with market risk, 
 
 ## How to build {{ 4500 * 6 | usd }} from scratch
 
-At $500/month in savings and no interest, it takes {{ 4500 * 6 / 500 | int }} months ({{ 4500 * 6 / 500 | months }}) to reach {{ 4500 * 6 | usd }}. At the assumed 4.5%, interest shortens that to {{ savingsMonths(4500 * 6, 0, 500, 4.5) | int }} months ({{ savingsMonths(4500 * 6, 0, 500, 4.5) | months }}).
+At $500/month in savings and no interest, it takes {{ 4500 * 6 / 500 | int }} months ({{ 4500 * 6 / 500 | months }}) to reach {{ 4500 * 6 | usd }}. At the assumed 4.5%, interest shortens that to {{ emergencyMonths(4500 * 6, 0, 500, 4.5) | int }} months ({{ emergencyMonths(4500 * 6, 0, 500, 4.5) | months }}).
 
 Faster strategies:
 - **Tax refund:** If you get one, deposit it straight into emergency savings. A $2,500 refund alone is {{ 2500 / 500 | int }} months of saving at $500.
