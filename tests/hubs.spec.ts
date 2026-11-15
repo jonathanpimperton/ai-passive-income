@@ -9,6 +9,7 @@
  * preview. GA and /api are blocked in every context; nothing is submitted.
  */
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const GA = /(googletagmanager|google-analytics|analytics\.google|doubleclick)\.(com|net)/;
 
@@ -234,3 +235,21 @@ test('US hub: the Social Security sentence matches the table', async ({ page, co
   }
   expect(text).not.toMatch(/\$190,000 and \$200,000 rows show the same/);
 });
+
+for (const hub of HUBS) {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`${hub.name} hub passes axe (${theme}, 390 px, anchor landing)`, async ({ browser }) => {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'America/New_York', locale: 'en-US' });
+      await prepare(ctx, theme);
+      const page = await ctx.newPage();
+      await page.goto(`${hub.path}#${hub.rowId}`);
+      await page.waitForLoadState('networkidle');
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).exclude('iframe').analyze();
+      const text = results.violations
+        .map((v) => `[${v.impact}] ${v.id}: ${v.nodes.slice(0, 3).map((n) => n.html.slice(0, 120)).join(' | ')}`)
+        .join(String.fromCharCode(10));
+      expect(results.violations, text).toHaveLength(0);
+      await ctx.close();
+    });
+  }
+}
