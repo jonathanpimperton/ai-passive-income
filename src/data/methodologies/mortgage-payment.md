@@ -21,7 +21,7 @@ assumptions:
   - "Loan terms are chosen from preset buttons: 15, 20 or 30 years for USD; 20, 25, 30 or 35 years for GBP; 20, 25 or 30 years for EUR"
   - "Property tax is applied to the original home price and stays the same for the whole term. Real property taxes change as assessed values change"
   - "PMI applies when the down payment is below 20% of the home price, and is charged on the original loan amount"
-  - "The default PMI rate is 0.6% of the loan a year, the midpoint of Freddie Mac's range of $30 to $70 a month per $100,000 borrowed (0.36% to 0.84% a year). You can change it"
+  - "The default PMI rate is 0.6% of the loan a year, the midpoint of Freddie Mac's range of $30 to $70 a month per $100,000 borrowed ({{ 30 * 12 / 100000 * 100 | num(2) }}% to {{ 70 * 12 / 100000 * 100 | num(2) }}% a year). You can change it"
   - "Home insurance is a fixed annual premium held constant for the whole term. Real premiums typically rise"
   - "Extra payments reduce principal immediately each month, and the last payment is capped at the balance remaining"
   - "In GBP and EUR mode, property tax, insurance and PMI are all zero"

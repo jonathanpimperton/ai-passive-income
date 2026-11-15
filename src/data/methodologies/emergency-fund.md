@@ -15,7 +15,7 @@ variables:
   - name: "Savings Rate (AER)"
     description: "Annual equivalent rate (AER in the UK, APY in the US) on your savings account, as the bank quotes it. The default is 4%"
   - name: "i"
-    description: "The monthly rate equivalent to the AER: (1 + AER)^(1/12) − 1. Because the AER already includes monthly compounding, $1,000 left for 12 months at a 4% AER grows to exactly $1,040"
+    description: "The monthly rate equivalent to the AER: (1 + AER)^(1/12) − 1. Because the AER already includes monthly compounding, $1,000 left for 12 months at a 4% AER grows to exactly {{ compoundFV(1000, 0, 4, 1, compounding=annually) | usd }}"
 assumptions:
   - "Monthly expenses stay constant over the savings period"
   - "Monthly savings contributions are consistent"
