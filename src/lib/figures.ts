@@ -1,5 +1,5 @@
 /**
- * Build-time figure engine (plan-2026-11 RC1 / W1-FIG).
+ * Build-time figure engine (plan-2026-11 RC1 / W1-FIG, re-pointed in W2-FIG).
  *
  * Content (markdown bodies AND frontmatter strings) writes figures as tokens:
  *
@@ -26,53 +26,101 @@
  *
  * Content-agent documentation with the full catalogue: docs/figures.md.
  *
- * ENGINE STATUS (Nov 2026): several calculators still keep logic inside their
- * .tsx components while W1-UK/TAX/PROP/DEBT/SAVE move it into src/lib. Where
- * no lib function exists yet, the figure function below composes the lib
- * primitives and is marked "INTERIM" with the module that should replace it.
- * Re-point those once the libs are merged; figures.test.ts pins the values.
+ * ENGINE STATUS (W2-FIG, 15 Nov 2026): NO function is INTERIM any more. Every
+ * function that has a calculator calls the SAME engine function the calculator
+ * calls, so a token and the tool cannot disagree:
+ *
+ *   uk*        calculateUkTakeHome (uk-tax-calc.ts) + parseUkTaxCode (uk-tax-codes.ts)
+ *   us*        computeUsSalary (us-tax-calc.ts), per tax year (us-rates.ts)
+ *   cardPayoff, loanPayoff, payoffBalance
+ *              simulateCardPayoff (credit-card.ts), 600-month horizon
+ *   feeDrag    compareFees (investment-fee.ts)
+ *   rate, rateSource
+ *              MARKET_RATES (market-rates.ts)
+ *   cpiAdjust  adjustForInflation (inflation.ts); inflationAdjust: projectInflation
+ *   compoundFV, compoundEarned
+ *              futureValue (investment-solvers.ts via calculator-utils.ts)
+ *   yearsToTarget
+ *              solveMonthsToTarget (investment-solvers.ts), whole months
+ *   savingsMonthly, savingsMonths
+ *              monthlyForGoal, timeToGoal (savings-goal.ts)
+ *   retirementFV
+ *              projectRetirement (retirement.ts)
+ *   sdlt, ukCgt, usCgt
+ *              calculateSdlt (stamp-duty.ts), calculateUKCgt / calculateUSCgt (capital-gains.ts)
+ *
+ * The loan family (loanPayment ... overpaymentSaving) keeps its own
+ * closed-form / loop arithmetic; figures-grid.test.ts proves it agrees
+ * with mortgage-payment.ts (the engine behind the mortgage and loan tools)
+ * (1e-6 on payments, 1e-3 or better on cumulative sums), and `yearly=` (a 13th
+ * payment) is an extension the tools do not offer. Where a function takes an option the tool UI cannot express (UK
+ * `postgrad=true` on top of a plan; US `k401Amount`; loan `yearly=`), the
+ * function header in the catalogue says so.
+ *
+ * Deliberate build failures (an honest number does not exist; write the case in
+ * words): a card payoff not cleared within the engine's 600 months ("beyond 50
+ * years"); payoffBalance when the payment never covers the interest; a 401(k)
+ * limit or fact for a year the IRS has not published; a tax code the calculator
+ * does not recognise; contradictory options (S code with scottish=false); a
+ * pension larger than the salary; feeDrag when the lower-fee fund earns nothing.
+ * State Pension age is not a fact (it depends on date of birth).
+ *
+ * figures-grid.test.ts compares every one of these functions with its
+ * engine over a grid of inputs (exact equality where the same engine function
+ * is called) and fails if a re-point is reverted.
  */
 
 import {
   compoundInterest,
   loanMonthlyPayment,
-  monthlySavingsRequired,
-  solveForTime,
 } from './calculator-utils';
 import { calculateUKCgt, calculateUSCgt } from './capital-gains';
 import { calculateSdlt, type BuyerType } from './stamp-duty';
 import {
-  calcIncomeTax,
-  calcNI,
-  calcPersonalAllowance,
   calcStudentLoan,
-  UK_BANDS,
+  calculateUkTakeHome,
+  type PensionMethod,
   type StudentLoanPlan,
+  type UkTakeHomeInput,
+  type UkTakeHomeResult,
 } from './uk-tax-calc';
+import { parseUkTaxCode, type ParsedTaxCode } from './uk-tax-codes';
 import {
   UK_CGT,
   UK_EMPLOYER_NI,
   UK_INCOME_TAX,
   UK_MORTGAGE,
   UK_NI,
-  UK_PENSION_AGES,
-  UK_SCOTTISH_TAX,
   UK_SDLT,
   UK_STATE_PENSION,
   UK_STUDENT_LOANS,
   UK_TAX_YEAR,
 } from './uk-rates';
-import { calcFederalTax, calcFICA } from './us-tax-calc';
+import { NMPA_CURRENT, NMPA_FROM_2028 } from './uk-pension-ages';
+import { computeUsSalary } from './us-tax-calc';
 import {
-  US_401K,
-  US_BRACKETS,
-  US_CAPITAL_GAINS,
-  US_MEDICARE,
-  US_SOCIAL_SECURITY,
-  US_STANDARD_DEDUCTION,
+  US_DEFAULT_TAX_YEAR,
   US_TAX_YEAR,
+  US_TAX_YEARS,
+  getUsRates,
+  isUsTaxYear,
   type FilingStatus,
+  type UsTaxYear,
+  type UsYearRates,
 } from './us-rates';
+import { CARD_HORIZON_MONTHS, simulateCardPayoff, type CardPayoffInputs } from './credit-card';
+import { compareFees } from './investment-fee';
+import { MARKET_RATES, rateAttribution, type MarketRate } from './market-rates';
+import {
+  CPI_FIRST_YEAR,
+  CPI_LAST_YEAR,
+  CPI_U_LATEST,
+  adjustForInflation,
+  projectInflation,
+} from './inflation';
+import { solveMonthsToTarget } from './investment-solvers';
+import { monthlyForGoal, timeToGoal } from './savings-goal';
+import { projectRetirement } from './retirement';
 import {
   FigureSyntaxError,
   parsePipeline,
@@ -144,8 +192,10 @@ export interface FigureFunction {
   example: string;
   /**
    * Set while the function composes lib primitives instead of calling the
-   * engine the calculator will use (names the module that should replace it).
-   * Wave 2 content must not use INTERIM functions until they are re-pointed.
+   * engine the calculator uses (names the module that should replace it).
+   * Wave 2 content must not use a function with this flag. None is set today
+   * (W2-FIG re-pointed them all); figures.test.ts checks the flag and the
+   * "Do not use yet" section of docs/figures.md stay in step.
    */
   interim?: string;
   run: (a: Args) => FigureValue;
@@ -202,12 +252,18 @@ const termYears: ParamSpec = {
 /* ── Tax years ───────────────────────────────────────────── */
 
 /*
- * MULTI-YEAR HOOK. The tax engines are single-year today; W1-TAX (TX-1) makes
- * the rates modules year-keyed and keeps the current exports as aliases to the
- * default year. Until figures are re-wired to pass a year into the engines, a
- * `year=` option is only accepted when it equals the dataset the aliases point
- * at, so asking for a year that is not wired fails loudly instead of silently
- * returning the default year's numbers.
+ * UK: one dataset (2026/27). The UK engines behind the tokens
+ * (calculateUkTakeHome, calculateSdlt, calculateUKCgt) take no year argument,
+ * so `year=` is accepted only for that dataset: any other year fails the
+ * build instead of silently returning 2026/27 numbers. When a 2027/28 dataset
+ * lands, the UK engines need a year argument first (then wire it here).
+ *
+ * US: us-rates.ts is year-keyed (TY2026, TY2027). `year=` picks the dataset and
+ * is passed to the engines. With no `year=` the default is US_DEFAULT_TAX_YEAR,
+ * the same default the calculators start on at that moment: the calendar year
+ * once its data exists, evaluated when the build starts. It therefore moves from
+ * 2026 to 2027 on a rebuild after 1 January 2027. Content that is about one
+ * specific year should pass `year=` explicitly.
  */
 function ukYearLabel(v: FigurePrimitive): string {
   const s = String(v).trim();
@@ -231,7 +287,7 @@ const ukYear: ParamSpec = {
 const usYear: ParamSpec = {
   name: 'year',
   type: 'string',
-  doc: `US tax year, e.g. ${US_TAX_YEAR} (default: the current dataset)`,
+  doc: `US tax year, one of ${US_TAX_YEARS.join(', ')} (default: ${US_TAX_YEAR}, the calculator's default)`,
   coerce: (v) => usYearLabel(v),
 };
 function checkUkYear(a: Args): void {
@@ -239,10 +295,12 @@ function checkUkYear(a: Args): void {
   const y = a.str('year');
   if (y !== UK_TAX_YEAR) fail(`no UK tax data wired for ${y} (available: ${UK_TAX_YEAR})`);
 }
-function checkUsYear(a: Args): void {
-  if (!a.has('year')) return;
-  const y = a.str('year');
-  if (y !== US_TAX_YEAR) fail(`no US tax data wired for ${y} (available: ${US_TAX_YEAR})`);
+/** The US tax year a call refers to: `year=` when given and present in us-rates.ts, else the default year. */
+function usYearOf(a: Args): UsTaxYear {
+  if (!a.has('year')) return US_DEFAULT_TAX_YEAR;
+  const y = Number(a.str('year'));
+  if (!isUsTaxYear(y)) fail(`no US tax data wired for ${a.str('year')} (available: ${US_TAX_YEARS.join(', ')})`);
+  return y;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -251,75 +309,44 @@ function checkUsYear(a: Args): void {
 
 type UkMethod = '' | 'sacrifice' | 'net' | 'ras';
 
-type UkCode =
-  | { kind: 'allowance'; allowance: number; standard: boolean; taper: boolean; scottish: boolean | null; code: string }
-  | { kind: 'flat'; band: string; scottish: boolean | null; code: string }
-  | { kind: 'nt'; scottish: boolean | null; code: string };
-
-const SCOTTISH_BANDS: [number, number][] = UK_SCOTTISH_TAX.bands.map((b) => [b.from, b.rate]);
-
-function bandRate(scottish: boolean, name: string): number {
-  const list: readonly { name: string; rate: number }[] = scottish ? UK_SCOTTISH_TAX.bands : UK_INCOME_TAX.bands;
-  const band = list.find((b) => b.name === name);
-  if (!band) fail(`no ${scottish ? 'Scottish' : 'rUK'} ${name} band in uk-rates.ts`);
-  return band.rate;
-}
-
-/** Flat-rate codes: which band's rate taxes all pay. */
-const FLAT_CODES: Record<string, { ruk?: string; scot?: string }> = {
-  BR: { ruk: 'Basic', scot: 'Basic' },
-  D0: { ruk: 'Higher', scot: 'Intermediate' },
-  D1: { ruk: 'Additional', scot: 'Higher' },
-  D2: { scot: 'Advanced' },
-  D3: { scot: 'Top' },
+/** Token method names -> the engine's PensionMethod. */
+const UK_PENSION_METHODS: Record<Exclude<UkMethod, ''>, PensionMethod> = {
+  sacrifice: 'sacrifice',
+  net: 'netPay',
+  ras: 'reliefAtSource',
 };
 
-/*
- * INTERIM: replace with src/lib/uk-tax-codes.ts once W1-UK (UK-2/UK-3) merges.
- * Supports the codes content needs; anything else fails loudly.
+const STUDENT_PLANS = ['none', 'plan1', 'plan2', 'plan4', 'plan5', 'postgrad'] as const;
+
+/**
+ * The tax-code rules are the calculator's own: parseUkTaxCode (uk-tax-codes.ts).
+ * A code the calculator would not recognise (it then quietly falls back to
+ * 1257L) fails the build instead.
+ *
+ * Region rule (mirrors regionForCode and the flat-rate table in uk-tax-codes.ts):
+ * - an S prefix means Scottish bands and a C prefix rest-of-UK (Welsh) bands,
+ *   whatever scottish= says (an explicit contradiction, S1257L with
+ *   scottish=false, is refused as an authoring mistake);
+ * - with no prefix, scottish=true selects the Scottish bands for the codes that
+ *   run through the bands (nnnnL/M/N/T, 0T, K);
+ * - the flat-rate codes BR, D0 and D1 take their rate from the code itself and
+ *   ignore the toggle: without an S prefix they are the rest-of-UK rates (D0 =
+ *   40% Higher, D1 = 45% Additional), also when scottish=true. That is the
+ *   HMRC rule (a Scottish taxpayer's flat-rate codes are SBR, SD0..SD3) and it
+ *   is what the calculator does. Use SD0/SD1 for the Scottish flat rates.
  */
-function parseUkCode(raw: string): UkCode {
-  const code = raw.replace(/\s+/g, '').toUpperCase();
-  let rest = code;
-  let scottish: boolean | null = null;
-  if (/^[SC]/.test(rest)) {
-    scottish = rest[0] === 'S';
-    rest = rest.slice(1);
-  }
-  if (rest === 'NT') return { kind: 'nt', scottish, code };
-  const flat = Object.hasOwn(FLAT_CODES, rest) ? FLAT_CODES[rest] : undefined;
-  if (flat) {
-    const band = scottish ? flat.scot : flat.ruk;
-    if (!band) fail(`tax code ${code} only exists with the S (Scottish) prefix`);
-    return { kind: 'flat', band, scottish, code };
-  }
-  if (rest === '0T') return { kind: 'allowance', allowance: 0, standard: false, taper: false, scottish, code };
-  const m = /^(\d{1,5})L$/.exec(rest);
-  if (m) {
-    const allowance = Number(m[1]) * 10;
-    return {
-      kind: 'allowance',
-      allowance,
-      standard: allowance === UK_INCOME_TAX.personalAllowance,
-      taper: true,
-      scottish,
-      code,
-    };
+function checkedUkCode(raw: string): ParsedTaxCode {
+  const code = parseUkTaxCode(raw);
+  if (code.kind !== 'invalid') return code;
+  const norm = raw.replace(/[\s/]+/g, '').toUpperCase();
+  if (/^C?D[23](W1|M1|X|NONCUM)?$/.test(norm)) {
+    fail(`tax code ${norm} only exists with the S (Scottish) prefix (SD2 and SD3 are Scottish bands)`);
   }
   fail(
-    `tax code "${raw}" is not supported by figure tokens (supported: nnnnL, 0T, BR, D0, D1, NT, ` +
-      `SD2, SD3, each with an optional S or C prefix; K, T, M, N and emergency codes are not)`,
+    `tax code "${raw}" is not a recognised PAYE tax code (supported: nnnnL, nnnnM, nnnnN, nnnnT, 0T, Knnn, BR, D0, D1, NT, ` +
+      `SBR, SD0, SD1, SD2, SD3, with an optional S or C prefix and an optional W1, M1 or X emergency marker)`,
   );
 }
-
-/** Personal allowance tapered by £1 for every £2 of adjusted net income over the threshold. */
-function taperedAllowance(allowance: number, ani: number): number {
-  if (ani <= UK_INCOME_TAX.paTaperThreshold) return allowance;
-  const reduction = Math.floor((ani - UK_INCOME_TAX.paTaperThreshold) / 2);
-  return Math.max(0, allowance - reduction);
-}
-
-const STUDENT_PLANS = ['none', 'plan1', 'plan2', 'plan4', 'plan5', 'postgrad'] as const;
 
 export interface UkPayResult {
   [field: string]: number;
@@ -336,15 +363,26 @@ export interface UkPayResult {
   taxRate: number;
 }
 
-/*
- * INTERIM composition of the uk-tax-calc primitives (the full calculator's
- * logic still lives in SalaryUkCalc.tsx). It already follows the HMRC rules
- * the Wave 1 fixes adopt: student loan on NIC pay after salary sacrifice
- * (UK-1), S prefix = Scottish bands (UK-2), taper for every L code (UK-3),
- * relief at source extends the bands and adds basic-rate relief (UK-4).
- * Re-point to the W1-UK lib function when it exists.
+/** The step the calculator's own marginal-rate figure uses (calculateUkTakeHome: STEP). */
+const UK_MARGINAL_STEP = 100;
+
+interface UkCalc {
+  r: UkTakeHomeResult;
+  /** Postgraduate Loan repaid on top of the plan (postgrad=true), else 0. */
+  postgradLoan: number;
+}
+
+/**
+ * One call to the calculator's engine, calculateUkTakeHome, with the token's
+ * options mapped onto its inputs. Tokens validate more strictly than the
+ * calculator (no silent capping of an over-large pension, no contradictory
+ * flags) but never compute anything the calculator would not.
+ *
+ * `postgrad=true` (a Postgraduate Loan alongside a plan) is the one extension:
+ * the calculator holds a single loan plan, so the second loan is added from the
+ * engine's own calcStudentLoan on the engine's own NIC pay.
  */
-function ukPay(salary: number, a: Args): UkPayResult {
+function ukCalc(salary: number, a: Args): UkCalc {
   checkUkYear(a);
   const pct = a.num('pension');
   const amount = a.num('pensionAmount');
@@ -356,80 +394,62 @@ function ukPay(salary: number, a: Args): UkPayResult {
   }
   if (contribution > salary) fail(`pension contribution (${contribution}) is more than the salary (${salary})`);
 
-  const code = parseUkCode(a.str('code'));
-  if (a.has('scottish') && code.scottish !== null && code.scottish !== a.bool('scottish')) {
-    fail(`tax code ${code.code} contradicts scottish=${a.bool('scottish')}`);
+  const code = checkedUkCode(a.str('code'));
+  if (a.has('scottish') && code.prefix !== null && (code.prefix === 'S') !== a.bool('scottish')) {
+    fail(
+      `tax code ${code.input} contradicts scottish=${a.bool('scottish')} ` +
+        '(an S prefix is Scottish, a C prefix is Welsh and uses the rest-of-UK bands)',
+    );
   }
-  // An S prefix means Scottish bands, a C prefix rUK bands; otherwise the option decides.
-  const scottish = code.scottish ?? (a.has('scottish') ? a.bool('scottish') : false);
-  if (method === 'ras' && scottish && contribution > 0) {
-    fail('relief at source is not modelled for Scottish taxpayers yet');
-  }
-
-  // Which pay each deduction is worked out on.
-  let taxPay = salary;
-  let nicPay = salary;
-  let ani = salary;
-  let bandExtension = 0;
-  let employeeCost = contribution;
-  if (contribution > 0) {
-    if (method === 'sacrifice') {
-      taxPay = salary - contribution;
-      nicPay = salary - contribution;
-      ani = salary - contribution;
-    } else if (method === 'net') {
-      taxPay = salary - contribution;
-      ani = salary - contribution;
-    } else {
-      // Relief at source: paid from net pay; the provider adds basic-rate relief;
-      // basic and higher rate limits extend by the gross contribution.
-      ani = salary - contribution;
-      bandExtension = contribution;
-      employeeCost = contribution * (1 - bandRate(false, 'Basic'));
-    }
-  }
-
-  let incomeTax = 0;
-  let personalAllowance = 0;
-  if (code.kind === 'flat') {
-    incomeTax = taxPay * bandRate(scottish, code.band);
-  } else if (code.kind === 'allowance') {
-    personalAllowance = code.standard
-      ? calcPersonalAllowance(ani)
-      : code.taper
-        ? taperedAllowance(code.allowance, ani)
-        : code.allowance;
-    const base = scottish ? SCOTTISH_BANDS : UK_BANDS;
-    const bands: [number, number][] = base.map(([from, rate]) => [from > 0 ? from + bandExtension : 0, rate]);
-    incomeTax = calcIncomeTax(taxPay, bands, personalAllowance);
-  }
-
-  const ni = calcNI(nicPay);
   const plan = a.str('plan') as StudentLoanPlan;
-  let studentLoan = calcStudentLoan(nicPay, plan);
-  if (a.bool('postgrad')) {
-    if (plan === 'postgrad') fail('plan=postgrad and postgrad=true are the same loan; use one');
-    studentLoan += calcStudentLoan(nicPay, 'postgrad');
-  }
+  if (a.bool('postgrad') && plan === 'postgrad') fail('plan=postgrad and postgrad=true are the same loan; use one');
 
-  const takeHome = salary - incomeTax - ni - studentLoan - employeeCost;
+  const input: UkTakeHomeInput = {
+    salary,
+    scottish: a.has('scottish') ? a.bool('scottish') : false,
+    taxCode: a.str('code'),
+    studentLoan: plan,
+    pensionMode: pct > 0 ? 'percent' : 'amount',
+    pensionPercent: pct,
+    pensionAmount: amount,
+    pensionMethod: method === '' ? 'netPay' : UK_PENSION_METHODS[method],
+  };
+  const r = calculateUkTakeHome(input);
+  return { r, postgradLoan: a.bool('postgrad') ? calcStudentLoan(r.payForNI, 'postgrad') : 0 };
+}
+
+function ukPay(salary: number, a: Args): UkPayResult {
+  const { r, postgradLoan } = ukCalc(salary, a);
+  const takeHome = r.netAnnual - postgradLoan;
   return {
     takeHome,
     monthly: takeHome / 12,
     weekly: takeHome / 52,
-    incomeTax,
-    ni,
-    studentLoan,
-    pension: employeeCost,
-    pensionPot: contribution,
-    ani,
-    personalAllowance,
-    taxRate: salary > 0 ? ((incomeTax + ni) / salary) * 100 : 0,
+    incomeTax: r.incomeTax,
+    ni: r.ni,
+    studentLoan: r.studentLoan + postgradLoan,
+    pension: r.pension.fromPay,
+    pensionPot: r.pension.gross,
+    ani: r.adjustedNetIncome,
+    personalAllowance: r.personalAllowance,
+    taxRate: salary > 0 ? ((r.incomeTax + r.ni) / salary) * 100 : 0,
   };
 }
 
+/** The calculator's "next £100" marginal rate (income tax + NI + student loan), in %. */
+function ukMarginalPct(salary: number, a: Args): number {
+  const { r } = ukCalc(salary, a);
+  let marginal = r.marginal.withNiAndLoan;
+  if (a.bool('postgrad')) {
+    marginal +=
+      (calcStudentLoan(r.payForNI + UK_MARGINAL_STEP, 'postgrad') - calcStudentLoan(r.payForNI, 'postgrad')) /
+      UK_MARGINAL_STEP;
+  }
+  return marginal * 100;
+}
+
 const UK_PAY_OPTIONS: ParamSpec[] = [
-  { name: 'pension', type: 'number', doc: 'pension contribution as % of salary (gross, into the pot)', default: 0, min: 0, max: 100 },
+  { name: 'pension', type: 'number', doc: 'pension contribution as % of the full salary (gross, into the pot)', default: 0, min: 0, max: 100 },
   { name: 'pensionAmount', type: 'number', doc: 'pension contribution in £ a year (gross), instead of pension=%', default: 0, min: 0 },
   {
     name: 'method',
@@ -440,9 +460,9 @@ const UK_PAY_OPTIONS: ParamSpec[] = [
     aliases: { salarySacrifice: 'sacrifice', netPay: 'net', reliefAtSource: 'ras' },
   },
   { name: 'plan', type: 'string', doc: 'student loan plan: none, plan1, plan2, plan4, plan5 or postgrad', default: 'none', oneOf: STUDENT_PLANS },
-  { name: 'postgrad', type: 'boolean', doc: 'also repaying a Postgraduate Loan (on top of plan=)', default: false },
-  { name: 'code', type: 'string', doc: "tax code, quoted, e.g. code='S1257L' or code=BR", default: '1257L' },
-  { name: 'scottish', type: 'boolean', doc: 'Scottish taxpayer (Scottish bands); an S tax code implies it' },
+  { name: 'postgrad', type: 'boolean', doc: 'also repaying a Postgraduate Loan (on top of plan=). The calculator holds one loan, so this is added from the same engine; the calculator cannot show the combination', default: false },
+  { name: 'code', type: 'string', doc: "tax code as in the calculator, quoted if it starts with a digit, e.g. code='S1257L' or code=BR", default: '1257L' },
+  { name: 'scottish', type: 'boolean', doc: 'Scottish taxpayer: Scottish bands for L/M/N/T/0T/K codes. An S prefix implies it; BR/D0/D1 take their rate from the code prefix and ignore this' },
   ukYear,
 ];
 
@@ -459,12 +479,6 @@ const UK_PAY_FIELDS = {
   personalAllowance: 'personal allowance after any taper (£)',
   taxRate: '(income tax + NI) as % of salary',
 } as const;
-
-/** UK income tax + NI + student loan, i.e. everything a pay rise is taxed by. */
-function ukDeductions(salary: number, a: Args): number {
-  const r = ukPay(salary, a);
-  return r.incomeTax + r.ni + r.studentLoan;
-}
 
 /* ════════════════════════════════════════════════════════════
  * US income: federal tax, FICA, flat state rate, 401(k)
@@ -493,48 +507,72 @@ export interface UsPayResult {
   k401: number;
   taxRate: number;
   effectiveRate: number;
+  taxableIncome: number;
+  bracket: number;
 }
 
-/*
- * Mirrors SalaryCalc.tsx (annual mode, no overtime): 401(k) capped at the IRS
- * elective deferral limit, reduces federal and state taxable pay but not FICA;
- * state tax is the flat effective-rate input. INTERIM until W1-TAX moves the
- * salary logic into src/lib.
+/**
+ * One call to the US Salary calculator's engine, computeUsSalary, in annual
+ * mode with no overtime and nobody over 65: the 401(k) is capped at the year's
+ * IRS limit and reduces federal and state taxable pay but not FICA, and state
+ * tax is the flat effective-rate input, exactly as in SalaryCalc.tsx.
+ *
+ * `k401Amount` ($ a year) is converted to a percentage of salary for the
+ * engine, which only takes a percentage (the calculator does too).
  */
 function usPay(salary: number, a: Args): UsPayResult {
-  checkUsYear(a);
+  const year = usYearOf(a);
   const status = a.str('status') as FilingStatus;
   const pct = a.num('k401');
   const amount = a.num('k401Amount');
   if (pct > 0 && amount > 0) fail('use k401 (% of salary) or k401Amount ($ a year), not both');
   const requested = pct > 0 ? (salary * pct) / 100 : amount;
   if (requested > salary) fail(`401(k) contribution (${requested}) is more than the salary (${salary})`);
-  const k401 = Math.min(requested, US_401K.limit);
-  const federal = calcFederalTax(salary - k401, status);
-  const fica = calcFICA(salary, status);
-  const state = ((salary - k401) * a.num('state')) / 100;
-  const takeHome = salary - federal - fica.total - state - k401;
+  const k = getUsRates(year).retirement401k;
+  if (!k.published && requested > k.limit) {
+    fail(
+      `the IRS has not published the ${year} 401(k) limit yet (the engine carries ${k.limit} from the prior year), ` +
+        'so a contribution above it cannot be capped honestly',
+    );
+  }
+  const r = computeUsSalary({
+    year,
+    mode: 'annual',
+    salary,
+    hourlyRate: 0,
+    hoursPerWeek: 40,
+    weeksPerYear: 52,
+    overtimeHours: 0,
+    overtimeQualifies: true,
+    stateTaxRate: a.num('state'),
+    filingStatus: status,
+    retirement401kPct: pct > 0 ? pct : salary > 0 ? (amount / salary) * 100 : 0,
+    seniors: 0,
+  });
+  const fica = r.socialSecurity + r.medicare;
   return {
-    takeHome,
-    monthly: takeHome / 12,
-    biweekly: takeHome / 26,
-    weekly: takeHome / 52,
-    federal,
-    fica: fica.total,
-    socialSecurity: fica.ss,
-    medicare: fica.medicare,
-    state,
-    k401,
-    taxRate: salary > 0 ? ((federal + fica.total + state) / salary) * 100 : 0,
-    effectiveRate: salary > 0 ? ((federal + fica.total + state + k401) / salary) * 100 : 0,
+    takeHome: r.netAnnual,
+    monthly: r.netAnnual / 12,
+    biweekly: r.netAnnual / 26,
+    weekly: r.netAnnual / 52,
+    federal: r.federalTax,
+    fica,
+    socialSecurity: r.socialSecurity,
+    medicare: r.medicare,
+    state: r.stateTax,
+    k401: r.retirement401k,
+    taxRate: salary > 0 ? ((r.federalTax + fica + r.stateTax) / salary) * 100 : 0,
+    effectiveRate: r.effectiveDeductionRate * 100,
+    taxableIncome: r.taxableIncome,
+    bracket: r.marginalFederalRate * 100,
   };
 }
 
 const US_PAY_OPTIONS: ParamSpec[] = [
   STATUS,
   { name: 'state', type: 'number', doc: 'flat state (and local) income tax rate in %, as in the calculator', default: 0, min: 0, max: 20 },
-  { name: 'k401', type: 'number', doc: '401(k) contribution as % of salary (capped at the IRS limit, like the calculator)', default: 0, min: 0, max: 100 },
-  { name: 'k401Amount', type: 'number', doc: '401(k) contribution in $ a year, instead of k401=%', default: 0, min: 0 },
+  { name: 'k401', type: 'number', doc: '401(k) contribution as % of salary (capped at the IRS limit for the year, like the calculator)', default: 0, min: 0, max: 100 },
+  { name: 'k401Amount', type: 'number', doc: '401(k) contribution in $ a year, instead of k401=% (converted to a % of salary)', default: 0, min: 0 },
   usYear,
 ];
 
@@ -551,19 +589,9 @@ const US_PAY_FIELDS = {
   k401: '401(k) contribution after the cap ($)',
   taxRate: '(federal + FICA + state) as % of salary',
   effectiveRate: 'all deductions incl. 401(k) as % of salary (the calculator\'s "effective rate")',
+  taxableIncome: 'federal taxable income after the 401(k) and the standard deduction ($)',
+  bracket: 'federal bracket (%) the calculator shows (the lowest, 10%, when taxable income is 0)',
 } as const;
-
-function usBracket(salary: number, a: Args): number {
-  const r = usPay(salary, a);
-  const status = a.str('status') as FilingStatus;
-  const taxable = salary - r.k401 - US_STANDARD_DEDUCTION[status];
-  if (taxable <= 0) return 0;
-  let rate = 0;
-  for (const [from, bracketRate] of US_BRACKETS[status]) {
-    if (taxable > from) rate = bracketRate;
-  }
-  return rate * 100;
-}
 
 /* ════════════════════════════════════════════════════════════
  * Facts from the rates modules
@@ -604,37 +632,53 @@ const UK_FACTS: Record<string, [() => number, string]> = {
   sdltFtbNilBand: [() => UK_SDLT.firstTimeBuyer[0].to, 'first-time buyer 0% band top (£)'],
   sdltNilBand: [() => UK_SDLT.standard[0].to, 'standard 0% band top (£)'],
   sdltSurcharge: [() => pctOf(UK_SDLT.additionalSurcharge), 'additional-property surcharge (%)'],
-  pensionAccessAge: [() => UK_PENSION_AGES.normalMinimumPensionAge, 'normal minimum pension age'],
-  pensionAccessAgeFrom2028: [() => UK_PENSION_AGES.normalMinimumPensionAgeFrom2028, 'normal minimum pension age from 6 Apr 2028'],
-  statePensionAge: [() => UK_PENSION_AGES.statePensionAge, 'State Pension age'],
-  statePensionAgeFrom2028: [() => UK_PENSION_AGES.statePensionAgeFrom2028, 'State Pension age by 2028'],
+  // State Pension age is deliberately NOT a fact: it depends on date of birth (66 to 68, uk-pension-ages.ts),
+  // so one number would mislead. Write it in words with the GOV.UK timetable as the source.
+  pensionAccessAge: [() => NMPA_CURRENT, 'normal minimum pension age (uk-pension-ages.ts)'],
+  pensionAccessAgeFrom2028: [() => NMPA_FROM_2028, 'normal minimum pension age from 6 Apr 2028 (uk-pension-ages.ts)'],
   mortgageIncomeMultiple: [() => UK_MORTGAGE.incomeMultipleCap, 'typical lender loan-to-income cap (x income)'],
 };
 
-/** US facts: key -> [value(status), description]. Rates are percentages. */
-const US_FACTS: Record<string, [(s: FilingStatus) => number, string]> = {
-  standardDeduction: [(s) => US_STANDARD_DEDUCTION[s], 'standard deduction ($, by status)'],
-  ssWageBase: [() => US_SOCIAL_SECURITY.wageCap, 'Social Security wage base ($)'],
-  ssRate: [() => pctOf(US_SOCIAL_SECURITY.rate), 'employee Social Security rate (%)'],
-  medicareRate: [() => pctOf(US_MEDICARE.rate), 'employee Medicare rate (%)'],
-  additionalMedicareRate: [() => pctOf(US_MEDICARE.additionalRate), 'Additional Medicare Tax rate (%)'],
-  additionalMedicareThreshold: [(s) => US_MEDICARE.additionalThreshold[s], 'Additional Medicare threshold ($, by status)'],
-  k401Limit: [() => US_401K.limit, '401(k) employee elective deferral limit ($)'],
-  k401CatchUp: [() => US_401K.catchUp, '401(k) catch-up, age 50+ ($)'],
-  niitRate: [() => pctOf(US_CAPITAL_GAINS.niit.rate), 'Net Investment Income Tax rate (%)'],
-  niitThreshold: [(s) => US_CAPITAL_GAINS.niit.threshold[s], 'NIIT threshold ($, by status)'],
-  ltcgZeroTop: [(s) => US_CAPITAL_GAINS.longTerm[s][1].from, 'taxable income where the 0% long-term gains band ends ($, by status)'],
-  ltcg15Top: [(s) => US_CAPITAL_GAINS.longTerm[s][2].from, 'taxable income where the 15% band ends ($, by status)'],
+/**
+ * US facts: key -> [value(rates, status), description]. Rates are percentages.
+ * Keys starting `k401` are refused for a year whose IRS limits are not
+ * published yet (the rates module carries the prior year's values then).
+ */
+const US_FACTS: Record<string, [(r: UsYearRates, s: FilingStatus) => number, string]> = {
+  standardDeduction: [(r, s) => r.standardDeduction[s], 'standard deduction ($, by status)'],
+  ssWageBase: [(r) => r.socialSecurity.wageCap, 'Social Security wage base ($)'],
+  ssRate: [(r) => pctOf(r.socialSecurity.rate), 'employee Social Security rate (%)'],
+  medicareRate: [(r) => pctOf(r.medicare.rate), 'employee Medicare rate (%)'],
+  additionalMedicareRate: [(r) => pctOf(r.medicare.additionalRate), 'Additional Medicare Tax rate (%)'],
+  additionalMedicareThreshold: [(r, s) => r.medicare.additionalThreshold[s], 'Additional Medicare threshold ($, by status)'],
+  k401Limit: [(r) => r.retirement401k.limit, '401(k) employee elective deferral limit ($)'],
+  k401CatchUp: [(r) => r.retirement401k.catchUp, '401(k) catch-up, age 50+ ($)'],
+  k401CatchUp60to63: [(r) => r.retirement401k.catchUp60to63, '401(k) higher catch-up, ages 60-63 ($)'],
+  niitRate: [(r) => pctOf(r.capitalGains.niit.rate), 'Net Investment Income Tax rate (%)'],
+  niitThreshold: [(r, s) => r.capitalGains.niit.threshold[s], 'NIIT threshold ($, by status)'],
+  ltcgZeroTop: [(r, s) => r.capitalGains.longTerm[s][1].from, 'taxable income where the 0% long-term gains band ends ($, by status)'],
+  ltcg15Top: [(r, s) => r.capitalGains.longTerm[s][2].from, 'taxable income where the 15% band ends ($, by status)'],
 };
 
-function usBracketStart(ratePct: number, status: FilingStatus): number {
-  const hit = US_BRACKETS[status].find(([, r]) => Math.abs(r * 100 - ratePct) < 1e-9);
+function usBracketStart(ratePct: number, status: FilingStatus, rates: UsYearRates): number {
+  const brackets = rates.brackets[status];
+  const hit = brackets.find(([, r]) => Math.abs(r * 100 - ratePct) < 1e-9);
   if (!hit) {
-    const rates = US_BRACKETS[status].map(([, r]) => r * 100).join(', ');
-    fail(`there is no ${ratePct}% federal bracket (brackets: ${rates})`);
+    fail(`there is no ${ratePct}% federal bracket (brackets: ${brackets.map(([, r]) => r * 100).join(', ')})`);
   }
   return hit[0];
 }
+
+/** Keys for rate() and rateSource(): the dated benchmarks in market-rates.ts. */
+const MARKET_RATE_KEYS: Record<string, MarketRate> = {
+  us30: MARKET_RATES.us.mortgage30,
+  us15: MARKET_RATES.us.mortgage15,
+  boe: MARKET_RATES.uk.bankRate,
+  uk2yr: MARKET_RATES.uk.fixed2yr75,
+  uk5yr: MARKET_RATES.uk.fixed5yr75,
+  ukRevert: MARKET_RATES.uk.revertRate,
+  eur: MARKET_RATES.eur.housePurchase,
+};
 
 /* ════════════════════════════════════════════════════════════
  * Loans, mortgages and debt
@@ -677,8 +721,6 @@ function amortize(principal: number, ratePct: number, n: number, extraMonthly: n
   return { months, interest: interestTotal };
 }
 
-const CARD_MAX_MONTHS = 1200;
-
 export interface PayoffResult {
   [field: string]: number | boolean;
   months: number;
@@ -689,57 +731,82 @@ export interface PayoffResult {
   firstPayment: number;
 }
 
-/*
- * INTERIM: mirrors CreditCardPayoffCalc.tsx's simulatePayoff with the W1-DEBT
- * (DB-1) rule applied: a payment that does not exceed the month's interest
- * means the debt is never repaid, and then months/interest/totalPaid are
- * Infinity (the `months` formatter prints "never"; money formatters refuse).
- * Re-point to src/lib/credit-card.ts when it merges (check its month cap).
- */
-function payoff(
+type PayoffMode = { fixed: number } | { pct: number; floor: number; plusInterest: boolean };
+
+/** Token payoff inputs -> the credit card calculator's engine inputs (credit-card.ts). */
+function cardInputs(
   balance: number,
   aprPct: number,
-  mode: { fixed: number } | { pct: number; floor: number },
+  mode: PayoffMode,
   extra: number,
-): PayoffResult {
-  const r = aprPct / 1200;
-  const firstInterest = balance * r;
-  const due0 = 'fixed' in mode ? mode.fixed : Math.max((balance * mode.pct) / 100, mode.floor);
-  const firstPayment = Math.min(due0 + extra, balance + firstInterest);
-  let remaining = balance;
-  let interestTotal = 0;
-  let paid = 0;
-  let months = 0;
-  const never = (): PayoffResult => ({
-    months: Infinity,
-    interest: Infinity,
-    totalPaid: Infinity,
-    never: true,
-    firstInterest,
-    firstPayment,
-  });
-  while (remaining > 0.01) {
-    if (months >= CARD_MAX_MONTHS) return never();
-    months++;
-    const interest = remaining * r;
-    const due = 'fixed' in mode ? mode.fixed : Math.max((remaining * mode.pct) / 100, mode.floor);
-    const payment = Math.min(due + extra, remaining + interest);
-    if (payment <= interest + 1e-9) return never();
-    interestTotal += interest;
-    paid += payment;
-    remaining = Math.max(0, remaining - (payment - interest));
+  horizonMonths?: number,
+): CardPayoffInputs {
+  const base = { balance, aprPercent: aprPct, extra, horizonMonths };
+  if ('fixed' in mode) {
+    return { ...base, mode: 'fixed', fixedPayment: mode.fixed, percentOfBalance: 0, floor: 0 };
   }
-  return { months, interest: interestTotal, totalPaid: paid, never: false, firstInterest, firstPayment };
+  return {
+    ...base,
+    mode: mode.plusInterest ? 'interestPlus' : 'percentage',
+    fixedPayment: 0,
+    percentOfBalance: mode.pct,
+    floor: mode.floor,
+  };
 }
 
-function payoffBalance(balance: number, aprPct: number, payment: number, months: number): number {
-  const r = aprPct / 1200;
-  let remaining = balance;
-  for (let m = 0; m < months && remaining > 0.01; m++) {
-    const interest = remaining * r;
-    remaining = Math.max(0, remaining + interest - Math.min(payment, remaining + interest));
+/**
+ * simulateCardPayoff (credit-card.ts), the engine behind the Credit Card
+ * Payoff calculator, with its 600-month (50-year) horizon:
+ * - 'paid': months, interest and total are the engine's exact figures.
+ * - 'never' (the first payment does not exceed the first month's interest):
+ *   months, interest and totalPaid are Infinity (the `months` formatter prints
+ *   "never"; money formatters refuse), exactly the calculator's "never repaid".
+ * - 'beyondHorizon' (falling, but not cleared in 600 months): the calculator
+ *   shows horizon totals labelled "beyond 50 years". A bare figure for that
+ *   would mislead, so the token fails the build; say it in words.
+ */
+function payoff(balance: number, aprPct: number, mode: PayoffMode, extra: number): PayoffResult {
+  const r = simulateCardPayoff(cardInputs(balance, aprPct, mode, extra));
+  const firstInterest = r.firstMonthInterest;
+  const firstPayment = r.firstPayment;
+  switch (r.status) {
+    case 'never':
+      return { months: Infinity, interest: Infinity, totalPaid: Infinity, never: true, firstInterest, firstPayment };
+    case 'beyondHorizon':
+      return fail(
+        `the balance is not cleared within ${CARD_HORIZON_MONTHS} months (${CARD_HORIZON_MONTHS / 12} years), the horizon the ` +
+          'calculator uses; it reports "beyond 50 years", so write that in words instead of a figure',
+      );
+    case 'noBalance':
+      return { months: 0, interest: 0, totalPaid: 0, never: false, firstInterest, firstPayment };
+    case 'paid':
+      return {
+        months: r.months,
+        interest: r.totalInterest,
+        totalPaid: r.totalPaid,
+        never: false,
+        firstInterest,
+        firstPayment,
+      };
   }
-  return remaining <= 0.01 ? 0 : remaining;
+}
+
+/** Balance after `months` months of a fixed payment: the engine's own schedule, run for that many months. */
+function payoffBalance(balance: number, aprPct: number, payment: number, months: number): number {
+  if (months === 0) return balance;
+  const r = simulateCardPayoff(cardInputs(balance, aprPct, { fixed: payment }, 0, months));
+  switch (r.status) {
+    case 'paid':
+    case 'noBalance':
+      return 0;
+    case 'beyondHorizon':
+      return r.remainingBalance;
+    case 'never':
+      return fail(
+        `the payment (${payment}) does not exceed the first month's interest, so the balance never falls ` +
+          '(the calculator reports "never repaid"); no balance is given',
+      );
+  }
 }
 
 const PAYOFF_FIELDS = {
@@ -781,7 +848,7 @@ const COMPOUNDING: ParamSpec = {
 const TIMING: ParamSpec = {
   name: 'timing',
   type: 'string',
-  doc: "when contributions are made: end (default) or beginning of each period",
+  doc: "when each monthly deposit is made: end (default) or beginning of each month",
   default: 'end',
   oneOf: ['end', 'beginning'],
   aliases: { start: 'beginning' },
@@ -800,7 +867,6 @@ const fns: FigureFunction[] = [
   {
     name: 'ukPay',
     group: 'UK pay',
-    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Full UK pay breakdown for one salary (England/Wales/NI bands unless Scottish).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -812,7 +878,6 @@ const fns: FigureFunction[] = [
   {
     name: 'ukTakeHome',
     group: 'UK pay',
-    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Annual take-home pay (same options as ukPay).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -823,7 +888,6 @@ const fns: FigureFunction[] = [
   {
     name: 'ukIncomeTax',
     group: 'UK pay',
-    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Income tax for the year (same options as ukPay).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -834,7 +898,6 @@ const fns: FigureFunction[] = [
   {
     name: 'ukNi',
     group: 'UK pay',
-    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Employee National Insurance for the year (same options as ukPay).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -845,7 +908,6 @@ const fns: FigureFunction[] = [
   {
     name: 'ukStudentLoan',
     group: 'UK pay',
-    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
     summary: 'Student loan repayments for the year; needs plan= (same options as ukPay).',
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
@@ -859,16 +921,12 @@ const fns: FigureFunction[] = [
   {
     name: 'ukMarginalRate',
     group: 'UK pay',
-    interim: 'W1-UK salary lib + uk-tax-codes.ts (UK-1..UK-4)',
-    summary: 'Share of the next £2 of salary lost to income tax + NI + student loan, in % (shows the 60% trap).',
+    summary: "Share of the next £100 of salary lost to income tax + NI + student loan, in % (the calculator's marginal rate; shows the 60% trap).",
     params: [money('salary', 'annual salary (£)')],
     options: UK_PAY_OPTIONS,
     returns: 'number (%)',
     example: 'ukMarginalRate(110000) | pct',
-    run: (a) => {
-      const s = a.num('salary');
-      return ((ukDeductions(s + 2, a) - ukDeductions(s, a)) / 2) * 100;
-    },
+    run: (a) => ukMarginalPct(a.num('salary'), a),
   },
   {
     name: 'ukFact',
@@ -893,8 +951,8 @@ const fns: FigureFunction[] = [
     example: 'ukCgt(50000, 40000) | gbp',
     run: (a) => {
       checkUkYear(a);
-      // 'basic' makes the engine derive the band from income: unused basic band
-      // is taxed at the basic CGT rate, the rest at the higher rate.
+      // The engine derives the rate band from income (there is no band argument):
+      // the unused basic-rate band is taxed at the basic CGT rate, the rest at the higher rate.
       return calculateUKCgt(0, a.num('gain'), a.num('income')).totalTax;
     },
   },
@@ -926,7 +984,6 @@ const fns: FigureFunction[] = [
   {
     name: 'usPay',
     group: 'US pay',
-    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Full US pay breakdown: federal tax, FICA, flat state rate, 401(k).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -938,7 +995,6 @@ const fns: FigureFunction[] = [
   {
     name: 'usTakeHome',
     group: 'US pay',
-    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Annual take-home pay (same options as usPay).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -949,7 +1005,6 @@ const fns: FigureFunction[] = [
   {
     name: 'usFederalTax',
     group: 'US pay',
-    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Federal income tax after the standard deduction (same options as usPay).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -960,7 +1015,6 @@ const fns: FigureFunction[] = [
   {
     name: 'usFica',
     group: 'US pay',
-    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Social Security + Medicare (same options as usPay).',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -971,18 +1025,16 @@ const fns: FigureFunction[] = [
   {
     name: 'usBracket',
     group: 'US pay',
-    interim: 'W1-TAX salary lib (TX-1..TX-4)',
-    summary: 'Federal bracket (%) that the next dollar of taxable pay falls in (0 below the standard deduction).',
+    summary: "Federal bracket (%) the US salary calculator shows for this pay (10%, the lowest, when taxable income is 0).",
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
     returns: 'number (%)',
     example: 'usBracket(60000) | pct',
-    run: (a) => usBracket(a.num('salary'), a),
+    run: (a) => usPay(a.num('salary'), a).bracket,
   },
   {
     name: 'usMarginalRate',
     group: 'US pay',
-    interim: 'W1-TAX salary lib (TX-1..TX-4)',
     summary: 'Share of the next $1 lost to federal tax + FICA + state, in %.',
     params: [money('salary', 'annual salary ($)')],
     options: US_PAY_OPTIONS,
@@ -1006,8 +1058,12 @@ const fns: FigureFunction[] = [
     returns: 'number',
     example: "usFact('standardDeduction', status=married) | usd",
     run: (a) => {
-      checkUsYear(a);
-      return US_FACTS[a.str('key')][0](a.str('status') as FilingStatus);
+      const year = usYearOf(a);
+      const rates = getUsRates(year);
+      if (a.str('key').startsWith('k401') && !rates.retirement401k.published) {
+        fail(`the IRS has not published the ${year} 401(k) limits yet (the rates module carries the prior year's values), so they cannot be printed as facts`);
+      }
+      return US_FACTS[a.str('key')][0](rates, a.str('status') as FilingStatus);
     },
   },
   {
@@ -1018,10 +1074,7 @@ const fns: FigureFunction[] = [
     options: [STATUS, usYear],
     returns: 'number ($ of taxable income)',
     example: 'usBracketStart(22) | usd',
-    run: (a) => {
-      checkUsYear(a);
-      return usBracketStart(a.num('rate'), a.str('status') as FilingStatus);
-    },
+    run: (a) => usBracketStart(a.num('rate'), a.str('status') as FilingStatus, getUsRates(usYearOf(a))),
   },
   {
     name: 'usCgt',
@@ -1035,16 +1088,15 @@ const fns: FigureFunction[] = [
     ],
     returns: 'number ($)',
     example: 'usCgt(50000, 80000) | usd',
-    run: (a) => {
-      checkUsYear(a);
-      return calculateUSCgt(
+    run: (a) =>
+      calculateUSCgt(
         0,
         a.num('gain'),
         a.str('holding') as 'long' | 'short',
         a.str('status') as FilingStatus,
         a.num('income'),
-      ).totalTax;
-    },
+        getUsRates(usYearOf(a)),
+      ).totalTax,
   },
 
   /* ── Loans and mortgages ── */
@@ -1214,8 +1266,8 @@ const fns: FigureFunction[] = [
   {
     name: 'cardPayoff',
     group: 'Debt',
-    interim: 'W1-DEBT credit-card.ts (DB-1)',
-    summary: 'Paying down a card or loan balance: a fixed payment, or a percentage minimum with a floor.',
+    summary:
+      'Paying down a card or loan balance (the credit card payoff calculator): a fixed payment, or a minimum that is a % of the balance with a floor, optionally plus the month\'s interest.',
     params: [
       money('balance', 'starting balance', { above: 0, min: undefined }),
       ratePct('apr', 'APR in %'),
@@ -1224,6 +1276,12 @@ const fns: FigureFunction[] = [
     options: [
       { name: 'minPct', type: 'number', doc: 'minimum payment as % of the current balance (declining minimum)', above: 0, max: 100 },
       { name: 'minFloor', type: 'number', doc: 'lowest minimum payment, required with minPct (e.g. 25 for US cards, 5 for UK)', min: 0 },
+      {
+        name: 'plusInterest',
+        type: 'boolean',
+        doc: "with minPct: the minimum is the month's interest PLUS minPct% of the balance (the UK/FCA and common US issuer formula), still at least minFloor",
+        default: false,
+      },
       { name: 'extra', type: 'number', doc: 'extra paid on top every month', default: 0, min: 0 },
     ],
     returns: 'object',
@@ -1236,14 +1294,16 @@ const fns: FigureFunction[] = [
       if (!hasFixed && !hasPct) fail('give a fixed monthly payment (third argument) or minPct= with minFloor=');
       if (hasPct && !a.has('minFloor')) fail('minPct needs minFloor= (the lowest minimum payment)');
       if (!hasPct && a.has('minFloor')) fail('minFloor only applies with minPct');
-      const mode = hasFixed ? { fixed: a.num('payment') } : { pct: a.num('minPct'), floor: a.num('minFloor') };
+      if (!hasPct && a.bool('plusInterest')) fail('plusInterest only applies with minPct');
+      const mode: PayoffMode = hasFixed
+        ? { fixed: a.num('payment') }
+        : { pct: a.num('minPct'), floor: a.num('minFloor'), plusInterest: a.bool('plusInterest') };
       return payoff(a.num('balance'), a.num('apr'), mode, a.num('extra'));
     },
   },
   {
     name: 'loanPayoff',
     group: 'Debt',
-    interim: 'W1-DEBT credit-card.ts (DB-1)',
     summary: 'Time and interest to clear a balance with a fixed monthly payment (cardPayoff with a fixed payment).',
     params: [
       money('balance', 'starting balance', { above: 0, min: undefined }),
@@ -1259,8 +1319,7 @@ const fns: FigureFunction[] = [
   {
     name: 'payoffBalance',
     group: 'Debt',
-    interim: 'W1-DEBT credit-card.ts (DB-1)',
-    summary: 'Balance left after some months of a fixed payment (0 once paid off).',
+    summary: 'Balance left after some months of a fixed payment (0 once paid off). Fails if the payment never covers the interest.',
     params: [
       money('balance', 'starting balance', { above: 0, min: undefined }),
       ratePct('apr', 'annual rate in %'),
@@ -1270,6 +1329,16 @@ const fns: FigureFunction[] = [
     returns: 'number',
     example: 'payoffBalance(50000, 22, 1200, 12) | usd',
     run: (a) => payoffBalance(a.num('balance'), a.num('apr'), a.num('payment'), a.num('months')),
+  },
+  {
+    name: 'cardHorizonYears',
+    group: 'Debt',
+    summary:
+      'The longest payoff the card calculator runs, in years (50). A balance not cleared within it is "beyond 50 years" (a payoff token fails; use this number in the words).',
+    params: [],
+    returns: 'number (years)',
+    example: 'cardHorizonYears() | int',
+    run: () => CARD_HORIZON_MONTHS / 12,
   },
 
   /* ── Saving and investing ── */
@@ -1327,12 +1396,12 @@ const fns: FigureFunction[] = [
   {
     name: 'retirementFV',
     group: 'Saving and investing',
-    summary: 'Retirement pot at retirement, nominal and in today\'s money (the retirement savings calculator).',
+    summary: "Retirement pot at retirement, nominal and in today's money (the retirement savings calculator).",
     params: [
       money('savings', 'current savings'),
       money('monthly', 'monthly contribution'),
       ratePct('rate', 'annual return in %', { max: 50 }),
-      { name: 'years', type: 'number', doc: 'years until retirement', required: true, min: 0, max: 100 },
+      { name: 'years', type: 'number', doc: 'years until retirement (rounded to whole months, like the calculator)', required: true, min: 0, max: 100 },
     ],
     options: [{ name: 'inflation', type: 'number', doc: 'inflation in % a year for the real value', default: 0, min: 0, max: 50 }],
     returns: 'object',
@@ -1344,21 +1413,21 @@ const fns: FigureFunction[] = [
     },
     example: 'retirementFV(50000, 500, 7, 35, inflation=3).real | usd',
     run: (a) => {
-      const years = a.num('years');
-      const nominal = compoundInterest(a.num('savings'), a.num('monthly'), a.num('rate') / 100, years, 12);
-      const contributions = a.num('savings') + a.num('monthly') * 12 * years;
-      return {
-        nominal,
-        real: nominal / Math.pow(1 + a.num('inflation') / 100, years),
-        contributions,
-        growth: nominal - contributions,
-      };
+      const p = projectRetirement({
+        currentAge: 0,
+        retirementAge: a.num('years'),
+        currentSavings: a.num('savings'),
+        monthlyContribution: a.num('monthly'),
+        annualReturn: a.num('rate') / 100,
+        inflation: a.num('inflation') / 100,
+      });
+      return { nominal: p.nominal, real: p.real, contributions: p.totalContributions, growth: p.totalGrowth };
     },
   },
   {
     name: 'savingsMonthly',
     group: 'Saving and investing',
-    summary: 'Monthly saving needed to reach a goal in a number of months (the savings goal calculator).',
+    summary: 'Monthly saving needed to reach a goal in a number of months (the savings goal calculator; 0 if the goal is already met or interest alone gets there).',
     params: [
       money('goal', 'target amount', { above: 0, min: undefined }),
       money('current', 'already saved'),
@@ -1368,12 +1437,17 @@ const fns: FigureFunction[] = [
     returns: 'number (per month)',
     example: 'savingsMonthly(100000, 0, 4, 60) | usd',
     run: (a) =>
-      Math.max(0, monthlySavingsRequired(a.num('goal'), a.num('current'), a.num('rate') / 100, a.num('months'))),
+      monthlyForGoal({
+        goal: a.num('goal'),
+        current: a.num('current'),
+        annualRate: a.num('rate') / 100,
+        months: a.num('months'),
+      }).monthly,
   },
   {
     name: 'savingsMonths',
     group: 'Saving and investing',
-    summary: 'Months to reach a goal at a monthly saving rate, rounded up (Infinity if never).',
+    summary: 'Whole months until the savings goal is first met at a monthly saving rate (the savings goal calculator; 0 if already met, Infinity if not within 100 years).',
     params: [
       money('goal', 'target amount', { above: 0, min: undefined }),
       money('current', 'already saved'),
@@ -1383,40 +1457,49 @@ const fns: FigureFunction[] = [
     returns: 'number (months)',
     example: 'savingsMonths(50000, 0, 1000, 5) | months',
     run: (a) => {
-      const goal = a.num('goal');
-      const current = a.num('current');
-      const monthly = a.num('monthly');
-      const rate = a.num('rate') / 100;
-      if (goal <= current) return 0;
-      if (monthly <= 0 && rate <= 0) return Infinity;
-      const years = solveForTime(current, monthly, rate, goal, 12);
-      return Number.isFinite(years) ? Math.ceil(Math.max(0, years) * 12 - 1e-9) : Infinity;
+      const r = timeToGoal({
+        goal: a.num('goal'),
+        current: a.num('current'),
+        monthly: a.num('monthly'),
+        annualRate: a.num('rate') / 100,
+      });
+      return r.status === 'ok' ? r.months : r.status === 'reached' ? 0 : Infinity;
     },
   },
   {
     name: 'yearsToTarget',
     group: 'Saving and investing',
-    summary: 'Years for a starting sum plus monthly contributions to reach a target (Infinity if not within 100 years).',
+    summary:
+      'Years (whole months / 12) for a starting sum plus monthly contributions to first reach a target (the investment return calculator, Time tab; 0 if already there, Infinity if not within 100 years).',
     params: [
       money('start', 'starting amount'),
       money('monthly', 'monthly contribution'),
       ratePct('rate', 'annual return in %', { max: 50 }),
       money('target', 'target balance', { above: 0, min: undefined }),
     ],
-    options: [COMPOUNDING],
+    options: [COMPOUNDING, TIMING],
     returns: 'number (years, fractional)',
     example: 'yearsToTarget(10000, 500, 7, 1000000) | num(1)',
     run: (a) => {
       checkCompounding(a.num('compounding'));
-      if (a.num('start') >= a.num('target')) return 0;
-      return solveForTime(a.num('start'), a.num('monthly'), a.num('rate') / 100, a.num('target'), a.num('compounding'));
+      const r = solveMonthsToTarget(
+        {
+          principal: a.num('start'),
+          monthlyContribution: a.num('monthly'),
+          annualRate: a.num('rate') / 100,
+          compoundingPerYear: a.num('compounding'),
+          timing: a.str('timing') as 'end' | 'beginning',
+        },
+        a.num('target'),
+      );
+      return r.status === 'notWithin' ? Infinity : r.months / 12;
     },
   },
   {
     name: 'feeDrag',
     group: 'Saving and investing',
-    interim: 'W1-DEBT investment fee formula (DB-7)',
-    summary: 'What a fund fee costs over time (the investment fee calculator: fee subtracted from the return).',
+    summary:
+      'What a fund fee costs over time (the investment fee calculator: fee subtracted from the return, monthly compounding, deposits at the end of each month).',
     params: [
       money('start', 'starting amount'),
       money('monthly', 'monthly contribution'),
@@ -1430,27 +1513,41 @@ const fns: FigureFunction[] = [
       cost: 'difference in final balance between the two fees',
       balance: 'final balance at fee',
       compareBalance: 'final balance at compareFee',
+      zeroFeeBalance: 'final balance with no fee at all',
+      feesPaid: 'growth lost to fee versus no fee (zeroFeeBalance - balance)',
       contributions: 'everything paid in',
-      shareOfGrowth: 'cost as % of the lower-fee growth',
+      shareOfGrowth: "cost as % of the lower-fee fund's earnings, capped at 100 (the calculator's share of returns lost)",
+      contributionsLost: 'when the higher-fee fund ends below what was paid in: how much of the contributions the gap takes, else 0',
     },
     example: 'feeDrag(100000, 0, 7, 30, 1).cost | usd',
     run: (a) => {
-      // INTERIM: mirrors InvestmentFeeCalc.tsx (effective return = rate - fee,
-      // monthly compounding). W1-DEBT DB-7 may change the formula; re-point then.
-      const fv = (feePct: number) =>
-        compoundInterest(a.num('start'), a.num('monthly'), (a.num('rate') - feePct) / 100, a.num('years'));
-      const balance = fv(a.num('fee'));
-      const compareBalance = fv(a.num('compareFee'));
-      const contributions = a.num('start') + a.num('monthly') * 12 * a.num('years');
-      const cost = Math.abs(balance - compareBalance);
-      const lowerGrowth = Math.max(balance, compareBalance) - contributions;
-      return { cost, balance, compareBalance, contributions, shareOfGrowth: lowerGrowth > 0 ? (cost / lowerGrowth) * 100 : 0 };
+      const c = compareFees({
+        principal: a.num('start'),
+        monthlyContribution: a.num('monthly'),
+        grossReturnPercent: a.num('rate'),
+        years: a.num('years'),
+        yourFeePercent: a.num('fee'),
+        comparisonFeePercent: a.num('compareFee'),
+      });
+      if (c.shareOfReturnsLost === null) {
+        fail('the lower-fee fund earns nothing at these inputs (net return of 0 or less), so the share of returns lost is undefined; pick inputs where it earns something');
+      }
+      return {
+        cost: c.feeCost,
+        balance: c.yourBalance,
+        compareBalance: c.compBalance,
+        zeroFeeBalance: c.zeroFeeBalance,
+        feesPaid: c.yourFeesPaid,
+        contributions: c.totalContributions,
+        shareOfGrowth: c.shareOfReturnsLost * 100,
+        contributionsLost: c.contributionsLost,
+      };
     },
   },
   {
     name: 'inflationAdjust',
     group: 'Saving and investing',
-    summary: 'Inflation at a steady rate: future cost of something, or what money will be worth.',
+    summary: 'Inflation at a steady rate (the inflation calculator, future mode): future cost of something, or what money will be worth.',
     params: [money('amount', 'amount today'), ratePct('rate', 'inflation in % a year', { max: 50 }), {
       name: 'years', type: 'number', doc: 'years ahead', required: true, min: 0, max: 100,
     }],
@@ -1465,8 +1562,37 @@ const fns: FigureFunction[] = [
     returns: 'number',
     example: 'inflationAdjust(100000, 3, 20, mode=value) | usd',
     run: (a) => {
-      const g = Math.pow(1 + a.num('rate') / 100, a.num('years'));
-      return a.str('mode') === 'value' ? a.num('amount') / g : a.num('amount') * g;
+      const p = projectInflation(a.num('amount'), a.num('rate') / 100, a.num('years'));
+      return a.str('mode') === 'value' ? p.purchasingPower : p.futureCost;
+    },
+  },
+  {
+    name: 'cpiAdjust',
+    group: 'Saving and investing',
+    summary: `Past inflation (the inflation calculator, historical mode): an amount from one year in another year's prices, from US CPI-U (BLS annual averages 1913-${CPI_U_LATEST.year - 1}; ${CPI_U_LATEST.year} is the latest month, ${CPI_U_LATEST.label}).`,
+    params: [
+      money('amount', 'amount in fromYear prices'),
+      { name: 'fromYear', type: 'number', doc: `year the amount is from (${CPI_FIRST_YEAR}-${CPI_LAST_YEAR})`, required: true, integer: true, min: CPI_FIRST_YEAR, max: CPI_LAST_YEAR },
+      { name: 'toYear', type: 'number', doc: `year to express it in (${CPI_FIRST_YEAR}-${CPI_LAST_YEAR}; must differ from fromYear)`, required: true, integer: true, min: CPI_FIRST_YEAR, max: CPI_LAST_YEAR },
+    ],
+    returns: 'object',
+    fields: {
+      adjusted: 'the amount in toYear prices',
+      cumulativeChange: 'total price change between the two years, % (negative if prices fell)',
+      averageAnnual: 'compound average annual change, %',
+      years: 'elapsed years the average uses (the latest month counts as part of its year)',
+    },
+    example: 'cpiAdjust(45000, 2010, 2025).adjusted | usd',
+    run: (a) => {
+      if (a.num('fromYear') === a.num('toYear')) fail('fromYear and toYear are the same year, so there is nothing to adjust');
+      const r = adjustForInflation(a.num('amount'), a.num('fromYear'), a.num('toYear'));
+      if (r === null) fail(`no CPI data for ${a.num('fromYear')} or ${a.num('toYear')} (available ${CPI_FIRST_YEAR}-${CPI_LAST_YEAR})`);
+      return {
+        adjusted: r.adjusted,
+        cumulativeChange: r.cumulativeChange * 100,
+        averageAnnual: r.averageAnnual * 100,
+        years: r.years,
+      };
     },
   },
 
@@ -1474,7 +1600,7 @@ const fns: FigureFunction[] = [
   {
     name: 'taxYear',
     group: 'Labels',
-    summary: "The tax year the engines currently use: '2026/27' (uk) or '2026' (us).",
+    summary: "The tax year the engines currently use: '2026/27' (uk) or '2026' (us, the calculator's default year).",
     params: [{ name: 'country', type: 'string', doc: 'uk or us', required: true, oneOf: ['uk', 'us'], aliases: { UK: 'uk', US: 'us' } }],
     returns: 'string',
     example: "taxYear('uk')",
@@ -1483,15 +1609,21 @@ const fns: FigureFunction[] = [
   {
     name: 'rate',
     group: 'Labels',
-    summary: 'A dated market rate (US 30-year mortgage, Bank Rate, ...). NOT AVAILABLE YET: fails until market-rates.ts lands.',
-    params: [{ name: 'key', type: 'string', doc: "e.g. 'us30', 'us15', 'boe'", required: true }],
+    summary:
+      "A dated market rate from market-rates.ts, in % (the calculators' default rates): us30 / us15 (Freddie Mac PMMS mortgage), boe (Bank Rate), uk2yr / uk5yr (2- and 5-year fixed, 75% LTV), ukRevert (revert-to rate), eur (euro-area house purchase). Pair it with rateSource.",
+    params: [{ name: 'key', type: 'string', doc: 'us30, us15, boe, uk2yr, uk5yr, ukRevert or eur', required: true, oneOf: Object.keys(MARKET_RATE_KEYS) }],
     returns: 'number (%)',
     example: "rate('us30') | pct(2)",
-    run: (a) =>
-      fail(
-        `market rate "${a.str('key')}" is not available: src/lib/market-rates.ts (W1-PROP PR-3) is not merged yet. ` +
-          'Until then write the rate as a literal with its source and as-of date.',
-      ),
+    run: (a) => MARKET_RATE_KEYS[a.str('key')].value,
+  },
+  {
+    name: 'rateSource',
+    group: 'Labels',
+    summary: 'Who published a market rate and the date it describes, e.g. "Freddie Mac, 12 Nov 2026" (use next to rate() so the page shows the source and date).',
+    params: [{ name: 'key', type: 'string', doc: 'us30, us15, boe, uk2yr, uk5yr, ukRevert or eur', required: true, oneOf: Object.keys(MARKET_RATE_KEYS) }],
+    returns: 'string',
+    example: "rateSource('us30')",
+    run: (a) => rateAttribution(MARKET_RATE_KEYS[a.str('key')]),
   },
   {
     name: 'min',
@@ -1933,6 +2065,27 @@ export function evaluateFigure(source: string): string {
 }
 
 export const figure = evaluateFigure;
+
+/**
+ * Evaluate only the expression part of a token (no formatters) and return the
+ * raw, unrounded value: a number, text, boolean or object of fields. For tests
+ * and tooling that compare figures with the engines exactly; content tokens
+ * must still go through a formatter. Throws FigureError; not memoised.
+ */
+export function evaluateFigureValue(source: string): FigureValue {
+  const key = source.trim();
+  try {
+    const pipeline = parsePipeline(key);
+    if (pipeline.filters.length) fail('evaluateFigureValue takes an expression without formatters');
+    return evalExpr(pipeline.expr);
+  } catch (e) {
+    let detail: string;
+    if (e instanceof Fail) detail = e.message;
+    else if (e instanceof FigureSyntaxError) detail = `syntax error at character ${e.at + 1}: ${e.message}`;
+    else detail = `internal error in the figure engine: ${e instanceof Error ? e.message : String(e)}`;
+    throw new FigureError(key, detail);
+  }
+}
 
 export interface FigureProblem {
   /** Offset of the token's `{{` in the text. */

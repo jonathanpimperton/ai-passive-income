@@ -32,9 +32,16 @@ Engine code: `src/lib/figures.ts` (catalogue), `src/lib/figure-parser.ts` (synta
   goes to principal", not "more than 80%".
 - The words around a figure are still your job. Re-read the sentence with the generated
   value in it (section 6 shows how to print every value on a page).
-- **Do not use an INTERIM function** (listed at the end of section 4) until it has been
-  re-pointed to its merged engine. Check `figures.ts`: if the function still has an
-  `interim:` line, leave the figure as it is and say so in your handoff.
+- **Every function is safe to tokenise** (W2-FIG, 15 Nov 2026): each one calls the same
+  engine function its calculator calls (section 4, "What each function calls"), and
+  `src/lib/figures-grid.test.ts` compares them over a grid of inputs with zero diffs
+  allowed. A token never silently disagrees with the tool. Where a token cannot give an
+  honest number it **fails the build** instead (a payoff that takes more than 50 years, a
+  401(k) limit the IRS has not published, contradictory options). Read the error and
+  write that case in words.
+- **Tell the year.** The US functions follow the calculator's default tax year, which moves
+  from 2026 to 2027 on a build after 1 January 2027. Print `{{ taxYear('us') }}` beside the
+  figures, or pass `year=2026` (or `2027`) when the sentence is about one specific year.
 
 ## 2. Syntax
 
@@ -99,17 +106,25 @@ inputs:
 - **Defaults are zero or none**, not the calculators' UI defaults. `ukTakeHome(50000)`
   has no pension and no student loan, and `usTakeHome(75000)` has no state tax and no
   401(k). State every assumption in the token and in the prose.
-- **Tax year.** Tax functions use the dataset the rates modules currently point at.
-  Print it with `{{ taxYear('uk') }}` / `{{ taxYear('us') }}` next to the figures. A
-  `year=` option is accepted only for the year that is wired. Any other year fails the
-  build rather than quietly using the wrong year.
+- **Tax year.**
+  - **US.** `year=2026` or `year=2027` picks the dataset in `us-rates.ts` and is passed to the
+    engines. With no `year=` the function uses the default year, the same one the US Salary
+    calculator starts on: the calendar year once its data exists (2026 until the build of
+    1 January 2027). Any other year fails the build. Print it with `{{ taxYear('us') }}`.
+  - **UK.** One dataset (2026/27). The UK engines take no year
+    argument, so `year=` is accepted only for that dataset and anything else fails the build
+    rather than quietly returning the wrong year. Print it with `{{ taxYear('uk') }}`.
 - **Rounding of parts.** Each token is rounded on its own, so a list of rounded parts
   may not add up to a rounded total by £1. Say "(rounding applies)", or token the
   total as a difference of the same values.
-- **"Never".** Payoff and target functions return `Infinity` when the goal is never
-  reached (a payment that does not cover the interest, a target out of reach in 100
-  years). `| months` prints "never". Money formatters refuse Infinity, so a "never"
-  scenario can't print a fake total.
+- **"Never" and "beyond 50 years".** Payoff and target functions return `Infinity` when the
+  goal is never reached (a payment that does not exceed the first month's interest, a target
+  out of reach in 100 years). `| months` prints "never". Money formatters refuse Infinity,
+  so a "never" scenario can't print a fake total. The card payoff engine has a 600-month
+  (50-year) horizon: a balance that is falling but not cleared by then is NOT "never", and
+  the calculator labels it "beyond 50 years". A token for that case fails the build, so
+  write it in words.
+
 
 ## 4. Function catalogue
 
@@ -128,20 +143,40 @@ one engine and one set of options:
 | `pensionAmount` | 0 | Pension contribution in £ a year, gross. Use instead of `pension`. |
 | `method` | none | `sacrifice` (salary sacrifice), `net` (net pay arrangement) or `ras` (relief at source). Required whenever a pension is given. |
 | `plan` | `none` | Student loan: `plan1`, `plan2`, `plan4`, `plan5` or `postgrad`. |
-| `postgrad` | false | Also repaying a Postgraduate Loan, on top of `plan`. |
-| `code` | `'1257L'` | Tax code. Supported: `nnnnL`, `0T`, `BR`, `D0`, `D1`, `NT`, `SD2`, `SD3`, each with an optional `S` (Scottish bands) or `C` (Welsh, rUK bands) prefix. K, T, M, N and emergency codes fail. |
-| `scottish` | false | Scottish income tax bands. An `S` code implies it. |
+| `postgrad` | false | Also repaying a Postgraduate Loan on top of `plan`. The calculator holds one loan, so it cannot show this combination: the figure adds the Postgraduate Loan from the same engine on the same NIC pay. |
+| `code` | `'1257L'` | Any tax code the calculator accepts: `nnnnL`, `nnnnM`, `nnnnN`, `nnnnT`, `0T`, `Knnn`, `BR`, `D0`, `D1`, `NT`, `SBR`, `SD0` to `SD3`, with an optional `S` (Scottish) or `C` (Welsh, rest-of-UK bands) prefix and an optional `W1`, `M1` or `X` emergency marker. A code the calculator would not recognise (it falls back to 1257L) fails the build. See "Tax code rules" below. |
+| `scottish` | false | Scottish income tax bands for `L`, `M`, `N`, `T`, `0T` and `K` codes. An `S` prefix implies it, a `C` prefix means rest-of-UK bands; an explicit contradiction (`S1257L` with `scottish=false`) fails. `BR`, `D0` and `D1` ignore it (below). |
 | `year` | current | For example `'2026/27'`. |
 
-How the pension methods work:
+How the pension methods work (all three, for every tax code and region, as in the calculator):
 - **sacrifice.** Income tax, NI and student loan are all worked out on pay after the
   sacrifice (HMRC: the student loan uses NIC pay).
 - **net.** Tax is on pay after the pension. NI and the student loan are on full pay.
 - **ras.** Paid from net pay at 80%, and the provider adds 20%. The basic and higher
-  rate limits extend by the gross contribution. Not modelled for Scottish taxpayers
-  (that combination fails).
+  rate limits extend by the gross contribution (for Scottish taxpayers, the Scottish basic
+  rate limit and every limit above it).
 - With any method, the personal-allowance taper keys on adjusted net income, so a
   sacrifice that brings income under £100,000 restores the allowance.
+
+Tax code rules (the calculator's own, from `uk-tax-codes.ts` and `uk-tax-calc.ts`):
+- **Region.** An `S` prefix means Scottish bands, a `C` prefix rest-of-UK bands. With no
+  prefix, `scottish=true` selects the Scottish bands for the codes that run through the
+  bands (`L`, `M`, `N`, `T`, `0T`, `K`).
+- **Flat-rate codes** (`BR`, `D0`, `D1`) take their rate from the code itself and ignore the
+  `scottish` flag. Without an `S` prefix they are the rest-of-UK rates: `D0` is 40% and `D1`
+  is 45%, also with `scottish=true`. This is the HMRC rule (a Scottish taxpayer's codes are
+  `SBR`, `SD0` intermediate, `SD1` higher, `SD2` advanced, `SD3` top), and what the
+  calculator does. Write the Scottish flat rates as `SD0` and so on. `SD2` and `SD3` exist
+  only with the `S` prefix.
+- **`L` codes and the £100,000 taper.** The taper reduces only the personal allowance part
+  of the code. A code at or above `1257L` keeps its extra allowance on top of the tapered
+  allowance. A code below `1257L` is taken to be HMRC's own adjusted figure: the allowance
+  is the lower of the code and the tapered allowance, so it is not tapered twice (at
+  £110,000, `1100L` gives £7,570, not £6,000). `M`, `N`, `T` and `0T` use the figure as issued.
+- **`K` codes** add to taxable pay; tax cannot exceed half of pay. Emergency markers (`W1`,
+  `M1`, `X`) show full-year figures.
+- **Marginal rate.** `ukMarginalRate` is the calculator's rate on the next £100 of pay, with
+  a pension held at its current £ amount (so a percentage pension does not mask the rate).
 
 | Function | Returns | Example | Value |
 |---|---|---|---|
@@ -149,7 +184,7 @@ How the pension methods work:
 | `ukIncomeTax(salary, ...options)` | £ a year | `{{ ukIncomeTax(50000) \| gbp }}` | £7,486 |
 | `ukNi(salary, ...options)` | £ a year | `{{ ukNi(50000) \| gbp }}` | £2,994 |
 | `ukStudentLoan(salary, ...options)` | £ a year (needs `plan`) | `{{ ukStudentLoan(35000, plan=plan2) \| gbp }}` | £505 |
-| `ukMarginalRate(salary, ...options)` | % lost on the next £2 to tax + NI + student loan | `{{ ukMarginalRate(110000) \| pct }}` | 62% |
+| `ukMarginalRate(salary, ...options)` | % lost on the next £100 to tax + NI + student loan (the calculator's marginal rate) | `{{ ukMarginalRate(110000) \| pct }}` | 62% |
 | `ukPay(salary, ...options)` | object | `{{ ukPay(60000, pension=5, method=sacrifice, plan=plan2).studentLoan \| gbp }}` | £2,485 |
 
 `ukPay` fields:
@@ -181,16 +216,16 @@ these options (they mirror the US salary calculator's annual mode):
 |---|---|---|
 | `status` | `single` | `single`, `married` (filing jointly; also `mfj`) or `head` (of household; also `hoh`). |
 | `state` | 0 | Flat state and local income tax rate in %, like the calculator's input. Say which state you mean in the prose. |
-| `k401` | 0 | 401(k) contribution as % of salary. Capped at the IRS limit, like the calculator. Reduces federal and state taxable pay, but not FICA. |
-| `k401Amount` | 0 | 401(k) contribution in $ a year. Use instead of `k401`. |
-| `year` | current | For example `2026`. |
+| `k401` | 0 | 401(k) contribution as % of salary. Capped at the IRS limit for the year, like the calculator. Reduces federal and state taxable pay, but not FICA. A contribution above an unpublished limit (2027 until the IRS notice) fails the build. |
+| `k401Amount` | 0 | 401(k) contribution in $ a year, converted to a % of salary for the engine. Use instead of `k401`. |
+| `year` | default year | `2026` or `2027` (see "Tax year" in section 3). Without it, the calculator's default year. |
 
 | Function | Returns | Example | Value |
 |---|---|---|---|
 | `usTakeHome(salary, ...options)` | $ a year | `{{ usTakeHome(75000) \| usd }}` | $61,593 |
 | `usFederalTax(salary, ...options)` | $ a year, after the standard deduction | `{{ usFederalTax(100000, status=married) \| usd }}` | $7,640 |
 | `usFica(salary, ...options)` | $ a year: Social Security + Medicare | `{{ usFica(75000) \| usd }}` | $5,738 |
-| `usBracket(salary, ...options)` | % federal bracket of the next dollar (0 below the standard deduction) | `{{ usBracket(60000) \| pct }}` | 12% |
+| `usBracket(salary, ...options)` | % federal bracket the calculator shows for this pay (10%, the lowest, when taxable income is 0) | `{{ usBracket(60000) \| pct }}` | 12% |
 | `usMarginalRate(salary, ...options)` | % of the next $1 lost to federal + FICA + state | `{{ usMarginalRate(75000, state=5) \| pct1 }}` | 34.7% |
 | `usPay(salary, ...options)` | object | `{{ usPay(75000, state=5).federal \| usd }}` | $7,670 |
 
@@ -199,7 +234,8 @@ these options (they mirror the US salary calculator's annual mode):
 - `.federal`, `.fica`, `.socialSecurity`, `.medicare`, `.state`;
 - `.k401` (after the cap);
 - `.taxRate` ((federal + FICA + state) / salary, %);
-- `.effectiveRate` (all deductions including the 401(k), %; the calculator's "effective rate").
+- `.effectiveRate` (all deductions including the 401(k), %; the calculator's "effective rate");
+- `.taxableIncome` (federal taxable income after the 401(k) and the standard deduction) and `.bracket` (the federal bracket the calculator shows, %).
 
 Hourly pay is plain arithmetic: `{{ usTakeHome(50000) / 2080 | usd(2) }}`.
 
@@ -221,7 +257,7 @@ back as percentages.
 | `basicRate`, `higherRate`, `additionalRate` | Income tax rates (%) |
 | `niPrimaryThreshold`, `niUpperEarningsLimit`, `niMainRate`, `niUpperRate`, `employerNiRate`, `employerNiThreshold` | National Insurance |
 | `plan1Threshold`, `plan2Threshold`, `plan4Threshold`, `plan5Threshold`, `postgradThreshold`, `studentLoanRate`, `postgradRate` | Student loans |
-| `statePensionWeekly`, `statePensionAnnual`, `statePensionAge`, `statePensionAgeFrom2028`, `pensionAccessAge`, `pensionAccessAgeFrom2028` | Pensions |
+| `statePensionWeekly`, `statePensionAnnual`, `pensionAccessAge`, `pensionAccessAgeFrom2028` | Pensions. There is no State Pension age key: it depends on date of birth (66 to 68, `uk-pension-ages.ts`), so write it in words and cite the GOV.UK timetable |
 | `cgtAnnualExempt`, `cgtBasicRate`, `cgtHigherRate` | Capital Gains Tax |
 | `sdltNilBand`, `sdltFtbNilBand`, `sdltFtbCap`, `sdltSurcharge` | Stamp duty |
 | `mortgageIncomeMultiple` | Typical lender loan-to-income cap (x income) |
@@ -230,7 +266,7 @@ back as percentages.
 |---|---|
 | `standardDeduction`, `additionalMedicareThreshold`, `niitThreshold`, `ltcgZeroTop`, `ltcg15Top` | By filing status ($) |
 | `ssWageBase`, `ssRate`, `medicareRate`, `additionalMedicareRate`, `niitRate` | FICA and NIIT |
-| `k401Limit`, `k401CatchUp` | 401(k) limits ($) |
+| `k401Limit`, `k401CatchUp`, `k401CatchUp60to63` | 401(k) limits ($). Fails for a year the IRS has not published yet (2027 until the notice) |
 
 | Function | Returns | Example | Value |
 |---|---|---|---|
@@ -262,57 +298,100 @@ the annual rate / 12, as in the calculators.
 | Function | Returns | Example | Value |
 |---|---|---|---|
 | `cardPayoff(balance, apr, payment)` | object (fields below), with a fixed monthly payment | `{{ cardPayoff(5000, 22.99, 100).months \| months }}` | 13 years 11 months |
-| `cardPayoff(balance, apr, minPct=, minFloor=, extra=)` | object, with a declining minimum: max(minPct% of the balance, minFloor), plus `extra` | `{{ cardPayoff(50000, 22, minPct=3, minFloor=25).months \| months }}` | 33 years 5 months |
+| `cardPayoff(balance, apr, minPct=, minFloor=, plusInterest=, extra=)` | object, with a declining minimum: max(minPct% of the balance, minFloor), plus `extra`. `plusInterest=true` makes the minimum the month's interest PLUS minPct% of the balance (the UK/FCA and common US issuer formula), still at least minFloor | `{{ cardPayoff(50000, 22, minPct=3, minFloor=25).months \| months }}` | 33 years 5 months |
 | `loanPayoff(balance, apr, payment, extra=)` | object; same engine with a fixed payment (student loans, personal loans) | `{{ loanPayoff(50000, 6.5, 600).interest \| usd }}` | $16,682 |
-| `payoffBalance(balance, apr, payment, months)` | balance left after that many fixed payments (0 once cleared) | `{{ payoffBalance(50000, 22, 1200, 12) \| usd }}` | $46,235 |
+| `payoffBalance(balance, apr, payment, months)` | balance left after that many fixed payments (0 once cleared). Fails if the payment never covers the interest | `{{ payoffBalance(50000, 22, 1200, 12) \| usd }}` | $46,235 |
+| `cardHorizonYears()` | the horizon of the card engine in years (50): a balance not cleared within it is "beyond 50 years" | `{{ cardHorizonYears() \| int }}` | 50 |
+
+All four are `simulateCardPayoff` (`credit-card.ts`), the credit card calculator's engine:
+interest is charged on the opening balance each month, and the horizon is 600 months
+(50 years).
 
 Payoff fields:
 - `.months`, `.interest`, `.totalPaid`: all Infinity when the debt is never cleared;
 - `.never` (true or false);
 - `.firstInterest` (the first month's interest) and `.firstPayment`.
 
-A payment that does not exceed the month's interest means never. So does anything not
-cleared within 1,200 months.
+Two different "no answer" cases, matching the calculator:
+- **Never**: the first payment does not exceed the first month's interest, so the balance
+  never falls. `.months | months` prints "never"; money formatters refuse Infinity.
+- **Beyond 50 years**: the balance falls but is not cleared within 600 months (for example a
+  2% minimum on a 22% APR card). The calculator labels this "beyond 50 years" and shows
+  horizon totals. A token for it **fails the build**, because a bare number would read as
+  "paid off in 50 years". Say it in words.
 
 ### Saving and investing
 
+Deposits are monthly everywhere. `compounding` only sets the growth rate (the equivalent
+monthly rate, as in the calculators), and `timing` says whether each month's deposit goes in
+at the `end` (default) or the `beginning` of that month.
+
 | Function | Returns | Example | Value |
 |---|---|---|---|
-| `compoundFV(start, monthly, rate, years, compounding=, timing=)` | future value. `compounding`: 12 (default), 1, 2, 4, 52, 365 or `annually`/`quarterly`/`monthly`/`weekly`/`daily`; `timing`: `end` (default) or `beginning` | `{{ compoundFV(10000, 0, 7, 30) \| usd }}` | $81,165 |
+| `compoundFV(start, monthly, rate, years, compounding=, timing=)` | future value. `compounding`: 12 (default), 1, 2, 4, 52, 365 or `annually`/`quarterly`/`monthly`/`weekly`/`daily`; `timing`: `end` (default) or `beginning` of each month | `{{ compoundFV(10000, 0, 7, 30) \| usd }}` | $81,165 |
 | `compoundEarned(start, monthly, rate, years, compounding=, timing=)` | growth only (future value minus everything paid in) | `{{ compoundEarned(10000, 200, 7, 30) \| usd }}` | $243,159 |
-| `retirementFV(savings, monthly, rate, years, inflation=)` | object: `.nominal` `.real` (today's money) `.contributions` `.growth` | `{{ retirementFV(50000, 500, 7, 35, inflation=3).real \| usd }}` | $524,487 |
-| `savingsMonthly(goal, current, rate, months)` | monthly saving needed (0 if already there) | `{{ savingsMonthly(100000, 0, 4, 60) \| usd }}` | $1,508 |
-| `savingsMonths(goal, current, monthly, rate)` | months to the goal, rounded up (Infinity if never) | `{{ savingsMonths(50000, 0, 1000, 5) \| months }}` | 3 years 10 months |
-| `yearsToTarget(start, monthly, rate, target, compounding=)` | years, fractional (Infinity if not within 100) | `{{ yearsToTarget(10000, 500, 7, 1000000) \| num(1) }}` | 34.8 |
-| `feeDrag(start, monthly, rate, years, fee, compareFee=)` | object: `.cost` `.balance` `.compareBalance` `.contributions` `.shareOfGrowth` (%) | `{{ feeDrag(100000, 0, 7, 30, 1).cost \| usd }}` | $209,392 |
-| `inflationAdjust(amount, rate, years, mode=)` | `mode=cost` (default): what it will cost; `mode=value`: what today's money will buy | `{{ inflationAdjust(100000, 3, 20, mode=value) \| usd }}` | $55,368 |
+| `retirementFV(savings, monthly, rate, years, inflation=)` | object: `.nominal` `.real` (today's money) `.contributions` `.growth`. `years` is rounded to whole months, as in the calculator | `{{ retirementFV(50000, 500, 7, 35, inflation=3).real \| usd }}` | $524,487 |
+| `savingsMonthly(goal, current, rate, months)` | monthly saving needed (0 if the goal is already met, or interest on the current savings alone gets there) | `{{ savingsMonthly(100000, 0, 4, 60) \| usd }}` | $1,508 |
+| `savingsMonths(goal, current, monthly, rate)` | whole months until the balance first meets the goal (0 if already there, Infinity if not within 100 years) | `{{ savingsMonths(50000, 0, 1000, 5) \| months }}` | 3 years 10 months |
+| `yearsToTarget(start, monthly, rate, target, compounding=, timing=)` | years = whole months / 12, as the investment return calculator's Time tab (0 if already there, Infinity if not within 100 years) | `{{ yearsToTarget(10000, 500, 7, 1000000) \| num(1) }}` | 34.8 |
+| `feeDrag(start, monthly, rate, years, fee, compareFee=)` | object: `.cost` `.balance` `.compareBalance` `.zeroFeeBalance` `.feesPaid` `.contributions` `.shareOfGrowth` (%, capped at 100) `.contributionsLost` | `{{ feeDrag(100000, 0, 7, 30, 1).cost \| usd }}` | $209,392 |
+| `inflationAdjust(amount, rate, years, mode=)` | steady-rate inflation. `mode=cost` (default): what it will cost; `mode=value`: what today's money will buy | `{{ inflationAdjust(100000, 3, 20, mode=value) \| usd }}` | $55,368 |
+| `cpiAdjust(amount, fromYear, toYear)` | object: `.adjusted` (the amount in `toYear` prices) `.cumulativeChange` (%) `.averageAnnual` (%) `.years`. US CPI-U, BLS annual averages 1913 to 2025; 2026 is the latest month (October 2026). Either direction; the two years must differ | `{{ cpiAdjust(45000, 2010, 2025).adjusted \| usd }}` | $66,439 |
 
-### Labels and helpers
+`feeDrag` is the investment fee calculator's `compareFees`: the fee is subtracted from the
+gross return, then monthly compounding with deposits at the end of each month. `.shareOfGrowth`
+is the share of the lower-fee fund's earnings that the fee gap takes; when that fund earns
+nothing (net return 0 or less) the share is undefined and the token fails. `feeDrag(100000, 500,
+7, 30, fee).balance` gives the methodology table: $1,410,807 / $1,252,269 / $1,104,515 /
+$975,545 at fees of 0.03 / 0.5 / 1 / 1.5%.
+
+`cpiAdjust` for 2026 uses the latest monthly index, so a figure that ends in 2026 moves
+whenever `CPI_U_LATEST` in `inflation.ts` is updated. Use `toYear=2025` for a stable figure.
+
+### Labels, market rates and helpers
 
 | Function | Returns | Example | Value |
 |---|---|---|---|
-| `taxYear(country)` | text, `uk` or `us` | `{{ taxYear('uk') }}` | 2026/27 |
-| `rate(key)` | **not available yet**: fails until `src/lib/market-rates.ts` (W1-PROP) is merged and wired. Until then write a market rate as a literal with its source and date. | `{{ rate('us30') \| pct(2) }}` | fails |
+| `taxYear(country)` | text, `uk` or `us` (the US value is the calculator's default year) | `{{ taxYear('uk') }}` | 2026/27 |
+| `rate(key)` | a dated market rate in % from `market-rates.ts`, the calculators' default rates: `us30`, `us15` (Freddie Mac PMMS), `boe` (Bank Rate), `uk2yr`, `uk5yr` (2- and 5-year fixed at 75% LTV), `ukRevert`, `eur` (euro-area house purchase) | `{{ rate('us30') \| pct(2) }}` | varies |
+| `rateSource(key)` | text: who published the rate and the date it describes | `{{ rateSource('us30') }}` | varies |
 | `min(a, b)` | the smaller number | `{{ min(3, 5) \| int }}` | 3 |
 | `max(a, b)` | the larger number | `{{ max(0, 50000 - 60000) \| usd }}` | $0 |
 
-### Do not use yet: INTERIM functions
+The `rate` and `rateSource` values move every time `market-rates.ts` is updated (the owner
+re-checks it monthly), which is the point: always print both, so the page shows the figure
+with its source and date, for example `{{ rate('us30') | pct(2) }} ({{ rateSource('us30') }})`.
+A rate is a market snapshot, not a quote: say so in the words around it.
 
-These functions work and are tested, but they compose the `src/lib` primitives instead of
-calling the engine their calculator will use once Wave 1 merges. A figure built on them
-could disagree with the merged calculator. Wave 2 must not use them until each one is
-re-pointed (its `interim:` line in `figures.ts` removed). The orchestrator does this at
-merge time.
+### What each function calls
 
-| Functions | Will be re-pointed to |
+| Functions | Engine (the calculator calls the same function) |
 |---|---|
-| `ukPay`, `ukTakeHome`, `ukIncomeTax`, `ukNi`, `ukStudentLoan`, `ukMarginalRate` | W1-UK salary lib and `uk-tax-codes.ts` (UK-1 to UK-4) |
-| `usPay`, `usTakeHome`, `usFederalTax`, `usFica`, `usBracket`, `usMarginalRate` | W1-TAX salary lib (TX-1 to TX-4) |
-| `cardPayoff`, `loanPayoff`, `payoffBalance` | W1-DEBT `credit-card.ts` (DB-1) |
-| `feeDrag` | W1-DEBT investment-fee formula (DB-7) |
+| `ukPay`, `ukTakeHome`, `ukIncomeTax`, `ukNi`, `ukStudentLoan`, `ukMarginalRate` | `calculateUkTakeHome` (`uk-tax-calc.ts`) with `parseUkTaxCode` (`uk-tax-codes.ts`) |
+| `usPay`, `usTakeHome`, `usFederalTax`, `usFica`, `usBracket`, `usMarginalRate` | `computeUsSalary` (`us-tax-calc.ts`), per tax year (`us-rates.ts`) |
+| `usFact`, `usBracketStart`, `usCgt` | `getUsRates(year)` and `calculateUSCgt` (`capital-gains.ts`) |
+| `ukFact`, `sdlt`, `ukCgt` | `uk-rates.ts`, `calculateSdlt` (`stamp-duty.ts`), `calculateUKCgt` |
+| `cardPayoff`, `loanPayoff`, `payoffBalance` | `simulateCardPayoff` (`credit-card.ts`), 600-month horizon |
+| `feeDrag` | `compareFees` (`investment-fee.ts`) |
+| `compoundFV`, `compoundEarned` | `futureValue` (`investment-solvers.ts`) |
+| `yearsToTarget` | `solveMonthsToTarget` (`investment-solvers.ts`) |
+| `savingsMonthly`, `savingsMonths` | `monthlyForGoal`, `timeToGoal` (`savings-goal.ts`) |
+| `retirementFV` | `projectRetirement` (`retirement.ts`) |
+| `inflationAdjust`, `cpiAdjust` | `projectInflation`, `adjustForInflation` (`inflation.ts`) |
+| `rate`, `rateSource` | `MARKET_RATES`, `rateAttribution` (`market-rates.ts`) |
+| `loanPayment`, `mortgagePayment`, `loanTotalInterest`, `mortgageTotalInterest`, `loanBalance`, `loanMonth`, `loanYear`, `overpaymentSaving` | their own closed-form and loop arithmetic, proven equal to `mortgage-payment.ts` (the mortgage and loan tools' engine) by `figures-grid.test.ts` (1e-6 on payments, 1e-3 or better on cumulative sums). `yearly=` (a 13th payment) is an extension the tools do not offer |
 
-`rate()` is not interim: it always fails until `market-rates.ts` (W1-PROP) is merged and
-wired.
+Options the tool's screen cannot express (so no tool shows the number): UK `postgrad=true`
+on top of a plan, US `k401Amount` (the tool takes a %), and loan `yearly=`. They are
+computed from the same engines, but if the page also tells readers to "try it in the
+calculator", pick inputs the calculator can reproduce.
+
+### INTERIM functions
+
+None. Every function above calls the engine in the table. A function marked `interim:` in
+`figures.ts` composes primitives instead of calling its calculator's engine and must not be
+used by Wave 2 content; if one is ever added it must be listed here, and the catalogue test
+fails until it is.
 
 ## 5. Formatters
 
@@ -403,17 +482,15 @@ and read the generated page in `dist/`.
   - an `example`;
   - a cross-check against the engine in `figures.test.ts`;
   - a row in this file. The tests fail if a function or formatter is missing here.
-- **Interim functions.** These carry an `interim:` line in `figures.ts` naming the module
-  that should replace them (see "Do not use yet" at the end of section 4). To re-point
-  one:
-  1. Call the merged engine.
-  2. Delete the `interim:` line.
-  3. Remove the function from the "Do not use yet" table.
-  4. Keep the tests green: they pin today's values, so any difference is a real
+- **Re-pointing a function** (the W2-FIG recipe, for the next engine change):
+  1. Call the engine function the calculator calls, not a copy of its maths.
+  2. Add the function to the grid in `src/lib/figures-grid.test.ts`, with an independent
+     engine call built from the case, and exact (`===`) comparison where it is the same
+     engine function. The grid must fail if the re-point is reverted.
+  3. Keep `figures.test.ts` green: it pins today's values, so any difference is a real
      engine change to review.
-
-  The UK tax-code parser inside `figures.ts` goes the same way, to `uk-tax-codes.ts`.
-  `rate()` is wired once `market-rates.ts` lands.
-- **Multi-year tax data.** When the rates modules become year-keyed (W1-TAX, TX-1),
-  wire `year=` through to the engines in `figures.ts` (see "MULTI-YEAR HOOK"). Until
-  then a `year=` other than the current dataset fails, by design.
+- **Multi-year tax data.** The US functions take `year=` through to `us-rates.ts`
+  (`getUsRates(year)`, `computeUsSalary({ year })`). The UK engines take no year
+  argument, so UK `year=` accepts only the dataset the engines use; when a 2027/28 dataset
+  lands, add a year argument to the UK engines first, then wire it in `figures.ts`
+  ("Tax years" comment).
