@@ -74,7 +74,7 @@ With these inputs, you reach the target in {{ savingsMonths(1000000, 50000, 500,
 
 **Already there:** if your current savings already meet the target, the calculator shows your current age and says you are already there.
 
-**Not reachable by 90:** if the target is not reached by age 90, the calculator says so and shows the balance you would have at 90, how far short it is, and the monthly contribution that would reach the target exactly at 90. For example, $50,000 with no contributions at a 1% return reaches only $91,083 by age 90, $908,917 short of $1,000,000, and would need $921.83 a month from today to get there.
+**Not reachable by 90:** if the target is not reached by age 90, the calculator says so and shows the balance you would have at 90, how far short it is, and the monthly contribution that would reach the target exactly at 90. For example, $50,000 with no contributions at a 1% return reaches only {{ retirementFV(50000, 0, 1, 60).nominal | usd }} by age 90, {{ 1000000 - retirementFV(50000, 0, 1, 60).nominal | usd }} short of $1,000,000, and would need {{ savingsMonthly(1000000, 50000, 1, 720) | usd(2) }} a month from today to get there.
 
 ## Accuracy
 
