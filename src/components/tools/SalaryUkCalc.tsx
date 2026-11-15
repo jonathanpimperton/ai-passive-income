@@ -7,13 +7,17 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import LazyChartFrame from './charts/LazyChartFrame';
+import SalaryHeadline from './SalaryHeadline';
 import type { SalarySlice } from './charts/SalaryUkChart';
 import type { ResultItem } from '../../lib/email-types';
 import { formatNumber } from '../../lib/calculator-utils';
 import {
   calculateUkTakeHome,
+  pensionFromPayForGross,
   UK_CHILDCARE_ANI_LIMIT,
   UK_PENSION_ANNUAL_ALLOWANCE,
+  UK_QUALIFYING_EARNINGS_LOWER,
+  UK_QUALIFYING_EARNINGS_UPPER,
   type StudentLoanPlan,
   type PensionMethod,
   type PensionInputMode,
@@ -31,13 +35,25 @@ export interface SalaryUkInputs {
   isScottish: boolean;
   studentLoan: StudentLoanPlan;
   pensionMode: PensionInputMode;
-  /** Percent of full gross salary. */
+  /** Percent of full gross salary, or of qualifying earnings (see pensionPercentOf). */
   pensionPercent: number;
-  /** Annual amount into the pension, gross. */
+  /** What `pensionPercent` is a percentage of. */
+  pensionPercentOf: PensionPercentOf;
+  /**
+   * LEGACY name, kept so existing `defaults` keep working: annual amount into the pension, GROSS
+   * (including any relief at source). It seeds `pensionFromPay` (x 0.8 for relief at source).
+   */
   pensionAmount: number;
+  /**
+   * Annual amount taken from your pay for the pension: what a payslip shows (monthly deduction
+   * x 12). When set it wins over the legacy gross `pensionAmount`.
+   */
+  pensionFromPay?: number;
   pensionMethod: PensionMethod;
   taxCode: string;
 }
+
+type PensionPercentOf = 'salary' | 'qualifying';
 
 const DEFAULTS: SalaryUkInputs = {
   salary: 35_000,
@@ -45,6 +61,7 @@ const DEFAULTS: SalaryUkInputs = {
   studentLoan: 'none',
   pensionMode: 'percent',
   pensionPercent: 5,
+  pensionPercentOf: 'salary',
   pensionAmount: 1_750,
   pensionMethod: 'netPay',
   taxCode: '',
@@ -83,6 +100,17 @@ function formatPercent(v: number): string {
 
 function pct(rate: number): string {
   return `${Number((rate * 100).toFixed(1))}%`;
+}
+
+/** Starting value of the "taken from your pay" field: the new field if given, else the legacy gross amount mapped. */
+function seedFromPay(i: SalaryUkInputs): number {
+  if (typeof i.pensionFromPay === 'number' && Number.isFinite(i.pensionFromPay)) return Math.max(0, i.pensionFromPay);
+  return pensionFromPayForGross(i.pensionAmount, i.pensionMethod);
+}
+
+/** A percentage rounded to 2 decimals, capped at 100. */
+function percentOf(part: number, whole: number): number {
+  return Math.min(100, Math.round((part / whole) * 10_000) / 100);
 }
 
 /** Drop undefined entries so `{...DEFAULTS, ...defaults}` never writes undefined. */
@@ -138,7 +166,8 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
   const [studentLoan, setStudentLoan] = useState<StudentLoanPlan>(initial.studentLoan);
   const [pensionMode, setPensionMode] = useState<PensionInputMode>(initial.pensionMode);
   const [pensionPercent, setPensionPercent] = useState(initial.pensionPercent);
-  const [pensionAmount, setPensionAmount] = useState(initial.pensionAmount);
+  const [pensionPercentOf, setPensionPercentOf] = useState<PensionPercentOf>(initial.pensionPercentOf);
+  const [pensionFromPay, setPensionFromPay] = useState(() => seedFromPay(initial));
   const [pensionMethod, setPensionMethod] = useState<PensionMethod>(initial.pensionMethod);
   const [taxCode, setTaxCode] = useState(initial.taxCode);
   const [taxCodeFocused, setTaxCodeFocused] = useState(false);
@@ -150,7 +179,8 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
     setStudentLoan(initial.studentLoan);
     setPensionMode(initial.pensionMode);
     setPensionPercent(initial.pensionPercent);
-    setPensionAmount(initial.pensionAmount);
+    setPensionPercentOf(initial.pensionPercentOf);
+    setPensionFromPay(seedFromPay(initial));
     setPensionMethod(initial.pensionMethod);
     setTaxCode(initial.taxCode);
   }, [initial]);
@@ -164,28 +194,41 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
         studentLoan,
         pensionMode,
         pensionPercent,
-        pensionAmount,
+        pensionPercentOf,
+        // The amount field is what leaves your pay (a payslip's pension line, x 12).
+        pensionAmount: pensionFromPay,
+        pensionAmountBasis: 'fromPay',
         pensionMethod,
       }),
-    [salary, isScottish, taxCode, studentLoan, pensionMode, pensionPercent, pensionAmount, pensionMethod],
+    [salary, isScottish, taxCode, studentLoan, pensionMode, pensionPercent, pensionPercentOf, pensionFromPay, pensionMethod],
   );
   const code = result.code;
+
+  const percentBase = pensionPercentOf === 'qualifying' ? result.qualifyingEarnings : salary;
 
   /** Switching % <-> £ keeps the same contribution. */
   const changePensionMode = (mode: PensionInputMode) => {
     if (mode === pensionMode) return;
     if (mode === 'amount') {
-      setPensionAmount(Math.round(result.pension.gross));
-    } else if (salary > 0) {
-      setPensionPercent(Math.min(100, Math.round((result.pension.gross / salary) * 1000) / 10));
+      setPensionFromPay(Math.round(result.pension.fromPay));
+    } else if (percentBase > 0) {
+      setPensionPercent(percentOf(result.pension.gross, percentBase));
     }
     setPensionMode(mode);
+  };
+
+  /** Switching the base of the percentage (salary <-> qualifying earnings) keeps the same contribution. */
+  const changePercentOf = (next: PensionPercentOf) => {
+    if (next === pensionPercentOf) return;
+    const nextBase = next === 'qualifying' ? result.qualifyingEarnings : salary;
+    if (nextBase > 0 && result.pension.gross > 0) setPensionPercent(percentOf(result.pension.gross, nextBase));
+    setPensionPercentOf(next);
   };
 
   const animatedNetAnnual = useAnimatedNumber(result.netAnnual);
   const resultsRef = useRef<HTMLDivElement>(null);
   const liveText = useDebouncedText(
-    `Annual take-home pay ${formatGBP(result.netAnnual)}, ${formatGBP(result.netMonthly)} a month.`,
+    `Take-home pay ${formatGBP(result.netMonthly)} a month, ${formatGBP(result.netAnnual)} a year.`,
   );
 
   const regionLabel = result.region === 'scotland' ? 'Scotland' : code.prefix === 'C' ? 'Wales' : 'England, Wales and NI';
@@ -206,22 +249,29 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
     if (studentLoan !== 'none') {
       inputs.push({ label: 'Student Loan', value: STUDENT_LOAN_LABELS[studentLoan] });
     }
+    const percentText = `${formatPercent(pensionPercent)}%${pensionPercentOf === 'qualifying' ? ' of qualifying earnings' : ''}`;
     inputs.push({
       label: 'Pension Contribution',
-      value: pensionMode === 'percent' ? `${formatPercent(pensionPercent)}%` : `£${formatNumber(Math.round(pensionAmount))} a year`,
+      value: pensionMode === 'percent' ? percentText : `£${formatNumber(Math.round(pensionFromPay))} a year taken from pay`,
     });
     if (result.pension.gross > 0) {
       inputs.push({ label: 'Pension Type', value: PENSION_METHOD_LABEL[pensionMethod] });
     }
     return inputs;
-  }, [salary, taxCode, code.kind, result.region, result.pension.gross, studentLoan, pensionMode, pensionPercent, pensionAmount, pensionMethod]);
+  }, [salary, taxCode, code.kind, result.region, result.pension.gross, studentLoan, pensionMode, pensionPercent, pensionPercentOf, pensionFromPay, pensionMethod]);
 
   const getResults = useCallback((): ResultItem[] => {
     const items: ResultItem[] = [
       { label: 'Annual Take-Home Pay', value: formatGBP(result.netAnnual), highlight: true },
-      { label: 'Income Tax', value: formatGBP(result.incomeTax) },
-      { label: 'National Insurance', value: formatGBP(result.ni) },
+      { label: 'Monthly Take-Home Pay', value: formatGBP(result.netMonthly) },
     ];
+    if (result.payslip.applies) {
+      items.push({ label: 'Payslip Take-Home Pay (a month)', value: formatGBP(result.payslip.netMonthly) });
+      items.push({ label: 'Payslip Take-Home Pay (a year)', value: formatGBP(result.payslip.netAnnual) });
+      items.push({ label: 'Extra Relief to Claim (a year)', value: formatGBP(result.payslip.extraRelief) });
+    }
+    items.push({ label: 'Income Tax', value: formatGBP(result.incomeTax) });
+    items.push({ label: 'National Insurance', value: formatGBP(result.ni) });
     if (result.studentLoan > 0) {
       items.push({ label: 'Student Loan', value: formatGBP(result.studentLoan) });
     }
@@ -385,13 +435,13 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
 
             {/* Pension: % or £, then method */}
             <div>
-              <div className="flex items-center justify-between mb-2 gap-3">
+              <div className="flex flex-wrap items-center justify-between mb-2 gap-x-3 gap-y-2">
                 <p className="text-sm font-medium text-neutral-700">Pension Contribution</p>
                 <div className="inline-flex rounded-lg bg-neutral-100 p-1" role="radiogroup" aria-label="Enter pension as">
                   {(['percent', 'amount'] as const).map((mode) => (
                     <label
                       key={mode}
-                      className={`cursor-pointer px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500 ${
+                      className={`cursor-pointer whitespace-nowrap px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500 ${
                         pensionMode === mode ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'
                       }`}
                     >
@@ -403,42 +453,87 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
                         onChange={() => changePensionMode(mode)}
                         className="sr-only"
                       />
-                      {mode === 'percent' ? '% of salary' : '£ a year'}
+                      {mode === 'percent' ? 'Percentage' : '£ a year'}
                     </label>
                   ))}
                 </div>
               </div>
 
               {pensionMode === 'percent' ? (
-                <SliderInput
-                  label="Contribution (% of salary)"
-                  id="uk-pension"
-                  value={pensionPercent}
-                  min={0}
-                  max={40}
-                  step={0.5}
-                  textMax={100}
-                  onChange={setPensionPercent}
-                  suffix="%"
-                  formatDisplay={formatPercent}
-                  hint="Percentage of your full salary"
-                />
+                <>
+                  <SliderInput
+                    label={pensionPercentOf === 'qualifying' ? 'Contribution (% of qualifying earnings)' : 'Contribution (% of salary)'}
+                    id="uk-pension"
+                    value={pensionPercent}
+                    min={0}
+                    max={40}
+                    step={0.5}
+                    textMax={100}
+                    onChange={setPensionPercent}
+                    suffix="%"
+                    formatDisplay={formatPercent}
+                    hint={
+                      pensionPercentOf === 'qualifying'
+                        ? 'Percentage of your earnings between the qualifying limits'
+                        : 'Percentage of your full salary'
+                    }
+                  />
+                  <div className="mt-3">
+                    <label htmlFor="uk-pension-base" className="block text-sm font-medium text-neutral-700 mb-1.5">
+                      Percentage of
+                    </label>
+                    <select
+                      id="uk-pension-base"
+                      value={pensionPercentOf}
+                      onChange={(e) => changePercentOf(e.target.value === 'qualifying' ? 'qualifying' : 'salary')}
+                      aria-describedby="uk-pension-base-hint"
+                      className="w-full h-11 rounded-lg border border-neutral-200 bg-white text-neutral-900 text-base px-3
+                        focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-150"
+                    >
+                      <option value="salary">Your full salary</option>
+                      <option value="qualifying">Qualifying earnings (auto-enrolment)</option>
+                    </select>
+                    <p id="uk-pension-base-hint" className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
+                      {pensionPercentOf === 'qualifying' ? (
+                        <>
+                          Workplace schemes such as NEST take the percentage of earnings between {formatGBP(UK_QUALIFYING_EARNINGS_LOWER)} and{' '}
+                          {formatGBP(UK_QUALIFYING_EARNINGS_UPPER)} a year: <span className="tabular-nums">{formatGBP(result.qualifyingEarnings)}</span> at
+                          this salary, not your full pay.
+                        </>
+                      ) : (
+                        <>
+                          Auto-enrolment schemes use qualifying earnings ({formatGBP(UK_QUALIFYING_EARNINGS_LOWER)} to{' '}
+                          {formatGBP(UK_QUALIFYING_EARNINGS_UPPER)}), not full pay: switch this to match your payslip.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </>
               ) : (
-                <SliderInput
-                  label="Contribution (£ a year)"
-                  id="uk-pension-amount"
-                  value={pensionAmount}
-                  min={0}
-                  max={60_000}
-                  step={100}
-                  textMax={10_000_000}
-                  minLabel="£0"
-                  maxLabel="£60K"
-                  onChange={setPensionAmount}
-                  prefix="£"
-                  formatDisplay={formatNumber}
-                  hint="Total going into your pension each year, including any basic-rate relief your provider adds"
-                />
+                <>
+                  <SliderInput
+                    label="Taken from your pay (£ a year)"
+                    id="uk-pension-amount"
+                    value={pensionFromPay}
+                    min={0}
+                    max={60_000}
+                    step={100}
+                    textMax={10_000_000}
+                    minLabel="£0"
+                    maxLabel="£60K"
+                    onChange={setPensionFromPay}
+                    prefix="£"
+                    formatDisplay={formatNumber}
+                    hint={
+                      pensionMethod === 'reliefAtSource'
+                        ? 'What your payslip shows coming out of your pay for the pension (monthly amount x 12). Your provider adds 20% on top.'
+                        : 'What your payslip shows coming out of your pay for the pension (monthly amount x 12)'
+                    }
+                  />
+                  <p className={`${noteClass} text-neutral-500 mt-1.5`}>
+                    That is <span className="tabular-nums">£{formatNumber(pensionFromPay / 12, 2)}</span> a month.
+                  </p>
+                </>
               )}
 
               <div className="mt-4">
@@ -506,11 +601,31 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
               <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">Tax year {UK_TAX_YEAR}</span>
               <span className="text-xs text-neutral-500">{regionLabel} rates</span>
             </div>
-            <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
-            <p data-headline-result data-headline-label="Annual Take-Home Pay" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {formatGBP(animatedNetAnnual)}
-            </p>
-            <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
+            <p className="text-sm text-neutral-500 mb-1.5">Take-home pay</p>
+            <SalaryHeadline annual={animatedNetAnnual} format={formatGBP} />
+            {result.payslip.applies && (
+              <div data-payslip-comparison className="mt-4 rounded-lg border border-neutral-200/80 bg-white px-4 py-3 text-sm">
+                <dl className="space-y-1.5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
+                    <dt className="font-medium text-neutral-700">On your payslip</dt>
+                    <dd className="tabular-nums text-neutral-900">
+                      <span className="whitespace-nowrap">{formatGBP(result.payslip.netMonthly)} a month</span> &middot;{' '}
+                      <span className="whitespace-nowrap">{formatGBP(result.payslip.netAnnual)} a year</span>
+                    </dd>
+                  </div>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
+                    <dt className="font-medium text-neutral-700">Extra relief to claim via Self Assessment</dt>
+                    <dd className="tabular-nums text-neutral-900">{formatGBP(result.payslip.extraRelief)} a year</dd>
+                  </div>
+                </dl>
+                <p className="text-xs text-neutral-500 leading-relaxed pt-2">
+                  With relief at source your provider adds 20% relief, but the higher-rate relief is not given through payroll.
+                  The take-home figures above include it; your payslip does not until you claim it through a tax return or a
+                  tax code change.
+                </p>
+              </div>
+            )}
+            <p className="text-sm text-neutral-500 mt-3 leading-relaxed">
               Effective deduction rate: <span className="tabular-nums">{(result.effectiveDeductionRate * 100).toFixed(1)}%</span> &middot;{' '}
               <span className="tabular-nums">{formatGBP(result.totalDeductions)}</span> total deductions
             </p>
@@ -713,9 +828,9 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
             >
               <ul className="min-h-0 overflow-hidden list-disc pl-5 space-y-1.5 text-xs text-neutral-600 leading-relaxed">
                 <li>One job, paid evenly through the {UK_TAX_YEAR} tax year, with no bonus, benefits in kind or other income. Employee Class 1 NI (category A).</li>
-                <li>Pension percentages apply to your full salary. Auto-enrolment minimums use a band of &ldquo;qualifying earnings&rdquo;, so a 5% workplace contribution can be smaller than shown.</li>
+                <li>Pension percentages apply to your full salary unless you choose qualifying earnings ({formatGBP(UK_QUALIFYING_EARNINGS_LOWER)} to {formatGBP(UK_QUALIFYING_EARNINGS_UPPER)}), the band most auto-enrolment schemes use. A pound amount is what leaves your pay, as on a payslip.</li>
                 <li>Employer pension contributions are not included.</li>
-                <li>Relief at source: your provider adds 20% to what you pay. Higher-rate relief is included in the tax figure, but you claim it through Self Assessment or a tax code change.</li>
+                <li>Relief at source: your provider adds 20% to what you pay. Higher-rate relief is included in the headline tax figure, but payroll does not give it: you claim it through Self Assessment or a tax code change. The &ldquo;On your payslip&rdquo; figures leave it out. They keep the same tax code allowance, and PAYE spreads tax across the year, so a single payslip can differ by a few pounds.</li>
                 <li>Salary sacrifice cannot take pay below the National Minimum Wage. From 6 April 2029, NI relief on sacrifice above £2,000 a year is due to end; this {UK_TAX_YEAR} figure does not apply that.</li>
                 <li>Student loan repayments use pay after salary sacrifice, the same pay as NI. Only one plan is shown at a time.</li>
                 <li>L tax codes: the £100,000 taper reduces the Personal Allowance part of your code. A code below 1257L uses the lower of your code and the tapered allowance. Emergency codes are shown as full-year figures.</li>

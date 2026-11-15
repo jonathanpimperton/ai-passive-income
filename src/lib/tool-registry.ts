@@ -174,6 +174,7 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       'Overtime Hours / Week', '401(k) Contribution',
       'Tax Year', 'Hourly Rate', 'Aged 65 or Older', 'Overtime Deduction', 'Senior Deduction',
       'Annual Take-Home Pay', 'Federal Tax', 'State Tax', 'Social Security', 'Medicare',
+      'Monthly Take-Home Pay', // (W2-SALARY) monthly headline
     ],
     values: [
       '{n} paychecks', '{n} tax year (filing in {n})',
@@ -188,6 +189,9 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       'Annual Salary', 'Tax Code', 'Tax Region', 'Student Loan', 'Pension Contribution', 'Pension Type',
       'Annual Take-Home Pay', 'Income Tax', 'National Insurance', 'Pension',
       'Into Your Pension', 'Adjusted Net Income', // (W1-UK)
+      // (W2-SALARY) monthly headline and the relief-at-source payslip comparison
+      'Monthly Take-Home Pay', 'Payslip Take-Home Pay (a month)', 'Payslip Take-Home Pay (a year)',
+      'Extra Relief to Claim (a year)',
     ],
     values: [
       '{taxcode}', 'Scotland', 'Salary Sacrifice', 'No Student Loan',
@@ -196,6 +200,8 @@ export const TOOL_REGISTRY: Record<string, ToolEntry> = {
       // (W1-UK)
       '{taxcode} (not recognised, 1257L used)', '{n} a year', 'Plan 1 (pre-2012 England/Wales, Northern Ireland)',
       'Plan 5 (England, from 2023)', 'Net pay arrangement', 'Relief at source',
+      // (W2-SALARY) pension entered as a payslip amount, or as % of qualifying earnings
+      '{n} a year taken from pay', '{n} of qualifying earnings',
     ],
   },
   'mortgage-payment': {

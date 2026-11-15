@@ -7,6 +7,7 @@ import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import ChartSkeleton from '../ui/ChartSkeleton';
 import ChartDataTable from '../ui/ChartDataTable';
+import SalaryHeadline from './SalaryHeadline';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { computeUsSalary, clampSeniors, type SalaryInputMode } from '../../lib/us-tax-calc';
@@ -210,7 +211,7 @@ export default function SalaryCalc({ defaults }: SalaryCalcProps = {}) {
   const perHour = (v: number) => (result.hoursWorkedPerYear > 0 ? v / result.hoursWorkedPerYear : 0);
   const periods = [
     { label: 'Annual', gross: formatCurrency(result.grossAnnual), net: formatCurrency(result.netAnnual) },
-    { label: 'Monthly', gross: formatCurrency(result.grossAnnual / 12), net: formatCurrency(result.netAnnual / 12) },
+    { label: 'Monthly', gross: formatCurrency(result.grossAnnual / 12), net: formatCurrency(result.netMonthly) },
     { label: 'Bi-Weekly', gross: formatCurrency(result.grossAnnual / 26), net: formatCurrency(result.netAnnual / 26) },
     { label: 'Weekly', gross: formatCurrency(result.grossAnnual / 52), net: formatCurrency(result.netAnnual / 52) },
     { label: 'Per hour worked', gross: usdCents.format(perHour(result.grossAnnual)), net: usdCents.format(perHour(result.netAnnual)) },
@@ -221,7 +222,7 @@ export default function SalaryCalc({ defaults }: SalaryCalcProps = {}) {
 
   // One short sentence for screen readers, announced once input settles.
   // Nothing is announced on load, only after a change.
-  const liveSentence = `Take-home pay ${formatCurrency(result.netAnnual)} a year, ${yearLabel}.`;
+  const liveSentence = `Take-home pay ${formatCurrency(result.netMonthly)} a month, ${formatCurrency(result.netAnnual)} a year, ${yearLabel}.`;
   const [liveText, setLiveText] = useState('');
   const announcedOnce = useRef(false);
   useEffect(() => {
@@ -259,6 +260,7 @@ export default function SalaryCalc({ defaults }: SalaryCalcProps = {}) {
   const getResults = useCallback((): ResultItem[] => {
     const items: ResultItem[] = [
       { label: 'Annual Take-Home Pay', value: formatCurrency(result.netAnnual), highlight: true },
+      { label: 'Monthly Take-Home Pay', value: formatCurrency(result.netMonthly) },
       { label: 'Federal Tax', value: formatCurrency(result.federalTax) },
       { label: 'State Tax', value: formatCurrency(result.stateTax) },
       { label: 'Social Security', value: formatCurrency(result.socialSecurity) },
@@ -479,11 +481,9 @@ export default function SalaryCalc({ defaults }: SalaryCalcProps = {}) {
             <div className="flex items-center gap-2 mb-2">
               <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-700">{yearLabel}</span>
             </div>
-            <p className="text-sm text-neutral-500 mb-1">Annual Take-Home Pay</p>
-            <p data-headline-result data-headline-label="Annual Take-Home Pay" className="text-3xl sm:text-4xl font-bold result-number tabular-nums">
-              {formatCurrency(animatedNetAnnual)}
-            </p>
-            <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">
+            <p className="text-sm text-neutral-500 mb-1.5">Take-home pay</p>
+            <SalaryHeadline annual={animatedNetAnnual} format={formatCurrency} />
+            <p className="text-sm text-neutral-500 mt-3 leading-relaxed">
               Effective deduction rate: <span className="tabular-nums">{(result.effectiveDeductionRate * 100).toFixed(1)}%</span> · <span className="tabular-nums">{formatCurrency(result.totalDeductions)}</span> total deductions
             </p>
           </div>
