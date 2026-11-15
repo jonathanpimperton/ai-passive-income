@@ -82,6 +82,33 @@ for (const currency of ['USD', 'GBP', 'EUR']) {
   });
 }
 
+// Before the visitor picks a tab it is only a default: a euro visitor opens on the US tab but
+// is not offered the US-only partner; US and UK visitors get the partner for their own region.
+for (const [currency, expected] of [['EUR', null], ['USD', 'betterment'], ['GBP', 'nutmeg']] as const) {
+  test(`capital gains first load offers ${expected ?? 'no partner'} to a ${currency} visitor`, async ({ page, context }) => {
+    await prepare(context, currency);
+    await page.goto(CGT);
+    await hydrated(page);
+    // The default tab has settled (GBP moves to the UK tab after mount) and results are on screen.
+    await expect(page.getByRole('tab', { name: currency === 'GBP' ? 'United Kingdom' : 'United States' })).toHaveAttribute('aria-selected', 'true');
+    if (expected) {
+      await expect(page.locator(`${inline}[data-affiliate-partner="${expected}"]`)).toHaveCount(1);
+    } else {
+      await page.waitForTimeout(1000); // the affiliate row renders client-side; give it the chance to (wrongly) appear
+      await expect(page.locator(inline)).toHaveCount(0);
+    }
+  });
+}
+
+test('capital gains: a euro visitor who picks the US tab is offered the US partner', async ({ page, context }) => {
+  await prepare(context, 'EUR');
+  await page.goto(CGT);
+  await hydrated(page);
+  await expect(page.locator(inline)).toHaveCount(0);
+  await page.getByRole('tab', { name: 'United States' }).click(); // the tab already on screen, now chosen
+  await expect(page.locator(`${inline}[data-affiliate-partner="betterment"]`)).toHaveCount(1);
+});
+
 /* -- 2. Charts: one named image, never a tab stop --------------------------- */
 
 interface ChartCase {
@@ -200,6 +227,25 @@ for (const h of HUBS) {
 // hydration mismatch. Loads in a row, on the tool page and the embed page, must be clean.
 const NET_WORTH_PAGES = ['/tools/income-and-planning/net-worth/', '/embed/net-worth/'];
 
+test('net worth Reset clears a field that was showing an error', async ({ page, context }) => {
+  await prepare(context);
+  await page.goto('/tools/income-and-planning/net-worth/');
+  await hydrated(page);
+  const value = page.locator('input[id$="-value"]').first();
+  await value.fill('abc');
+  await value.blur();
+  await expect(value).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText(/Enter a number, for example/).first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Reset all inputs' }).click();
+
+  // Every field is a fresh one: no error, no invalid flag, the default amount back.
+  await expect(page.getByText(/Enter a number, for example/)).toHaveCount(0);
+  await expect(page.locator('input[aria-invalid="true"]')).toHaveCount(0);
+  await expect(page.locator('input[id$="-value"]').first()).not.toHaveValue('abc');
+  // Server/client id parity is untouched: the page still starts at item-1 (see the loads below).
+});
+
 for (const currency of [undefined, 'GBP', 'EUR']) {
   test(`net worth hydrates without a mismatch, load after load (${currency ?? 'nothing stored'})`, async ({ page, context }) => {
     await prepare(context, currency);
@@ -216,3 +262,53 @@ for (const currency of [undefined, 'GBP', 'EUR']) {
     }
   });
 }
+
+/* -- 5. Results panels taller than the window are not pinned ----------------- */
+
+// A panel pinned with lg:sticky that is taller than the window cannot be scrolled into view by
+// keyboard focus: Shift+Tab into its last controls left the focused control off screen.
+const COMPOUND = '/tools/saving-and-growth/compound-interest/';
+const panelSel = 'astro-island .lg\\:sticky';
+
+test('a results panel taller than the window is released, and Shift+Tab keeps focus on screen', async ({ page, context }) => {
+  await prepare(context);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(COMPOUND);
+  await hydrated(page);
+  const panel = page.locator(panelSel).first();
+  // The premise: this panel does not fit below its 80px offset in an 800px window.
+  expect(await panel.evaluate((el) => el.getBoundingClientRect().height)).toBeGreaterThan(800 - 96);
+  await expect(panel).toHaveCSS('position', 'static');
+
+  // Start on the first control after the calculator and walk backwards into the panel.
+  await page.evaluate((sel) => {
+    const el = document.querySelector(sel) as HTMLElement;
+    const focusable = Array.from(document.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]')).filter(
+      (e) => !(e as HTMLButtonElement).disabled && e.tabIndex >= 0 && e.offsetParent !== null,
+    );
+    const after = focusable.find((e) => !el.contains(e) && el.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING);
+    after?.focus();
+  }, panelSel);
+  const inView = () =>
+    page.evaluate(() => {
+      const r = document.activeElement!.getBoundingClientRect();
+      return r.top >= 0 && r.bottom <= window.innerHeight;
+    });
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Shift+Tab');
+    // Page scrolling is smooth, so give the focused control a moment to arrive.
+    await expect.poll(inView, { message: `focus stop ${i + 1} is on screen`, timeout: 4000 }).toBe(true);
+  }
+  expect(await page.evaluate((sel) => document.querySelector(sel)!.contains(document.activeElement), panelSel)).toBe(true);
+});
+
+test('a results panel that fits the window stays pinned', async ({ page, context }) => {
+  await prepare(context);
+  await page.setViewportSize({ width: 1280, height: 2400 });
+  await page.goto(COMPOUND);
+  await hydrated(page);
+  await expect(page.locator(panelSel).first()).toHaveCSS('position', 'sticky');
+  // And it is released again when the window shrinks, without a reload.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(page.locator(panelSel).first()).toHaveCSS('position', 'static');
+});
