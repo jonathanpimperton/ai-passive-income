@@ -32,6 +32,35 @@ const money = (convention: CurrencyCode, hardMin = 0, hardMax = 10_000_000, pref
   prefix,
 });
 
+describe('commitText: says when the range picked the smaller reading', () => {
+  it('EUR "50,000" in a field that stops at 10,000 is read as 50, with a note', () => {
+    expect(commitText('50,000', money('EUR', 0, 10_000))).toEqual({
+      value: 50,
+      error: null,
+      notice: 'Read as \u20AC50, since \u20AC50.000 is above the maximum of \u20AC10.000.',
+    });
+  });
+
+  it('a rate field reads "6,125" as 6.125 and says so', () => {
+    const r = commitText('6,125', { ...money('EUR', 0, 15, ''), suffix: '%' });
+    expect(r.value).toBe(6.125);
+    expect(r.notice).toBe('Read as 6,125%, since 6.125% is above the maximum of 15%.');
+  });
+
+  it('no note when the range chose the larger reading, or the entry was not ambiguous', () => {
+    expect(commitText('50,000', money('EUR', 10_000, 1_000_000))).toEqual({ value: 50000, error: null, notice: null });
+    expect(commitText('50.000', money('EUR', 0, 10_000_000))).toEqual({ value: 50000, error: null, notice: null });
+    expect(commitText('50', money('EUR', 0, 10_000)).notice).toBeNull();
+  });
+
+  it('still refuses an entry both readings of which fit, with its own message', () => {
+    const r = commitText('50,000', money('EUR', 0, 10_000_000));
+    expect(r.value).toBeNull();
+    expect(r.error).toMatch(/50/);
+    expect(r.notice).toBeNull();
+  });
+});
+
 describe('commitText: the CALC-UX-A/B attack set', () => {
   it.each([
     ['50,000', 50000],

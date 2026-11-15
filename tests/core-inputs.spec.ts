@@ -140,6 +140,19 @@ test.describe('number entry (CO-1)', () => {
     expect(await enter(page, 'ci-principal', '25.000')).toEqual({ value: '25.000', message: '' });
   });
 
+  test('EUR "50,000" in a field that stops at 10,000 is read as 50, and the note says so', async ({ page, context }) => {
+    await prepare(context, { currency: 'EUR' });
+    await page.goto('/tools/saving-and-growth/investment-fee/');
+    await hydrated(page);
+    const r = await enter(page, 'if-monthly', '50,000');
+    expect(r.value).toBe('50');
+    expect(r.message).toBe('Read as \u20AC50, since \u20AC50.000 is above the maximum of \u20AC10.000.');
+    await expect(page.locator('#if-monthly-message')).toHaveAttribute('role', 'status');
+    await expect(page.locator('input#if-monthly')).toHaveAttribute('aria-describedby', /if-monthly-message/);
+    // Typing it the unambiguous way is read as typed, with no note.
+    expect(await enter(page, 'if-monthly', '5.000')).toEqual({ value: '5.000', message: '' });
+  });
+
   test('results update while typing, before blur (CO-3)', async ({ page }) => {
     await page.goto(SALARY_UK);
     await hydrated(page);

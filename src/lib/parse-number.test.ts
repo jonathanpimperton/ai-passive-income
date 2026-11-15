@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseNumericInput, formatForInput, type ParseFailureReason } from './parse-number';
+import { parseNumericInput, formatForInput, rangePickedSmallerReading, type ParseFailureReason } from './parse-number';
 
 type Ok = [input: string, expected: number];
 type Bad = [input: string, reason: ParseFailureReason];
@@ -298,6 +298,40 @@ describe('parseNumericInput: range-aware disambiguation (min/max)', () => {
   });
   it('ignores non-finite bounds', () => {
     expectValue('6.125', 6125, { currency: 'EUR', min: Number.NaN, max: Infinity });
+  });
+});
+
+describe('rangePickedSmallerReading: when the range picks the smaller of two readings', () => {
+  it('reports the reading used and the one passed over (EUR "50,000" in a field that stops at 10,000)', () => {
+    expect(rangePickedSmallerReading('50,000', { currency: 'EUR', min: 0, max: 10000 })).toEqual({ value: 50, alternate: 50000 });
+    expect(rangePickedSmallerReading('\u20AC50,000', { currency: 'EUR', min: 0, max: 100 })).toEqual({ value: 50, alternate: 50000 });
+    // A rate field: "6,125" is 6.125, not 6125.
+    expect(rangePickedSmallerReading('6,125', { currency: 'eur', min: 0, max: 15 })).toEqual({ value: 6.125, alternate: 6125 });
+  });
+
+  it('says nothing when the range chose the larger reading, or nothing was chosen', () => {
+    // Salary field: 50000 is the expected reading.
+    expect(rangePickedSmallerReading('50,000', { currency: 'EUR', min: 10000, max: 1_000_000 })).toBeNull();
+    // Both readings fit: the parser still refuses, and says why elsewhere.
+    expect(rangePickedSmallerReading('50,000', { currency: 'EUR', min: 0, max: 10_000_000 })).toBeNull();
+    // Neither reading fits: the range chose nothing.
+    expect(rangePickedSmallerReading('50,000', { currency: 'EUR', min: 100, max: 1000 })).toBeNull();
+    expect(rangePickedSmallerReading('abc', { currency: 'EUR', min: 0, max: 100 })).toBeNull();
+    expect(rangePickedSmallerReading('', { currency: 'EUR', min: 0, max: 100 })).toBeNull();
+  });
+
+  it('says nothing for text that is not ambiguous', () => {
+    const range = { min: 0, max: 10000 };
+    expect(rangePickedSmallerReading('50.000', { currency: 'EUR', min: 0, max: 100_000 })).toBeNull(); // 50000 either way
+    expect(rangePickedSmallerReading('50,000', { currency: 'USD', ...range })).toBeNull(); // USD: 50000, clamped by the caller
+    expect(rangePickedSmallerReading('1.234,5', { currency: 'EUR', ...range })).toBeNull();
+    expect(rangePickedSmallerReading('12,34', { currency: 'USD', min: 0, max: 100 })).toBeNull(); // only one valid reading
+    expect(rangePickedSmallerReading('5000', { currency: 'EUR', ...range })).toBeNull();
+  });
+
+  it('does not change what parseNumericInput returns', () => {
+    expect(parseNumericInput('50,000', { currency: 'EUR', min: 0, max: 10000 })).toEqual({ ok: true, value: 50 });
+    expect(parseNumericInput('50,000', { currency: 'EUR' })).toMatchObject({ ok: false, reason: 'ambiguous', candidates: [50, 50000] });
   });
 });
 

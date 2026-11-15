@@ -264,6 +264,28 @@ export function parseNumericInput(
   return sa === null ? primary : { ok: false, reason: (primary as { reason: ParseFailureReason }).reason, candidates: [sa] };
 }
 
+/**
+ * When the field's range chose the SMALLER of two valid readings of what was
+ * typed (a euro "50,000" in a field that stops at 10,000 is 50, though an Irish
+ * visitor may have meant fifty thousand), returns the reading used and the one
+ * that was not, so the UI can say so. Otherwise null: a text that is not
+ * ambiguous, an ambiguous one the range could not settle (parseNumericInput
+ * refuses it, with a message), and a range that chose the larger reading ("50,000" in
+ * a salary field is 50000: what an English reader expects) all need no note.
+ */
+export function rangePickedSmallerReading(
+  text: string | null | undefined,
+  options: ParseNumberOptions = {},
+): { value: number; alternate: number } | null {
+  const chosen = parseNumericInput(text, options);
+  if (!chosen.ok) return null;
+  const unranged = parseNumericInput(text, { ...options, min: undefined, max: undefined });
+  if (unranged.ok || unranged.reason !== 'ambiguous') return null;
+  const others = (unranged.candidates ?? []).filter((c) => c !== chosen.value);
+  if (others.length !== 1) return null;
+  return Math.abs(others[0]) > Math.abs(chosen.value) ? { value: chosen.value, alternate: others[0] } : null;
+}
+
 /** Plain decimal notation for any finite number: no exponent, no grouping, '.' decimal. */
 function plainDecimal(value: number): string {
   const s = String(value);

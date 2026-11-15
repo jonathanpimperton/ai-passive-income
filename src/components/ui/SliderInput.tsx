@@ -40,7 +40,7 @@
  */
 import { memo, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { formatForInput, parseNumericInput, type ParseFailureReason } from '../../lib/parse-number';
+import { formatForInput, parseNumericInput, rangePickedSmallerReading, type ParseFailureReason } from '../../lib/parse-number';
 import { getActiveCurrency, useActiveCurrency, type CurrencyCode } from '../../lib/currency';
 import { currentPageSlug, fixedCurrencyFor } from '../../lib/affiliate-data';
 import { useUrlNumberSync } from '../../lib/url-state';
@@ -275,6 +275,19 @@ export function commitText(
       error: null,
       notice: `Minimum is ${formatBound(opts.hardMin, opts.convention, opts.prefix, opts.suffix)}, so we used that.`,
     };
+  }
+  // The range settled an ambiguous entry by picking the smaller reading ("50,000" in a field
+  // that stops at 10,000): say which was used, as the clamp notes do.
+  const picked = rangePickedSmallerReading(text, {
+    currency: opts.convention,
+    allowNegative: opts.allowNegative,
+    min: opts.hardMin,
+    max: opts.hardMax,
+  });
+  if (picked) {
+    const unit = (v: number) => formatBound(v, opts.convention, opts.prefix, opts.suffix);
+    const limit = picked.alternate > opts.hardMax ? `above the maximum of ${unit(opts.hardMax)}` : `below the minimum of ${unit(opts.hardMin)}`;
+    return { value: r.value, error: null, notice: `Read as ${unit(picked.value)}, since ${unit(picked.alternate)} is ${limit}.` };
   }
   return { value: r.value, error: null, notice: null };
 }
