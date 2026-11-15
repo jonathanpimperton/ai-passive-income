@@ -37,6 +37,9 @@
  *   https://www.gov.uk/check-eligible-free-childcare-if-youre-working
  * - Pension annual allowance £60,000:
  *   https://www.gov.uk/tax-on-your-private-pension/annual-allowance
+ * - Automatic-enrolment "qualifying earnings" band, £6,240 to £50,270 a year
+ *   before tax: https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay
+ *   (accessed 15 Nov 2026; The Pensions Regulator publishes the same band).
  */
 
 import {
@@ -69,6 +72,31 @@ const RAS_BASIC_RELIEF = UK_INCOME_TAX.bands.find(b => b.name === 'Basic')!.rate
 export const UK_PENSION_ANNUAL_ALLOWANCE = 60_000;
 /** Adjusted net income above which Tax-Free Childcare and working-parent free hours stop. */
 export const UK_CHILDCARE_ANI_LIMIT = 100_000;
+/**
+ * Automatic-enrolment qualifying earnings band (a year, before tax). Not in uk-rates.ts yet;
+ * REQUEST for W1-TAX consolidation: move both into the year-keyed UkYearRates and re-export here.
+ * Source: https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay
+ * ("between £6,240 and £50,270 a year before tax"), accessed 15 Nov 2026.
+ */
+export const UK_QUALIFYING_EARNINGS_LOWER = 6_240;
+export const UK_QUALIFYING_EARNINGS_UPPER = 50_270;
+
+/**
+ * What leaves your pay for a GROSS pension contribution. Maps the original gross
+ * `pensionAmount` ("total into the pension") onto the "amount taken from your pay" field:
+ * relief at source takes 80% of the gross out of pay; net pay and salary sacrifice take all of it.
+ * Rounded to the penny (it seeds a text field).
+ */
+export function pensionFromPayForGross(gross: number, method: PensionMethod): number {
+  const g = Math.max(0, Number.isFinite(gross) ? gross : 0);
+  return method === 'reliefAtSource' ? Math.round(g * (1 - RAS_BASIC_RELIEF) * 100) / 100 : g;
+}
+
+/** Earnings inside the qualifying band: what auto-enrolment percentages are worked out on. */
+export function qualifyingEarnings(salary: number): number {
+  const pay = Number.isFinite(salary) ? salary : 0;
+  return Math.max(0, Math.min(pay, UK_QUALIFYING_EARNINGS_UPPER) - UK_QUALIFYING_EARNINGS_LOWER);
+}
 
 /**
  * Calculate Personal Allowance with taper for high earners.
@@ -262,6 +290,18 @@ export interface UkTakeHomeInput {
   /** Annual amount going into the pension, gross (used when pensionMode is 'amount'). */
   pensionAmount: number;
   pensionMethod: PensionMethod;
+  /**
+   * What `pensionPercent` is a percentage of. Default 'salary' (full gross salary). 'qualifying'
+   * uses the auto-enrolment qualifying earnings band (see qualifyingEarnings()).
+   */
+  pensionPercentOf?: 'salary' | 'qualifying';
+  /**
+   * What `pensionAmount` means in 'amount' mode. Default 'gross': the total going into the
+   * pension. 'fromPay' with relief at source: the amount that leaves your pay (a payslip shows
+   * this); the pension receives it grossed up by the provider's 20% relief (x 1.25). For net pay
+   * and salary sacrifice the two are the same, so 'fromPay' changes nothing there.
+   */
+  pensionAmountBasis?: 'gross' | 'fromPay';
 }
 
 export interface UkTakeHomeResult {
@@ -312,19 +352,51 @@ export interface UkTakeHomeResult {
   pensionToReach100k: number;
   /** Gross contribution above the £60,000 annual allowance (charge not modelled). */
   overAnnualAllowance: boolean;
+  /** Earnings in the auto-enrolment qualifying band for this salary (0 below £6,240). */
+  qualifyingEarnings: number;
+  /**
+   * What payroll actually deducts, for comparing with a payslip. Relief at source extends the
+   * tax bands for higher/additional-rate payers, but payroll does not give that relief: it is
+   * claimed afterwards through Self Assessment or a tax code change. `netAnnual` above includes
+   * the claim; this does not. Same allowance, NI, student loan and pension payment; only the
+   * band extension is dropped. When relief at source changes nothing, `applies` is false and the
+   * figures equal the headline ones.
+   */
+  payslip: {
+    applies: boolean;
+    incomeTax: number;
+    netAnnual: number;
+    netMonthly: number;
+    /** Tax a year to claim back through Self Assessment (headline tax is this much lower). */
+    extraRelief: number;
+    /**
+     * The pension brings adjusted net income down and so restores part of the Personal Allowance
+     * (income over £100,000). Both figures use the restored allowance, so `extraRelief` counts only
+     * the band extension; if the tax code was set from pay before the pension, the real claim
+     * could be larger.
+     */
+    allowanceRestored: boolean;
+  };
 }
 
-function grossPension(input: UkTakeHomeInput): { gross: number; capped: boolean } {
+function grossPension(input: UkTakeHomeInput): { gross: number; capped: boolean; exactFromPay?: number } {
   const salary = Math.max(0, input.salary);
+  const percentBase = input.pensionPercentOf === 'qualifying' ? qualifyingEarnings(salary) : salary;
+  // Relief at source and "amount taken from pay": gross up by the provider's relief (x 1.25).
+  const fromPayEntry =
+    input.pensionMode === 'amount' && input.pensionAmountBasis === 'fromPay' && input.pensionMethod === 'reliefAtSource';
+  const entered = Math.max(0, input.pensionAmount);
   const requested = input.pensionMode === 'amount'
-    ? Math.max(0, input.pensionAmount)
-    : salary * Math.max(0, input.pensionPercent) / 100;
-  return requested > salary ? { gross: salary, capped: true } : { gross: requested, capped: false };
+    ? (fromPayEntry ? entered / (1 - RAS_BASIC_RELIEF) : entered)
+    : percentBase * Math.max(0, input.pensionPercent) / 100;
+  if (requested > salary) return { gross: salary, capped: true };
+  // Keep the entered payslip figure exact (no x1.25 / x0.8 round-trip error).
+  return { gross: requested, capped: false, exactFromPay: fromPayEntry ? entered : undefined };
 }
 
 /** Income tax + NI + student loan for given pay figures; used for marginal rates. */
 function coreDeductions(input: UkTakeHomeInput, code: ParsedTaxCode, region: UkTaxRegion, salary: number) {
-  const { gross } = grossPension({ ...input, salary });
+  const { gross, exactFromPay } = grossPension({ ...input, salary });
   const method = input.pensionMethod;
   const sacrifice = method === 'sacrifice' ? gross : 0;
   const netPay = method === 'netPay' ? gross : 0;
@@ -336,6 +408,7 @@ function coreDeductions(input: UkTakeHomeInput, code: ParsedTaxCode, region: UkT
   const tax = calcUkIncomeTax({ pay: payForTax, adjustedNetIncome, region, code, bandExtension: ras });
   return {
     gross,
+    exactFromPay,
     sacrifice,
     netPay,
     ras,
@@ -356,8 +429,8 @@ export function calculateUkTakeHome(input: UkTakeHomeInput): UkTakeHomeResult {
   const { capped } = grossPension({ ...input, salary });
 
   const d = coreDeductions(input, code, region, salary);
-  const providerRelief = d.ras * RAS_BASIC_RELIEF;
-  const fromPay = d.sacrifice + d.netPay + (d.ras - providerRelief);
+  const providerRelief = d.exactFromPay !== undefined ? d.ras - d.exactFromPay : d.ras * RAS_BASIC_RELIEF;
+  const fromPay = d.exactFromPay ?? (d.sacrifice + d.netPay + (d.ras - providerRelief));
 
   const incomeTax = d.tax.tax;
   const totalDeductions = incomeTax + d.ni + d.studentLoan + fromPay;
@@ -366,10 +439,38 @@ export function calculateUkTakeHome(input: UkTakeHomeInput): UkTakeHomeResult {
   // Marginal rates: deductions on the next £100 of salary with the pension
   // held at its current amount (so a percentage pension doesn't mask the rate).
   const STEP = 100;
-  const fixedPension: UkTakeHomeInput = { ...input, pensionMode: 'amount', pensionAmount: d.gross };
+  const fixedPension: UkTakeHomeInput = { ...input, pensionMode: 'amount', pensionAmount: d.gross, pensionAmountBasis: 'gross' };
   const next = coreDeductions(fixedPension, code, region, salary + STEP);
   const marginalTax = (next.tax.tax - incomeTax) / STEP;
   const marginalAll = (next.tax.tax + next.ni + next.studentLoan - incomeTax - d.ni - d.studentLoan) / STEP;
+
+  // Payslip basis: the same tax without the relief-at-source band extension.
+  let payslip: UkTakeHomeResult['payslip'] = {
+    applies: false,
+    incomeTax,
+    netAnnual,
+    netMonthly: netAnnual / 12,
+    extraRelief: 0,
+    allowanceRestored: false,
+  };
+  if (d.ras > 0) {
+    const plain = calcUkIncomeTax({ pay: d.payForTax, adjustedNetIncome: d.adjustedNetIncome, region, code });
+    const extraRelief = plain.tax - incomeTax;
+    // Under 50p a year would show as "£0": treat as no difference.
+    if (extraRelief >= 0.5) {
+      const payslipNet = netAnnual - extraRelief;
+      const allowanceRestored =
+        allowanceForCode(code, salary).allowance < allowanceForCode(code, d.adjustedNetIncome).allowance;
+      payslip = {
+        applies: true,
+        incomeTax: plain.tax,
+        netAnnual: payslipNet,
+        netMonthly: payslipNet / 12,
+        extraRelief,
+        allowanceRestored,
+      };
+    }
+  }
 
   const taperApplies = code.kind === 'blank' || code.kind === 'invalid' || (code.kind === 'allowance' && code.tapers);
   const ani = d.adjustedNetIncome;
@@ -406,6 +507,8 @@ export function calculateUkTakeHome(input: UkTakeHomeInput): UkTakeHomeResult {
     overChildcareLimit: ani > UK_CHILDCARE_ANI_LIMIT,
     pensionToReach100k: Math.max(0, ani - UK_CHILDCARE_ANI_LIMIT),
     overAnnualAllowance: d.gross > UK_PENSION_ANNUAL_ALLOWANCE,
+    qualifyingEarnings: qualifyingEarnings(salary),
+    payslip,
   };
 }
 
