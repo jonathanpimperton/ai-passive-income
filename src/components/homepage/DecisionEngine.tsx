@@ -382,7 +382,6 @@ function RetirementPanel({
 
   let label = 'You could retire at';
   let headline: string;
-  let headlineTone = '';
   let detail: string;
   let liveText: string;
   let segments: BarSegment[] = [];
@@ -398,13 +397,11 @@ function RetirementPanel({
   } else if (solved.status === 'already') {
     label = 'Your savings are';
     headline = 'Already there';
-    headlineTone = 'text-success-600';
     detail = `Your ${fmt(solved.balance)} already meets the ${fmt(target)} target.`;
     liveText = `Your savings already meet ${fmt(target)}.`;
   } else {
     label = 'Your target is';
     headline = `Not by age ${maxAge}`;
-    headlineTone = 'text-red-600';
     detail = `At ${fmt(state.monthlyContribution)}/mo and ${annualReturnPct}% a year you would have ${fmt(solved.balanceAtMaxAge)} at ${maxAge}, ${fmt(solved.shortfall)} short of ${fmt(target)}.${
       solved.requiredMonthly !== null ? ` About ${fmt(solved.requiredMonthly)} a month would get you there.` : ''
     }`;
@@ -419,7 +416,7 @@ function RetirementPanel({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm text-neutral-500 mb-1">{label}</p>
-            <p data-engine-answer="retire" className={`${BIG_NUMBER_CLASS} ${headlineTone}`}>{headline}</p>
+            <p data-engine-answer="retire" className={BIG_NUMBER_CLASS}>{headline}</p>
           </div>
           <a href="/tools/income-and-planning/retirement-age/" className={CTA_CLASS}>
             Open full calculator
