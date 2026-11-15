@@ -1,11 +1,29 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { compoundInterest, solveForRetirementAge } from '../../lib/calculator-utils';
-import { loanMonthlyPayment } from '../../lib/calculator-utils';
-import { formatNumber } from '../../lib/calculator-utils';
-import { calcIncomeTax, calcNI } from '../../lib/uk-tax-calc';
-import { calcFederalTax, calcFICA } from '../../lib/us-tax-calc';
+import { compoundInterest, formatNumber } from '../../lib/calculator-utils';
+import { US_DEFAULT_TAX_YEAR, isUsTaxYear, type UsTaxYear } from '../../lib/us-rates';
+import { UK_TAX_YEAR } from '../../lib/uk-rates';
+import { AFFORDABILITY_DEFAULTS } from '../../lib/mortgage-affordability';
+import { defaultMortgageRateInfo, rateAttribution } from '../../lib/market-rates';
+import { formatDuration } from '../../lib/retirement';
+import { setActiveCurrency, useActiveCurrency } from '../../lib/currency';
+import { safeSessionGet } from '../../lib/safe-storage';
+import { taxClockNow } from '../../lib/tax-years.mjs';
 import SliderInput from '../ui/SliderInput';
+import {
+  MORTGAGE_TERM_YEARS,
+  RETIREMENT_DEFAULTS,
+  US_YEAR_SESSION_KEY,
+  engineAffordability,
+  engineMortgageRate,
+  engineRetirement,
+  preferredUsYear,
+  regionForCurrency,
+  takeHomeUk,
+  takeHomeUs,
+  wholeRetirementAge,
+  type EngineRegion,
+} from './engine-math';
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -23,23 +41,94 @@ interface SnowballState {
 
 interface RetirementState {
   currentAge: number;
+  currentSavings: number;
   monthlyContribution: number;
 }
 
 interface TakeHomeState {
-  region: 'US' | 'UK';
   salaryUS: number;
   salaryUK: number;
 }
 
+/** Props every panel gets. `idp` keeps the desktop and mobile copies' element ids apart (A11Y-PERF-14). */
+interface PanelBase {
+  idp: 'd' | 'm';
+  region: EngineRegion;
+  sym: string;
+}
+
+interface RegionalPanel extends PanelBase {
+  onRegionChange: (r: EngineRegion) => void;
+}
+
 /* ── Prompt Config ───────────────────────────────────────── */
 
-const PROMPTS = [
-  { id: 0 as const, question: 'Can I actually afford this house?', short: 'Mortgage' },
-  { id: 1 as const, question: 'What does $500/mo grow into?', short: 'Compound' },
-  { id: 2 as const, question: 'When can I retire?', short: 'Retire' },
-  { id: 3 as const, question: "What's my take-home pay?", short: 'Salary' },
-];
+const SNOWBALL_DEFAULT_MONTHLY = 500;
+
+function promptsFor(sym: string) {
+  return [
+    { id: 0 as const, question: 'Can I actually afford this house?', short: 'Mortgage' },
+    { id: 1 as const, question: `What does ${sym}${SNOWBALL_DEFAULT_MONTHLY}/mo grow into?`, short: 'Compound' },
+    { id: 2 as const, question: 'When can I retire?', short: 'Retire' },
+    { id: 3 as const, question: "What's my take-home pay?", short: 'Salary' },
+  ];
+}
+
+const ARROW_ICON = (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+const CTA_CLASS =
+  'shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150';
+
+const BIG_NUMBER_CLASS =
+  'text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap';
+
+/* ── Shared pieces ───────────────────────────────────────── */
+
+/**
+ * One short sentence for screen readers, announced about half a second after
+ * the answer settles. It starts equal to the current text, so nothing is read
+ * out on load or when a tab opens. The panel itself is NOT a live region
+ * (plan 5.4, A11Y-PERF-03).
+ */
+function Announcer({ text }: { text: string }) {
+  const [announced, setAnnounced] = useState(text);
+  useEffect(() => {
+    const t = window.setTimeout(() => setAnnounced(text), 500);
+    return () => window.clearTimeout(t);
+  }, [text]);
+  return (
+    <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+      {announced}
+    </p>
+  );
+}
+
+/** US / UK switch. It sets the site's display currency, so the full calculators open in the same country. */
+function RegionToggle({ region, onChange }: { region: EngineRegion; onChange: (r: EngineRegion) => void }) {
+  return (
+    <div className="mb-4" role="group" aria-label="Country">
+      <div className="inline-flex rounded-lg border border-neutral-200/80 p-0.5 bg-neutral-50">
+        {(['US', 'UK'] as const).map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => onChange(r)}
+            aria-pressed={region === r}
+            className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-150 ${
+              region === r ? 'bg-primary-600 text-white' : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /* ── Segmented Bar ───────────────────────────────────────── */
 
@@ -49,50 +138,13 @@ interface BarSegment {
   className: string;
 }
 
-function SegmentedBar({ segments }: { segments: BarSegment[] }) {
+function SegmentedBar({ segments, thick = false }: { segments: BarSegment[]; thick?: boolean }) {
   const total = segments.reduce((s, seg) => s + seg.value, 0);
   if (total <= 0) return null;
 
   return (
     <div>
-      <div className="flex gap-[3px] h-3 rounded-full overflow-hidden">
-        {segments.map((seg) => {
-          const pct = (seg.value / total) * 100;
-          if (pct < 0.5) return null;
-          return (
-            <div
-              key={seg.label}
-              className={`first:rounded-l-full last:rounded-r-full transition-all duration-300 ${seg.className}`}
-              style={{ width: `${pct}%` }}
-              title={`${seg.label}: ${pct.toFixed(0)}%`}
-            />
-          );
-        })}
-      </div>
-      <div className="flex justify-between mt-1.5">
-        {segments.map((seg) => {
-          const pct = total > 0 ? (seg.value / total) * 100 : 0;
-          if (pct < 5) return null;
-          return (
-            <span key={seg.label} className="text-xs text-neutral-500">
-              {seg.label} {pct.toFixed(0)}%
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ── Mortgage Bar — thick capacity gauge ─────────────────── */
-
-function MortgageBar({ segments }: { segments: BarSegment[] }) {
-  const total = segments.reduce((s, seg) => s + seg.value, 0);
-  if (total <= 0) return null;
-
-  return (
-    <div>
-      <div className="flex gap-[3px] h-4 rounded-full overflow-hidden">
+      <div className={`flex gap-[3px] ${thick ? 'h-4' : 'h-3'} rounded-full overflow-hidden`}>
         {segments.map((seg) => {
           const pct = (seg.value / total) * 100;
           if (pct < 0.5) return null;
@@ -123,79 +175,100 @@ function MortgageBar({ segments }: { segments: BarSegment[] }) {
 
 /* ── Mortgage Panel ──────────────────────────────────────── */
 
-const MORTGAGE_RATE = 0.0675;
-const MORTGAGE_TERM_YEARS = 30;
-const MORTGAGE_DTI = 0.36;
+const AD = AFFORDABILITY_DEFAULTS;
 
-function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s: MortgageState) => void }) {
-  const result = useMemo(() => {
-    const maxMonthlyPayment = (state.income / 12) * MORTGAGE_DTI;
-    const termMonths = MORTGAGE_TERM_YEARS * 12;
-    const r = MORTGAGE_RATE / 12;
-    const factor = (Math.pow(1 + r, termMonths) - 1) / (r * Math.pow(1 + r, termMonths));
-    const maxLoan = maxMonthlyPayment * factor;
-    const maxPrice = maxLoan + state.downPayment;
-    const monthlyPayment = loanMonthlyPayment(maxLoan, MORTGAGE_RATE, termMonths);
-    return { maxPrice, maxLoan, monthlyPayment };
-  }, [state.income, state.downPayment]);
+function MortgagePanel({
+  idp, region, sym, onRegionChange, state, onChange,
+}: RegionalPanel & { state: MortgageState; onChange: (s: MortgageState) => void }) {
+  const isUK = region === 'UK';
+  const fmt = (v: number) => `${sym}${formatNumber(Math.round(v))}`;
+  const term = MORTGAGE_TERM_YEARS[region];
+  const rate = engineMortgageRate(region);
+  const rateInfo = defaultMortgageRateInfo(isUK ? 'uk' : 'us', term);
 
+  // The full calculator's own solver and defaults (MATH-US-07): the figure
+  // here equals the tool's for the same income and deposit.
+  const result = useMemo(
+    () => engineAffordability(region, state.income, state.downPayment),
+    [region, state.income, state.downPayment],
+  );
+  const ok = result.status === 'ok';
   const animatedPrice = useAnimatedNumber(result.maxPrice);
 
-  const segments: BarSegment[] = [
-    { label: 'Loan', value: result.maxLoan, className: 'bg-primary-500' },
-    { label: 'Down payment', value: state.downPayment, className: 'bg-neutral-300' },
-  ];
+  const segments: BarSegment[] = ok
+    ? [
+        { label: 'Loan', value: result.maxLoan, className: 'bg-primary-500' },
+        { label: isUK ? 'Deposit' : 'Down payment', value: state.downPayment, className: 'bg-neutral-300' },
+      ]
+    : [];
+
+  let subline: string;
+  if (!ok) {
+    subline = 'Existing debts or fixed costs already use up the limit at this income.';
+  } else if (result.region === 'uk') {
+    subline = `${fmt(result.monthlyPI)}/mo at ${rate}% over ${term} years. ${
+      result.binding === 'lti'
+        ? `Capped at ${result.ltiCap}x your income.`
+        : `Limited by a ${result.stressRatePct.toFixed(2)}% rate-rise check.`
+    }`;
+  } else {
+    subline = `${fmt(result.totalMonthly)}/mo all-in (loan, tax, insurance${result.needsPMI ? ', PMI' : ''}) at ${rate}% over ${term} years`;
+  }
+
+  const assumptions = isUK
+    ? `Assumes no other credit payments, a ${AD.ltiCap}x income cap and a rate-rise check. Rate: ${rateAttribution(rateInfo)}.`
+    : `Assumes ${fmt(AD.monthlyDebts)}/mo other debts, ${AD.propertyTaxRate}% property tax, ${fmt(AD.insuranceAnnual)}/yr insurance and the ${AD.frontEndPct}/${AD.backEndPct} rule. Rate: ${rateAttribution(rateInfo)}.`;
+
+  const liveText = ok
+    ? `You could afford up to ${fmt(result.maxPrice)}.`
+    : 'No home fits these limits at this income.';
 
   return (
     <div className="space-y-5">
+      <Announcer text={liveText} />
       {/* Result — capacity gauge */}
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-neutral-500 mb-1">You could afford up to</p>
-            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
-              ${formatNumber(Math.round(animatedPrice))}
-            </p>
+            <p className="text-sm text-neutral-500 mb-1">{ok ? 'You could afford up to' : 'No home fits these limits'}</p>
+            <p data-engine-answer="mortgage" className={BIG_NUMBER_CLASS}>{ok ? fmt(animatedPrice) : fmt(0)}</p>
           </div>
-          <a
-            href="/tools/debt-and-loans/mortgage-affordability/"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
-          >
+          <a href="/tools/debt-and-loans/mortgage-affordability/" className={CTA_CLASS}>
             Open full calculator
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            {ARROW_ICON}
           </a>
         </div>
-        <p className="text-sm text-neutral-500">
-          ${formatNumber(Math.round(result.monthlyPayment))}/mo at {(MORTGAGE_RATE * 100).toFixed(2)}% over {MORTGAGE_TERM_YEARS} years
-        </p>
-        <MortgageBar segments={segments} />
+        <p className="text-sm text-neutral-500">{subline}</p>
+        <SegmentedBar segments={segments} thick />
+        <p className="text-xs text-neutral-500 leading-relaxed">{assumptions}</p>
       </div>
 
       <div className="h-px bg-neutral-200/80" />
 
       {/* Controls */}
       <div>
+        <RegionToggle region={region} onChange={onRegionChange} />
         <SliderInput
           label="Annual income"
-          id="engine-income"
+          id={`engine-${idp}-income`}
           value={state.income}
           min={30000}
           max={500000}
           step={5000}
           onChange={(v) => onChange({ ...state, income: v })}
-          prefix="$"
+          prefix={sym}
           formatDisplay={formatNumber}
         />
         <div className="mt-3">
           <SliderInput
-            label="Down payment"
-            id="engine-down"
+            label={isUK ? 'Deposit' : 'Down payment'}
+            id={`engine-${idp}-down`}
             value={state.downPayment}
             min={0}
             max={200000}
             step={5000}
             onChange={(v) => onChange({ ...state, downPayment: v })}
-            prefix="$"
+            prefix={sym}
             formatDisplay={formatNumber}
           />
         </div>
@@ -208,7 +281,9 @@ function MortgagePanel({ state, onChange }: { state: MortgageState; onChange: (s
 
 const SNOWBALL_YEARS = 30;
 
-function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s: SnowballState) => void }) {
+function SnowballPanel({
+  idp, sym, state, onChange,
+}: PanelBase & { state: SnowballState; onChange: (s: SnowballState) => void }) {
   const result = useMemo(() => {
     const finalBalance = compoundInterest(0, state.monthly, state.rate / 100, SNOWBALL_YEARS, 12);
     const totalContributions = state.monthly * 12 * SNOWBALL_YEARS;
@@ -226,26 +301,24 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
 
   return (
     <div className="space-y-5">
+      <Announcer text={`After ${SNOWBALL_YEARS} years: ${sym}${formatNumber(Math.round(result.finalBalance))}.`} />
       {/* Result — growth overpowering contributions */}
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm text-neutral-500 mb-1">After {SNOWBALL_YEARS} years</p>
-            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
-              ${formatNumber(Math.round(animatedBalance))}
+            <p data-engine-answer="compound" className={BIG_NUMBER_CLASS}>
+              {sym}{formatNumber(Math.round(animatedBalance))}
             </p>
           </div>
-          <a
-            href="/tools/saving-and-growth/compound-interest/"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
-          >
+          <a href="/tools/saving-and-growth/compound-interest/" className={CTA_CLASS}>
             Open full calculator
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            {ARROW_ICON}
           </a>
         </div>
         <div className="flex items-baseline gap-3">
           <span className="text-2xl font-bold text-success-600 tabular-nums">{result.multiplier.toFixed(1)}x</span>
-          <span className="text-sm text-neutral-500">your money back — ${formatNumber(Math.round(result.interestEarned))} is pure interest</span>
+          <span className="text-sm text-neutral-500">your money back — {sym}{formatNumber(Math.round(result.interestEarned))} is pure interest</span>
         </div>
         <SegmentedBar segments={segments} />
       </div>
@@ -256,19 +329,19 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
       <div>
         <SliderInput
           label="Monthly amount"
-          id="engine-monthly"
+          id={`engine-${idp}-monthly`}
           value={state.monthly}
           min={50}
           max={5000}
           step={50}
           onChange={(v) => onChange({ ...state, monthly: v })}
-          prefix="$"
+          prefix={sym}
           formatDisplay={formatNumber}
         />
         <div className="mt-3">
           <SliderInput
             label="Expected return"
-            id="engine-rate"
+            id={`engine-${idp}-rate`}
             value={state.rate}
             min={1}
             max={15}
@@ -285,51 +358,73 @@ function SnowballPanel({ state, onChange }: { state: SnowballState; onChange: (s
 
 /* ── Retirement Panel ────────────────────────────────────── */
 
-const RETIREMENT_RETURN = 0.07;
-const RETIREMENT_TARGET = 1000000;
+function RetirementPanel({
+  idp, sym, state, onChange,
+}: PanelBase & { state: RetirementState; onChange: (s: RetirementState) => void }) {
+  const fmt = (v: number) => `${sym}${formatNumber(Math.round(v))}`;
+  const { target, annualReturnPct, maxAge } = RETIREMENT_DEFAULTS;
 
-function RetirementPanel({ state, onChange }: { state: RetirementState; onChange: (s: RetirementState) => void }) {
-  const result = useMemo(() => {
-    const retireAge = solveForRetirementAge(
-      state.currentAge, 0, state.monthlyContribution, RETIREMENT_RETURN, RETIREMENT_TARGET
-    );
-    const roundedAge = Math.round(retireAge);
-    const years = Math.max(0, roundedAge - state.currentAge);
-    const totalContributions = state.monthlyContribution * 12 * years;
-    const interestEarned = RETIREMENT_TARGET - totalContributions;
-    return { retireAge: roundedAge, years, totalContributions, interestEarned: Math.max(0, interestEarned) };
-  }, [state.currentAge, state.monthlyContribution]);
+  // The full Retirement Age calculator's solver: an unreachable target is
+  // reported as such, never as an age that looks like an answer (MATH-US-08).
+  const solved = useMemo(
+    () => engineRetirement(state.currentAge, state.currentSavings, state.monthlyContribution),
+    [state.currentAge, state.currentSavings, state.monthlyContribution],
+  );
 
-  const animatedAge = useAnimatedNumber(result.retireAge);
+  const reachedAge = solved.status === 'reached' ? wholeRetirementAge(solved.age) : state.currentAge;
+  const animatedAge = useAnimatedNumber(reachedAge);
 
-  const segments: BarSegment[] = [
-    { label: 'Saving years', value: result.years, className: 'bg-primary-500' },
-    { label: 'Retirement years', value: Math.max(0, 90 - result.retireAge), className: 'bg-primary-300' },
-  ];
+  let label = 'You could retire at';
+  let headline: string;
+  let headlineTone = '';
+  let detail: string;
+  let liveText: string;
+  let segments: BarSegment[] = [];
+
+  if (solved.status === 'reached') {
+    headline = `Age ${Math.round(animatedAge)}`;
+    detail = `${formatDuration(solved.months)} of saving ${fmt(state.monthlyContribution)}/mo to reach ${fmt(target)} at ${annualReturnPct}% a year`;
+    liveText = `You reach ${fmt(target)} at age ${reachedAge}, in ${formatDuration(solved.months)}.`;
+    segments = [
+      { label: 'Saving years', value: solved.months / 12, className: 'bg-primary-500' },
+      { label: 'Retirement years', value: Math.max(0, maxAge - solved.age), className: 'bg-primary-300' },
+    ];
+  } else if (solved.status === 'already') {
+    label = 'Your savings are';
+    headline = 'Already there';
+    headlineTone = 'text-success-600';
+    detail = `Your ${fmt(solved.balance)} already meets the ${fmt(target)} target.`;
+    liveText = `Your savings already meet ${fmt(target)}.`;
+  } else {
+    label = 'Your target is';
+    headline = `Not by age ${maxAge}`;
+    headlineTone = 'text-red-600';
+    detail = `At ${fmt(state.monthlyContribution)}/mo and ${annualReturnPct}% a year you would have ${fmt(solved.balanceAtMaxAge)} at ${maxAge}, ${fmt(solved.shortfall)} short of ${fmt(target)}.${
+      solved.requiredMonthly !== null ? ` About ${fmt(solved.requiredMonthly)} a month would get you there.` : ''
+    }`;
+    liveText = `${fmt(target)} is not reached by age ${maxAge}; you would have ${fmt(solved.balanceAtMaxAge)}.`;
+  }
 
   return (
     <div className="space-y-5">
+      <Announcer text={liveText} />
       {/* Result */}
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-neutral-500 mb-1">You could retire at</p>
-            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
-              Age {Math.round(animatedAge)}
-            </p>
+            <p className="text-sm text-neutral-500 mb-1">{label}</p>
+            <p data-engine-answer="retire" className={`${BIG_NUMBER_CLASS} ${headlineTone}`}>{headline}</p>
           </div>
-          <a
-            href="/tools/income-and-planning/retirement-age/"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
-          >
+          <a href="/tools/income-and-planning/retirement-age/" className={CTA_CLASS}>
             Open full calculator
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            {ARROW_ICON}
           </a>
         </div>
-        <p className="text-sm text-neutral-600 font-medium">
-          {result.years} years of saving to reach ${formatNumber(RETIREMENT_TARGET)} at 7% return
-        </p>
+        <p className="text-sm text-neutral-600 font-medium">{detail}</p>
         <SegmentedBar segments={segments} />
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          Assumes {annualReturnPct}% a year and a {fmt(target)} target, as in the full calculator.
+        </p>
       </div>
 
       <div className="h-px bg-neutral-200/80" />
@@ -338,7 +433,7 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
       <div>
         <SliderInput
           label="Current age"
-          id="engine-retire-age"
+          id={`engine-${idp}-retire-age`}
           value={state.currentAge}
           min={18}
           max={65}
@@ -348,14 +443,28 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
         />
         <div className="mt-3">
           <SliderInput
+            label="Saved so far"
+            id={`engine-${idp}-retire-saved`}
+            value={state.currentSavings}
+            min={0}
+            max={500000}
+            step={5000}
+            textMax={10000000}
+            onChange={(v) => onChange({ ...state, currentSavings: v })}
+            prefix={sym}
+            formatDisplay={formatNumber}
+          />
+        </div>
+        <div className="mt-3">
+          <SliderInput
             label="Monthly savings"
-            id="engine-retire-monthly"
+            id={`engine-${idp}-retire-monthly`}
             value={state.monthlyContribution}
             min={100}
             max={5000}
             step={50}
             onChange={(v) => onChange({ ...state, monthlyContribution: v })}
-            prefix="$"
+            prefix={sym}
             formatDisplay={formatNumber}
           />
         </div>
@@ -366,29 +475,28 @@ function RetirementPanel({ state, onChange }: { state: RetirementState; onChange
 
 /* ── Take-Home Pay Panel ─────────────────────────────────────── */
 
-function TakeHomePanel({ state, onChange }: { state: TakeHomeState; onChange: (s: TakeHomeState) => void }) {
-  const isUK = state.region === 'UK';
+function TakeHomePanel({
+  idp, region, sym, onRegionChange, taxYear, state, onChange,
+}: RegionalPanel & { taxYear: UsTaxYear; state: TakeHomeState; onChange: (s: TakeHomeState) => void }) {
+  const isUK = region === 'UK';
   const salary = isUK ? state.salaryUK : state.salaryUS;
-  const sym = isUK ? '£' : '$';
 
-  const result = useMemo(() => {
-    if (isUK) {
-      const tax = calcIncomeTax(salary);
-      const ni = calcNI(salary);
-      const takeHome = salary - tax - ni;
-      return { takeHome, tax, other: ni, otherLabel: 'National Insurance' };
-    }
-    const tax = calcFederalTax(salary, 'single');
-    const fica = calcFICA(salary, 'single');
-    const takeHome = salary - tax - fica.total;
-    return { takeHome, tax, other: fica.total, otherLabel: 'FICA' };
-  }, [isUK, salary]);
+  // The salary calculators' own engines (UK and US), standard assumptions:
+  // no pension, student loan, state tax or 401(k).
+  const result = useMemo(
+    () => (isUK ? takeHomeUk(salary) : takeHomeUs(salary, taxYear)),
+    [isUK, salary, taxYear],
+  );
 
-  const animatedMonthly = useAnimatedNumber(result.takeHome / 12);
+  // One animated annual figure drives both headlines, so the monthly figure is
+  // always annual / 12 from the same result, never a separate rounding path.
+  const animatedAnnual = useAnimatedNumber(result.netAnnual);
+  const monthlyShown = Math.round(animatedAnnual / 12);
+  const annualShown = Math.round(animatedAnnual);
 
   const segments: BarSegment[] = [
-    { label: 'Take-home', value: result.takeHome, className: 'bg-primary-500' },
-    { label: isUK ? 'Income tax' : 'Federal tax', value: result.tax, className: 'bg-red-300' },
+    { label: 'Take-home', value: result.netAnnual, className: 'bg-primary-500' },
+    { label: isUK ? 'Income tax' : 'Federal tax', value: result.incomeTax, className: 'bg-red-300' },
     { label: result.otherLabel, value: result.other, className: 'bg-neutral-300' },
   ];
 
@@ -396,28 +504,39 @@ function TakeHomePanel({ state, onChange }: { state: TakeHomeState; onChange: (s
     ? '/tools/income-and-planning/salary-uk/'
     : '/tools/income-and-planning/salary-us/';
 
+  const basis = isUK
+    ? `${UK_TAX_YEAR} rates, England, Wales and NI, no pension or student loan`
+    : `${taxYear} federal tax and FICA, single filer, no state tax or 401(k)`;
+
   return (
     <div className="space-y-5">
-      {/* Result */}
+      <Announcer
+        text={`Take-home pay ${sym}${formatNumber(Math.round(result.netAnnual / 12))} a month, ${sym}${formatNumber(Math.round(result.netAnnual))} a year.`}
+      />
+      {/* Result: monthly and annual carry equal weight (owner requirement, 13 Nov 2026) */}
       <div className="space-y-3">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm text-neutral-500 mb-1">Your monthly take-home</p>
-            <p className="text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap">
-              {sym}{formatNumber(Math.round(animatedMonthly))}
-            </p>
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+          <div className="flex items-start gap-6 sm:gap-8">
+            <div>
+              <p className="text-sm text-neutral-500 mb-1">Take-home, a month</p>
+              <p data-engine-net="monthly" className={BIG_NUMBER_CLASS}>
+                {sym}{formatNumber(monthlyShown)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-neutral-500 mb-1">Take-home, a year</p>
+              <p data-engine-net="annual" className={BIG_NUMBER_CLASS}>
+                {sym}{formatNumber(annualShown)}
+              </p>
+            </div>
           </div>
-          <a
-            href={calcHref}
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-all duration-150"
-          >
+          <a href={calcHref} className={CTA_CLASS}>
             Open full calculator
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            {ARROW_ICON}
           </a>
         </div>
         <p className="text-sm text-neutral-500">
-          {sym}{formatNumber(Math.round(result.takeHome))}/yr after {sym}{formatNumber(Math.round(result.tax + result.other))} in deductions
-          {isUK ? ' · 2026/27 rates' : ' · 2026 federal + FICA, single filer'}
+          After {sym}{formatNumber(Math.round(result.totalDeductions))} a year in deductions · {basis}
         </p>
         <SegmentedBar segments={segments} />
       </div>
@@ -426,28 +545,10 @@ function TakeHomePanel({ state, onChange }: { state: TakeHomeState; onChange: (s
 
       {/* Controls */}
       <div>
-        <div className="mb-4" role="group" aria-label="Country">
-          <div className="inline-flex rounded-lg border border-neutral-200/80 p-0.5 bg-neutral-50">
-            {(['US', 'UK'] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => onChange({ ...state, region: r })}
-                aria-pressed={state.region === r}
-                className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-150 ${
-                  state.region === r
-                    ? 'bg-primary-600 text-white'
-                    : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-        </div>
+        <RegionToggle region={region} onChange={onRegionChange} />
         <SliderInput
           label="Annual salary"
-          id="engine-salary"
+          id={`engine-${idp}-salary`}
           value={salary}
           min={isUK ? 15000 : 20000}
           max={isUK ? 250000 : 500000}
@@ -464,23 +565,55 @@ function TakeHomePanel({ state, onChange }: { state: TakeHomeState; onChange: (s
   );
 }
 
+/* ── Hydration: the year the server rendered ─────────────── */
+
+/** Attribute on the engine root (data-engine-year in the JSX below) that carries the server's tax year. */
+const YEAR_ATTR = 'data-engine-year';
+
+/**
+ * The US tax year the server rendered, read from this island's SSR markup
+ * during hydration. The module default differs between build time and
+ * page-load time across 1 January (and local time zones differ from the build
+ * machine's), so the first client render reuses the server's year (no
+ * hydration mismatch, no React #418); the mount effect then applies the
+ * visitor's choice or today's default, exactly as SalaryCalc does.
+ */
+function readRenderedUsYear(): UsTaxYear | null {
+  if (typeof document === 'undefined') return null;
+  const year = Number(document.querySelector<HTMLElement>(`[${YEAR_ATTR}]`)?.getAttribute(YEAR_ATTR));
+  return isUsTaxYear(year) ? year : null;
+}
+
 /* ── Main DecisionEngine Component ───────────────────────── */
 
 export default function DecisionEngine() {
   const [active, setActive] = useState<PromptId>(0);
-  const [mortgage, setMortgage] = useState<MortgageState>({ income: 75000, downPayment: 50000 });
-  const [snowball, setSnowball] = useState<SnowballState>({ monthly: 500, rate: 7 });
-  const [retirement, setRetirement] = useState<RetirementState>({ currentAge: 30, monthlyContribution: 500 });
-  const [takeHome, setTakeHome] = useState<TakeHomeState>({ region: 'US', salaryUS: 85000, salaryUK: 45000 });
+  const [mortgage, setMortgage] = useState<MortgageState>({ income: AD.annualIncome, downPayment: AD.deposit });
+  const [snowball, setSnowball] = useState<SnowballState>({ monthly: SNOWBALL_DEFAULT_MONTHLY, rate: 7 });
+  const [retirement, setRetirement] = useState<RetirementState>({
+    currentAge: RETIREMENT_DEFAULTS.currentAge,
+    currentSavings: RETIREMENT_DEFAULTS.currentSavings,
+    monthlyContribution: RETIREMENT_DEFAULTS.monthlyContribution,
+  });
+  const [takeHome, setTakeHome] = useState<TakeHomeState>({ salaryUS: 85000, salaryUK: 45000 });
 
+  // Country follows the site's display currency: USD on the server and in the
+  // hydration render (so the markup matches), then the visitor's stored choice
+  // or their region's default (UK -> GBP) straight after hydration (HOME-CHROME-10).
+  const currency = useActiveCurrency();
+  const region = regionForCurrency(currency);
+  const sym = region === 'UK' ? '£' : '$';
+  const onRegionChange = useCallback((r: EngineRegion) => setActiveCurrency(r === 'UK' ? 'GBP' : 'USD'), []);
+
+  const [taxYear, setTaxYear] = useState<UsTaxYear>(() => readRenderedUsYear() ?? US_DEFAULT_TAX_YEAR);
+  useEffect(() => {
+    const next = preferredUsYear(safeSessionGet(US_YEAR_SESSION_KEY), taxClockNow());
+    setTaxYear((current) => (current === next ? current : next));
+  }, []);
+
+  const prompts = useMemo(() => promptsFor(sym), [sym]);
   const panelRef = useRef<HTMLDivElement>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-
-  // Hide skeleton on mount
-  useEffect(() => {
-    const skeleton = document.getElementById('engine-skeleton');
-    if (skeleton) skeleton.style.display = 'none';
-  }, []);
 
   const switchPrompt = useCallback((id: PromptId) => {
     if (id === active) return;
@@ -494,7 +627,7 @@ export default function DecisionEngine() {
   // Keyboard navigation for tabs
   const handleTabKeyDown = useCallback((e: React.KeyboardEvent, id: PromptId) => {
     let next: PromptId | null = null;
-    const count = PROMPTS.length;
+    const count = prompts.length;
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
       e.preventDefault();
       next = ((id + 1) % count) as PromptId;
@@ -513,7 +646,7 @@ export default function DecisionEngine() {
       const btn = document.getElementById(`engine-tab-${next}`);
       btn?.focus();
     }
-  }, [switchPrompt]);
+  }, [switchPrompt, prompts.length]);
 
   // Mobile accordion state — null means all collapsed
   const [mobileExpanded, setMobileExpanded] = useState<PromptId | null>(0);
@@ -522,23 +655,24 @@ export default function DecisionEngine() {
     setMobileExpanded((prev) => (prev === id ? null : id));
   }, []);
 
-  const renderPanel = (id: PromptId) => {
+  const renderPanel = (id: PromptId, idp: 'd' | 'm') => {
+    const base = { idp, region, sym };
     switch (id) {
-      case 0: return <MortgagePanel state={mortgage} onChange={setMortgage} />;
-      case 1: return <SnowballPanel state={snowball} onChange={setSnowball} />;
-      case 2: return <RetirementPanel state={retirement} onChange={setRetirement} />;
-      case 3: return <TakeHomePanel state={takeHome} onChange={setTakeHome} />;
+      case 0: return <MortgagePanel {...base} onRegionChange={onRegionChange} state={mortgage} onChange={setMortgage} />;
+      case 1: return <SnowballPanel {...base} state={snowball} onChange={setSnowball} />;
+      case 2: return <RetirementPanel {...base} state={retirement} onChange={setRetirement} />;
+      case 3: return <TakeHomePanel {...base} onRegionChange={onRegionChange} taxYear={taxYear} state={takeHome} onChange={setTakeHome} />;
     }
   };
 
   return (
     <>
       {/* ── Desktop layout (lg+) ─────────────────────────────── */}
-      <div className="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
+      <div className="hidden lg:grid lg:grid-cols-[320px_1fr] lg:gap-6" data-engine-year={taxYear}>
         {/* Tab list */}
         <div>
         <div role="tablist" aria-label="Choose a financial question">
-          {PROMPTS.map((p) => (
+          {prompts.map((p) => (
             <button
               key={p.id}
               id={`engine-tab-${p.id}`}
@@ -581,7 +715,7 @@ export default function DecisionEngine() {
           </div>
         </div>
 
-        {/* Calculator panel */}
+        {/* Calculator panel. Not a live region: each panel holds one short announcer sentence. */}
         <div
           id="engine-panel"
           role="tabpanel"
@@ -590,19 +724,19 @@ export default function DecisionEngine() {
           className={`engine-panel rounded-xl p-6 sm:p-8 transition-opacity duration-150 ${
             isTransitioning ? 'opacity-0' : 'opacity-100'
           }`}
-          aria-live="polite"
         >
-          {renderPanel(active)}
+          {renderPanel(active, 'd')}
         </div>
       </div>
 
       {/* ── Mobile layout (< lg) — Accordion ────────────────── */}
       <div className="lg:hidden space-y-3">
-        {PROMPTS.map((p) => {
+        {prompts.map((p) => {
           const isOpen = mobileExpanded === p.id;
           return (
             <div key={p.id} className="rounded-xl overflow-hidden border border-neutral-200/80">
               <button
+                id={`engine-mobile-tab-${p.id}`}
                 aria-expanded={isOpen}
                 aria-controls={`engine-mobile-panel-${p.id}`}
                 onClick={() => toggleMobileAccordion(p.id)}
@@ -618,14 +752,20 @@ export default function DecisionEngine() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
+              {/* Collapsed panels are inert and hidden from assistive tech, so their sliders
+                  and links are neither tabbable nor announced (HOME-CHROME-07). */}
               <div
                 id={`engine-mobile-panel-${p.id}`}
+                role="region"
+                aria-labelledby={`engine-mobile-tab-${p.id}`}
+                inert={isOpen ? undefined : true}
+                aria-hidden={isOpen ? undefined : true}
                 className={`engine-panel overflow-hidden transition-all duration-300 border-t border-neutral-100 ${
-                  isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0 border-t-0'
+                  isOpen ? 'max-h-[1100px] opacity-100' : 'max-h-0 opacity-0 border-t-0'
                 }`}
               >
-                <div className="p-5 sm:p-6" aria-live="polite">
-                  {renderPanel(p.id)}
+                <div className="p-5 sm:p-6">
+                  {renderPanel(p.id, 'm')}
                 </div>
               </div>
             </div>
