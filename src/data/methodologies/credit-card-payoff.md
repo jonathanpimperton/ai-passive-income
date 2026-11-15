@@ -28,7 +28,7 @@ limitations:
   - "Does not model introductory 0% APR periods or balance transfers"
   - "Does not model variable APRs (for example a rate tied to the prime rate)"
   - "Does not include cash back, rewards, or annual fees"
-  - "Many issuers charge a daily rate on the average daily balance and add the interest once a month, which is close to this model. Issuers that compound daily charge more: on the default example the payoff would take 178 months instead of {{ cardPayoff(5000, 22.99, 100).months | int }}, with about 9% more interest"
+  - "Many issuers charge a daily rate on the average daily balance and add the interest once a month, which is close to this model. Issuers that compound daily charge more: on the default example the payoff would take {{ cardPayoff(5000, dailyCompoundingApr(22.99), 100).months | int }} months instead of {{ cardPayoff(5000, 22.99, 100).months | int }}, with about 9% more interest"
   - "Percentage-based minimums are modelled in the three simple forms above, and some issuers use more complex formulas"
   - "Does not handle several cards: use the Debt Payoff calculator for multi-card strategies"
 dataSources:
@@ -68,7 +68,7 @@ Credit card companies set minimums that maximise interest revenue. Take a $5,000
 - Month 12: interest is still {{ payoffBalance(5000, 22.99, 100, 11) * 22.99 / 100 / 12 | usd }}
 - Total: {{ cardPayoff(5000, 22.99, 100).months | months }} ({{ cardPayoff(5000, 22.99, 100).months | int }} payments) and {{ cardPayoff(5000, 22.99, 100).interest | usd }} in interest, more than double the original balance
 
-If instead the minimum is 2% of the balance (with a $25 floor), the payment starts at $100 and shrinks as the balance falls. After {{ cardHorizonYears() | int }} years (600 months) the balance is still $3,017 and you have paid $45,140 in interest. Falling payments keep the debt alive.
+If instead the minimum is 2% of the balance (with a $25 floor), the payment starts at $100 and shrinks as the balance falls. After {{ cardHorizonYears() | int }} years (600 months) the balance is still {{ cardBeyondHorizon(5000, 22.99, minPct=2, minFloor=25).remaining | usd }} and you have paid {{ cardBeyondHorizon(5000, 22.99, minPct=2, minFloor=25).interest | usd }} in interest. Falling payments keep the debt alive.
 
 If the payment is no more than the first month's interest, the balance never falls. At 22.99% on $5,000, interest is {{ 5000 * 22.99 / 100 / 12 | usd(2) }} in month 1, so a $95 payment never clears the card, and the calculator says so instead of showing a total. A $96 payment clears it, but in {{ cardPayoff(5000, 22.99, 96).months | int }} months at {{ cardPayoff(5000, 22.99, 96).interest | usd }} of interest.
 
@@ -96,4 +96,4 @@ All the figures below use the $5,000 example.
 
 ## How Interest Is Charged in Real Life
 
-Most issuers charge interest daily: the APR divided by 365 (some use 360) is applied to the average daily balance over the billing cycle, and the interest is added once a month. That is close to what this calculator does. Some issuers compound daily, adding each day's interest to the next day's balance. For the default example that would raise the payoff from {{ cardPayoff(5000, 22.99, 100).months | int }} to 178 months and interest from {{ cardPayoff(5000, 22.99, 100).interest | usd }} to $12,787, about 9% more. Your statement and cardholder agreement give the exact method for your card.
+Most issuers charge interest daily: the APR divided by 365 (some use 360) is applied to the average daily balance over the billing cycle, and the interest is added once a month. That is close to what this calculator does. Some issuers compound daily, adding each day's interest to the next day's balance. For the default example that would raise the payoff from {{ cardPayoff(5000, 22.99, 100).months | int }} to {{ cardPayoff(5000, dailyCompoundingApr(22.99), 100).months | int }} months and interest from {{ cardPayoff(5000, 22.99, 100).interest | usd }} to {{ cardPayoff(5000, dailyCompoundingApr(22.99), 100).interest | usd }}, about {{ (cardPayoff(5000, dailyCompoundingApr(22.99), 100).interest / cardPayoff(5000, 22.99, 100).interest - 1) * 100 | pct }} more. Your statement and cardholder agreement give the exact method for your card.

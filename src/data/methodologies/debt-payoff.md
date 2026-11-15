@@ -52,35 +52,35 @@ Each month, the simulation:
 
 **Debt Avalanche (highest rate first):** the pool goes to the debt with the highest interest rate, whatever its balance. This costs the least interest, but it can feel slower when the highest-rate debt is also a large one.
 
-Worked example with the calculator's defaults: a credit card of $6,500 at 22.99% (minimum $195), a personal loan of $3,500 at 11.5% (minimum $120) and a car loan of $12,000 at 6.5% (minimum $350), with $200 extra a month. The total payment is $865 every month ($665 of minimums plus $200).
+Worked example with the calculator's defaults: a credit card of $6,500 at 22.99% (minimum $195), a personal loan of $3,500 at 11.5% (minimum $120) and a car loan of $12,000 at 6.5% (minimum $350), with $200 extra a month. The total payment is {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').monthlyOutlay | usd }} every month ({{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 0, 'avalanche').monthlyOutlay | usd }} of minimums plus $200).
 
 | Strategy | Months to clear | Total interest | Order cleared |
 |---|---|---|---|
-| Avalanche | 30 | $3,105.52 | Credit card (month 20), personal loan (24), car loan (30) |
-| Snowball | 30 | $3,509.39 | Personal loan (month 12), credit card (24), car loan (30) |
+| Avalanche | {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').months | int }} | {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').interest | usd(2) }} | Credit card (month {{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche', 1) | int }}), personal loan ({{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche', 2) | int }}), car loan ({{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche', 3) | int }}) |
+| Snowball | {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball').months | int }} | {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball').interest | usd(2) }} | Personal loan (month {{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball', 2) | int }}), credit card ({{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball', 1) | int }}), car loan ({{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball', 3) | int }}) |
 
-Both finish in month 30, and snowball costs $403.87 more in interest. With no extra payment, both take 42 months, with avalanche at $5,541.15 of interest and snowball at $5,550.11. Raising the extra payment from $200 to $400 cuts avalanche to 23 months and $2,269.26 of interest.
+Both finish in month {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').months | int }}, and snowball costs {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball').interest - debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').interest | usd(2) }} more in interest. With no extra payment, both take {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 0, 'avalanche').months | int }} months, with avalanche at {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 0, 'avalanche').interest | usd(2) }} of interest and snowball at {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 0, 'snowball').interest | usd(2) }}. Raising the extra payment from $200 to $400 cuts avalanche to {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 400, 'avalanche').months | int }} months and {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 400, 'avalanche').interest | usd(2) }} of interest.
 
 ## How Each Variable Affects the Result
 
 **Balances:** The total sets the baseline timeline. The mix matters too: many small debts favour snowball's quick wins, while one large high-rate debt makes avalanche clearly better.
 
-**Interest Rates:** When rates are similar across your debts, snowball and avalanche end up close. For three debts of $5,000 at 20% (minimum $150), $3,000 at 22% (minimum $90) and $1,000 at 18% (minimum $40) with $200 extra, both take 23 months and the interest differs by $44.78 ($1,892.80 against $1,937.58). When rates vary widely, avalanche saves more. A $4,000 card at 24% (minimum $120), a $20,000 car loan at 5% (minimum $400) and a $1,500 loan at 5% (minimum $50) with $300 extra cost $2,182.53 under avalanche and $2,400.50 under snowball.
+**Interest Rates:** When rates are similar across your debts, snowball and avalanche end up close. For three debts of $5,000 at 20% (minimum $150), $3,000 at 22% (minimum $90) and $1,000 at 18% (minimum $40) with $200 extra, both take {{ debtPayoff('5000@20/150; 3000@22/90; 1000@18/40', 200, 'avalanche').months | int }} months and the interest differs by {{ debtPayoff('5000@20/150; 3000@22/90; 1000@18/40', 200, 'snowball').interest - debtPayoff('5000@20/150; 3000@22/90; 1000@18/40', 200, 'avalanche').interest | usd(2) }} ({{ debtPayoff('5000@20/150; 3000@22/90; 1000@18/40', 200, 'avalanche').interest | usd(2) }} against {{ debtPayoff('5000@20/150; 3000@22/90; 1000@18/40', 200, 'snowball').interest | usd(2) }}). When rates vary widely, avalanche saves more. A $4,000 card at 24% (minimum $120), a $20,000 car loan at 5% (minimum $400) and a $1,500 loan at 5% (minimum $50) with $300 extra cost {{ debtPayoff('4000@24/120; 20000@5/400; 1500@5/50', 300, 'avalanche').interest | usd(2) }} under avalanche and {{ debtPayoff('4000@24/120; 20000@5/400; 1500@5/50', 300, 'snowball').interest | usd(2) }} under snowball.
 
 **Minimum Payments:** Higher minimums reduce balances faster but leave less room for the extra payment to matter. The minimums freed up from cleared debts drive both strategies.
 
-**Extra Monthly Payment:** The most important input. At the defaults, $100 extra a month takes avalanche to 34 months, $200 to 30 months, and $400 to 23 months.
+**Extra Monthly Payment:** The most important input. At the defaults, $100 extra a month takes avalanche to {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 100, 'avalanche').months | int }} months, $200 to {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').months | int }} months, and $400 to {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 400, 'avalanche').months | int }} months.
 
 ## The Rollover Effect
 
-The mechanism behind both strategies is the rollover: when a debt is cleared, its minimum joins the pool. Each later debt is attacked with a larger monthly amount, and in the last stretch the whole monthly payment (the $865 in the example) is going to a single debt.
+The mechanism behind both strategies is the rollover: when a debt is cleared, its minimum joins the pool. Each later debt is attacked with a larger monthly amount, and in the last stretch the whole monthly payment (the {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').monthlyOutlay | usd }} in the example) is going to a single debt.
 
 ## When the Debt Is Never Cleared
 
 The calculator separates three outcomes instead of printing a number that only looks like an answer:
 
 - **Cleared:** every debt reaches zero within 600 months, and the totals are exact.
-- **Never:** the debt provably never shrinks, because every open debt's monthly interest is at least the most you can pay towards it. A $10,000 card at 24% with a $150 minimum accrues $200 of interest a month, so a $150 payment never reduces it. The tool says so and shows no total, because the true total is unbounded.
+- **Never:** the debt provably never shrinks, because every open debt's monthly interest is at least the most you can pay towards it. A $10,000 card at 24% with a $150 minimum accrues {{ 10000 * 24 / 100 / 12 | usd }} of interest a month, so a $150 payment never reduces it. The tool says so and shows no total, because the true total is unbounded.
 - **Not cleared within 50 years:** the balances are still falling but have not reached zero after 600 months. This happens when a debt shrinks slowly enough that it only clears, and releases its minimum, decades later. The totals shown cover the first 50 years only and are labelled that way.
 
 ## Common Misconceptions

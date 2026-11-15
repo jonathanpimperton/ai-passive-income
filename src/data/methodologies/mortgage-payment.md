@@ -69,7 +69,7 @@ The calculator follows the currency selector. Choosing GBP or EUR changes four t
 
 ## The Full Amortization Schedule
 
-The calculator generates a year-by-year schedule showing how each payment divides between principal and interest. Years are collapsible to reveal monthly detail. This makes the front-loading of interest visible: on a 30-year loan at 7%, the first month in which you pay more principal than interest is month 242, which is in the year 21 row of the schedule.
+The calculator generates a year-by-year schedule showing how each payment divides between principal and interest. Years are collapsible to reveal monthly detail. This makes the front-loading of interest visible: on a 30-year loan at 7%, the first month in which you pay more principal than interest is month {{ loanCrossoverMonth(280000, 7, 30) | int }}, which is in the year {{ loanCrossoverMonth(280000, 7, 30) / 12 | ceil | int }} row of the schedule.
 
 ## Extra Payments
 
