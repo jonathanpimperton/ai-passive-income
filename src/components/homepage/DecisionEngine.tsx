@@ -1,12 +1,11 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { compoundInterest, formatNumber } from '../../lib/calculator-utils';
+import { compoundInterest, formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { US_DEFAULT_TAX_YEAR, isUsTaxYear, type UsTaxYear } from '../../lib/us-rates';
 import { UK_TAX_YEAR } from '../../lib/uk-rates';
 import { AFFORDABILITY_DEFAULTS } from '../../lib/mortgage-affordability';
 import { defaultMortgageRateInfo, rateAttribution } from '../../lib/market-rates';
-import { formatDuration } from '../../lib/retirement';
-import { setActiveCurrency, useActiveCurrency } from '../../lib/currency';
+import { getCurrencyConfig, setActiveCurrency, useActiveCurrency } from '../../lib/currency';
 import { safeSessionGet } from '../../lib/safe-storage';
 import { taxClockNow } from '../../lib/tax-years.mjs';
 import SliderInput from '../ui/SliderInput';
@@ -16,14 +15,16 @@ import {
   US_YEAR_SESSION_KEY,
   engineAffordability,
   engineMortgageRate,
-  engineRetirement,
+  mortgageCurrency,
+  mortgageRegionForCurrency,
   preferredUsYear,
   regionForCurrency,
   takeHomeUk,
   takeHomeUs,
-  wholeRetirementAge,
   type EngineRegion,
+  type MortgageRegion,
 } from './engine-math';
+import type { EngineRetireAnswer } from './engine-retire';
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -57,8 +58,11 @@ interface PanelBase {
   sym: string;
 }
 
-interface RegionalPanel extends PanelBase {
-  onRegionChange: (r: EngineRegion) => void;
+type CurrencyChoice = 'USD' | 'GBP' | 'EUR';
+
+/** Props of a panel that has a country switch: it sets the site's display currency. */
+interface CountryPanel {
+  onCurrencyChange: (code: CurrencyChoice) => void;
 }
 
 /* ── Prompt Config ───────────────────────────────────────── */
@@ -85,6 +89,8 @@ const CTA_CLASS =
 
 const BIG_NUMBER_CLASS =
   'text-2xl sm:text-4xl lg:text-5xl font-bold tabular-nums lining-nums result-number whitespace-nowrap';
+
+const UNIT_CLASS = 'text-sm text-neutral-500 mt-0.5';
 
 /* ── Shared pieces ───────────────────────────────────────── */
 
@@ -113,25 +119,47 @@ function Announcer({ text }: { text: string }) {
   );
 }
 
-/** US / UK switch. It sets the site's display currency, so the full calculators open in the same country. */
-function RegionToggle({ region, onChange }: { region: EngineRegion; onChange: (r: EngineRegion) => void }) {
+interface CountryOption {
+  code: CurrencyChoice;
+  label: string;
+}
+
+const COUNTRY_US: CountryOption = { code: 'USD', label: 'US' };
+const COUNTRY_UK: CountryOption = { code: 'GBP', label: 'UK' };
+const COUNTRY_EUR: CountryOption = { code: 'EUR', label: 'EUR' };
+
+/**
+ * Country switch. Each button sets the site's display currency, so the full
+ * calculators open in the same country as the preview. `pressed` is null when
+ * the visitor's currency has no option here (no button looks chosen), and
+ * `hint` then says what the preview shows instead.
+ */
+function CountryToggle({
+  options, pressed, onChange, hint,
+}: {
+  options: CountryOption[];
+  pressed: CurrencyChoice | null;
+  onChange: (code: CurrencyChoice) => void;
+  hint?: string;
+}) {
   return (
     <div className="mb-4" role="group" aria-label="Country">
       <div className="inline-flex rounded-lg border border-neutral-200/80 p-0.5 bg-neutral-50">
-        {(['US', 'UK'] as const).map((r) => (
+        {options.map((o) => (
           <button
-            key={r}
+            key={o.code}
             type="button"
-            onClick={() => onChange(r)}
-            aria-pressed={region === r}
+            onClick={() => onChange(o.code)}
+            aria-pressed={pressed === o.code}
             className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-150 ${
-              region === r ? 'bg-primary-600 text-white' : 'text-neutral-600 hover:text-neutral-900'
+              pressed === o.code ? 'bg-primary-600 text-white' : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
-            {r}
+            {o.label}
           </button>
         ))}
       </div>
+      {hint && <p className="mt-1.5 text-xs text-neutral-500">{hint}</p>}
     </div>
   );
 }
@@ -184,19 +212,22 @@ function SegmentedBar({ segments, thick = false }: { segments: BarSegment[]; thi
 const AD = AFFORDABILITY_DEFAULTS;
 
 function MortgagePanel({
-  idp, region, sym, onRegionChange, state, onChange,
-}: RegionalPanel & { state: MortgageState; onChange: (s: MortgageState) => void }) {
-  const isUK = region === 'UK';
-  const fmt = (v: number) => `${sym}${formatNumber(Math.round(v))}`;
-  const term = MORTGAGE_TERM_YEARS[region];
-  const rate = engineMortgageRate(region);
-  const rateInfo = defaultMortgageRateInfo(isUK ? 'uk' : 'us', term);
+  idp, mregion, onCurrencyChange, state, onChange,
+}: Pick<PanelBase, 'idp'> & CountryPanel & { mregion: MortgageRegion; state: MortgageState; onChange: (s: MortgageState) => void }) {
+  const isUK = mregion === 'UK';
+  const cur = mortgageCurrency(mregion);
+  const symbol = getCurrencyConfig(cur).symbol;
+  // The tool's own formatter for the country (EUR reads 414.693 EUR, as on the tool page).
+  const fmt = (v: number) => formatCurrency(Math.round(v), cur);
+  const term = MORTGAGE_TERM_YEARS[mregion];
+  const rate = engineMortgageRate(mregion);
+  const rateInfo = defaultMortgageRateInfo(mregion === 'UK' ? 'uk' : mregion === 'EUR' ? 'eur' : 'us', term);
 
   // The full calculator's own solver and defaults (MATH-US-07): the figure
-  // here equals the tool's for the same income and deposit.
+  // here equals the tool's for the same income and deposit, in every country.
   const result = useMemo(
-    () => engineAffordability(region, state.income, state.downPayment),
-    [region, state.income, state.downPayment],
+    () => engineAffordability(mregion, state.income, state.downPayment),
+    [mregion, state.income, state.downPayment],
   );
   const ok = result.status === 'ok';
   const animatedPrice = useAnimatedNumber(result.maxPrice);
@@ -217,13 +248,19 @@ function MortgagePanel({
         ? `Capped at ${result.ltiCap}x your income.`
         : `Limited by a ${result.stressRatePct.toFixed(2)}% rate-rise check.`
     }`;
+  } else if (result.region === 'eur') {
+    subline = `${fmt(result.monthlyPI)}/mo at ${rate}% over ${term} years. Payments plus other debts stay within ${AD.eurMaxDebtServicePct}% of gross income.`;
   } else {
     subline = `${fmt(result.totalMonthly)}/mo all-in (loan, tax, insurance${result.needsPMI ? ', PMI' : ''}) at ${rate}% over ${term} years`;
   }
 
-  const assumptions = isUK
-    ? `Assumes no other credit payments, a ${AD.ltiCap}x income cap and a rate-rise check. Rate: ${rateAttribution(rateInfo)}.`
-    : `Assumes ${fmt(AD.monthlyDebts)}/mo other debts, ${AD.propertyTaxRate}% property tax, ${fmt(AD.insuranceAnnual)}/yr insurance and the ${AD.frontEndPct}/${AD.backEndPct} rule. Rate: ${rateAttribution(rateInfo)}.`;
+  const attribution = rateAttribution(rateInfo);
+  const assumptions =
+    mregion === 'UK'
+      ? `Assumes no other credit payments, a ${AD.ltiCap}x income cap and a rate-rise check. Rate: ${attribution}.`
+      : mregion === 'EUR'
+        ? `Assumes ${fmt(AD.monthlyDebts)}/mo other debts and a ${AD.eurMaxDebtServicePct}% combined debt limit; rules differ by country. Rate: ${attribution}.`
+        : `Assumes ${fmt(AD.monthlyDebts)}/mo other debts, ${AD.propertyTaxRate}% property tax, ${fmt(AD.insuranceAnnual)}/yr insurance and the ${AD.frontEndPct}/${AD.backEndPct} rule. Rate: ${attribution}.`;
 
   const liveText = ok
     ? `Maximum home price ${fmt(result.maxPrice)}.`
@@ -253,7 +290,11 @@ function MortgagePanel({
 
       {/* Controls */}
       <div>
-        <RegionToggle region={region} onChange={onRegionChange} />
+        <CountryToggle
+          options={[COUNTRY_US, COUNTRY_UK, COUNTRY_EUR]}
+          pressed={cur}
+          onChange={onCurrencyChange}
+        />
         <SliderInput
           label="Annual income"
           id={`engine-${idp}-income`}
@@ -262,7 +303,7 @@ function MortgagePanel({
           max={500000}
           step={5000}
           onChange={(v) => onChange({ ...state, income: v })}
-          prefix={sym}
+          prefix={symbol}
           formatDisplay={formatNumber}
         />
         <div className="mt-3">
@@ -274,7 +315,7 @@ function MortgagePanel({
             max={200000}
             step={5000}
             onChange={(v) => onChange({ ...state, downPayment: v })}
-            prefix={sym}
+            prefix={symbol}
             formatDisplay={formatNumber}
           />
         </div>
@@ -365,31 +406,42 @@ function SnowballPanel({
 /* ── Retirement Panel ────────────────────────────────────── */
 
 function RetirementPanel({
-  idp, sym, state, onChange,
-}: PanelBase & { state: RetirementState; onChange: (s: RetirementState) => void }) {
+  idp, sym, state, onChange, answer, failed,
+}: PanelBase & {
+  state: RetirementState;
+  onChange: (s: RetirementState) => void;
+  /** The solver's answer for `state`; null while the solver is still loading. */
+  answer: EngineRetireAnswer | null;
+  failed: boolean;
+}) {
   const fmt = (v: number) => `${sym}${formatNumber(Math.round(v))}`;
   const { target, annualReturnPct, maxAge } = RETIREMENT_DEFAULTS;
 
-  // The full Retirement Age calculator's solver: an unreachable target is
-  // reported as such, never as an age that looks like an answer (MATH-US-08).
-  const solved = useMemo(
-    () => engineRetirement(state.currentAge, state.currentSavings, state.monthlyContribution),
-    [state.currentAge, state.currentSavings, state.monthlyContribution],
-  );
-
-  const reachedAge = solved.status === 'reached' ? wholeRetirementAge(solved.age) : state.currentAge;
+  const solved = answer?.result ?? null;
+  const reachedAge = answer?.wholeAge ?? state.currentAge;
   const animatedAge = useAnimatedNumber(reachedAge);
 
+  // The full Retirement Age calculator's solver: an unreachable target is
+  // reported as such, never as an age that looks like an answer (MATH-US-08).
   let label = 'You could retire at';
   let headline: string;
   let detail: string;
   let liveText: string;
   let segments: BarSegment[] = [];
 
-  if (solved.status === 'reached') {
+  if (failed && !solved) {
+    label = 'Your answer';
+    headline = 'Not loaded';
+    detail = 'The retirement answer could not load. Open the full calculator for it.';
+    liveText = detail;
+  } else if (!solved) {
+    headline = '...';
+    detail = 'Working it out.';
+    liveText = '';
+  } else if (solved.status === 'reached') {
     headline = `Age ${Math.round(animatedAge)}`;
-    detail = `${formatDuration(solved.months)} of saving ${fmt(state.monthlyContribution)}/mo to reach ${fmt(target)} at ${annualReturnPct}% a year`;
-    liveText = `You reach ${fmt(target)} at age ${reachedAge}, in ${formatDuration(solved.months)}.`;
+    detail = `${answer?.duration} of saving ${fmt(state.monthlyContribution)}/mo to reach ${fmt(target)} at ${annualReturnPct}% a year`;
+    liveText = `You reach ${fmt(target)} at age ${reachedAge}, in ${answer?.duration}.`;
     segments = [
       { label: 'Saving years', value: solved.months / 12, className: 'bg-primary-500' },
       { label: 'Retirement years', value: Math.max(0, maxAge - solved.age), className: 'bg-primary-300' },
@@ -479,8 +531,8 @@ function RetirementPanel({
 /* ── Take-Home Pay Panel ─────────────────────────────────────── */
 
 function TakeHomePanel({
-  idp, region, sym, onRegionChange, taxYear, state, onChange,
-}: RegionalPanel & { taxYear: UsTaxYear; state: TakeHomeState; onChange: (s: TakeHomeState) => void }) {
+  idp, region, sym, onCurrencyChange, currency, taxYear, state, onChange,
+}: PanelBase & CountryPanel & { currency: string; taxYear: UsTaxYear; state: TakeHomeState; onChange: (s: TakeHomeState) => void }) {
   const isUK = region === 'UK';
   const salary = isUK ? state.salaryUK : state.salaryUS;
 
@@ -511,26 +563,33 @@ function TakeHomePanel({
     ? `${UK_TAX_YEAR} rates, England, Wales and NI, no pension or student loan`
     : `${taxYear} federal tax and FICA, single filer, no state tax or 401(k)`;
 
+  // A euro visitor has no euro tax model: the US figures show and no button looks chosen.
+  const euro = currency === 'EUR';
+
   return (
     <div className="space-y-5">
       <Announcer
         text={`Take-home pay ${sym}${formatNumber(Math.round(result.netAnnual / 12))} a month, ${sym}${formatNumber(Math.round(result.netAnnual))} a year.`}
       />
-      {/* Result: monthly and annual carry equal weight (owner requirement, 13 Nov 2026) */}
+      {/* Result: monthly and annual carry equal weight (owner requirement, 13 Nov 2026).
+          Same pattern as the salary calculators: the figure, then "a month" / "a year" under it. */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-          <div className="flex items-start gap-6 sm:gap-8">
-            <div>
-              <p className="text-sm text-neutral-500 mb-1">Take-home, a month</p>
-              <p data-engine-net="monthly" className={BIG_NUMBER_CLASS}>
-                {sym}{formatNumber(monthlyShown)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-neutral-500 mb-1">Take-home, a year</p>
-              <p data-engine-net="annual" className={BIG_NUMBER_CLASS}>
-                {sym}{formatNumber(annualShown)}
-              </p>
+          <div>
+            <p className="text-sm text-neutral-500 mb-1">Your take-home pay</p>
+            <div className="flex flex-wrap items-end gap-x-8 gap-y-3 sm:gap-x-10">
+              <div className="min-w-0">
+                <p data-engine-net="monthly" className={BIG_NUMBER_CLASS}>
+                  {sym}{formatNumber(monthlyShown)}
+                </p>
+                <p className={UNIT_CLASS}>a month</p>
+              </div>
+              <div className="min-w-0">
+                <p data-engine-net="annual" className={BIG_NUMBER_CLASS}>
+                  {sym}{formatNumber(annualShown)}
+                </p>
+                <p className={UNIT_CLASS}>a year</p>
+              </div>
             </div>
           </div>
           <a href={calcHref} className={CTA_CLASS}>
@@ -548,7 +607,12 @@ function TakeHomePanel({
 
       {/* Controls */}
       <div>
-        <RegionToggle region={region} onChange={onRegionChange} />
+        <CountryToggle
+          options={[COUNTRY_US, COUNTRY_UK]}
+          pressed={euro ? null : isUK ? 'GBP' : 'USD'}
+          onChange={onCurrencyChange}
+          hint={euro ? 'No euro tax model: US figures shown. The buttons set the site currency.' : undefined}
+        />
         <SliderInput
           label="Annual salary"
           id={`engine-${idp}-salary`}
@@ -587,9 +651,40 @@ function readRenderedUsYear(): UsTaxYear | null {
   return isUsTaxYear(year) ? year : null;
 }
 
+/* ── Mobile accordion: keep the opened question in view ──── */
+
+/** Height of the sticky site header the opened question must clear. */
+const STICKY_HEADER_CLEARANCE = 72;
+/** A little longer than the panels' 300 ms collapse transition. */
+const COLLAPSE_SETTLE_MS = 360;
+
+/**
+ * Opening a question collapses the one above it, which pulls the new panel up
+ * (sometimes above the top of the screen). Once the collapse has settled, bring
+ * the opened question's header back to the top if it ended up under the site
+ * header. Smooth unless the visitor prefers reduced motion; a visitor's own
+ * scroll is never overridden when the header is already in view.
+ */
+function keepOpenedQuestionInView(id: PromptId) {
+  const header = document.getElementById(`engine-mobile-tab-${id}`);
+  if (!header || header.getBoundingClientRect().top >= STICKY_HEADER_CLEARANCE) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  header.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+}
+
 /* ── Main DecisionEngine Component ───────────────────────── */
 
-export default function DecisionEngine() {
+interface DecisionEngineProps {
+  /**
+   * The Retire question's answer for the default inputs, computed by
+   * index.astro at build time. The retirement solver (a 3 KB gzip chunk) is
+   * loaded only when that question opens, so the first render, which must
+   * match the server's, uses this.
+   */
+  retireDefault: EngineRetireAnswer;
+}
+
+export default function DecisionEngine({ retireDefault }: DecisionEngineProps) {
   const [active, setActive] = useState<PromptId>(0);
   const [mortgage, setMortgage] = useState<MortgageState>({ income: AD.annualIncome, downPayment: AD.deposit });
   const [snowball, setSnowball] = useState<SnowballState>({ monthly: SNOWBALL_DEFAULT_MONTHLY, rate: 7 });
@@ -602,11 +697,14 @@ export default function DecisionEngine() {
 
   // Country follows the site's display currency: USD on the server and in the
   // hydration render (so the markup matches), then the visitor's stored choice
-  // or their region's default (UK -> GBP) straight after hydration (HOME-CHROME-10).
+  // or their region's default (UK -> GBP, euro area -> EUR) straight after
+  // hydration (HOME-CHROME-10). The mortgage preview has the tool's US, UK and
+  // EUR models; the other panels have US and UK (EUR shows the US model).
   const currency = useActiveCurrency();
   const region = regionForCurrency(currency);
+  const mregion = mortgageRegionForCurrency(currency);
   const sym = region === 'UK' ? '£' : '$';
-  const onRegionChange = useCallback((r: EngineRegion) => setActiveCurrency(r === 'UK' ? 'GBP' : 'USD'), []);
+  const onCurrencyChange = useCallback((code: CurrencyChoice) => setActiveCurrency(code), []);
 
   const [taxYear, setTaxYear] = useState<UsTaxYear>(() => readRenderedUsYear() ?? US_DEFAULT_TAX_YEAR);
   useEffect(() => {
@@ -653,18 +751,51 @@ export default function DecisionEngine() {
 
   // Mobile accordion state — null means all collapsed
   const [mobileExpanded, setMobileExpanded] = useState<PromptId | null>(0);
+  const scrollTimer = useRef<number | undefined>(undefined);
 
   const toggleMobileAccordion = useCallback((id: PromptId) => {
-    setMobileExpanded((prev) => (prev === id ? null : id));
-  }, []);
+    const opening = mobileExpanded !== id;
+    setMobileExpanded(opening ? id : null);
+    window.clearTimeout(scrollTimer.current);
+    if (opening) {
+      scrollTimer.current = window.setTimeout(() => keepOpenedQuestionInView(id), COLLAPSE_SETTLE_MS);
+    }
+  }, [mobileExpanded]);
+  useEffect(() => () => window.clearTimeout(scrollTimer.current), []);
+
+  // Retirement solver: loaded when the Retire question is open (or an input
+  // already differs from the default), never on first paint. The default
+  // answer comes from the server's prop, so the first render matches it.
+  const RD = RETIREMENT_DEFAULTS;
+  const retireIsDefault =
+    retirement.currentAge === RD.currentAge &&
+    retirement.currentSavings === RD.currentSavings &&
+    retirement.monthlyContribution === RD.monthlyContribution;
+  const retireWanted = active === 2 || mobileExpanded === 2 || !retireIsDefault;
+  const [retireSolver, setRetireSolver] = useState<typeof import('./engine-retire') | null>(null);
+  const [retireFailed, setRetireFailed] = useState(false);
+  useEffect(() => {
+    if (!retireWanted || retireSolver || retireFailed) return;
+    let cancelled = false;
+    import('./engine-retire')
+      .then((m) => { if (!cancelled) setRetireSolver(m); })
+      .catch(() => { if (!cancelled) setRetireFailed(true); });
+    return () => { cancelled = true; };
+  }, [retireWanted, retireSolver, retireFailed]);
+  const retireAnswer = useMemo<EngineRetireAnswer | null>(() => {
+    if (retireIsDefault) return retireDefault;
+    return retireSolver
+      ? retireSolver.engineRetirement(retirement.currentAge, retirement.currentSavings, retirement.monthlyContribution)
+      : null;
+  }, [retireIsDefault, retireDefault, retireSolver, retirement.currentAge, retirement.currentSavings, retirement.monthlyContribution]);
 
   const renderPanel = (id: PromptId, idp: 'd' | 'm') => {
     const base = { idp, region, sym };
     switch (id) {
-      case 0: return <MortgagePanel {...base} onRegionChange={onRegionChange} state={mortgage} onChange={setMortgage} />;
+      case 0: return <MortgagePanel idp={idp} mregion={mregion} onCurrencyChange={onCurrencyChange} state={mortgage} onChange={setMortgage} />;
       case 1: return <SnowballPanel {...base} state={snowball} onChange={setSnowball} />;
-      case 2: return <RetirementPanel {...base} state={retirement} onChange={setRetirement} />;
-      case 3: return <TakeHomePanel {...base} onRegionChange={onRegionChange} taxYear={taxYear} state={takeHome} onChange={setTakeHome} />;
+      case 2: return <RetirementPanel {...base} state={retirement} onChange={setRetirement} answer={retireAnswer} failed={retireFailed} />;
+      case 3: return <TakeHomePanel {...base} currency={currency} onCurrencyChange={onCurrencyChange} taxYear={taxYear} state={takeHome} onChange={setTakeHome} />;
     }
   };
 

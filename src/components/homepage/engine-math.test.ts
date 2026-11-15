@@ -5,19 +5,17 @@ import { calcIncomeTax, calcNI, calculateUkTakeHome } from '../../lib/uk-tax-cal
 import { US_TAX_YEARS } from '../../lib/us-rates';
 import { AFFORDABILITY_DEFAULTS, solveAffordability, estimateUkTakeHome } from '../../lib/mortgage-affordability';
 import { defaultMortgageRate } from '../../lib/market-rates';
-import { solveRetirementAge } from '../../lib/retirement';
 import {
-  RETIREMENT_DEFAULTS,
   US_YEAR_SESSION_KEY,
   engineAffordability,
   engineMortgageRate,
-  engineRetirement,
+  mortgageCurrency,
+  mortgageRegionForCurrency,
   pensionWithBasicRelief,
   preferredUsYear,
   regionForCurrency,
   takeHomeUk,
   takeHomeUs,
-  wholeRetirementAge,
 } from './engine-math';
 
 const SALARIES = [20_000, 45_000, 75_000, 85_000, 100_000, 176_100, 250_000, 500_000];
@@ -112,35 +110,29 @@ describe('engineAffordability: the tool solver with the tool defaults (MATH-US-0
     expect(home.region).toBe('uk');
     expect(engineMortgageRate('UK')).toBe(defaultMortgageRate('uk', 25));
   });
+
+  it('EUR: equals the tool in euro mode (25 years, ECB rate, 36% limit, 500 debts), not the US model', () => {
+    const home = engineAffordability('EUR', D.annualIncome, D.deposit);
+    const tool = solveAffordability({
+      region: 'eur', annualIncome: D.annualIncome, monthlyDebts: D.monthlyDebts, deposit: D.deposit,
+      ratePct: defaultMortgageRate('eur', 25), termYears: 25, maxDebtServicePct: D.eurMaxDebtServicePct,
+    });
+    expect(home.region).toBe('eur');
+    expect(home.maxPrice).toBe(tool.maxPrice);
+    expect(engineMortgageRate('EUR')).toBe(defaultMortgageRate('eur', 25));
+    // The review's repro: the US model gave $248,840 for these inputs; the euro tool gives a different answer.
+    expect(home.maxPrice).not.toBe(engineAffordability('US', D.annualIncome, D.deposit).maxPrice);
+  });
 });
 
-describe('engineRetirement: the Retirement Age solver (MATH-US-08)', () => {
-  const R = RETIREMENT_DEFAULTS;
-
-  it('reaches the target at the tool defaults and shows the tool age', () => {
-    const r = engineRetirement(R.currentAge, R.currentSavings, R.monthlyContribution);
-    const tool = solveRetirementAge({
-      currentAge: 30, currentSavings: 50_000, monthlyContribution: 500, annualReturn: 0.07, target: 1_000_000, maxAge: 90,
-    });
-    expect(r).toEqual(tool);
-    expect(r.status).toBe('reached');
-    if (r.status === 'reached') expect(wholeRetirementAge(r.age)).toBe(Math.floor(r.age + 1e-9));
-  });
-
-  it('reports "unreachable" instead of "Age 90" (age 65, $100 a month, nothing saved)', () => {
-    const r = engineRetirement(65, 0, 100);
-    expect(r.status).toBe('unreachable');
-    if (r.status === 'unreachable') {
-      expect(r.maxAge).toBe(90);
-      // The review's figure: the balance at 90 is about $81,007, far short of $1,000,000.
-      expect(Math.round(r.balanceAtMaxAge)).toBeGreaterThan(80_000);
-      expect(Math.round(r.balanceAtMaxAge)).toBeLessThan(82_000);
-      expect(r.shortfall).toBeGreaterThan(900_000);
-    }
-  });
-
-  it('says "already" when savings meet the target', () => {
-    expect(engineRetirement(40, 1_000_000, 100).status).toBe('already');
+describe('mortgage region for a display currency', () => {
+  it('maps like the full tool: GBP uk, EUR eur, everything else us', () => {
+    expect(mortgageRegionForCurrency('GBP')).toBe('UK');
+    expect(mortgageRegionForCurrency('EUR')).toBe('EUR');
+    expect(mortgageRegionForCurrency('USD')).toBe('US');
+    expect(mortgageCurrency('UK')).toBe('GBP');
+    expect(mortgageCurrency('EUR')).toBe('EUR');
+    expect(mortgageCurrency('US')).toBe('USD');
   });
 });
 

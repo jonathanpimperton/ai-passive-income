@@ -4,7 +4,8 @@
  * - Take-home tab: the monthly figure is a headline with the same weight as
  *   the annual one, and both equal the full UK and US salary calculators for
  *   the same inputs (owner requirement, 13 Nov 2026).
- * - Affordability and retirement answers equal the full tools (MATH-US-07/08).
+ * - Affordability (US, UK and euro models) and retirement answers equal the full
+ *   tools (MATH-US-07/08); the retirement solver loads only when its question opens.
  * - No duplicate ids, collapsed accordion panels are inert, aria-live is a
  *   compact sentence (A11Y-PERF-14, HOME-CHROME-07, plan 5.4).
  * - No React hydration error in non-UTC time zones or when a 2026 build is
@@ -76,6 +77,8 @@ async function settled(el: Locator): Promise<string> {
 }
 
 const digits = (t: string) => Number(t.replace(/[^0-9.]/g, ''));
+/** Whole-number digits only: "414.693 EUR" is 414693 (euro format uses . for thousands). */
+const wholeDigits = (t: string) => Number(t.replace(/\D/g, ''));
 
 async function enter(page: Page, id: string, text: string) {
   const input = page.locator(`input#${id}`);
@@ -113,6 +116,7 @@ async function openAccordion(page: Page, id: number): Promise<Locator> {
   const button = page.locator(`#engine-mobile-tab-${id}`);
   if ((await button.getAttribute('aria-expanded')) !== 'true') await button.click();
   await expect(button).toHaveAttribute('aria-expanded', 'true');
+  await page.waitForTimeout(1100); // the panel above collapses, then the opened header scrolls into view
   return page.locator(`#engine-mobile-panel-${id}`);
 }
 
@@ -160,19 +164,34 @@ for (const width of [1280, 360]) {
     expect(sm).toEqual(sa); // same element class, size, weight, mono face
     expect(sm.className).toContain('tabular-nums'); // every financial figure is mono (.tabular-nums)
 
-    // Same row: same top, same height, both fully inside the viewport
+    // Same row: same top, same height, both fully inside the viewport. At 360 px this is
+    // after the tap flow: opening the question collapses the one above it, and the opened
+    // question must not be left above the top of the screen.
     const [bm, ba] = [await monthly.boundingBox(), await annual.boundingBox()];
     expect(bm && ba).toBeTruthy();
     expect(Math.abs(bm!.y - ba!.y)).toBeLessThan(2);
     expect(Math.abs(bm!.height - ba!.height)).toBeLessThan(2);
-    for (const b of [bm!, ba!]) expect(b.x + b.width).toBeLessThanOrEqual(width);
+    const viewportHeight = page.viewportSize()!.height;
+    for (const b of [bm!, ba!]) {
+      expect(b.x + b.width).toBeLessThanOrEqual(width);
+      expect(b.y).toBeGreaterThanOrEqual(0);
+      expect(b.y + b.height).toBeLessThanOrEqual(viewportHeight);
+    }
 
     // 12 x monthly reconciles to annual within rounding
     const [m, a] = [digits(await monthly.innerText()), digits(await annual.innerText())];
     expect(Math.abs(12 * m - a)).toBeLessThanOrEqual(6);
-    // Labelled "a month" / "a year"
-    await expect(panel.getByText(/take-home, a month/i)).toBeVisible();
-    await expect(panel.getByText(/take-home, a year/i)).toBeVisible();
+    // Same pattern as the salary calculators: the figure, then "a month" / "a year" beneath it
+    // on one line, in the same row (no wrap at 360 px).
+    const unitMonth = panel.getByText('a month', { exact: true });
+    const unitYear = panel.getByText('a year', { exact: true });
+    await expect(unitMonth).toBeVisible();
+    await expect(unitYear).toBeVisible();
+    const [um, uy, bum, buy] = [await unitMonth.boundingBox(), await unitYear.boundingBox(), bm!, ba!];
+    expect(um!.y).toBeGreaterThan(bum.y + bum.height - 4); // beneath its figure
+    expect(Math.abs(um!.y - uy!.y)).toBeLessThan(2); // same row
+    expect(uy!.y).toBeGreaterThan(buy.y + buy.height - 4);
+    expect(um!.height).toBeLessThan(24); // one line
   });
 }
 
@@ -294,6 +313,60 @@ test('retirement: the default equals the tool; an unreachable target is said so'
   await enter(page, 'reta-monthly', '100');
   await page.waitForTimeout(500);
   expect(await settled(page.locator('[data-headline-result]'))).toBe('Not by age 90');
+});
+
+test('affordability (EUR) equals the Mortgage Affordability tool in euro mode', async ({ page, context }) => {
+  await prepare(context, 'EUR');
+  await openHome(page);
+  const panel = page.locator('#engine-panel');
+  await expect(panel.getByRole('button', { name: 'EUR' })).toHaveAttribute('aria-pressed', 'true');
+  const home = await settled(panel.locator('[data-engine-answer="mortgage"]'));
+  expect(home).toMatch(/€|EUR/); // not "$248,840": the US model is not the euro tool
+  await expect(panel).not.toContainText('Freddie Mac');
+  await expect(panel).toContainText(/ECB|European Central Bank/);
+
+  await page.goto('/tools/debt-and-loans/mortgage-affordability/');
+  await toolHydrated(page);
+  await page.waitForTimeout(800);
+  expect(wholeDigits(await settled(page.locator('[data-headline-result]')))).toBe(wholeDigits(home));
+});
+
+test('a euro-area visitor (Europe/Berlin, nothing stored) gets the euro mortgage preview and an honest toggle', async ({ browser }) => {
+  const context = await browser.newContext({ timezoneId: 'Europe/Berlin', locale: 'en-US', viewport: { width: 1280, height: 900 } });
+  await prepare(context); // no stored currency: region.ts decides
+  const page = await context.newPage();
+  await openHome(page);
+  const mortgage = page.locator('#engine-panel');
+  await expect(mortgage.getByRole('button', { name: 'EUR' })).toHaveAttribute('aria-pressed', 'true');
+  expect(await settled(mortgage.locator('[data-engine-answer="mortgage"]'))).toMatch(/€|EUR/);
+
+  // Take-home has no euro model: US figures, but no button looks chosen, and a line says why
+  const panel = await openTakeHome(page);
+  for (const name of ['US', 'UK']) {
+    await expect(panel.getByRole('button', { name, exact: true })).toHaveAttribute('aria-pressed', 'false');
+  }
+  await expect(panel.getByText(/No euro tax model/)).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('calcrun.currency'))).toBeNull(); // nothing stored by looking
+  await context.close();
+});
+
+test('the retirement solver is downloaded when the Retire question opens, not on first paint', async ({ page, context }) => {
+  await prepare(context);
+  const asked: string[] = [];
+  page.on('request', (r) => { if (/\/retirement[^/]*\.(js|ts)(\?|$)/.test(new URL(r.url()).pathname + new URL(r.url()).search)) asked.push(r.url()); });
+  await openHome(page);
+  await page.waitForTimeout(1000);
+  expect(asked).toEqual([]);
+
+  const panel = await openQuestion(page, /retire/i, 2);
+  const answer = panel.locator('[data-engine-answer="retire"]');
+  const first = await settled(answer);
+  expect(first).toMatch(/^Age \d+$/); // the build-time default shows at once
+  await expect.poll(() => asked.length, { timeout: 10000 }).toBeGreaterThan(0);
+  // After the solver arrived, an edit is answered by it
+  await enter(page, 'engine-d-retire-monthly', '1000');
+  await expect(answer).not.toHaveText(first);
+  await expect(answer).toHaveText(/^Age \d+$/);
 });
 
 /* -- Accessibility ------------------------------------------------------ */
@@ -451,7 +524,7 @@ test('UK pension chip is the net payment grossed up for basic-rate relief', asyn
   await page.goto('/');
   const row = page.locator('a.decision-row', { hasText: 'pension' });
   await expect(row).toHaveCount(1);
-  await expect(row).toContainText('£125 with basic-rate relief');
+  await expect(row).toContainText('at 7% (£125 with basic-rate relief)');
   // £125 a month for 30 years at 7%, deposits at month end
   const i = 0.07 / 12;
   const expected = 125 * ((Math.pow(1 + i, 360) - 1) / i);

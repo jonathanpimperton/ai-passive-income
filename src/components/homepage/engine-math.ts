@@ -7,7 +7,8 @@
  * hand that a library can supply: a homepage answer must equal the tool's
  * answer for the same inputs (review MATH-US-07, MATH-US-08, CONTENT-05).
  *
- * No DOM, no React: unit-tested in engine-math.test.ts.
+ * No DOM, no React: unit-tested in engine-math.test.ts. The retirement solver
+ * is in engine-retire.ts so the homepage can load it on demand.
  */
 
 import { computeUsSalary } from '../../lib/us-tax-calc';
@@ -18,17 +19,35 @@ import {
   AFFORDABILITY_DEFAULTS,
   estimateUkTakeHome,
   solveAffordability,
+  type EurAffordabilityResult,
   type UkAffordabilityResult,
   type UsAffordabilityResult,
 } from '../../lib/mortgage-affordability';
 import { defaultMortgageRate } from '../../lib/market-rates';
-import { solveRetirementAge, type RetirementAgeResult } from '../../lib/retirement';
 
 export type EngineRegion = 'US' | 'UK';
 
-/** Region of the engine for a display currency: GBP is the UK, everything else shows the US model. */
+/**
+ * Tax model for the take-home, compound and retire panels: GBP is the UK,
+ * everything else (USD, and EUR, which has no tax model here) shows the US model.
+ */
 export function regionForCurrency(currency: string): EngineRegion {
   return currency === 'GBP' ? 'UK' : 'US';
+}
+
+/** The mortgage tab has all three of the full tool's models. */
+export type MortgageRegion = 'US' | 'UK' | 'EUR';
+
+/** Mortgage model for a display currency: the same mapping the full tool uses. */
+export function mortgageRegionForCurrency(currency: string): MortgageRegion {
+  if (currency === 'GBP') return 'UK';
+  if (currency === 'EUR') return 'EUR';
+  return 'US';
+}
+
+/** Currency code a mortgage region is shown in. */
+export function mortgageCurrency(region: MortgageRegion): 'USD' | 'GBP' | 'EUR' {
+  return region === 'UK' ? 'GBP' : region === 'EUR' ? 'EUR' : 'USD';
 }
 
 /* -- Take-home pay ------------------------------------------ */
@@ -127,47 +146,39 @@ export function preferredUsYear(stored: string | null, now: Date): UsTaxYear {
 
 const D = AFFORDABILITY_DEFAULTS;
 
-/** Default term and rate the full tool starts from, per region. */
-export const MORTGAGE_TERM_YEARS = { US: 30, UK: 25 } as const;
+/** Default term the full tool starts from, per region (US 30; UK and euro area 25). */
+export const MORTGAGE_TERM_YEARS = { US: 30, UK: 25, EUR: 25 } as const;
 
-export function engineMortgageRate(region: EngineRegion): number {
-  return defaultMortgageRate(region === 'UK' ? 'uk' : 'us', MORTGAGE_TERM_YEARS[region]);
+const RATE_REGION = { US: 'us', UK: 'uk', EUR: 'eur' } as const;
+
+export function engineMortgageRate(region: MortgageRegion): number {
+  return defaultMortgageRate(RATE_REGION[region], MORTGAGE_TERM_YEARS[region]);
 }
 
-/** Debts the full tool starts from: US $500, UK 0. */
-export function engineMonthlyDebts(region: EngineRegion): number {
+/** Debts the full tool starts from: US and euro area 500, UK 0. */
+export function engineMonthlyDebts(region: MortgageRegion): number {
   return region === 'UK' ? D.ukMonthlyDebts : D.monthlyDebts;
 }
 
+export type EngineAffordability = UsAffordabilityResult | UkAffordabilityResult | EurAffordabilityResult;
+
 /** Affordability with the full tool's defaults for everything the engine does not ask. */
-export function engineAffordability(
-  region: 'US',
-  income: number,
-  deposit: number,
-): UsAffordabilityResult;
-export function engineAffordability(
-  region: 'UK',
-  income: number,
-  deposit: number,
-): UkAffordabilityResult;
-export function engineAffordability(
-  region: EngineRegion,
-  income: number,
-  deposit: number,
-): UsAffordabilityResult | UkAffordabilityResult;
-export function engineAffordability(
-  region: EngineRegion,
-  income: number,
-  deposit: number,
-): UsAffordabilityResult | UkAffordabilityResult {
+export function engineAffordability(region: 'US', income: number, deposit: number): UsAffordabilityResult;
+export function engineAffordability(region: 'UK', income: number, deposit: number): UkAffordabilityResult;
+export function engineAffordability(region: 'EUR', income: number, deposit: number): EurAffordabilityResult;
+export function engineAffordability(region: MortgageRegion, income: number, deposit: number): EngineAffordability;
+export function engineAffordability(region: MortgageRegion, income: number, deposit: number): EngineAffordability {
+  const common = {
+    annualIncome: income,
+    monthlyDebts: engineMonthlyDebts(region),
+    deposit,
+    ratePct: engineMortgageRate(region),
+    termYears: MORTGAGE_TERM_YEARS[region],
+  };
   if (region === 'UK') {
     return solveAffordability({
       region: 'uk',
-      annualIncome: income,
-      monthlyDebts: engineMonthlyDebts('UK'),
-      deposit,
-      ratePct: engineMortgageRate('UK'),
-      termYears: MORTGAGE_TERM_YEARS.UK,
+      ...common,
       // The tool rounds its take-home estimate to a whole pound before solving.
       monthlyTakeHome: Math.round(estimateUkTakeHome(income)),
       ltiCap: D.ltiCap,
@@ -175,13 +186,12 @@ export function engineAffordability(
       maxShareOfTakeHomePct: D.maxShareOfTakeHomePct,
     });
   }
+  if (region === 'EUR') {
+    return solveAffordability({ region: 'eur', ...common, maxDebtServicePct: D.eurMaxDebtServicePct });
+  }
   return solveAffordability({
     region: 'us',
-    annualIncome: income,
-    monthlyDebts: engineMonthlyDebts('US'),
-    deposit,
-    ratePct: engineMortgageRate('US'),
-    termYears: MORTGAGE_TERM_YEARS.US,
+    ...common,
     propertyTaxRate: D.propertyTaxRate,
     insuranceAnnual: D.insuranceAnnual,
     hoaMonthly: D.hoaMonthly,
@@ -197,6 +207,8 @@ export function engineAffordability(
  * The full Retirement Age calculator's defaults (RetirementAgeCalc.tsx
  * DEFAULTS), so the engine's first answer equals the tool's first answer.
  * The engine asks for age, savings and monthly saving; the rest stay as here.
+ * The solver itself is in engine-retire.ts, which the homepage loads only when
+ * the Retire question is opened.
  */
 export const RETIREMENT_DEFAULTS = {
   currentAge: 30,
@@ -209,26 +221,6 @@ export const RETIREMENT_DEFAULTS = {
   /** The search stops here; beyond it the target is reported as not reached. */
   maxAge: 90,
 } as const;
-
-export function engineRetirement(
-  currentAge: number,
-  currentSavings: number,
-  monthlyContribution: number,
-): RetirementAgeResult {
-  return solveRetirementAge({
-    currentAge,
-    currentSavings,
-    monthlyContribution,
-    annualReturn: RETIREMENT_DEFAULTS.annualReturnPct / 100,
-    target: RETIREMENT_DEFAULTS.target,
-    maxAge: RETIREMENT_DEFAULTS.maxAge,
-  });
-}
-
-/** Whole age shown for a reached target (same rule as the tool). */
-export function wholeRetirementAge(age: number): number {
-  return Math.floor(age + 1e-9);
-}
 
 /* -- UK pension with tax relief (homepage chip) -------------- */
 
