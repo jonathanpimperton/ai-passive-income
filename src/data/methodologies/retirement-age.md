@@ -36,7 +36,7 @@ dataSources:
   - name: "IRS: Retirement Topics, 401(k) and Profit-Sharing Plan Contribution Limits"
     url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits"
   - name: "Social Security Administration: Retirement Benefits (the SSA site blocks automated link checks)"
-    url: "https://www.ssa.gov/benefits/retirement/"
+    url: "https://www.ssa.gov/retirement"
   - name: "GOV.UK: State Pension age timetable"
     url: "https://www.gov.uk/government/publications/state-pension-age-timetable/state-pension-age-timetable"
 ---

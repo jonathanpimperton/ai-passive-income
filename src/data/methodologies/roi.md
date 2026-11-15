@@ -73,7 +73,3 @@ People often compare total ROI without considering the time period. "My real est
 Another mistake is ignoring dividends. An investment that gained 30% in price and paid 20% in dividends has a 50% total return, which is much more than the price return alone suggests.
 
 ROI also ignores the timing of cash flows. If you invested $10,000 at the start and added $5,000 after 3 years, simple ROI does not weight the returns correctly. For several deposits or withdrawals, the internal rate of return (IRR or XIRR) is more accurate. This calculator is designed for a single deposit.
-
-## Why This Calculator Exists
-
-ROI is the most basic investment metric. Before deciding where to invest, refinance or put your capital, you need to know what your current investments are returning and how that compares with alternatives. This calculator makes the comparison immediate.

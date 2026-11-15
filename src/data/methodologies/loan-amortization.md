@@ -76,7 +76,3 @@ Another misconception: "I can't afford extra payments." Even $50 extra per month
 ## UK and Euro-Area Rates
 
 The currency selector changes only the starting interest rate and the currency symbol. It does not change the formula, and there is no exchange-rate conversion. For USD the default is the Freddie Mac PMMS average (15-year for terms of 15 years or less, otherwise 30-year). For GBP it is the Bank of England's average quoted 2-year fixed rate at 75% loan-to-value. For EUR it is the ECB's composite cost of borrowing for house purchase. The source and date appear beside the rate input.
-
-## Why This Calculator Exists
-
-Anyone borrowing money, whether for a home, car, student loan, or personal loan, needs to know what the payments will be and how much of that money goes to interest rather than paying down the debt. This calculator turns that into concrete month-by-month numbers.

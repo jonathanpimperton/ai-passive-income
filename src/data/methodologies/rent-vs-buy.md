@@ -151,7 +151,3 @@ Selecting GBP or EUR changes the model in these ways:
 The biggest misconception is "rent is throwing money away". Rent pays for housing, which you need regardless. The real question is whether the non-equity costs of owning (interest, taxes, insurance, maintenance) are more or less than comparable rent. In expensive markets they often exceed it.
 
 Another: "my home is an investment". For most people a primary residence is something you consume, not just invest in. You can't sell it without needing somewhere else to live. Long-run house price growth after inflation is modest: the Philadelphia Fed's 30-city series from 1890 has real prices reaching almost four times their 1890 level by 2006, a little over 1% a year, well below long-run stock market returns. The figure depends heavily on the period and index used.
-
-## Why This Calculator Exists
-
-"Should I rent or buy?" is one of the most consequential financial decisions people face, and the answer depends on local conditions, how long you will stay, and your circumstances. This calculator replaces gut feeling with a side-by-side comparison using your numbers, and shows the rule it uses so you can check it.

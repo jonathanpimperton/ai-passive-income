@@ -40,7 +40,7 @@ dataSources:
   - name: "IRS: Retirement Topics, 401(k) and Profit-Sharing Plan Contribution Limits"
     url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits"
   - name: "Social Security Administration: Retirement Benefits (the SSA site blocks automated link checks)"
-    url: "https://www.ssa.gov/benefits/retirement/"
+    url: "https://www.ssa.gov/retirement"
   - name: "Cornell Law School LII: 20 CFR 404.409, full retirement age by birth year"
     url: "https://www.law.cornell.edu/cfr/text/20/404.409"
   - name: "GOV.UK: State Pension age timetable"

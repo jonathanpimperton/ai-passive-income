@@ -37,7 +37,7 @@ dataSources:
   - name: "IRS: Retirement Topics, 401(k) and Profit-Sharing Plan Contribution Limits"
     url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits"
   - name: "Social Security Administration: Retirement Benefits (the SSA site blocks automated link checks)"
-    url: "https://www.ssa.gov/benefits/retirement/"
+    url: "https://www.ssa.gov/retirement"
   - name: "GOV.UK: State Pension age timetable"
     url: "https://www.gov.uk/government/publications/state-pension-age-timetable/state-pension-age-timetable"
 ---
@@ -77,7 +77,3 @@ The formula is the same in every mode. In US mode, if the required monthly amoun
 **No time left:** if your retirement age is the same as your current age and the target is not already met, there is no time to save and the calculator says so instead of showing a number.
 
 **Short horizons:** with a very short time horizon, the required contribution is very high because there is little time for growth, and the result is mostly money paid in rather than investment growth.
-
-## Why This Calculator Exists
-
-"How much do I need to save each month?" is the retirement question people most want answered, and it is the one you cannot eyeball. Working it backwards from a target puts a monthly figure on a goal and shows how much the assumptions behind it matter.

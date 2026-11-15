@@ -79,7 +79,3 @@ CPI is an average across millions of consumers. Your personal inflation rate dep
 Another misconception is that inflation is always bad. Moderate inflation is generally considered healthy for an economy, while falling prices have historically gone with weak demand and rising unemployment.
 
 "Shrinkflation", where the price stays the same but the pack gets smaller, is captured by CPI (the BLS adjusts for package size changes), but consumers do not always notice it.
-
-## Why This Calculator Exists
-
-Inflation is invisible and relentless. Most people underestimate how much purchasing power erodes over decades. This calculator makes the erosion concrete, whether you are comparing historical prices, planning for future costs, or checking whether a raise kept up with the cost of living.

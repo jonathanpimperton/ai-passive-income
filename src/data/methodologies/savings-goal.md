@@ -76,7 +76,3 @@ The rate you enter should match where the money will be held:
 People often set a savings goal without allowing for inflation. At 2% to 3% a year, a $60,000 target today would be {{ inflationAdjust(60000, 2, 5, mode=cost) | usd }} to {{ inflationAdjust(60000, 3, 5, mode=cost) | usd }} in five years. For long-term targets, consider raising the goal by your own estimate of inflation, and use the inflation calculator for historical figures.
 
 Another mistake is using an aggressive return for a short-term goal. A stock market return of 10% is a long-run average, and in any single two-year period returns can be negative.
-
-## Why This Calculator Exists
-
-Every major purchase or financial milestone needs a savings plan. This calculator turns a vague aim ("I want to save for a house") into a concrete monthly figure ("I need to save {{ savingsMonthly(50000, 0, 5, 48) | usd }} a month for the next 4 years to reach $50,000 at 5%"). That specificity is the difference between hoping and planning.

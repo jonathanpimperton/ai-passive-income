@@ -34,7 +34,7 @@ limitations:
   - "The time search stops at 50 years, then reports that the target is not reached"
 dataSources:
   - name: "Consumer Financial Protection Bureau: An essential guide to building an emergency fund"
-    url: "https://www.consumerfinance.gov/start-small-save-up/start-saving/an-essential-guide-to-building-an-emergency-fund/"
+    url: "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/"
   - name: "Federal Reserve: Economic Well-Being of U.S. Households (SHED)"
     url: "https://www.federalreserve.gov/consumerscommunities/shed.htm"
   - name: "FDIC: National rates and rate caps (savings account averages)"
@@ -95,6 +95,6 @@ Many people include discretionary spending in their emergency fund calculation. 
 
 Another mistake is investing the emergency fund in stocks or other volatile assets. The point of an emergency fund is that the money is there when you need it, without the risk of being down 20% on the day you lose your job. Savings accounts and money market funds are appropriate. Brokerage accounts are not.
 
-## Why This Calculator Exists
+## Why an Emergency Fund Matters
 
-The Federal Reserve's Economic Well-Being of U.S. Households in 2025 report (survey run in October 2025, published 13 May 2026) found that 63% of adults would cover a $400 emergency expense entirely with cash, savings or a credit card paid off at the next statement. The other 37% would pay another way or could not pay. An emergency fund is the foundation of financial stability, because it stops a temporary setback from becoming a debt spiral. This calculator turns "save three to six months of expenses" into a specific target and timeline.
+The Federal Reserve's Economic Well-Being of U.S. Households in 2025 report (survey run in October 2025, published 13 May 2026) found that 63% of adults would cover a $400 emergency expense entirely with cash, savings or a credit card paid off at the next statement. The other 37% would pay another way or could not pay. An emergency fund stops a temporary setback from becoming a debt spiral.

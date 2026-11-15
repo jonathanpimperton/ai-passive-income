@@ -92,7 +92,3 @@ A 1% fee does not cost $1,000 a year. Against a 0.03% fund it costs {{ compoundF
 Fee comparisons assume identical gross returns, which is not always true. A skilled active manager may outperform an index fund even after higher fees. S&P's SPIVA scorecards, which compare active US funds with their benchmarks, have repeatedly found that most active funds trail their benchmark over 15-year periods. Check the latest scorecard for the current share.
 
 The calculator also does not account for advisory fees charged on top of fund expense ratios. If you pay a 0.25% advisory fee and a 0.50% fund fee, your total cost is 0.75%, and that is the figure to enter. In the UK the equivalent is the ongoing charges figure (OCF) plus any platform or adviser fee.
-
-## Why This Calculator Exists
-
-Most investors do not think about fees because they are invisible: deducted from returns, never shown as a line item on a statement. A 1% fee feels abstract. Showing what it costs over decades makes it concrete.

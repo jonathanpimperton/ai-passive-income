@@ -80,7 +80,3 @@ Choosing "start of each month" means each deposit earns one extra month of growt
 The constant return rate is the biggest simplification. Real markets have years of 20% gains and years of 20% losses. A portfolio that averages 7% does not end up where one earning exactly 7% every year does. Volatility reduces the compounded growth rate (volatility drag). The calculator shows an idealised path, not a prediction.
 
 Another error is ignoring fees. Over 30 years, a 1% annual fee takes {{ (1 - compoundFV(100000, 500, 6, 30) / compoundFV(100000, 500, 7, 30)) * 100 | pct1 }} off the final balance in the investment fee calculator's example ($100,000 plus $500 a month at 7% gross).
-
-## Why This Calculator Exists
-
-Investment planning means answering specific questions: "Can I reach my goal?", "Am I saving enough?", "What return do I need?" The solve-for-X tabs let you approach the same maths from whichever angle matches your question.

@@ -55,7 +55,7 @@ limitations:
   - "The ROI shown is the saving over the whole analysis period relative to the net cost, not a yearly rate, and it is not shown when the net cost is zero or less"
 dataSources:
   - name: "Ofgem: Changes to the energy price cap, 1 October to 31 December 2026"
-    url: "https://www.ofgem.gov.uk/publications/changes-energy-price-cap-between-1-october-and-31-december-2026"
+    url: "https://www.ofgem.gov.uk/news/changes-energy-price-cap-between-1-october-and-31-december-2026"
   - name: "Ofgem: Smart Export Guarantee annual report, April 2024 to March 2025"
     url: "https://www.ofgem.gov.uk/transparency-document/smart-export-guarantee-annual-report-april-2024-march-2025"
   - name: "DESNZ: Solar PV cost data"

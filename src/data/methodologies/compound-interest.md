@@ -69,7 +69,3 @@ When you select "start of each month", each deposit earns one extra month of gro
 Many people underestimate how sharply compound interest accelerates. A chart of compound growth looks nearly flat in the early years and then curves upward, which leads people to think saving early "doesn't matter much". The opposite is true. $10,000 invested at 7% has 40 years to grow if you start at 25 and 25 years if you start at 40 (both to age 65), and it ends at {{ compoundFV(10000, 0, 7, 40) | usd }} against {{ compoundFV(10000, 0, 7, 25) | usd }}, about {{ compoundFV(10000, 0, 7, 40) / compoundFV(10000, 0, 7, 25) | num(1) }} times as much.
 
 Another common error is confusing nominal and real returns. This calculator shows nominal growth. If inflation averages 3% and your return is 7%, your purchasing power grows by roughly 4% a year. Use the inflation calculator alongside this one for a complete picture.
-
-## Why This Calculator Exists
-
-Compound interest is the foundation of nearly every long-term financial decision: savings accounts, retirement funds, investment portfolios, even debt (which compounds against you). Understanding how your money grows, or how much you need to save, is the starting point for any financial plan.

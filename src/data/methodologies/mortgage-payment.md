@@ -82,7 +82,3 @@ Adding an extra monthly payment reduces your principal directly. The calculator 
 The most dangerous misconception is that the interest rate is the only thing that matters. Two mortgages at the same rate can have very different true costs once property tax, insurance, and PMI are included. Compare the total monthly payment, not only P&I.
 
 Another mistake is ignoring PMI. Some buyers stretch to put 10% down without realising they will pay PMI for years. On a $350,000 home with 10% down, PMI at 0.6% adds {{ 350000 * 0.9 * 0.6 / 100 / 12 | usd(2) }} a month on top of the P&I. In some cases it is worth waiting to save a full 20% down payment.
-
-## Why This Calculator Exists
-
-Buying a home is the largest financial commitment most people make. Knowing the true monthly cost, not just the advertised P&I, is essential for budgeting and for comparing properties in different tax jurisdictions. The calculator shows the full picture in the US and the repayment itself elsewhere, and says which of the two you are looking at.

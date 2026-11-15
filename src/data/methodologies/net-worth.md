@@ -93,7 +93,3 @@ The biggest misconception is counting your home's full value without counting th
 Another common error is using the purchase price instead of the current market value. A car bought for $35,000 three years ago might be worth much less today, and a house bought a decade ago might be worth much more.
 
 Some people leave out retirement accounts because they cannot touch the money before 59½. Early withdrawals may carry penalties, but the money is still yours and has real value, so include it. For a more cautious view, reduce retirement account values by your expected tax rate: at a 25% effective rate, a $100,000 401(k) counts as {{ 100000 * (1 - 25 / 100) | usd }}.
-
-## Why This Calculator Exists
-
-Net worth is the scoreboard of personal finance. It cuts through the complexity of several accounts, debts and assets to give one number for your overall financial position. The donut charts show how your assets and liabilities break down, with a data table behind each chart.
