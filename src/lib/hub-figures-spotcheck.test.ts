@@ -12,6 +12,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { calcSimpleIncomeTax, calcNI } from './uk-tax-calc';
 import { calcFederalTax, calcFICA } from './us-tax-calc';
 import { loanMonthlyPayment, compoundInterest } from './calculator-utils';
+import { isUsTaxYear, type UsTaxYear } from './us-rates';
 
 const hub = (slug: string) => `dist/scenarios/${slug}/index.html`;
 const built = existsSync('dist/scenarios/uk-take-home-pay/index.html');
@@ -27,10 +28,20 @@ describe.skipIf(!built)('hub pages match independent lib computation', () => {
     expect(html).toContain(gbp(takeHome / 12)); // monthly
   });
 
-  it('US take-home hub: $100k row', () => {
+  it('US take-home hub: $100k row, for every tax year the page shows', () => {
     const html = readFileSync(hub('us-take-home-pay'), 'utf8');
-    const takeHome = 100000 - calcFederalTax(100000, 'single') - calcFICA(100000, 'single').total;
-    expect(html).toContain(usd(takeHome));
+    // The page names the year each table follows (data-hub-year), so this
+    // check does not depend on today's default year: a build before 1 January
+    // and a test run after it agree.
+    const years = [...new Set([...html.matchAll(/data-hub-year="(\d{4})"/g)].map((m) => Number(m[1])))];
+    expect(years.length).toBeGreaterThan(0);
+    for (const year of years) {
+      expect(isUsTaxYear(year), `year ${year}`).toBe(true);
+      const takeHome =
+        100000 - calcFederalTax(100000, 'single', year as UsTaxYear) - calcFICA(100000, 'single', year as UsTaxYear).total;
+      expect(html, `take-home ${year}`).toContain(usd(takeHome));
+      expect(html, `monthly ${year}`).toContain(usd(takeHome / 12));
+    }
   });
 
   it('mortgage hub: $300k at 6.5% over 30 years', () => {

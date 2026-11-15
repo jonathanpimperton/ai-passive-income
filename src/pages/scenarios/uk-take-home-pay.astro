@@ -1,66 +1,95 @@
 ---
 /**
- * Phase 3 hub page: UK take-home pay by salary (2026/27).
+ * Hub page: UK take-home pay by salary.
  * Consolidates the retired per-salary doorway scenarios (20k-95k) into one
- * interactive reference. Every figure is computed AT BUILD TIME from the
- * central rates libs — the same functions the UK Salary Calculator uses,
- * cross-checked against docs/tax-values-2026.json by
- * src/lib/tax-values-crosscheck.test.ts.
+ * interactive reference. Every figure comes from the figure engine
+ * (`ukPay`, `ukFact`, ...), which calls the same functions the UK Salary
+ * Calculator uses; src/lib/tax-values-crosscheck.test.ts pins them to
+ * docs/tax-values-2026.json. Nothing on this page is typed by hand.
  *
  * Retired scenario URLs 301 here with row anchors (e.g. /#40k) via
- * public/_redirects.
+ * public/_redirects. Keep every row id.
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import Byline from '@components/ui/Byline.astro';
+import HubTable from '@components/scenarios/HubTable.astro';
+import type { HubRow } from '@components/scenarios/HubTable.astro';
 import SalaryUkCalc from '@components/tools/SalaryUkCalc.tsx';
 import { buildArticleSchema } from '@lib/seo';
-import { calcSimpleIncomeTax, calcNI, calcStudentLoan } from '@lib/uk-tax-calc';
-import { UK_TAX_YEAR, UK_RATES_LAST_CHECKED, UK_INCOME_TAX, UK_NI, UK_STUDENT_LOANS } from '@lib/uk-rates';
+import { UK_RATES_LAST_CHECKED } from '@lib/uk-rates';
+import {
+  fig,
+  rec,
+  kAnchor,
+  UK_SALARIES,
+  UK_HEADLINE_SALARY,
+  UK_ROW_PAGES,
+  HUB_DATE_MODIFIED,
+} from '@components/scenarios/hub-config';
 
 const DATE_PUBLISHED = '2026-07-07';
-const DATE_MODIFIED = '2026-07-07';
-
-const SALARIES = [
-  20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000,
-  70000, 75000, 80000, 85000, 90000, 95000, 100000, 110000, 120000, 130000, 150000,
-];
+const DATE_MODIFIED = HUB_DATE_MODIFIED;
 
 const gbp = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
+const pct1 = (n: number) => `${n.toFixed(1)}%`;
 
-const rows = SALARIES.map((salary) => {
-  const incomeTax = calcSimpleIncomeTax(salary);
-  const ni = calcNI(salary);
-  const takeHome = salary - incomeTax - ni;
+const taxYear = fig("taxYear('uk')");
+const headline = rec(`ukPay(${UK_HEADLINE_SALARY})`);
+
+const rows: HubRow[] = UK_SALARIES.map((salary) => {
+  const pay = rec(`ukPay(${salary})`);
+  const page = UK_ROW_PAGES[salary];
   return {
-    salary,
-    anchor: `${salary / 1000}k`,
-    incomeTax,
-    ni,
-    takeHome,
-    monthly: takeHome / 12,
-    effectiveRate: ((incomeTax + ni) / salary) * 100,
+    id: kAnchor(salary),
+    label: gbp(salary),
+    href: page?.href,
+    hrefLabel: page?.label,
+    cells: [
+      { text: gbp(pay.takeHome), tone: 'gain', strong: true },
+      { text: gbp(pay.monthly), tone: 'gain', strong: true },
+      { text: gbp(pay.incomeTax), tone: 'cost' },
+      { text: gbp(pay.ni), tone: 'cost' },
+      { text: pct1(pay.taxRate), tone: 'muted' },
+    ],
   };
 });
 
-// Student loan section: deduction at representative salaries
+// Student loan section: repayment at representative salaries, from the engine
 const LOAN_SALARIES = [30000, 40000, 50000, 60000, 80000];
-const loanRows = LOAN_SALARIES.map((salary) => ({
-  salary,
-  plan2: calcStudentLoan(salary, 'plan2'),
-  plan5: calcStudentLoan(salary, 'plan5'),
-}));
+const loanRows: HubRow[] = LOAN_SALARIES.map((salary) => {
+  const p2 = Number(rec(`ukPay(${salary}, plan=plan2)`).studentLoan);
+  const p5 = Number(rec(`ukPay(${salary}, plan=plan5)`).studentLoan);
+  return {
+    label: gbp(salary),
+    cells: [
+      { text: gbp(p2), tone: 'cost', strong: true },
+      { text: gbp(p2 / 12), tone: 'cost', strong: true },
+      { text: gbp(p5), tone: 'cost', strong: true },
+      { text: gbp(p5 / 12), tone: 'cost', strong: true },
+    ],
+  };
+});
 
-const pa = UK_INCOME_TAX.personalAllowance;
-const higherRateFrom = pa + UK_INCOME_TAX.bands[1].from;
-const uel = UK_NI.upperEarningsLimit;
-const taperStart = UK_INCOME_TAX.paTaperThreshold;
-const taperEnd = UK_INCOME_TAX.paTaperLimit;
-const plan2 = UK_STUDENT_LOANS.plan2;
-const plan5 = UK_STUDENT_LOANS.plan5;
+const pa = fig("ukFact('personalAllowance') | gbp");
+const niStart = fig("ukFact('niPrimaryThreshold') | gbp");
+const higherFrom = fig("ukFact('higherRateThreshold') | gbp");
+const higherRate = fig("ukFact('higherRate') | pct");
+const basicRate = fig("ukFact('basicRate') | pct");
+const niMain = fig("ukFact('niMainRate') | pct");
+const niUpper = fig("ukFact('niUpperRate') | pct");
+const niUpperFrom = fig("ukFact('niUpperEarningsLimit') | gbp");
+const taperStart = fig("ukFact('paTaperThreshold') | gbp");
+const taperEnd = fig("ukFact('paTaperLimit') | gbp");
+const marginalBasic = fig('ukMarginalRate(45000) | pct');
+const marginalHigher = fig('ukMarginalRate(60000) | pct');
+const marginalTaper = fig('ukMarginalRate(110000) | pct');
+const loanRate = fig("ukFact('studentLoanRate') | pct");
+const plan2From = fig("ukFact('plan2Threshold') | gbp");
+const plan5From = fig("ukFact('plan5Threshold') | gbp");
 
-const title = `UK Take-Home Pay by Salary: £20k-£150k (${UK_TAX_YEAR})`;
-const description = `UK take-home pay for every salary from £20,000 to £150,000 — income tax, National Insurance, and monthly net pay for ${UK_TAX_YEAR}, verified against HMRC rates.`;
+const title = `UK Take-Home Pay by Salary: £20k-£150k (${taxYear})`;
+const description = `UK take-home pay for every salary from £20,000 to £150,000: tax, National Insurance, and net pay a year and a month for ${taxYear}.`;
 
 const articleSchema = buildArticleSchema({
   headline: title,
@@ -82,6 +111,9 @@ const lastChecked = new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateSt
   month: 'long',
   year: 'numeric',
 });
+
+const linkClass = 'text-primary-600 hover:text-primary-700 underline transition-colors duration-150';
+const deepLinkClass = 'text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150';
 ---
 
 <BaseLayout
@@ -95,57 +127,56 @@ const lastChecked = new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateSt
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
-        UK take-home pay by salary: <span class="tabular-nums">&pound;20k&ndash;&pound;150k</span> <span class="text-neutral-500 font-normal">({UK_TAX_YEAR})</span>
+        UK take-home pay by salary: <span class="tabular-nums">&pound;20k&ndash;&pound;150k</span> <span class="text-neutral-500 font-normal">({taxYear})</span>
       </h1>
       <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
       <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">
-        What every salary from &pound;20,000 to &pound;150,000 is actually worth after income tax and
-        National Insurance — standard tax code, England/Wales/NI rates, verified against HMRC
-        figures on {lastChecked}.
+        What every salary from &pound;20,000 to &pound;150,000 is worth after income tax and
+        National Insurance, as a yearly and a monthly figure. Standard tax code, England, Wales
+        and Northern Ireland rates, checked against HMRC figures on {lastChecked}.
       </p>
+
+      {/* The answer: both figures, same size and weight */}
+      <div class="mt-6 max-w-[520px]" role="group" aria-label={`Take-home pay on a ${gbp(UK_HEADLINE_SALARY)} salary`}>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white border border-neutral-200/80 rounded-lg p-4">
+            <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">A year</p>
+            <p class="mt-1 text-2xl sm:text-3xl font-bold text-success-600 tabular-nums">{gbp(headline.takeHome)}</p>
+          </div>
+          <div class="bg-white border border-neutral-200/80 rounded-lg p-4">
+            <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">A month</p>
+            <p class="mt-1 text-2xl sm:text-3xl font-bold text-success-600 tabular-nums">{gbp(headline.monthly)}</p>
+          </div>
+        </div>
+        <p class="mt-2 text-sm text-neutral-600">
+          Take-home on a <span class="tabular-nums">{gbp(UK_HEADLINE_SALARY)}</span> salary
+          (<a href={`#${kAnchor(UK_HEADLINE_SALARY)}`} class={linkClass}>see its row</a>). Every row below
+          gives the yearly and the monthly figure side by side.
+        </p>
+      </div>
     </div>
   </section>
 
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
     {/* The table */}
-    <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="bg-neutral-50 border-b border-neutral-200/80">
-              <th class="text-left px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Salary</th>
-              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Income tax</th>
-              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">National Insurance</th>
-              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Take-home (year)</th>
-              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Take-home (month)</th>
-              <th class="text-right px-4 sm:px-5 py-3.5 font-semibold text-neutral-700">Effective rate</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, i) => (
-              <tr
-                id={row.anchor}
-                class:list={[
-                  'border-b border-neutral-100 last:border-b-0 scroll-mt-24 target:bg-primary-50',
-                  i % 2 === 1 ? 'bg-neutral-50/50' : '',
-                ]}
-              >
-                <td class="px-4 sm:px-5 py-3 font-semibold text-neutral-900 tabular-nums">{gbp(row.salary)}</td>
-                <td class="px-4 sm:px-5 py-3 text-right text-red-600 tabular-nums">{gbp(row.incomeTax)}</td>
-                <td class="px-4 sm:px-5 py-3 text-right text-red-600 tabular-nums">{gbp(row.ni)}</td>
-                <td class="px-4 sm:px-5 py-3 text-right font-semibold text-success-600 tabular-nums">{gbp(row.takeHome)}</td>
-                <td class="px-4 sm:px-5 py-3 text-right font-semibold text-neutral-900 tabular-nums">{gbp(row.monthly)}</td>
-                <td class="px-4 sm:px-5 py-3 text-right text-neutral-600 tabular-nums">{row.effectiveRate.toFixed(1)}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <HubTable
+      caption={`UK take-home pay by salary, ${taxYear}. Standard 1257L tax code, no pension, no student loan, England, Wales and Northern Ireland rates. A month is a year divided by 12.`}
+      rowHeader="Salary"
+      columns={[
+        { label: 'Take-home a year' },
+        { label: 'Take-home a month' },
+        { label: 'Income tax' },
+        { label: 'National Insurance' },
+        { label: 'Effective rate', sub: 'tax + NI' },
+      ]}
+      rows={rows}
+      scrollCue="Swipe sideways for the tax and National Insurance columns."
+    />
     <p class="mt-3 text-xs text-neutral-500">
-      Standard tax code (1257L), no pension contributions, no student loan, England/Wales/NI rates.
-      Scottish rates, tax codes, pension, and student loans: use the
-      <a href="/tools/income-and-planning/salary-uk/" class="underline decoration-neutral-300 underline-offset-2 hover:text-primary-700 transition-colors duration-150">full calculator</a> below.
+      Scottish rates, other tax codes, pension and student loans: use the
+      <a href="#calculator" class="underline decoration-neutral-300 underline-offset-2 hover:text-primary-700 transition-colors duration-150">full calculator</a> below.
+      Payroll works out tax and National Insurance pay period by pay period, so a payslip can differ
+      from the monthly column by a few pounds.
     </p>
 
     {/* What changes as salary rises */}
@@ -153,29 +184,32 @@ const lastChecked = new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateSt
       <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-6">Where the jumps happen</h2>
       <div class="space-y-6 text-neutral-700 leading-relaxed">
         <div>
-          <h3 class="font-bold text-neutral-900 mb-1.5">Up to {gbp(pa)} — tax-free</h3>
+          <h3 class="font-bold text-neutral-900 mb-1.5">Up to {pa}: no income tax</h3>
           <p>
-            The Personal Allowance means the first {gbp(pa)} of income has no income tax.
-            National Insurance also starts at {gbp(UK_NI.primaryThreshold)}, so the two kick in together.
+            The Personal Allowance means the first {pa} of income has no income tax.
+            National Insurance also starts at {niStart}, so the two kick in together.
           </p>
         </div>
         <div>
-          <h3 class="font-bold text-neutral-900 mb-1.5">{gbp(higherRateFrom)} — the 40% band, but NI drops</h3>
+          <h3 class="font-bold text-neutral-900 mb-1.5">{higherFrom}: the {higherRate} band, but NI drops</h3>
           <p>
-            Above {gbp(higherRateFrom)} each extra pound is taxed at 40% instead of 20% — but employee
-            NI falls from {(UK_NI.mainRate * 100).toFixed(0)}% to {(UK_NI.upperRate * 100).toFixed(0)}%
-            above {gbp(uel)}, so the real marginal jump is from {((UK_INCOME_TAX.bands[0].rate + UK_NI.mainRate) * 100).toFixed(0)}%
-            to {((UK_INCOME_TAX.bands[1].rate + UK_NI.upperRate) * 100).toFixed(0)}%, not from 20% to 40%.
+            Above {higherFrom} each extra pound is taxed at {higherRate} instead of {basicRate}, but employee
+            NI falls from {niMain} to {niUpper} above {niUpperFrom}, so the real marginal jump is from
+            {' '}{marginalBasic} to {marginalHigher}, not from {basicRate} to {higherRate}.
+            What a raise is worth after that point is worked through in
+            <a href="/scenarios/pay-rise-shock-uk/" class={linkClass}>how much of a pay rise you keep</a>.
           </p>
         </div>
         <div>
-          <h3 class="font-bold text-neutral-900 mb-1.5">{gbp(taperStart)} — the taper zone</h3>
+          <h3 class="font-bold text-neutral-900 mb-1.5">{taperStart}: the taper zone</h3>
           <p>
-            Between {gbp(taperStart)} and {gbp(taperEnd)} the Personal Allowance shrinks by &pound;1 for
-            every &pound;2 earned above {gbp(taperStart)}. Combined with 40% tax and 2% NI, each extra
-            pound in this zone loses roughly 60p to deductions — you can see the effective rate lurch
-            upward in the {gbp(110000)} and {gbp(120000)} rows above.
-            <a href="/scenarios/100k-salary-uk-tax/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">What &pound;100,000 actually pays</a> breaks this down in full.
+            Between {taperStart} and {taperEnd} the Personal Allowance shrinks by &pound;1 for
+            every &pound;2 earned above {taperStart}. Combined with {higherRate} tax and {niUpper} NI, each extra
+            pound in this zone loses about {marginalTaper} to deductions: look at the effective rate
+            in the {gbp(110000)} and {gbp(120000)} rows. Three pages go into it:
+            <a href="/scenarios/100k-salary-uk-tax/" class={linkClass}>what &pound;100,000 actually pays</a>,
+            <a href="/scenarios/60-percent-tax-trap-uk/" class={linkClass}>the 60% tax trap</a> and
+            <a href="/scenarios/100k-childcare-cliff-uk/" class={linkClass}>the &pound;100,000 childcare cliff</a>.
           </p>
         </div>
       </div>
@@ -185,35 +219,27 @@ const lastChecked = new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateSt
     <section class="mt-14 max-w-[768px]">
       <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-4">With a student loan</h2>
       <p class="text-neutral-700 leading-relaxed mb-5">
-        Student loan repayments come off on top of the table above: {(plan2.rate * 100).toFixed(0)}% of
-        income over {gbp(plan2.threshold)} on Plan 2, {(plan5.rate * 100).toFixed(0)}% over
-        {' '}{gbp(plan5.threshold)} on Plan 5.
+        Student loan repayments come off on top of the table above: {loanRate} of
+        income over {plan2From} on Plan 2, {loanRate} over {plan5From} on Plan 5.
       </p>
-      <div class="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden max-w-[560px]">
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="bg-neutral-50 border-b border-neutral-200/80">
-                <th class="text-left px-5 py-3 font-semibold text-neutral-700">Salary</th>
-                <th class="text-right px-5 py-3 font-semibold text-neutral-700">Plan 2 (per year)</th>
-                <th class="text-right px-5 py-3 font-semibold text-neutral-700">Plan 5 (per year)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loanRows.map((row, i) => (
-                <tr class:list={['border-b border-neutral-100 last:border-b-0', i % 2 === 1 ? 'bg-neutral-50/50' : '']}>
-                  <td class="px-5 py-2.5 font-semibold text-neutral-900 tabular-nums">{gbp(row.salary)}</td>
-                  <td class="px-5 py-2.5 text-right text-red-600 tabular-nums">{gbp(row.plan2)}</td>
-                  <td class="px-5 py-2.5 text-right text-red-600 tabular-nums">{gbp(row.plan5)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <HubTable
+        class="max-w-[640px]"
+        caption={`Student loan repayments by salary, ${taxYear}: Plan 2 and Plan 5, a year and a month.`}
+        rowHeader="Salary"
+        columns={[
+          { label: 'Plan 2 a year' },
+          { label: 'Plan 2 a month' },
+          { label: 'Plan 5 a year' },
+          { label: 'Plan 5 a month' },
+        ]}
+        rows={loanRows}
+        scrollCue="Swipe sideways for the Plan 5 columns."
+      />
       <p class="mt-3 text-sm text-neutral-600">
         Worked example with full deductions:
-        <a href="/scenarios/30k-salary-uk-student-loan/" class="text-primary-600 hover:text-primary-700 underline transition-colors duration-150">&pound;30,000 with a Plan 2 loan</a>.
+        <a href="/scenarios/30k-salary-uk-student-loan/" class={linkClass}>&pound;30,000 with a Plan 2 loan</a>.
+        When repayments start for a Plan 5 loan is in
+        <a href="/scenarios/plan-5-student-loans-explained/" class={linkClass}>Plan 5 explained</a>.
       </p>
     </section>
 
@@ -221,10 +247,11 @@ const lastChecked = new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateSt
     <section class="mt-14" id="calculator">
       <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-2">Check your exact numbers</h2>
       <p class="text-neutral-600 leading-relaxed mb-6 max-w-[640px]">
-        Scottish rates, tax codes, pension contributions, salary sacrifice, and all five student loan
-        plans — the full calculator, right here.
+        The calculator below starts on the {gbp(UK_HEADLINE_SALARY)} row (no pension, no student loan), so it
+        shows the same figures as the table. Change the salary, add a Scottish rate, a tax code,
+        pension contributions, salary sacrifice or a student loan plan.
       </p>
-      <SalaryUkCalc client:visible />
+      <SalaryUkCalc client:load defaults={{ salary: UK_HEADLINE_SALARY, pensionPercent: 0 }} />
     </section>
 
     {/* Deep dives */}
@@ -232,19 +259,27 @@ const lastChecked = new Date(UK_RATES_LAST_CHECKED + 'T00:00:00').toLocaleDateSt
       <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-5">Go deeper</h2>
       <ul class="space-y-3">
         <li>
-          <a href="/scenarios/50k-salary-uk-take-home/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">Take-home on &pound;50,000</a>
+          <a href="/scenarios/50k-salary-uk-take-home/" class={deepLinkClass}>Take-home on &pound;50,000</a>
           <span class="text-neutral-600"> — the higher-rate threshold, in detail</span>
         </li>
         <li>
-          <a href="/scenarios/100k-salary-uk-tax/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">Tax on &pound;100,000</a>
+          <a href="/scenarios/100k-salary-uk-tax/" class={deepLinkClass}>Tax on &pound;100,000</a>
           <span class="text-neutral-600"> — where the Personal Allowance taper begins</span>
         </li>
         <li>
-          <a href="/how-we-calculate/salary-uk/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">How we calculate UK take-home pay</a>
+          <a href="/scenarios/60-percent-tax-trap-uk/" class={deepLinkClass}>The 60% tax trap</a>
+          <span class="text-neutral-600"> — what a pension contribution does between &pound;100,000 and &pound;125,140</span>
+        </li>
+        <li>
+          <a href="/scenarios/pay-rise-shock-uk/" class={deepLinkClass}>A pay rise, after tax</a>
+          <span class="text-neutral-600"> — how much of a raise reaches your account</span>
+        </li>
+        <li>
+          <a href="/how-we-calculate/salary-uk/" class={deepLinkClass}>How we calculate UK take-home pay</a>
           <span class="text-neutral-600"> — formulas, assumptions, and sources</span>
         </li>
         <li>
-          <a href="/scenarios/us-take-home-pay/" class="text-primary-600 hover:text-primary-700 font-medium underline decoration-primary-200 underline-offset-2 transition-colors duration-150">US take-home pay by salary</a>
+          <a href="/scenarios/us-take-home-pay/" class={deepLinkClass}>US take-home pay by salary</a>
           <span class="text-neutral-600"> — the American equivalent of this table</span>
         </li>
       </ul>

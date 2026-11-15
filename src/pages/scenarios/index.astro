@@ -6,7 +6,15 @@ import { getCollection } from 'astro:content';
 import { TOOLS, type ToolMeta } from '@lib/tools-data';
 import { UK_TAX_YEAR } from '@lib/uk-rates';
 import { compareSlugs } from '@lib/internal-links';
-import { US_TAX_YEAR } from '@lib/us-rates';
+import { US_TAX_YEARS } from '@lib/us-rates';
+import {
+  UK_SALARIES,
+  US_SALARIES,
+  MORTGAGE_AMOUNTS,
+  MORTGAGE_RATES,
+  INVEST_RATE,
+  shortMoney,
+} from '@components/scenarios/hub-config';
 
 // Slug order, then groups in the site's tool order: the same HTML on every
 // build (getCollection order follows the filesystem).
@@ -37,26 +45,28 @@ const breadcrumbs = [
 
 // Phase 3 hub pages — the consolidated reference tables sit above the
 // individual scenarios (they replaced ~70 retired per-value pages).
+const money = (n: number, symbol: string, locale: string) => symbol + n.toLocaleString(locale);
+const rateText = (r: number) => `${Number(r.toFixed(2))}%`;
 const HUBS = [
   {
     href: '/scenarios/uk-take-home-pay/',
     title: 'UK take-home pay by salary',
-    detail: `£20,000 to £150,000 · ${UK_TAX_YEAR} rates`,
+    detail: `${money(UK_SALARIES[0], '£', 'en-GB')} to ${money(UK_SALARIES[UK_SALARIES.length - 1], '£', 'en-GB')} · ${UK_TAX_YEAR} rates`,
   },
   {
     href: '/scenarios/us-take-home-pay/',
     title: 'US take-home pay by salary',
-    detail: `$40,000 to $250,000 · ${US_TAX_YEAR} rates`,
+    detail: `${money(US_SALARIES[0], '$', 'en-US')} to ${money(US_SALARIES[US_SALARIES.length - 1], '$', 'en-US')} · ${US_TAX_YEARS.join(' and ')} rates`,
   },
   {
     href: '/scenarios/mortgage-payments-by-amount/',
     title: 'Mortgage payments by amount',
-    detail: '$150K to $750K · rates from 5% to 7%',
+    detail: `${shortMoney(MORTGAGE_AMOUNTS[0])} to ${shortMoney(MORTGAGE_AMOUNTS[MORTGAGE_AMOUNTS.length - 1])} · the latest average and ${rateText(MORTGAGE_RATES[0])} to ${rateText(MORTGAGE_RATES[MORTGAGE_RATES.length - 1])}`,
   },
   {
     href: '/scenarios/investment-growth/',
     title: 'Investment growth by amount',
-    detail: 'Monthly investing and lump sums at 7%',
+    detail: `Monthly investing and lump sums at ${rateText(INVEST_RATE)} a year`,
   },
 ];
 ---
