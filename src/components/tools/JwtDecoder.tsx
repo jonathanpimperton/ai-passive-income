@@ -3,7 +3,7 @@
  * checks (src/lib/dev-tools/jwt.ts). Zero dependencies.
  * Does NOT verify signatures, and never labels a token "valid".
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Copy, Check, AlertCircle, AlertTriangle, Clock, Shield, Key, Info } from 'lucide-react';
 import PrivacyBadge from '../ui/PrivacyBadge';
 import { decodeJwtToken, type JwtDecodeResult, type JwtStatus } from '../../lib/dev-tools/jwt';
@@ -12,10 +12,17 @@ import { safely } from '../../lib/dev-tools/safe-compute';
 
 const SAMPLE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
-/** Format a Unix timestamp (seconds) to a readable date; out-of-range values are explained. */
-function formatTimestamp(seconds: number): string {
+/**
+ * Format a Unix timestamp (seconds) to a readable date; out-of-range values are explained.
+ *
+ * `local` is false for the server render and the first client render: they must produce
+ * identical text, so they use a fixed UTC format (no Intl, whose spacing differs between
+ * Node and browsers). The visitor's own locale and time zone are applied after mount.
+ */
+function formatTimestamp(seconds: number, local: boolean): string {
   const ms = seconds * 1000;
   if (!Number.isFinite(ms) || Math.abs(ms) > 8.64e15) return 'outside the range of real dates';
+  if (!local) return new Date(ms).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC');
   return new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'long' });
 }
 
@@ -38,7 +45,7 @@ const TONE_CLASSES: Record<JwtStatus['tone'], string> = {
   bad: 'text-red-700 bg-red-50 border-red-200',
 };
 
-function ClaimRow({ name, value }: { name: string; value: unknown }) {
+function ClaimRow({ name, value, localTime }: { name: string; value: unknown; localTime: boolean }) {
   const isTimestamp = typeof value === 'number' && ['exp', 'nbf', 'iat'].includes(name);
   const knownLabel = KNOWN_CLAIMS[name];
 
@@ -51,7 +58,7 @@ function ClaimRow({ name, value }: { name: string; value: unknown }) {
       <div className="min-w-0 flex-1">
         {isTimestamp ? (
           <div>
-            <p className="text-sm text-neutral-900 font-mono">{formatTimestamp(value as number)}</p>
+            <p className="text-sm text-neutral-900 font-mono">{formatTimestamp(value as number, localTime)}</p>
             <p className="text-xs text-neutral-500 font-mono tabular-nums">({value as number})</p>
           </div>
         ) : typeof value === 'object' && value !== null ? (
@@ -69,6 +76,9 @@ function ClaimRow({ name, value }: { name: string; value: unknown }) {
 export default function JwtDecoder() {
   const [input, setInput] = useState(SAMPLE_JWT);
   const { copy, copiedKey, message: copyMessage } = useCopyFeedback();
+  // Dates show in the visitor's locale and time zone only once mounted (see formatTimestamp).
+  const [localTime, setLocalTime] = useState(false);
+  useEffect(() => setLocalTime(true), []);
 
   const decoded = useMemo(
     () => safely<JwtDecodeResult>(() => decodeJwtToken(input), (message) => ({ ok: false, error: message })),
@@ -153,7 +163,7 @@ export default function JwtDecoder() {
               </div>
               <div className="px-4 py-2">
                 {Object.entries(decoded.header).map(([key, value]) => (
-                  <ClaimRow key={key} name={key} value={value} />
+                  <ClaimRow key={key} name={key} value={value} localTime={localTime} />
                 ))}
               </div>
             </div>
@@ -176,7 +186,7 @@ export default function JwtDecoder() {
               </div>
               <div className="px-4 py-2">
                 {Object.entries(decoded.payload).map(([key, value]) => (
-                  <ClaimRow key={key} name={key} value={value} />
+                  <ClaimRow key={key} name={key} value={value} localTime={localTime} />
                 ))}
               </div>
             </div>

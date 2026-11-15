@@ -8,6 +8,9 @@
  *   extended schema (timestamps, binary) are available as options.
  * - .inf / .nan have no JSON form; they are written as strings with a
  *   warning instead of silently becoming null.
+ * - Whole numbers beyond 2^53 cannot be held exactly by the parser (js-yaml
+ *   reads them into JavaScript numbers), so they come out rounded. The
+ *   conversion says so and shows examples instead of changing digits silently.
  * - Converting to JSON expands aliases, so an "alias bomb" can explode a few
  *   hundred bytes into billions of values. Expansion is capped and recursive
  *   aliases are refused, so the page never hangs or crashes.
@@ -23,12 +26,25 @@ interface YamlMark {
   column: number;
 }
 
+/** The parts of a js-yaml Type the converter reads (js-yaml ships without typings). */
+interface YamlTypeLike {
+  tag: string;
+  kind: string;
+  resolve: (data: string) => boolean;
+  construct: (data: string) => unknown;
+}
+
+interface YamlSchemaLike {
+  implicit: YamlTypeLike[];
+  extend(definition: Record<string, unknown>): YamlSchemaLike;
+}
+
 export interface JsYamlModule {
   loadAll(str: string, iterator?: undefined, options?: Record<string, unknown>): unknown[];
   dump(value: unknown, options?: Record<string, unknown>): string;
-  CORE_SCHEMA: unknown;
-  JSON_SCHEMA: unknown;
-  DEFAULT_SCHEMA: { extend(definition: Record<string, unknown>): unknown };
+  CORE_SCHEMA: YamlSchemaLike;
+  JSON_SCHEMA: YamlSchemaLike;
+  DEFAULT_SCHEMA: YamlSchemaLike;
   Type: new (tag: string, definition: Record<string, unknown>) => unknown;
 }
 
@@ -42,10 +58,52 @@ export type YamlToJsonResult =
 class ExpansionLimit extends Error {}
 class RecursiveAlias extends Error {}
 
-function schemaFor(mod: JsYamlModule, choice: YamlSchemaChoice): unknown {
+function schemaFor(mod: JsYamlModule, choice: YamlSchemaChoice): YamlSchemaLike {
   if (choice === 'json') return mod.JSON_SCHEMA;
   if (choice === 'extended') return mod.DEFAULT_SCHEMA;
   return mod.CORE_SCHEMA;
+}
+
+const INT_TAG = 'tag:yaml.org,2002:int';
+
+/** The exact value of an integer scalar as written (decimal, 0x, 0o or 0b), or null for other forms. */
+function writtenInteger(raw: string): bigint | null {
+  const m = /^([+-]?)(\d+|0[xX][0-9a-fA-F]+|0[oO][0-7]+|0[bB][01]+)$/.exec(raw.trim());
+  if (!m) return null;
+  try {
+    const magnitude = BigInt(m[2]);
+    return m[1] === '-' ? -magnitude : magnitude;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The same schema, except that the integer type reports every whole number
+ * whose digits do not survive being read into a JavaScript number. Floats such
+ * as 1e20, quoted strings and exactly representable values like 2^53 are not
+ * reported. If the schema has no integer type to wrap, nothing is reported.
+ */
+function withRoundingReport(
+  mod: JsYamlModule,
+  schema: YamlSchemaLike,
+  report: (written: string, becomes: string) => void,
+): YamlSchemaLike {
+  const int = schema.implicit.find((t) => t.tag === INT_TAG);
+  if (!int) return schema;
+  const reporting = new mod.Type(INT_TAG, {
+    kind: int.kind,
+    resolve: int.resolve,
+    construct: (data: string) => {
+      const value = int.construct(data);
+      if (typeof value === 'number' && Number.isFinite(value) && !Number.isSafeInteger(value)) {
+        const written = writtenInteger(data);
+        if (written !== null && written !== BigInt(value)) report(data.trim(), JSON.stringify(value));
+      }
+      return value;
+    },
+  });
+  return schema.extend({ implicit: [reporting] });
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
@@ -158,8 +216,14 @@ export function yamlToJson(
   opts: { schema: YamlSchemaChoice; indent: number; maxValues?: number },
 ): YamlToJsonResult {
   let docs: unknown[];
+  const roundedInts: string[] = [];
+  let roundedCount = 0;
+  const schema = withRoundingReport(mod, schemaFor(mod, opts.schema), (written, becomes) => {
+    roundedCount += 1;
+    if (roundedInts.length < 3) roundedInts.push(`${written.length > 28 ? `${written.slice(0, 25)}...` : written} -> ${becomes}`);
+  });
   try {
-    docs = mod.loadAll(text, undefined, { schema: schemaFor(mod, opts.schema) });
+    docs = mod.loadAll(text, undefined, { schema });
   } catch (e) {
     return { ok: false, error: yamlErrorMessage(e) };
   }
@@ -186,6 +250,12 @@ export function yamlToJson(
   }
   if (result.nonFinite) {
     warnings.push(`${result.nonFinite} value${result.nonFinite === 1 ? ' is' : 's are'} .inf or .nan, which JSON cannot represent. ${result.nonFinite === 1 ? 'It was' : 'They were'} written as the strings ".inf", "-.inf" or ".nan".`);
+  }
+  if (roundedCount) {
+    warnings.push(
+      `${roundedCount} whole number${roundedCount === 1 ? ' is' : 's are'} too large to convert exactly (beyond 9007199254740991, 2^53) and ${roundedCount === 1 ? 'was' : 'were'} rounded: ` +
+        `${roundedInts.join(', ')}${roundedCount > roundedInts.length ? ` and ${roundedCount - roundedInts.length} more` : ''}. Quote ${roundedCount === 1 ? 'it' : 'them'} in the YAML to keep ${roundedCount === 1 ? 'it' : 'them'} exact as text.`,
+    );
   }
   return { ok: true, json: result.text, warnings, documents: docs.length };
 }

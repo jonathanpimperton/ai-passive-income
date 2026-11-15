@@ -59,6 +59,37 @@ describe('YAML to JSON (DEVTOOLS-12)', () => {
     expect(Date.now() - t0).toBeLessThan(5000);
   });
 
+  it('warns when whole numbers beyond 2^53 are rounded, with examples', () => {
+    const r = okJson('id: 12345678901234567890\nneg: -9007199254740993\nhex: 0xFFFFFFFFFFFFFFFFF\nsmall: 5\n');
+    expect(r.value.small).toBe(5);
+    expect(r.warnings).toHaveLength(1);
+    expect(r.warnings[0]).toMatch(/^3 whole numbers are too large to convert exactly/);
+    expect(r.warnings[0]).toContain('12345678901234567890 -> 12345678901234567000');
+    expect(r.warnings[0]).toContain('-9007199254740993 -> -9007199254740992');
+    expect(r.warnings[0]).toMatch(/Quote them in the YAML/);
+    expect(okJson('id: 12345678901234567890').warnings[0]).toMatch(/^1 whole number is too large[^]*was rounded/);
+  });
+
+  it('does not warn for numbers that survive, floats, quoted text or the YAML 1.1 forms it cannot compare', () => {
+    expect(okJson('a: 9007199254740991\nb: 9007199254740992\nc: 1e20\nd: 1.5e300\ne: "12345678901234567890"\nf: 0.1234567890123456789\n').warnings).toEqual([]);
+    // A quoted big number stays text; an unquoted one in a comment or block text is not a number.
+    expect(okJson('# id: 12345678901234567890\nnote: |\n  order 12345678901234567890 shipped\n').warnings).toEqual([]);
+  });
+
+  it('truncates a very long number in the warning and counts every rounded value', () => {
+    const digits = '9'.repeat(40);
+    const r = okJson(`a: ${digits}\nb: 18446744073709551617\nc: 18446744073709551618\nd: 18446744073709551619\n`);
+    expect(r.warnings[0]).toMatch(/^4 whole numbers/);
+    expect(r.warnings[0]).toContain(`${'9'.repeat(25)}... -> `);
+    expect(r.warnings[0]).toMatch(/ and 1 more\. Quote them/);
+    expect(r.warnings[0]).not.toContain(digits);
+  });
+
+  it('applies the same rounding warning under the JSON and extended schemas', () => {
+    expect(okJson('id: 12345678901234567890', 'json').warnings).toHaveLength(1);
+    expect(okJson('id: 12345678901234567890', 'extended').warnings).toHaveLength(1);
+  });
+
   it('still expands ordinary aliases', () => {
     expect(okJson('base: &b {x: 1}\nother: *b').value).toEqual({ base: { x: 1 }, other: { x: 1 } });
   });

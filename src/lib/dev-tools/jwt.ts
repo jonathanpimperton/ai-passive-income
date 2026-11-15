@@ -86,6 +86,24 @@ function decodeSegment(segment: string, label: string): { ok: true; value: unkno
   }
 }
 
+/** A claim value in words for a warning: names null and arrays (typeof says "object") and shortens long strings. */
+export function describeClaimValue(v: unknown): string {
+  if (v === null) return 'null';
+  if (Array.isArray(v)) return 'an array';
+  switch (typeof v) {
+    case 'string':
+      return `the string "${v.length > 40 ? `${v.slice(0, 37)}...` : v}"`;
+    case 'number':
+      return 'not a finite number';
+    case 'boolean':
+      return `the boolean ${v}`;
+    case 'object':
+      return 'an object';
+    default:
+      return typeof v;
+  }
+}
+
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
@@ -164,7 +182,7 @@ export function decodeJwtToken(input: string, nowMs: number = Date.now()): JwtDe
     if (v === undefined) continue;
     if (typeof v !== 'number' || !Number.isFinite(v)) {
       notNumbers.add(name);
-      warnings.push(`"${name}" should be a number of seconds since 1970 (RFC 7519 NumericDate), but it is ${typeof v === 'string' ? `the string "${v}"` : typeof v === 'number' ? 'not a finite number' : typeof v}.`);
+      warnings.push(`"${name}" should be a number of seconds since 1970 (RFC 7519 NumericDate), but it is ${describeClaimValue(v)}.`);
       continue;
     }
     const looksLikeMs = Math.abs(v) >= MS_THRESHOLD;
