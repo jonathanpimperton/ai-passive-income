@@ -10,9 +10,6 @@
  */
 import { evaluateFigure, evaluateFigureValue } from '@lib/figures';
 
-/** Date the hub pages' prose was last edited (Byline and Article JSON-LD). */
-export const HUB_DATE_MODIFIED = '2026-11-15';
-
 /** Evaluate a figure expression (no formatter) that must be a number. */
 export function num(expr: string): number {
   const v = evaluateFigureValue(expr);

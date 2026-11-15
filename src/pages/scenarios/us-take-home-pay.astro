@@ -31,11 +31,10 @@ import {
   US_SALARIES,
   US_HEADLINE_SALARY,
   US_ROW_PAGES,
-  HUB_DATE_MODIFIED,
 } from '@components/scenarios/hub-config';
 
 const DATE_PUBLISHED = '2026-07-07';
-const DATE_MODIFIED = HUB_DATE_MODIFIED;
+const DATE_MODIFIED = '2026-11-15';
 
 const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
 const signedUsd = (n: number) => `${n < 0 ? '-' : '+'}${usd(Math.abs(n))}`;
