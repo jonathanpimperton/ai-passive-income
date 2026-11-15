@@ -114,6 +114,7 @@ const toneClass = {
                   class:list={[
                     'px-3 sm:px-5 py-3 text-right tabular-nums',
                     toneClass[cell.tone ?? 'plain'],
+                    `hub-tone-${cell.tone ?? 'plain'}`,
                     cell.strong && 'font-semibold',
                     columns[j]?.emphasis && 'hub-col-em',
                   ]}
@@ -157,6 +158,17 @@ const toneClass = {
   }
   .hub-row:target > th {
     box-shadow: inset 4px 0 0 var(--color-primary-600);
+  }
+  /* The tint lowers the contrast of the green and red figures (4.5:1 needed):
+     use the deeper token for each on the target row, in both themes. */
+  .hub-row:target > .hub-tone-gain {
+    color: var(--color-success-700);
+  }
+  .hub-row:target > .hub-tone-cost {
+    color: var(--color-red-700);
+  }
+  :global([data-theme='dark']) .hub-row:target > .hub-tone-cost {
+    color: var(--color-red-800);
   }
 
   .hub-col-em {
