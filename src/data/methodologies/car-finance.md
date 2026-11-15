@@ -30,7 +30,6 @@ assumptions:
   - "All four options are compared over the same term for a fair comparison"
 limitations:
   - "Does not account for PCP mileage limits and excess mileage charges"
-  - "Does not model vehicle depreciation or residual value"
   - "Does not include GAP insurance, dealer fees, or extended warranty costs"
   - "Does not factor in the tax implications of different financing methods"
   - "The 'cheapest' comparison assumes you keep the car: PCP is cheaper if you return it (but you don't own the car)"

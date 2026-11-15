@@ -25,7 +25,6 @@ assumptions:
   - "UK: the annual exempt amount (£3,000) is deducted from the gain first. The remaining gain is charged at 18% up to the unused basic rate band and at 24% above it"
   - "UK: unused basic rate band = basic rate band − (income − Personal Allowance). The Personal Allowance is tapered above £100,000 of income"
   - "UK: Scottish taxpayers use the UK basic rate band too: HMRC's manual says to assume the individual is not a Scottish or Welsh taxpayer when working out the available basic rate band"
-  - "No state or local taxes are included in the US calculation"
   - "No allowable costs (improvements, selling fees) are deducted from the gain: enter your cost basis net of them if you want them counted"
   - "The country tab, not the currency selector, chooses the model. With no stored choice the tab follows your detected region (UK opens the UK tab, anywhere else the US tab). A stored GBP currency opens the UK tab, and USD or EUR open the US tab"
 limitations:
@@ -34,7 +33,7 @@ limitations:
   - "US: does not handle Section 1250 recapture (depreciation on rental property), the 28% collectibles rate or qualified opportunity zone deferrals"
   - "US: the NIIT figure is an estimate because modified AGI is estimated. Real MAGI can be higher or lower depending on adjustments, and the tax can differ by a few hundred dollars near the threshold"
   - "UK: does not model Private Residence Relief, Business Asset Disposal Relief, or gains on UK residential property by non-UK residents"
-  - "Neither country: does not model allowable costs separately, carried-forward losses or tax-loss harvesting"
+  - "Neither country: does not model carried-forward losses or tax-loss harvesting"
 dataSources:
   - name: "IRS Topic 409: Capital gains and losses"
     url: "https://www.irs.gov/taxtopics/tc409"

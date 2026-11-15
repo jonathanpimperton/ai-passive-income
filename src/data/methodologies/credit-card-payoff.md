@@ -11,7 +11,7 @@ variables:
   - name: "Minimum Payment"
     description: "One of three modes: a fixed amount; a percentage of the balance with a floor (default 2%); or the month's interest plus a percentage of the balance with a floor (default 1%)"
   - name: "Floor"
-    description: "The lowest the percentage-based minimum can fall: $25 with USD selected, £5 with GBP selected. It is not editable"
+    description: "The lowest the percentage-based minimum can fall: $25 with USD selected, €25 with EUR selected, £5 with GBP selected. It is not editable"
   - name: "Extra Monthly Payment"
     description: "Amount paid on top of the minimum every month, applied to the balance after that month's interest"
 assumptions:
@@ -23,12 +23,12 @@ assumptions:
   - "No late fees, penalty APRs, or grace period effects"
   - "The APR stays constant throughout"
   - "The simulation runs for 600 months (50 years). A debt not cleared by then is reported as 'not cleared within 50 years', with totals for the 50 years only"
-  - "The currency selector changes the symbol and the percentage-mode floor ($25 or £5) and nothing else"
+  - "The currency selector changes the symbol and the percentage-mode floor ($25, €25 or £5) and nothing else"
 limitations:
   - "Does not model introductory 0% APR periods or balance transfers"
   - "Does not model variable APRs (for example a rate tied to the prime rate)"
   - "Does not include cash back, rewards, or annual fees"
-  - "Many issuers charge a daily rate on the average daily balance and add the interest once a month, which is close to this model. Issuers that compound daily charge more: on the default example the payoff would take 178 months instead of 167, with about 9% more interest"
+  - "Many issuers charge a daily rate on the average daily balance and add the interest once a month, which is close to this model. Issuers that compound daily charge more: on the default example the payoff would take 178 months instead of {{ cardPayoff(5000, 22.99, 100).months | int }}, with about 9% more interest"
   - "Percentage-based minimums are modelled in the three simple forms above, and some issuers use more complex formulas"
   - "Does not handle several cards: use the Debt Payoff calculator for multi-card strategies"
 dataSources:
@@ -58,19 +58,19 @@ Each month, the calculator:
 
 **Three minimum-payment modes.** Cards differ, so the calculator has three:
 - **Fixed amount:** you enter the minimum, and it stays the same every month.
-- **% of balance:** the larger of a percentage of the balance (default 2%) and a floor ($25, or £5 with GBP selected). The payment falls as the balance falls.
+- **% of balance:** the larger of a percentage of the balance (default 2%) and a floor ($25, €25, or £5 with GBP selected). The payment falls as the balance falls.
 - **Interest + %:** the larger of that month's interest plus a percentage of the balance (default 1%) and the floor. UK rules require this structure (the FCA's CONC 6.7 requires a minimum of at least the interest, fees and charges plus 1% of the amount outstanding), it is common in the US, and US bank regulators expect minimums that pay the balance down over a reasonable time. It always reduces the balance.
 
 ## The Minimum Payment Trap, Explained
 
 Credit card companies set minimums that maximise interest revenue. Take a $5,000 balance at 22.99% APR paid at a fixed $100 a month:
-- Month 1: {{ 5000 * 22.99 / 100 / 12 | usd }} of the payment is interest and only $4 reaches the balance
-- Month 12: interest is still $95
-- Total: 13 years 11 months (167 payments) and $11,694 in interest, more than double the original balance
+- Month 1: {{ cardPayoff(5000, 22.99, 100).firstInterest | usd(2) }} of the payment is interest and only {{ 100 - cardPayoff(5000, 22.99, 100).firstInterest | usd(2) }} reaches the balance
+- Month 12: interest is still {{ payoffBalance(5000, 22.99, 100, 11) * 22.99 / 100 / 12 | usd }}
+- Total: {{ cardPayoff(5000, 22.99, 100).months | months }} ({{ cardPayoff(5000, 22.99, 100).months | int }} payments) and {{ cardPayoff(5000, 22.99, 100).interest | usd }} in interest, more than double the original balance
 
-If instead the minimum is 2% of the balance (with a $25 floor), the payment starts at $100 and shrinks as the balance falls. After 50 years (600 months) the balance is still $3,017 and you have paid $45,140 in interest. Falling payments keep the debt alive.
+If instead the minimum is 2% of the balance (with a $25 floor), the payment starts at $100 and shrinks as the balance falls. After {{ cardHorizonYears() | int }} years (600 months) the balance is still $3,017 and you have paid $45,140 in interest. Falling payments keep the debt alive.
 
-If the payment is no more than the first month's interest, the balance never falls. At 22.99% on $5,000, interest is {{ 5000 * 22.99 / 100 / 12 | usd(2) }} in month 1, so a $95 payment never clears the card, and the calculator says so instead of showing a total. A $96 payment clears it, but in 324 months at $26,025 of interest.
+If the payment is no more than the first month's interest, the balance never falls. At 22.99% on $5,000, interest is {{ 5000 * 22.99 / 100 / 12 | usd(2) }} in month 1, so a $95 payment never clears the card, and the calculator says so instead of showing a total. A $96 payment clears it, but in {{ cardPayoff(5000, 22.99, 96).months | int }} months at {{ cardPayoff(5000, 22.99, 96).interest | usd }} of interest.
 
 ## How Extra Payments Break the Cycle
 
@@ -80,20 +80,20 @@ Extra payments go to the balance once that month's interest is covered. This wor
 2. Less interest means more of the next payment goes to the balance
 3. More principal paid means a lower balance still
 
-On the $5,000 example, paying $150 a month instead of $100 clears the card in 54 months (4 years 6 months) with $3,045 of interest. That saves $8,649 of interest and more than 9 years. A fixed payment of {{ loanPayment(5000, 22.99, 5) | usd(2) }} a month would clear the card in exactly 5 years.
+On the $5,000 example, paying $150 a month instead of $100 clears the card in {{ cardPayoff(5000, 22.99, 150).months | int }} months ({{ cardPayoff(5000, 22.99, 150).months | months }}) with {{ cardPayoff(5000, 22.99, 150).interest | usd }} of interest. That saves {{ cardPayoff(5000, 22.99, 100).interest - cardPayoff(5000, 22.99, 150).interest | usd }} of interest and {{ cardPayoff(5000, 22.99, 100).months - cardPayoff(5000, 22.99, 150).months | months }}. A fixed payment of {{ loanPayment(5000, 22.99, 5) | usd(2) }} a month would clear the card in exactly 5 years.
 
 ## How Each Variable Affects the Result
 
 All the figures below use the $5,000 example.
 
-**Balance:** At a fixed $250 a month, $5,000 clears in 26 months with $1,366 of interest and $10,000 clears in 77 months with $9,153. Doubling the balance roughly triples the time and more than multiplies the interest by six.
+**Balance:** At a fixed $250 a month, $5,000 clears in {{ cardPayoff(5000, 22.99, 250).months | int }} months with {{ cardPayoff(5000, 22.99, 250).interest | usd }} of interest and $10,000 clears in {{ cardPayoff(10000, 22.99, 250).months | int }} months with {{ cardPayoff(10000, 22.99, 250).interest | usd }}. Doubling the balance roughly triples the time and multiplies the interest by about {{ cardPayoff(10000, 22.99, 250).interest / cardPayoff(5000, 22.99, 250).interest | num(1) }}.
 
-**APR:** The most influential rate. At $150 a month, a card at 16.99% takes 46 months and costs $1,813 in interest, one at 22.99% takes 54 months and $3,045, and one at 29.99% takes 73 months and $5,878.
+**APR:** The most influential rate. At $150 a month, a card at 16.99% takes {{ cardPayoff(5000, 16.99, 150).months | int }} months and costs {{ cardPayoff(5000, 16.99, 150).interest | usd }} in interest, one at 22.99% takes {{ cardPayoff(5000, 22.99, 150).months | int }} months and {{ cardPayoff(5000, 22.99, 150).interest | usd }}, and one at 29.99% takes {{ cardPayoff(5000, 29.99, 150).months | int }} months and {{ cardPayoff(5000, 29.99, 150).interest | usd }}.
 
-**Minimum Payment:** Higher fixed minimums speed payoff. Percentage minimums that shrink with the balance are what create the trap: they feel like payments but barely keep up with interest. With 2% of the balance plus $50 extra, the same $5,000 clears in 92 months with $4,546 of interest. In Interest + 1% mode, with no extra, it clears in 232 months with $8,489 of interest.
+**Minimum Payment:** Higher fixed minimums speed payoff. Percentage minimums that shrink with the balance are what create the trap: they feel like payments but barely keep up with interest. With 2% of the balance plus $50 extra, the same $5,000 clears in {{ cardPayoff(5000, 22.99, minPct=2, minFloor=25, extra=50).months | int }} months with {{ cardPayoff(5000, 22.99, minPct=2, minFloor=25, extra=50).interest | usd }} of interest. In Interest + 1% mode, with no extra, it clears in {{ cardPayoff(5000, 22.99, minPct=1, minFloor=25, plusInterest=true).months | int }} months with {{ cardPayoff(5000, 22.99, minPct=1, minFloor=25, plusInterest=true).interest | usd }} of interest.
 
 **Extra Payment:** The input you control most directly. The calculator shows the exact interest and time saved for any extra amount.
 
 ## How Interest Is Charged in Real Life
 
-Most issuers charge interest daily: the APR divided by 365 (some use 360) is applied to the average daily balance over the billing cycle, and the interest is added once a month. That is close to what this calculator does. Some issuers compound daily, adding each day's interest to the next day's balance. For the default example that would raise the payoff from 167 to 178 months and interest from $11,694 to $12,787, about 9% more. Your statement and cardholder agreement give the exact method for your card.
+Most issuers charge interest daily: the APR divided by 365 (some use 360) is applied to the average daily balance over the billing cycle, and the interest is added once a month. That is close to what this calculator does. Some issuers compound daily, adding each day's interest to the next day's balance. For the default example that would raise the payoff from {{ cardPayoff(5000, 22.99, 100).months | int }} to 178 months and interest from {{ cardPayoff(5000, 22.99, 100).interest | usd }} to $12,787, about 9% more. Your statement and cardholder agreement give the exact method for your card.

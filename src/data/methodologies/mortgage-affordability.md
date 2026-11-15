@@ -7,7 +7,7 @@ variables:
   - name: "Annual Gross Income"
     description: "Total pre-tax household income used to determine borrowing capacity"
   - name: "Monthly Debts"
-    description: "Existing monthly obligations (car loans, student loans, credit card minimums, etc.). Default $500 for USD, 0 for GBP"
+    description: "Existing monthly obligations (car loans, student loans, credit card minimums, etc.). Default 500 for USD and EUR, 0 for GBP"
   - name: "Down Payment / Deposit"
     description: "Cash available upfront. It is added to the maximum loan to give the maximum price"
   - name: "Interest Rate"
@@ -60,6 +60,8 @@ limitations:
 dataSources:
   - name: "Consumer Financial Protection Bureau: What is a debt-to-income ratio?"
     url: "https://www.consumerfinance.gov/ask-cfpb/what-is-a-debt-to-income-ratio-en-1791/"
+  - name: "HUD Housing Counselors Training, Module 2.1 Study Guide (28% front-end and 36% back-end guidelines)"
+    url: "https://hudhousingcounselors.hud.gov/wp-content/uploads/2026/08/study-module-2-1.pdf"
   - name: "Fannie Mae Selling Guide B3-6-02: Debt-to-Income Ratios"
     url: "https://selling-guide.fanniemae.com/sel/b3-6-02/debt-income-ratios"
   - name: "Freddie Mac: Breaking down private mortgage insurance (PMI rate range)"
@@ -88,7 +90,7 @@ The calculator limits the monthly housing payment to the lower of two numbers:
 
 Whichever limit is lower sets the budget. With high income and few debts the front-end limit binds. With larger debts the back-end limit binds. At $80,000 of income the two limits meet at {{ 80000 / 12 * (36 - 28) / 100 | usd }} of other debts a month: below that, extra debt changes nothing, and above it every extra dollar of debt takes a dollar off the housing budget.
 
-28/36 is a rule of thumb. Lenders set their own limits, and the CFPB notes that DTI limits differ between lenders. Fannie Mae's Selling Guide sets only a total DTI limit (36% for manually underwritten loans, up to 45% with a stronger credit profile and reserves, and 50% for loans approved through its Desktop Underwriter system) and no separate housing-only limit. Being approved for more than 28/36 does not make a payment comfortable. Both percentages are adjustable in the calculator.
+28/36 is a rule of thumb, not a rule. HUD's housing counselor training says a front-end ratio of 28% is typically considered affordable for a conventional loan, and that the maximum back-end ratio for conventional loans was traditionally 36%, with limits that can rise to 45%. Lenders set their own limits, and the CFPB notes that DTI limits differ between lenders. Fannie Mae's Selling Guide sets only a total DTI limit (36% for manually underwritten loans, up to 45% with a stronger credit profile and reserves, and 50% for loans approved through its Desktop Underwriter system) and no separate housing-only limit. Being approved for more than 28/36 does not make a payment comfortable. Both percentages are adjustable in the calculator.
 
 ## How the US Calculation Works
 
@@ -133,15 +135,15 @@ When the currency is GBP, the calculator takes the smaller of two limits and rep
 
 The take-home figure starts as an estimate for one earner on standard rest-of-UK income tax and National Insurance, and you can overwrite it. The calculator also flags a deposit under 5% of the price. A risk box labels the stressed payment "Comfortable" at or below 40% of take-home pay, "Stretched" up to 50%, and "High risk" above that. In US mode the same box uses your total debt ratio (28% or less comfortable, up to 36% moderate, above that high risk), and in euro mode the debt-service ratio with the same 28% and 36% cut-offs.
 
-Worked example (UK): gross household income £60,000; take-home £3,600 a month entered by hand; no other commitments; deposit £40,000; rate 5% over 25 years; income multiple 4.5x; revert-to rate 6.5%; margin 1 point; 50% limit.
+Worked example (UK): gross household income £60,000; take-home £3,600 a month entered by hand; no other commitments; deposit £40,000; rate 5% over 25 years; income multiple 4.5x; margin 1 point; 50% limit. The calculator fixes the revert-to rate at the Bank of England average, {{ rate('ukRevert') | pct(2) }} ({{ rateSource('ukRevert') }}), and the figures below use it.
 
 - Income multiple limit: £270,000.
-- Stressed rate: 6.5% + 1 point = 7.5%. The stressed budget is 50% of £3,600 = £1,800 a month, which supports a loan of £243,575.
-- The lower limit is the stress test, so the maximum loan is £243,575 and the maximum price is £283,575. The payment at your own 5% rate is £1,423.92 a month, 39.6% of take-home pay, and the stressed payment is £1,800.
+- Stressed rate: the higher of your 5% and the {{ rate('ukRevert') | pct(2) }} revert-to rate, plus 1 point, is {{ rate('ukRevert') + 1 | pct(2) }}. The stressed budget is 50% of £3,600 = £1,800 a month, which supports a loan of £241,870.
+- The lower limit is the stress test, so the maximum loan is £241,870 and the maximum price is £281,870. The payment at your own 5% rate is £1,413.95 a month, 39.3% of take-home pay, and the stressed payment is £1,800.
 
 ## Euro-Area Mode
 
-When the currency is EUR, one limit applies: the loan payment plus other debts as a share of gross income (default 36%). For example, at €60,000 income, a 3.5% rate and 25 years, the payment budget is €1,800 a month, which supports a loan of €359,552. Euro-area rules vary by country, and several cap payments as a share of net income, so use this as a single illustrative limit.
+When the currency is EUR, one limit applies: the loan payment plus other debts as a share of gross income (default 36%). For example, with €60,000 income, a 3.5% rate, 25 years and no other debts, the payment budget is €1,800 a month, which supports a loan of €359,552. The calculator's default of 500 a month of other debts would cut that budget to €1,300 and the loan to €259,676. Euro-area rules vary by country, and several cap payments as a share of net income, so use this as a single illustrative limit.
 
 ## Why the Result Is a Ceiling, Not a Target
 

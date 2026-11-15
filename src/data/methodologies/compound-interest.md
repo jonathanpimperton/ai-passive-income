@@ -24,8 +24,6 @@ assumptions:
   - "The interest rate remains constant for the entire period"
   - "All deposits are equal and made on schedule"
   - "No withdrawals occur during the investment period"
-  - "No taxes are applied to gains"
-  - "No fees or transaction costs are deducted"
   - "The currency selector changes the symbol only: there is no exchange-rate conversion and no regional rule"
 limitations:
   - "Does not account for taxes on interest or capital gains"

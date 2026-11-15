@@ -65,7 +65,7 @@ Both finish in month 30, and snowball costs $403.87 more in interest. With no ex
 
 **Balances:** The total sets the baseline timeline. The mix matters too: many small debts favour snowball's quick wins, while one large high-rate debt makes avalanche clearly better.
 
-**Interest Rates:** When rates are similar across your debts, snowball and avalanche end up close. For three debts of $5,000 at 20%, $3,000 at 22% and $1,000 at 18% with $200 extra, both take 23 months and the interest differs by $44.78 ($1,892.80 against $1,937.58). When rates vary widely, avalanche saves more. A $4,000 card at 24%, a $20,000 car loan at 5% and a $1,500 loan at 5% with $300 extra cost $2,182.53 under avalanche and $2,400.50 under snowball.
+**Interest Rates:** When rates are similar across your debts, snowball and avalanche end up close. For three debts of $5,000 at 20% (minimum $150), $3,000 at 22% (minimum $90) and $1,000 at 18% (minimum $40) with $200 extra, both take 23 months and the interest differs by $44.78 ($1,892.80 against $1,937.58). When rates vary widely, avalanche saves more. A $4,000 card at 24% (minimum $120), a $20,000 car loan at 5% (minimum $400) and a $1,500 loan at 5% (minimum $50) with $300 extra cost $2,182.53 under avalanche and $2,400.50 under snowball.
 
 **Minimum Payments:** Higher minimums reduce balances faster but leave less room for the extra payment to matter. The minimums freed up from cleared debts drive both strategies.
 

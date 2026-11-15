@@ -45,7 +45,7 @@ dataSources:
 
 The inflation calculator has two modes.
 
-**Historical Mode:** Takes an amount and two years and calculates what the amount is equivalent to in the other year's prices, using BLS CPI-U data from 1913 to the latest month. The formula is `amount × (CPI_end / CPI_start)`. For example, $100 in 1990 had the same purchasing power as {{ 100 * 321.943 / 130.7 | usd }} in 2025 (the 2025 CPI-U annual average is 321.943 and the 1990 average is 130.7).
+**Historical Mode:** Takes an amount and two years and calculates what the amount is equivalent to in the other year's prices, using BLS CPI-U data from 1913 to the latest month. The formula is `amount × (CPI_end / CPI_start)`. For example, $100 in 1990 had the same purchasing power as {{ cpiAdjust(100, 1990, 2025).adjusted | usd }} in 2025 (the 2025 CPI-U annual average is 321.943 and the 1990 average is 130.7).
 
 **Future Projection Mode:** Takes an amount, an assumed inflation rate and a number of years, and projects the future cost with `amount × (1 + rate)^years`. At 3% a year, something that costs $1,000 today costs {{ inflationAdjust(1000, 3, 10) | usd }} in 10 years.
 
@@ -59,7 +59,7 @@ The calculator stores the annual average CPI-U for every year from 1913 to 2025,
 
 ## How Each Variable Affects the Result
 
-**Amount:** Scales linearly. If $100 in 1990 equals {{ 100 * 321.943 / 130.7 | usd }} in 2025, then $1,000 in 1990 equals {{ 1000 * 321.943 / 130.7 | usd }}.
+**Amount:** Scales linearly. If $100 in 1990 equals {{ cpiAdjust(100, 1990, 2025).adjusted | usd }} in 2025, then $1,000 in 1990 equals {{ cpiAdjust(1000, 1990, 2025).adjusted | usd }}.
 
 **Time Period:** Inflation compounds, so longer periods give larger adjustments. At 3% a year, prices double in under 24 years ($1,000 becomes {{ inflationAdjust(1000, 3, 24) | usd }} after 24). At 2%, doubling takes 35 years ($1,000 becomes {{ inflationAdjust(1000, 2, 35) | usd }}).
 
@@ -67,10 +67,10 @@ The calculator stores the annual average CPI-U for every year from 1913 to 2025,
 
 ## Common Uses
 
-- **Salary comparison:** "Is a $60,000 salary today better than $45,000 was in 2010?" $45,000 in 2010 is equivalent to {{ 45000 * 321.943 / 218.056 | usd }} in 2025 dollars (2010 average 218.056), so a $60,000 salary in 2025 buys less than $45,000 did in 2010.
+- **Salary comparison:** "Is a $60,000 salary today better than $45,000 was in 2010?" $45,000 in 2010 is equivalent to {{ cpiAdjust(45000, 2010, 2025).adjusted | usd }} in 2025 dollars (2010 average 218.056), so a $60,000 salary in 2025 buys less than $45,000 did in 2010.
 - **Investment returns:** "My investment grew from $10,000 to $18,000 over 15 years. What is the real return?" Calculate the inflation-adjusted value, then compare.
 - **Retirement planning:** "If I need $50,000 a year in retirement, what will that cost in 30 years?" At 3% inflation, {{ inflationAdjust(50000, 3, 30) | usd }}.
-- **Historical context:** "What would a $25,000 car in 1995 cost today?" In 2025 prices (1995 average 152.4), {{ 25000 * 321.943 / 152.4 | usd }}.
+- **Historical context:** "What would a $25,000 car in 1995 cost today?" In 2025 prices (1995 average 152.4), {{ cpiAdjust(25000, 1995, 2025).adjusted | usd }}.
 
 ## Common Misconceptions
 

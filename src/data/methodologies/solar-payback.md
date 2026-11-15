@@ -36,22 +36,18 @@ assumptions:
   - "Panel output falls at a constant annual percentage (no extra first-year loss)"
   - "The electricity tariff and the export tariff both rise at the same energy price inflation rate"
   - "The base self-consumption rate stays constant"
-  - "Maintenance cost stays constant (it is not inflated), and inverter replacement is assumed to be inside it"
-  - "The battery does not degrade over the period (a simplification in the buyer's favour)"
+  - "Maintenance cost stays constant (it is not inflated), and inverter replacement (typically needed at 12 to 15 years) is assumed to be inside it, not a separate cost"
+  - "The battery does not degrade over the period: its capacity and efficiency stay at their year-1 values, a simplification in the buyer's favour"
   - "Battery round-trip efficiency is 90%, and the battery cycles once a day"
   - "Effective self-consumption is capped at 95%, because some generation always happens when the house is not using power"
   - "All generation is either self-consumed or exported, with no curtailment"
-  - "A flat average tariff applies, with no time-of-use pricing"
+  - "A flat average tariff applies to imports and exports, with no time-of-use pricing and no variable export rates"
   - "The regional defaults below are starting points taken from the sources listed. Replace them with your quote and your tariff"
 limitations:
   - "Does not model seasonal or monthly variation in generation"
-  - "Does not model time-of-use tariffs or variable export rates"
-  - "Does not model battery degradation (capacity and efficiency fall over time)"
   - "Roof orientation, pitch and shading are not modelled: adjust kWh per kWp to reflect them"
-  - "Does not include inverter replacement as a separate cost (typically needed at 12 to 15 years)"
   - "Energy price inflation may not match general inflation, and energy prices are volatile"
   - "Does not allow for changes to export schemes (Smart Export Guarantee rates, net metering rules)"
-  - "Maintenance costs are not inflation-adjusted"
   - "The ROI shown is the saving over the whole analysis period relative to the net cost, not a yearly rate, and it is not shown when the net cost is zero or less"
 dataSources:
   - name: "Ofgem: Changes to the energy price cap, 1 October to 31 December 2026"
@@ -111,7 +107,7 @@ Net system cost = installation cost + battery cost (if selected) − grant or cr
 The currency selector sets starting values for inputs you have not changed. Each is a published or modelled starting point, checked on 12 November 2026, and you should replace it with your own quote.
 
 - **UK (GBP):** a 4 kWp system costing £7,000 (DESNZ 2025/26 median of about £1,780 per kW for systems up to 4 kW), a 5 kWh battery at £4,500 (an assumption), an electricity tariff of 26.32p per kWh (the Ofgem price cap for 1 October to 31 December 2026, Direct Debit average, with no VAT on electricity from 1 October 2026 to 31 March 2027), an export tariff of 4.5p (Ofgem's Smart Export Guarantee report: untied tariffs averaged 4.39p in April 2024 to March 2025), 900 kWh per kWp (DUKES load factors give 806 to 972 kWh per kW), and £150 a year of maintenance (an assumption).
-- **US (USD):** a 7.5 kWp system costing $22,500 and a 13.5 kWh battery costing $15,750 (Berkeley Lab's 2026 update: median residential system 7.7 kW and 13.5 kWh storage, with cash prices of about $3.0 per watt and $2.1 per watt more for paired storage), an electricity tariff of 18.04 cents per kWh (EIA residential average, 12 months to August 2026), an export tariff equal to it because net metering credits exports at the retail rate (successor tariffs often pay less), 1,375 kWh per kWp (NREL ATB capacity factor of 15.7%), and $225 a year of maintenance (NREL ATB fixed O&M of $30 per kW-year). The federal 25D residential credit is not available for systems placed in service after 31 December 2025, so the grant starts at $0.
+- **US (USD):** a 7.5 kWp system costing $22,500 and a 13.5 kWh battery costing $15,750 (Berkeley Lab's 2026 update states a median residential system of 7.7 kW, a median storage capacity of 13.5 kWh and a cash price premium of $2.1 per watt for paired PV and storage; the $3.0 per watt cash price behind the $22,500 is a reading of the 2025 median from the report's chart, as reported by Mercom on 6 October 2026, and is not stated in the report's text), an electricity tariff of 18.04 cents per kWh (EIA residential average, 12 months to August 2026), an export tariff equal to it because net metering credits exports at the retail rate (successor tariffs often pay less), 1,375 kWh per kWp (NREL ATB capacity factor of 15.7%), and $225 a year of maintenance (NREL ATB fixed O&M of $30 per kW-year). The federal 25D residential credit is not available for systems placed in service after 31 December 2025, so the grant starts at $0.
 - **EUR:** only the electricity price is a euro-area figure (28.79 cents per kWh, the Eurostat EU-27 household average for the first half of 2026, all taxes included). The system cost, size, yield, export rate and battery use the UK physical assumptions, so enter your own.
 
 In the UK, installation of solar panels is currently zero-rated for VAT, and the rate rises to 5% from 1 April 2027 (GOV.UK VAT Notice 708/6). The calculator's cost field says so. Quotes after that date will include the VAT.

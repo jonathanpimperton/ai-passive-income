@@ -52,7 +52,6 @@ assumptions:
   - "US only: mortgage interest and property tax save tax only to the extent that itemising beats the standard deduction for the chosen filing status. Property tax and state income tax share the $40,400 SALT cap for 2026"
   - "UK and euro area: no mortgage interest tax relief is modelled (the UK abolished it in 2000)"
   - "No PMI is modelled, whatever the down payment"
-  - "No capital gains tax on the home sale (the US main-home exclusion, UK private residence relief)"
 limitations:
   - "UK and euro area buying and selling costs start at 0% because they vary too much to give one honest default. Add yours under Advanced Settings, or the comparison favours buying. Stamp duty can be taken from the stamp duty calculator"
   - "The standard deduction is held at today's amount and the SALT cap phase-down above $505,000 of income is not modelled"
@@ -61,12 +60,14 @@ limitations:
   - "Does not account for the non-financial value of owning a home, or the flexibility of renting"
   - "Maintenance is averaged, but real maintenance is lumpy: a new roof costs thousands every 20 years or so"
   - "Does not model home equity loans, HELOCs or refinancing"
-  - "Ignores capital gains tax on the sale above the US exclusion ($250,000 single, $500,000 married filing jointly) and on investment gains"
+  - "Ignores capital gains tax on the home sale above the US main-home exclusion ($250,000 single, $500,000 married filing jointly), assumes UK private residence relief covers the sale, and does not tax investment gains"
 dataSources:
   - name: "Freddie Mac: What are closing costs and how much will I pay? (buying cost range)"
     url: "https://myhome.freddiemac.com/blog/homebuying/what-are-closing-costs-and-how-much-will-i-pay"
   - name: "Freddie Mac: Costs of selling a home (agent commission range)"
     url: "https://myhome.freddiemac.com/selling/costs-of-selling"
+  - name: "IRS: 2026 tax inflation adjustments (standard deduction)"
+    url: "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill"
   - name: "Cornell Law School LII: 26 U.S.C. 164 (SALT deduction cap)"
     url: "https://www.law.cornell.edu/uscode/text/26/164"
   - name: "IRS Topic 701: Sale of your home (main-home gain exclusion)"
@@ -123,7 +124,7 @@ In US mode, mortgage interest and property tax save tax only if your itemised de
 - With the home: the larger of the standard deduction, or other itemised deductions + mortgage interest + the smaller of (property tax + state and local income tax) and the SALT cap.
 - Without the home: the larger of the standard deduction, or other itemised deductions + the smaller of state and local income tax and the SALT cap.
 
-The saving is your marginal rate times the difference. Example: with a 2026 single-filer standard deduction of $16,100, $18,000 of first-year interest and $3,500 of property tax, itemised deductions are $21,500 and the home adds {{ (18000 + 3500 - 16100) * 22 / 100 | usd }} of tax saving at a 22% rate. In a later year with $9,000 of interest, itemising ($12,500) falls below the standard deduction and the saving is $0. The SALT cap for 2026 is $40,400 under 26 U.S.C. 164(b)(7) as amended by Public Law 119-21; the standard deduction used is the one for the tax year the rates module currently points at.
+The saving is your marginal rate times the difference. Example: with the 2026 single-filer standard deduction of {{ usFact('standardDeduction', year=2026) | usd }} (IRS), $18,000 of first-year interest and $3,500 of property tax, itemised deductions are $21,500 and the home adds {{ (18000 + 3500 - usFact('standardDeduction', year=2026)) * 22 / 100 | usd }} of tax saving at a 22% rate. In a later year with $9,000 of interest, itemising ($12,500) falls below the standard deduction and the saving is {{ max(0, 9000 + 3500 - usFact('standardDeduction', year=2026)) * 22 / 100 | usd }}. The SALT cap for 2026 is $40,400 under 26 U.S.C. 164(b)(7) as amended by Public Law 119-21; the standard deduction used is the one for the tax year the rates module currently points at.
 
 ## UK / EUR Mode
 

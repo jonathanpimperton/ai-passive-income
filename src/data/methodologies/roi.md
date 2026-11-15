@@ -33,7 +33,7 @@ limitations:
 dataSources:
   - name: "Investopedia: Return on Investment"
     url: "https://www.investopedia.com/terms/r/returnoninvestment.asp"
-  - name: "CFA Institute Research Foundation: Exponential Wealth (geometric mean return formula)"
+  - name: "CFA Institute Research Foundation: Exponential Wealth, Chapter 3, 'Arithmetic and Geometric Mean Returns' (Equation 3.9: the geometric mean is the compound annualized return)"
     url: "https://rpc.cfainstitute.org/sites/default/files/docs/research-reports/rf_ibbotson_2026_exponentialwealth_section-1_online.pdf"
 ---
 

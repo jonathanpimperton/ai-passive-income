@@ -19,7 +19,6 @@ assumptions:
   - "Additional properties pay a 5% surcharge on top of the standard rate in every band, including the 0% band"
   - "Non-UK residents pay a further 2% surcharge on top of every rate in every band, including the 0% bands, first-time buyer rates and the higher rates for additional properties"
   - "Neither surcharge applies when the price is below £40,000. In that case the calculator shows the standard result and says the surcharge was skipped"
-  - "Non-residential and mixed-use properties have different rates and are not covered"
 limitations:
   - "Does not cover Scotland (LBTT) or Wales (LTT), which have their own rates"
   - "Does not model non-residential or mixed-use property rates"
@@ -61,9 +60,9 @@ SDLT is a **progressive tax**: each part of the price is taxed at its own rate, 
 
 | Band | Portion | Rate | Tax |
 |---|---|---|---|
-| £0 to £125,000 | £125,000 | 0% | £0 |
-| £125,001 to £250,000 | £125,000 | 2% | £2,500 |
-| £250,001 to £350,000 | £100,000 | 5% | £5,000 |
+| £0 to {{ ukFact('sdltNilBand') | gbp }} | {{ ukFact('sdltNilBand') | gbp }} | 0% | {{ sdlt(ukFact('sdltNilBand')) | gbp }} |
+| {{ ukFact('sdltNilBand') + 1 | gbp }} to £250,000 | {{ 250000 - ukFact('sdltNilBand') | gbp }} | 2% | {{ sdlt(250000) - sdlt(ukFact('sdltNilBand')) | gbp }} |
+| £250,001 to £350,000 | {{ 350000 - 250000 | gbp }} | 5% | {{ sdlt(350000) - sdlt(250000) | gbp }} |
 | **Total** | | **{{ sdlt(350000) / 350000 * 100 | pct(2) }}** | **{{ sdlt(350000) | gbp }}** |
 
 ## Surcharges

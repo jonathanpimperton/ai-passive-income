@@ -24,8 +24,6 @@ assumptions:
   - "A deposit is made every month, at the end of the month (default) or the start (user-selectable)"
   - "No withdrawals are made during the investment period"
   - "Dividends and capital gains are automatically reinvested"
-  - "No taxes are applied to gains during the accumulation period"
-  - "No investment fees or expense ratios are deducted"
   - "The currency selector changes the symbol only: there is no exchange-rate conversion and no regional rule"
 limitations:
   - "Real-world returns are volatile: a constant rate is an idealised average"

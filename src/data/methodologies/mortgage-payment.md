@@ -19,17 +19,15 @@ variables:
 assumptions:
   - "The mortgage has a fixed interest rate for the entire term, compounded monthly (annual rate / 12)"
   - "Loan terms are chosen from preset buttons: 15, 20 or 30 years for USD; 20, 25, 30 or 35 years for GBP; 20, 25 or 30 years for EUR"
-  - "Property tax is applied to the original home price (no reassessment)"
+  - "Property tax is applied to the original home price and stays the same for the whole term. Real property taxes change as assessed values change"
   - "PMI applies when the down payment is below 20% of the home price, and is charged on the original loan amount"
   - "The default PMI rate is 0.6% of the loan a year, the midpoint of Freddie Mac's range of $30 to $70 a month per $100,000 borrowed (0.36% to 0.84% a year). You can change it"
-  - "Home insurance is a fixed annual premium"
+  - "Home insurance is a fixed annual premium held constant for the whole term. Real premiums typically rise"
   - "Extra payments reduce principal immediately each month, and the last payment is capped at the balance remaining"
   - "In GBP and EUR mode, property tax, insurance and PMI are all zero"
 limitations:
   - "Does not model adjustable-rate mortgages (ARM)"
-  - "Property tax is static: real property taxes change as assessed values change"
   - "PMI is shown as a flat monthly figure and is not removed when equity reaches 20% (most lenders drop it at that point, which makes the real payment lower later)"
-  - "Insurance premiums are treated as constant; they typically rise over time"
   - "Does not include HOA fees, closing costs, points, or origination fees"
   - "Does not model the mortgage interest tax deduction"
   - "UK and euro-area lenders' product fees, valuation and legal costs are not included"
@@ -71,7 +69,7 @@ The calculator follows the currency selector. Choosing GBP or EUR changes four t
 
 ## The Full Amortization Schedule
 
-The calculator generates a year-by-year schedule showing how each payment divides between principal and interest. Years are collapsible to reveal monthly detail. This makes the front-loading of interest visible: on a 30-year loan at 7%, you won't pay more principal than interest in any single month until about year 20.
+The calculator generates a year-by-year schedule showing how each payment divides between principal and interest. Years are collapsible to reveal monthly detail. This makes the front-loading of interest visible: on a 30-year loan at 7%, the first month in which you pay more principal than interest is month 242, which is in the year 21 row of the schedule.
 
 ## Extra Payments
 

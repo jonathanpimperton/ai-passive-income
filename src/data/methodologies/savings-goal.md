@@ -20,7 +20,6 @@ assumptions:
   - "The interest rate stays constant"
   - "Current savings earn the same rate as new contributions"
   - "No withdrawals occur"
-  - "No taxes on interest earned"
   - "No fees or transaction costs"
   - "The currency selector changes the symbol only: there is no exchange-rate conversion and no regional rule"
 limitations:
