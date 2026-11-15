@@ -158,7 +158,8 @@ export default function NetWorthCalc() {
   }, [currency]);
 
   const handleReset = useCallback(() => {
-    idCounter.current = 0;
+    // Fresh ids (the counter keeps counting): a row that keeps its id keeps its field's
+    // error state, so a row showing "Enter a number..." would still show it after Reset.
     setAssets(defaultAssets(newId, currency));
     setLiabilities(defaultLiabilities(newId));
   }, [currency, newId]);
