@@ -140,7 +140,7 @@ import {
   solveUsAffordability,
   type AffordabilityStatus,
 } from './mortgage-affordability';
-import { TRANSACTION_COST_DEFAULTS, laterBreakEvenYear, simulateRentVsBuy, type RentVsBuyInputs } from './rent-vs-buy';
+import { LONG_STAY_YEARS, TRANSACTION_COST_DEFAULTS, laterBreakEvenYear, simulateRentVsBuy, type RentVsBuyInputs } from './rent-vs-buy';
 import {
   MAX_DEPOSIT,
   MIN_FINANCE_AMOUNT,
@@ -229,6 +229,8 @@ export interface ParamSpec {
   above?: number;
   max?: number;
   integer?: boolean;
+  /** Numbers only: the value must be min (or 0) plus a whole number of steps, like a calculator slider's step. */
+  step?: number;
   /** Allowed string values (after `aliases`). */
   oneOf?: readonly string[];
   /** Alternative spellings mapped onto `oneOf` values. */
@@ -236,6 +238,17 @@ export interface ParamSpec {
   /** Custom coercion (e.g. year labels, compounding words). Runs before checks. */
   coerce?: (v: FigurePrimitive) => FigurePrimitive;
 }
+
+/** What a result field means, for the evaluator's guards (FigureFunction.fieldMeta). */
+export interface FieldMeta {
+  /** The field is a year (or a count of years): printing it with | months would show years as months. */
+  years?: boolean;
+  /** Message when the field is Infinity ("there is no such year"): using the field fails the build with it. */
+  ifInfinite?: string;
+}
+
+/** Per-result field guards, looked up when a field is read (results are fresh objects each call). */
+const RESULT_META = new WeakMap<object, Readonly<Record<string, FieldMeta>>>();
 
 export interface FigureFunction {
   name: string;
@@ -247,6 +260,14 @@ export interface FigureFunction {
   returns: string;
   /** For object results: field name -> description. */
   fields?: Readonly<Record<string, string>>;
+  /**
+   * Guards for particular result fields (see FieldMeta): a year-valued field
+   * refuses the months formatter, and a field that is Infinity when there is
+   * no such year fails with its own message at the point of use.
+   */
+  fieldMeta?: Readonly<Record<string, FieldMeta>>;
+  /** The function returns a number of years: it refuses the months formatter. */
+  returnsYears?: boolean;
   /** A complete token body (no braces) that the tests evaluate. */
   example: string;
   /**
@@ -967,12 +988,22 @@ function cardModeOf(a: Args): PayoffMode {
 
 const AFFORD_DEFAULTS = AFFORDABILITY_DEFAULTS;
 
+/** Loan terms the affordability calculator's buttons offer (TERM_OPTIONS in MortgageAffordabilityCalc.tsx). */
+const AFFORD_TERM_OPTIONS = { us: [15, 30], uk: [20, 25, 30, 35], eur: [20, 25, 30] } as const;
+const AFFORD_REGION_NAME = { us: 'USD', uk: 'GBP', eur: 'EUR' } as const;
+function affordTerm(region: 'us' | 'uk' | 'eur', years: number): void {
+  const allowed: readonly number[] = AFFORD_TERM_OPTIONS[region];
+  if (!allowed.includes(years)) {
+    fail(`the calculator offers terms of ${allowed.join(', ')} years in ${AFFORD_REGION_NAME[region]} mode, not ${years}`);
+  }
+}
+
 const AFFORD_PARAMS: ParamSpec[] = [
   money('income', 'annual gross household income'),
   money('debts', 'other monthly debt payments (car and student loans, card minimums); the calculator defaults to 500 for USD and EUR, 0 for GBP'),
   money('deposit', 'down payment / deposit'),
   ratePct('rate', 'annual mortgage rate in %', { max: 30 }),
-  termYears,
+  { ...termYears, doc: "mortgage term in years: the calculator's buttons offer 15 or 30 (USD), 20, 25, 30 or 35 (GBP), 20, 25 or 30 (EUR), and so does this function" },
 ];
 
 /** The calculator's "No home fits these limits" states: no honest price exists, so no figure. */
@@ -1542,6 +1573,7 @@ const fns: FigureFunction[] = [
       'The longest payoff the card calculator runs, in years (50). A balance not cleared within it is "beyond 50 years" (a payoff token fails; use this number in the words).',
     params: [],
     returns: 'number (years)',
+    returnsYears: true,
     example: 'cardHorizonYears() | int',
     run: () => CARD_HORIZON_MONTHS / 12,
   },
@@ -1690,6 +1722,7 @@ const fns: FigureFunction[] = [
     ],
     options: [COMPOUNDING, TIMING],
     returns: 'number (years: whole months / 12)',
+    returnsYears: true,
     example: 'yearsToTarget(10000, 500, 7, 1000000) | num(1)',
     run: (a) => {
       checkCompounding(a.num('compounding'));
@@ -1717,6 +1750,7 @@ const fns: FigureFunction[] = [
       'How far the savings goal and investment return calculators look, in years (100). A goal or target not reached within it is "Not within 100 years" (the token fails; use this number in the words).',
     params: [],
     returns: 'number (years)',
+    returnsYears: true,
     example: 'goalHorizonYears() | int',
     run: () => MAX_GOAL_MONTHS / 12,
   },
@@ -1807,6 +1841,7 @@ const fns: FigureFunction[] = [
       averageAnnual: 'compound average annual change, %',
       years: 'elapsed years the average uses (the latest month counts as part of its year)',
     },
+    fieldMeta: { years: { years: true } },
     example: 'cpiAdjust(45000, 2010, 2025).adjusted | usd',
     run: (a) => {
       if (a.num('fromYear') === a.num('toYear')) fail('fromYear and toYear are the same year, so there is nothing to adjust');
@@ -1832,11 +1867,12 @@ const fns: FigureFunction[] = [
     returns: 'object',
     fields: {
       months: 'the horizon, in months (600)',
-      years: 'the horizon, in years (50)',
+      years: 'the horizon, in years (50; a year number: print with int, never months)',
       remaining: 'balance still owed at the end of the horizon',
       interest: 'interest paid within the horizon',
       totalPaid: 'paid within the horizon',
     },
+    fieldMeta: { years: { years: true } },
     example: 'cardBeyondHorizon(5000, 22.99, minPct=2, minFloor=25).remaining | usd',
     run: (a) => {
       const r = simulateCardPayoff(cardInputs(a.num('balance'), a.num('apr'), cardModeOf(a), a.num('extra')));
@@ -1902,6 +1938,8 @@ const fns: FigureFunction[] = [
       const r = debtRun(a);
       const c = r.clearances.find((x) => x.index === a.num('debt') - 1);
       if (!c) fail(`there is no debt ${a.num('debt')} in the list`);
+      // Unreachable today (debtRun only returns 'paid' results, where every debt has a clearance month);
+      // kept so an engine change that leaves a debt uncleared fails loudly instead of printing null.
       if (c.month === null) fail(`debt ${a.num('debt')} is not cleared within the horizon`);
       return c.month;
     },
@@ -1943,6 +1981,7 @@ const fns: FigureFunction[] = [
     },
     example: 'usAffordability(80000, 500, 40000, 7, 30).maxPrice | usd',
     run: (a) => {
+      affordTerm('us', a.num('years'));
       const r = solveUsAffordability({
         region: 'us',
         annualIncome: a.num('income'),
@@ -2013,6 +2052,7 @@ const fns: FigureFunction[] = [
     },
     example: 'ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600, revertRate=6.5).maxPrice | gbp',
     run: (a) => {
+      affordTerm('uk', a.num('years'));
       const takeHome = a.has('takeHome') ? a.num('takeHome') : Math.round(estimateUkTakeHome(a.num('income')));
       const r = solveUkAffordability({
         region: 'uk',
@@ -2070,6 +2110,7 @@ const fns: FigureFunction[] = [
     },
     example: 'eurAffordability(60000, 0, 40000, 3.5, 25).maxLoan | eur',
     run: (a) => {
+      affordTerm('eur', a.num('years'));
       const r = solveEurAffordability({
         region: 'eur',
         annualIncome: a.num('income'),
@@ -2102,9 +2143,9 @@ const fns: FigureFunction[] = [
       money('price', 'purchase price', { above: 0, min: undefined }),
       { name: 'down', type: 'number', doc: 'down payment as % of the price', required: true, min: 0, max: 100 },
       ratePct('rate', 'annual mortgage rate in %', { max: 30 }),
-      termYears,
+      { ...termYears, integer: true, min: 10, max: 35, doc: "mortgage term in whole years: the calculator's slider runs 10 to 35" },
       money('rent', 'monthly rent in the first year'),
-      { name: 'horizon', type: 'number', doc: 'years to compare (whole years)', required: true, integer: true, min: 1, max: 50 },
+      { name: 'horizon', type: 'number', doc: "years to compare (whole years): the calculator's slider runs 1 to 30", required: true, integer: true, min: 1, max: 30 },
     ],
     options: [
       { name: 'region', type: 'string', doc: 'us (default), uk or eur: sets the transaction-cost defaults and switches the US deduction test off elsewhere', default: 'us', oneOf: ['us', 'uk', 'eur'] },
@@ -2128,8 +2169,8 @@ const fns: FigureFunction[] = [
       verdict: "'buy', 'rent' or 'tie' at the horizon",
       advantage: 'buyer net worth minus renter net worth at the horizon (negative = renting ahead)',
       difference: 'the absolute value of advantage',
-      breakEvenYear: 'first year from which buying stays ahead to the horizon (Infinity when buying is not ahead at the horizon)',
-      laterBreakEvenYear: 'when renting is ahead at the horizon, the year buying would pull ahead if you stayed up to 50 years (Infinity otherwise or if it never does)',
+      breakEvenYear: 'first year from which buying stays ahead to the horizon (a year number: print with int, never months; using it when buying is not ahead at the horizon fails the build)',
+      laterBreakEvenYear: 'when renting is ahead at the horizon, the year buying would pull ahead if you stayed up to 50 years (a year number; using it when renting is not ahead, or buying never catches up, fails the build)',
       downPayment: 'the down payment',
       closingCosts: "the buyer's purchase costs",
       initialCash: 'cash both households start with (down payment + purchase costs)',
@@ -2147,6 +2188,17 @@ const fns: FigureFunction[] = [
       buyerPortfolio: "the buyer's investment portfolio at the horizon",
       finalBuyerNetWorth: 'home value - selling costs - loan + buyer portfolio',
       finalRenterNetWorth: "the renter's portfolio",
+    },
+    fieldMeta: {
+      breakEvenYear: {
+        years: true,
+        ifInfinite:
+          'there is no break-even year: buying is not ahead at the end of the horizon (the calculator says renting stays ahead, or the two tie); write it in words',
+      },
+      laterBreakEvenYear: {
+        years: true,
+        ifInfinite: `there is no later break-even year: renting is not ahead at the horizon, or buying does not catch up within ${LONG_STAY_YEARS} years (the calculator says so); write it in words`,
+      },
     },
     example: "rentVsBuy(350000, 20, 5.5, 25, 1400, 10, region=uk, closing=3, selling=2, propertyTax=0, insurance=400, rentersInsurance=10).advantage | gbp",
     run: (a) => {
@@ -2190,7 +2242,7 @@ const fns: FigureFunction[] = [
     params: [
       money('price', 'car price', { above: 0, min: undefined }),
       money('deposit', 'deposit'),
-      { name: 'months', type: 'number', doc: 'term in months', required: true, integer: true, min: 1, max: 120 },
+      { name: 'months', type: 'number', doc: "term in months: the calculator's slider runs 12 to 84 in steps of 6", required: true, integer: true, min: 12, max: 84, step: 6 },
     ],
     options: [
       { name: 'convention', type: 'string', doc: "APR convention: effective (annual effective rate, GBP and EUR; default) or nominal (APR / 12, USD)", default: 'effective', oneOf: ['effective', 'nominal'] },
@@ -2309,7 +2361,7 @@ const fns: FigureFunction[] = [
     name: 'solarPayback',
     group: 'Solar payback',
     summary:
-      "The solar panel payback calculator for a region (uk, us or eur), starting from the calculator's regional defaults and its own defaults (30% self-consumption, 3% energy inflation, 0.5% degradation, 25 years, no grant, no battery). Every option overrides one input. Fails when the system does not pay back within the period.",
+      "The solar panel payback calculator for a region (uk, us or eur), starting from the calculator's regional defaults and its own defaults (30% self-consumption, 3% energy inflation, 0.5% degradation, 25 years, no grant, no battery). Every option overrides one input. Fails when the system does not pay back within the period, or when a grant covers the whole cost (the calculator says \"Pays back immediately\").",
     params: [{ name: 'region', type: 'string', doc: 'uk, us or eur: picks the calculator\'s regional defaults', required: true, oneOf: ['uk', 'us', 'eur'] }],
     options: [
       { name: 'systemCost', type: 'number', doc: 'installed cost before incentives (default by region)', min: 0 },
@@ -2324,7 +2376,7 @@ const fns: FigureFunction[] = [
       { name: 'degradation', type: 'number', doc: 'panel degradation, % a year', default: 0.5, min: 0, max: 10 },
       { name: 'maintenance', type: 'number', doc: 'maintenance a year (default by region)', min: 0 },
       { name: 'credit', type: 'number', doc: 'grant or tax credit that reduces the net cost', default: 0, min: 0 },
-      { name: 'years', type: 'number', doc: 'analysis period in years', default: 25, integer: true, min: 1, max: 50 },
+      { name: 'years', type: 'number', doc: "analysis period in years: the calculator's slider runs 10 to 40 in steps of 5", default: 25, integer: true, min: 10, max: 40, step: 5 },
       { name: 'kWhPerKwp', type: 'number', doc: 'annual kWh per kWp installed (default by region)', above: 0 },
     ],
     returns: 'object',
@@ -2335,16 +2387,22 @@ const fns: FigureFunction[] = [
       paybackTotalMonths: 'paybackYears x 12 + paybackMonths (for the months formatter)',
       year1Savings: 'savings in year 1, after maintenance',
       totalSavings: 'total savings over the analysis period',
-      roi: 'return over the period, % ((total savings - net cost) / net cost); Infinity when the net cost is 0 or less',
+      roi: 'return over the period, % ((total savings - net cost) / net cost)',
       generationYear1: 'kWh generated in year 1',
       generationFinal: 'kWh generated in the last year (after degradation)',
       savingsFinalYear: 'savings in the last year',
       selfConsumption: 'effective year-1 self-consumption, % (with the battery when included)',
     },
+    fieldMeta: { paybackYears: { years: true } },
     example: "solarPayback('uk').paybackTotalMonths | months",
     run: (a) => {
       const input = solarInputs(a);
       const r = calculateSolarPayback(input);
+      if (r.paysBackImmediately) {
+        fail(
+          `the grant or credit covers the whole cost (net cost ${r.netCost}), so the calculator says "Pays back immediately" and there is nothing to pay back; write it in words`,
+        );
+      }
       if (!r.reachesPayback) {
         fail(
           `the system does not pay for itself within ${input.analysisPeriod} years at these settings (the calculator says so); write it in words`,
@@ -2358,7 +2416,7 @@ const fns: FigureFunction[] = [
         paybackTotalMonths: r.paybackYears * 12 + r.paybackMonths,
         year1Savings: r.year1Savings,
         totalSavings: r.totalSavings,
-        roi: r.roi ?? Infinity,
+        roi: r.roi as number, // not null here: the net cost is above 0 (immediate payback failed above)
         generationYear1: r.yearly[0].generation,
         generationFinal: r.yearly[r.yearly.length - 1].generation,
         savingsFinalYear: r.yearly[r.yearly.length - 1].annualSavings,
@@ -2798,6 +2856,12 @@ function checkParam(fn: FigureFunction, spec: ParamSpec, raw: FigurePrimitive): 
   if (typeof v === 'number') {
     if (!Number.isFinite(v)) fail(`${label} must be a finite number`);
     if (spec.integer && !Number.isInteger(v)) fail(`${label} must be a whole number (got ${v})`);
+    if (spec.step !== undefined) {
+      const steps = (v - (spec.min ?? 0)) / spec.step;
+      if (Math.abs(steps - Math.round(steps)) > 1e-9) {
+        fail(`${label} must be ${spec.min ?? 0} plus a multiple of ${spec.step}, like the calculator's slider (got ${v})`);
+      }
+    }
     if (spec.min !== undefined && v < spec.min) fail(`${label} must be at least ${spec.min} (got ${v})`);
     if (spec.above !== undefined && !(v > spec.above)) fail(`${label} must be more than ${spec.above} (got ${v})`);
     if (spec.max !== undefined && v > spec.max) fail(`${label} must be at most ${spec.max} (got ${v})`);
@@ -2843,6 +2907,7 @@ function callFunction(name: string, args: { name?: string; value: FigureValue }[
   }
   const result = fn.run(new Args(values));
   checkResult(name, result);
+  if (typeof result === 'object' && fn.fieldMeta) RESULT_META.set(result, fn.fieldMeta);
   return result;
 }
 
@@ -2873,7 +2938,10 @@ function evalExpr(node: ExprNode): FigureValue {
       if (!Object.hasOwn(target, node.field)) {
         fail(`no field ".${node.field}" (fields: ${Object.keys(target).join(', ')})${suggest(node.field, Object.keys(target))}`);
       }
-      return target[node.field];
+      const out = target[node.field];
+      const meta = RESULT_META.get(target)?.[node.field];
+      if (typeof out === 'number' && !Number.isFinite(out) && meta?.ifInfinite) fail(meta.ifInfinite);
+      return out;
     }
     case 'neg': {
       const v = evalExpr(node.operand);
@@ -2894,6 +2962,16 @@ function evalExpr(node: ExprNode): FigureValue {
   }
 }
 
+/** Names the year-valued thing an expression directly is (a year function or year field), else null. */
+function yearValued(expr: ExprNode): string | null {
+  if (expr.kind === 'call') return FIGURE_FUNCTIONS.get(expr.name)?.returnsYears ? `${expr.name}(...)` : null;
+  if (expr.kind === 'field') {
+    const target = evalExpr(expr.target);
+    if (typeof target === 'object' && RESULT_META.get(target)?.[expr.field]?.years) return `.${expr.field}`;
+  }
+  return null;
+}
+
 function runPipeline(p: Pipeline): string {
   // A token must compute something. A bare word or quoted text on its own would
   // print as typed: a forgotten "()" (`{{ taxYear }}`) or a hand-typed figure
@@ -2910,6 +2988,10 @@ function runPipeline(p: Pipeline): string {
     fail('quoted text on its own prints as typed, so it is not a generated figure; write literal text outside the token, or call a function');
   }
   let value = evalExpr(p.expr);
+  if (p.filters.some((x) => x.name === 'months')) {
+    const what = yearValued(p.expr);
+    if (what) fail(`${what} is a number of years, not months, so the months formatter would print it wrongly; use | int or | num(1) (or multiply by 12 first)`);
+  }
   for (const f of p.filters) {
     const fmt = FIGURE_FORMATTERS.get(f.name);
     if (!fmt) fail(`unknown formatter "${f.name}"${suggest(f.name, FIGURE_FORMATTERS.keys())}; see docs/figures.md`);

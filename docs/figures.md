@@ -114,6 +114,11 @@ inputs:
   - **UK.** One dataset (2026/27). The UK engines take no year
     argument, so `year=` is accepted only for that dataset and anything else fails the build
     rather than quietly returning the wrong year. Print it with `{{ taxYear('uk') }}`.
+- **Years are not months.** A field or function that returns years (`rentVsBuy` `.breakEvenYear` and
+  `.laterBreakEvenYear`, `solarPayback` `.paybackYears`, `cardBeyondHorizon` `.years`, `cpiAdjust` `.years`,
+  `yearsToTarget`, `cardHorizonYears`, `goalHorizonYears`) refuses the `months` formatter, because it would print
+  year 17 as "1 year 5 months". Print years with `int` or `num(1)`; to show years as a duration, multiply by 12
+  first (`{{ yearsToTarget(...) * 12 | months }}`).
 - **Rounding of parts.** Each token is rounded on its own, so a list of rounded parts
   may not add up to a rounded total by £1. Say "(rounding applies)", or token the
   total as a difference of the same values.
@@ -372,7 +377,8 @@ the debt text written out in both.
 
 `usAffordability`, `ukAffordability` and `eurAffordability` are the mortgage affordability
 calculator's three modes (USD, GBP, EUR). `income`, `debts`, `deposit`, `rate` and `years` are
-required, so a token always states its inputs. The calculator's own defaults are $500 of monthly debts
+required, so a token always states its inputs. `years` must be one of the calculator's term buttons: 15 or 30 (USD), 20, 25, 30
+or 35 (GBP), 20, 25 or 30 (EUR); any other term fails the build, because the calculator cannot show it. The calculator's own defaults are $500 of monthly debts
 for USD and EUR but 0 for GBP, and a market-snapshot rate (pass `rate('us30')` for it). Every
 option defaults to the calculator's own default, so a token states only what differs.
 
@@ -398,12 +404,13 @@ budget) the calculator says "No home fits these limits" and the token **fails th
 
 | Function | Returns | Example | Value |
 |---|---|---|---|
-| `rentVsBuy(price, down, rate, years, rent, horizon, region=, closing=, selling=, propertyTax=, insurance=, hoa=, maintenance=, appreciation=, rentIncrease=, rentersInsurance=, invest=, marginalTax=, status=, otherItemized=, stateTax=)` | object (fields below): the month-by-month net-worth comparison. `down` is a % of the price, `horizon` whole years. Defaults are the calculator's (property tax 1%, insurance 1,800, maintenance 1%, growth 3%, rent increase 3%, renters insurance 15, return 7%, US marginal rate 22%, single); buying and selling costs default by region (3% and 6% in the US, 0 in the UK and euro area) | `{{ rentVsBuy(350000, 20, 5.5, 25, 1400, 10, region=uk, closing=3, selling=2, propertyTax=0, insurance=400, rentersInsurance=10).advantage \| gbp }}` | £9,280 |
+| `rentVsBuy(price, down, rate, years, rent, horizon, region=, closing=, selling=, propertyTax=, insurance=, hoa=, maintenance=, appreciation=, rentIncrease=, rentersInsurance=, invest=, marginalTax=, status=, otherItemized=, stateTax=)` | object (fields below): the month-by-month net-worth comparison. `down` is a % of the price; `years` (the mortgage term) is 10 to 35 and `horizon` 1 to 30 whole years, the calculator's slider ranges (outside them the token fails). Defaults are the calculator's (property tax 1%, insurance 1,800, maintenance 1%, growth 3%, rent increase 3%, renters insurance 15, return 7%, US marginal rate 22%, single); buying and selling costs default by region (3% and 6% in the US, 0 in the UK and euro area) | `{{ rentVsBuy(350000, 20, 5.5, 25, 1400, 10, region=uk, closing=3, selling=2, propertyTax=0, insurance=400, rentersInsurance=10).advantage \| gbp }}` | £9,280 |
 
 Fields: `.advantage` (buyer minus renter net worth; negative means renting is ahead),
 `.difference` (its absolute value), `.verdict` (`buy`, `rent` or `tie`, printable as text),
-`.breakEvenYear` and `.laterBreakEvenYear` (Infinity when there is none, so a number formatter
-fails the build), `.downPayment`, `.closingCosts`, `.initialCash`, `.loanAmount`,
+`.breakEvenYear` and `.laterBreakEvenYear` (year numbers: print them with `int`, never `months`; using one
+when there is no such year, because buying is not ahead at the horizon or never catches up, fails the build with a
+message to write it in words), `.downPayment`, `.closingCosts`, `.initialCash`, `.loanAmount`,
 `.monthlyMortgage`, `.monthlyOwnershipCost` (first month, before any tax saving),
 `.firstMonthRentCost`, `.totalTaxSaving`, `.totalInterest`, `.totalRentPaid`, `.finalHomeValue`,
 `.saleCosts`, `.loanBalance`, `.finalEquity`, `.buyerPortfolio`, `.finalBuyerNetWorth`,
@@ -419,20 +426,21 @@ deduction test uses the default tax year's standard deduction (the calculator do
 Fields: `.financeAmount`, `.balloon`, then for each of `pcp`, `hp` and `loan`: `.pcpMonthly`,
 `.pcpTotalPaid`, `.pcpTotalInterest`, `.pcpOpportunityCost`, `.pcpTrueCost` (and the same with `hp` and
 `loan`), for cash `.cashTotalPaid`, `.cashOpportunityCost`, `.cashTrueCost`, and `.cheapest` (the
-lowest true cost, printable as text). A deposit above what the calculator allows, or a balloon above
+lowest true cost, printable as text). `months` is 12 to 84 in steps of 6, like the calculator's slider. A deposit above what the calculator allows, or a balloon above
 its cap for the price and deposit, **fails the build** (the calculator clamps and shows a notice).
 
 ### Solar payback
 
 | Function | Returns | Example | Value |
 |---|---|---|---|
-| `solarPayback(region, systemCost=, systemSize=, battery=, batteryCost=, batteryCapacity=, tariff=, exportTariff=, selfConsumption=, inflation=, degradation=, maintenance=, credit=, years=, kWhPerKwp=)` | object (fields below): the solar panel payback calculator. `region` is `uk`, `us` or `eur` and picks the calculator's regional defaults; each option overrides one input. Other defaults: 30% self-consumption, 3% inflation, 0.5% degradation, 25 years, no grant, no battery | `{{ solarPayback('uk').paybackTotalMonths \| months }}` | 19 years 8 months |
+| `solarPayback(region, systemCost=, systemSize=, battery=, batteryCost=, batteryCapacity=, tariff=, exportTariff=, selfConsumption=, inflation=, degradation=, maintenance=, credit=, years=, kWhPerKwp=)` | object (fields below): the solar panel payback calculator. `region` is `uk`, `us` or `eur` and picks the calculator's regional defaults; each option overrides one input. Other defaults: 30% self-consumption, 3% inflation, 0.5% degradation, 25 years (the slider runs 10 to 40 in steps of 5, and so does `years=`), no grant, no battery | `{{ solarPayback('uk').paybackTotalMonths \| months }}` | 19 years 8 months |
 
 Fields: `.paybackYears` and `.paybackMonths` (the "19 years 8 months" parts), `.paybackTotalMonths`,
-`.netCost`, `.year1Savings`, `.totalSavings`, `.roi` (%, Infinity when the net cost is 0 or less),
+`.netCost`, `.year1Savings`, `.totalSavings`, `.roi` (%),
 `.generationYear1`, `.generationFinal`, `.savingsFinalYear` and `.selfConsumption` (effective
-year-1 share in %, with the battery lifting it when `battery=true`). A system that does not pay
-back within the period **fails the build**.
+year-1 share in %, with the battery lifting it when `battery=true`). `.paybackYears` is a year count: print it
+with `int`, never `months`. A system that does not pay back within the period **fails the build**, and so does
+one whose grant covers the whole cost (the calculator says "Pays back immediately", with nothing to pay back).
 
 ### ROI, required rate, CPI and loan schedule
 
@@ -497,7 +505,10 @@ on top of a plan, US `k401Amount` (the tool takes a %), loan `yearly=`, UK affor
 than the screen's: the calculator does not let visitors edit the floor (25 for USD and EUR, 5 for
 GBP, set by the currency) and offers `minPct` only from 1 to 10 (percentage) or 1 to 5 (interest
 plus) in steps of 0.5, so `minFloor=25` matches only USD and EUR visitors and any other `minPct` or
-`minFloor` is an extension. They are
+`minFloor` is an extension. For the structural inputs the token matches the calculator's own choices and refuses
+the rest (affordability terms, car months, rent vs buy years and horizon, solar years). Money, rate and
+percentage inputs are only range-checked loosely, so a token can pass a value beyond a calculator slider's end:
+check the calculator accepts it before telling readers to "try it in the calculator". They are
 computed from the same engines, but if the page also tells readers to "try it in the
 calculator", pick inputs the calculator can reproduce.
 
@@ -518,7 +529,7 @@ fails until it is.
 | `int` | Whole number with separators | `{{ 1234.6 \| int }}` | 1,235 |
 | `num`, `num(2)`, `num(auto)` | Number with separators and fixed decimals | `{{ 20.3615 \| num(2) }}` | 20.36 |
 | `index` | An index value with up to 3 decimals and no trailing zeros (CPI-U 130.7, 321.943) | `{{ 130.7 \| index }}` | 130.7 |
-| `months` | "13 years 11 months" (rounded to whole months); Infinity prints "never" | `{{ 167 \| months }}` | 13 years 11 months |
+| `months` | "13 years 11 months" (rounded to whole months); Infinity prints "never". Only for a number of MONTHS: on a year-valued field or function (`.breakEvenYear`, `.paybackYears`, `yearsToTarget`, `cardHorizonYears`, ...) the token fails the build | `{{ 167 \| months }}` | 13 years 11 months |
 | `round100` | Round to the nearest 100 (still a number; add a money formatter) | `{{ 37540 \| round100 \| usd }}` | $37,500 |
 | `roundTo(step)` | Round to the nearest step | `{{ 37540 \| roundTo(1000) \| usd }}` | $38,000 |
 | `ceil`, `floor` | Round up or down to a whole number | `{{ 45.2 \| ceil \| months }}` | 3 years 10 months |

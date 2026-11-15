@@ -14,7 +14,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { evaluateFigureValue as v, FIGURE_FUNCTIONS, FigureError, type FigureRecord } from './figures';
+import { evaluateFigure as f, evaluateFigureValue as v, FIGURE_FUNCTIONS, FigureError, type FigureRecord } from './figures';
 import {
   AFFORDABILITY_DEFAULTS,
   estimateUkTakeHome,
@@ -45,6 +45,25 @@ function throwsFigureError(expr: string, re?: RegExp): void {
   }
   expect(caught, expr).toBeInstanceOf(FigureError);
   if (re) expect((caught as FigureError).message, expr).toMatch(re);
+}
+/** Like throwsFigureError, for a full token that includes formatters. */
+function throwsFormatted(token: string, re: RegExp): void {
+  let caught: unknown;
+  try {
+    f(token);
+  } catch (e) {
+    caught = e;
+  }
+  expect(caught, token).toBeInstanceOf(FigureError);
+  expect((caught as FigureError).message, token).toMatch(re);
+}
+/** A range or step refusal is the only error a value inside the calculator's range must not give. */
+function notARangeError(expr: string): void {
+  try {
+    v(expr);
+  } catch (e) {
+    expect((e as Error).message, expr).not.toMatch(/must be (at least|at most|a whole|0 plus|10 plus|12 plus)|plus a multiple/);
+  }
 }
 function same(actual: unknown, expected: unknown, label: string): void {
   expect(actual, label).toBe(expected);
@@ -125,12 +144,14 @@ describe('affordability: figures == solveUs/Uk/EurAffordability', () => {
   const debtsList = [0, 300, 900, 2_500, 20_000];
   const deposits = [0, 20_000, 40_000, 120_000];
   const rates = [0, 3.5, 7, 9];
-  const terms = [15, 25, 30];
+  // The calculator's term buttons (TERM_OPTIONS in MortgageAffordabilityCalc.tsx).
+  const usTerms = [15, 30];
+  const eurTerms = [20, 25, 30];
 
   it('US: every combination equals the engine; "No home fits" cases throw', () => {
     let compared = 0;
     let refused = 0;
-    for (const income of incomes) for (const debts of debtsList) for (const deposit of deposits) for (const rate of rates) for (const years of terms) {
+    for (const income of incomes) for (const debts of debtsList) for (const deposit of deposits) for (const rate of rates) for (const years of usTerms) {
       for (const tax of [0.5, 1, 2]) {
         const opts = `propertyTax=${tax}`;
         const expr = `usAffordability(${income}, ${debts}, ${deposit}, ${rate}, ${years}, ${opts})`;
@@ -173,7 +194,7 @@ describe('affordability: figures == solveUs/Uk/EurAffordability', () => {
   it('UK: every combination equals the engine (take-home estimate rounds to whole pounds)', () => {
     let compared = 0;
     let refused = 0;
-    for (const income of incomes) for (const debts of debtsList) for (const deposit of deposits) for (const rate of rates) for (const years of [25, 30]) {
+    for (const income of incomes) for (const debts of debtsList) for (const deposit of deposits) for (const rate of rates) for (const years of [20, 25, 35]) {
       for (const [takeHome, lti, margin, revert] of [[undefined, 4.5, 1, undefined], [3600, 5.5, 0, 6.5], [2800, 4, 2, 7]] as const) {
         const opts = [
           takeHome === undefined ? '' : `takeHome=${takeHome}`, `ltiCap=${lti}`, `stressMargin=${margin}`,
@@ -208,7 +229,7 @@ describe('affordability: figures == solveUs/Uk/EurAffordability', () => {
   it('EUR: every combination equals the engine', () => {
     let compared = 0;
     let refused = 0;
-    for (const income of incomes) for (const debts of debtsList) for (const deposit of deposits) for (const rate of rates) for (const years of terms) {
+    for (const income of incomes) for (const debts of debtsList) for (const deposit of deposits) for (const rate of rates) for (const years of eurTerms) {
       for (const limit of [36, 30, 40]) {
         const expr = `eurAffordability(${income}, ${debts}, ${deposit}, ${rate}, ${years}, maxDebtService=${limit})`;
         const e = solveEurAffordability({
@@ -392,6 +413,11 @@ describe('solarPayback: figures == calculateSolarPayback with the regional defau
             taxCredit: credit, analysisPeriod: years, kWhPerKwp: d.kWhPerKwp,
           };
           const e = calculateSolarPayback(input);
+          if (e.paysBackImmediately) {
+            throwsFigureError(`${expr}.netCost`, /Pays back immediately/);
+            refused++;
+            continue;
+          }
           if (!e.reachesPayback) {
             throwsFigureError(`${expr}.netCost`, /does not pay for itself/);
             refused++;
@@ -410,7 +436,7 @@ describe('solarPayback: figures == calculateSolarPayback with the regional defau
       }
     }
     report('solarPayback', compared, refused);
-    expect(compared).toBeGreaterThan(500);
+    expect(compared).toBeGreaterThan(400);
     expect(refused).toBeGreaterThan(20);
   });
 
@@ -612,5 +638,97 @@ describe('cpiValue and loanCrossoverMonth', () => {
       const expected = rows.find((m) => m.principal > m.interest)!.month;
       same(num(`loanCrossoverMonth(${principal}, ${rate}, ${years})`), expected, `crossover ${principal} ${rate} ${years}`);
     }
+  });
+});
+
+/* ════════════════════════════════════════════════════════════
+ * Calculator input ranges and field guards (W2-FIG2 review, round 1)
+ * ════════════════════════════════════════════════════════════ */
+
+describe('inputs the calculators cannot select are refused', () => {
+  it('affordability terms are exactly the calculator\'s buttons (read from the tool source)', () => {
+    const text = readFileSync('src/components/tools/MortgageAffordabilityCalc.tsx', 'utf8');
+    const block = /const TERM_OPTIONS = \{([\s\S]*?)\} as const;/.exec(text);
+    expect(block).not.toBeNull();
+    for (const region of ['us', 'uk', 'eur'] as const) {
+      const m = new RegExp(`\\b${region}:\\s*\\[([^\\]]*)\\]`).exec(block![1]);
+      expect(m, region).not.toBeNull();
+      const allowed = m![1].split(',').map((x) => Number(x.trim()));
+      const fn = region === 'us' ? 'usAffordability' : region === 'uk' ? 'ukAffordability' : 'eurAffordability';
+      for (let years = 1; years <= 60; years++) {
+        const expr = `${fn}(80000, 500, 40000, 7, ${years}).maxPrice`;
+        if (allowed.includes(years)) expect(() => v(expr), expr).not.toThrow(/offers terms/);
+        else throwsFigureError(expr, /offers terms of/);
+      }
+    }
+    throwsFigureError('usAffordability(80000, 500, 40000, 7, 37)', /offers terms of 15, 30 years in USD mode, not 37/);
+  });
+
+  it('car months (12 to 84 in steps of 6), rent vs buy years (10 to 35) and horizon (1 to 30), solar years (10 to 40 in steps of 5)', () => {
+    for (const months of [6, 11, 13, 40, 90, 120]) throwsFigureError(`carFinance(25000, 2500, ${months})`);
+    for (const months of [12, 18, 48, 84]) expect(() => v(`carFinance(25000, 2500, ${months})`)).not.toThrow();
+    for (const years of [5, 9, 36, 40]) throwsFigureError(`rentVsBuy(350000, 20, 6.5, ${years}, 1800, 10)`);
+    for (const years of [10, 30, 35]) expect(() => v(`rentVsBuy(350000, 20, 6.5, ${years}, 1800, 10)`)).not.toThrow();
+    for (const horizon of [0, 31, 50]) throwsFigureError(`rentVsBuy(350000, 20, 6.5, 30, 1800, ${horizon})`);
+    for (const horizon of [1, 30]) expect(() => v(`rentVsBuy(350000, 20, 6.5, 30, 1800, ${horizon})`)).not.toThrow();
+    for (const years of [1, 9, 12, 41, 50]) throwsFigureError(`solarPayback('uk', years=${years})`);
+    for (const years of [10, 15, 40]) notARangeError(`solarPayback('uk', years=${years})`);
+  });
+
+  it('solar: a grant that covers the whole cost fails (the calculator says "Pays back immediately")', () => {
+    expect(calculateSolarPayback({
+      systemCost: 7000, systemSize: 4, includeBattery: false, batteryCost: 4500, electricityTariff: 26.32, selfConsumptionPct: 30,
+      exportTariff: 4.5, energyInflation: 3, degradation: 0.5, maintenanceCost: 150, taxCredit: 20000, analysisPeriod: 25, kWhPerKwp: 900,
+    }).paysBackImmediately).toBe(true);
+    throwsFigureError("solarPayback('uk', credit=20000).paybackTotalMonths", /Pays back immediately/);
+    throwsFigureError("solarPayback('uk', credit=20000).paybackYears", /Pays back immediately/);
+    throwsFigureError("solarPayback('uk', credit=7000).roi", /Pays back immediately/);
+  });
+});
+
+describe('year-valued fields and "no such year" fields', () => {
+  const UK = "350000, 20, 5.5, 25, 1400";
+  const UK_OPTS = 'region=uk, closing=3, selling=2, propertyTax=0, insurance=400, rentersInsurance=10';
+
+  it('no break-even year: the field fails with its own message, never "use the months formatter"', () => {
+    const noBuy = 'rentVsBuy(350000, 20, 6.5, 30, 1800, 10)'; // renting stays ahead at 10 years
+    expect((v(noBuy) as FigureRecord).breakEvenYear).toBe(Infinity);
+    for (const tail of ['.breakEvenYear | int', '.breakEvenYear | months', '.breakEvenYear + 1 | int', '.breakEvenYear | num(1)']) {
+      throwsFormatted(noBuy + tail, /there is no break-even year: buying is not ahead/);
+      let caught: unknown;
+      try { f(noBuy + tail); } catch (e) { caught = e; }
+      expect((caught as FigureError).message, tail).not.toMatch(/months formatter/);
+    }
+    throwsFormatted(`${noBuy}.breakEvenYear | int`, /renting stays ahead/);
+  });
+
+  it('later break-even year: finite when renting is ahead now but buying catches up; no value otherwise', () => {
+    const input = {
+      homePrice: 350000, downPaymentPct: 20, mortgageRate: 5.5, loanTermYears: 25, closingCostPct: 3, sellingCostPct: 2,
+      propertyTaxRate: 0, homeInsurance: 400, hoaMonthly: 0, maintenanceRate: 1, homeAppreciation: 3, monthlyRent: 1400,
+      rentIncrease: 3, rentersInsurance: 10, investmentReturn: 7, timeHorizon: 3, region: 'uk' as const, marginalTaxRate: 22,
+      filingStatus: 'single' as const, otherItemizedDeductions: 0, stateLocalIncomeTax: 0,
+    };
+    const later = laterBreakEvenYear(input);
+    expect(later).not.toBeNull();
+    same(num(`rentVsBuy(${UK}, 3, ${UK_OPTS}).laterBreakEvenYear`), later, 'later break-even year');
+    throwsFigureError(`rentVsBuy(${UK}, 10, ${UK_OPTS}).laterBreakEvenYear`, /there is no later break-even year/); // buying already ahead
+  });
+
+  it('| months on a year-valued field or function fails; arithmetic into months is fine', () => {
+    for (const expr of [
+      `rentVsBuy(${UK}, 10, ${UK_OPTS}).breakEvenYear | months`,
+      "solarPayback('uk').paybackYears | months",
+      'cardBeyondHorizon(5000, 22.99, minPct=2, minFloor=25).years | months',
+      'cpiAdjust(45000, 2010, 2025).years | months',
+      'yearsToTarget(10000, 500, 7, 1000000) | months',
+      'cardHorizonYears() | months',
+      'goalHorizonYears() | months',
+    ]) {
+      throwsFormatted(expr, /is a number of years, not months/);
+    }
+    // legitimate months, and years converted to months by arithmetic
+    expect(() => v("solarPayback('uk').paybackMonths")).not.toThrow();
+    expect(num(`rentVsBuy(${UK}, 10, ${UK_OPTS}).breakEvenYear`) * 12).toBe(96);
   });
 });

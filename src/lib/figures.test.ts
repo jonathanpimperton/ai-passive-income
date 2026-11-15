@@ -11,6 +11,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
   evaluateFigure as f,
+  evaluateFigureValue,
   FIGURE_FUNCTIONS,
   FIGURE_FORMATTERS,
   FigureError,
@@ -586,8 +587,8 @@ describe('saving and investing vs calculator-utils engine', () => {
     expect(months.status).toBe('reached');
     close(n('yearsToTarget(10000, 500, 7, 1000000) | num(4)'), (months as { months: number }).months / 12, 0.00005);
     // Truly never: no deposits and no growth.
-    expect(f('yearsToTarget(10000, 0, 0, 1000000) | months')).toBe('never');
-    expect(f('yearsToTarget(0, 0, 5, 1000000) | months')).toBe('never');
+    expect(evaluateFigureValue('yearsToTarget(10000, 0, 0, 1000000)')).toBe(Infinity);
+    expect(evaluateFigureValue('yearsToTarget(0, 0, 5, 1000000)')).toBe(Infinity);
     // Not within 100 years is NOT "never" (the tools say "Not within 100 years"): the token fails the build.
     expect(() => f('yearsToTarget(10000, 0, 3, 1000000) | months')).toThrow(/not reached within 100 years/);
     expect(f('yearsToTarget(20000, 0, 3, 1000) | num')).toBe('0');
