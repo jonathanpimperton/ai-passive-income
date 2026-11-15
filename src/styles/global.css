@@ -1243,3 +1243,11 @@ html.has-mini-bar {
     background: var(--color-neutral-100);
   }
 }
+
+/* Results panels pinned with lg:sticky are released while they are taller than the window,
+   so keyboard focus can scroll to every control in them (src/lib/sticky-fit.ts sets the
+   marker on the calculator's island). Unlayered, so it wins over the utility class. */
+[data-sticky-released] .lg\:sticky,
+.lg\:sticky[data-sticky-released] {
+  position: static;
+}

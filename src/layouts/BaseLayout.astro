@@ -208,6 +208,7 @@ const CONSENT_JS =
     </a>
     <script>
       import { safeGet, safeSet } from '@lib/safe-storage';
+      import { watchStickyPanels } from '@lib/sticky-fit';
 
       // Any table wider than its container gets wrapped in a horizontal scroll
       // box with a right-edge fade cue — wide tables scroll in place instead of
@@ -288,6 +289,10 @@ const CONSENT_JS =
         clearTimeout(tableResizeTimer);
         tableResizeTimer = setTimeout(wrapWideTables, 250);
       }, { passive: true });
+
+      // Pinned results panels taller than the window are released, so keyboard focus can
+      // reach every control in them (src/lib/sticky-fit.ts).
+      watchStickyPanels();
 
       // "Recently used" tools for the homepage return hook (HOME-CHROME-11).
       // Local to this browser, never sent anywhere; listed on /privacy/.
