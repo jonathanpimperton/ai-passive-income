@@ -152,9 +152,33 @@ describe('keepOriginalWithoutMetadata (regression: kept originals came out sidew
     expect((await sharp(Buffer.from(none)).metadata()).exif).toBeUndefined();
   });
 
-  it('PNG and WebP with a rotation tag are not kept (the upright re-encode is used instead)', () => {
+  it('a PNG with a rotation tag is not kept (the upright re-encode is used instead)', () => {
     expect(keepOriginalWithoutMetadata(read('rot6.png'), true)).toEqual({ bytes: null, needsUpright: true });
-    expect(keepOriginalWithoutMetadata(read('rot6.webp'), false)).toEqual({ bytes: null, needsUpright: true });
+  });
+
+  it('a WebP with a rotation tag is kept with the tag removed: no browser applies it, so re-encoding rotates nothing', async () => {
+    // Generated here: noisy pixels at low quality, stored 160x80, Exif orientation 6 plus camera and GPS data.
+    const noise = sharp({ create: { width: 160, height: 80, channels: 3, noise: { type: 'gaussian', mean: 128, sigma: 60 } } }).blur(1.5);
+    const webp = new Uint8Array(await noise.webp({ quality: 40 }).withMetadata({ orientation: 6 }).withExif(EXIF).toBuffer());
+    expect(hasAscii(webp, 'EXIF')).toBe(true);
+    expect(readOrientation(webp)).toBe(6);
+    for (const keepDate of [true, false]) {
+      const { bytes, needsUpright } = keepOriginalWithoutMetadata(webp, keepDate);
+      expect(needsUpright).toBe(false);
+      expect(bytes).not.toBeNull();
+      expect(bytes!.length).toBeLessThan(webp.length);
+      expect(hasAscii(bytes!, 'EXIF')).toBe(false);
+      expect(hasAscii(bytes!, 'secret-owner')).toBe(false);
+      const meta = await sharp(Buffer.from(bytes!)).metadata();
+      expect(meta.exif).toBeUndefined();
+      expect(meta.orientation).toBeUndefined();
+      // Same stored pixels, same size as stored (160x80): nothing was rotated or re-encoded.
+      expect([meta.width, meta.height]).toEqual([160, 80]);
+      expect((await rawPixels(bytes!)).equals(await rawPixels(webp))).toBe(true);
+    }
+    // The committed fixture behaves the same way.
+    expect(keepOriginalWithoutMetadata(read('rot6.webp'), false).needsUpright).toBe(false);
+    expect(keepOriginalWithoutMetadata(read('rot6.webp'), false).bytes).not.toBeNull();
   });
 
   it('PNG and WebP without a rotation tag are kept with their metadata stripped', async () => {

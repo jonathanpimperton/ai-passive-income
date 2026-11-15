@@ -12,6 +12,17 @@ export function formatBytes(bytes: number): string {
 }
 
 /**
+ * How a new size compares with the old one, as a phrase that reads after "is" and stays true for
+ * any size: "the same size as", "12% larger than", "3.4 times the size of" (from 2x up).
+ */
+export function describeSizeChange(newSize: number, oldSize: number): string {
+  if (!(oldSize > 0) || !(newSize > oldSize)) return 'the same size as';
+  const ratio = newSize / oldSize;
+  if (ratio >= 2) return `${ratio >= 10 ? Math.round(ratio) : Math.round(ratio * 10) / 10} times the size of`;
+  return `${Math.max(1, Math.round((ratio - 1) * 100))}% larger than`;
+}
+
+/**
  * The file name without its final extension. "photo.HEIC" -> "photo",
  * "x.jpg" -> "x", "archive.tar.gz" -> "archive.tar", ".env" -> ".env",
  * "README" -> "README". Path separators are dropped defensively.

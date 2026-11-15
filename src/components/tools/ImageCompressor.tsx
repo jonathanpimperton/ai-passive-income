@@ -21,7 +21,7 @@ import FileDropZone from '../ui/FileDropZone';
 import PrivacyBadge from '../ui/PrivacyBadge';
 import SliderInput from '../ui/SliderInput';
 import { ToolMessages, ProcessingBanner, ResultsToolbar } from '../ui/FileToolKit';
-import { formatBytes, baseName } from '../../lib/file-tools/names';
+import { formatBytes, baseName, describeSizeChange } from '../../lib/file-tools/names';
 import { detectImageKind, isAnimatedImage } from '../../lib/file-tools/image-sniff';
 import {
   encodePngLossless, encodePngIndexed, quantizeRgba, expandIndexed, psnr, psnrGateForQuality,
@@ -166,9 +166,10 @@ async function compressOne(file: File, s: Settings): Promise<CompressedFile> {
           notes.unshift('Already optimised: no smaller version at these settings, so your original image is kept, with location and other metadata removed.');
         }
       } else if (!original && blob.size >= file.size) {
+        const change = describeSizeChange(blob.size, file.size);
         notes.push(needsUpright
-          ? 'This copy is slightly larger than the original: re-encoding was needed to keep the photo the right way up while removing its metadata.'
-          : 'This copy is slightly larger than the original: re-encoding was the only safe way to remove its metadata.');
+          ? `This copy is ${change} the original: re-encoding was needed to keep the photo the right way up while removing its metadata.`
+          : `This copy is ${change} the original: re-encoding was the only safe way to remove its metadata.`);
       }
     }
     if (!keptOriginal && blob.size > file.size && (changedSize || changedFormat)) {
