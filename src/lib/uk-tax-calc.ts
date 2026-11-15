@@ -369,6 +369,13 @@ export interface UkTakeHomeResult {
     netMonthly: number;
     /** Tax a year to claim back through Self Assessment (headline tax is this much lower). */
     extraRelief: number;
+    /**
+     * The pension brings adjusted net income down and so restores part of the Personal Allowance
+     * (income over £100,000). Both figures use the restored allowance, so `extraRelief` counts only
+     * the band extension; if the tax code was set from pay before the pension, the real claim
+     * could be larger.
+     */
+    allowanceRestored: boolean;
   };
 }
 
@@ -444,6 +451,7 @@ export function calculateUkTakeHome(input: UkTakeHomeInput): UkTakeHomeResult {
     netAnnual,
     netMonthly: netAnnual / 12,
     extraRelief: 0,
+    allowanceRestored: false,
   };
   if (d.ras > 0) {
     const plain = calcUkIncomeTax({ pay: d.payForTax, adjustedNetIncome: d.adjustedNetIncome, region, code });
@@ -451,7 +459,16 @@ export function calculateUkTakeHome(input: UkTakeHomeInput): UkTakeHomeResult {
     // Under 50p a year would show as "£0": treat as no difference.
     if (extraRelief >= 0.5) {
       const payslipNet = netAnnual - extraRelief;
-      payslip = { applies: true, incomeTax: plain.tax, netAnnual: payslipNet, netMonthly: payslipNet / 12, extraRelief };
+      const allowanceRestored =
+        allowanceForCode(code, salary).allowance < allowanceForCode(code, d.adjustedNetIncome).allowance;
+      payslip = {
+        applies: true,
+        incomeTax: plain.tax,
+        netAnnual: payslipNet,
+        netMonthly: payslipNet / 12,
+        extraRelief,
+        allowanceRestored,
+      };
     }
   }
 

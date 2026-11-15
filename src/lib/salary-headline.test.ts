@@ -17,6 +17,9 @@ import { sanitizeRows } from './email-sanitize';
 import { calculateUkTakeHome } from './uk-tax-calc';
 import { computeUsSalary } from './us-tax-calc';
 
+// The first server render of each calculator transforms recharts, lucide and the chart chunks: slow on a busy machine.
+vi.setConfig({ testTimeout: 30_000 });
+
 const captured = vi.hoisted(() => ({ props: [] as Array<Record<string, unknown>> }));
 
 vi.mock('../components/ui/EmailResultsButton', () => ({
@@ -86,6 +89,35 @@ describe('monthly and annual take-home are equal headlines', () => {
     const m = /role="status" aria-live="polite">(.*?)<\/p>/s.exec(html);
     expect(m![1].replace(/<!-- -->/g, '')).toBe('Take-home pay £2,277 a month, £27,320 a year.');
   });
+});
+
+describe('compact copy at the top of the card (narrow screens)', () => {
+  for (const file of ['SalaryUkCalc', 'SalaryCalc'] as const) {
+    it(`${file}: an aria-hidden, lg:hidden pair comes first in the card and mirrors the headline`, async () => {
+      const html = await render(file);
+      // Exactly one real headline: the mobile result bar and aria-live depend on it.
+      expect(html.match(/data-headline-result/g)).toHaveLength(1);
+      const m = /<div aria-hidden="true" data-compact-headline="true" class="([^"]*)">(.*?<\/p>)<\/div><\/div>/s.exec(html);
+      expect(m, 'no compact headline').toBeTruthy();
+      expect(m![1]).toContain('lg:hidden');
+      const paragraphs = [...m![2].matchAll(/<p class="([^"]*)">(.*?)<\/p>/gs)].map((p) => ({ cls: p[1], text: p[2] }));
+      expect(paragraphs).toHaveLength(4);
+      const [monthly, monthlyUnit, annual, annualUnit] = paragraphs;
+      expect(monthlyUnit.text).toBe('take-home a month');
+      expect(annualUnit.text).toBe('take-home a year');
+      // Equal weight: one class set for both figures, mono tabular-nums, bold.
+      expect(monthly.cls).toBe(annual.cls);
+      for (const token of ['tabular-nums', 'font-bold', 'font-mono']) expect(monthly.cls).toContain(token);
+      // Same values as the real headline (same result).
+      const [headMonthly, , headAnnual] = headlineParagraphs(html);
+      expect(monthly.text).toBe(headMonthly.text);
+      expect(annual.text).toBe(headAnnual.text);
+      // It sits before the inputs: it is the first element inside the island's card, ahead of any form control.
+      expect(html.indexOf('data-compact-headline')).toBeLessThan(html.indexOf('<input'));
+      // Nothing focusable inside it.
+      expect(m![2]).not.toMatch(/<(a|button|input|select|textarea)|tabindex/);
+    });
+  }
 });
 
 describe('UK payslip comparison (relief at source)', () => {
@@ -196,5 +228,54 @@ describe('email rows include the monthly figure and survive the sanitiser', () =
     const annual = money(results[0].value);
     const monthly = money(results[1].value);
     expect(Math.abs(12 * monthly - annual)).toBeLessThanOrEqual(6);
+  });
+});
+
+describe('UK wording and notes for the review round', () => {
+  const text = (html: string) =>
+    html.replace(/<!-- -->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
+
+  it('the payslip note speaks of relief above 20%, not only higher-rate relief', async () => {
+    const t = text(await render('SalaryUkCalc', { salary: 150_000, pensionMode: 'amount', pensionFromPay: 8_000, pensionMethod: 'reliefAtSource' }));
+    expect(t).toContain('any relief above 20% (higher-rate payers, and the Scottish intermediate rate) is not given through payroll');
+    expect(t).not.toContain('the higher-rate relief is not given through payroll');
+  });
+
+  it('Scottish intermediate-only payer: the block shows £25 a year', async () => {
+    const t = text(await render('SalaryUkCalc', {
+      salary: 40_000, taxCode: 'S1257L', pensionMode: 'amount', pensionFromPay: 2_000, pensionMethod: 'reliefAtSource',
+    }));
+    expect(t).toContain('Extra relief to claim via Self Assessment £25 a year');
+  });
+
+  it('the allowance note appears only when the pension restores allowance (£115,000, £4,000 from pay)', async () => {
+    const restored = text(await render('SalaryUkCalc', { salary: 115_000, pensionMode: 'amount', pensionFromPay: 4_000, pensionMethod: 'reliefAtSource' }));
+    expect(restored).toContain('Extra relief to claim via Self Assessment £1,000 a year');
+    expect(restored).toContain('Your pension also restores part of your Personal Allowance');
+    const none = text(await render('SalaryUkCalc', { salary: 150_000, pensionMode: 'amount', pensionFromPay: 8_000, pensionMethod: 'reliefAtSource' }));
+    expect(none).not.toContain('also restores part of your Personal Allowance');
+  });
+
+  it('the childcare callout gives the amount from pay for relief at source (computed), and not otherwise', async () => {
+    // £150,000, gross 10,000: adjusted net income 140,000, so 40,000 more gross; 80% of that leaves pay.
+    const ras = text(await render('SalaryUkCalc', { salary: 150_000, pensionMode: 'amount', pensionFromPay: 8_000, pensionMethod: 'reliefAtSource' }));
+    expect(ras).toContain('Another £40,000 a year into your pension (£32,000 from your pay) would bring you to the limit');
+    const net = text(await render('SalaryUkCalc', { salary: 150_000, pensionMode: 'amount', pensionFromPay: 8_000, pensionMethod: 'netPay' }));
+    expect(net).toContain('Another £');
+    expect(net).not.toContain('from your pay)');
+  });
+
+  it('the qualifying band limits are set in the mono figure face', async () => {
+    const html = (await render('SalaryUkCalc')).replace(/<!-- -->/g, '');
+    expect(html).toContain('<span class="tabular-nums">£6,240</span>');
+    expect(html).toContain('<span class="tabular-nums">£50,270</span>');
+    // Every occurrence is wrapped: none sits bare in the hint or the assumptions list.
+    const bare = html.replace(/<span class="tabular-nums">£(6,240|50,270)<\/span>/g, '').match(/£(6,240|50,270)/g);
+    expect(bare).toBeNull();
+  });
+
+  it('the mobile result bar label is short enough to fit beside both figures', async () => {
+    const html = await render('SalaryUkCalc');
+    expect(/data-headline-label="([^"]*)"/.exec(html)![1].length).toBeLessThanOrEqual(5);
   });
 });

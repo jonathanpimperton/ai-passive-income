@@ -94,6 +94,53 @@ describe('payslip basis (relief at source)', () => {
     expect(r.payslip.extraRelief).toBeCloseTo(800, 6);
   });
 
+  it('£100,000 to £125,140: the pension restores allowance, so the claim counts only the band extension', () => {
+    // £115,000, £4,000 from pay -> gross 5,000. Adjusted net income 110,000.
+    // Allowance at ANI 110,000: 12,570 - (110,000 - 100,000) / 2 = 7,570 (it would be 5,070 at 115,000).
+    // Taxable 115,000 - 7,570 = 107,430.
+    // PAYE (no extension): 37,700 x 20% = 7,540 + 69,730 x 40% = 27,892 = 35,432.
+    // Headline (bands + 5,000): 42,700 x 20% = 8,540 + 64,730 x 40% = 25,892 = 34,432.
+    // Extra relief = 1,000 (5,000 x 20%). Claiming the restored allowance too would add
+    // 2,500 x 40% = 1,000, which the payslip figure cannot know about: flagged by allowanceRestored.
+    const r = run({
+      salary: 115_000,
+      pensionMode: 'amount',
+      pensionAmount: 4_000,
+      pensionAmountBasis: 'fromPay',
+      pensionMethod: 'reliefAtSource',
+    });
+    expect(r.personalAllowance).toBe(7_570);
+    expect(r.incomeTax).toBeCloseTo(34_432, 6);
+    expect(r.payslip.incomeTax).toBeCloseTo(35_432, 6);
+    expect(r.payslip.extraRelief).toBeCloseTo(1_000, 6);
+    expect(r.payslip.allowanceRestored).toBe(true);
+  });
+
+  it('allowanceRestored is false when the allowance is the same with or without the pension', () => {
+    // £150,000 (allowance 0 either way), a K code and a basic-rate payer.
+    const additional = run({ salary: 150_000, pensionMode: 'amount', pensionAmount: 8_000, pensionAmountBasis: 'fromPay', pensionMethod: 'reliefAtSource' });
+    expect(additional.payslip.applies).toBe(true);
+    expect(additional.payslip.allowanceRestored).toBe(false);
+    expect(run({ salary: 60_000, pensionPercent: 5, pensionMethod: 'reliefAtSource' }).payslip.allowanceRestored).toBe(false);
+  });
+
+  it('Scottish intermediate-rate payer: only the 1% above basic relief is claimed (S1257L, £40,000, £2,000 from pay)', () => {
+    // Gross 2,000 / 0.8 = 2,500. Allowance 12,570, taxable 27,430. Scottish bands (taxable):
+    // 19% to 3,967, 20% to 16,956, 21% to 31,092. The extension moves the basic limit (16,956)
+    // and every limit above it up by 2,500, i.e. 2,500 of income moves from 21% to 20%.
+    // Extra relief = 2,500 x (21% - 20%) = 25.
+    const r = run({
+      salary: 40_000,
+      taxCode: 'S1257L',
+      pensionMode: 'amount',
+      pensionAmount: 2_000,
+      pensionAmountBasis: 'fromPay',
+      pensionMethod: 'reliefAtSource',
+    });
+    expect(r.payslip.applies).toBe(true);
+    expect(r.payslip.extraRelief).toBeCloseTo(25, 6);
+  });
+
   it('basic-rate payer: relief at source changes no tax, so the payslip equals the headline', () => {
     // £35,000, 5% (gross 1,750): taxable 22,430 stays inside the basic band, extended or not.
     const r = run({ pensionPercent: 5, pensionMethod: 'reliefAtSource' });

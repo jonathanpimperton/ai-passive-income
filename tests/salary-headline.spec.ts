@@ -138,6 +138,133 @@ test.describe('monthly and annual take-home are equal headlines', () => {
   }
 });
 
+test.describe('first load on a phone: the pair sits at the top of the card (no interaction)', () => {
+  const pairs = [['UK', UK], ['US', US]] as const;
+
+  /** Both compact figures, fully inside the viewport and clear of the cookie banner when it is showing. */
+  async function expectPairVisible(page: Page, viewportHeight: number) {
+    const figures = page.locator('[data-compact-headline] p.font-mono');
+    await expect(figures).toHaveCount(2);
+    for (let i = 0; i < 2; i++) await expect(figures.nth(i)).toBeInViewport({ ratio: 1 });
+    const banner = page.locator('#cookie-banner');
+    const bannerTop = (await banner.isVisible()) ? (await banner.boundingBox())!.y : viewportHeight;
+    for (let i = 0; i < 2; i++) {
+      const box = (await figures.nth(i).boundingBox())!;
+      expect(box.y + box.height, `figure ${i} is covered by the cookie banner`).toBeLessThanOrEqual(bannerTop);
+    }
+  }
+
+  for (const [name, path] of pairs) {
+    // First visit: nothing stored, so the cookie banner covers the bottom of the screen.
+    for (const [width, height] of [[360, 780], [390, 844]] as const) {
+      test(`${name} ${width}x${height}, first visit with the cookie banner: both figures in view above it`, async ({ page }) => {
+        await page.setViewportSize({ width, height });
+        await page.goto(path);
+        await page.locator('input[type="range"]').first().waitFor();
+        await hydrated(page);
+        await expect(page.locator('#cookie-banner')).toBeVisible();
+        await expectPairVisible(page, height);
+      });
+    }
+
+    // Returning visitor (banner dismissed): fits even on a short 640px screen.
+    for (const dark of [false, true]) {
+      test(`${name} 360x640, returning visitor (${dark ? 'dark' : 'light'}): both figures in view`, async ({ page }) => {
+        await page.addInitScript((d) => {
+          try {
+            localStorage.setItem('calcrun-cookie-consent', 'declined');
+            localStorage.setItem('calcrun.theme', d ? 'dark' : 'light');
+          } catch {
+            /* storage blocked: the page still renders */
+          }
+        }, dark);
+        await page.setViewportSize({ width: 360, height: 640 });
+        await page.goto(path);
+        await page.locator('input[type="range"]').first().waitFor();
+        await hydrated(page);
+        await expect(page.locator('#cookie-banner')).toBeHidden();
+        await expectPairVisible(page, 640);
+      });
+    }
+
+    test(`${name} 360x640 first visit: the strip is the first thing in the card (the banner alone hides it at this height)`, async ({ page }) => {
+      // At 360x640 the card starts at y=525 and the banner at y=536, so no in-card element can clear the
+      // banner on a first visit; once the banner is answered the pair is in view.
+      await page.setViewportSize({ width: 360, height: 640 });
+      await page.goto(path);
+      await page.locator('input[type="range"]').first().waitFor();
+      await hydrated(page);
+      const first = await page.evaluate(() => {
+        const card = document.querySelector('astro-island')!.firstElementChild!;
+        return card.firstElementChild!.hasAttribute('data-compact-headline');
+      });
+      expect(first).toBe(true);
+      await page.locator('#cookie-decline').click();
+      await expect(page.locator('#cookie-banner')).toBeHidden();
+      await expectPairVisible(page, 640);
+    });
+
+    test(`${name}: the compact pair is a silent duplicate (aria-hidden, one real headline, hidden on desktop)`, async ({ page }) => {
+      await open(page, path, { width: 1280, height: 900 });
+      const strip = page.locator('[data-compact-headline]');
+      await expect(strip).toHaveAttribute('aria-hidden', 'true');
+      await expect(strip).toBeHidden(); // lg:hidden
+      await expect(page.locator('[data-headline-result]')).toHaveCount(1);
+      await page.setViewportSize({ width: 360, height: 780 });
+      await expect(strip).toBeVisible();
+      // Same values as the real headline, and they follow an input change.
+      await enter(page, path === UK ? 'uk-salary' : 'sal-annual', '80000');
+      const [monthly, annual] = await headlineFigures(page);
+      const compact = await strip.locator('p.font-mono').allTextContents();
+      expect(compact).toEqual([monthly, annual]);
+      // No tab stop and no announcement from the copy.
+      expect(await strip.locator('a, button, input, select, [tabindex], [aria-live]').count()).toBe(0);
+    });
+
+    test(`${name}: the mobile result bar label does not truncate at 360px`, async ({ page }) => {
+      await page.addInitScript(() => {
+        try {
+          localStorage.setItem('calcrun-cookie-consent', 'declined');
+        } catch {
+          /* storage blocked: the banner just shows */
+        }
+      });
+      await open(page, path, { width: 360, height: 780 });
+      await enter(page, path === UK ? 'uk-salary' : 'sal-annual', '65000');
+      // The bar steps aside for a focused control under it; drop focus so the check is about the label only.
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      await page.locator('#uk-student-loan, #sal-filing').first().scrollIntoViewIfNeeded();
+      await expect(page.locator('#mobile-result-bar')).toBeVisible();
+      const label = page.locator('#mobile-result-label');
+      // Let the count-up settle so the value text has its final width.
+      await expect(page.locator('#mobile-result-value')).toHaveText(/^[£$][\d,]+ a month [£$][\d,]+ a year$/);
+      await page.waitForTimeout(700);
+      const m = await label.evaluate((el) => ({
+        scrollWidth: el.scrollWidth,
+        clientWidth: el.clientWidth,
+        value: document.getElementById('mobile-result-value')!.textContent,
+        valueWidth: Math.round(document.getElementById('mobile-result-value')!.getBoundingClientRect().width),
+      }));
+      expect(m.clientWidth, `label "${await label.innerText()}" has no room: ${JSON.stringify(m)}`).toBeGreaterThan(0);
+      expect(m.scrollWidth, `label "${await label.innerText()}" is truncated: ${JSON.stringify(m)}`).toBeLessThanOrEqual(m.clientWidth);
+    });
+  }
+
+  test('UK period table: no figure wraps at 360px', async ({ page }) => {
+    await open(page, UK, { width: 360, height: 780 });
+    await enter(page, 'uk-salary', '125000');
+    const wrapped = await page.locator('table').first().locator('td').evaluateAll((cells) =>
+      cells.filter((td) => {
+        const range = document.createRange();
+        range.selectNodeContents(td);
+        return range.getClientRects().length > 1;
+      }).map((td) => td.textContent),
+    );
+    expect(wrapped).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+});
+
 test.describe('UK relief at source: payslip comparison', () => {
   async function additionalRate(page: Page) {
     await open(page, UK);

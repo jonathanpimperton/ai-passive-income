@@ -24,7 +24,7 @@ export default function SalaryHeadline({ annual, format }: SalaryHeadlineProps) 
   return (
     <div
       data-headline-result
-      data-headline-label="Take-home pay"
+      data-headline-label="Net"
       className="flex flex-wrap items-end gap-x-10 gap-y-3"
     >
       <div className="min-w-0">
@@ -34,6 +34,37 @@ export default function SalaryHeadline({ annual, format }: SalaryHeadlineProps) 
       <div className="min-w-0">
         <p className={FIGURE}>{format(annual)}</p>{' '}
         <p className={UNIT}>a year</p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Compact copy of the pair at the TOP of the calculator card, for narrow screens only (below lg).
+ * On a phone the results panel sits below the whole input form, so without this the figures are
+ * thousands of pixels down on first load. Equal weight again: both figures share one class set.
+ *
+ * It is a visual duplicate, so it is aria-hidden: screen-reader users get the figures once, from the
+ * real headline and its live-region sentence. It is deliberately NOT a [data-headline-result] (the
+ * mobile result bar and the tests expect exactly one) and has no focusable content.
+ */
+const COMPACT_FIGURE = 'font-mono tabular-nums text-2xl font-bold leading-tight text-neutral-900';
+const COMPACT_UNIT = 'text-xs text-neutral-500';
+
+export function SalaryHeadlineCompact({ annual, format }: SalaryHeadlineProps) {
+  return (
+    <div
+      aria-hidden="true"
+      data-compact-headline
+      className="lg:hidden flex flex-wrap items-end gap-x-8 gap-y-2 border-b border-neutral-200/80 bg-neutral-50/50 px-6 py-3"
+    >
+      <div className="min-w-0">
+        <p className={COMPACT_FIGURE}>{format(annual / 12)}</p>
+        <p className={COMPACT_UNIT}>take-home a month</p>
+      </div>
+      <div className="min-w-0">
+        <p className={COMPACT_FIGURE}>{format(annual)}</p>
+        <p className={COMPACT_UNIT}>take-home a year</p>
       </div>
     </div>
   );

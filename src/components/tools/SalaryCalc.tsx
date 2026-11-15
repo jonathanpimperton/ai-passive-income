@@ -7,7 +7,7 @@ import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import ChartSkeleton from '../ui/ChartSkeleton';
 import ChartDataTable from '../ui/ChartDataTable';
-import SalaryHeadline from './SalaryHeadline';
+import SalaryHeadline, { SalaryHeadlineCompact } from './SalaryHeadline';
 import type { ResultItem } from '../../lib/email-types';
 import { formatCurrency, formatNumber } from '../../lib/calculator-utils';
 import { computeUsSalary, clampSeniors, type SalaryInputMode } from '../../lib/us-tax-calc';
@@ -319,6 +319,9 @@ export default function SalaryCalc({ defaults }: SalaryCalcProps = {}) {
       data-salary-root={rootId}
       data-tax-year={taxYear}
     >
+      {/* Narrow screens: the pair at the top of the card, above the inputs (aria-hidden copy of the headline) */}
+      <SalaryHeadlineCompact annual={animatedNetAnnual} format={formatCurrency} />
+
       {/* Mode tabs */}
       <div className="flex border-b border-neutral-200/80" role="tablist" aria-label="Salary input mode">
         {(['annual', 'hourly'] as const).map((m) => (

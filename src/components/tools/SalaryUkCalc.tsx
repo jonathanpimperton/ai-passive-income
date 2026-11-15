@@ -7,7 +7,7 @@ import ExportPdfButton from '../ui/ExportPdfButton';
 import EmailResultsButton from '../ui/EmailResultsButton';
 import ShareButton from '../ui/ShareButton';
 import LazyChartFrame from './charts/LazyChartFrame';
-import SalaryHeadline from './SalaryHeadline';
+import SalaryHeadline, { SalaryHeadlineCompact } from './SalaryHeadline';
 import type { SalarySlice } from './charts/SalaryUkChart';
 import type { ResultItem } from '../../lib/email-types';
 import { formatNumber } from '../../lib/calculator-utils';
@@ -301,6 +301,15 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
   const pctKept = salary > 0 ? Math.max(0, Math.round((result.netAnnual / salary) * 100)) : 0;
   const sliceTotal = slices.reduce((s, d) => s + d.value, 0);
 
+  // The callouts below give a GROSS pension amount. With relief at source the £ field is what leaves your pay,
+  // so say what that is (computed, never typed).
+  const fromPayNote =
+    pensionMethod === 'reliefAtSource' && result.pensionToReach100k > 0 ? (
+      <>
+        {' '}(<span className="tabular-nums">{formatGBP(pensionFromPayForGross(result.pensionToReach100k, 'reliefAtSource'))}</span> from your pay)
+      </>
+    ) : null;
+
   const showChildcareGood = result.gross > UK_CHILDCARE_ANI_LIMIT && !result.overChildcareLimit;
 
   // Marriage Allowance recipients must pay no more than basic rate (intermediate
@@ -317,6 +326,7 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
 
   return (
     <div className="bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden">
+      <SalaryHeadlineCompact annual={animatedNetAnnual} format={formatGBP} />
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
         {/* Inputs */}
         <div className="p-6 lg:p-8 lg:border-r border-neutral-100">
@@ -496,14 +506,14 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
                     <p id="uk-pension-base-hint" className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
                       {pensionPercentOf === 'qualifying' ? (
                         <>
-                          Workplace schemes such as NEST take the percentage of earnings between {formatGBP(UK_QUALIFYING_EARNINGS_LOWER)} and{' '}
-                          {formatGBP(UK_QUALIFYING_EARNINGS_UPPER)} a year: <span className="tabular-nums">{formatGBP(result.qualifyingEarnings)}</span> at
+                          Workplace schemes such as NEST take the percentage of earnings between <span className="tabular-nums">{formatGBP(UK_QUALIFYING_EARNINGS_LOWER)}</span> and{' '}
+                          <span className="tabular-nums">{formatGBP(UK_QUALIFYING_EARNINGS_UPPER)}</span> a year: <span className="tabular-nums">{formatGBP(result.qualifyingEarnings)}</span> at
                           this salary, not your full pay.
                         </>
                       ) : (
                         <>
-                          Auto-enrolment schemes use qualifying earnings ({formatGBP(UK_QUALIFYING_EARNINGS_LOWER)} to{' '}
-                          {formatGBP(UK_QUALIFYING_EARNINGS_UPPER)}), not full pay: switch this to match your payslip.
+                          Auto-enrolment schemes use qualifying earnings (<span className="tabular-nums">{formatGBP(UK_QUALIFYING_EARNINGS_LOWER)}</span> to{' '}
+                          <span className="tabular-nums">{formatGBP(UK_QUALIFYING_EARNINGS_UPPER)}</span>), not full pay: switch this to match your payslip.
                         </>
                       )}
                     </p>
@@ -619,10 +629,16 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
                   </div>
                 </dl>
                 <p className="text-xs text-neutral-500 leading-relaxed pt-2">
-                  With relief at source your provider adds 20% relief, but the higher-rate relief is not given through payroll.
-                  The take-home figures above include it; your payslip does not until you claim it through a tax return or a
-                  tax code change.
+                  With relief at source your provider adds 20% relief, but any relief above 20% (higher-rate payers, and the
+                  Scottish intermediate rate) is not given through payroll. The take-home figures above include it; your payslip
+                  does not until you claim it through a tax return or a tax code change.
                 </p>
+                {result.payslip.allowanceRestored && (
+                  <p className="text-xs text-neutral-500 leading-relaxed pt-1.5">
+                    Your pension also restores part of your Personal Allowance (income over £100,000). Both figures include that,
+                    so if your tax code was set from your pay before the pension, the amount to claim could be larger.
+                  </p>
+                )}
               </div>
             )}
             <p className="text-sm text-neutral-500 mt-3 leading-relaxed">
@@ -664,7 +680,7 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
               between £100,000 and £125,140, so you lose £1 of Personal Allowance for every £2 above £100,000. The next £100 of pay is
               taxed at about <span className="tabular-nums">{pct(result.marginal.incomeTax)}</span> (
               <span className="tabular-nums">{pct(result.marginal.withNiAndLoan)}</span> with NI{result.studentLoan > 0 ? ' and student loan' : ''}).
-              Another <span className="tabular-nums">{formatGBP(result.pensionToReach100k)}</span> a year into your pension would bring it down to £100,000.
+              Another <span className="tabular-nums">{formatGBP(result.pensionToReach100k)}</span> a year into your pension{fromPayNote} would bring it down to £100,000.
             </div>
           )}
 
@@ -674,7 +690,7 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
               <strong>Childcare limit:</strong> with adjusted net income over £100,000 you cannot get Tax-Free Childcare or the free
               childcare hours for working parents.
               {!result.inTaperZone && (
-                <> Another <span className="tabular-nums">{formatGBP(result.pensionToReach100k)}</span> a year into your pension would bring
+                <> Another <span className="tabular-nums">{formatGBP(result.pensionToReach100k)}</span> a year into your pension{fromPayNote} would bring
                 you to the limit.</>
               )}{' '}
               <a
@@ -701,9 +717,9 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
                 <caption className="sr-only">Gross and take-home pay by period</caption>
                 <thead>
                   <tr className="bg-neutral-50 border-b border-neutral-200/60">
-                    <th scope="col" className="text-left py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Period</th>
-                    <th scope="col" className="text-right py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Gross</th>
-                    <th scope="col" className="text-right py-2.5 px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Take-Home</th>
+                    <th scope="col" className="text-left py-2.5 px-3 sm:px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Period</th>
+                    <th scope="col" className="text-right py-2.5 px-3 sm:px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Gross</th>
+                    <th scope="col" className="text-right py-2.5 px-3 sm:px-4 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Take-Home</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -714,9 +730,9 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
                     { label: 'Daily', gross: salary / 260, net: result.netDaily },
                   ].map((row, i) => (
                     <tr key={row.label} className={`border-b border-neutral-100 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
-                      <th scope="row" className="py-2.5 px-4 text-left font-medium text-neutral-700">{row.label}</th>
-                      <td className="py-2.5 px-4 text-right text-neutral-600 tabular-nums">{formatGBP(row.gross)}</td>
-                      <td className="py-2.5 px-4 text-right font-semibold text-success-600 tabular-nums">{formatGBP(row.net)}</td>
+                      <th scope="row" className="py-2.5 px-3 sm:px-4 text-left font-medium text-neutral-700">{row.label}</th>
+                      <td className="py-2.5 px-3 sm:px-4 text-right text-neutral-600 tabular-nums whitespace-nowrap">{formatGBP(row.gross)}</td>
+                      <td className="py-2.5 px-3 sm:px-4 text-right font-semibold text-success-600 tabular-nums whitespace-nowrap">{formatGBP(row.net)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -828,9 +844,9 @@ export default function SalaryUkCalc({ defaults }: { defaults?: Partial<SalaryUk
             >
               <ul className="min-h-0 overflow-hidden list-disc pl-5 space-y-1.5 text-xs text-neutral-600 leading-relaxed">
                 <li>One job, paid evenly through the {UK_TAX_YEAR} tax year, with no bonus, benefits in kind or other income. Employee Class 1 NI (category A).</li>
-                <li>Pension percentages apply to your full salary unless you choose qualifying earnings ({formatGBP(UK_QUALIFYING_EARNINGS_LOWER)} to {formatGBP(UK_QUALIFYING_EARNINGS_UPPER)}), the band most auto-enrolment schemes use. A pound amount is what leaves your pay, as on a payslip.</li>
+                <li>Pension percentages apply to your full salary unless you choose qualifying earnings (<span className="tabular-nums">{formatGBP(UK_QUALIFYING_EARNINGS_LOWER)}</span> to <span className="tabular-nums">{formatGBP(UK_QUALIFYING_EARNINGS_UPPER)}</span>), the band most auto-enrolment schemes use. A pound amount is what leaves your pay, as on a payslip.</li>
                 <li>Employer pension contributions are not included.</li>
-                <li>Relief at source: your provider adds 20% to what you pay. Higher-rate relief is included in the headline tax figure, but payroll does not give it: you claim it through Self Assessment or a tax code change. The &ldquo;On your payslip&rdquo; figures leave it out and change nothing else (same allowance, NI and student loan). PAYE spreads tax across the year, so a single payslip can differ by a few pounds.</li>
+                <li>Relief at source: your provider adds 20% to what you pay. Relief above that 20% (higher-rate payers, and the Scottish intermediate rate) is included in the headline tax figure, but payroll does not give it: you claim it through Self Assessment or a tax code change. The &ldquo;On your payslip&rdquo; figures leave it out and change nothing else (same allowance, NI and student loan). PAYE spreads tax across the year, so a single payslip can differ by a few pounds.</li>
                 <li>Salary sacrifice cannot take pay below the National Minimum Wage. From 6 April 2029, NI relief on sacrifice above £2,000 a year is due to end; this {UK_TAX_YEAR} figure does not apply that.</li>
                 <li>Student loan repayments use pay after salary sacrifice, the same pay as NI. Only one plan is shown at a time.</li>
                 <li>L tax codes: the £100,000 taper reduces the Personal Allowance part of your code. A code below 1257L uses the lower of your code and the tapered allowance. Emergency codes are shown as full-year figures.</li>
