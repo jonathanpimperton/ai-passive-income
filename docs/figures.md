@@ -352,6 +352,102 @@ $975,545 at fees of 0.03 / 0.5 / 1 / 1.5%.
 `cpiAdjust` for 2026 uses the latest monthly index, so a figure that ends in 2026 moves
 whenever `CPI_U_LATEST` in `inflation.ts` is updated. Use `toYear=2025` for a stable figure.
 
+### More debt functions
+
+| Function | Returns | Example | Value |
+|---|---|---|---|
+| `cardBeyondHorizon(balance, apr, payment, ...)` | object, same arguments as `cardPayoff`: what the card calculator shows for a balance that is falling but not cleared in 600 months: `.remaining` (balance left), `.interest`, `.totalPaid`, `.months` (600), `.years` (50). Fails for a balance that does clear (use `cardPayoff`) or never falls | `{{ cardBeyondHorizon(5000, 22.99, minPct=2, minFloor=25).remaining \| usd }}` | $3,017 |
+| `dailyCompoundingApr(apr)` | % APR to enter in the calculator (which charges APR / 12 a month) to match an issuer that compounds daily at the quoted APR | `{{ dailyCompoundingApr(22.99) \| pct(2) }}` | 23.20% |
+| `debtPayoff(debts, extra, strategy)` | object (fields below): the debt payoff calculator for several debts. `debts` is text, `'balance@apr/minimum'` separated by `;`, APR in %. `strategy` is `avalanche` or `snowball` | `{{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').interest \| usd(2) }}` | $3,105.52 |
+| `debtClearMonth(debts, extra, strategy, debt)` | the month the n-th debt listed (1 = the first) is cleared | `{{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche', 1) \| int }}` | 20 |
+
+`debtPayoff` fields: `.months`, `.interest`, `.totalPaid`, `.monthlyOutlay` (all the minimums plus the
+extra, paid every month), `.firstMonthInterest`. Debts are validated by the calculator's own row
+check. A set that is never cleared, or not cleared within 600 months (50 years), **fails the
+build**, as the calculator shows no honest total for it. Snowball vs avalanche is two calls:
+`{{ debtPayoff(D, 200, 'snowball').interest - debtPayoff(D, 200, 'avalanche').interest | usd(2) }}` with
+the debt text written out in both.
+
+### Mortgage affordability
+
+`usAffordability`, `ukAffordability` and `eurAffordability` are the mortgage affordability
+calculator's three modes (USD, GBP, EUR). `income`, `debts`, `deposit`, `rate` and `years` are
+required, so a token always states its inputs. The calculator's own defaults are $500 of monthly debts
+for USD and EUR but 0 for GBP, and a market-snapshot rate (pass `rate('us30')` for it). Every
+option defaults to the calculator's own default, so a token states only what differs.
+
+| Function | Returns | Example | Value |
+|---|---|---|---|
+| `usAffordability(income, debts, deposit, rate, years, propertyTax=, insurance=, hoa=, pmi=, frontEnd=, backEnd=)` | object (fields below): the 28/36 rule. Defaults: property tax 1.0%, insurance $1,800, HOA 0, PMI 0.6%, limits 28 and 36 | `{{ usAffordability(80000, 500, 40000, 7, 30).maxPrice \| usd }}` | $250,776 |
+| `ukAffordability(income, debts, deposit, rate, years, takeHome=, ltiCap=, revertRate=, stressMargin=, maxShare=)` | object: income multiple plus stress test. `takeHome` defaults to the calculator's one-earner estimate rounded to whole pounds; `revertRate` to the Bank of England average in `market-rates.ts` (6.58% today; the calculator fixes it there, so passing `revertRate=` is an extension it cannot show). Defaults: 4.5x, margin 1, 50% | `{{ ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600, revertRate=6.5).maxPrice \| gbp }}` | £283,575 |
+| `eurAffordability(income, debts, deposit, rate, years, maxDebtService=)` | object: one combined payment limit (default 36% of gross income) | `{{ eurAffordability(60000, 0, 40000, 3.5, 25).maxLoan \| eur }}` | €359,552 |
+
+All three return `.maxPrice`, `.maxLoan`, `.monthlyPI`, `.totalMonthly` and `.grossMonthly`.
+- US adds `.monthlyTax`, `.monthlyInsurance`, `.monthlyHOA`, `.monthlyPMI`, `.frontEndBudget`,
+  `.backEndBudget`, `.housingBudget`, `.frontEndRatio`, `.backEndRatio` (both %), `.needsPMI` and
+  `.binding` (`front-end` or `back-end`).
+- UK adds `.monthlyTakeHome`, `.ltiCap`, `.ltiLimitLoan`, `.stressRatePct`, `.stressLimitLoan`,
+  `.stressedPayment`, `.shareOfTakeHome`, `.stressedShareOfTakeHome` (both %), `.incomeMultiple`,
+  `.depositPct`, `.lowDeposit` and `.binding` (`lti` or `stress`).
+- EUR adds `.paymentBudget` and `.debtServiceRatio` (%).
+
+When the debts alone use up the limit (or, in the US, property tax, insurance and HOA exceed the
+budget) the calculator says "No home fits these limits" and the token **fails the build**.
+
+### Rent vs buy
+
+| Function | Returns | Example | Value |
+|---|---|---|---|
+| `rentVsBuy(price, down, rate, years, rent, horizon, region=, closing=, selling=, propertyTax=, insurance=, hoa=, maintenance=, appreciation=, rentIncrease=, rentersInsurance=, invest=, marginalTax=, status=, otherItemized=, stateTax=)` | object (fields below): the month-by-month net-worth comparison. `down` is a % of the price, `horizon` whole years. Defaults are the calculator's (property tax 1%, insurance 1,800, maintenance 1%, growth 3%, rent increase 3%, renters insurance 15, return 7%, US marginal rate 22%, single); buying and selling costs default by region (3% and 6% in the US, 0 in the UK and euro area) | `{{ rentVsBuy(350000, 20, 5.5, 25, 1400, 10, region=uk, closing=3, selling=2, propertyTax=0, insurance=400, rentersInsurance=10).advantage \| gbp }}` | £9,280 |
+
+Fields: `.advantage` (buyer minus renter net worth; negative means renting is ahead),
+`.difference` (its absolute value), `.verdict` (`buy`, `rent` or `tie`, printable as text),
+`.breakEvenYear` and `.laterBreakEvenYear` (Infinity when there is none, so a number formatter
+fails the build), `.downPayment`, `.closingCosts`, `.initialCash`, `.loanAmount`,
+`.monthlyMortgage`, `.monthlyOwnershipCost` (first month, before any tax saving),
+`.firstMonthRentCost`, `.totalTaxSaving`, `.totalInterest`, `.totalRentPaid`, `.finalHomeValue`,
+`.saleCosts`, `.loanBalance`, `.finalEquity`, `.buyerPortfolio`, `.finalBuyerNetWorth`,
+`.finalRenterNetWorth`. For another horizon, call it again with another `horizon`. The US
+deduction test uses the default tax year's standard deduction (the calculator does too).
+
+### Car finance
+
+| Function | Returns | Example | Value |
+|---|---|---|---|
+| `carFinance(price, deposit, months, convention=, pcpApr=, balloon=, hpApr=, loanApr=, invest=)` | object (fields below): PCP, HP, personal loan and cash. `convention` is `effective` (default; the GBP and EUR rule) or `nominal` (USD, APR / 12). Defaults: PCP 7.9% with a 40% balloon, HP 8.9%, loan 5.6%, return 4.5% | `{{ carFinance(25000, 2500, 48).pcpMonthly \| gbp(2) }}` | £366.54 |
+
+Fields: `.financeAmount`, `.balloon`, then for each of `pcp`, `hp` and `loan`: `.pcpMonthly`,
+`.pcpTotalPaid`, `.pcpTotalInterest`, `.pcpOpportunityCost`, `.pcpTrueCost` (and the same with `hp` and
+`loan`), for cash `.cashTotalPaid`, `.cashOpportunityCost`, `.cashTrueCost`, and `.cheapest` (the
+lowest true cost, printable as text). A deposit above what the calculator allows, or a balloon above
+its cap for the price and deposit, **fails the build** (the calculator clamps and shows a notice).
+
+### Solar payback
+
+| Function | Returns | Example | Value |
+|---|---|---|---|
+| `solarPayback(region, systemCost=, systemSize=, battery=, batteryCost=, batteryCapacity=, tariff=, exportTariff=, selfConsumption=, inflation=, degradation=, maintenance=, credit=, years=, kWhPerKwp=)` | object (fields below): the solar panel payback calculator. `region` is `uk`, `us` or `eur` and picks the calculator's regional defaults; each option overrides one input. Other defaults: 30% self-consumption, 3% inflation, 0.5% degradation, 25 years, no grant, no battery | `{{ solarPayback('uk').paybackTotalMonths \| months }}` | 19 years 8 months |
+
+Fields: `.paybackYears` and `.paybackMonths` (the "19 years 8 months" parts), `.paybackTotalMonths`,
+`.netCost`, `.year1Savings`, `.totalSavings`, `.roi` (%, Infinity when the net cost is 0 or less),
+`.generationYear1`, `.generationFinal`, `.savingsFinalYear` and `.selfConsumption` (effective
+year-1 share in %, with the battery lifting it when `battery=true`). A system that does not pay
+back within the period **fails the build**.
+
+### ROI, required rate, CPI and loan schedule
+
+| Function | Returns | Example | Value |
+|---|---|---|---|
+| `emergencyMonths(target, current, monthly, aer)` | whole months until the emergency fund reaches the target (savings rate is an AER/APY in %). 0 if funded, Infinity only when nothing is saved and nothing earns interest; more than 50 years fails the build | `{{ emergencyMonths(21000, 2000, 500, 4) \| int }}` | 36 |
+| `roi(initial, final, income, years)` | object: `.totalGain`, `.totalReturn` (%), `.annualized` (%) | `{{ roi(10000, 15000, 500, 3).annualized \| pct1 }}` | 15.7% |
+| `annualizedReturn(totalReturn, years)` | % compound annual return for a total return in % | `{{ annualizedReturn(100, 10) \| pct1 }}` | 7.2% |
+| `requiredRate(start, monthly, target, years, compounding=, timing=)` | % annual return needed (negative if the money paid in already exceeds the target). Fails if even 100% is not enough or no return is needed | `{{ requiredRate(10000, 200, 100000, 20) \| pct(2) }}` | 4.34% |
+| `cpiValue(year)` | the US CPI-U index the inflation calculator uses for that year (the latest month for the current year); print with `index` | `{{ cpiValue(2025) \| index }}` | 321.943 |
+| `loanCrossoverMonth(principal, rate, years)` | the first payment that repays more principal than interest | `{{ loanCrossoverMonth(280000, 7, 30) \| int }}` | 242 |
+
+For "$X in year Y in year Z" use `cpiAdjust(X, Y, Z).adjusted`; `cpiValue` is for printing the index values
+themselves (`{{ cpiValue(1990) | index }}`).
+
 ### Labels, market rates and helpers
 
 | Function | Returns | Example | Value |
@@ -383,10 +479,21 @@ A rate is a market snapshot, not a quote: say so in the words around it.
 | `retirementFV` | `projectRetirement` (`retirement.ts`) |
 | `inflationAdjust`, `cpiAdjust` | `projectInflation`, `adjustForInflation` (`inflation.ts`) |
 | `rate`, `rateSource` | `MARKET_RATES`, `rateAttribution` (`market-rates.ts`) |
+| `usAffordability`, `ukAffordability`, `eurAffordability` | `solveUsAffordability`, `solveUkAffordability`, `solveEurAffordability` (`mortgage-affordability.ts`) |
+| `rentVsBuy` | `simulateRentVsBuy`, `laterBreakEvenYear` (`rent-vs-buy.ts`) |
+| `carFinance` | `compareCarFinance` (`car-finance.ts`) |
+| `emergencyMonths` | `monthsToTarget` (`emergency-fund.ts`) |
+| `solarPayback` | `calculateSolarPayback`, `effectiveSelfConsumption`, `SOLAR_REGIONAL_DEFAULTS` (`solar-payback.ts`) |
+| `roi`, `annualizedReturn` | `calcRoi`, `annualize` (`roi.ts`) |
+| `requiredRate` | `solveRequiredRate` (`investment-solvers.ts`) |
+| `debtPayoff`, `debtClearMonth` | `simulateDebtPayoff`, `prepareDebts` (`debt-payoff.ts`) |
+| `cardBeyondHorizon` | `simulateCardPayoff` (the horizon totals), `dailyCompoundingApr` is arithmetic |
+| `cpiValue` | `cpiFor` (`inflation.ts`) |
+| `loanCrossoverMonth` | `buildAmortization` (`mortgage-payment.ts`) |
 | `loanPayment`, `mortgagePayment`, `loanTotalInterest`, `mortgageTotalInterest`, `loanBalance`, `loanMonth`, `loanYear`, `overpaymentSaving` | their own closed-form and loop arithmetic, proven equal to `mortgage-payment.ts` (the mortgage and loan tools' engine) by `figures-grid.test.ts` (1e-6 on payments, 1e-3 or better on cumulative sums). `yearly=` (a 13th payment) is an extension the tools do not offer |
 
 Options the tool's screen cannot express (so no tool shows the number): UK `postgrad=true`
-on top of a plan, US `k401Amount` (the tool takes a %), loan `yearly=`, and card minimums other
+on top of a plan, US `k401Amount` (the tool takes a %), loan `yearly=`, UK affordability `revertRate` (the calculator fixes it at the market-rates value), and card minimums other
 than the screen's: the calculator does not let visitors edit the floor (25 for USD and EUR, 5 for
 GBP, set by the currency) and offers `minPct` only from 1 to 10 (percentage) or 1 to 5 (interest
 plus) in steps of 0.5, so `minFloor=25` matches only USD and EUR visitors and any other `minPct` or
@@ -410,6 +517,7 @@ fails until it is.
 | `pct1` | Same as `pct(1)` | `{{ 22.94 \| pct1 }}` | 22.9% |
 | `int` | Whole number with separators | `{{ 1234.6 \| int }}` | 1,235 |
 | `num`, `num(2)`, `num(auto)` | Number with separators and fixed decimals | `{{ 20.3615 \| num(2) }}` | 20.36 |
+| `index` | An index value with up to 3 decimals and no trailing zeros (CPI-U 130.7, 321.943) | `{{ 130.7 \| index }}` | 130.7 |
 | `months` | "13 years 11 months" (rounded to whole months); Infinity prints "never" | `{{ 167 \| months }}` | 13 years 11 months |
 | `round100` | Round to the nearest 100 (still a number; add a money formatter) | `{{ 37540 \| round100 \| usd }}` | $37,500 |
 | `roundTo(step)` | Round to the nearest step | `{{ 37540 \| roundTo(1000) \| usd }}` | $38,000 |
@@ -497,6 +605,11 @@ and read the generated page in `dist/`.
      engine function. The grid must fail if the re-point is reverted.
   3. Keep `figures.test.ts` green: it pins today's values, so any difference is a real
      engine change to review.
+- **Methodology literals.** `src/lib/figures-literals.test.ts` lists the figures the methodology pages used to
+  type by hand, each as the token that produces it, with the value the page printed. A mismatch there
+  means the typed number was not what the engine gives for the page's inputs. Two cases pin a
+  deliberate difference between the page's inputs and the calculator's defaults (UK revert-to rate
+  6.5% typed vs 6.58% in the calculator; EUR with 0 debts vs the calculator's 500).
 - **Multi-year tax data.** The US functions take `year=` through to `us-rates.ts`
   (`getUsRates(year)`, `computeUsSalary({ year })`). The UK engines take no year
   argument, so UK `year=` accepts only the dataset the engines use; when a 2027/28 dataset
