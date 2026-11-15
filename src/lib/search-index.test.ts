@@ -18,6 +18,14 @@ import {
   type ArticleInput,
   type SearchEntry,
 } from './search-index';
+import {
+  UK_SALARIES,
+  US_SALARIES,
+  MORTGAGE_AMOUNTS,
+  INVEST_MONTHLY_AMOUNTS,
+  INVEST_LUMP_SUMS,
+  kAnchor,
+} from '../components/scenarios/hub-config';
 
 const ROOT = join(__dirname, '..', '..');
 
@@ -113,25 +121,22 @@ describe('index contents', () => {
     expect(json.length).toBeLessThan(90_000);
   });
 
-  // The hub row anchors in HUBS must match the arrays the hub pages render.
+  // The hub row anchors in HUBS must match the arrays the hub pages render. Both hubs and
+  // this index read their row lists from the hubs' shared config (W2-SCEN).
   const hubSource = (name: string) => readFileSync(join(ROOT, 'src', 'pages', 'scenarios', `${name}.astro`), 'utf8');
-  const arrayIn = (src: string, name: string): number[] => {
-    const m = src.match(new RegExp(`const ${name} = \\[([^\\]]*)\\]`));
-    if (!m) throw new Error(`array ${name} not found`);
-    return m[1].split(',').map((x) => Number(x.trim().replace(/_/g, ''))).filter((n) => Number.isFinite(n) && n > 0);
-  };
   it('hub row anchors match the hub pages (drift fails here)', () => {
-    expect(arrayIn(hubSource('uk-take-home-pay'), 'SALARIES')).toEqual([...HUBS.ukTakeHome.salaries]);
-    expect(arrayIn(hubSource('us-take-home-pay'), 'SALARIES')).toEqual([...HUBS.usTakeHome.salaries]);
-    expect(arrayIn(hubSource('mortgage-payments-by-amount'), 'AMOUNTS')).toEqual([...HUBS.mortgage.amounts]);
-    expect(arrayIn(hubSource('investment-growth'), 'MONTHLY_AMOUNTS')).toEqual([...HUBS.investment.monthly]);
-    expect(arrayIn(hubSource('investment-growth'), 'LUMP_SUMS')).toEqual([...HUBS.investment.lumpSums]);
-    // And the anchor formats the hubs use
-    expect(hubSource('uk-take-home-pay')).toContain('anchor: `${salary / 1000}k`');
-    expect(hubSource('us-take-home-pay')).toContain('anchor: `${salary / 1000}k`');
-    expect(hubSource('mortgage-payments-by-amount')).toContain('anchor: `${amount / 1000}k`');
-    expect(hubSource('investment-growth')).toContain('anchor: `${monthly}-per-month`');
-    expect(hubSource('investment-growth')).toContain('anchor: `${principal}`');
+    expect([...HUBS.ukTakeHome.salaries]).toEqual(UK_SALARIES);
+    expect([...HUBS.usTakeHome.salaries]).toEqual(US_SALARIES);
+    expect([...HUBS.mortgage.amounts]).toEqual(MORTGAGE_AMOUNTS);
+    expect([...HUBS.investment.monthly]).toEqual(INVEST_MONTHLY_AMOUNTS);
+    expect([...HUBS.investment.lumpSums]).toEqual(INVEST_LUMP_SUMS);
+    // And the anchor formats the hubs use (row id = kAnchor(value), investment rows by value)
+    expect(kAnchor(50000)).toBe('50k');
+    expect(hubSource('uk-take-home-pay')).toContain('id: kAnchor(salary)');
+    expect(hubSource('us-take-home-pay')).toContain('id: `${anchorPrefix}${kAnchor(salary)}`');
+    expect(hubSource('mortgage-payments-by-amount')).toContain('id: kAnchor(amount)');
+    expect(hubSource('investment-growth')).toContain('const id = `${monthly}-per-month`');
+    expect(hubSource('investment-growth')).toContain('const id = `${principal}`');
   });
 });
 
