@@ -52,7 +52,7 @@ Increasing from $1,200 to $2,000/month cuts the timeline by {{ (cardPayoff(50000
 
 Credit card minimum payments are typically 2–3% of the balance. At 2%, the minimum on $50,000 is {{ 50000 * 2 / 100 | usd }}. At 22% APR, paying $1,000/month takes {{ cardPayoff(50000, 22, 1000).months | months }} and costs {{ cardPayoff(50000, 22, 1000).interest | usd }} in interest — more than the original debt.
 
-If you pay only the declining minimum (which drops as the balance drops), a 3% minimum with a $25 floor takes {{ cardPayoff(50000, 22, minPct=3, minFloor=25).months | months }} and costs {{ cardPayoff(50000, 22, minPct=3, minFloor=25).interest | usd }} in interest. At a 2% minimum the payment barely exceeds the interest, and the payoff time comes out as {{ cardPayoff(50000, 22, minPct=2, minFloor=25).months | months }} (the balance is not cleared within 100 years). This is by design — minimum payments are structured to maximise interest revenue for the card issuer.
+If you pay only the declining minimum (which drops as the balance drops), a 3% minimum with a $25 floor takes {{ cardPayoff(50000, 22, minPct=3, minFloor=25).months | months }} and costs {{ cardPayoff(50000, 22, minPct=3, minFloor=25).interest | usd }} in interest. At a 2% minimum the payment barely exceeds the interest, and the balance is still not cleared after {{ cardHorizonYears() | int }} years, the longest payoff the calculator runs. This is by design — minimum payments are structured to maximise interest revenue for the card issuer.
 
 ## Strategies to accelerate payoff
 
