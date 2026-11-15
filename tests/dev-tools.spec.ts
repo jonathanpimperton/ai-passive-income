@@ -132,9 +132,8 @@ test.describe('JWT decoder hydration', () => {
     });
     page.on('pageerror', (e) => problems.push(String(e)));
     await open(page, '/tools/utility/jwt-decoder/');
-    // After hydration the date is written for this visitor: German month/day order, India time (IST).
-    await expect(tool(page).getByText(/18\.\s*Jan\.? 2018/)).toBeVisible();
-    await expect(tool(page).getByText(/IST|GMT\+5:30/)).toBeVisible();
+    // After hydration the date is written for this visitor: German date order, India time (UTC+5:30).
+    await expect(tool(page).getByText('18.01.2018, 07:00:22 GMT+5:30')).toBeVisible();
     expect(problems.filter((t) => /#418|#423|#425|hydrat|did(?: not|n't) match/i.test(t))).toEqual([]);
   });
 });

@@ -46,8 +46,15 @@ describe('markdownToHtml', () => {
   });
 
   it('reports input that nests too deeply for the stack as too complex, not as a raw engine error', () => {
-    expect(() => markdownToHtml(Marked, '> '.repeat(60000))).toThrow(MarkdownTooDeepError);
-    expect(() => markdownToHtml(Marked, '> '.repeat(60000))).toThrow(/too complex to convert in the browser/);
+    // 12,000 nested quotes overflow the stack in every engine (and take well under a second here).
+    let error: unknown;
+    try {
+      markdownToHtml(Marked, '> '.repeat(12000));
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeInstanceOf(MarkdownTooDeepError);
+    expect((error as Error).message).toMatch(/too complex to convert in the browser/);
   });
 
   it('recognises the stack overflow messages of Chromium, Safari and Firefox', () => {

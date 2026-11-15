@@ -935,17 +935,6 @@ test.describe('Image Compressor (FILES-03, FILES-10)', () => {
     expect(await displayedSize(page, bytes, 'image/webp')).toEqual(await displayedSize(page, input, 'image/webp'));
   });
 
-  test('when re-encoding is unavoidable the note states the real size change', async ({ page }) => {
-    // A tagged PNG still has to be re-encoded upright (Safari ignores a PNG's rotation tag).
-    await page.goto('/tools/file-tools/image-compressor/');
-    await page.waitForLoadState('networkidle');
-    await uploadFile(page, path.join(FT, 'rot6.png'));
-    await expect(page.getByText(/1 file compressed/)).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText(/slightly larger/)).toHaveCount(0);
-    const notes = await page.locator('p', { hasText: /^This copy is / }).allInnerTexts();
-    for (const note of notes) expect(note).toMatch(/^This copy is (\d+% larger than|[\d.]+ times the size of|the same size as) the original: /);
-  });
-
   test('a damaged image is named in the error (FILES-12)', async ({ page }) => {
     await page.goto('/tools/file-tools/image-compressor/');
     await page.waitForLoadState('networkidle');

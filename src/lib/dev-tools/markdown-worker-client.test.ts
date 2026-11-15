@@ -259,7 +259,7 @@ describe('markdown worker entry', () => {
       expect(sent[2]).toEqual({ id: 2, ok: false, reason: 'too-slow' });
 
       // Nesting deeper than the stack allows is reported as such, not as an unexplained failure.
-      scope.onmessage?.({ data: { id: 3, source: '> '.repeat(60000), budgetMs: 4000 } });
+      scope.onmessage?.({ data: { id: 3, source: '> '.repeat(12000), budgetMs: 4000 } });
       expect(sent[3]).toEqual({ id: 3, ok: false, reason: 'too-deep' });
     } finally {
       g.self = previous;
