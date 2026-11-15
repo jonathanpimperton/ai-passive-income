@@ -9,8 +9,8 @@ Before building anything, read these files in order:
    gates, the tracker and a RESUME POINT (Section 0) saying exactly where work stopped.
    Companion: `docs/review-2026-11.md`, the independent review of 9 Nov 2026 (16 S1, about 60 S2).
    Its per-lens detail is in `docs/review-2026-11/<LENS>.md`, and small evidence files are in
-   `docs/review-2026-11/evidence/`. Until the plan's docs commit (plan Section 10, D1), these
-   files are deliberately UNTRACKED; see "Public repo" under For New Claude Code Sessions.
+   `docs/review-2026-11/evidence/`. Committed at plan step D1 (15 Nov 2026, after the Wave 1
+   fixes went live); see "Public repo" under For New Claude Code Sessions.
 0b. **`docs/plan-2026-07.md`** -- the July 2026 plan (Phases 1-3 shipped). It is history plus
    its "R2.1 PRODUCTION FACTS" homepage notes. Its companion is `docs/review-2026-07.md`.
    Several things it calls "fixed" were found broken in Nov 2026; trust `review-2026-11.md`
@@ -496,8 +496,12 @@ When starting a new session on this project:
      5 Nov 2026.
    - The rates freshness guard passes after W1-TAX. It fails from 6 Apr 2027 until a UK 2027/28
      dataset is added (by design).
-   - The fix plan is `docs/plan-2026-11.md`. **Status: plan written, execution not started.**
-     The owner will run it in a fresh session.
+   - The fix plan is `docs/plan-2026-11.md`. **Status (13 Nov 2026, end of day): Waves 0 and 1
+     DONE and LIVE (pushed `4d4fb8d..55d60bc`, 16:32 13 Nov).** Session 5 (15 Nov): D1 docs
+     commit made; then browser live checks, follow-ups, Waves 2-3 and the Fable check. Start at
+     the plan's Section 0 (newest session log at the top; the `_handoff/README.md` restart briefs
+     are history).
+     Sub-agent models (owner, 13 Nov): implementers `sonnet`, reviewers `opus`.
 2c. **Process rules (owner, 10 Nov 2026), binding for plan-2026-11:**
    - Use parallel sub-agents (worktree per workstream, disjoint file ownership).
    - Before anything goes live, it must be reviewed by a different sub-agent than the one that
@@ -588,16 +592,16 @@ When starting a new session on this project:
    - Never commit or push vulnerability details (review docs, exploit payloads, repro steps for
      unfixed security bugs) before the fix is live.
    - Security-fix commit messages stay neutral.
-   - The Nov 2026 review docs stay untracked until plan-2026-11 step D1.
-   - As of 10 Nov 2026, local `claude/master` was 1 commit ahead of origin (`22976a0`, a
-     CLAUDE.md-only sync).
+   - The Nov 2026 review docs were committed at plan step D1 (15 Nov 2026), after the fixes
+     they describe were live; runnable payloads were redacted from the public copy.
 5. **Contact email:** hello@calcrun.com (only email account — don't reference other addresses).
 6. **Known npm vulnerabilities:**
    - 5 moderate lodash issues deep in the `@astrojs/check` dependency chain (build-time only;
      the fix requires a breaking change).
-   - 1 high `xlsx` 0.18.5 issue. This one IS shipped to users in the Excel->PDF tool. The npm
-     registry has no fix; plan-2026-11 Wave 0 upgrades to the vendored SheetJS CE release from
-     cdn.sheetjs.com.
+   - `xlsx` (shipped in the Excel->PDF tool) was upgraded in plan-2026-11 Wave 0 to the vendored
+     SheetJS CE 0.20.3 (`vendor/xlsx-0.20.3.tgz`), which covers both known CVEs.
+   - 6 advisories deferred in Wave 0 (astro, esbuild, satori, sharp, zod): each needs a major
+     migration and runs only at build/dev time over first-party content (plan Section 12.1).
 
 ## Growth Roadmap
 

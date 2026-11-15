@@ -1,0 +1,227 @@
+file,figure,stated,independent_or_tool,status
+scenarios/100k-salary-take-home.md,federal tax 100k single,13170,13170,match
+scenarios/100k-salary-take-home.md,FICA,7650,7650,match
+scenarios/100k-salary-take-home.md:27,CA state tax 100k,4640,5055 (FTB 2025 schedule; 2026 not yet published),wrong -8%
+scenarios/100k-salary-take-home.md:17,headline take-home CA,74540,~74125 excl SDI; ~72825 incl CA SDI 1.3%,small wrong + undisclosed SDI
+scenarios/100k-salary-take-home.md,no-tax-state equivalent gross,93400,93400,match
+scenarios/100k-salary-take-home.md:47,MFJ federal,7640,7640,match
+scenarios/100k-salary-take-home.md:47,MFJ take-home with same CA bill,80070,CA MFJ tax ~2k lower,simplification
+scenarios/100k-salary-take-home.md:49,401k 6% cost,4680,~4122 incl CA saving,simplification
+scenarios/100k-salary-take-home.md:50,NYC local tax 100k,2700,~3441,wrong -22%
+scenarios/100k-salary-take-home.md:43,hub rows 90k/110k/100k,72145/86215/79180,72145/86215/79180,match
+scenarios/75k-salary-after-taxes.md,federal 75k,7670,7670,match
+scenarios/75k-salary-after-taxes.md,FICA,5738,5737.5,match
+scenarios/75k-salary-after-taxes.md:79,NY state 75k,3702,~3453-3520 (NYS 2026/2025 rates),likely high +5-7%
+scenarios/75k-salary-after-taxes.md,TX take-home,61593,61593,match
+scenarios/75k-salary-after-taxes.md,MFJ fed,4640,4640,match
+scenarios/75k-salary-after-taxes.md,401k 6000 fed saving,1320,1320,match
+scenarios/75k-salary-after-taxes.md:95,CA state 75k,2850,2775,match (~3%)
+scenarios/75k-salary-after-taxes.md,hub 70k/80k,58075/65110,58075/65110,match
+scenarios/60k-salary-with-401k.md:27,standard deduction,15000 (2025 value),16100 (2026),stale
+scenarios/60k-salary-with-401k.md:19,monthly take-home with 401k,3743 (table says 3747),3759 (tool),wrong + internal inconsistency
+scenarios/60k-salary-with-401k.md:19,monthly take-home no 401k,4183 (table says 4187),4199 (tool),wrong
+scenarios/60k-salary-with-401k.md:63-66,contribution table 5/10/15/20%,3963/3743/3523/3303,3979/3759/3539/3319 (tool),stale -16/mo
+scenarios/60k-salary-with-401k.md:41-42,500/mo 7% 10y/20y,86541/260464,86542/260463,match
+scenarios/60k-salary-with-401k.md:43,500/mo 7% 30y,566765,609985 (tool),wrong -7%
+scenarios/60k-salary-with-401k.md:44,500/mo 7% 35y,813584,900527 (tool),wrong -10%
+scenarios/60k-salary-with-401k.md:46,720/yr tax saving invested 35y,~80000,~99500-108000,wrong -20%
+scenarios/60k-salary-with-401k.md,employer match 50% up to 6%,1800,1800,match
+scenarios/50k-salary-hourly-rate.md:25,fed tax 50k,3962 (2025 rules),3820 (2026),stale
+scenarios/50k-salary-hourly-rate.md:29,net annual,41935,42355 (tool),stale
+scenarios/50k-salary-hourly-rate.md:12/19,headline net hourly,19.05,20.36 (tool 42355/2080),wrong -6.4%
+scenarios/50k-salary-hourly-rate.md:48,60k net hourly / raise per hour,22.65 / 3.60,24.23 / 3.86,wrong
+scenarios/50k-salary-hourly-rate.md:48,higher marginal bracket claim,claimed,both 50k and 60k in 12% bracket,wrong statement
+scenarios/50k-salary-hourly-rate.md:50,6% 401k fed saving,660,360 (12% bracket),wrong +83%
+scenarios/50k-salary-hourly-rate.md:47,CA tax 50k,1400,1040,wrong +35%
+scenarios/50k-salary-hourly-rate.md:39,1960h/45h/50h gross hourly,25.51/21.37/19.23,25.51/21.37/19.23,match
+scenarios/pay-rise-shock-us.md,raise kept,17587.50,17587.50,match
+scenarios/pay-rise-shock-us.md,effective rates,17.9/20.8,17.88/20.82,match
+scenarios/pay-rise-shock-us.md,401k 10k saving,2200,2200,match
+scenarios/pay-rise-shock-us.md:190,CA/NY state tax on the raise,1300-1600,CA ~2280 / NY ~1350,CA understated
+scenarios/100000-invested-30-years.md,5-yr milestones + rate table + contribution variants (14 figures),811650 etc,811650 etc,match
+scenarios/100k-investment-dividend-reinvest.md:118,year 15,284954,284895,match
+scenarios/100k-investment-dividend-reinvest.md:104,5% growth 20y,265330 (annual comp),271264 (monthly like the 7% line),inconsistent method
+scenarios/100k-investment-dividend-reinvest.md:105,dividends spent over 20y,~53000,~66000-68500,wrong
+scenarios/100k-investment-dividend-reinvest.md:141,taxable 15% dividend-tax outcome,~360000,~380500,wrong ~-5%
+scenarios/100k-investment-dividend-reinvest.md:145,gains on 220k,over 424000,444337,understated
+scenarios/500-per-month-investment-25-years.md,milestones + rate table + late start (17 figures),405036 etc,405036 etc,match
+scenarios/300k-mortgage-7-percent.md,payment/interest/balances/6%/15y/13th/neighbours (16 figures),1995.91 etc,1995.91 etc,match
+scenarios/50k-car-loan-4-years.md:68,total interest (headline),7441,7471,wrong -30
+scenarios/50k-car-loan-4-years.md:93,balance m12,37690,38777,wrong
+scenarios/50k-car-loan-4-years.md:98,balance m24,24683,26742,wrong
+scenarios/50k-car-loan-4-years.md:103,balance m36,11000,13837,wrong
+scenarios/50k-car-loan-4-years.md:110,by month 7 >80% to principal,80%,78.3% (80% only at m11),wrong
+scenarios/50k-car-loan-4-years.md:121-122,6y/7y interest,11472/13637,11376/13389,wrong
+scenarios/50k-car-loan-4-years.md:139,7% vs 4.5% saving,1885,2743,wrong -31%
+scenarios/50k-car-loan-4-years.md:140,13th payment,4 months / 500,3 months / 515,wrong small
+scenarios/student-loan-payoff-50k.md:12,600/mo payoff,105 mo / 13060,106 mo / 13135 (tool same),small
+scenarios/student-loan-payoff-50k.md:177,1000/mo,4y8m 6588,4y9m 6919,wrong -5%
+scenarios/student-loan-payoff-50k.md:178,1500/mo,2y11m 4083,3y1m 4384,wrong -7%
+scenarios/student-loan-payoff-50k.md:211,refi to 4% saving,3280 / 7 mo,4461 / 8 mo,wrong -26%
+scenarios/student-loan-payoff-50k.md:186-187,SAVE plan at 150% FPL ($22590),stated,SAVE used 225% FPL; SAVE ended; 2024 FPL,stale/wrong
+scenarios/student-loan-payoff-50k.md:200,SLI deduction phaseout 75-90k,stated,85-100k (2025/26),stale
+scenarios/50k-credit-card-debt-payoff.md:12,1200/mo,79 mo / 45280,80 mo / 45347 (tool same),small
+scenarios/50k-credit-card-debt-payoff.md:43/53,1000/mo,9y3m / 61185,11y5m / 86781,wrong -29%
+scenarios/50k-credit-card-debt-payoff.md:45,1500/mo,4y7m / 31825,4y4m / 27981,wrong +14%
+scenarios/50k-credit-card-debt-payoff.md:46,2000/mo,3y1m / 21878,2y10m / 17499,wrong +25%
+scenarios/50k-credit-card-debt-payoff.md:47,2500/mo,2y3m / 16120,2y2m / 12857,wrong +25%
+scenarios/50k-credit-card-debt-payoff.md:49,1200 to 2000 saving,23402 / 3.5y,27848 / 3.8y,wrong
+scenarios/50k-credit-card-debt-payoff.md:33-34,balances y4/y6,26520/6170,28491/8289,wrong
+scenarios/50k-credit-card-debt-payoff.md:61,12% consolidation,56 mo 17600 save 27680,55 mo 15003 save 30344,wrong
+scenarios/pay-off-30k-debt.md:12,headline interest,15120,14421 (tool same),wrong +4.8%
+scenarios/pay-off-30k-debt.md:33,balance y4,4240,5652,wrong
+scenarios/pay-off-30k-debt.md:44/55,10% consolidation,42 mo 3600 save 11520,46 mo 6121 save 8300,wrong
+scenarios/pay-off-30k-debt.md:52,1200/mo,31 mo 6800,32 mo 7884,wrong -14%
+scenarios/pay-off-30k-debt.md:53,22% APR,62 mo 19500 (+4380),65 mo 21220 (+6799),wrong
+scenarios/pay-off-30k-debt.md:54,5k windfall saving,3400,5432,wrong -37%
+scenarios/pay-off-30k-debt.md:42,1000/mo,40 mo save 4700,41 mo save 4266,small
+scenarios/6-month-emergency-fund.md,target/interest/months,27000 / 54 / ~50,27000 / 54 / 50,match
+scenarios/emergency-fund-family-of-four.md,target/range/months,39000 / 4580-7150 / 36 / 34,same,match
+scenarios/save-10k-emergency-in-1-year.md,monthly,774,773.60 (tool),match
+scenarios/save-10k-emergency-in-1-year.md,18mo/24mo,509/377,509/377,match
+scenarios/save-10k-emergency-in-1-year.md:252,5k in 12 mo,371,365 (tool with 500 start),small
+scenarios/save-100k-in-5-years.md:14,headline monthly,1393,1376.10 (tool),wrong +1.2%
+scenarios/save-100k-in-5-years.md:279,investing saves,190/mo 11400,207/mo 12434,wrong
+scenarios/save-100k-in-5-years.md:310,20k start,1131,1093 (tool),wrong +3.5%
+scenarios/save-100k-in-5-years.md:312,8% return,1306,1260 (tool),wrong +3.7%
+scenarios/save-for-house-deposit.md,headline,1423,1423.82 (tool),match
+scenarios/save-for-house-deposit.md:205-208,table 50k/80k/100k,1185/1898/2373,1162/1948/2471 (tool),wrong (linear scaling) up to -4%
+scenarios/save-for-house-deposit.md:241,biweekly transfer,711,657,wrong
+scenarios/save-for-house-deposit.md:235,budget remaining,1227-1923,1750-2600,wrong
+scenarios/100k-purchasing-power-20-years.md,purchasing-power + rate table (12 figures),55368 etc,55368 etc,match
+scenarios/100k-purchasing-power-20-years.md:57,bonds 5% nominal,148595 nominal / ~82000 real,265330 nominal / ~146900 real,wrong
+scenarios/compound-daily-vs-monthly.md:12,daily-vs-monthly diff,172,166 (tool n=365),wrong small
+scenarios/compound-daily-vs-monthly.md:31,quarterly,163862,164362,wrong -500
+scenarios/compound-daily-vs-monthly.md:57-59,10% daily / diff,271828 / 1124,271791 / 1087,wrong small
+scenarios/compound-daily-vs-monthly.md:60-64,20% monthly/daily/diff,662177/665142/2965,726825/738501/11675,wrong 4x
+scenarios/compound-daily-vs-monthly.md:75,200/mo contributions over 10y,35000 + 13000 growth,24000 + 7056,wrong
+scenarios/compound-daily-vs-monthly.md:76,12y vs 10y,39000,17284,wrong 2.3x
+scenarios/compound-daily-vs-monthly.md:72,1% fee over 10y,12000,15618,wrong
+scenarios/inflation-impact-on-retirement.md,purchasing-power table (7 figures),411987 etc,411987 etc,match
+scenarios/inflation-impact-on-retirement.md:197-200,withdrawal years 5/10/20/30,46371/53757/72244/97091,45020/52191/70140/94263 (yr1=40000),off-by-one
+scenarios/home-renovation-roi.md,ROI arithmetic + S&P 5y,-25% / 80525,-25% / 80525,match
+scenarios/rental-property-roi.md,yield/leverage arithmetic,5.8%/8.2%/11.2%,same,match (UK tax lines out of lane)
+scenarios/stock-market-10-year-roi.md,growth table + decades (~10 figures),25937 etc,25937 etc,match
+scenarios/how-much-to-save-monthly-for-retirement.md,headline 555 + balances,555 etc,555.23 etc,match
+scenarios/how-much-to-save-monthly-for-retirement.md:44,start at 22,325 / 167700,305 / 157503,wrong +6.6%
+scenarios/how-much-to-save-monthly-for-retirement.md:59/62,IRA 7000 / 401k 23500,2025 limits,7500 / 24500 (2026),stale
+scenarios/how-much-to-save-monthly-for-retirement.md:69,+25/mo each year,~850000,1013173,wrong -16%
+scenarios/retire-at-50-fire.md,headline 1781 to 1.5M,1781,1781 (tool),match
+scenarios/retire-at-50-fire.md:114-117,target table,1188/1484/2375,1164/1472/2398 (tool w/10k),small
+scenarios/retire-at-50-fire.md:168,from 30 to 55 at 1781,~1.04M / 41600,1.44M-1.50M / ~57700-60000,wrong -30%
+scenarios/retire-at-55-with-1-million.md:14,headline,1214400,1501378 (tool),wrong -19%
+scenarios/retire-at-55-with-1-million.md:32-35,milestones 5/10/15/20,160800/319500/549200/870400,178271/360110/617891/983327,wrong
+scenarios/retire-at-55-with-1-million.md:55-58,1000/mo / start 25 / 5% / +100 yearly,878600/1775000/911200/1.6M,1096343/2235781/1067329/2193392,wrong
+scenarios/retire-at-60-with-500k.md:83,20000 is below poverty line 15060,stated,20000 is above it,logic error
+scenarios/retire-at-60-with-500k.md:109,SS breakeven 65 vs 62,76,~79,wrong
+scenarios/net-worth-at-30.md:12,SCF under-35 mean/median,76300/13900 (SCF 2019),183500/39000 (SCF 2022; net-worth tool page uses 39000),stale + cross-page inconsistent
+scenarios/net-worth-at-30.md:73,401k max,23500,24500 (2026),stale
+scenarios/net-worth-millionaire-by-40.md,headline,3056,3065 (tool),match
+scenarios/net-worth-millionaire-by-40.md:75-78,late start 27/30/32/35,3602/4720/5713/8439,3850/5661/7664/13770 (tool),wrong up to -39%
+scenarios/net-worth-millionaire-by-40.md:80,30 vs 25 extra,1664,2596,wrong
+scenarios/net-worth-millionaire-by-40.md:143-148,401k/IRA/HSA 2026,24500/7500/4400,24500/7500/4400,match
+comparisons/15-year-vs-30-year-mortgage.md,pmt/interest/saving/qualify/prepay (12 figures),2532/1799/191832/134k/103k/15y10m/165200,same,match
+comparisons/15-year-vs-30-year-mortgage.md:71,733/mo at 8% for 15y,~271000,253618,wrong +7%
+comparisons/15-year-vs-30-year-mortgage.md:91,15-yr borrower often comes out ahead,claimed,30-yr + invest ahead by ~216k at page's own 8%,wrong conclusion
+comparisons/fixed-vs-variable-rate-mortgage.md,GBP example,1390/83400/219600/1320/1461,1389.58/83375/219645/1319.59/1461,match
+comparisons/high-yield-savings-vs-cds.md,ladder interest / T-bill,2045 / 0.39%,2045 / 0.378%,match
+comparisons/index-funds-vs-active-funds.md:21-22,fee on 100k over 30y,2800 / 49000,23852 / 209392 (tool fees-paid),wrong 4-8x
+comparisons/index-funds-vs-active-funds.md:54-57,500/mo 30y index/active/gap,566400/498200/68200,598085/502258/95828 (tool),wrong -29% gap
+comparisons/index-funds-vs-active-funds.md,fee layer table,0.63-3.0% / 3150-15000,same,match
+comparisons/lump-sum-vs-dollar-cost-averaging.md,LS/DCA/hybrid,120580/116129/4450/119368/1200,same,match
+comparisons/pay-off-debt-vs-invest.md,3-rate worked example + 30y delay (14 figures),all,all,match
+comparisons/pay-off-debt-vs-invest.md:13 vs 83,match return,instant 100% vs instant 50%,50% for a 50% match,internal inconsistency
+comparisons/snowball-vs-avalanche-debt.md,snowball/avalanche/minimums/consolidation,1634/23 1235/22 7600/78 943,same (tool same),match
+comparisons/renting-vs-buying-2026.md,monthly cost stack,3225,3225,match
+comparisons/renting-vs-buying-2026.md:63,principal in early payments,~500/mo,358 (m1) / 417 avg first 5y,wrong
+comparisons/renting-vs-buying-2026.md:71,buying ahead at 5y,+29400,renter ahead ~24600 once the 1025/mo cost gap is invested,wrong conclusion
+comparisons/roth-vs-traditional-401k.md,roth/trad paths,132972/103718/31913/135631,same (annual comp),match
+comparisons/roth-vs-traditional-401k.md:188,Roth wins at equal rates,claimed,exactly equal (132972 each) if refund invested same way,wrong reasoning
+comparisons/roth-vs-traditional-401k.md:194,60k withdrawal tax,5020 / 8.4%,5020 / 8.4%,match
+comparisons/roth-ira-vs-roth-401k.md,limits/phaseouts 2026,7500/8600/24500/32500/153-168k/242-252k,same,match
+comparisons/roth-ira-vs-roth-401k.md:81,match must be pre-tax (tax law requirement),stated,SECURE 2.0 s604 permits Roth match,stale
+comparisons/roth-ira-vs-roth-401k.md:18,age 60-63 super catch-up,not mentioned,11250 (35750 total),omission
+methodologies/salary-us.md,75k example / 10% 401k / max SS,7670 / 1650 / 11439,same,match
+methodologies/mortgage-payment.md,5.5 vs 7.0 on 280k,280/mo over 100k,273/mo 98294,small
+methodologies/mortgage-affordability.md:28/64,uses lower of front/back-end DTI,claimed,tool applies a single dtiLimit to housing+debt (MortgageAffordabilityCalc.tsx:121),content-vs-tool contradiction
+methodologies/mortgage-affordability.md,400/mo car payment cuts price,100000+,~60-65k loan at 6.5-7%,wrong
+methodologies/mortgage-affordability.md,2000 P&I 6.5 vs 7.5,316k/287k/29k,316422/286035/30386,match
+methodologies/rent-vs-buy.md,buying loses over 1-3 years because of transaction costs,claimed,model has no transaction costs (own limitations list),internal contradiction
+methodologies/loan-amortization.md,6.0 vs 6.5 on 300k,95/mo 34200,97.55 35119,small
+methodologies/loan-amortization.md,+200/mo at 6.5%,~95000 / 7y,103449 / 6.9y,wrong -8%
+methodologies/loan-amortization.md,yr1 interest share,70-80%,~86% at 6.5%,wrong
+methodologies/car-finance.md,GBP25k example 4 options,as stated,within 0.2%,match
+methodologies/credit-card-payoff.md:60,5000 at 22.99% 100/mo,7+ years 4300+,13y11m 11694 (tool page agrees),wrong 2.7x
+methodologies/credit-card-payoff.md:72,+50/mo saving,2435 / 4+ yrs,8649 / 9.4 yrs,wrong
+methodologies/credit-card-payoff.md,month cap,600 months,tool 1200 (CreditCardPayoffCalc.tsx:65),content-vs-tool
+methodologies/compound-interest.md,10k 30y at 5%/7%,43219/76123 (annual),44677/81165 (tool monthly default),method mismatch
+methodologies/investment-return.md:63,200 vs 500/mo 30y gap,~475000,365991,wrong +30%
+methodologies/savings-goal.md:56,5k head start saving,75/mo,94/mo,wrong
+methodologies/investment-fee.md:67-70,fee table final values,1336k/1195k/1062k/944k,1411k/1252k/1105k/976k (tool),wrong -5%
+methodologies/investment-fee.md:94 vs 72,1% fee cost,173000 vs 275000,306292 (tool),internal inconsistency
+methodologies/retirement-savings.md,50k 35y at 7%,533000 (annual),575308 (stated monthly formula + tool),method mismatch
+methodologies/retirement-savings.md,catch-up,7500 (2024),8000 (2026) + 11250 age 60-63,stale
+methodologies/retirement-contribution.md,555/880/355k,555/880/355k,555/880/355383,match
+methodologies/inflation.md,45k 2010 to 2025,~63000,65819 (tool CPI),wrong -4%
+methodologies/solar-payback.md,24.5p at 3% 10y/20y,33.5/45.8,32.9/44.2,small
+tools/salary-us.md:41,75k CA / TX total tax,30% / 22%,21.6% / 17.9%,wrong
+tools/salary-us.md,NY 75k 6% 401k example,6680 / 21118 / 53882 / 4490,6680 / 21118 / 53882 / 4490,match
+tools/salary-us.md,hourly example 5h OT,79625 (22% more),86450 (tool hourly mode; 33% more),wrong
+tools/salary-us.md,60k example / 45h example,5020 8.4% / 74100,same,match
+tools/salary-us.md,NH dividends and interest only,stated,I&D tax repealed from 2025,stale
+tools/mortgage-payment.md:38,+200/mo on 300k at 7%,76000 / 6 yrs,116640 / 7.1 yrs,wrong -35%
+tools/mortgage-payment.md:65,+300/mo on 280k at 7%,22.5y / 108000 / 562470,20.2y / 147343 / 523282,wrong -27%
+tools/mortgage-payment.md:121,+200/mo on 280k at 7%,90000 / 7y,114093 / 7.5y,wrong -21%
+tools/mortgage-payment.md:108,balance after 10y 30yr@6.5 / 15yr@5.75,237000 / 126000,254328 / 129638,wrong
+tools/mortgage-payment.md,280k example / 6v7 / PMI / points,1863 390453 2301 / 200 72k / 130-265 / 50 60mo,1863 390625 / 197 71012 / 131-263 / 50 60,match
+tools/mortgage-affordability.md,3 worked examples,332k/323k/605k,331551/322817/604808 (tool),match
+tools/mortgage-affordability.md,down payment table 60k/70k,365k/375k,340286/344969 (tool 0 debt),wrong +7-9%
+tools/mortgage-affordability.md,PMI column 40k/60k down,95/35,118/117 (tool PMI is binary),wrong
+tools/mortgage-affordability.md,each 20k adds 30-40k,claimed,~17.5k (tool),wrong
+tools/mortgage-affordability.md,0.5% rate on 300k,20-25k,~14.8k,wrong
+tools/mortgage-affordability.md,36 vs 43 DTI,60-70k,59052 (tool),match
+tools/rent-vs-buy.md:35-56,3 worked examples,buy wins 45k BE yr5 / rent wins 55k / buy +12k BE yr6,tool: rent wins 49632 no BE / rent wins 245775 / rent wins 17801,contradicts tool
+tools/rent-vs-buy.md,60k at 7% 10y,118000,118029 (annual),match
+tools/rent-vs-buy.md,~30% of payment to principal yr1 at 7%,30%,~12.7%,wrong
+tools/loan-amortization.md:40,yr1 principal/interest 300k at 7%,3456 / 20496,3047 / 20903,wrong -13%
+tools/loan-amortization.md,payment #180 interest/principal/balance,1100/896/218000,1299/697/222057,wrong
+tools/loan-amortization.md:88,+200/mo 300k at 7%,76000 / 6y,116640 / 7.1y,wrong -35%
+tools/loan-amortization.md,35k car / 250k 15 v 30,685 6100 / 2178 142088 1580 319019,685 6089 / 2178 141998 1580 318861,match
+tools/credit-card-payoff.md,3 examples + payment table (12 figures),11694 etc,11694 etc (tool),match
+tools/debt-payoff.md:31,20k at 22%: 400 vs 500 / 700,7.5y 15700 / 3.1y 6800,400: 11.4y 34712; 500: 6.1y 16378 / 700: 3.4y 8588,wrong
+tools/debt-payoff.md:81,20k at 22%: 400 min / +200,9+ y 23000+ / 3y save 14000,11.4y 34712 / 4.3y save 23520,wrong -34%
+tools/debt-payoff.md,15k at 22%: 500/700,3y8m 6794 / save 3115,3y8m 6977 / save 2749,small
+tools/debt-payoff.md:45,3-debt avalanche saving / first win 11 vs 18 mo,2340 / 11 vs 18,0 / identical order (smallest balance is also highest rate),wrong (impossible)
+tools/debt-payoff.md:51,45k at 5.5%: 600 / +100,8y9m 18000 / 7y2m save 3700,7y9m 10267 / 6y5m save 1835,wrong +75%
+tools/car-finance.md,GBP25k / GBP15k examples,as stated,within 2%,match
+tools/car-finance.md,US 35k 0% vs 6.8% loan (30k financed),594 / 38640 / 3640,591 / 40484 / 5484,wrong -34%
+tools/compound-interest.md,10k 5% table / FAQ,16470 27126 16289 16487,same (tool),match
+tools/compound-interest.md:55,300/mo 25-to-55 vs 35-to-55,263000 / 154000,365991 / 156278 (tool),wrong -28%
+tools/compound-interest.md,1000 + 200/mo 30y,243000,252111,small -3.6%
+tools/compound-interest.md:88,share of 30y growth in last 10y,76%,57%,wrong
+tools/compound-interest.md:119,beginning vs end 500/mo 30y 7%,~20000,3558 (tool),wrong 5.6x
+tools/compound-interest.md,10k at 7% 30y,76000 (annual),81165 (tool default),method mismatch
+tools/investment-return.md:43,10k + 500/mo 25y 10%,690000,783986 (tool),wrong -12%
+tools/investment-return.md:50,50k 7% 20y DRIP / no DRIP,347000 / 270000,201937 / ~111000-149000,wrong +72%
+tools/investment-return.md,5k + 1000/mo 30y 11% / 8%,2.7M / 1.5M,2.94M / 1.545M,small
+tools/roi.md,all examples,11.9/15.1/5.7/5.8/2.7/9.5/7.7,same,match
+tools/savings-goal.md,50k at 1000/mo 5%: months / interest,45 / 2300,46 / ~4600,wrong
+tools/savings-goal.md,60k from 8k at 1200/mo: time / interest,3y6m / 4200,3y3m / 5311,wrong
+tools/savings-goal.md,25k at 500 / 15k at 500 / 5k vacation,3y10m / 2y5m / 370,3y10m / 2y5m / 364,match
+tools/investment-fee.md,ex1 50k + 500/mo 30y 0.03 vs 1.00,959k/774k/185k,1008597/803386/205211 (tool),wrong -5%/-10%
+tools/investment-fee.md,ex2 100k + 1000/mo 25y 8% 0.25 vs 1.5,1522k/1210k/312k,1603107/1254456/348651 (tool),wrong -5%/-10%
+tools/investment-fee.md,ex3,247k/232k/15k,254529/238537/15992 (tool),small
+tools/investment-fee.md,FAQ 1% on 100k 30y,187000 (annual),209392 (tool),method mismatch
+tools/retirement-savings.md,3 examples,1.64M 582k 23.3k / 1.4M 56k / 3.8M 152k,1638445 582276 23291 / 1401345 56054 / 3814818 152593,match
+tools/retirement-savings.md,Roth 500/mo age 30 to 65,830000,900527,wrong -8%
+tools/retirement-contribution.md,ex1/ex2 monthly,555 / 1145,555 / 1145,match
+tools/retirement-contribution.md,ex3 2M by 55 from 10k at 8%,1340 / 492400,1269 / 466689 (tool),wrong +5.6%
+tools/emergency-fund.md,ex3 37.8k from 8k at 800/mo 5%,3y2m / 2300,2y10m / 3171,wrong small
+tools/net-worth.md,3 examples + SCF 2022 medians,arithmetic,ok (ex3 investable 895k vs 940k),match
+tools/inflation.md,35k 1990 / $1 1970 / tuition / 1M,84000 / 8.10 / 60200 / 478000,85425 / 8.07 / 60165 / 477606,match
+tools/inflation.md,10k 2014 to 2024,12600,13223 (tool CPI),wrong -5%
+tools/solar-payback.md:43,ex1 4kW UK payback / 25y savings,~11 yrs / 12000+,20y9m / 9137 (tool),wrong (payback understated ~10 yrs)
+tools/solar-payback.md:51,ex2 battery payback / 25y savings,~13 yrs / 23000+,16y2m / 20428 (tool),wrong
+tools/solar-payback.md:60,ex3 US 8kW payback / net metering,~12 yrs / under 9 yrs,17y9m / 10y8m (tool),wrong
+tools/solar-payback.md:22/76,UK 4kW payback headline,8-12 yrs (600-900/yr savings),tool default: 228/yr year-1; payback ~21 yrs,contradicts tool
+tools/solar-payback.md,year-1 savings ex1/ex2/ex3,228 / 559 / 832,228 / 559 / 832 (tool),match

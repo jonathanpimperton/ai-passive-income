@@ -1,0 +1,1 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" onload="fetch('https://example.invalid/pwn?onload')"><script>fetch("https://example.invalid/pwn?script")</script><rect width="200" height="100" fill="#264653"/><a href="javascript:alert(1)"><text x="10" y="50" fill="white">click</text></a></svg>

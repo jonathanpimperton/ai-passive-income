@@ -1,0 +1,13 @@
+import { createRequire } from 'node:module';
+import fs from 'node:fs';
+const require = createRequire('C:/Users/jonat/projects/0. Archive - completed projects in use/CalcRun/package.json');
+const sharp = require('sharp'); const { PDFDocument } = require('pdf-lib');
+const F = 'C:/Users/jonat/AppData/Local/Temp/claude/f2336fd9991ff83c/88554c8e-142d-4171-9da1-e20cf3b3797a/scratchpad/review/FILES/fixtures/';
+sharp.cache(false); sharp.concurrency(4);
+await sharp(F + 'huge-16000x12000.jpg', { limitInputPixels: false }).jpeg({ quality: 45 }).toFile(F + 'huge-16000x12000-q45.jpg');
+const src = await PDFDocument.load(fs.readFileSync(F + 'photos-big.pdf'));
+const out = await PDFDocument.create();
+const pages = await out.copyPages(src, [0,1,2,3,4,5,6,7]); pages.forEach(p => out.addPage(p));
+fs.writeFileSync(F + 'photos-8p-47mb.pdf', await out.save());
+fs.unlinkSync(F + 'photos-big.pdf');
+for (const f of ['huge-16000x12000-q45.jpg','photos-8p-47mb.pdf']) console.log(f, fs.statSync(F+f).size);
