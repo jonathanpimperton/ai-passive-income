@@ -61,13 +61,81 @@ test.describe('Markdown preview (DV-1)', () => {
 });
 
 test.describe('Markdown conversion limits', () => {
-  test('stops input that parses very slowly and stays usable', async ({ page }) => {
+  // 256 KB of unclosed link openers: a single marked tokenizer call on this runs for tens of
+  // seconds to minutes on every machine, so the input is "too slow" however fast the machine
+  // is, and only terminating the conversion worker can stop it (it cannot be interrupted from
+  // inside). The page's own limit is 4 s + 0.25 s grace; the 30 s wait is a margin for a loaded
+  // dev server (worker start, hydration), not part of the contract.
+  test('stops input that parses very slowly, without freezing the page, and stays usable', async ({ page }) => {
     test.setTimeout(120000);
     await open(page, '/tools/file-tools/markdown-html/');
-    await page.locator('#md-html-input').fill('[a]('.repeat(1500));
-    await expect(tool(page).getByRole('alert')).toContainText('too complex to convert in the browser', { timeout: 60000 });
+    // A tick every 50 ms: a frozen main thread shows up as a long gap between ticks.
+    await page.evaluate(() => {
+      const w = window as unknown as { __maxGap: number };
+      w.__maxGap = 0;
+      let last = performance.now();
+      setInterval(() => {
+        const now = performance.now();
+        w.__maxGap = Math.max(w.__maxGap, now - last);
+        last = now;
+      }, 50);
+    });
+    await page.locator('#md-html-input').fill('[a]('.repeat(65536));
+    await page.evaluate(() => { (window as unknown as { __maxGap: number }).__maxGap = 0; });
+
+    const alert = tool(page).getByRole('alert');
+    // While it is converting the page answers: a trivial script round-trips quickly each time.
+    for (let i = 0; i < 5; i++) {
+      const started = Date.now();
+      expect(await page.evaluate(() => 1 + 1)).toBe(2);
+      expect(Date.now() - started).toBeLessThan(3000);
+      await page.waitForTimeout(300);
+    }
+    await expect(alert).toContainText('too complex to convert in the browser', { timeout: 30000 });
+    const maxGap = await page.evaluate(() => (window as unknown as { __maxGap: number }).__maxGap);
+    expect(maxGap).toBeLessThan(2500);
+
     await page.locator('#md-html-input').fill('# Fine');
     await expect(page.locator('#md-html-output')).toHaveValue(/<h1>Fine<\/h1>/);
+    await expect(alert).toHaveCount(0);
+  });
+
+  test('says so when the input nests too deeply for the browser, and stays usable', async ({ page }) => {
+    test.setTimeout(120000);
+    await open(page, '/tools/file-tools/markdown-html/');
+    await page.locator('#md-html-input').fill('> '.repeat(60000));
+    await expect(tool(page).getByRole('alert')).toContainText('too complex to convert in the browser', { timeout: 30000 });
+    await page.locator('#md-html-input').fill('# Fine');
+    await expect(page.locator('#md-html-output')).toHaveValue(/<h1>Fine<\/h1>/);
+  });
+
+  test('a newer edit replaces a conversion that is still running', async ({ page }) => {
+    test.setTimeout(120000);
+    await open(page, '/tools/file-tools/markdown-html/');
+    await page.locator('#md-html-input').fill('[a]('.repeat(65536));
+    await page.waitForTimeout(1500); // converting in the worker by now
+    await page.locator('#md-html-input').fill('## Next');
+    await expect(page.locator('#md-html-output')).toHaveValue(/<h2>Next<\/h2>/, { timeout: 10000 });
+    await expect(tool(page).getByRole('alert')).toHaveCount(0);
+  });
+});
+
+test.describe('JWT decoder hydration', () => {
+  // The sample token's dates used to be formatted with the build machine's locale and time zone
+  // during the server render, so any visitor elsewhere got a hydration mismatch (React #418).
+  test.use({ timezoneId: 'Asia/Kolkata', locale: 'de-DE' });
+
+  test('shows the sample token in the visitor\'s own locale and zone with no hydration error', async ({ page }) => {
+    const problems: string[] = [];
+    page.on('console', (m) => {
+      if (m.type() === 'error' || m.type() === 'warning') problems.push(m.text());
+    });
+    page.on('pageerror', (e) => problems.push(String(e)));
+    await open(page, '/tools/utility/jwt-decoder/');
+    // After hydration the date is written for this visitor: German month/day order, India time (IST).
+    await expect(tool(page).getByText(/18\.\s*Jan\.? 2018/)).toBeVisible();
+    await expect(tool(page).getByText(/IST|GMT\+5:30/)).toBeVisible();
+    expect(problems.filter((t) => /#418|#423|#425|hydrat|did(?: not|n't) match/i.test(t))).toEqual([]);
   });
 });
 
