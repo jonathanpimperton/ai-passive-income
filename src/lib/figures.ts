@@ -48,6 +48,23 @@
  *              projectRetirement (retirement.ts)
  *   sdlt, ukCgt, usCgt
  *              calculateSdlt (stamp-duty.ts), calculateUKCgt / calculateUSCgt (capital-gains.ts)
+ *   usAffordability, ukAffordability, eurAffordability
+ *              solveUs/Uk/EurAffordability (mortgage-affordability.ts)
+ *   rentVsBuy  simulateRentVsBuy, laterBreakEvenYear (rent-vs-buy.ts)
+ *   carFinance compareCarFinance (car-finance.ts)
+ *   emergencyMonths
+ *              monthsToTarget (emergency-fund.ts)
+ *   solarPayback
+ *              calculateSolarPayback (solar-payback.ts), regional defaults from the same module
+ *   roi, annualizedReturn
+ *              calcRoi, annualize (roi.ts)
+ *   requiredRate
+ *              solveRequiredRate (investment-solvers.ts)
+ *   debtPayoff, debtClearMonth
+ *              simulateDebtPayoff, prepareDebts (debt-payoff.ts)
+ *   cardBeyondHorizon
+ *              simulateCardPayoff, the "beyond 50 years" totals
+ *   cpiValue   cpiFor (inflation.ts)
  *
  * The loan family (loanPayment ... overpaymentSaving) keeps its own
  * closed-form / loop arithmetic; figures-grid.test.ts proves it agrees
@@ -65,7 +82,11 @@
  * pension larger than the salary; feeDrag when the lower-fee fund earns nothing;
  * savingsMonths / yearsToTarget when the calculator says "Not within 100 years"
  * ("never" is only for no deposits and no growth).
- * State Pension age is not a fact (it depends on date of birth).
+ * State Pension age is not a fact (it depends on date of birth). Also failing: a
+ * multi-debt payoff that is never cleared or not cleared in 600 months; an
+ * affordability case with no budget ("No home fits these limits"); a solar system
+ * that does not pay back in the period; a car deposit or balloon the calculator
+ * would clamp; an emergency fund beyond 50 years; a required rate that does not exist.
  *
  * figures-grid.test.ts compares every one of these functions with its
  * engine over a grid of inputs (exact equality where the same engine function
@@ -111,6 +132,41 @@ import {
   type UsYearRates,
 } from './us-rates';
 import { CARD_HORIZON_MONTHS, simulateCardPayoff, type CardPayoffInputs } from './credit-card';
+import {
+  AFFORDABILITY_DEFAULTS,
+  estimateUkTakeHome,
+  solveEurAffordability,
+  solveUkAffordability,
+  solveUsAffordability,
+  type AffordabilityStatus,
+} from './mortgage-affordability';
+import { LONG_STAY_YEARS, TRANSACTION_COST_DEFAULTS, laterBreakEvenYear, simulateRentVsBuy, type RentVsBuyInputs } from './rent-vs-buy';
+import {
+  MAX_DEPOSIT,
+  MIN_FINANCE_AMOUNT,
+  compareCarFinance,
+  maxDepositFor,
+  type AprConvention,
+} from './car-finance';
+import { MAX_FUND_MONTHS, monthsToTarget } from './emergency-fund';
+import {
+  SOLAR_REGIONAL_DEFAULTS,
+  calculateSolarPayback,
+  effectiveSelfConsumption,
+  type SolarPaybackInputs,
+  type SolarRegion,
+} from './solar-payback';
+import { annualize, calcRoi } from './roi';
+import {
+  DEBT_HORIZON_MONTHS,
+  prepareDebts,
+  simulateDebtPayoff,
+  type Debt,
+  type DebtRowInput,
+  type DebtSimulation,
+  type Strategy,
+} from './debt-payoff';
+import { buildAmortization } from './mortgage-payment';
 import { compareFees } from './investment-fee';
 import { MARKET_RATES, rateAttribution, type MarketRate } from './market-rates';
 import {
@@ -118,9 +174,10 @@ import {
   CPI_LAST_YEAR,
   CPI_U_LATEST,
   adjustForInflation,
+  cpiFor,
   projectInflation,
 } from './inflation';
-import { MAX_SOLVE_MONTHS, solveMonthsToTarget } from './investment-solvers';
+import { MAX_SOLVE_MONTHS, solveMonthsToTarget, solveRequiredRate } from './investment-solvers';
 import { MAX_GOAL_MONTHS, monthlyForGoal, timeToGoal } from './savings-goal';
 import { projectRetirement } from './retirement';
 import {
@@ -172,6 +229,8 @@ export interface ParamSpec {
   above?: number;
   max?: number;
   integer?: boolean;
+  /** Numbers only: the value must be min (or 0) plus a whole number of steps, like a calculator slider's step. */
+  step?: number;
   /** Allowed string values (after `aliases`). */
   oneOf?: readonly string[];
   /** Alternative spellings mapped onto `oneOf` values. */
@@ -179,6 +238,17 @@ export interface ParamSpec {
   /** Custom coercion (e.g. year labels, compounding words). Runs before checks. */
   coerce?: (v: FigurePrimitive) => FigurePrimitive;
 }
+
+/** What a result field means, for the evaluator's guards (FigureFunction.fieldMeta). */
+export interface FieldMeta {
+  /** The field is a year (or a count of years): printing it with | months would show years as months. */
+  years?: boolean;
+  /** Message when the field is Infinity ("there is no such year"): using the field fails the build with it. */
+  ifInfinite?: string;
+}
+
+/** Per-result field guards, looked up when a field is read (results are fresh objects each call). */
+const RESULT_META = new WeakMap<object, Readonly<Record<string, FieldMeta>>>();
 
 export interface FigureFunction {
   name: string;
@@ -190,6 +260,14 @@ export interface FigureFunction {
   returns: string;
   /** For object results: field name -> description. */
   fields?: Readonly<Record<string, string>>;
+  /**
+   * Guards for particular result fields (see FieldMeta): a year-valued field
+   * refuses the months formatter, and a field that is Infinity when there is
+   * no such year fails with its own message at the point of use.
+   */
+  fieldMeta?: Readonly<Record<string, FieldMeta>>;
+  /** The function returns a number of years: it refuses the months formatter. */
+  returnsYears?: boolean;
   /** A complete token body (no braces) that the tests evaluate. */
   example: string;
   /**
@@ -871,6 +949,178 @@ function checkCompounding(n: number): void {
 }
 
 /* ════════════════════════════════════════════════════════════
+ * Engines added in W2-FIG2: affordability, rent vs buy, car finance,
+ * emergency fund, solar, ROI, required rate, multi-debt payoff, CPI facts
+ * ════════════════════════════════════════════════════════════ */
+
+/** Card payoff arguments, shared by cardPayoff and cardBeyondHorizon. */
+const CARD_PAYOFF_PARAMS: ParamSpec[] = [
+  money('balance', 'starting balance', { above: 0, min: undefined }),
+  ratePct('apr', 'APR in %'),
+  { name: 'payment', type: 'number', doc: 'fixed monthly payment (omit when using minPct)', above: 0 },
+];
+const CARD_PAYOFF_OPTIONS: ParamSpec[] = [
+  { name: 'minPct', type: 'number', doc: 'minimum payment as % of the current balance (declining minimum). The calculator offers 1 to 10 (percentage) or 1 to 5 (interest plus), in steps of 0.5; other values are extensions it cannot show', above: 0, max: 100 },
+  { name: 'minFloor', type: 'number', doc: 'lowest minimum payment, required with minPct. The calculator does not let visitors edit it: 25 for USD and EUR, 5 for GBP (chosen by the currency), so 25 matches the calculator only for USD and EUR visitors and 5 only for GBP', min: 0 },
+  {
+    name: 'plusInterest',
+    type: 'boolean',
+    doc: "with minPct: the minimum is the month's interest PLUS minPct% of the balance (the UK/FCA and common US issuer formula), still at least minFloor",
+    default: false,
+  },
+  { name: 'extra', type: 'number', doc: 'extra paid on top every month', default: 0, min: 0 },
+];
+
+function cardModeOf(a: Args): PayoffMode {
+  const hasFixed = a.has('payment');
+  const hasPct = a.has('minPct');
+  if (hasFixed && hasPct) fail('give either a fixed payment or minPct, not both');
+  if (!hasFixed && !hasPct) fail('give a fixed monthly payment (third argument) or minPct= with minFloor=');
+  if (hasPct && !a.has('minFloor')) fail('minPct needs minFloor= (the lowest minimum payment)');
+  if (!hasPct && a.has('minFloor')) fail('minFloor only applies with minPct');
+  if (!hasPct && a.bool('plusInterest')) fail('plusInterest only applies with minPct');
+  return hasFixed
+    ? { fixed: a.num('payment') }
+    : { pct: a.num('minPct'), floor: a.num('minFloor'), plusInterest: a.bool('plusInterest') };
+}
+
+/* ── Mortgage affordability (solveUs/Uk/EurAffordability) ── */
+
+const AFFORD_DEFAULTS = AFFORDABILITY_DEFAULTS;
+
+/** Loan terms the affordability calculator's buttons offer (TERM_OPTIONS in MortgageAffordabilityCalc.tsx). */
+const AFFORD_TERM_OPTIONS = { us: [15, 30], uk: [20, 25, 30, 35], eur: [20, 25, 30] } as const;
+const AFFORD_REGION_NAME = { us: 'USD', uk: 'GBP', eur: 'EUR' } as const;
+function affordTerm(region: 'us' | 'uk' | 'eur', years: number): void {
+  const allowed: readonly number[] = AFFORD_TERM_OPTIONS[region];
+  if (!allowed.includes(years)) {
+    fail(`the calculator offers terms of ${allowed.join(', ')} years in ${AFFORD_REGION_NAME[region]} mode, not ${years}`);
+  }
+}
+
+const AFFORD_PARAMS: ParamSpec[] = [
+  money('income', 'annual gross household income'),
+  money('debts', 'other monthly debt payments (car and student loans, card minimums); the calculator defaults to 500 for USD and EUR, 0 for GBP'),
+  money('deposit', 'down payment / deposit'),
+  ratePct('rate', 'annual mortgage rate in %', { max: 30 }),
+  { ...termYears, doc: "mortgage term in years: the calculator's buttons offer 15 or 30 (USD), 20, 25, 30 or 35 (GBP), 20, 25 or 30 (EUR), and so does this function" },
+];
+
+/** The calculator's "No home fits these limits" states: no honest price exists, so no figure. */
+function affordable(status: AffordabilityStatus): void {
+  if (status === 'debts-exceed') {
+    fail('existing debts alone use up the lending limit, so no home is affordable at these inputs (the calculator says "No home fits these limits"); write it in words');
+  }
+  if (status === 'costs-exceed') {
+    fail('property tax, insurance and HOA alone exceed the housing budget, so no home is affordable at these inputs (the calculator says "No home fits these limits"); write it in words');
+  }
+}
+
+/* ── Rent vs buy (simulateRentVsBuy) ── */
+
+type RentRegion = 'us' | 'uk' | 'eur';
+
+function rentVsBuyInputs(a: Args): RentVsBuyInputs {
+  const region = a.str('region') as RentRegion;
+  const costs = TRANSACTION_COST_DEFAULTS[region];
+  return {
+    homePrice: a.num('price'),
+    downPaymentPct: a.num('down'),
+    mortgageRate: a.num('rate'),
+    loanTermYears: a.num('years'),
+    closingCostPct: a.has('closing') ? a.num('closing') : costs.closingCostPct,
+    sellingCostPct: a.has('selling') ? a.num('selling') : costs.sellingCostPct,
+    propertyTaxRate: a.num('propertyTax'),
+    homeInsurance: a.num('insurance'),
+    hoaMonthly: a.num('hoa'),
+    maintenanceRate: a.num('maintenance'),
+    homeAppreciation: a.num('appreciation'),
+    monthlyRent: a.num('rent'),
+    rentIncrease: a.num('rentIncrease'),
+    rentersInsurance: a.num('rentersInsurance'),
+    investmentReturn: a.num('invest'),
+    timeHorizon: a.num('horizon'),
+    region,
+    marginalTaxRate: a.num('marginalTax'),
+    filingStatus: a.str('status') as FilingStatus,
+    otherItemizedDeductions: a.num('otherItemized'),
+    stateLocalIncomeTax: a.num('stateTax'),
+  };
+}
+
+/* ── Solar payback (calculateSolarPayback) ── */
+
+function solarInputs(a: Args): SolarPaybackInputs {
+  const region = a.str('region') as SolarRegion;
+  const d = SOLAR_REGIONAL_DEFAULTS[region];
+  const pick = (name: string, dflt: number) => (a.has(name) ? a.num(name) : dflt);
+  const includeBattery = a.bool('battery');
+  return {
+    systemCost: pick('systemCost', d.systemCost),
+    systemSize: pick('systemSize', d.systemSize),
+    includeBattery,
+    batteryCost: pick('batteryCost', d.batteryCost),
+    batteryCapacityKwh: includeBattery ? pick('batteryCapacity', d.batteryCapacity) : undefined,
+    electricityTariff: pick('tariff', d.electricityTariff),
+    selfConsumptionPct: a.num('selfConsumption'),
+    exportTariff: pick('exportTariff', d.exportTariff),
+    energyInflation: a.num('inflation'),
+    degradation: a.num('degradation'),
+    maintenanceCost: pick('maintenance', d.maintenanceCost),
+    taxCredit: a.num('credit'),
+    analysisPeriod: a.num('years'),
+    kWhPerKwp: pick('kWhPerKwp', d.kWhPerKwp),
+  };
+}
+
+/* ── Multi-debt payoff (simulateDebtPayoff) ── */
+
+/**
+ * "balance@apr/minimum; balance@apr/minimum" -> the debts the Debt Payoff
+ * calculator would simulate. Rows are validated by the calculator's own
+ * prepareDebts, so a row it would leave out fails here.
+ */
+function parseDebtSpec(spec: string): Debt[] {
+  const parts = spec.split(';').map((s) => s.replace(/\s+/g, '')).filter((s) => s !== '');
+  if (parts.length === 0) fail("give at least one debt as balance@apr/minimum, e.g. '6500@22.99/195; 3500@11.5/120'");
+  const rows: DebtRowInput[] = parts.map((p) => {
+    const m = /^(\d+(?:\.\d+)?)@(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/.exec(p);
+    if (!m) fail(`debt "${p}" must look like balance@apr/minimum, e.g. 6500@22.99/195 (APR in %, no currency symbols or commas)`);
+    return { name: '', balance: Number(m[1]), ratePercent: Number(m[2]), minPayment: Number(m[3]) };
+  });
+  const prepared = prepareDebts(rows);
+  if (prepared.issues.length > 0) {
+    fail(prepared.issues.map((i) => `debt ${i.row + 1}: ${i.message}`).join(' '));
+  }
+  return prepared.debts;
+}
+
+/** One strategy run, as the calculator shows it; "never" and "beyond 50 years" have no honest total, so they fail. */
+function debtRun(a: Args): DebtSimulation {
+  const r = simulateDebtPayoff(parseDebtSpec(a.str('debts')), a.num('extra'), a.str('strategy') as Strategy);
+  switch (r.status) {
+    case 'never':
+      return fail(
+        "these debts are never cleared (every open debt's monthly interest is at least the most the plan can pay towards it); the calculator says so and shows no total, so write it in words",
+      );
+    case 'beyondHorizon':
+      return fail(
+        `these debts are not cleared within ${DEBT_HORIZON_MONTHS} months (${DEBT_HORIZON_MONTHS / 12} years); the calculator labels its totals as covering the first ${DEBT_HORIZON_MONTHS / 12} years only, so write it in words`,
+      );
+    case 'empty':
+      return fail('no debts to pay off');
+    case 'paid':
+      return r;
+  }
+}
+
+const DEBT_ARGS: ParamSpec[] = [
+  { name: 'debts', type: 'string', doc: "debts as 'balance@apr/minimum' separated by ';', e.g. '6500@22.99/195; 3500@11.5/120; 12000@6.5/350' (APR in %)", required: true },
+  money('extra', 'extra paid every month on top of all the minimums'),
+  { name: 'strategy', type: 'string', doc: 'avalanche (highest rate first) or snowball (smallest balance first)', required: true, oneOf: ['avalanche', 'snowball'] },
+];
+
+/* ════════════════════════════════════════════════════════════
  * The catalogue
  * ════════════════════════════════════════════════════════════ */
 
@@ -1280,38 +1530,12 @@ const fns: FigureFunction[] = [
     group: 'Debt',
     summary:
       'Paying down a card or loan balance (the credit card payoff calculator): a fixed payment, or a minimum that is a % of the balance with a floor, optionally plus the month\'s interest.',
-    params: [
-      money('balance', 'starting balance', { above: 0, min: undefined }),
-      ratePct('apr', 'APR in %'),
-      { name: 'payment', type: 'number', doc: 'fixed monthly payment (omit when using minPct)', above: 0 },
-    ],
-    options: [
-      { name: 'minPct', type: 'number', doc: 'minimum payment as % of the current balance (declining minimum). The calculator offers 1 to 10 (percentage) or 1 to 5 (interest plus), in steps of 0.5; other values are extensions it cannot show', above: 0, max: 100 },
-      { name: 'minFloor', type: 'number', doc: 'lowest minimum payment, required with minPct. The calculator does not let visitors edit it: 25 for USD and EUR, 5 for GBP (chosen by the currency), so 25 matches the calculator only for USD and EUR visitors and 5 only for GBP', min: 0 },
-      {
-        name: 'plusInterest',
-        type: 'boolean',
-        doc: "with minPct: the minimum is the month's interest PLUS minPct% of the balance (the UK/FCA and common US issuer formula), still at least minFloor",
-        default: false,
-      },
-      { name: 'extra', type: 'number', doc: 'extra paid on top every month', default: 0, min: 0 },
-    ],
+    params: CARD_PAYOFF_PARAMS,
+    options: CARD_PAYOFF_OPTIONS,
     returns: 'object',
     fields: PAYOFF_FIELDS,
     example: 'cardPayoff(5000, 22.99, 100).months | months',
-    run: (a) => {
-      const hasFixed = a.has('payment');
-      const hasPct = a.has('minPct');
-      if (hasFixed && hasPct) fail('give either a fixed payment or minPct, not both');
-      if (!hasFixed && !hasPct) fail('give a fixed monthly payment (third argument) or minPct= with minFloor=');
-      if (hasPct && !a.has('minFloor')) fail('minPct needs minFloor= (the lowest minimum payment)');
-      if (!hasPct && a.has('minFloor')) fail('minFloor only applies with minPct');
-      if (!hasPct && a.bool('plusInterest')) fail('plusInterest only applies with minPct');
-      const mode: PayoffMode = hasFixed
-        ? { fixed: a.num('payment') }
-        : { pct: a.num('minPct'), floor: a.num('minFloor'), plusInterest: a.bool('plusInterest') };
-      return payoff(a.num('balance'), a.num('apr'), mode, a.num('extra'));
-    },
+    run: (a) => payoff(a.num('balance'), a.num('apr'), cardModeOf(a), a.num('extra')),
   },
   {
     name: 'loanPayoff',
@@ -1349,6 +1573,7 @@ const fns: FigureFunction[] = [
       'The longest payoff the card calculator runs, in years (50). A balance not cleared within it is "beyond 50 years" (a payoff token fails; use this number in the words).',
     params: [],
     returns: 'number (years)',
+    returnsYears: true,
     example: 'cardHorizonYears() | int',
     run: () => CARD_HORIZON_MONTHS / 12,
   },
@@ -1497,6 +1722,7 @@ const fns: FigureFunction[] = [
     ],
     options: [COMPOUNDING, TIMING],
     returns: 'number (years: whole months / 12)',
+    returnsYears: true,
     example: 'yearsToTarget(10000, 500, 7, 1000000) | num(1)',
     run: (a) => {
       checkCompounding(a.num('compounding'));
@@ -1524,6 +1750,7 @@ const fns: FigureFunction[] = [
       'How far the savings goal and investment return calculators look, in years (100). A goal or target not reached within it is "Not within 100 years" (the token fails; use this number in the words).',
     params: [],
     returns: 'number (years)',
+    returnsYears: true,
     example: 'goalHorizonYears() | int',
     run: () => MAX_GOAL_MONTHS / 12,
   },
@@ -1614,6 +1841,7 @@ const fns: FigureFunction[] = [
       averageAnnual: 'compound average annual change, %',
       years: 'elapsed years the average uses (the latest month counts as part of its year)',
     },
+    fieldMeta: { years: { years: true } },
     example: 'cpiAdjust(45000, 2010, 2025).adjusted | usd',
     run: (a) => {
       if (a.num('fromYear') === a.num('toYear')) fail('fromYear and toYear are the same year, so there is nothing to adjust');
@@ -1625,6 +1853,685 @@ const fns: FigureFunction[] = [
         averageAnnual: r.averageAnnual * 100,
         years: r.years,
       };
+    },
+  },
+
+  /* ── Debt: beyond the horizon, daily compounding, multi-debt payoff ── */
+  {
+    name: 'cardBeyondHorizon',
+    group: 'Debt',
+    summary:
+      'What the card calculator shows when a balance is falling but not cleared in 600 months ("beyond 50 years"): the balance left and the interest paid within the horizon. Same arguments as cardPayoff; fails for a balance that does clear (use cardPayoff) or never falls.',
+    params: CARD_PAYOFF_PARAMS,
+    options: CARD_PAYOFF_OPTIONS,
+    returns: 'object',
+    fields: {
+      months: 'the horizon, in months (600)',
+      years: 'the horizon, in years (50; a year number: print with int, never months)',
+      remaining: 'balance still owed at the end of the horizon',
+      interest: 'interest paid within the horizon',
+      totalPaid: 'paid within the horizon',
+    },
+    fieldMeta: { years: { years: true } },
+    example: 'cardBeyondHorizon(5000, 22.99, minPct=2, minFloor=25).remaining | usd',
+    run: (a) => {
+      const r = simulateCardPayoff(cardInputs(a.num('balance'), a.num('apr'), cardModeOf(a), a.num('extra')));
+      if (r.status === 'paid') {
+        fail(`this balance is cleared in ${r.months} months, within the ${CARD_HORIZON_MONTHS}-month horizon; use cardPayoff`);
+      }
+      if (r.status !== 'beyondHorizon') {
+        fail('the payment does not exceed the first month\'s interest ("never repaid"), so there is no balance at the horizon; write it in words');
+      }
+      return {
+        months: r.months,
+        years: r.months / 12,
+        remaining: r.remainingBalance,
+        interest: r.totalInterest,
+        totalPaid: r.totalPaid,
+      };
+    },
+  },
+  {
+    name: 'dailyCompoundingApr',
+    group: 'Debt',
+    summary:
+      "The APR to give the card calculator (which charges APR / 12 a month) so that it matches an issuer that compounds daily at the quoted APR: 12 x ((1 + APR / 365) ^ (365 / 12) - 1), in %.",
+    params: [ratePct('apr', 'quoted APR in %')],
+    returns: 'number (%)',
+    example: 'dailyCompoundingApr(22.99) | pct(2)',
+    run: (a) => (12 * (Math.pow(1 + a.num('apr') / 100 / 365, 365 / 12) - 1)) * 100,
+  },
+  {
+    name: 'debtPayoff',
+    group: 'Debt',
+    summary:
+      'Paying off several debts with the snowball or avalanche method (the debt payoff calculator): months, interest and total paid. Fails when the debts are never cleared or not cleared within 600 months (the calculator shows no honest total then).',
+    params: DEBT_ARGS,
+    returns: 'object',
+    fields: {
+      months: 'months until every debt is cleared',
+      interest: 'total interest paid',
+      totalPaid: 'balances + interest',
+      monthlyOutlay: 'total paid every month (all the minimums plus the extra payment)',
+      firstMonthInterest: "the first month's interest across all debts",
+    },
+    example: "debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').interest | usd(2)",
+    run: (a) => {
+      const r = debtRun(a);
+      return {
+        months: r.months,
+        interest: r.totalInterest,
+        totalPaid: r.totalPaid,
+        monthlyOutlay: r.monthlyOutlay,
+        firstMonthInterest: r.firstMonthInterest,
+      };
+    },
+  },
+  {
+    name: 'debtClearMonth',
+    group: 'Debt',
+    summary: 'The month the n-th debt (1 = the first one listed) is cleared under a strategy (the calculator\'s "order cleared" list).',
+    params: [...DEBT_ARGS, { name: 'debt', type: 'number', doc: 'which debt, 1 = the first one listed', required: true, integer: true, min: 1 }],
+    returns: 'number (month)',
+    example: "debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche', 1) | int",
+    run: (a) => {
+      const r = debtRun(a);
+      const c = r.clearances.find((x) => x.index === a.num('debt') - 1);
+      if (!c) fail(`there is no debt ${a.num('debt')} in the list`);
+      // Unreachable today (debtRun only returns 'paid' results, where every debt has a clearance month);
+      // kept so an engine change that leaves a debt uncleared fails loudly instead of printing null.
+      if (c.month === null) fail(`debt ${a.num('debt')} is not cleared within the horizon`);
+      return c.month;
+    },
+  },
+
+  /* ── Mortgage affordability ── */
+  {
+    name: 'usAffordability',
+    group: 'Mortgage affordability',
+    summary:
+      "How much home the 28/36 rule allows (the mortgage affordability calculator in USD mode). Options default to the calculator's own defaults. Fails when debts or property costs leave no budget (the calculator says \"No home fits these limits\").",
+    params: AFFORD_PARAMS,
+    options: [
+      { name: 'propertyTax', type: 'number', doc: 'annual property tax, % of the price', default: AFFORD_DEFAULTS.propertyTaxRate, min: 0, max: 10 },
+      { name: 'insurance', type: 'number', doc: 'homeowners insurance a year', default: AFFORD_DEFAULTS.insuranceAnnual, min: 0 },
+      { name: 'hoa', type: 'number', doc: 'HOA fees a month', default: AFFORD_DEFAULTS.hoaMonthly, min: 0 },
+      { name: 'pmi', type: 'number', doc: 'PMI, % of the loan a year, while the down payment is under 20%', default: AFFORD_DEFAULTS.pmiRate, min: 0, max: 5 },
+      { name: 'frontEnd', type: 'number', doc: 'housing limit, % of gross income (front-end ratio)', default: AFFORD_DEFAULTS.frontEndPct, min: 0, max: 100 },
+      { name: 'backEnd', type: 'number', doc: 'all-debt limit, % of gross income (back-end ratio)', default: AFFORD_DEFAULTS.backEndPct, min: 0, max: 100 },
+    ],
+    returns: 'object',
+    fields: {
+      maxPrice: 'the highest price that fits (maximum loan + down payment)',
+      maxLoan: 'the maximum loan',
+      monthlyPI: 'principal and interest at that loan',
+      monthlyTax: 'property tax a month',
+      monthlyInsurance: 'insurance a month',
+      monthlyHOA: 'HOA a month',
+      monthlyPMI: 'PMI a month (0 at 20% down or more)',
+      totalMonthly: 'the whole monthly housing payment',
+      grossMonthly: 'gross monthly income',
+      frontEndBudget: 'front-end limit in money a month',
+      backEndBudget: 'back-end limit minus other debts, in money a month',
+      housingBudget: 'the lower of the two budgets',
+      frontEndRatio: 'housing payment as % of gross income',
+      backEndRatio: 'housing payment plus other debts as % of gross income',
+      needsPMI: 'true when PMI applies',
+      binding: "which limit binds: 'front-end' or 'back-end'",
+    },
+    example: 'usAffordability(80000, 500, 40000, 7, 30).maxPrice | usd',
+    run: (a) => {
+      affordTerm('us', a.num('years'));
+      const r = solveUsAffordability({
+        region: 'us',
+        annualIncome: a.num('income'),
+        monthlyDebts: a.num('debts'),
+        deposit: a.num('deposit'),
+        ratePct: a.num('rate'),
+        termYears: a.num('years'),
+        propertyTaxRate: a.num('propertyTax'),
+        insuranceAnnual: a.num('insurance'),
+        hoaMonthly: a.num('hoa'),
+        pmiRate: a.num('pmi'),
+        frontEndPct: a.num('frontEnd'),
+        backEndPct: a.num('backEnd'),
+      });
+      affordable(r.status);
+      return {
+        maxPrice: r.maxPrice,
+        maxLoan: r.maxLoan,
+        monthlyPI: r.monthlyPI,
+        monthlyTax: r.monthlyTax,
+        monthlyInsurance: r.monthlyInsurance,
+        monthlyHOA: r.monthlyHOA,
+        monthlyPMI: r.monthlyPMI,
+        totalMonthly: r.totalMonthly,
+        grossMonthly: r.grossMonthlyIncome,
+        frontEndBudget: r.frontEndBudget,
+        backEndBudget: r.backEndBudget,
+        housingBudget: r.housingBudget,
+        frontEndRatio: r.frontEndRatio,
+        backEndRatio: r.backEndRatio,
+        needsPMI: r.needsPMI,
+        binding: r.binding,
+      };
+    },
+  },
+  {
+    name: 'ukAffordability',
+    group: 'Mortgage affordability',
+    summary:
+      "How much home the income multiple and the stress test allow (the mortgage affordability calculator in GBP mode). Take-home pay defaults to the calculator's estimate (one earner, whole pounds); other options to its defaults. Fails when debts leave no budget.",
+    params: AFFORD_PARAMS,
+    options: [
+      { name: 'takeHome', type: 'number', doc: 'monthly take-home pay of all applicants; default is the calculator\'s one-earner estimate, rounded to whole pounds', min: 0 },
+      { name: 'ltiCap', type: 'number', doc: 'loan-to-income cap (x income); the calculator offers 4 to 5.5', default: AFFORD_DEFAULTS.ltiCap, min: 0, max: 10 },
+      { name: 'revertRate', type: 'number', doc: "lenders' revert-to rate in % that the stress test starts from (default: the Bank of England average in market-rates.ts, which is all the calculator offers: another value is an extension its screen cannot show)", min: 0, max: 30 },
+      { name: 'stressMargin', type: 'number', doc: 'points added to the higher of the product and revert-to rates; 0 means no stress test', default: AFFORD_DEFAULTS.stressMarginPct, min: 0, max: 10 },
+      { name: 'maxShare', type: 'number', doc: 'ceiling for the stressed payment plus debts, % of take-home pay', default: AFFORD_DEFAULTS.maxShareOfTakeHomePct, min: 0, max: 100 },
+    ],
+    returns: 'object',
+    fields: {
+      maxPrice: 'the highest price that fits (maximum loan + deposit)',
+      maxLoan: 'the maximum loan: the smaller of the two limits',
+      monthlyPI: 'principal and interest at your own rate on that loan',
+      totalMonthly: 'the monthly housing payment counted (principal and interest)',
+      grossMonthly: 'gross monthly income',
+      monthlyTakeHome: 'take-home pay used, a month',
+      ltiCap: 'the income multiple used',
+      ltiLimitLoan: 'loan allowed by the income multiple',
+      stressRatePct: 'the stressed rate in %',
+      stressLimitLoan: 'loan whose stressed payment fits within the take-home limit',
+      stressedPayment: 'payment at the stressed rate on the maximum loan',
+      shareOfTakeHome: '(monthlyPI + debts) as % of take-home pay',
+      stressedShareOfTakeHome: '(stressedPayment + debts) as % of take-home pay',
+      incomeMultiple: 'maximum loan / annual income',
+      depositPct: 'deposit as % of the maximum price',
+      lowDeposit: 'true when the deposit is under 5% of the price',
+      binding: "which limit is lower: 'lti' or 'stress'",
+    },
+    example: 'ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600, revertRate=6.5).maxPrice | gbp',
+    run: (a) => {
+      affordTerm('uk', a.num('years'));
+      const takeHome = a.has('takeHome') ? a.num('takeHome') : Math.round(estimateUkTakeHome(a.num('income')));
+      const r = solveUkAffordability({
+        region: 'uk',
+        annualIncome: a.num('income'),
+        monthlyDebts: a.num('debts'),
+        deposit: a.num('deposit'),
+        ratePct: a.num('rate'),
+        termYears: a.num('years'),
+        monthlyTakeHome: takeHome,
+        ltiCap: a.num('ltiCap'),
+        revertRatePct: a.has('revertRate') ? a.num('revertRate') : undefined,
+        stressMarginPct: a.num('stressMargin'),
+        maxShareOfTakeHomePct: a.num('maxShare'),
+      });
+      affordable(r.status);
+      return {
+        maxPrice: r.maxPrice,
+        maxLoan: r.maxLoan,
+        monthlyPI: r.monthlyPI,
+        totalMonthly: r.totalMonthly,
+        grossMonthly: r.grossMonthlyIncome,
+        monthlyTakeHome: r.monthlyTakeHome,
+        ltiCap: r.ltiCap,
+        ltiLimitLoan: r.ltiLimitLoan,
+        stressRatePct: r.stressRatePct,
+        stressLimitLoan: r.stressLimitLoan,
+        stressedPayment: r.stressedPayment,
+        shareOfTakeHome: r.shareOfTakeHome,
+        stressedShareOfTakeHome: r.stressedShareOfTakeHome,
+        incomeMultiple: r.incomeMultiple,
+        depositPct: r.depositPct,
+        lowDeposit: r.lowDeposit,
+        binding: r.binding,
+      };
+    },
+  },
+  {
+    name: 'eurAffordability',
+    group: 'Mortgage affordability',
+    summary:
+      'How much home one combined payment limit allows (the mortgage affordability calculator in EUR mode). Fails when debts leave no budget.',
+    params: AFFORD_PARAMS,
+    options: [
+      { name: 'maxDebtService', type: 'number', doc: 'loan payment plus other debts as % of gross income', default: AFFORD_DEFAULTS.eurMaxDebtServicePct, min: 0, max: 100 },
+    ],
+    returns: 'object',
+    fields: {
+      maxPrice: 'the highest price that fits (maximum loan + deposit)',
+      maxLoan: 'the maximum loan',
+      monthlyPI: 'principal and interest on that loan',
+      totalMonthly: 'the monthly housing payment counted',
+      grossMonthly: 'gross monthly income',
+      paymentBudget: 'the payment budget a month (limit x gross income, before other debts)',
+      debtServiceRatio: '(payment + other debts) as % of gross income',
+    },
+    example: 'eurAffordability(60000, 0, 40000, 3.5, 25).maxLoan | eur',
+    run: (a) => {
+      affordTerm('eur', a.num('years'));
+      const r = solveEurAffordability({
+        region: 'eur',
+        annualIncome: a.num('income'),
+        monthlyDebts: a.num('debts'),
+        deposit: a.num('deposit'),
+        ratePct: a.num('rate'),
+        termYears: a.num('years'),
+        maxDebtServicePct: a.num('maxDebtService'),
+      });
+      affordable(r.status);
+      return {
+        maxPrice: r.maxPrice,
+        maxLoan: r.maxLoan,
+        monthlyPI: r.monthlyPI,
+        totalMonthly: r.totalMonthly,
+        grossMonthly: r.grossMonthlyIncome,
+        paymentBudget: r.paymentBudget,
+        debtServiceRatio: r.debtServiceRatio,
+      };
+    },
+  },
+
+  /* ── Rent vs buy ── */
+  {
+    name: 'rentVsBuy',
+    group: 'Rent vs buy',
+    summary:
+      "The rent vs buy calculator's month-by-month comparison of end-of-horizon net worth on equal cash. Options default to the calculator's defaults for the region (buying and selling costs: 3% and 6% in the US, 0 elsewhere). The mortgage rate is not defaulted: pass it (for example rate('us30')).",
+    params: [
+      money('price', 'purchase price', { above: 0, min: undefined }),
+      { name: 'down', type: 'number', doc: 'down payment as % of the price', required: true, min: 0, max: 100 },
+      ratePct('rate', 'annual mortgage rate in %', { max: 30 }),
+      { ...termYears, integer: true, min: 10, max: 35, doc: "mortgage term in whole years: the calculator's slider runs 10 to 35" },
+      money('rent', 'monthly rent in the first year'),
+      { name: 'horizon', type: 'number', doc: "years to compare (whole years): the calculator's slider runs 1 to 30", required: true, integer: true, min: 1, max: 30 },
+    ],
+    options: [
+      { name: 'region', type: 'string', doc: 'us (default), uk or eur: sets the transaction-cost defaults and switches the US deduction test off elsewhere', default: 'us', oneOf: ['us', 'uk', 'eur'] },
+      { name: 'closing', type: 'number', doc: "buyer's purchase costs, % of the price (default by region: 3 US, 0 UK and EUR)", min: 0, max: 30 },
+      { name: 'selling', type: 'number', doc: 'costs of selling at the end, % of the sale price (default by region: 6 US, 0 UK and EUR)', min: 0, max: 30 },
+      { name: 'propertyTax', type: 'number', doc: 'annual property tax or charges, % of the purchase price', default: 1, min: 0, max: 10 },
+      { name: 'insurance', type: 'number', doc: 'home insurance a year', default: 1800, min: 0 },
+      { name: 'hoa', type: 'number', doc: 'HOA, service charge or ground rent a month', default: 0, min: 0 },
+      { name: 'maintenance', type: 'number', doc: 'annual maintenance, % of the purchase price', default: 1, min: 0, max: 10 },
+      { name: 'appreciation', type: 'number', doc: 'annual home price growth, %', default: 3, min: -20, max: 30 },
+      { name: 'rentIncrease', type: 'number', doc: 'annual rent increase, %', default: 3, min: 0, max: 30 },
+      { name: 'rentersInsurance', type: 'number', doc: "renters' (contents) insurance a month", default: 15, min: 0 },
+      { name: 'invest', type: 'number', doc: 'annual return on invested cash, %', default: 7, min: -20, max: 30 },
+      { name: 'marginalTax', type: 'number', doc: 'US only: combined marginal tax rate on deductions, %', default: 22, min: 0, max: 60 },
+      STATUS,
+      { name: 'otherItemized', type: 'number', doc: 'US only: other itemised deductions a year', default: 0, min: 0 },
+      { name: 'stateTax', type: 'number', doc: 'US only: state and local income tax paid a year (shares the SALT cap)', default: 0, min: 0 },
+    ],
+    returns: 'object',
+    fields: {
+      verdict: "'buy', 'rent' or 'tie' at the horizon",
+      advantage: 'buyer net worth minus renter net worth at the horizon (negative = renting ahead)',
+      difference: 'the absolute value of advantage',
+      breakEvenYear: 'first year from which buying stays ahead to the horizon (a year number: print with int, never months; using it when buying is not ahead at the horizon fails the build)',
+      laterBreakEvenYear: 'when renting is ahead at the horizon, the year buying would pull ahead if you stayed up to 50 years (a year number; using it when renting is not ahead, or buying never catches up, fails the build)',
+      downPayment: 'the down payment',
+      closingCosts: "the buyer's purchase costs",
+      initialCash: 'cash both households start with (down payment + purchase costs)',
+      loanAmount: 'the mortgage',
+      monthlyMortgage: 'scheduled principal and interest a month',
+      monthlyOwnershipCost: 'first month: mortgage + property tax + insurance + HOA + maintenance (before any tax saving)',
+      firstMonthRentCost: 'first month: rent + renters insurance',
+      totalTaxSaving: 'US tax saved by itemising over the horizon',
+      totalInterest: 'mortgage interest paid over the horizon',
+      totalRentPaid: 'rent and renters insurance paid over the horizon',
+      finalHomeValue: 'home value at the horizon',
+      saleCosts: 'selling costs at the horizon',
+      loanBalance: 'loan still owed at the horizon',
+      finalEquity: 'home value minus loan balance',
+      buyerPortfolio: "the buyer's investment portfolio at the horizon",
+      finalBuyerNetWorth: 'home value - selling costs - loan + buyer portfolio',
+      finalRenterNetWorth: "the renter's portfolio",
+    },
+    fieldMeta: {
+      breakEvenYear: {
+        years: true,
+        ifInfinite:
+          'there is no break-even year: buying is not ahead at the end of the horizon (the calculator says renting stays ahead, or the two tie); write it in words',
+      },
+      laterBreakEvenYear: {
+        years: true,
+        ifInfinite: `there is no later break-even year: renting is not ahead at the horizon, or buying does not catch up within ${LONG_STAY_YEARS} years (the calculator says so); write it in words`,
+      },
+    },
+    example: "rentVsBuy(350000, 20, 5.5, 25, 1400, 10, region=uk, closing=3, selling=2, propertyTax=0, insurance=400, rentersInsurance=10).advantage | gbp",
+    run: (a) => {
+      const input = rentVsBuyInputs(a);
+      const r = simulateRentVsBuy(input);
+      const last = r.years[r.years.length - 1];
+      const later = r.verdict === 'rent' ? laterBreakEvenYear(input) : null;
+      return {
+        verdict: r.verdict,
+        advantage: r.advantage,
+        difference: r.difference,
+        breakEvenYear: r.breakEvenYear ?? Infinity,
+        laterBreakEvenYear: later ?? Infinity,
+        downPayment: r.downPayment,
+        closingCosts: r.closingCosts,
+        initialCash: r.initialCash,
+        loanAmount: r.loanAmount,
+        monthlyMortgage: r.monthlyMortgage,
+        monthlyOwnershipCost: r.monthlyOwnershipCost,
+        firstMonthRentCost: r.firstMonthRentCost,
+        totalTaxSaving: r.totalTaxSaving,
+        totalInterest: r.totalInterest,
+        totalRentPaid: r.totalRentPaid,
+        finalHomeValue: r.finalHomeValue,
+        saleCosts: last.saleCosts,
+        loanBalance: last.loanBalance,
+        finalEquity: r.finalEquity,
+        buyerPortfolio: last.buyerPortfolio,
+        finalBuyerNetWorth: r.finalBuyerNetWorth,
+        finalRenterNetWorth: r.finalRenterNetWorth,
+      };
+    },
+  },
+
+  /* ── Car finance ── */
+  {
+    name: 'carFinance',
+    group: 'Car finance',
+    summary:
+      "The car finance calculator's PCP, HP, personal loan and cash comparison. APRs, balloon and return default to the calculator's defaults. The APR convention is 'effective' (the GBP and EUR rule, default) or 'nominal' (USD, APR / 12). A deposit above what the calculator allows fails (it would clamp it and show a notice).",
+    params: [
+      money('price', 'car price', { above: 0, min: undefined }),
+      money('deposit', 'deposit'),
+      { name: 'months', type: 'number', doc: "term in months: the calculator's slider runs 12 to 84 in steps of 6", required: true, integer: true, min: 12, max: 84, step: 6 },
+    ],
+    options: [
+      { name: 'convention', type: 'string', doc: "APR convention: effective (annual effective rate, GBP and EUR; default) or nominal (APR / 12, USD)", default: 'effective', oneOf: ['effective', 'nominal'] },
+      { name: 'pcpApr', type: 'number', doc: 'PCP APR in %', default: 7.9, min: 0, max: 100 },
+      { name: 'balloon', type: 'number', doc: 'PCP balloon (GMFV) as % of the price (at most 60, and deposit + balloon within the price)', default: 40, min: 0, max: 60 },
+      { name: 'hpApr', type: 'number', doc: 'HP APR in %', default: 8.9, min: 0, max: 100 },
+      { name: 'loanApr', type: 'number', doc: 'personal loan APR in %', default: 5.6, min: 0, max: 100 },
+      { name: 'invest', type: 'number', doc: 'what uninvested cash could earn, % a year', default: 4.5, min: 0, max: 50 },
+    ],
+    returns: 'object',
+    fields: {
+      financeAmount: 'price minus deposit',
+      balloon: 'the PCP balloon in money',
+      pcpMonthly: 'PCP monthly payment',
+      hpMonthly: 'HP monthly payment',
+      loanMonthly: 'personal loan monthly payment',
+      pcpTotalPaid: 'PCP: deposit + payments + balloon',
+      hpTotalPaid: 'HP: deposit + payments',
+      loanTotalPaid: 'personal loan: deposit + payments',
+      cashTotalPaid: 'cash: the price',
+      pcpTotalInterest: 'PCP total paid minus the price',
+      hpTotalInterest: 'HP total paid minus the price',
+      loanTotalInterest: 'personal loan total paid minus the price',
+      pcpOpportunityCost: 'PCP: investment growth given up',
+      hpOpportunityCost: 'HP: investment growth given up',
+      loanOpportunityCost: 'personal loan: investment growth given up',
+      cashOpportunityCost: 'cash: investment growth given up',
+      pcpTrueCost: 'PCP total paid + opportunity cost',
+      hpTrueCost: 'HP total paid + opportunity cost',
+      loanTrueCost: 'personal loan total paid + opportunity cost',
+      cashTrueCost: 'cash total paid + opportunity cost',
+      cheapest: "the option with the lowest true cost: 'pcp', 'hp', 'loan' or 'cash'",
+    },
+    example: 'carFinance(25000, 2500, 48).pcpMonthly | gbp(2)',
+    run: (a) => {
+      const price = a.num('price');
+      const deposit = a.num('deposit');
+      if (deposit > maxDepositFor(price)) {
+        fail(
+          `deposit ${deposit} is more than the calculator allows for a ${price} car (at most ${maxDepositFor(price)}: the price less ${MIN_FINANCE_AMOUNT}, capped at ${MAX_DEPOSIT}); the calculator clamps it and shows a notice`,
+        );
+      }
+      const c = compareCarFinance({
+        carPrice: price,
+        deposit,
+        termMonths: a.num('months'),
+        pcpApr: a.num('pcpApr'),
+        pcpBalloonPct: a.num('balloon'),
+        hpApr: a.num('hpApr'),
+        loanApr: a.num('loanApr'),
+        investReturnRate: a.num('invest'),
+        aprConvention: a.str('convention') as AprConvention,
+      });
+      if (a.num('balloon') > c.maxBalloonPct) {
+        fail(`balloon ${a.num('balloon')}% is more than the calculator allows here (at most ${c.maxBalloonPct}% for this price and deposit); it would cap it silently`);
+      }
+      const [pcp, hp, loan, cash] = c.options;
+      return {
+        financeAmount: c.financeAmount,
+        balloon: c.balloon,
+        pcpMonthly: pcp.monthly,
+        hpMonthly: hp.monthly,
+        loanMonthly: loan.monthly,
+        pcpTotalPaid: pcp.totalPaid,
+        hpTotalPaid: hp.totalPaid,
+        loanTotalPaid: loan.totalPaid,
+        cashTotalPaid: cash.totalPaid,
+        pcpTotalInterest: pcp.totalInterest,
+        hpTotalInterest: hp.totalInterest,
+        loanTotalInterest: loan.totalInterest,
+        pcpOpportunityCost: pcp.opportunityCost,
+        hpOpportunityCost: hp.opportunityCost,
+        loanOpportunityCost: loan.opportunityCost,
+        cashOpportunityCost: cash.opportunityCost,
+        pcpTrueCost: pcp.trueCost,
+        hpTrueCost: hp.trueCost,
+        loanTrueCost: loan.trueCost,
+        cashTrueCost: cash.trueCost,
+        cheapest: c.cheapest.type,
+      };
+    },
+  },
+
+  /* ── Emergency fund ── */
+  {
+    name: 'emergencyMonths',
+    group: 'Saving and investing',
+    summary:
+      'Whole months until an emergency fund reaches its target (the emergency fund calculator: savings rate is an AER/APY, interest earned on the savings already held, deposits at the end of each month; 0 if already funded; Infinity only when nothing is saved and nothing earns interest). Fails when it takes more than 50 years.',
+    params: [
+      money('target', 'fund target (monthly essential expenses x months of cover)', { above: 0, min: undefined }),
+      money('current', 'already saved'),
+      money('monthly', 'saved each month'),
+      ratePct('aer', 'savings rate as an AER/APY in %', { max: 50 }),
+    ],
+    returns: 'number (months)',
+    example: 'emergencyMonths(21000, 2000, 500, 4) | int',
+    run: (a) => {
+      const r = monthsToTarget({
+        target: a.num('target'),
+        current: a.num('current'),
+        monthly: a.num('monthly'),
+        aer: a.num('aer') / 100,
+      });
+      if (r.status === 'funded') return 0;
+      if (r.status === 'ok') return r.months;
+      if (r.reason === 'no-saving') return Infinity;
+      return fail(
+        `the fund is not reached within ${MAX_FUND_MONTHS / 12} years (${MAX_FUND_MONTHS} months), the longest the emergency fund calculator searches, which is not "never"; write that in words`,
+      );
+    },
+  },
+
+  /* ── Solar payback ── */
+  {
+    name: 'solarPayback',
+    group: 'Solar payback',
+    summary:
+      "The solar panel payback calculator for a region (uk, us or eur), starting from the calculator's regional defaults and its own defaults (30% self-consumption, 3% energy inflation, 0.5% degradation, 25 years, no grant, no battery). Every option overrides one input. Fails when the system does not pay back within the period, or when a grant covers the whole cost (the calculator says \"Pays back immediately\").",
+    params: [{ name: 'region', type: 'string', doc: 'uk, us or eur: picks the calculator\'s regional defaults', required: true, oneOf: ['uk', 'us', 'eur'] }],
+    options: [
+      { name: 'systemCost', type: 'number', doc: 'installed cost before incentives (default by region)', min: 0 },
+      { name: 'systemSize', type: 'number', doc: 'system size in kWp (default by region)', above: 0 },
+      { name: 'battery', type: 'boolean', doc: 'include the battery (adds its cost and models its capture year by year)', default: false },
+      { name: 'batteryCost', type: 'number', doc: 'installed battery cost (default by region)', min: 0 },
+      { name: 'batteryCapacity', type: 'number', doc: 'usable battery capacity in kWh (default by region)', min: 0 },
+      { name: 'tariff', type: 'number', doc: 'import tariff in pence or cents per kWh (default by region)', min: 0 },
+      { name: 'exportTariff', type: 'number', doc: 'export tariff in pence or cents per kWh (default by region)', min: 0 },
+      { name: 'selfConsumption', type: 'number', doc: 'base self-consumption without a battery, %', default: 30, min: 0, max: 100 },
+      { name: 'inflation', type: 'number', doc: 'energy price inflation, % a year', default: 3, min: 0, max: 30 },
+      { name: 'degradation', type: 'number', doc: 'panel degradation, % a year', default: 0.5, min: 0, max: 10 },
+      { name: 'maintenance', type: 'number', doc: 'maintenance a year (default by region)', min: 0 },
+      { name: 'credit', type: 'number', doc: 'grant or tax credit that reduces the net cost', default: 0, min: 0 },
+      { name: 'years', type: 'number', doc: "analysis period in years: the calculator's slider runs 10 to 40 in steps of 5", default: 25, integer: true, min: 10, max: 40, step: 5 },
+      { name: 'kWhPerKwp', type: 'number', doc: 'annual kWh per kWp installed (default by region)', above: 0 },
+    ],
+    returns: 'object',
+    fields: {
+      netCost: 'cost after incentives (including the battery when included)',
+      paybackYears: 'whole years of the payback time (the "19" in 19 years 8 months)',
+      paybackMonths: 'months on top of paybackYears (0 to 11)',
+      paybackTotalMonths: 'paybackYears x 12 + paybackMonths (for the months formatter)',
+      year1Savings: 'savings in year 1, after maintenance',
+      totalSavings: 'total savings over the analysis period',
+      roi: 'return over the period, % ((total savings - net cost) / net cost)',
+      generationYear1: 'kWh generated in year 1',
+      generationFinal: 'kWh generated in the last year (after degradation)',
+      savingsFinalYear: 'savings in the last year',
+      selfConsumption: 'effective year-1 self-consumption, % (with the battery when included)',
+    },
+    fieldMeta: { paybackYears: { years: true } },
+    example: "solarPayback('uk').paybackTotalMonths | months",
+    run: (a) => {
+      const input = solarInputs(a);
+      const r = calculateSolarPayback(input);
+      if (r.paysBackImmediately) {
+        fail(
+          `the grant or credit covers the whole cost (net cost ${r.netCost}), so the calculator says "Pays back immediately" and there is nothing to pay back; write it in words`,
+        );
+      }
+      if (!r.reachesPayback) {
+        fail(
+          `the system does not pay for itself within ${input.analysisPeriod} years at these settings (the calculator says so); write it in words`,
+        );
+      }
+      const capacity = input.batteryCapacityKwh ?? 0;
+      return {
+        netCost: r.netCost,
+        paybackYears: r.paybackYears,
+        paybackMonths: r.paybackMonths,
+        paybackTotalMonths: r.paybackYears * 12 + r.paybackMonths,
+        year1Savings: r.year1Savings,
+        totalSavings: r.totalSavings,
+        roi: r.roi as number, // not null here: the net cost is above 0 (immediate payback failed above)
+        generationYear1: r.yearly[0].generation,
+        generationFinal: r.yearly[r.yearly.length - 1].generation,
+        savingsFinalYear: r.yearly[r.yearly.length - 1].annualSavings,
+        selfConsumption: effectiveSelfConsumption(
+          input.includeBattery,
+          input.selfConsumptionPct,
+          input.systemSize,
+          input.kWhPerKwp,
+          capacity,
+        ),
+      };
+    },
+  },
+
+  /* ── ROI, required rate, CPI, loan crossover ── */
+  {
+    name: 'roi',
+    group: 'Saving and investing',
+    summary: "The ROI calculator: total gain, total return and annualized return for an investment held a number of years (income received counts towards the return).",
+    params: [
+      money('initial', 'amount invested', { above: 0, min: undefined }),
+      money('final', 'value now (0 for a total loss)'),
+      money('income', 'dividends or other income received'),
+      { name: 'years', type: 'number', doc: 'years held', required: true, above: 0, max: 200 },
+    ],
+    returns: 'object',
+    fields: {
+      totalGain: 'final value + income - initial investment',
+      totalReturn: 'total gain as % of the initial investment',
+      annualized: 'compound annual return, % (a total loss is -100)',
+    },
+    example: 'roi(10000, 15000, 500, 3).annualized | pct1',
+    run: (a) => {
+      const r = calcRoi(a.num('initial'), a.num('final'), a.num('income'), a.num('years'));
+      if (!r.valid || r.annualizedReturn === null) fail('the ROI calculator shows no annualized figure for these inputs');
+      return { totalGain: r.totalGain, totalReturn: r.totalReturn * 100, annualized: r.annualizedReturn * 100 };
+    },
+  },
+  {
+    name: 'annualizedReturn',
+    group: 'Saving and investing',
+    summary: "A total return over some years as a compound annual return (the ROI calculator's annualize): (1 + total)^(1 / years) - 1, in %; a total loss (-100) stays -100.",
+    params: [
+      { name: 'totalReturn', type: 'number', doc: 'total return in % (80 means +80%)', required: true, min: -100, max: 1_000_000 },
+      { name: 'years', type: 'number', doc: 'years held', required: true, above: 0, max: 200 },
+    ],
+    returns: 'number (%)',
+    example: 'annualizedReturn(100, 10) | pct1',
+    run: (a) => {
+      const r = annualize(a.num('totalReturn') / 100, a.num('years'));
+      if (r === null) fail('the annualized return is not defined for these inputs');
+      return r * 100;
+    },
+  },
+  {
+    name: 'requiredRate',
+    group: 'Saving and investing',
+    summary:
+      'The annual return needed for a starting sum plus monthly contributions to reach a target in a number of years (the investment return calculator, Return Rate tab), in %; negative when the money paid in already exceeds the target. Fails when even 100% a year is not enough, or when no return is needed at all (the calculator reports those states).',
+    params: [
+      money('start', 'starting amount'),
+      money('monthly', 'monthly contribution'),
+      money('target', 'target balance', { above: 0, min: undefined }),
+      termYears,
+    ],
+    options: [COMPOUNDING, TIMING],
+    returns: 'number (%)',
+    example: 'requiredRate(10000, 200, 100000, 20) | pct(2)',
+    run: (a) => {
+      checkCompounding(a.num('compounding'));
+      const s = solveRequiredRate(
+        a.num('start'),
+        a.num('monthly'),
+        a.num('target'),
+        termMonths(a.num('years')),
+        a.num('compounding'),
+        a.str('timing') as 'end' | 'beginning',
+      );
+      switch (s.status) {
+        case 'ok':
+          return s.rate * 100;
+        case 'tooHigh':
+          return fail('even a 100% annual return does not reach the target in this time (the calculator says so); write it in words');
+        case 'metAtAnyRate':
+          return fail('the target is met at any return (the money already paid in or the start covers it); there is no rate to solve for');
+        case 'invalid':
+          return fail('the required rate needs a starting amount or a monthly contribution above 0');
+      }
+    },
+  },
+  {
+    name: 'cpiValue',
+    group: 'Saving and investing',
+    summary: `The US CPI-U index value (BLS, 1982-84 = 100) the inflation calculator uses for a year: the annual average, or for ${CPI_U_LATEST.year} the latest month (${CPI_U_LATEST.label}). Print it with the index formatter (321.943, 130.7).`,
+    params: [{ name: 'year', type: 'number', doc: `year (${CPI_FIRST_YEAR}-${CPI_LAST_YEAR})`, required: true, integer: true, min: CPI_FIRST_YEAR, max: CPI_LAST_YEAR }],
+    returns: 'number (index)',
+    example: 'cpiValue(2025) | index',
+    run: (a) => {
+      const v = cpiFor(a.num('year'));
+      if (v === null) fail(`no CPI data for ${a.num('year')}`);
+      return v;
+    },
+  },
+  {
+    name: 'loanCrossoverMonth',
+    group: 'Loans',
+    summary: 'The first payment of the schedule in which more principal than interest is repaid (the mortgage and loan amortization schedule).',
+    params: [money('principal', 'amount borrowed', { above: 0, min: undefined }), ratePct('rate', 'annual interest rate in %'), termYears],
+    returns: 'number (month)',
+    example: 'loanCrossoverMonth(280000, 7, 30) | int',
+    run: (a) => {
+      const rows = buildAmortization(a.num('principal'), a.num('rate'), termMonths(a.num('years'))).months;
+      const hit = rows.find((m) => m.principal > m.interest);
+      if (!hit) fail('principal never exceeds interest in this schedule');
+      return hit.month;
     },
   },
 
@@ -1807,6 +2714,17 @@ const formatters: FigureFormatter[] = [
     run: (value, args) => formatNumber(needNumber(value, 'num'), decimalsArg('num', args, 0, true)),
   },
   {
+    name: 'index',
+    summary: 'An index value with up to 3 decimals and no trailing zeros (CPI-U 130.7, 321.943).',
+    usage: 'index',
+    example: '130.7 | index',
+    run: (value, args) => {
+      if (args.length) fail('index takes no arguments');
+      const n = needNumber(value, 'index');
+      return (n < 0 ? '-' : '') + groupDigits(Math.abs(n), 0, 3);
+    },
+  },
+  {
     name: 'months',
     summary: 'A number of months as "13 years 11 months" (rounded to whole months); Infinity prints "never".',
     usage: 'months',
@@ -1938,6 +2856,12 @@ function checkParam(fn: FigureFunction, spec: ParamSpec, raw: FigurePrimitive): 
   if (typeof v === 'number') {
     if (!Number.isFinite(v)) fail(`${label} must be a finite number`);
     if (spec.integer && !Number.isInteger(v)) fail(`${label} must be a whole number (got ${v})`);
+    if (spec.step !== undefined) {
+      const steps = (v - (spec.min ?? 0)) / spec.step;
+      if (Math.abs(steps - Math.round(steps)) > 1e-9) {
+        fail(`${label} must be ${spec.min ?? 0} plus a multiple of ${spec.step}, like the calculator's slider (got ${v})`);
+      }
+    }
     if (spec.min !== undefined && v < spec.min) fail(`${label} must be at least ${spec.min} (got ${v})`);
     if (spec.above !== undefined && !(v > spec.above)) fail(`${label} must be more than ${spec.above} (got ${v})`);
     if (spec.max !== undefined && v > spec.max) fail(`${label} must be at most ${spec.max} (got ${v})`);
@@ -1983,6 +2907,7 @@ function callFunction(name: string, args: { name?: string; value: FigureValue }[
   }
   const result = fn.run(new Args(values));
   checkResult(name, result);
+  if (typeof result === 'object' && fn.fieldMeta) RESULT_META.set(result, fn.fieldMeta);
   return result;
 }
 
@@ -2013,7 +2938,10 @@ function evalExpr(node: ExprNode): FigureValue {
       if (!Object.hasOwn(target, node.field)) {
         fail(`no field ".${node.field}" (fields: ${Object.keys(target).join(', ')})${suggest(node.field, Object.keys(target))}`);
       }
-      return target[node.field];
+      const out = target[node.field];
+      const meta = RESULT_META.get(target)?.[node.field];
+      if (typeof out === 'number' && !Number.isFinite(out) && meta?.ifInfinite) fail(meta.ifInfinite);
+      return out;
     }
     case 'neg': {
       const v = evalExpr(node.operand);
@@ -2034,6 +2962,16 @@ function evalExpr(node: ExprNode): FigureValue {
   }
 }
 
+/** Names the year-valued thing an expression directly is (a year function or year field), else null. */
+function yearValued(expr: ExprNode): string | null {
+  if (expr.kind === 'call') return FIGURE_FUNCTIONS.get(expr.name)?.returnsYears ? `${expr.name}(...)` : null;
+  if (expr.kind === 'field') {
+    const target = evalExpr(expr.target);
+    if (typeof target === 'object' && RESULT_META.get(target)?.[expr.field]?.years) return `.${expr.field}`;
+  }
+  return null;
+}
+
 function runPipeline(p: Pipeline): string {
   // A token must compute something. A bare word or quoted text on its own would
   // print as typed: a forgotten "()" (`{{ taxYear }}`) or a hand-typed figure
@@ -2050,6 +2988,10 @@ function runPipeline(p: Pipeline): string {
     fail('quoted text on its own prints as typed, so it is not a generated figure; write literal text outside the token, or call a function');
   }
   let value = evalExpr(p.expr);
+  if (p.filters.some((x) => x.name === 'months')) {
+    const what = yearValued(p.expr);
+    if (what) fail(`${what} is a number of years, not months, so the months formatter would print it wrongly; use | int or | num(1) (or multiply by 12 first)`);
+  }
   for (const f of p.filters) {
     const fmt = FIGURE_FORMATTERS.get(f.name);
     if (!fmt) fail(`unknown formatter "${f.name}"${suggest(f.name, FIGURE_FORMATTERS.keys())}; see docs/figures.md`);
