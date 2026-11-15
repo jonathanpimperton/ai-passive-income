@@ -90,18 +90,24 @@ const BIG_NUMBER_CLASS =
 
 /**
  * One short sentence for screen readers, announced about half a second after
- * the answer settles. It starts equal to the current text, so nothing is read
- * out on load or when a tab opens. The panel itself is NOT a live region
- * (plan 5.4, A11Y-PERF-03).
+ * the answer settles. It starts equal to the current text and stays silent
+ * (aria-live off) for the first 1.5 s, so nothing is read out on load, when
+ * the visitor's country is applied after hydration, or when a tab opens. The
+ * panel itself is NOT a live region (plan 5.4, A11Y-PERF-03).
  */
 function Announcer({ text }: { text: string }) {
   const [announced, setAnnounced] = useState(text);
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setLive(true), 1500);
+    return () => window.clearTimeout(t);
+  }, []);
   useEffect(() => {
     const t = window.setTimeout(() => setAnnounced(text), 500);
     return () => window.clearTimeout(t);
   }, [text]);
   return (
-    <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+    <p className="sr-only" role="status" aria-live={live ? 'polite' : 'off'} aria-atomic="true">
       {announced}
     </p>
   );
@@ -220,7 +226,7 @@ function MortgagePanel({
     : `Assumes ${fmt(AD.monthlyDebts)}/mo other debts, ${AD.propertyTaxRate}% property tax, ${fmt(AD.insuranceAnnual)}/yr insurance and the ${AD.frontEndPct}/${AD.backEndPct} rule. Rate: ${rateAttribution(rateInfo)}.`;
 
   const liveText = ok
-    ? `You could afford up to ${fmt(result.maxPrice)}.`
+    ? `Maximum home price ${fmt(result.maxPrice)}.`
     : 'No home fits these limits at this income.';
 
   return (

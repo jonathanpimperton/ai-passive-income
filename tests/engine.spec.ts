@@ -400,10 +400,11 @@ test('a 2026 build served in January 2027 reconciles to 2027 without a hydration
   await page.clock.setFixedTime(new Date('2027-01-02T12:00:00Z'));
   await openHome(page);
   const panel = await openTakeHome(page);
+  await page.waitForTimeout(500);
+  expect(bad.filter((m) => HYDRATION.test(m))).toEqual([]); // first, so a mismatch is reported as one
   await expect(page.locator('[data-engine-year]')).toHaveAttribute('data-engine-year', '2027');
   await expect(panel.getByText(/2027 federal tax and FICA/)).toBeVisible();
   const homeAnnual = digits(await settled(panel.locator('[data-engine-net="annual"]')));
-  expect(bad.filter((m) => HYDRATION.test(m))).toEqual([]);
 
   // The tool, on the same date, agrees (it defaults to 2027 too)
   await page.goto('/tools/income-and-planning/salary-us/');
@@ -422,8 +423,9 @@ test('a time zone already in the new year reconciles too (Pacific/Kiritimati on 
   await page.clock.setFixedTime(new Date('2026-12-31T12:00:00Z')); // 2027-01-01 02:00 in Kiritimati
   await openHome(page);
   await openTakeHome(page);
-  await expect(page.locator('[data-engine-year]')).toHaveAttribute('data-engine-year', '2027');
+  await page.waitForTimeout(500);
   expect(bad.filter((m) => HYDRATION.test(m))).toEqual([]);
+  await expect(page.locator('[data-engine-year]')).toHaveAttribute('data-engine-year', '2027');
   await context.close();
 });
 
