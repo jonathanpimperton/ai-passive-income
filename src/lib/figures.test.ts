@@ -19,12 +19,13 @@ import {
   resolveFiguresPlain,
   figureSignature,
 } from './figures';
+import { MAX_SOLVE_MONTHS, solveMonthsToTarget } from './investment-solvers';
+import { MAX_GOAL_MONTHS, timeToGoal } from './savings-goal';
 import {
   compoundInterest,
   amortizationSchedule,
   loanMonthlyPayment,
   monthlySavingsRequired,
-  solveForTime,
 } from './calculator-utils';
 import { calcSimpleIncomeTax, calcNI, calcStudentLoan, calcIncomeTax } from './uk-tax-calc';
 import { calcFederalTax, calcFICA } from './us-tax-calc';
@@ -133,8 +134,9 @@ describe('failure modes', () => {
     ['ukPay(30000).toString | gbp', /no field ".toString"/],
     ['compoundFV(1000, 0, 7, 10, compounding=constructor) | usd', /compounding must be a number or one of/],
     ['sdlt(300000, buyer=toString) | gbp', /"buyer" must be one of/],
-    ["ukTakeHome(30000, code='__proto__') | gbp", /not supported by figure tokens/],
-    ["ukTakeHome(30000, code='CONSTRUCTOR') | gbp", /not supported by figure tokens/],
+    ["ukTakeHome(30000, code='__proto__') | gbp", /not a recognised PAYE tax code/],
+    ["ukTakeHome(30000, code='CONSTRUCTOR') | gbp", /not a recognised PAYE tax code/],
+    ["ukTakeHome(30000, code='12570') | gbp", /not a recognised PAYE tax code/],
     ['ukTakeHome(30000, plan=plan9) | gbp', /"plan" must be one of .*plan2.*got "plan9"/],
     ['ukTakeHome(30000, plna=plan2) | gbp', /unknown option "plna" \(did you mean "plan"\?\)/],
     ['ukTakeHome() | gbp', /missing "salary"/],
@@ -158,10 +160,8 @@ describe('failure modes', () => {
     ['ukTakeHome(30000, pension=5) | gbp', /needs method=sacrifice/],
     ['ukTakeHome(30000, pension=5, pensionAmount=100, method=net) | gbp', /not both/],
     ['ukTakeHome(30000, pensionAmount=40000, method=net) | gbp', /more than the salary/],
-    ["ukTakeHome(30000, code='K475') | gbp", /not supported by figure tokens/],
     ["ukTakeHome(30000, code='D2') | gbp", /only exists with the S/],
     ["ukTakeHome(30000, code='S1257L', scottish=false) | gbp", /contradicts scottish=false/],
-    ['ukTakeHome(30000, pension=5, method=ras, scottish=true) | gbp', /not modelled for Scottish/],
     ['ukTakeHome(30000, plan=postgrad, postgrad=true) | gbp', /same loan/],
     ['ukStudentLoan(30000) | gbp', /needs plan=/],
     ['ukTakeHome(30000, year=2027) | gbp', /no UK tax data wired for 2027\/28/],
@@ -171,6 +171,7 @@ describe('failure modes', () => {
     ['usTakeHome(75000, k401=5, k401Amount=100) | usd', /not both/],
     ['usBracketStart(23) | usd', /no 23% federal bracket/],
     ["ukFact('personalallowance') | gbp", /did you mean "personalAllowance"/],
+    ["ukFact('statePensionAge') | int", /"key" must be one of/],
     ['loanPayment(0, 7, 4) | usd', /more than 0/],
     ['loanPayment(50000, 7, 4.1) | usd', /not a whole number of months/],
     ['loanPayment(50000, 101, 4) | usd', /at most 100/],
@@ -185,7 +186,20 @@ describe('failure modes', () => {
     ['cardPayoff(5000, 20, 100, minFloor=25).months | months', /only applies with minPct/],
     ['compoundFV(1000, 0, 7, 10, compounding=hourly) | usd', /compounding must be a number or one of/],
     ['compoundFV(1000, 0, 7, 10, compounding=3) | usd', /compounding must be 1, 2, 4, 12, 52 or 365/],
-    ["rate('us30') | pct(2)", /market-rates\.ts .* not merged/],
+    ["rate('us40') | pct(2)", /"key" must be one of us30, us15, boe/],
+    ["rateSource('boe2')", /"key" must be one of/],
+    ['cardPayoff(5000, 20, 100, plusInterest=true).months | months', /plusInterest only applies with minPct/],
+    ['cardPayoff(50000, 22, minPct=2, minFloor=25).months | months', /not cleared within 600 months .*beyond 50 years/],
+    ['payoffBalance(8000, 24, 100, 12) | usd', /never repaid/],
+    ['payoffBalance(50000, 22, 1200, 601) | usd', /"months" must be at most 600/],
+    ['yearsToTarget(10000, 0, 3, 1000000) | months', /not reached within 100 years .*"Not within 100 years"/],
+    ['savingsMonths(1000000, 0, 50, 0) | months', /not reached within 100 years .*"Not within 100 years"/],
+    ["ukTakeHome(30000, code='ZZ99') | gbp", /W1, M1, X or NONCUM/],
+    ["usFact('k401Limit', year=2027) | usd", /has not published the 2027 401\(k\) limits/],
+    ['usTakeHome(100000, k401=30, year=2027) | usd', /has not published the 2027 401\(k\) limit/],
+    ['cpiAdjust(100, 2000, 2000).adjusted | usd', /same year/],
+    ['cpiAdjust(100, 1900, 2000).adjusted | usd', /at least 1913/],
+    ['feeDrag(1000, 0, 0, 10, 0).cost | usd', /earns nothing/],
     ["taxYear('fr')", /must be one of uk, us/],
   ];
   for (const [src, re] of cases) {
@@ -213,7 +227,6 @@ describe('failure modes', () => {
 describe('catalogue', () => {
   it('every function example evaluates to text', () => {
     for (const fn of FIGURE_FUNCTIONS.values()) {
-      if (fn.name === 'rate') continue; // deliberately fails until market-rates.ts lands
       const out = f(fn.example);
       expect(typeof out, fn.name).toBe('string');
       expect(out, fn.name).not.toMatch(/NaN|undefined|Infinity/);
@@ -240,7 +253,7 @@ describe('catalogue', () => {
     expect(rows.length).toBeGreaterThan(40);
     let checked = 0;
     for (const [, expr, value] of rows) {
-      if (value === 'fails') continue;
+      if (value === 'fails' || value === 'varies') continue; // 'varies': market rates move whenever market-rates.ts is updated
       if (!UK_2026 && /\buk[A-Z]|\bsdlt\(|taxYear\('uk'\)/.test(expr)) continue;
       if (!US_2026 && /\bus[A-Z]|taxYear\('us'\)/.test(expr)) continue;
       expect(f(expr.replace(/\\\|/g, '|')), expr).toBe(value);
@@ -249,13 +262,15 @@ describe('catalogue', () => {
     expect(checked).toBeGreaterThan(UK_2026 && US_2026 ? 40 : 15);
   });
 
-  it('INTERIM functions are flagged in the catalogue and listed in the docs', () => {
+  it('no function is INTERIM (W2-FIG re-pointed them all); the flag and the docs section stay in step', () => {
     const doc = readFileSync('docs/figures.md', 'utf8');
-    const start = doc.indexOf('### Do not use yet: INTERIM functions');
+    const start = doc.indexOf('### INTERIM functions');
     expect(start).toBeGreaterThan(0);
     const section = doc.slice(start, doc.indexOf('\n## ', start));
     const interim = [...FIGURE_FUNCTIONS.values()].filter((fn) => fn.interim);
-    expect(interim.map((fn) => fn.name)).toEqual(expect.arrayContaining(['ukPay', 'usPay', 'cardPayoff', 'feeDrag']));
+    // Adding an INTERIM function means listing it here and in the docs, and telling Wave 2 not to use it.
+    expect(interim.map((fn) => fn.name)).toEqual([]);
+    expect(section).toMatch(/None\./);
     for (const fn of interim) expect(section, fn.name).toContain(`\`${fn.name}\``);
   });
 
@@ -274,7 +289,7 @@ describe('catalogue', () => {
 
   it('signatures list positional params then options', () => {
     expect(figureSignature('mortgagePayment')).toBe('mortgagePayment(principal, rate, years)');
-    expect(figureSignature('cardPayoff')).toBe('cardPayoff(balance, apr, payment?, minPct=, minFloor=, extra=)');
+    expect(figureSignature('cardPayoff')).toBe('cardPayoff(balance, apr, payment?, minPct=, minFloor=, plusInterest=, extra=)');
   });
 });
 
@@ -362,8 +377,9 @@ describe('UK pay vs uk-tax-calc engine', () => {
     close(n("ukIncomeTax(30000, code=NT) | gbp(2)"), 0);
     close(n("ukIncomeTax(30000, code='0T') | gbp(2)"), calcIncomeTax(30000, undefined, 0));
     close(n("ukIncomeTax(30000, code='1100L') | gbp(2)"), calcIncomeTax(30000, undefined, 11000));
-    // Taper applies to non-standard L codes too (UK-3)
-    close(n("ukIncomeTax(110000, code='1100L') | gbp(2)"), calcIncomeTax(110000, undefined, 6000));
+    // A code below 1257L is not tapered twice: the calculator uses the lower of the code and the tapered
+    // allowance (7,570 at 110,000), not 11,000 - 5,000 = 6,000 (figures-grid.test.ts, divergence (ii)).
+    close(n("ukIncomeTax(110000, code='1100L') | gbp(2)"), calcIncomeTax(110000, undefined, 7570));
   });
 
   it('relief at source: basic-rate relief added, bands extended by the gross contribution', () => {
@@ -441,7 +457,8 @@ describe('US pay vs us-tax-calc engine', () => {
     const taxable = 60000 - US_STANDARD_DEDUCTION.single;
     const bracket = US_BRACKETS.single.filter(([from]) => taxable > from).pop()![1] * 100;
     close(n('usBracket(60000) | pct(2)'), bracket);
-    close(n('usBracket(10000) | pct'), 0);
+    // The calculator shows its lowest bracket (10%) when taxable income is 0.
+    close(n('usBracket(10000) | pct'), 10);
     // Marginal = bracket + 7.65% FICA + state
     close(n('usMarginalRate(60000, state=5) | pct(2)'), bracket + 7.65 + 5);
   });
@@ -524,7 +541,6 @@ describe('loans vs calculator-utils engine', () => {
   it('never pays off: payment at or below interest (DB-1 rule)', () => {
     expect(f('cardPayoff(8000, 24, 160).months | months')).toBe('never');
     expect(f('cardPayoff(8000, 24, 100).firstInterest | usd')).toBe('$160');
-    expect(f('cardPayoff(50000, 22, minPct=2, minFloor=25).months | months')).toBe('never');
     expect(f('cardPayoff(8000, 24, 161).months | months')).not.toBe('never');
     // A 3% declining minimum does clear, slowly
     expect(n('cardPayoff(50000, 22, minPct=3, minFloor=25).months | int')).toBeGreaterThan(360);
@@ -555,14 +571,25 @@ describe('saving and investing vs calculator-utils engine', () => {
     close(n('savingsMonthly(100000, 5000, 5, 60) | usd(2)'), monthlySavingsRequired(100000, 5000, 0.05, 60));
     expect(f('savingsMonthly(100000, 5000, 5, 60) | usd(2)')).toBe('$1,376.10');
     expect(f('savingsMonthly(1000, 5000, 5, 12) | usd')).toBe('$0');
-    expect(f('savingsMonths(50000, 0, 1000, 5) | int')).toBe(String(Math.ceil(solveForTime(0, 1000, 0.05, 50000, 12) * 12)));
+    expect(f('savingsMonths(50000, 0, 1000, 5) | int')).toBe(String((timeToGoal({ goal: 50000, current: 0, monthly: 1000, annualRate: 0.05 }) as { months: number }).months));
     expect(f('savingsMonths(50000, 60000, 1000, 5) | int')).toBe('0');
     expect(f('savingsMonths(50000, 0, 0, 0) | months')).toBe('never');
+    expect(f('savingsMonths(50000, 10000, 0, 0) | months')).toBe('never');
+    expect(() => f('savingsMonths(1000000, 0, 50, 0) | months')).toThrow(/not reached within 100 years/);
+    expect(f('goalHorizonYears() | int')).toBe('100');
+    expect(MAX_GOAL_MONTHS).toBe(MAX_SOLVE_MONTHS); // goalHorizonYears() is valid for both calculators
   });
 
   it('years to target', () => {
-    close(n('yearsToTarget(10000, 500, 7, 1000000) | num(4)'), solveForTime(10000, 500, 0.07, 1000000), 0.0001);
-    expect(f('yearsToTarget(10000, 0, 3, 1000000) | months')).toBe('never');
+    // Whole months, as the investment return calculator's Time tab (solveMonthsToTarget), not a fractional solve.
+    const months = solveMonthsToTarget({ principal: 10000, monthlyContribution: 500, annualRate: 0.07 }, 1000000);
+    expect(months.status).toBe('reached');
+    close(n('yearsToTarget(10000, 500, 7, 1000000) | num(4)'), (months as { months: number }).months / 12, 0.00005);
+    // Truly never: no deposits and no growth.
+    expect(f('yearsToTarget(10000, 0, 0, 1000000) | months')).toBe('never');
+    expect(f('yearsToTarget(0, 0, 5, 1000000) | months')).toBe('never');
+    // Not within 100 years is NOT "never" (the tools say "Not within 100 years"): the token fails the build.
+    expect(() => f('yearsToTarget(10000, 0, 3, 1000000) | months')).toThrow(/not reached within 100 years/);
     expect(f('yearsToTarget(20000, 0, 3, 1000) | num')).toBe('0');
   });
 
