@@ -19,8 +19,8 @@ import {
   resolveFiguresPlain,
   figureSignature,
 } from './figures';
-import { solveMonthsToTarget } from './investment-solvers';
-import { timeToGoal } from './savings-goal';
+import { MAX_SOLVE_MONTHS, solveMonthsToTarget } from './investment-solvers';
+import { MAX_GOAL_MONTHS, timeToGoal } from './savings-goal';
 import {
   compoundInterest,
   amortizationSchedule,
@@ -191,6 +191,10 @@ describe('failure modes', () => {
     ['cardPayoff(5000, 20, 100, plusInterest=true).months | months', /plusInterest only applies with minPct/],
     ['cardPayoff(50000, 22, minPct=2, minFloor=25).months | months', /not cleared within 600 months .*beyond 50 years/],
     ['payoffBalance(8000, 24, 100, 12) | usd', /never repaid/],
+    ['payoffBalance(50000, 22, 1200, 601) | usd', /"months" must be at most 600/],
+    ['yearsToTarget(10000, 0, 3, 1000000) | months', /not reached within 100 years .*"Not within 100 years"/],
+    ['savingsMonths(1000000, 0, 50, 0) | months', /not reached within 100 years .*"Not within 100 years"/],
+    ["ukTakeHome(30000, code='ZZ99') | gbp", /W1, M1, X or NONCUM/],
     ["usFact('k401Limit', year=2027) | usd", /has not published the 2027 401\(k\) limits/],
     ['usTakeHome(100000, k401=30, year=2027) | usd', /has not published the 2027 401\(k\) limit/],
     ['cpiAdjust(100, 2000, 2000).adjusted | usd', /same year/],
@@ -570,6 +574,10 @@ describe('saving and investing vs calculator-utils engine', () => {
     expect(f('savingsMonths(50000, 0, 1000, 5) | int')).toBe(String((timeToGoal({ goal: 50000, current: 0, monthly: 1000, annualRate: 0.05 }) as { months: number }).months));
     expect(f('savingsMonths(50000, 60000, 1000, 5) | int')).toBe('0');
     expect(f('savingsMonths(50000, 0, 0, 0) | months')).toBe('never');
+    expect(f('savingsMonths(50000, 10000, 0, 0) | months')).toBe('never');
+    expect(() => f('savingsMonths(1000000, 0, 50, 0) | months')).toThrow(/not reached within 100 years/);
+    expect(f('goalHorizonYears() | int')).toBe('100');
+    expect(MAX_GOAL_MONTHS).toBe(MAX_SOLVE_MONTHS); // goalHorizonYears() is valid for both calculators
   });
 
   it('years to target', () => {
@@ -577,7 +585,11 @@ describe('saving and investing vs calculator-utils engine', () => {
     const months = solveMonthsToTarget({ principal: 10000, monthlyContribution: 500, annualRate: 0.07 }, 1000000);
     expect(months.status).toBe('reached');
     close(n('yearsToTarget(10000, 500, 7, 1000000) | num(4)'), (months as { months: number }).months / 12, 0.00005);
-    expect(f('yearsToTarget(10000, 0, 3, 1000000) | months')).toBe('never');
+    // Truly never: no deposits and no growth.
+    expect(f('yearsToTarget(10000, 0, 0, 1000000) | months')).toBe('never');
+    expect(f('yearsToTarget(0, 0, 5, 1000000) | months')).toBe('never');
+    // Not within 100 years is NOT "never" (the tools say "Not within 100 years"): the token fails the build.
+    expect(() => f('yearsToTarget(10000, 0, 3, 1000000) | months')).toThrow(/not reached within 100 years/);
     expect(f('yearsToTarget(20000, 0, 3, 1000) | num')).toBe('0');
   });
 

@@ -62,7 +62,9 @@
  * years"); payoffBalance when the payment never covers the interest; a 401(k)
  * limit or fact for a year the IRS has not published; a tax code the calculator
  * does not recognise; contradictory options (S code with scottish=false); a
- * pension larger than the salary; feeDrag when the lower-fee fund earns nothing.
+ * pension larger than the salary; feeDrag when the lower-fee fund earns nothing;
+ * savingsMonths / yearsToTarget when the calculator says "Not within 100 years"
+ * ("never" is only for no deposits and no growth).
  * State Pension age is not a fact (it depends on date of birth).
  *
  * figures-grid.test.ts compares every one of these functions with its
@@ -118,8 +120,8 @@ import {
   adjustForInflation,
   projectInflation,
 } from './inflation';
-import { solveMonthsToTarget } from './investment-solvers';
-import { monthlyForGoal, timeToGoal } from './savings-goal';
+import { MAX_SOLVE_MONTHS, solveMonthsToTarget } from './investment-solvers';
+import { MAX_GOAL_MONTHS, monthlyForGoal, timeToGoal } from './savings-goal';
 import { projectRetirement } from './retirement';
 import {
   FigureSyntaxError,
@@ -344,7 +346,7 @@ function checkedUkCode(raw: string): ParsedTaxCode {
   }
   fail(
     `tax code "${raw}" is not a recognised PAYE tax code (supported: nnnnL, nnnnM, nnnnN, nnnnT, 0T, Knnn, BR, D0, D1, NT, ` +
-      `SBR, SD0, SD1, SD2, SD3, with an optional S or C prefix and an optional W1, M1 or X emergency marker)`,
+      `SBR, SD0, SD1, SD2, SD3, with an optional S or C prefix and an optional W1, M1, X or NONCUM emergency marker)`,
   );
 }
 
@@ -667,6 +669,16 @@ function usBracketStart(ratePct: number, status: FilingStatus, rates: UsYearRate
     fail(`there is no ${ratePct}% federal bracket (brackets: ${brackets.map(([, r]) => r * 100).join(', ')})`);
   }
   return hit[0];
+}
+
+/**
+ * True when nothing can ever get a savings balance to a larger goal: no monthly
+ * deposits, and no growth either (a 0% rate, or nothing saved to grow). That is
+ * "never". Any other unmet goal is only "not within 100 years" (the calculators'
+ * wording), which a token must not turn into a number or "never".
+ */
+function neverReached(start: number, monthly: number, ratePct: number): boolean {
+  return monthly <= 0 && (ratePct <= 0 || start <= 0);
 }
 
 /** Keys for rate() and rateSource(): the dated benchmarks in market-rates.ts. */
@@ -1274,8 +1286,8 @@ const fns: FigureFunction[] = [
       { name: 'payment', type: 'number', doc: 'fixed monthly payment (omit when using minPct)', above: 0 },
     ],
     options: [
-      { name: 'minPct', type: 'number', doc: 'minimum payment as % of the current balance (declining minimum)', above: 0, max: 100 },
-      { name: 'minFloor', type: 'number', doc: 'lowest minimum payment, required with minPct (e.g. 25 for US cards, 5 for UK)', min: 0 },
+      { name: 'minPct', type: 'number', doc: 'minimum payment as % of the current balance (declining minimum). The calculator offers 1 to 10 (percentage) or 1 to 5 (interest plus), in steps of 0.5; other values are extensions it cannot show', above: 0, max: 100 },
+      { name: 'minFloor', type: 'number', doc: 'lowest minimum payment, required with minPct. The calculator does not let visitors edit it: 25 for USD and EUR, 5 for GBP (chosen by the currency), so 25 matches the calculator only for USD and EUR visitors and 5 only for GBP', min: 0 },
       {
         name: 'plusInterest',
         type: 'boolean',
@@ -1324,7 +1336,7 @@ const fns: FigureFunction[] = [
       money('balance', 'starting balance', { above: 0, min: undefined }),
       ratePct('apr', 'annual rate in %'),
       { name: 'payment', type: 'number', doc: 'fixed monthly payment', required: true, above: 0 },
-      { name: 'months', type: 'number', doc: 'months of payments', required: true, min: 0, integer: true, max: 1200 },
+      { name: 'months', type: 'number', doc: `months of payments (at most ${CARD_HORIZON_MONTHS}, the length of the calculator's schedule)`, required: true, min: 0, integer: true, max: CARD_HORIZON_MONTHS },
     ],
     returns: 'number',
     example: 'payoffBalance(50000, 22, 1200, 12) | usd',
@@ -1447,7 +1459,8 @@ const fns: FigureFunction[] = [
   {
     name: 'savingsMonths',
     group: 'Saving and investing',
-    summary: 'Whole months until the savings goal is first met at a monthly saving rate (the savings goal calculator; 0 if already met, Infinity if not within 100 years).',
+    summary:
+      'Whole months until the savings goal is first met at a monthly saving rate (the savings goal calculator; 0 if already met; Infinity only when it can never be met: no deposits and no growth; a goal not met within 100 years fails the build, as the calculator says "Not within 100 years").',
     params: [
       money('goal', 'target amount', { above: 0, min: undefined }),
       money('current', 'already saved'),
@@ -1463,14 +1476,19 @@ const fns: FigureFunction[] = [
         monthly: a.num('monthly'),
         annualRate: a.num('rate') / 100,
       });
-      return r.status === 'ok' ? r.months : r.status === 'reached' ? 0 : Infinity;
+      if (r.status === 'ok') return r.months;
+      if (r.status === 'reached') return 0;
+      if (neverReached(a.num('current'), a.num('monthly'), a.num('rate'))) return Infinity;
+      return fail(
+        `the goal is not reached within ${MAX_GOAL_MONTHS / 12} years (the savings goal calculator says "Not within 100 years"), which is not "never"; write that in words`,
+      );
     },
   },
   {
     name: 'yearsToTarget',
     group: 'Saving and investing',
     summary:
-      'Years (whole months / 12) for a starting sum plus monthly contributions to first reach a target (the investment return calculator, Time tab; 0 if already there, Infinity if not within 100 years).',
+      'Years (whole months / 12) for a starting sum plus monthly contributions to first reach a target (the investment return calculator, Time tab; 0 if already there; Infinity only when it can never be reached: no deposits and no growth; a target not reached within 100 years fails the build, as the calculator says "Not within 100 years").',
     params: [
       money('start', 'starting amount'),
       money('monthly', 'monthly contribution'),
@@ -1478,7 +1496,7 @@ const fns: FigureFunction[] = [
       money('target', 'target balance', { above: 0, min: undefined }),
     ],
     options: [COMPOUNDING, TIMING],
-    returns: 'number (years, fractional)',
+    returns: 'number (years: whole months / 12)',
     example: 'yearsToTarget(10000, 500, 7, 1000000) | num(1)',
     run: (a) => {
       checkCompounding(a.num('compounding'));
@@ -1492,8 +1510,22 @@ const fns: FigureFunction[] = [
         },
         a.num('target'),
       );
-      return r.status === 'notWithin' ? Infinity : r.months / 12;
+      if (r.status !== 'notWithin') return r.months / 12;
+      if (neverReached(a.num('start'), a.num('monthly'), a.num('rate'))) return Infinity;
+      return fail(
+        `the target is not reached within ${MAX_SOLVE_MONTHS / 12} years (the investment return calculator says "Not within 100 years"), which is not "never"; write that in words`,
+      );
     },
+  },
+  {
+    name: 'goalHorizonYears',
+    group: 'Saving and investing',
+    summary:
+      'How far the savings goal and investment return calculators look, in years (100). A goal or target not reached within it is "Not within 100 years" (the token fails; use this number in the words).',
+    params: [],
+    returns: 'number (years)',
+    example: 'goalHorizonYears() | int',
+    run: () => MAX_GOAL_MONTHS / 12,
   },
   {
     name: 'feeDrag',

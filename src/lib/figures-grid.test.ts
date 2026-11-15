@@ -657,7 +657,13 @@ describe('growth, targets and savings: figures == the calculators\' engines', ()
               for (const n of [1, 12, 365]) {
                 const expr = `yearsToTarget(${start}, ${monthly}, ${rate}, ${target}, compounding=${n}, timing=${timing})`;
                 const r = solveMonthsToTarget({ principal: start, monthlyContribution: monthly, annualRate: rate / 100, compoundingPerYear: n, timing }, target);
-                same(num(expr), r.status === 'notWithin' ? Infinity : r.months / 12, expr);
+                if (r.status !== 'notWithin') {
+                  same(num(expr), r.months / 12, expr);
+                } else if (monthly <= 0 && (rate <= 0 || start <= 0)) {
+                  same(num(expr), Infinity, `${expr} (truly never)`);
+                } else {
+                  throwsFigureError(expr, /not reached within 100 years/);
+                }
               }
             }
           }
@@ -678,8 +684,11 @@ describe('growth, targets and savings: figures == the calculators\' engines', ()
           }
           for (const monthly of [0, 100, 1_000]) {
             const t = timeToGoal({ goal, current, monthly, annualRate: rate / 100 });
-            const expected = t.status === 'ok' ? t.months : t.status === 'reached' ? 0 : Infinity;
-            same(num(`savingsMonths(${goal}, ${current}, ${monthly}, ${rate})`), expected, `savingsMonths ${goal} ${current} ${monthly} ${rate}`);
+            const expr = `savingsMonths(${goal}, ${current}, ${monthly}, ${rate})`;
+            if (t.status === 'ok') same(num(expr), t.months, expr);
+            else if (t.status === 'reached') same(num(expr), 0, expr);
+            else if (monthly <= 0 && (rate <= 0 || current <= 0)) same(num(expr), Infinity, `${expr} (truly never)`);
+            else throwsFigureError(expr, /not reached within 100 years/);
           }
         }
       }

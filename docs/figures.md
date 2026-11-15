@@ -117,10 +117,13 @@ inputs:
 - **Rounding of parts.** Each token is rounded on its own, so a list of rounded parts
   may not add up to a rounded total by £1. Say "(rounding applies)", or token the
   total as a difference of the same values.
-- **"Never" and "beyond 50 years".** Payoff and target functions return `Infinity` when the
-  goal is never reached (a payment that does not exceed the first month's interest, a target
-  out of reach in 100 years). `| months` prints "never". Money formatters refuse Infinity,
-  so a "never" scenario can't print a fake total. The card payoff engine has a 600-month
+- **"Never", "beyond 50 years" and "not within 100 years".** Payoff and target functions return
+  `Infinity` only when the goal can truly never be reached (a card payment that does not
+  exceed the first month's interest; savings or investing with no deposits and no growth).
+  `| months` prints "never". Money formatters refuse Infinity, so a "never" scenario can't print
+  a fake total. A savings goal or investment target that the calculators report as "Not within
+  100 years" is NOT "never": `savingsMonths` and `yearsToTarget` fail the build for it (write it in
+  words; `{{ goalHorizonYears() | int }}` gives the 100). The card payoff engine has a 600-month
   (50-year) horizon: a balance that is falling but not cleared by then is NOT "never", and
   the calculator labels it "beyond 50 years". A token for that case fails the build, so
   write it in words.
@@ -298,9 +301,9 @@ the annual rate / 12, as in the calculators.
 | Function | Returns | Example | Value |
 |---|---|---|---|
 | `cardPayoff(balance, apr, payment)` | object (fields below), with a fixed monthly payment | `{{ cardPayoff(5000, 22.99, 100).months \| months }}` | 13 years 11 months |
-| `cardPayoff(balance, apr, minPct=, minFloor=, plusInterest=, extra=)` | object, with a declining minimum: max(minPct% of the balance, minFloor), plus `extra`. `plusInterest=true` makes the minimum the month's interest PLUS minPct% of the balance (the UK/FCA and common US issuer formula), still at least minFloor | `{{ cardPayoff(50000, 22, minPct=3, minFloor=25).months \| months }}` | 33 years 5 months |
+| `cardPayoff(balance, apr, minPct=, minFloor=, plusInterest=, extra=)` | object, with a declining minimum: max(minPct% of the balance, minFloor), plus `extra`. `plusInterest=true` makes the minimum the month's interest PLUS minPct% of the balance (the UK/FCA and common US issuer formula), still at least minFloor. The calculator fixes `minFloor` by currency (25 for USD and EUR, 5 for GBP), so `minFloor=25` reproduces the calculator only for USD and EUR visitors; `minPct` is 1 to 10 (percentage) or 1 to 5 (interest plus) in steps of 0.5 there | `{{ cardPayoff(50000, 22, minPct=3, minFloor=25).months \| months }}` | 33 years 5 months |
 | `loanPayoff(balance, apr, payment, extra=)` | object; same engine with a fixed payment (student loans, personal loans) | `{{ loanPayoff(50000, 6.5, 600).interest \| usd }}` | $16,682 |
-| `payoffBalance(balance, apr, payment, months)` | balance left after that many fixed payments (0 once cleared). Fails if the payment never covers the interest | `{{ payoffBalance(50000, 22, 1200, 12) \| usd }}` | $46,235 |
+| `payoffBalance(balance, apr, payment, months)` | balance left after that many fixed payments (0 once cleared); `months` is at most 600, the length of the calculator's schedule. Fails if the payment never covers the interest | `{{ payoffBalance(50000, 22, 1200, 12) \| usd }}` | $46,235 |
 | `cardHorizonYears()` | the horizon of the card engine in years (50): a balance not cleared within it is "beyond 50 years" | `{{ cardHorizonYears() \| int }}` | 50 |
 
 All four are `simulateCardPayoff` (`credit-card.ts`), the credit card calculator's engine:
@@ -332,11 +335,12 @@ at the `end` (default) or the `beginning` of that month.
 | `compoundEarned(start, monthly, rate, years, compounding=, timing=)` | growth only (future value minus everything paid in) | `{{ compoundEarned(10000, 200, 7, 30) \| usd }}` | $243,159 |
 | `retirementFV(savings, monthly, rate, years, inflation=)` | object: `.nominal` `.real` (today's money) `.contributions` `.growth`. `years` is rounded to whole months, as in the calculator | `{{ retirementFV(50000, 500, 7, 35, inflation=3).real \| usd }}` | $524,487 |
 | `savingsMonthly(goal, current, rate, months)` | monthly saving needed (0 if the goal is already met, or interest on the current savings alone gets there) | `{{ savingsMonthly(100000, 0, 4, 60) \| usd }}` | $1,508 |
-| `savingsMonths(goal, current, monthly, rate)` | whole months until the balance first meets the goal (0 if already there, Infinity if not within 100 years) | `{{ savingsMonths(50000, 0, 1000, 5) \| months }}` | 3 years 10 months |
-| `yearsToTarget(start, monthly, rate, target, compounding=, timing=)` | years = whole months / 12, as the investment return calculator's Time tab (0 if already there, Infinity if not within 100 years) | `{{ yearsToTarget(10000, 500, 7, 1000000) \| num(1) }}` | 34.8 |
+| `savingsMonths(goal, current, monthly, rate)` | whole months until the balance first meets the goal (0 if already there; Infinity only when it can never be met, with no deposits and no growth; a goal the calculator reports as "Not within 100 years" fails the build) | `{{ savingsMonths(50000, 0, 1000, 5) \| months }}` | 3 years 10 months |
+| `yearsToTarget(start, monthly, rate, target, compounding=, timing=)` | years = whole months / 12, as the investment return calculator's Time tab (0 if already there; Infinity only when it can never be reached, with no deposits and no growth; a target the calculator reports as "Not within 100 years" fails the build) | `{{ yearsToTarget(10000, 500, 7, 1000000) \| num(1) }}` | 34.8 |
+| `goalHorizonYears()` | how far the savings goal and investment return calculators look, in years (100), for the words around a "Not within 100 years" case | `{{ goalHorizonYears() \| int }}` | 100 |
 | `feeDrag(start, monthly, rate, years, fee, compareFee=)` | object: `.cost` `.balance` `.compareBalance` `.zeroFeeBalance` `.feesPaid` `.contributions` `.shareOfGrowth` (%, capped at 100) `.contributionsLost` | `{{ feeDrag(100000, 0, 7, 30, 1).cost \| usd }}` | $209,392 |
 | `inflationAdjust(amount, rate, years, mode=)` | steady-rate inflation. `mode=cost` (default): what it will cost; `mode=value`: what today's money will buy | `{{ inflationAdjust(100000, 3, 20, mode=value) \| usd }}` | $55,368 |
-| `cpiAdjust(amount, fromYear, toYear)` | object: `.adjusted` (the amount in `toYear` prices) `.cumulativeChange` (%) `.averageAnnual` (%) `.years`. US CPI-U, BLS annual averages 1913 to 2025; 2026 is the latest month (October 2026). Either direction; the two years must differ | `{{ cpiAdjust(45000, 2010, 2025).adjusted \| usd }}` | $66,439 |
+| `cpiAdjust(amount, fromYear, toYear)` | object: `.adjusted` (the amount in `toYear` prices) `.cumulativeChange` (%) `.averageAnnual` (%) `.years`. US CPI-U, BLS annual averages 1913 to 2025; the current year uses the latest monthly index (`CPI_U_LATEST` in `inflation.ts`). Either direction; the two years must differ | `{{ cpiAdjust(45000, 2010, 2025).adjusted \| usd }}` | $66,439 |
 
 `feeDrag` is the investment fee calculator's `compareFees`: the fee is subtracted from the
 gross return, then monthly compounding with deposits at the end of each month. `.shareOfGrowth`
@@ -382,7 +386,11 @@ A rate is a market snapshot, not a quote: say so in the words around it.
 | `loanPayment`, `mortgagePayment`, `loanTotalInterest`, `mortgageTotalInterest`, `loanBalance`, `loanMonth`, `loanYear`, `overpaymentSaving` | their own closed-form and loop arithmetic, proven equal to `mortgage-payment.ts` (the mortgage and loan tools' engine) by `figures-grid.test.ts` (1e-6 on payments, 1e-3 or better on cumulative sums). `yearly=` (a 13th payment) is an extension the tools do not offer |
 
 Options the tool's screen cannot express (so no tool shows the number): UK `postgrad=true`
-on top of a plan, US `k401Amount` (the tool takes a %), and loan `yearly=`. They are
+on top of a plan, US `k401Amount` (the tool takes a %), loan `yearly=`, and card minimums other
+than the screen's: the calculator does not let visitors edit the floor (25 for USD and EUR, 5 for
+GBP, set by the currency) and offers `minPct` only from 1 to 10 (percentage) or 1 to 5 (interest
+plus) in steps of 0.5, so `minFloor=25` matches only USD and EUR visitors and any other `minPct` or
+`minFloor` is an extension. They are
 computed from the same engines, but if the page also tells readers to "try it in the
 calculator", pick inputs the calculator can reproduce.
 
