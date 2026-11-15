@@ -914,7 +914,7 @@ test.describe('Image Compressor (FILES-03, FILES-10)', () => {
   // low-quality original, FILES-03 "never larger"); the stripped original is kept instead.
   test('a WebP with a rotation tag is kept as the original, not re-encoded larger', async ({ page }) => {
     const sharp = (await import('sharp')).default;
-    const noise = sharp({ create: { width: 320, height: 160, channels: 3, noise: { type: 'gaussian', mean: 128, sigma: 60 } } }).blur(1.5);
+    const noise = sharp({ create: { width: 320, height: 160, channels: 3, background: '#808080', noise: { type: 'gaussian', mean: 128, sigma: 60 } } }).blur(1.5);
     const input = await noise.webp({ quality: 20 }).withMetadata({ orientation: 6 }).withExif({ IFD0: { Copyright: 'secret-owner' } }).toBuffer();
     const file = test.info().outputPath('tagged.webp');
     fs.writeFileSync(file, input);

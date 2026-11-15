@@ -158,7 +158,7 @@ describe('keepOriginalWithoutMetadata (regression: kept originals came out sidew
 
   it('a WebP with a rotation tag is kept with the tag removed: no browser applies it, so re-encoding rotates nothing', async () => {
     // Generated here: noisy pixels at low quality, stored 160x80, Exif orientation 6 plus camera and GPS data.
-    const noise = sharp({ create: { width: 160, height: 80, channels: 3, noise: { type: 'gaussian', mean: 128, sigma: 60 } } }).blur(1.5);
+    const noise = sharp({ create: { width: 160, height: 80, channels: 3, background: '#808080', noise: { type: 'gaussian', mean: 128, sigma: 60 } } }).blur(1.5);
     const webp = new Uint8Array(await noise.webp({ quality: 40 }).withMetadata({ orientation: 6 }).withExif(EXIF).toBuffer());
     expect(hasAscii(webp, 'EXIF')).toBe(true);
     expect(readOrientation(webp)).toBe(6);

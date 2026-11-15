@@ -44,7 +44,8 @@ export function watchStickyPanels(doc: Document = document, win: Window = window
     for (const target of new Set(panels.map(marked))) target.toggleAttribute(STICKY_RELEASED_ATTR, tall.has(target));
   };
 
-  const observer = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(update) : null;
+  const Observer = (win as Window & { ResizeObserver?: typeof ResizeObserver }).ResizeObserver;
+  const observer = typeof Observer === 'function' ? new Observer(update) : null;
   panels.forEach((p) => observer?.observe(p));
   win.addEventListener('resize', update, { passive: true });
   update();
