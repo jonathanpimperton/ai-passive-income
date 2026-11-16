@@ -2,7 +2,7 @@
 name: "Savings Goal Calculator"
 slug: "savings-goal"
 category: "saving-and-growth"
-description: "Savings goal calculator — work out how much to save each month to hit a target amount by a specific date, with interest included."
+description: "Savings goal calculator: the monthly amount to reach a target by a date, or how long your own deposits take, with interest compounded monthly."
 keywords:
   - "savings calculator"
   - "savings goal calculator"
@@ -10,28 +10,28 @@ keywords:
   - "savings goal planner"
   - "savings timeline"
 relatedTools:
-  - "compound-interest"
   - "emergency-fund"
+  - "compound-interest"
   - "investment-return"
   - "retirement-savings"
   - "inflation"
-  - "retirement-contribution"
+  - "net-worth"
 affiliateContext: "Reach your goal faster with a high-yield savings account"
 affiliatePrograms:
   - "Wealthfront"
   - "Ally"
-calculationMethod: "Uses present value formula to calculate required savings"
+calculationMethod: "Compounds the balance monthly at the annual rate divided by 12 with deposits at month end, then solves for the deposit or the time"
 faq:
   - question: "How much should I save each month?"
-    answer: "The 50/30/20 rule suggests putting 20% of your after-tax income toward savings and debt repayment. But the right amount depends on your specific goal, timeline, and current savings. Our calculator works backward from your goal to tell you exactly how much you need each month."
+    answer: "The 50/30/20 rule, popularised by Elizabeth Warren and Amelia Warren Tyagi, suggests 20% of after-tax income for savings and extra debt repayment. The right amount for a goal depends on the target, the date and what you already have. The calculator works backward from your goal: for $50,000 in 5 years starting with $5,000, it needs {{ savingsMonthly(50000, 5000, 5, 60) | usd }} a month at a 5% rate, against {{ savingsMonthly(50000, 5000, 0, 60) | usd }} with no interest."
   - question: "How do I calculate how long it will take to save for a goal?"
-    answer: "Divide your goal amount by your monthly savings capacity, then factor in the interest you'll earn along the way. Our calculator does this automatically and shows you a timeline visualization. For example, saving $500/month at 5% APY gets you to $25,000 in about 3 years, 10 months."
+    answer: "Divide the goal by your monthly saving, then allow for the interest earned along the way. The calculator does that and plots the timeline. For example, saving $500 a month from nothing at a 5% annual rate reaches $25,000 in {{ savingsMonths(25000, 0, 500, 5) | months }}."
   - question: "Should I save in a regular account or a high-yield savings account?"
-    answer: "A high-yield savings account almost always makes sense for savings goals. Traditional savings accounts typically offer 0.01-0.1% APY, while high-yield accounts offer 4-5% APY. On a $20,000 savings goal, that difference means earning $800-$1,000 per year in interest instead of $2-$20."
+    answer: "Rates differ a lot between accounts, so compare what you can actually get today. The size of the gap is easy to work out: on a $20,000 balance, a 4% rate earns {{ 20000 * 4 / 100 | usd }} in a year and a 0.5% rate earns {{ 20000 * 0.5 / 100 | usd }}. Set the calculator's rate to your own account's, and look for easy access and deposit protection as well as the rate."
   - question: "What is the best way to save for a down payment on a house?"
-    answer: "Start by setting a clear target (typically 10-20% of home price plus closing costs). Use a high-yield savings account for safety and liquidity. Automate your transfers on payday. Our calculator shows exactly how long it'll take based on your monthly savings and the interest you'll earn."
+    answer: "Set a clear target, usually a percentage of the price plus closing costs; 20% of a $300,000 home is {{ 300000 * 20 / 100 | usd }}. Keep the money in a safe, easy-access account, and automate the transfer on payday. The calculator shows how long it takes from your monthly saving and the interest earned."
   - question: "How does interest affect my savings goal timeline?"
-    answer: "Interest can significantly shorten your timeline, especially for longer-term goals. Saving $1,000/month toward a $50,000 goal: without interest, it takes 50 months. At 5% APY, it takes about 45 months — interest contributes roughly $2,300 and saves you 5 months of saving."
+    answer: "Interest shortens the timeline most on long goals. Saving $1,000 a month toward $50,000 takes {{ 50000 / 1000 | int }} months with no interest. At a 5% annual rate it takes {{ savingsMonths(50000, 0, 1000, 5) | int }} months, so interest contributes {{ compoundEarned(0, 1000, 5, savingsMonths(50000, 0, 1000, 5) / 12, compounding=12) | usd }} and saves {{ 50000 / 1000 - savingsMonths(50000, 0, 1000, 5) | int }} months of saving."
 workedExamples:
   - title: "Saving for a house down payment"
     inputs:
@@ -39,87 +39,75 @@ workedExamples:
       currentSavings: 8000
       monthlyContribution: 1200
       interestRate: 5
-    description: "Saving $60,000 for a 20% down payment on a $300,000 home. Starting with $8,000 and saving $1,200/month at 5% APY in a high-yield savings account. Timeline: approximately 3 years, 6 months. Interest earned: about $4,200 — effectively 3.5 months of savings for free."
+    description: "Saving {{ 300000 * 20 / 100 | usd }}, a 20% down payment on a $300,000 home. Starting with $8,000 and saving $1,200 a month at a 5% annual rate, the goal is reached in {{ savingsMonths(60000, 8000, 1200, 5) | months }}. Interest contributes {{ compoundEarned(8000, 1200, 5, savingsMonths(60000, 8000, 1200, 5) / 12, compounding=12) | usd }} of that."
   - title: "Emergency fund from scratch"
     inputs:
       goalAmount: 15000
       currentSavings: 0
       monthlyContribution: 500
       interestRate: 4.5
-    description: "Building a $15,000 emergency fund (roughly 3 months of expenses for a $60K income) from zero. Saving $500/month at 4.5% APY. Timeline: about 2 years, 5 months. Without interest, it would take 30 months — the interest saves about 1 month."
+    description: "Building a $15,000 emergency fund from zero by saving $500 a month at a {{ 4.5 | pct(auto) }} annual rate takes {{ savingsMonths(15000, 0, 500, 4.5) | months }}. With no interest it would take {{ 15000 / 500 | int }} months; interest contributes {{ compoundEarned(0, 500, 4.5, savingsMonths(15000, 0, 500, 4.5) / 12, compounding=12) | usd }}."
   - title: "Vacation fund with a deadline"
     inputs:
       goalAmount: 5000
       currentSavings: 500
       timelineMonths: 12
       interestRate: 5
-    description: "Planning a $5,000 vacation in 12 months with $500 already saved. You'd need to save approximately $370/month in a high-yield savings account at 5% APY. The interest contributes about $55 toward your goal — small on a short timeline, but still better than a checking account."
+    description: "Planning a $5,000 vacation in 12 months with $500 already saved needs {{ savingsMonthly(5000, 500, 5, 12) | usd }} a month at a 5% annual rate. Interest contributes about {{ compoundEarned(500, savingsMonthly(5000, 500, 5, 12), 5, 1, compounding=12) | usd }}: small on a short timeline, but better than nothing in a spending account."
 ---
 
-## What Is a Savings Goal Calculator?
+## Turn a vague goal into a monthly number
 
-A savings goal calculator works backward from a target amount to tell you exactly how much you need to save each month to reach your goal by a specific date. It factors in your current savings, monthly contribution capacity, and the interest your money earns along the way.
+A savings goal calculator works from a target and either a date or a monthly amount. It has two modes. Give it a goal and a deadline and it returns the monthly saving needed. Give it a monthly saving and it returns how long the goal takes. In both, interest compounds monthly at the annual rate divided by 12, with each deposit made at the end of the month.
 
-Whether you're saving for a house down payment, a car, a vacation, or a wedding, knowing the exact monthly number removes the guesswork and makes the goal feel achievable.
+The most useful step is replacing "I want to save more" with a figure and a date. Once you have both, the arithmetic tells you what to do each month.
 
-> **Key takeaway:** The single most important step is turning a vague goal ("I want to save more") into a specific number and date. Once you have those, the math tells you exactly what to do each month.
-
-## How Savings Goal Math Works
+## What interest adds
 
 <div class="stat-highlight">
-  <span class="stat-number">5 months</span>
-  <span class="stat-text">of savings contributed for free by a 5% APY high-yield account on a $50,000 goal. That's $2,300 you never had to earn or budget for.</span>
+  <span class="stat-number">{{ compoundEarned(0, 1000, 5, savingsMonths(50000, 0, 1000, 5) / 12, compounding=12) | usd }}</span>
+  <span class="stat-text">of interest on a $50,000 goal reached by saving $1,000 a month at a 5% annual rate, which brings the goal {{ 50000 / 1000 - savingsMonths(50000, 0, 1000, 5) | int }} months earlier than saving the same amount with no interest.</span>
 </div>
 
-The math is straightforward: take your target amount, subtract what you've already saved, then divide the remaining amount across the months you have — adjusted for interest earned.
+The more time the money has, the more interest matters. Saving $1,000 a month toward $50,000 takes {{ 50000 / 1000 | int }} months with no interest and {{ savingsMonths(50000, 0, 1000, 5) | int }} at 5%. On a goal under a year away, interest is a rounding error: the vacation example below earns {{ compoundEarned(500, savingsMonthly(5000, 500, 5, 12), 5, 1, compounding=12) | usd }}.
 
-The interest component matters more than most people expect, especially for longer-term goals. Saving $1,000 per month toward a $50,000 goal at 0% interest takes 50 months. At 5% APY in a high-yield savings account, you reach the same goal in about 45 months — interest contributes roughly $2,300 and saves you 5 months.
+The rate in the calculator is an assumption you set. Use your own account's rate, and check it is a rate you are actually earning.
 
-> **Example:** At 5% APY, interest effectively gives you 5 free months of savings on a $50,000 goal. That is $2,300 you never had to earn or budget for.
+## Match the account to the timeline
 
-For short-term goals (under 12 months), interest is less impactful. For multi-year goals like a house down payment, interest can contribute thousands of dollars.
+| Time until you need the money | What suits it |
+|---|---|
+| Under 1 year | An easy-access savings account: safe and liquid. |
+| 1 to 3 years | Easy-access savings or fixed-term deposits, depending on whether you might need the money early. |
+| 3 to 5 years | Mostly savings, perhaps with a small allocation to lower-risk investments. |
+| 5 years or more | A diversified investment account, only if you can sit through falls without selling. |
 
-## Where to Put Your Savings
+> **Tip:** do not put money you need within 2 to 3 years into shares. A fall in the year before you need a deposit is the case this avoids. Use the investment return calculator for long-horizon goals.
 
-Your savings vehicle should match your timeline:
+## The 50/30/20 rule
 
-| Timeline | Best Option | Typical Return | Notes |
-|----------|------------|----------------|-------|
-| Under 1 year | High-yield savings account | 4-5% APY | Maximum liquidity and safety |
-| 1-3 years | HYSA or CD ladder | 4-5.5% APY | CDs may offer slightly higher rates for locked funds |
-| 3-5 years | Conservative mix | 4-6% | Mostly savings, perhaps a small bond allocation |
-| 5+ years | Balanced investment account | 6-8% | Only if you can tolerate volatility without panic-selling |
+A simple budgeting rule, popularised by Elizabeth Warren and Amelia Warren Tyagi in *All Your Worth*, splits after-tax income three ways:
 
-> **Tip:** Never invest money you'll need within 2-3 years in the stock market. A 30% crash the year before you need a down payment would be devastating — stick with savings accounts for short-term goals.
+- **50%** needs: housing, food, insurance, minimum debt payments.
+- **30%** wants: dining out, entertainment, subscriptions.
+- **20%** savings and extra debt repayment.
 
-## The 50/30/20 Rule
+On $4,500 a month after tax, 20% is {{ 4500 * 20 / 100 | usd }}. At a 5% annual rate that reaches $25,000 in {{ savingsMonths(25000, 0, 4500 * 20 / 100, 5) | months }}. Treat 20% as a starting point: raising the monthly figure is the fastest way to bring the date forward, and the calculator shows what each extra $100 does.
 
-One of the simplest budgeting frameworks is the 50/30/20 rule:
+## When to use the calculator
 
-- **50%** of after-tax income goes to needs (housing, food, insurance, minimum debt payments)
-- **30%** goes to wants (dining out, entertainment, subscriptions)
-- **20%** goes to savings and extra debt repayment
+- You have a dollar target and a date.
+- You want the monthly saving that gets you there.
+- You want to test scenarios: $200 more a month, or the deadline six months later.
+- You are comparing account rates and want to see the difference in time.
 
-If you earn $4,500 per month after taxes, that's $900 for savings. At 5% APY, you'd reach a $25,000 goal in about 26 months.
+## Mistakes that derail goals
 
-> **Tip:** The 20% savings target is a starting point, not a ceiling. If you can save 25-30% by trimming wants, you will reach your goal months earlier. Use the calculator to see exactly how much each extra $100/month shaves off your timeline.
+1. **A target you cannot sustain.** Start with an amount you can keep up, then raise it with a pay rise or when a debt ends.
+2. **Manual transfers.** They get skipped. Automate the transfer for payday.
+3. **Saving in your spending account.** Money there gets spent. A separate account creates useful friction.
+4. **Ignoring inflation on distant goals.** At 3% a year (an assumption), something that costs $50,000 today costs {{ inflationAdjust(50000, 3, 5) | usd }} in 5 years. Use the inflation calculator and aim for the future price.
 
-## When to Use This Calculator
+## What to do next
 
-Use the savings goal calculator when you:
-
-- **Have a specific financial target** — a dollar amount and a date you want to reach it
-- **Want to figure out how much to save monthly** — the calculator tells you the exact number
-- **Need to test scenarios** — what if you save $200 more per month, or move the deadline back 6 months?
-- **Are comparing savings accounts** — see how much faster you reach your goal at 5% vs 0.5% APY
-
-## Common Mistakes
-
-1. **Setting unrealistic monthly targets.** Start with an amount that's challenging but sustainable, then increase when you get a raise or pay off a debt.
-2. **Not automating savings.** Manual transfers get skipped. Set up automatic transfers on payday.
-3. **Keeping savings in a checking account.** Money in checking gets spent. A separate high-yield savings account at a different bank creates helpful friction.
-4. **Forgetting to adjust for inflation.** If you're saving for something 5+ years away, prices may be 10-15% higher by the time you buy.
-
-## What to Do Next
-
-Set a specific goal with a specific date and run the numbers. Once you see the monthly amount, set up an automatic transfer from your checking account. The most effective savings plans are the ones that require no willpower because the money moves itself.
+Set the goal and the date, run the numbers, then set up an automatic transfer for the monthly amount. A plan that needs no willpower, because the money moves by itself, is the one that works.

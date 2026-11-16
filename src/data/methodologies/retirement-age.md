@@ -54,7 +54,7 @@ The compound growth equation with regular contributions has no clean closed-form
 3. Stop at the first month where the balance is at or above the target.
 4. If you reach age 90 first, stop and report that the target is not reached.
 
-This always finishes, in at most (90 − current age) × 12 steps, and the answer is exact to the month. The balance on the month it is reached is a little above the target, because you stop at a month-end and not part-way through one. The result is shown as years and months (for example, 29 years 10 months), with the age you will be and the balance then.
+This always finishes, in at most (90 − current age) × 12 steps, and the answer is exact to the month. The balance on the month it is reached is a little above the target, because you stop at a month-end and not part-way through one. The result is shown as years and months (for example, {{ savingsMonths(1000000, 50000, 500, 7) | months }}), with the age you will be and the balance then.
 
 ## How Each Variable Affects the Result
 

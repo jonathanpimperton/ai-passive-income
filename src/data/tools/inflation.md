@@ -2,7 +2,7 @@
 name: "Inflation Calculator"
 slug: "inflation"
 category: "economic"
-description: "Inflation calculator using historical CPI data — see what money from any year is worth today and how inflation erodes purchasing power."
+description: "Inflation calculator on US CPI data from 1913: what money from any year is worth today, or what it will cost at an inflation rate you choose."
 keywords:
   - "inflation calculator"
   - "CPI calculator"
@@ -16,110 +16,111 @@ relatedTools:
   - "savings-goal"
   - "salary-us"
   - "retirement-contribution"
-affiliateContext: "Don't let inflation erode your wealth — start investing"
+affiliateContext: "Don't let inflation erode your wealth: start investing"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
   - "SoFi"
-lastUpdated: "2026-03-04"
+lastUpdated: "2026-11-15"
 dataSources:
-  - name: "Bureau of Labor Statistics CPI data"
+  - name: "BLS CPI-U, U.S. city average, all items (series CUUR0000SA0)"
+    url: "https://data.bls.gov/timeseries/CUUR0000SA0"
+  - name: "Bureau of Labor Statistics: Consumer Price Index"
     url: "https://www.bls.gov/cpi/"
+  - name: "Federal Reserve: longer-run inflation goal"
+    url: "https://www.federalreserve.gov/faqs/economy_14400.htm"
 faq:
   - question: "What is inflation and how does it work?"
-    answer: "Inflation is the gradual increase in prices over time, which reduces the purchasing power of money. If inflation is 3% per year, something that costs $100 today would cost about $103 next year. It's measured by the Consumer Price Index (CPI), which tracks the average price change of a basket of goods and services."
+    answer: "Inflation is the general rise in prices over time, which lowers what each unit of money buys. At 3% a year, something that costs $100 today costs {{ inflationAdjust(100, 3, 1) | usd }} next year. In the US it is measured by the Consumer Price Index (CPI), which tracks the average price change of a basket of goods and services."
   - question: "What is the average inflation rate in the US?"
-    answer: "The historical average US inflation rate is about 3.3% per year (since 1914). In recent decades, the Federal Reserve has targeted 2% annual inflation. However, rates fluctuate significantly — from near 0% in 2015 to 9.1% in June 2022. Long-term financial planning typically assumes 2.5-3.5% average inflation."
+    answer: "From 1914 to 2025 US prices rose by an average of {{ cpiAdjust(1, 1914, 2025).averageAnnual | pct1 }} a year, using BLS annual CPI-U averages. The Federal Reserve's longer-run goal is 2% a year. Rates swing widely: the annual average rose {{ (cpiValue(2015) / cpiValue(2014) - 1) * 100 | pct1 }} in 2015, {{ (cpiValue(2022) / cpiValue(2021) - 1) * 100 | pct1 }} in 2022, and the 12-month rate peaked at 9.1% in June 2022 (BLS). Long-term plans commonly assume 2.5% to 3.5%."
   - question: "How does inflation affect my savings?"
-    answer: "If your savings earn less interest than the inflation rate, you're losing purchasing power. A savings account paying 0.5% APY when inflation is 3% means your money loses about 2.5% of its real value each year. That's why high-yield savings accounts and investments that outpace inflation are important for long-term goals."
-  - question: "What is the difference between CPI and inflation rate?"
-    answer: "The CPI (Consumer Price Index) is a measure of the average price level of a specific basket of goods and services. The inflation rate is the percentage change in CPI from one period to another. When people say 'inflation is 3%,' they mean the CPI increased by 3% over the past year."
+    answer: "If your savings earn less than the inflation rate, you lose purchasing power. An account paying 0.5% when inflation is 3% loses about {{ (1 - 1.005 / 1.03) * 100 | pct1 }} of its real value a year. Over ten years at 3% inflation, {{ 10000 | usd }} that earns nothing buys what {{ inflationAdjust(10000, 3, 10, mode=value) | usd }} buys today. That is why longer-term savings goals look for a return above inflation."
+  - question: "What is the difference between CPI and the inflation rate?"
+    answer: "The CPI is an index: the price level of a fixed basket of goods and services, set to 100 in 1982 to 1984. The inflation rate is the percentage change in that index between two dates. When people say inflation is 3%, the CPI is 3% higher than a year earlier. The calculator's CPI-U was {{ cpiValue(2025) | index }} on average in 2025, against {{ cpiValue(1990) | index }} in 1990."
   - question: "How much was a dollar worth in 1970?"
-    answer: "One dollar in 1970 had the purchasing power of approximately $8.10 in 2024 dollars. Put differently, what cost $1 in 1970 costs about $8.10 today. This means the dollar has lost about 88% of its purchasing power over those 54 years due to cumulative inflation."
+    answer: "One dollar in 1970 buys what {{ cpiAdjust(1, 1970, 2025).adjusted | usd(2) }} buys in 2025 prices. Put the other way round, the dollar lost about {{ 100 - 100 / cpiAdjust(1, 1970, 2025).adjusted | pct }} of its purchasing power over those 55 years, using BLS annual CPI-U averages."
+  - question: "Which CPI figures does the calculator use?"
+    answer: "BLS CPI-U for all urban consumers, U.S. city average, all items, not seasonally adjusted: annual averages from 1913 to 2025, plus the newest monthly index ({{ cpiValue(2026) | index }}) as the value for the current year until a full-year average exists. The current-year result therefore moves each month. Pick 2025 as the end year for a figure that stays put. BLS did not collect October 2025 prices, and its 2025 average is the mean of the other 11 months."
 workedExamples:
   - title: "Purchasing power of a 1990 salary"
     inputs:
       amount: 35000
       startYear: 1990
       endYear: 2025
-    description: "A $35,000 salary in 1990 has the same purchasing power as about $84,000 in 2025. If your salary hasn't kept up with inflation over your career, you're earning less in real terms than you might think. This is why regular raises of at least 3% per year are important just to maintain your standard of living."
+    description: "A $35,000 salary in 1990 has the buying power of {{ cpiAdjust(35000, 1990, 2025).adjusted | usd }} in 2025, because prices rose {{ cpiAdjust(35000, 1990, 2025).cumulativeChange | pct }} over those 35 years. If your pay has not kept up with that, you earn less in real terms than the number suggests."
   - title: "Future cost of college tuition"
     inputs:
       amount: 25000
       inflationRate: 5
       years: 18
-    description: "If annual college tuition is $25,000 today and education costs inflate at 5% per year, the same degree will cost about $60,200 per year in 18 years. For a 4-year degree, that's roughly $240,800 total — which is why starting a college savings plan early matters enormously."
+    description: "If tuition is $25,000 a year today and education costs rise 5% a year, one year of tuition costs {{ inflationAdjust(25000, 5, 18) | usd }} in 18 years. Four years of study starting then cost {{ inflationAdjust(25000, 5, 18) + inflationAdjust(25000, 5, 19) + inflationAdjust(25000, 5, 20) + inflationAdjust(25000, 5, 21) | usd }} in total, because prices keep rising each year of the course. That is why a college savings plan pays off most when it starts early."
   - title: "Retirement purchasing power erosion"
     inputs:
       amount: 1000000
       inflationRate: 3
       years: 25
-    description: "A $1 million retirement nest egg in today's dollars will have the purchasing power of only about $478,000 in 25 years at 3% inflation. This means your retirement withdrawals need to increase annually just to buy the same goods. Planning for inflation is one of the most overlooked aspects of retirement savings."
+    description: "A $1 million nest egg has the purchasing power of {{ inflationAdjust(1000000, 3, 25, mode=value) | usd }} in today's money after 25 years at 3% inflation. Withdrawals must grow every year just to buy the same things, which makes inflation one of the most overlooked parts of retirement planning."
 ---
 
-## What Is Inflation?
+## Inflation in one number
 
-Inflation is the gradual increase in the general price level of goods and services over time. When inflation rises, each unit of currency buys fewer items — your purchasing power decreases. A dollar today doesn't buy what a dollar bought 10 years ago, and it will buy even less 10 years from now.
+Inflation is the general rise in prices over time. When it rises, each dollar buys less: a dollar today does not buy what a dollar bought ten years ago.
 
-This isn't abstract economics — inflation directly affects your salary, savings, investments, and retirement planning. Understanding it helps you make better financial decisions at every stage of life.
+Take the plain example. A $10,000 balance that sits in an account at 0% for ten years, with inflation at 3%, still reads $10,000. Its purchasing power has fallen to {{ inflationAdjust(10000, 3, 10, mode=value) | usd }}, a loss of {{ 10000 - inflationAdjust(10000, 3, 10, mode=value) | usd }} that no statement shows.
 
-> **Key takeaway:** If your money isn't growing faster than inflation, you're getting poorer — even if your account balance stays the same.
+## How inflation is measured
 
-## How Inflation Is Measured
+The main US measure is the **Consumer Price Index (CPI)**, published monthly by the Bureau of Labor Statistics. It follows the price of a broad basket of goods and services that urban households buy: food, housing, transport, medical care, clothing and more.
 
-The primary measure of inflation in the United States is the **Consumer Price Index (CPI)**, published monthly by the Bureau of Labor Statistics. The CPI tracks the average price change of a basket of about 80,000 goods and services that typical consumers buy — food, housing, transportation, medical care, clothing, and more.
+The **inflation rate** is the percentage change in the CPI between two dates. When the news says inflation is 3%, the same basket that cost $100 a year ago costs $103 now.
 
-The **inflation rate** is the percentage change in CPI from one period to another. When news reports say "inflation is 3%," they mean the CPI increased 3% over the past 12 months — the same basket of goods that cost $100 a year ago now costs $103.
-
-## Historical Perspective
+## How fast prices have risen
 
 <div class="stat-highlight">
-  <span class="stat-number">88%</span>
-  <span class="stat-text">of the dollar's purchasing power has been eroded since 1970. What cost $1 then costs $8.10 today — that's the invisible tax of inflation over 54 years.</span>
+  <span class="stat-number">{{ 100 - 100 / cpiAdjust(1, 1970, 2025).adjusted | pct }}</span>
+  <span class="stat-text">of the dollar's purchasing power was lost between 1970 and 2025. What cost $1 in 1970 costs {{ cpiAdjust(1, 1970, 2025).adjusted | usd(2) }} in 2025 prices.</span>
 </div>
 
-The long-term average US inflation rate since 1914 is approximately 3.3% per year. But averages hide dramatic variation:
+Since 1914 US prices have risen by an average of {{ cpiAdjust(1, 1914, 2025).averageAnnual | pct1 }} a year, but the average hides sharp swings. Average annual inflation by period, from BLS annual CPI-U values:
 
-| Period | Inflation Rate | Context |
+| Period | Average annual inflation | Context |
 |---|---|---|
-| 1970s–early 1980s | Peaked at 14.8% (1980) | Oil crises and loose monetary policy |
-| 1990s–2010s | 1.5–3% | The "Great Moderation" era |
-| 2021–2022 | Surged to 9.1% (June 2022) | Post-pandemic supply shocks; highest in 40 years |
-| Fed target (current) | 2% per year | Considered optimal for a healthy economy |
+| 1970 to 1980 | {{ cpiAdjust(1, 1970, 1980).averageAnnual | pct1 }} | Oil price shocks; the annual average rose {{ (cpiValue(1980) / cpiValue(1979) - 1) * 100 | pct1 }} in 1980 alone |
+| 1980 to 1990 | {{ cpiAdjust(1, 1980, 1990).averageAnnual | pct1 }} | Inflation brought down in the early 1980s |
+| 1990 to 2000 | {{ cpiAdjust(1, 1990, 2000).averageAnnual | pct1 }} | A long stretch of moderate prices |
+| 2000 to 2010 | {{ cpiAdjust(1, 2000, 2010).averageAnnual | pct1 }} | Steady, with the 2008 financial crisis at the end |
+| 2010 to 2020 | {{ cpiAdjust(1, 2010, 2020).averageAnnual | pct1 }} | Below the Federal Reserve's 2% goal for much of the decade |
+| 2020 to 2025 | {{ cpiAdjust(1, 2020, 2025).averageAnnual | pct1 }} | Post-pandemic spike; the 12-month rate hit 9.1% in June 2022 (BLS) |
 
-> **Tip:** When planning long-term, don't rely on the Fed's 2% target alone. Historical averages run closer to 3.3%, and spikes like 2022 can erode years of savings in months.
+> **Tip:** The Federal Reserve aims for 2% a year, but a long plan is safer at 3%. Prices rose {{ cpiAdjust(1, 1914, 2025).averageAnnual | pct1 }} a year on average over the last century, and a spike like 2022 can wipe out years of real returns.
 
-## Why Inflation Matters for Your Finances
+## What inflation does to your finances
 
-Inflation is a silent tax on cash. Money sitting in a traditional savings account at 0.1% APY loses about 3% of its real value every year at average inflation. Over 10 years, $10,000 loses roughly $2,600 in purchasing power — it still says $10,000 in your account, but it buys $7,400 worth of goods.
+Inflation is a quiet tax on cash. At 3% a year, $10,000 held in cash needs {{ inflationAdjust(10000, 3, 10) | usd }} after ten years to buy what it buys now.
 
-> **Example:** If you stashed $10,000 in a standard savings account in 2014, it would still show $10,000 in 2024 — but you'd need about $12,600 to buy the same things. That's a hidden loss of $2,600.
+> **Example:** $10,000 in 2014 needed {{ cpiAdjust(10000, 2014, 2025).adjusted | usd }} in 2025 to buy the same things. That is a hidden loss of {{ cpiAdjust(10000, 2014, 2025).adjusted - 10000 | usd }} for money that never moved.
 
-This is why financial planning must account for inflation:
+The same arithmetic shows up in four places:
 
-- **Salary negotiations:** A 2% annual raise when inflation is 3% is actually a 1% pay cut in real terms
-- **Retirement planning:** $1 million in 30 years buys roughly what $400,000 buys today at 3% average inflation
-- **Savings goals:** If you're saving for a house, college, or any multi-year goal, the target price is rising while you save
+- **Pay rises.** A 2% raise when inflation is 3% is a real pay cut of about {{ (1 - 1.02 / 1.03) * 100 | pct1 }}.
+- **Retirement.** At 3% inflation, $1 million in 30 years buys what {{ inflationAdjust(1000000, 3, 30, mode=value) | usd }} buys today.
+- **Savings goals.** The price of a house, a degree or a car is rising while you save for it.
+- **Real returns.** A 10% investment return with 3% inflation is a {{ (1.10 / 1.03 - 1) * 100 | pct1 }} real return, which the shortcut of subtracting 3 points rounds to 7%.
 
-## When to Use This Calculator
+## Using the calculator
 
-Use the inflation calculator to:
+- **Convert historical prices.** The Historical tab shows what an amount from any year from 1913 is worth in another year's prices, using US CPI.
+- **Project a future cost.** The Future tab applies an inflation rate you choose for up to 100 years. It works for any currency.
+- **Check your pay.** Enter an old salary and see if today's pay matches it in real terms.
+- **Plan withdrawals.** See how much an annual withdrawal must grow to keep its buying power.
 
-- **Convert historical prices** — see what something cost in the past in today's dollars
-- **Project future costs** — estimate what college tuition, a home, or retirement will cost in 10, 20, or 30 years
-- **Check if your salary kept pace** — compare your salary growth against cumulative inflation to see if you've gained or lost purchasing power
-- **Plan retirement withdrawals** — understand how much your annual withdrawals need to increase to maintain the same standard of living
+## Common mistakes
 
-## Common Mistakes
+1. **Planning with nominal returns.** Subtract inflation first. A return that looks like 10% is {{ (1.10 / 1.03 - 1) * 100 | pct1 }} after 3% inflation.
+2. **Assuming a constant rate.** The annual average ranged from {{ (cpiValue(2015) / cpiValue(2014) - 1) * 100 | pct1 }} in 2015 to {{ (cpiValue(2022) / cpiValue(2021) - 1) * 100 | pct1 }} in 2022. A plan at exactly 3% a year ignores both.
+3. **Using the overall rate for one expense.** Healthcare, education and housing often rise at a different pace from the overall CPI. BLS publishes category indexes if a single big cost matters to your plan.
 
-1. **Using nominal returns for planning.** A 10% investment return with 3% inflation is only 7% real return. Always adjust for inflation when making long-term projections.
-2. **Assuming inflation is constant.** Planning based on exactly 3% per year ignores that inflation can spike suddenly (as it did in 2021-2022). Build in a buffer.
-3. **Ignoring category-specific inflation.** Healthcare and education inflate at 5-7% per year — much faster than the overall CPI. If these are major future expenses, use their specific inflation rates.
+## What to do next
 
-> **Key takeaway:** Always use *real* (inflation-adjusted) returns when comparing investments or projecting future costs. A 10% return with 3% inflation is only a 7% real gain.
-
-## What to Do Next
-
-Use the calculator to see how inflation affects your specific situation. Check whether your salary has kept up with inflation over the past 5-10 years.
-
-If you're planning for a major expense years from now, project what it will actually cost when you need the money.
+Check whether your pay has kept up with prices over the last five to ten years. If a large expense is years away, project what it will cost when you need the money and save toward that figure.

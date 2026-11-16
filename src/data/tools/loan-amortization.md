@@ -2,7 +2,7 @@
 name: "Loan Amortization Calculator"
 slug: "loan-amortization"
 category: "debt-and-loans"
-description: "Loan amortization calculator — see your monthly payment, total interest, and a full payment schedule for any fixed-rate loan."
+description: "Loan amortization calculator: monthly payment, total interest and a year-by-year schedule for any fixed-rate loan, with extra payments and US, UK or euro rates."
 keywords:
   - "loan amortization calculator"
   - "amortization schedule calculator"
@@ -10,120 +10,116 @@ keywords:
   - "mortgage amortization schedule"
   - "amortization table"
 relatedTools:
-  - "compound-interest"
+  - "mortgage-payment"
   - "debt-payoff"
+  - "car-finance"
   - "rent-vs-buy"
+  - "credit-card-payoff"
+  - "compound-interest"
   - "savings-goal"
-  - "roi"
 affiliateContext: "Compare rates and save thousands on your loan"
 affiliatePrograms:
   - "LendingTree"
   - "SoFi"
 calculationMethod: "Uses standard amortization formula: M = P[r(1+r)^n]/[(1+r)^n-1]"
+dataSources:
+  - name: "Freddie Mac Primary Mortgage Market Survey (default US rates)"
+    url: "https://www.freddiemac.com/pmms"
+  - name: "CFPB: understand loan options"
+    url: "https://www.consumerfinance.gov/owning-a-home/loan-options/"
 faq:
   - question: "What is loan amortization?"
-    answer: "Loan amortization is the process of paying off a loan through regular, scheduled payments over time. Each payment is split between principal (reducing what you owe) and interest (the cost of borrowing). Early payments are mostly interest; later payments are mostly principal."
+    answer: "Amortization is paying off a loan through regular, scheduled payments. Each payment is split between interest (the cost of borrowing, charged on what you still owe) and principal (the part that reduces the balance). Because the balance falls, the interest share falls and the principal share rises. On a $300,000 loan at 7% over 30 years, the first payment is {{ 100 - loanMonth(300000, 7, 30, 1).principalShare | pct }} interest and the last is {{ loanMonth(300000, 7, 30, 360).principalShare | pct }} principal."
   - question: "How is a monthly loan payment calculated?"
-    answer: "Monthly payments use the formula M = P[r(1+r)^n] / [(1+r)^n - 1], where P is the loan principal, r is the monthly interest rate (annual rate / 12), and n is the total number of payments. This formula ensures equal payments that fully pay off the loan by the end of the term."
+    answer: "The formula is M = P[r(1+r)^n] / [(1+r)^n - 1], where P is the loan amount, r is the monthly interest rate (the annual rate divided by 12) and n is the number of monthly payments. It gives equal payments that clear the balance exactly at the end of the term. On $300,000 at 7% over 30 years that is {{ loanPayment(300000, 7, 30) | usd }} a month."
   - question: "How much interest will I pay over the life of a loan?"
-    answer: "Total interest depends on your loan amount, interest rate, and term length. For example, a $300,000 mortgage at 7% over 30 years costs about $418,527 in total interest — more than the original loan amount. Shorter terms and extra payments dramatically reduce total interest."
+    answer: "It depends on the amount, the rate and the term. A $300,000 mortgage at 7% over 30 years costs {{ loanTotalInterest(300000, 7, 30) | usd }} in interest, more than the amount borrowed. A $35,000 car loan at 6.5% over 5 years costs {{ loanTotalInterest(35000, 6.5, 5) | usd }}. Shorter terms and extra payments cut the total sharply."
   - question: "What happens if I make extra payments on my loan?"
-    answer: "Extra payments go directly toward reducing your principal balance, which means less interest accrues in future months. Even small extra payments can save thousands in interest and shave years off your loan. Our calculator shows exactly how much you'd save."
+    answer: "Extra payments go straight to principal, so less interest builds up in every later month. On a $300,000 loan at 7% over 30 years, an extra $200 a month saves {{ overpaymentSaving(300000, 7, 30, monthly=200).interestSaved | usd }} in interest and ends the loan {{ overpaymentSaving(300000, 7, 30, monthly=200).monthsSaved | months }} early. Open the advanced settings, enter the extra amount and the schedule updates. Check first that your lender does not charge a prepayment fee."
+  - question: "Which interest rate does the calculator start with?"
+    answer: "It starts from a current market average for the selected currency and says where it comes from: {{ rate('us30') | pct(2) }} for a US 30-year mortgage ({{ rateSource('us30') }}), {{ rate('us15') | pct(2) }} when the term is 15 years or less, {{ rate('uk2yr') | pct(2) }} for a UK two-year fixed mortgage ({{ rateSource('uk2yr') }}) and {{ rate('eur') | pct(2) }} for euro-area house purchase ({{ rateSource('eur') }}). These are mortgage averages, so for a car, personal or student loan type in the rate you were quoted. The term can be anything from 1 to 50 years."
   - question: "What is the difference between amortization and simple interest?"
-    answer: "With amortization, each payment covers both interest and principal, and the interest portion decreases over time as the balance shrinks. Simple interest loans charge interest only on the remaining balance without a fixed payoff schedule. Most mortgages and auto loans use amortization."
+    answer: "Most mortgages, car loans and personal loans amortize: a fixed payment covers interest and principal together, and the interest portion shrinks as the balance shrinks. A simple-interest loan usually amortizes too, but interest accrues daily on the outstanding balance, so paying early or late changes how much of a payment goes to interest. This calculator assumes equal monthly payments with interest charged monthly, so it will differ slightly from a loan that accrues daily."
 workedExamples:
   - title: "30-year fixed mortgage"
     inputs:
       loanAmount: 300000
       interestRate: 7
       loanTerm: 30
-    description: "A $300,000 mortgage at 7% fixed for 30 years results in a monthly payment of $1,996. Over the life of the loan, you'd pay $418,527 in interest — totaling $718,527. In the first year, only about $3,456 goes toward principal while $20,496 goes to interest."
+    description: "A $300,000 mortgage at 7% fixed for 30 years has a monthly payment of {{ loanPayment(300000, 7, 30) | usd }}. Over the life of the loan you pay {{ loanTotalInterest(300000, 7, 30) | usd }} in interest, {{ 300000 + loanTotalInterest(300000, 7, 30) | usd }} in total. In the first year {{ loanYear(300000, 7, 30, 1).principal | usd }} goes to principal and {{ loanYear(300000, 7, 30, 1).interest | usd }} to interest."
   - title: "5-year auto loan"
     inputs:
       loanAmount: 35000
       interestRate: 6.5
       loanTerm: 5
-    description: "A $35,000 car loan at 6.5% over 5 years means a monthly payment of $685. Total interest paid: $6,100. Unlike a mortgage, auto loans are short enough that the principal-to-interest ratio shifts quickly — by year 3, most of each payment goes to principal."
-  - title: "15-year vs 30-year mortgage comparison"
+    description: "A $35,000 car loan at 6.5% over 5 years has a monthly payment of {{ loanPayment(35000, 6.5, 5) | usd(2) }} and costs {{ loanTotalInterest(35000, 6.5, 5) | usd }} in interest. A short loan amortizes fast: {{ loanMonth(35000, 6.5, 5, 1).principalShare | pct }} of the first payment already goes to principal, rising to {{ loanMonth(35000, 6.5, 5, 60).principalShare | pct }} in the last."
+  - title: "15-year vs 30-year term"
     inputs:
       loanAmount: 250000
       interestRate: 6.5
       loanTerm: 15
-    description: "The same $250,000 loan at 6.5%: a 15-year term has a $2,178 monthly payment with $142,088 total interest. A 30-year term has a $1,580 payment but $319,019 in total interest. The 15-year costs $598/month more but saves $176,931 in interest."
+    description: "The same $250,000 loan at 6.5%. A 15-year term has a payment of {{ loanPayment(250000, 6.5, 15) | usd }} a month and {{ loanTotalInterest(250000, 6.5, 15) | usd }} of total interest. A 30-year term has a payment of {{ loanPayment(250000, 6.5, 30) | usd }} and {{ loanTotalInterest(250000, 6.5, 30) | usd }} of interest. The 15-year term costs {{ loanPayment(250000, 6.5, 15) - loanPayment(250000, 6.5, 30) | usd }} more a month and saves {{ loanTotalInterest(250000, 6.5, 30) - loanTotalInterest(250000, 6.5, 15) | usd }} in interest."
 ---
 
-## What Is Loan Amortization?
+## Where each payment goes
 
-Loan amortization is the process of paying off a debt through regular, equal payments over a set period. Each payment splits between two purposes: reducing what you owe (principal) and paying the cost of borrowing (interest). The schedule of all these payments — showing exactly how much goes to principal and interest each month — is called an amortization table.
+Amortization means paying off a debt in equal instalments over a set period. Each instalment does two jobs: it pays the interest that has built up, and it reduces the principal. The table of every payment, with the interest, the principal and the balance left, is the amortization schedule. Mortgages, car loans, personal loans and most student loans work this way.
 
-Most common loans use amortization: mortgages, auto loans, personal loans, and student loans. The key characteristic is that your monthly payment stays the same, but the split between principal and interest shifts dramatically over time.
-
-> **Key takeaway:** Your monthly payment never changes, but where the money goes changes completely — early payments mostly enrich the lender, while later payments mostly build your equity.
-
-## How Amortization Works
+The payment stays the same, but the split does not. Early payments are mostly interest and later ones are mostly principal.
 
 <div class="stat-highlight">
-  <span class="stat-number">85%</span>
-  <span class="stat-text">of your first mortgage payment goes to interest, not principal. By year 30, that flips to 95%+ going to principal — but you've already paid the bank hundreds of thousands.</span>
+  <span class="stat-number">{{ 100 - loanMonth(300000, 7, 30, 1).principalShare | pct }}</span>
+  <span class="stat-text">of the first payment on a $300,000, 30-year mortgage at 7% is interest. By the last payment interest is down to {{ 100 - loanMonth(300000, 7, 30, 360).principalShare | pct }}, but by then the lender has been paid {{ loanTotalInterest(300000, 7, 30) | usd }} in interest.</span>
 </div>
 
-The monthly payment formula is **M = P[r(1+r)^n] / [(1+r)^n - 1]**, where P is the loan amount, r is the monthly interest rate, and n is the total number of payments.
+The payment formula is **M = P[r(1+r)^n] / [(1+r)^n - 1]**, where P is the loan amount, r the monthly rate and n the number of payments.
 
-What makes amortization counterintuitive is how the payment splits. In the early years of a 30-year mortgage, roughly 80-85% of each payment goes to interest. By the final years, 95%+ goes to principal. You're paying down the loan the entire time, but most of your early money is going to the bank, not to your equity.
+On a $300,000 mortgage at 7% over 30 years the split moves like this:
 
-For example, on a $300,000 mortgage at 7% over 30 years:
+| Payment | Interest | Principal | Balance remaining |
+|---|---|---|---|
+| Month 1 | {{ loanMonth(300000, 7, 30, 1).interest | usd }} | {{ loanMonth(300000, 7, 30, 1).principal | usd }} | {{ loanMonth(300000, 7, 30, 1).balance | usd }} |
+| Month 180 (halfway) | {{ loanMonth(300000, 7, 30, 180).interest | usd }} | {{ loanMonth(300000, 7, 30, 180).principal | usd }} | {{ loanMonth(300000, 7, 30, 180).balance | usd }} |
+| Month 360 (last) | {{ loanMonth(300000, 7, 30, 360).interest | usd }} | {{ loanMonth(300000, 7, 30, 360).principal | usd }} | {{ loanMonth(300000, 7, 30, 360).balance | usd }} |
 
-| Payment | Interest | Principal | Balance Remaining |
-|---------|----------|-----------|-------------------|
-| #1 (month 1) | $1,750 | $246 | $299,754 |
-| #180 (halfway) | $1,100 | $896 | ~$218,000 |
-| #360 (final) | ~$12 | ~$1,984 | $0 |
+> **Halfway, you have paid {{ loanPayment(300000, 7, 30) * 180 | usd }} and cut the balance by only {{ 300000 - loanBalance(300000, 7, 30, 180) | usd }}.** After five years of payments, only {{ (300000 - loanBalance(300000, 7, 30, 60)) / 300000 * 100 | pct1 }} of the loan has been repaid. That is normal for a long loan, not a sign that something is wrong.
 
-> **Example:** After 15 years and 180 payments on this mortgage, you will have paid roughly $359,280 total — yet your balance has only dropped by about $82,000. The interest front-loading is that extreme.
+## What to do with the schedule
 
-## Why Understanding Amortization Matters
+- **Overpay early.** An extra $200 a month on the loan above saves {{ overpaymentSaving(300000, 7, 30, monthly=200).interestSaved | usd }} in interest and removes {{ overpaymentSaving(300000, 7, 30, monthly=200).monthsSaved | months }} of payments. The same extra amount paid later saves less, because less interest is left to avoid.
+- **Weigh a shorter term.** A 15-year loan has a higher payment but a fraction of the interest. On $250,000 at 6.5%:
 
-Knowing how amortization works changes how you think about loans:
-
-- **Early extra payments are incredibly powerful.** An extra $200 per month on a $300,000 mortgage at 7% saves approximately $76,000 in total interest and eliminates 6 years of payments. The earlier you make extra payments, the more you save because that money stops generating interest for the lender.
-- **Short-term loans cost far less overall.** A 15-year mortgage has a higher monthly payment than a 30-year, but the total interest paid is typically less than half. Here's the comparison on a $250,000 loan at 6.5%:
-
-| | 15-Year Term | 30-Year Term |
+| | 15-year term | 30-year term |
 |---|---|---|
-| Monthly payment | $2,178 | $1,580 |
-| Total interest | $142,088 | $319,019 |
-| Total cost | $392,088 | $569,019 |
+| Monthly payment | {{ loanPayment(250000, 6.5, 15) | usd }} | {{ loanPayment(250000, 6.5, 30) | usd }} |
+| Total interest | {{ loanTotalInterest(250000, 6.5, 15) | usd }} | {{ loanTotalInterest(250000, 6.5, 30) | usd }} |
+| Total of all payments | {{ 250000 + loanTotalInterest(250000, 6.5, 15) | usd }} | {{ 250000 + loanTotalInterest(250000, 6.5, 30) | usd }} |
 
-> **Tip:** The 15-year mortgage costs $598/month more but saves $176,931 in interest. If you can afford the higher payment, the shorter term is almost always the better deal.
+> **The 15-year loan costs {{ loanPayment(250000, 6.5, 15) - loanPayment(250000, 6.5, 30) | usd }} more a month and saves {{ loanTotalInterest(250000, 6.5, 30) - loanTotalInterest(250000, 6.5, 15) | usd }} in interest.** If the higher payment fits your budget comfortably, the shorter term is usually the better deal.
 
-- **Refinancing makes more sense early.** If you're 20 years into a 30-year mortgage, most of your remaining payments are already going to principal. Refinancing at that point saves less than refinancing in the first 5-10 years.
+- **Time a refinance.** Refinancing helps most early in a loan, while the payments are still mostly interest. Twenty years into the 30-year loan above, about {{ 100 - loanMonth(300000, 7, 30, 241).principalShare | pct }} of each payment is still interest, so the break-even on a refinance depends on the new rate and its costs, not on the loan's age alone.
 
-## When to Use This Calculator
+## When to use this calculator
 
-This calculator helps you:
+- **Comparing loan offers:** see the total cost of different rates and terms side by side.
+- **Planning extra payments:** find out what $100, $200 or $500 more a month would save.
+- **Checking an existing loan:** see how much of your balance each year's payments remove.
+- **Negotiating:** when a lender offers a lower rate or shorter term, know what it is worth in dollars.
 
-- **Compare loan offers** — see the true total cost of different interest rates and terms side by side
-- **Plan extra payments** — find out exactly how much you'd save by adding $100, $200, or $500 extra per month
-- **Understand your existing loan** — see where you are in the amortization schedule and how much equity you've built
-- **Negotiate with confidence** — when a lender offers a lower rate or shorter term, know exactly what that saves you in real dollars
+## Terms worth knowing
 
-## Key Terms
+- **Principal:** the amount borrowed, before interest.
+- **Amortization schedule:** a table of each payment's interest, principal and remaining balance.
+- **APR:** the annual cost of borrowing including fees. Use it, not the interest rate alone, to compare offers. This calculator takes the interest rate and ignores fees.
+- **Equity:** for a home, its value minus the mortgage balance.
+- **Prepayment penalty:** a fee some lenders charge for paying early. Check for one before you overpay.
 
-- **Principal** — the original amount borrowed, before interest
-- **Amortization schedule** — a table showing each payment's principal and interest split, plus the remaining balance
-- **APR** — the annual cost of borrowing, including fees; use this (not the interest rate alone) to compare loan offers
-- **Equity** — the portion of an asset you actually own; for a home, it's the market value minus the remaining mortgage balance
-- **Prepayment penalty** — a fee some lenders charge for paying off a loan early; check for this before making extra payments
+## Mistakes that cost money
 
-## Common Mistakes
+1. **Comparing only monthly payments.** A longer term lowers the payment and raises the total cost. Compare the interest column.
+2. **Expecting equity to build evenly.** Interest is front-loaded, so the first years reduce the balance slowly.
+3. **Overpaying without checking the terms.** Confirm that extra payments go to principal and carry no fee.
 
-1. **Comparing only monthly payments.** A longer term has lower monthly payments but dramatically higher total cost. Always compare total interest paid.
-2. **Ignoring the front-loading of interest.** Building only 5% equity in the first 5 years of a 30-year mortgage is normal, not a sign that something is wrong.
-3. **Refinancing too late.** Refinancing in year 25 of a 30-year mortgage rarely saves meaningful money because you're already past the interest-heavy years.
-4. **Not checking for prepayment penalties.** Before making extra payments, verify your loan terms allow it without fees.
+## What to do next
 
-> **Key takeaway:** The single most expensive mistake is choosing a loan based on the monthly payment alone. A 30-year loan can cost you over $150,000 more than a 15-year loan on the same amount — that difference just doesn't show up in the monthly number.
-
-## What to Do Next
-
-Review your amortization schedule to see where your payments are going right now. If you're in the early years of a mortgage, even small extra principal payments create outsized savings. If you're comparing loan offers, focus on the total cost column — not just the monthly payment.
+Enter the loan amount, rate and term and read the schedule. If you are comparing offers, look at the total interest, not the monthly payment alone. Then open the advanced settings and try an extra payment.

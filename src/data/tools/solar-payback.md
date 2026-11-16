@@ -2,7 +2,7 @@
 name: "Solar Panel Payback Calculator"
 slug: "solar-payback"
 category: "saving-and-growth"
-description: "Solar panel payback calculator — estimate how long panels take to pay for themselves, with or without a battery, from your tariff and usage."
+description: "Solar panel payback calculator: payback time, year-one savings and 25-year return for UK, US and euro-area homes, with or without a battery."
 keywords:
   - "solar panel payback period"
   - "solar panel ROI calculator"
@@ -12,124 +12,139 @@ keywords:
   - "how long do solar panels take to pay back"
   - "solar panel investment return"
 relatedTools:
-  - "compound-interest"
-  - "investment-return"
   - "roi"
   - "savings-goal"
-  - "investment-fee"
+  - "investment-return"
+  - "compound-interest"
+  - "inflation"
 faq:
   - question: "How long do solar panels take to pay for themselves?"
-    answer: "A typical 4kW system in the UK costs around £7,000 and generates roughly £600–£900 of savings per year, giving a payback period of 8–12 years. In the US, a 8kW system at $20,000 before the federal tax credit typically pays back in 7–10 years (faster in sunny states). Adding a battery extends payback by 3–5 years because of the extra upfront cost, but increases self-consumption from ~30% to ~75% and protects against future tariff rises."
+    answer: "It depends on what the panels save you. A 4kW UK system costing £7,000, with electricity at 26.32p/kWh and exports at 4.5p/kWh, pays back in {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} if you use 30% of the output yourself, and in {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=50, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} at 50%. A 7.5kW US system costing $22,500, with electricity and exports both at 18.04 cents, pays back in {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375).paybackTotalMonths | months }}. Your own result depends on your quote, your tariff and how much of the output you use at home."
   - question: "Does adding a solar battery make financial sense?"
-    answer: "It depends on the gap between your electricity tariff and export tariff. In the UK, you pay ~24.5p/kWh but the Smart Export Guarantee only pays ~3–6p/kWh — so every kWh you store and use yourself saves ~20p compared to exporting it. A 5kWh battery costing £4,500 that shifts ~4.5kWh/day (after 90% round-trip efficiency losses) from export to self-consumption saves roughly £330/year extra, paying back in about 13 years. With rising energy prices and falling battery costs, the economics are improving each year. Without time-of-use tariffs or frequent power cuts, a battery is still marginal purely on financial grounds."
-  - question: "What is self-consumption rate and why does it matter?"
-    answer: "Self-consumption is the percentage of generated solar electricity that you use directly in your home rather than exporting to the grid. Without a battery, a typical household self-consumes only 25–35% because panels generate most electricity during midday when many people are at work. With a battery, self-consumption rises to 60–80% because surplus daytime generation is stored for evening use. Higher self-consumption means greater savings — you avoid buying grid electricity at the full tariff rate, rather than exporting at a much lower rate."
+    answer: "Only when the gap between what you pay for electricity and what you are paid for exports is large. In the UK, with a 26.32p import price against a 4.5p export price, a 5kWh battery costing £4,500 lifts self-consumption from 30% to {{ solarPayback('uk', battery=true, systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900, batteryCost=4500, batteryCapacity=5).selfConsumption | int }}% and shortens payback from {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} to {{ solarPayback('uk', battery=true, systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900, batteryCost=4500, batteryCapacity=5).paybackTotalMonths | months }}. Under US net metering, where exports earn the retail rate, a battery adds cost without adding savings: payback goes from {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375).paybackTotalMonths | months }} to {{ solarPayback('us', battery=true, systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375, batteryCost=15750, batteryCapacity=13.5).paybackTotalMonths | months }} with a 13.5kWh battery costing $15,750. A battery also gives backup power in an outage, which the payback figure does not value."
+  - question: "What is self-consumption and why does it matter?"
+    answer: "Self-consumption is the share of the electricity your panels generate that you use at home instead of exporting. Each self-used kWh saves the full import price, while each exported kWh earns only the export rate. The calculator starts at 30%, which is an assumption: households that are home in the daytime use more. Raising it from 30% to 50% on the UK example above moves payback from {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} to {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=50, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }}. Running the washing machine and dishwasher in the daytime, or adding a battery, raises it."
   - question: "What is the Smart Export Guarantee (SEG) and how much does it pay?"
-    answer: "The Smart Export Guarantee is a UK scheme requiring licensed electricity suppliers to pay households for surplus solar electricity exported to the grid. SEG rates vary widely by supplier, from 1p/kWh to around 15–25p/kWh for some agile/time-of-use tariffs. Standard fixed SEG rates typically pay 3–6p/kWh. Some suppliers offer higher rates if you also buy your electricity from them. Octopus Energy's Agile Outgoing tariff can pay above 15p/kWh during peak demand, but rates fluctuate by the half-hour. For a conservative estimate, use 4–5p/kWh."
+    answer: "The Smart Export Guarantee is a UK scheme that requires larger electricity suppliers to pay households for solar electricity they export. In Ofgem's report for April 2024 to March 2025, tariffs not tied to the supplier's import tariff averaged 4.39p/kWh, while tariffs tied to it averaged 14.54p/kWh. Rates differ widely by supplier, and some pay more if you also buy your electricity from them. The calculator uses 4.5p/kWh for the UK; enter your own supplier's rate."
   - question: "How does panel degradation affect long-term savings?"
-    answer: "Solar panels gradually lose output over their lifetime due to weathering and cell degradation. The industry standard degradation rate is about 0.5% per year — so after 25 years, a panel produces roughly 88% of its original output. High-quality panels (LG, SunPower, REC) may degrade at 0.3% per year. This means a 4kW system generating 3,600 kWh in year 1 would generate about 3,170 kWh in year 25. The calculator accounts for this decline in each year's savings estimate."
+    answer: "Panels lose a little output every year. The calculator assumes 0.5% a year, a figure that is already common for some manufacturers; the US National Laboratory of the Rockies (formerly NREL) assumes 0.7% a year in its baseline. At 0.5% a year, the UK example generates {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationYear1 | int }} kWh in year 1 and {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationFinal | int }} kWh in year 25, which is {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationFinal / solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationYear1 * 100 | pct }} of the first year. Each year's savings in the calculator already reflect that decline."
   - question: "Are solar panels still worth it in 2026 without a government subsidy?"
-    answer: "Yes, for most UK and US homeowners. In the UK, solar panels have been VAT-free (0%) since 2022 and this continues through March 2027, effectively saving ~17% on system cost. Electricity prices remain high (24.5p/kWh under the Ofgem cap), making the payback period attractive at 8–12 years against a 25-year panel warranty. In the US, the federal 30% Residential Clean Energy Credit expired at the end of 2025 for new homeowner installations, but many state-level incentives remain. Even without federal credits, falling panel costs mean payback periods under 10 years in most sunny states."
+    answer: "It depends on the price you pay for electricity and on what you do with the output. In the UK, installing solar panels is zero-rated for VAT until 31 March 2027, and the rate goes back to 5% from 1 April 2027 (HMRC VAT Notice 708/6). Electricity at the Ofgem cap of 26.32p/kWh for 1 October to 31 December 2026 gives the UK example a payback of {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }}, and a total saving of {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).totalSavings | gbp }} over 25 years. In the US, the 30% residential clean energy credit (25D) is not available for systems placed in service after 31 December 2025 (IRS), though some states and utilities still offer rebates; enter any rebate as the upfront incentive."
   - question: "How much electricity does a solar panel system generate per year?"
-    answer: "Output depends on system size, location, and roof orientation. In the UK, expect 800–1,100 kWh per kWp per year (a south-facing roof in southern England gets ~900 kWh/kWp; Scotland may get ~800). In the US, the range is wider: 1,200 kWh/kWp in the northern states up to 1,600+ kWh/kWp in the Southwest. A 4kW UK system generates roughly 3,200–4,400 kWh per year. A 8kW US system generates roughly 9,600–12,800 kWh per year."
+    answer: "Output depends on system size, location, tilt and shading. The UK calculator default is 900 kWh per kWp a year, within the 806 to 972 kWh range implied by the UK solar load factors for 2024 and 2025 in DUKES 2026. The US default is 1,375 kWh per kWp, the national mean in NLR's 2024 Annual Technology Baseline. A 4kW UK system therefore generates about {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationYear1 | int }} kWh in year 1 and a 7.5kW US system about {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375).generationYear1 | int }} kWh. For your address, use NLR's PVWatts estimator."
 workedExamples:
   - title: "4kW system in the UK, no battery"
     inputs:
       systemCost: 7000
       systemSize: 4
-      electricityTariff: 24.5
+      electricityTariff: 26.32
       selfConsumption: 30
       exportTariff: 4.5
-    description: "A 4kW system generating 3,600 kWh/year. At 30% self-consumption, 1,080 kWh is used directly (saving £265 at 24.5p/kWh) and 2,520 kWh is exported (earning £113 at 4.5p/kWh). After £150 maintenance, year 1 net savings are £228. With 3% energy price inflation, the system pays back in approximately 11 years and generates over £12,000 in total savings over 25 years."
-  - title: "4kW system with 5kWh battery in the UK"
+    description: "A 4kW system costing £7,000 generates {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationYear1 | int }} kWh in year 1. At 30% self-consumption, {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationYear1 * 0.30 | int }} kWh is used at home (saving {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationYear1 * 0.30 * 26.32 / 100 | gbp }} at 26.32p) and {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationYear1 * 0.70 | int }} kWh is exported (earning {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).generationYear1 * 0.70 * 4.5 / 100 | gbp }} at 4.5p). After £150 of maintenance, year-1 savings are {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).year1Savings | gbp }}. With 3% a year energy price inflation the system pays back in {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} and saves {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).totalSavings | gbp }} over 25 years."
+  - title: "4kW system with a 5kWh battery in the UK"
     inputs:
       systemCost: 7000
       systemSize: 4
       batteryCost: 4500
       baseSelfConsumption: 30
       batteryCapacity: 5
-    description: "Same 4kW system, but a 5kWh battery with 90% round-trip efficiency boosts effective self-consumption to 76%. Of the 3,600 kWh generated, 2,736 kWh is self-consumed (saving £670 at 24.5p/kWh) and 864 kWh is exported (earning £39 at 4.5p/kWh). Year 1 savings are £559 after £150 maintenance. However, the net system cost is £11,500 (panels + battery), extending payback to approximately 13 years. Over 25 years, total savings exceed £23,000 — the battery adds cost but increases lifetime returns."
-  - title: "8kW system in a sunny US state"
+    description: "The same system with a 5kWh battery (90% round-trip efficiency) lifts year-1 self-consumption from 30% to {{ solarPayback('uk', battery=true, systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900, batteryCost=4500, batteryCapacity=5).selfConsumption | int }}%. Year-1 savings rise to {{ solarPayback('uk', battery=true, systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900, batteryCost=4500, batteryCapacity=5).year1Savings | gbp }} after £150 of maintenance. The net cost is {{ solarPayback('uk', battery=true, systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900, batteryCost=4500, batteryCapacity=5).netCost | gbp }} (panels plus battery), and the system pays back in {{ solarPayback('uk', battery=true, systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900, batteryCost=4500, batteryCapacity=5).paybackTotalMonths | months }}, against {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} without it. Over 25 years total savings are {{ solarPayback('uk', battery=true, systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900, batteryCost=4500, batteryCapacity=5).totalSavings | gbp }}. The battery wins here because the import price is so much higher than the export price."
+  - title: "7.5kW system in the US: net metering vs a lower export rate"
     inputs:
-      systemCost: 20000
-      systemSize: 8
-      electricityTariff: 18
+      systemCost: 22500
+      systemSize: 7.5
+      electricityTariff: 18.04
       selfConsumption: 30
-      exportTariff: 8
-      kWhPerKwp: 1400
-    description: "An 8kW system generating 11,200 kWh/year at 1,400 kWh/kWp. At 30% self-consumption, 3,360 kWh is used (saving $605 at 18¢/kWh) and 7,840 kWh is exported ($627 at 8¢/kWh). After $400 maintenance, year 1 net savings are $832. The $20,000 system pays back in roughly 12 years. In states with full net metering (export = import rate), payback drops to under 9 years."
-lastUpdated: "2026-03-10"
+      exportTariff: 18.04
+      kWhPerKwp: 1375
+    description: "A 7.5kW system costing $22,500 generates {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375).generationYear1 | int }} kWh in year 1. With net metering, every kWh is worth the 18.04 cent retail rate: year-1 savings are {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375).year1Savings | usd }} after $225 of maintenance, and the system pays back in {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375).paybackTotalMonths | months }}. If the utility pays only 8 cents for exports, year-1 savings fall to {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=8, selfConsumption=30, maintenance=225, kWhPerKwp=1375).year1Savings | usd }} and payback stretches to {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=8, selfConsumption=30, maintenance=225, kWhPerKwp=1375).paybackTotalMonths | months }}. The export rate is the figure to check first in the US."
+lastUpdated: "2026-11-15"
 dataSources:
-  - name: "Ofgem — Energy Price Cap Q2 2026"
-    url: "https://www.ofgem.gov.uk/check-if-energy-price-cap-affects-you"
-  - name: "EnergySage — Solar Panel Cost In 2026"
-    url: "https://www.energysage.com/local-data/solar-panel-cost/"
-  - name: "NREL — Solar Panel Degradation Rates"
-    url: "https://www.nrel.gov/docs/fy12osti/51664.pdf"
-calculationMethod: "Year-by-year simulation: annual generation (kWp × kWh/kWp × degradation factor), split between self-consumption and export, multiplied by escalating tariff rates, minus maintenance. Payback occurs when cumulative savings equal net system cost."
+  - name: "Ofgem: energy price cap, 1 October to 31 December 2026"
+    url: "https://www.ofgem.gov.uk/news/changes-energy-price-cap-between-1-october-and-31-december-2026"
+  - name: "Ofgem: Smart Export Guarantee annual report, April 2024 to March 2025"
+    url: "https://www.ofgem.gov.uk/transparency-document/smart-export-guarantee-annual-report-april-2024-march-2025"
+  - name: "DESNZ: Solar PV cost data"
+    url: "https://www.gov.uk/government/statistics/solar-pv-cost-data"
+  - name: "HMRC VAT Notice 708/6: energy-saving materials and heating equipment"
+    url: "https://www.gov.uk/guidance/vat-on-energy-saving-materials-and-heating-equipment-notice-7086"
+  - name: "EIA: Electric Power Monthly, average residential price (table 5.3)"
+    url: "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_3"
+  - name: "Berkeley Lab: U.S. Distributed Solar and Storage Data, 2026 update"
+    url: "https://eta-publications.lbl.gov/sites/default/files/2026-08/distributed_solar_storage-2026_data_update_final.pdf"
+  - name: "NLR Annual Technology Baseline: residential PV"
+    url: "https://atb.nlr.gov/electricity/2024/residential_pv"
+  - name: "NLR PVWatts: estimate output for your address"
+    url: "https://pvwatts.nlr.gov/"
+  - name: "IRS: Residential Clean Energy Credit"
+    url: "https://www.irs.gov/credits-deductions/residential-clean-energy-credit"
+calculationMethod: "Year-by-year simulation: annual generation (kWp x kWh/kWp x degradation factor), split between self-consumption and export, multiplied by escalating tariff rates, minus maintenance. Payback occurs when cumulative savings equal net system cost."
 ---
 
-## Should You Install Solar Panels?
+## What solar saves, and what it costs
 
-Solar panels are a long-term investment. Unlike a savings account that earns interest, panels generate returns by reducing your electricity bill and earning income from exported surplus. The payback period tells you when the cumulative savings equal what you spent — everything after that is profit.
+Solar panels are a long-term investment that pays through a lower electricity bill and income from exported surplus. The payback period is the year when cumulative savings equal what you spent; every year after that is saving.
 
-> **Key takeaway:** In the UK, a typical 4kW system pays back in 8–12 years against a 25-year panel warranty. That means 13–17 years of essentially free electricity after the system has paid for itself.
+For a typical 4kW UK system the answer is longer than older guides say. At the Ofgem price cap of 26.32p/kWh (1 October to 31 December 2026), the calculator gives {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} at the default 30% self-consumption, and {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=50, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} at 50%. The panels carry a warranty of around 25 years, so the later years are the profit.
 
-## How the Payback Calculation Works
+> **What moves the result most:** how much of the output you use yourself. The same UK system saves {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).year1Savings | gbp }} in year 1 at 30% self-consumption and {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=50, maintenance=150, kWhPerKwp=900).year1Savings | gbp }} at 50%.
 
-The calculator simulates each year over your chosen analysis period:
+## How the payback calculation works
 
-1. **Annual generation** = System size (kWp) × annual output per kWp, reduced by panel degradation each year
-2. **Self-consumed electricity** saves you the full electricity tariff rate per kWh
-3. **Exported electricity** earns the export tariff rate per kWh (Smart Export Guarantee in the UK, net metering in the US)
-4. **Annual savings** = self-consumption savings + export income − maintenance costs
-5. **Electricity tariff escalates** by the energy price inflation rate each year
-6. **Payback** = the year when cumulative savings first exceed the net system cost
+The calculator simulates each year of the analysis period:
 
-## With or Without a Battery?
+1. **Annual generation** is system size (kWp) times annual output per kWp, reduced by panel degradation each year.
+2. **Self-consumed electricity** saves the full import tariff per kWh.
+3. **Exported electricity** earns the export tariff (the Smart Export Guarantee in the UK, net metering in the US).
+4. **Annual savings** are self-consumption savings plus export income minus maintenance.
+5. **The tariff rises** by the energy price inflation rate each year.
+6. **Payback** is the year when cumulative savings first exceed the net system cost. A system that never gets there within the analysis period is reported as such.
 
-A battery stores surplus daytime solar for evening use, dramatically increasing self-consumption:
+## With or without a battery?
 
-| Scenario | Self-Consumption | Year 1 Savings | Added Cost | Payback Impact |
-|---|---|---|---|---|
-| Panels only | 25–35% | Lower | £0 | Shorter payback |
-| Panels + battery | 60–80% | Higher | £3,000–£8,000 | Longer payback |
+A battery stores surplus daytime generation for the evening, which raises self-consumption. Whether that pays depends on the gap between the import and export price.
 
-The battery improves annual savings but adds significant upfront cost. In most cases, it extends the payback period by 3–5 years but increases total lifetime savings. Batteries make more financial sense when:
+| Case | Without a battery | With a battery |
+|---|---|---|
+| UK: 4kW, £7,000; 5kWh battery, £4,500 (26.32p import, 4.5p export) | {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} | {{ solarPayback('uk', battery=true, systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900, batteryCost=4500, batteryCapacity=5).paybackTotalMonths | months }} |
+| US: 7.5kW, $22,500; 13.5kWh battery, $15,750 (18.04 cents import and export) | {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375).paybackTotalMonths | months }} | {{ solarPayback('us', battery=true, systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375, batteryCost=15750, batteryCapacity=13.5).paybackTotalMonths | months }} |
 
-- The gap between your import tariff and export tariff is large (UK: ~20p gap)
-- You have time-of-use tariffs (charge battery cheap, discharge expensive)
-- Energy prices are rising faster than average
-- You want backup power during grid outages
+Batteries make financial sense when:
 
-## Key Factors That Affect Payback
+- the gap between your import and export price is large (the UK example: {{ 26.32 - 4.5 | num(1) }}p per kWh)
+- you are on a time-of-use tariff and can charge cheaply and discharge at the peak
+- you value backup power during outages
 
-**Electricity tariff rate** is the single biggest driver. Higher tariffs mean greater savings from every kWh you self-consume. UK rates (24.5p/kWh) make solar more attractive than many US states (18¢/kWh average).
+Where exports earn the full retail rate, as under US net metering, a battery adds cost and no savings.
 
-**Self-consumption rate** determines how much value you extract from each kWh generated. Working from home, running appliances during daylight hours, or adding a battery all increase self-consumption.
+## Key factors
 
-**System cost** has fallen dramatically — UK prices dropped from £6,000/kW in 2010 to under £1,500/kW in 2026. Installation quality matters though: cheap panels degrade faster and underperform.
+**The electricity price** is the biggest driver. Every self-consumed kWh saves the import price, which was 26.32p/kWh on the UK price cap for 1 October to 31 December 2026 (Ofgem; that price excludes VAT, which is removed from domestic electricity from 1 October 2026 to 31 March 2027) and about 18.04 cents/kWh across US households in the 12 months to August 2026 (EIA).
 
-**Roof orientation** and shading affect actual generation. South-facing roofs (UK) produce the most; east/west-facing roofs produce ~15–20% less. Heavy shading can reduce output by 50% or more.
+**Self-consumption** decides how much of that value you collect. Working from home, running appliances in daylight, or adding a battery raises it.
 
-## UK vs US Differences
+**System cost** is the other half of the ratio. The DESNZ median for UK installations up to 4kW in 2025/26 was about £1,780 per kW, which is where the £7,000 default comes from. The Berkeley Lab 2026 data update puts the median US residential system at about 7.7kW and its cash price at about $3.00 per watt, which gives the $22,500 default for 7.5kW.
+
+**Roof and shading** change generation. South-facing roofs generate the most, and heavy shading can cut output sharply. Use PVWatts for your own roof.
+
+## UK and US compared
 
 | Factor | UK | US |
 |---|---|---|
-| Typical system size | 3–5 kWp | 6–10 kWp |
-| Average cost | £5,000–£9,000 | $15,000–$25,000 |
-| Output per kWp | 800–1,100 kWh/year | 1,200–1,600 kWh/year |
-| Electricity rate | ~24.5p/kWh | ~18¢/kWh (varies by state) |
-| Export payment | SEG: 3–6p/kWh | Net metering (varies by state) |
-| VAT/tax credit | 0% VAT through March 2027 | Federal 30% ITC expired Dec 2025 |
+| Calculator default system | 4kW at £7,000 | 7.5kW at $22,500 |
+| Output per kWp | 900 kWh a year | 1,375 kWh a year |
+| Electricity price | 26.32p/kWh (Ofgem cap, Oct to Dec 2026) | 18.04 cents/kWh (EIA, 12 months to Aug 2026) |
+| Export payment | SEG: 4.39p average for untied tariffs (2024/25) | Net metering credits retail rate; newer tariffs pay less |
+| Tax treatment | 0% VAT on installation until 31 March 2027, then 5% | 30% federal credit ended for systems placed in service after 31 December 2025 |
+| Payback with these defaults | {{ solarPayback('uk', systemCost=7000, systemSize=4, tariff=26.32, exportTariff=4.5, selfConsumption=30, maintenance=150, kWhPerKwp=900).paybackTotalMonths | months }} | {{ solarPayback('us', systemCost=22500, systemSize=7.5, tariff=18.04, exportTariff=18.04, selfConsumption=30, maintenance=225, kWhPerKwp=1375).paybackTotalMonths | months }} |
 
-## When to Use This Calculator
+The UK tariff is higher but the UK gets fewer kWh from each kWp and is paid far less for exports, so the US default pays back sooner. Euro-area visitors start from the EU household average price of 28.79 cents/kWh (Eurostat, first half of 2026) with UK system assumptions; enter your own quote and tariff.
 
-Use this calculator when you are:
+## Using this calculator
 
-- **Getting quotes** and want to compare the financial return of different system sizes
-- **Deciding on a battery** and need to see how it changes the payback timeline
-- **Evaluating different tariffs** — switch between import rates and export rates to model different suppliers
-- **Planning for the future** — adjust energy price inflation to see how rising prices affect returns
+- **Compare quotes.** Enter each system's cost and size and compare the payback.
+- **Test a battery.** Switch it on and see whether your import-export gap pays for it.
+- **Try different tariffs.** Change the import and export prices to model a supplier or a new export tariff.
+- **Stress the future.** Change the energy price inflation to see how rising prices affect the return.
 
-Compare results with the [ROI Calculator](/tools/saving-and-growth/roi/) for a simple percentage return, or the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to see what the same money would earn in the stock market.
+Compare the result with the [ROI Calculator](/tools/saving-and-growth/roi/) for a simple percentage return, or the [Investment Return Calculator](/tools/saving-and-growth/investment-return/) to see what the same money would earn invested.

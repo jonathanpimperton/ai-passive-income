@@ -2,7 +2,7 @@
 name: "Mortgage Payment Calculator"
 slug: "mortgage-payment"
 category: "debt-and-loans"
-description: "Mortgage payment calculator — enter loan amount, rate, and term to see monthly repayments, total interest, and the amortization schedule."
+description: "Mortgage payment calculator: monthly payment, total interest and schedule, with extra payments, tax, insurance and PMI for US, UK and euro loans."
 keywords:
   - "mortgage calculator"
   - "mortgage payment calculator"
@@ -16,32 +16,35 @@ affiliatePrograms:
   - "LendingTree"
   - "SoFi"
 relatedTools:
+  - "mortgage-affordability"
   - "loan-amortization"
   - "rent-vs-buy"
+  - "stamp-duty"
   - "savings-goal"
   - "compound-interest"
-  - "salary-us"
-lastUpdated: "2026-03-04"
+lastUpdated: "2026-11-15"
 dataSources:
-  - name: "Mortgage amortization formula — Investopedia"
+  - name: "Mortgage amortization formula (Investopedia)"
     url: "https://www.investopedia.com/terms/a/amortization.asp"
-  - name: "CFPB — Understand loan options"
+  - name: "CFPB: understand loan options"
     url: "https://www.consumerfinance.gov/owning-a-home/loan-options/"
-  - name: "Freddie Mac — Primary Mortgage Market Survey"
+  - name: "Freddie Mac Primary Mortgage Market Survey (default US rates)"
     url: "https://www.freddiemac.com/pmms"
+  - name: "Freddie Mac: breaking down PMI (default PMI rate)"
+    url: "https://myhome.freddiemac.com/buying/breaking-down-pmi"
 faq:
   - question: "How is a monthly mortgage payment calculated?"
-    answer: "The standard formula is M = P[r(1+r)^n]/[(1+r)^n – 1], where P is the loan principal, r is the monthly interest rate (annual rate ÷ 12), and n is the total number of payments (years × 12). On a $300,000 loan at 7% for 30 years, the monthly principal and interest payment is $1,996. This doesn't include property taxes, homeowners insurance, or PMI, which can add $300-$800/month."
+    answer: "The standard formula is M = P[r(1+r)^n]/[(1+r)^n - 1], where P is the loan principal, r is the monthly interest rate (annual rate divided by 12) and n is the number of payments (years x 12). On a $300,000 loan at 7% for 30 years, principal and interest come to {{ loanPayment(300000, 7, 30) | usd }} a month. That leaves out property tax, homeowners insurance and PMI. On a $350,000 home the calculator's starting assumptions (1.0% tax, $1,800 insurance) add {{ 350000 * 1 / 100 / 12 + 1800 / 12 | usd }} a month."
   - question: "What is included in a mortgage payment?"
-    answer: "A full mortgage payment (often called PITI) includes four components: Principal (paying down the loan balance), Interest (the cost of borrowing), Taxes (property taxes, usually escrowed), and Insurance (homeowners insurance, also usually escrowed). If your down payment is less than 20%, you'll also pay PMI (Private Mortgage Insurance), typically 0.5-1% of the loan amount per year."
+    answer: "A full US payment (often called PITI) has four parts: principal (paying down the balance), interest (the cost of borrowing), property tax and homeowners insurance, the last two usually collected in escrow. With less than 20% down you also pay PMI (private mortgage insurance). Freddie Mac puts PMI at roughly $30 to $70 a month for every $100,000 borrowed, which is {{ 30 * 12 / 100000 * 100 | pct(2) }} to {{ 70 * 12 / 100000 * 100 | pct(2) }} of the loan a year (accessed 12 November 2026). The calculator uses the midpoint, {{ (30 + 70) / 2 * 12 / 100000 * 100 | pct(auto) }}, and lets you change it. In UK and euro mode there is no tax, insurance or PMI line."
   - question: "How much does an extra payment save on a mortgage?"
-    answer: "Extra payments can save tens of thousands in interest. For example, on a $300,000 mortgage at 7% for 30 years, adding just $200/month to your payment saves approximately $76,000 in total interest and pays off the loan 6 years early. Even one extra payment per year (splitting monthly payment into biweekly payments) can shave 4-5 years off a 30-year mortgage."
-  - question: "What is the difference between a 15-year and 30-year mortgage?"
-    answer: "A 15-year mortgage has higher monthly payments but significantly lower total interest. On a $300,000 loan at 6.5% (30-year) vs 5.75% (15-year, typically lower rate): the 30-year payment is $1,896/month with $382,633 total interest. The 15-year payment is $2,494/month ($598 more) but total interest is only $148,858 — saving you $233,775. The 15-year builds equity much faster."
+    answer: "A lot, because the extra goes straight to principal and cuts interest in every remaining month. On a $300,000 mortgage at 7% for 30 years, adding $200 a month saves {{ overpaymentSaving(300000, 7, 30, monthly=200).interestSaved | usd }} in interest and ends the loan {{ overpaymentSaving(300000, 7, 30, monthly=200).monthsSaved | months }} early. Adding one-twelfth of your payment each month ({{ loanPayment(300000, 7, 30) / 12 | usd }}, the same total as one extra payment a year) saves {{ overpaymentSaving(300000, 7, 30, monthly=loanPayment(300000, 7, 30) / 12).interestSaved | usd }} and takes off {{ overpaymentSaving(300000, 7, 30, monthly=loanPayment(300000, 7, 30) / 12).monthsSaved | months }}. Check your loan allows overpayments without a fee."
+  - question: "What is the difference between a 15-year and a 30-year mortgage?"
+    answer: "A 15-year loan has a higher payment and far less interest. On $300,000 at the Freddie Mac survey rates ({{ rate('us30') | pct(2) }} for 30 years, {{ rate('us15') | pct(2) }} for 15; {{ rateSource('us30') }}), the 30-year payment is {{ loanPayment(300000, rate('us30'), 30) | usd }} a month with {{ loanTotalInterest(300000, rate('us30'), 30) | usd }} of interest. The 15-year payment is {{ loanPayment(300000, rate('us15'), 15) | usd }} a month ({{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} more) with {{ loanTotalInterest(300000, rate('us15'), 15) | usd }} of interest, which saves {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }}. A survey rate is a market snapshot, not a quote."
   - question: "How much house can I afford?"
-    answer: "A common guideline is the 28/36 rule: spend no more than 28% of gross monthly income on housing costs (mortgage + taxes + insurance) and no more than 36% on total debt payments. On a $100,000 household income, that's a maximum housing payment of roughly $2,333/month. At 7% interest with 20% down, that supports approximately a $350,000 home. Lenders may approve more, but stretching beyond 28% leaves less buffer for other expenses."
+    answer: "A common guide is the 28/36 rule: housing costs (payment, tax, insurance, PMI and HOA dues) of no more than 28% of gross monthly income, and total debt payments of no more than 36%. On a $100,000 household income, 28% is {{ 100000 * 28 / 100 / 12 | usd }} a month. With $50,000 for the down payment, no other debts, a 7% rate and 30 years, that supports a home of about {{ usAffordability(100000, 0, 50000, 7, 30).maxPrice | usd }}. The mortgage affordability calculator applies both limits and shows which one binds. Lenders may approve more than the guide allows, but a higher payment leaves less room for everything else."
   - question: "Should I pay points to lower my mortgage rate?"
-    answer: "Each discount point costs 1% of the loan amount and typically reduces the rate by 0.25%. On a $300,000 loan, one point costs $3,000 and saves about $50/month at current rates. The break-even point is 60 months (5 years). If you plan to stay in the home longer than 5 years, paying points usually saves money long-term. If you might sell or refinance sooner, skip the points."
+    answer: "One discount point costs 1% of the loan and typically lowers the rate by about 0.25 percentage points, though lenders differ. On a $300,000 loan, one point costs {{ 300000 / 100 | usd }} and cutting 7% to 6.75% saves {{ loanPayment(300000, 7, 30) - loanPayment(300000, 6.75, 30) | usd }} a month, so it takes {{ 3000 / (loanPayment(300000, 7, 30) - loanPayment(300000, 6.75, 30)) | months }} to break even. If you will keep the loan longer than that, paying points usually saves money. If you may sell or refinance sooner, skip them."
 workedExamples:
   - title: "Monthly payment on a $350,000 home with 20% down"
     inputs:
@@ -49,96 +52,87 @@ workedExamples:
       downPayment: 20
       interestRate: 7.0
       loanTerm: 30
-    description: "Home price $350,000 with 20% down ($70,000) gives a $280,000 loan. At 7% fixed for 30 years: monthly P&I is $1,863. Total interest over 30 years: $390,453 — more than the original loan amount. Adding estimated taxes ($292/month) and insurance ($146/month), the full monthly payment is approximately $2,301."
-  - title: "Comparing 15-year vs 30-year mortgage"
+    description: "A $350,000 home with 20% down ({{ 350000 * 20 / 100 | usd }}) leaves a {{ 350000 * 80 / 100 | usd }} loan. At 7% fixed for 30 years, principal and interest are {{ loanPayment(280000, 7, 30) | usd }} a month and total interest is {{ loanTotalInterest(280000, 7, 30) | usd }}, more than the loan itself. With the default 1.0% property tax ({{ 350000 * 1 / 100 / 12 | usd }} a month) and $1,800 a year of insurance ({{ 1800 / 12 | usd }} a month), the full monthly payment is {{ loanPayment(280000, 7, 30) + 350000 * 1 / 100 / 12 + 1800 / 12 | usd }}. There is no PMI at 20% down."
+  - title: "Comparing a 15-year and a 30-year mortgage"
     inputs:
-      loanAmount: 300000
-      interestRate15: 5.75
-      interestRate30: 6.5
-    description: "On a $300,000 loan: the 30-year at 6.5% costs $1,896/month with $382,633 total interest. The 15-year at 5.75% costs $2,494/month with $148,858 total interest. The 15-year costs $598 more per month but saves $233,775 in interest. After 10 years, the 15-year loan has $126,000 remaining balance vs $237,000 on the 30-year."
+      homePrice: 300000
+      downPayment: 0
+      loanTerm: 30
+      thirtyYearRate: "market rate"
+      fifteenYearRate: "market rate"
+    description: "A $300,000 loan at the Freddie Mac survey rates ({{ rate('us30') | pct(2) }} for 30 years, {{ rate('us15') | pct(2) }} for 15; {{ rateSource('us30') }}). The 30-year payment is {{ loanPayment(300000, rate('us30'), 30) | usd }} a month with {{ loanTotalInterest(300000, rate('us30'), 30) | usd }} total interest. The 15-year payment is {{ loanPayment(300000, rate('us15'), 15) | usd }} a month, {{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} more, with {{ loanTotalInterest(300000, rate('us15'), 15) | usd }} total interest, a saving of {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }}. After 10 years the 15-year loan owes {{ loanBalance(300000, rate('us15'), 15, 120) | usd }} against {{ loanBalance(300000, rate('us30'), 30, 120) | usd }} on the 30-year."
   - title: "Impact of extra payments"
     inputs:
-      loanAmount: 280000
+      homePrice: 350000
+      downPayment: 20
       interestRate: 7.0
       loanTerm: 30
       extraMonthlyPayment: 300
-    description: "A $280,000 loan at 7% for 30 years has a base payment of $1,863/month. Adding $300/month extra toward principal: the loan is paid off in 22.5 years instead of 30 (7.5 years early), saving approximately $108,000 in total interest. The total cost drops from $670,814 to $562,470."
+    description: "A {{ 350000 * 80 / 100 | usd }} loan at 7% for 30 years has a base payment of {{ loanPayment(280000, 7, 30) | usd }} a month. Adding $300 a month toward principal pays the loan off in {{ overpaymentSaving(280000, 7, 30, monthly=300).months | months }} instead of 30 years, {{ overpaymentSaving(280000, 7, 30, monthly=300).monthsSaved | months }} early, and saves {{ overpaymentSaving(280000, 7, 30, monthly=300).interestSaved | usd }} in interest. Total interest falls from {{ overpaymentSaving(280000, 7, 30, monthly=300).baseInterest | usd }} to {{ overpaymentSaving(280000, 7, 30, monthly=300).interest | usd }}."
 ---
 
-## What Is a Mortgage Payment?
+## What your lender's quote leaves out
 
-A mortgage payment is the monthly amount you pay to your lender to repay your home loan. The basic payment covers principal (paying down the loan) and interest (the cost of borrowing). But your actual monthly housing cost includes more: property taxes, homeowners insurance, and potentially PMI (Private Mortgage Insurance) — together called PITI.
+A mortgage payment is the monthly amount you pay to repay a home loan. The basic payment covers principal and interest. In the US the real monthly cost also includes property tax, homeowners insurance and, with less than 20% down, PMI. Together these make up PITI.
 
-Understanding all four components prevents the common first-time buyer shock of discovering their actual payment is $400-$800 more than the principal-and-interest amount they were quoted.
+> **Why it matters:** on a $350,000 home with 10% down at 7%, principal and interest are {{ loanPayment(315000, 7, 30) | usd }} a month. Add 1.0% property tax, $1,800 of insurance and PMI at 0.6% and the payment is about {{ (350000 * 1 / 100 / 12 + 1800 / 12 + 315000 * 0.6 / 100 / 12) / loanPayment(315000, 7, 30) * 100 | pct }} higher.
 
-> **Key takeaway:** The mortgage amount your lender quotes is just principal and interest. Your real monthly cost (PITI) can be 30-50% higher once you add taxes, insurance, and PMI.
-
-## How Monthly Payments Are Calculated
+## How the monthly payment is calculated
 
 <div class="stat-highlight">
-  <span class="stat-number">$72K</span>
-  <span class="stat-text">is the extra cost of a 7% rate vs 6% on a $300,000 30-year mortgage. That one percentage point adds $200/month for the life of the loan.</span>
+  <span class="stat-number">{{ loanTotalInterest(300000, 7, 30) - loanTotalInterest(300000, 6, 30) | usd }}</span>
+  <span class="stat-text">is the extra interest from a 7% rate instead of 6% on a $300,000 30-year mortgage. That one percentage point adds {{ loanPayment(300000, 7, 30) - loanPayment(300000, 6, 30) | usd }} a month for the life of the loan.</span>
 </div>
 
-The standard mortgage payment formula is **M = P[r(1+r)^n]/[(1+r)^n – 1]**, where P is the loan amount, r is the monthly interest rate, and n is the total number of payments.
+The standard formula is **M = P[r(1+r)^n]/[(1+r)^n - 1]**, where P is the loan amount, r is the monthly rate (the annual rate divided by 12) and n is the number of monthly payments.
 
-The interest rate has an outsized impact. On a $300,000 loan over 30 years, the difference between 6% and 7% is $200 per month — $72,000 over the life of the loan.
+The rate carries more weight than most buyers expect. On $300,000 over 30 years, moving from 6% to 7% costs {{ loanPayment(300000, 7, 30) - loanPayment(300000, 6, 30) | usd }} a month. The calculator starts from the current Freddie Mac survey rate, {{ rate('us30') | pct(2) }} for a 30-year loan ({{ rateSource('us30') }}). That is a market average, not an offer: quotes for the same borrower can differ noticeably, so get several.
 
-> **Tip:** Even a quarter-point rate difference matters. Shop at least 3-4 lenders — rate quotes can vary by 0.5% or more for the same borrower, which translates to tens of thousands over the life of the loan.
+At the start of a 30-year loan at 7%, {{ loanMonth(300000, 7, 30, 1).principalShare | pct1 }} of the first payment reduces the balance and the rest is interest. Principal does not overtake interest until payment {{ loanCrossoverMonth(300000, 7, 30) | int }}, in year {{ loanCrossoverMonth(300000, 7, 30) / 12 | ceil | int }}.
 
-## PITI: Your Real Monthly Cost
+## What a US payment is made of
 
-Lenders and real estate sites often advertise the P&I (principal and interest) amount, but your actual monthly obligation includes:
+- **Principal and interest:** the base loan payment.
+- **Property tax:** the calculator assumes 1.0% of the price a year; rates vary by state and county, so check your county assessor.
+- **Homeowners insurance:** the calculator assumes $1,800 a year; get a local quote.
+- **PMI:** added while the down payment is under 20%. On a $350,000 home with 10% down the loan is {{ 350000 * 90 / 100 | usd }}, and Freddie Mac's range of $30 to $70 a month per $100,000 puts PMI at {{ 315000 / 100000 * 30 | usd }} to {{ 315000 / 100000 * 70 | usd }} a month; the calculator's default of 0.6% gives {{ 315000 * 0.6 / 100 / 12 | usd }}. The calculator keeps PMI in the total for the whole term. In practice you can ask the lender to cancel it once you reach 20% equity.
 
-- **Principal & Interest (P&I):** The base loan payment
-- **Property Taxes:** Typically 0.5-2.5% of the home's assessed value per year, depending on your state and county
-- **Insurance:** Homeowners insurance averages $1,500-$3,000 per year nationally
-- **PMI:** If your down payment is less than 20%, you'll pay 0.5-1% of the loan amount per year until you reach 20% equity
+## 15 years or 30: the payment gap and the interest gap
 
-On a $350,000 home with 10% down, PMI alone can add $130-$265 per month.
+On a $300,000 loan at the Freddie Mac survey rates ({{ rateSource('us30') }}):
 
-## 15-Year vs 30-Year: The Trade-Off
-
-The choice between 15 and 30 years is one of the most impactful financial decisions homebuyers make. Here's how a $300,000 loan compares:
-
-| | 30-Year (6.5%) | 15-Year (5.75%) |
+| | 30-year ({{ rate('us30') | pct(2) }}) | 15-year ({{ rate('us15') | pct(2) }}) |
 |---|---|---|
-| **Monthly P&I** | $1,896 | $2,494 |
-| **Total interest paid** | $382,633 | $148,858 |
-| **Balance after 10 years** | $237,000 | $126,000 |
-| **Total cost of loan** | $682,633 | $448,858 |
+| **Monthly principal and interest** | {{ loanPayment(300000, rate('us30'), 30) | usd }} | {{ loanPayment(300000, rate('us15'), 15) | usd }} |
+| **Total interest** | {{ loanTotalInterest(300000, rate('us30'), 30) | usd }} | {{ loanTotalInterest(300000, rate('us15'), 15) | usd }} |
+| **Balance after 10 years** | {{ loanBalance(300000, rate('us30'), 30, 120) | usd }} | {{ loanBalance(300000, rate('us15'), 15, 120) | usd }} |
+| **Total of all payments** | {{ 300000 + loanTotalInterest(300000, rate('us30'), 30) | usd }} | {{ 300000 + loanTotalInterest(300000, rate('us15'), 15) | usd }} |
 
-A **30-year mortgage** offers lower monthly payments, more cash flow flexibility, and the ability to buy a more expensive home within your budget. But you pay substantially more in total interest.
+The 30-year loan keeps the payment lower and lets you buy more house for the same monthly budget, at the price of more interest. The 15-year loan costs {{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} more a month, pays {{ loanTotalInterest(300000, rate('us15'), 15) / loanTotalInterest(300000, rate('us30'), 30) * 100 | pct }} as much interest in total and clears the debt 15 years sooner. Both rates move weekly, so rerun the comparison with the figures you are quoted.
 
-A **15-year mortgage** costs $598 more per month but typically comes with a lower interest rate (usually 0.5-0.75% less). Total interest paid is dramatically lower — often less than half of the 30-year total. You build equity much faster, owning your home free and clear 15 years sooner.
+## Extra payments
 
-> **Example:** On a $300,000 loan, choosing 15 years over 30 saves $233,775 in interest — enough to fund a child's college education or a substantial retirement boost.
+Interest is charged on the remaining balance, so an extra dollar of principal reduces interest in every month that follows. On a $280,000 loan at 7%, adding $200 a month saves {{ overpaymentSaving(280000, 7, 30, monthly=200).interestSaved | usd }} in interest and ends the loan {{ overpaymentSaving(280000, 7, 30, monthly=200).monthsSaved | months }} early.
 
-## The Power of Extra Payments
+The effect is largest early on, when most of each payment is interest. Paying the same extra amount ten years in saves less than starting on day one, so overpay as early as you can afford to.
 
-Extra payments toward principal are one of the most effective ways to reduce mortgage costs. Because mortgage interest is calculated on the remaining balance, every extra dollar of principal reduces interest for every remaining month of the loan.
+## UK and euro-area mortgages
 
-The math is compelling: on a $280,000 loan at 7%, adding just $200/month extra saves approximately $90,000 in total interest and pays off the loan 7 years early.
+Switch the currency to pounds or euros and the calculator changes regions. The tax, insurance and PMI lines disappear, the term buttons become 20, 25, 30 and 35 years for the UK (20, 25 and 30 for the euro area) and the default rate becomes the market average: {{ rate('uk2yr') | pct(2) }} for a two-year fix at 75% loan-to-value in the UK ({{ rateSource('uk2yr') }}) and {{ rate('eur') | pct(2) }} for euro-area house purchase ({{ rateSource('eur') }}). A UK buyer should add Stamp Duty and fees on top; the stamp duty calculator covers that. A £250,000 repayment mortgage over 25 years at the UK rate is {{ loanPayment(250000, rate('uk2yr'), 25) | gbp }} a month.
 
-Even making one extra payment per year (by dividing your monthly payment by 12 and adding that amount to each check) can shave 4-5 years off a 30-year term.
+## When to use this calculator
 
-> **Key takeaway:** Extra payments have the biggest impact in the early years of your mortgage, when most of each payment goes toward interest. Starting early maximizes your savings.
+- **House shopping:** enter different prices and see the monthly effect.
+- **Comparing offers:** test rates, terms and down payments side by side.
+- **Planning overpayments:** see how much sooner you would be mortgage-free.
+- **Budgeting the whole payment:** add tax and insurance for a realistic monthly figure.
 
-## When to Use This Calculator
+## Mistakes that cost money
 
-Use the mortgage payment calculator when you:
+1. **Budgeting for principal and interest only.** Tax, insurance and PMI add a large share on top, as the example above shows.
+2. **Borrowing the maximum approved.** A lender may approve a payment well above 28% of your income. The lower figure leaves room for repairs, savings and everything else.
+3. **Treating a small down payment as free.** A smaller deposit means a larger loan, more total interest and PMI. On the $350,000 home above, 10% down instead of 20% adds {{ loanPayment(315000, 7, 30) - loanPayment(280000, 7, 30) | usd }} a month before tax, insurance and PMI.
 
-- **Are house shopping** and need to know what you can afford — enter different home prices to see the monthly impact
-- **Are comparing loan offers** — test different rates, terms, and down payment amounts
-- **Want to plan extra payments** — see exactly how much faster you'd be mortgage-free
-- **Need the full PITI picture** — add property tax and insurance estimates for a realistic monthly budget
+## What to do next
 
-## Common Mistakes
-
-1. **Budgeting only for P&I.** Taxes, insurance, and PMI can add 30-50% on top. Always calculate PITI.
-2. **Stretching to the maximum approval.** Lenders may approve you for a payment of 43% of your income. The 28% guideline leaves much more room for other financial goals.
-3. **Ignoring the long-term cost of a low down payment.** A 5% down payment means a larger loan, higher interest total, and mandatory PMI — costing tens of thousands more than waiting to save 20%.
-
-## What to Do Next
-
-Enter your target home price and down payment to see the real monthly cost. Compare 15 and 30-year terms to see the trade-off. If you already have a mortgage, test how extra payments could accelerate your payoff timeline.
+Enter the price and down payment for a home you are considering and read the monthly cost. Switch between 15 and 30 years, then try an extra monthly payment to see how much sooner the loan ends.

@@ -2,7 +2,7 @@
 name: "Debt Payoff Calculator"
 slug: "debt-payoff"
 category: "debt-and-loans"
-description: "Debt payoff calculator comparing snowball vs avalanche strategies — see your debt-free date, payoff timeline, and total interest saved."
+description: "Debt payoff calculator comparing snowball and avalanche: your debt-free date, the order debts clear, and the total interest each strategy costs."
 keywords:
   - "debt payoff calculator"
   - "debt repayment calculator"
@@ -10,107 +10,97 @@ keywords:
   - "how long to pay off debt"
   - "debt free date"
 relatedTools:
+  - "credit-card-payoff"
   - "loan-amortization"
-  - "savings-goal"
-  - "compound-interest"
   - "emergency-fund"
+  - "savings-goal"
   - "net-worth"
 affiliateContext: "Ready to pay off debt faster? Consolidate with a lower rate"
 affiliatePrograms:
   - "SoFi"
-  - "LendingClub"
-calculationMethod: "Compares avalanche (highest rate first) and snowball (lowest balance first) strategies"
+calculationMethod: "Month-by-month simulation of snowball (smallest balance first) and avalanche (highest rate first), with freed-up minimums rolled onto the next debt"
 faq:
   - question: "What is the snowball vs avalanche method?"
-    answer: "The snowball method pays off your smallest balance first for quick psychological wins. The avalanche method pays off your highest interest rate first to minimize total interest paid. Mathematically, avalanche saves more money. Behaviorally, snowball has a higher completion rate because the early wins keep you motivated."
+    answer: "Both keep paying the minimum on every debt and send all spare money to one target debt. Snowball targets the smallest balance first, for quick wins. Avalanche targets the highest interest rate first, to minimise interest. Avalanche never costs more interest than snowball, but the gap can be small or zero. With the calculator's starting debts ($6,500 at 22.99%, $3,500 at 11.5% and $12,000 at 6.5%, plus $200 extra a month) avalanche costs {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').interest | usd(2) }} in interest and snowball {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball').interest | usd(2) }}, a difference of {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball').interest - debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').interest | usd(2) }}."
   - question: "How long will it take to pay off my debt?"
-    answer: "It depends on your total balance, interest rates, and monthly payment amount. Our calculator shows your exact payoff date for each debt and the total. Even small increases in monthly payments can shave months or years off your timeline — the calculator lets you test different scenarios."
+    answer: "It depends on your balances, rates and how much you pay. The calculator shows the debt-free date for the strategy you choose, the month each debt clears and the total interest. Small increases in payments can take months or years off: a $15,000 balance at {{ 22 | pct }} APR takes {{ debtPayoff('15000@22/500', 0, 'avalanche').months | months }} at $500 a month and {{ debtPayoff('15000@22/700', 0, 'avalanche').months | months }} at $700."
+  - question: "What if my payments never clear a debt?"
+    answer: "If a debt's interest each month is at least what you pay on it, its balance does not fall. It can still be cleared, because the payments freed up when other debts are paid off roll onto it. If even the combined payments never beat the interest, the calculator says the debt is never repaid and shows no totals, because any total it printed would be made up. If balances do fall but are not cleared within 50 years (600 months), it says so and covers only those 50 years. Raise the payment on that debt, or the extra payment, until the result becomes a date."
   - question: "Should I pay off debt or invest?"
-    answer: "A general rule: if your debt's interest rate is higher than your expected investment return (historically ~7-10% for stocks), pay off the debt first. Always make employer-matched 401(k) contributions regardless — that's an instant 50-100% return. For low-rate debt (under 5%), investing while making minimum payments often makes mathematical sense."
+    answer: "Paying off a debt is a guaranteed return equal to its interest rate, while investment returns are not guaranteed. A card at {{ 22.99 | pct(2) }} APR is a poor debt to keep while investing. Low-rate debt is a closer call, and an employer 401(k) match is the exception: a 50% match is an instant 50% return on the matched money, so take the match first. The pay off debt vs invest comparison walks through the trade-off with numbers."
   - question: "Does making extra payments really make a difference?"
-    answer: "Absolutely. On a $20,000 credit card at 22% APR, paying $400/month instead of the $500 minimum takes 7.5 years and costs $15,700 in interest. Paying $700/month cuts it to 3.1 years and $6,800 in interest — saving almost $9,000 and 4+ years."
+    answer: "Yes, and the effect is larger the higher the rate. On $20,000 at {{ 22 | pct }} APR with a fixed $400 payment, you are debt-free in {{ debtPayoff('20000@22/400', 0, 'avalanche').months | months }} and pay {{ debtPayoff('20000@22/400', 0, 'avalanche').interest | usd }} in interest. Paying $600 instead takes {{ debtPayoff('20000@22/600', 0, 'avalanche').months | months }} and costs {{ debtPayoff('20000@22/600', 0, 'avalanche').interest | usd }}: {{ debtPayoff('20000@22/400', 0, 'avalanche').interest - debtPayoff('20000@22/600', 0, 'avalanche').interest | usd }} less interest."
   - question: "What is a good debt-to-income ratio?"
-    answer: "Most lenders consider a debt-to-income (DTI) ratio below 36% as healthy, with no more than 28% going to housing. A DTI above 43% makes it difficult to qualify for most mortgages. Use our calculator to see how paying off specific debts improves your DTI."
+    answer: "Many mortgage lenders use guidelines of about 28% of gross income for housing and 36% for all debts together. Limits vary by lender and loan type, so treat them as a starting point. The mortgage affordability calculator applies the 28/36 guideline to show how a lower debt balance raises the price you can borrow for."
 workedExamples:
-  - title: "Credit card debt payoff"
+  - title: "One card, two payment levels"
     inputs:
       totalDebt: 15000
       interestRate: 22
       monthlyPayment: 500
-    description: "Paying off $15,000 in credit card debt at 22% APR with $500/month payments. Payoff time: 3 years, 8 months. Total interest paid: $6,794. Increasing to $700/month cuts the timeline to 2 years, 3 months and saves $3,115 in interest."
-  - title: "Multiple debts — snowball vs avalanche"
+    description: "A $15,000 card balance at {{ 22 | pct }} APR paid at $500 a month clears in {{ debtPayoff('15000@22/500', 0, 'avalanche').months | months }} with {{ debtPayoff('15000@22/500', 0, 'avalanche').interest | usd }} of interest. Raising the payment to $700 clears it in {{ debtPayoff('15000@22/700', 0, 'avalanche').months | months }} and cuts the interest to {{ debtPayoff('15000@22/700', 0, 'avalanche').interest | usd }}, a saving of {{ debtPayoff('15000@22/500', 0, 'avalanche').interest - debtPayoff('15000@22/700', 0, 'avalanche').interest | usd }}."
+  - title: "Three debts: snowball vs avalanche"
     inputs:
-      debts: "credit card $8,000 at 24%, personal loan $12,000 at 11%, car loan $18,000 at 5.5%"
-      extraPayment: 300
-    description: "With $38,000 total debt and $300 extra per month: Avalanche (paying the 24% card first) saves $2,340 in interest compared to snowball. But snowball eliminates the first debt in 11 months vs 18 for avalanche — that first win matters if motivation is a challenge."
-  - title: "Student loan payoff strategy"
+      debts: "credit card $6,500 at 22.99% (minimum $195), personal loan $3,500 at 11.5% ($120), car loan $12,000 at 6.5% ($350)"
+      extraPayment: 200
+    description: "With $200 extra a month on top of the minimums ({{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').monthlyOutlay | usd }} a month in all), both strategies finish in {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').months | months }}. Avalanche pays the 22.99% card first and clears it in month {{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche', 1) | int }}, then the personal loan in month {{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche', 2) | int }}. Snowball pays the smallest balance, the personal loan, first and clears it in month {{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball', 2) | int }}, then the card in month {{ debtClearMonth('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball', 1) | int }}. Total interest is {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').interest | usd(2) }} for avalanche and {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball').interest | usd(2) }} for snowball."
+  - title: "Student loan payoff"
     inputs:
       totalDebt: 45000
       interestRate: 5.5
       monthlyPayment: 600
-    description: "A $45,000 student loan at 5.5% with $600/month payments takes 8 years, 9 months with $18,000 in total interest. Adding just $100/month extra reduces it to 7 years, 2 months and saves $3,700 in interest — without dramatically impacting your monthly budget."
+    description: "A $45,000 loan at {{ 5.5 | pct(auto) }} paid at $600 a month clears in {{ debtPayoff('45000@5.5/600', 0, 'avalanche').months | months }} with {{ debtPayoff('45000@5.5/600', 0, 'avalanche').interest | usd }} of interest. Adding $100 a month clears it in {{ debtPayoff('45000@5.5/700', 0, 'avalanche').months | months }} and saves {{ debtPayoff('45000@5.5/600', 0, 'avalanche').interest - debtPayoff('45000@5.5/700', 0, 'avalanche').interest | usd }} of interest."
 ---
 
-## What Is a Debt Payoff Calculator?
+## Which debt to pay first, and what it costs
 
-A debt payoff calculator shows you exactly when you'll be debt-free based on your current balances, interest rates, and monthly payments. More importantly, it compares strategies — snowball vs. avalanche — so you can see which approach saves the most money and which gets you the fastest psychological wins.
+A debt payoff calculator takes your balances, rates and minimum payments, adds the extra you can afford, and shows the month you are debt-free and the interest you pay on the way. Its main job is to compare strategies for the order of payment: snowball and avalanche.
 
-Debt is one of the biggest obstacles to building wealth. The average American household carries about $104,000 in total debt. High-interest consumer debt (credit cards, personal loans) is particularly destructive because it compounds against you — the same mechanism that builds wealth through investing works in reverse when you owe money.
+Carrying debt is compound interest working against you, at the debt's rate instead of an investment's. The calculator makes the cost visible by simulating each month for every debt and rolling the minimum of each cleared debt onto the next, so your total monthly payment stays constant.
 
-> **Key takeaway:** Compound interest is a double-edged sword. When you invest, it builds wealth over time. When you carry debt, it erodes wealth at the same rate — or faster, since credit card APRs far exceed typical investment returns.
+## Snowball vs avalanche
 
-## Snowball vs. Avalanche: Which Strategy Wins?
+**Avalanche** ranks debts by interest rate, highest first. You pay the minimum on everything and put all extra money on the highest-rate debt, then roll its payment to the next. It minimises total interest.
+
+**Snowball** ranks debts by balance, smallest first. You clear the smallest debt quickly, which gives a win, then roll its payment onward. It can cost more interest, though not always.
 
 <div class="stat-highlight">
-  <span class="stat-number">$104K</span>
-  <span class="stat-text">is the average American household debt. High-interest consumer debt compounds against you — the same force that builds wealth through investing works in reverse.</span>
+  <span class="stat-number">{{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'snowball').interest - debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').interest | usd }}</span>
+  <span class="stat-text">more interest for snowball than avalanche on the calculator's starting debts with $200 extra a month. Both finish in the same {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').months | months }}.</span>
 </div>
 
-The two most popular debt payoff strategies take opposite approaches:
+The gap depends on your debts. When both strategies put every debt in the same order, for example because the smallest balances also carry the highest rates, the result is identical. The calculator reports the order each strategy clears them, so you can see which case you are in. You can also read a fuller comparison in [snowball vs avalanche](/comparisons/snowball-vs-avalanche-debt/).
 
-**The Avalanche Method** ranks debts by interest rate, highest first. You make minimum payments on everything except the highest-rate debt, throwing all extra money at that one. Once it's paid off, you roll that payment into the next highest rate. This method minimizes total interest paid — it's the mathematically optimal approach.
+> **Tip:** if you cannot decide, start with avalanche and switch if your motivation fades. A structured plan beats ad hoc payments either way.
 
-**The Snowball Method** ranks debts by balance, smallest first. You attack the smallest balance regardless of interest rate, paying it off quickly for a psychological win. Then you roll that payment into the next smallest. This method costs more in total interest but has a significantly higher completion rate in behavioral studies.
+## How extra payments change the result
 
-The best method is the one you'll actually stick with. If you're motivated by seeing debts disappear, the snowball method's quick wins keep you going. If you're driven by efficiency, the avalanche method saves real money.
+Every extra dollar reduces the balance that future interest is charged on. On $20,000 at {{ 22 | pct }} APR with a fixed $400 payment you are debt-free in {{ debtPayoff('20000@22/400', 0, 'avalanche').months | months }} and pay {{ debtPayoff('20000@22/400', 0, 'avalanche').interest | usd }} in interest. A fixed $600 payment finishes in {{ debtPayoff('20000@22/600', 0, 'avalanche').months | months }} and pays {{ debtPayoff('20000@22/600', 0, 'avalanche').interest | usd }}, so the extra $200 a month saves {{ debtPayoff('20000@22/400', 0, 'avalanche').interest - debtPayoff('20000@22/600', 0, 'avalanche').interest | usd }}.
 
-> **Tip:** Not sure which to pick? Start with avalanche. If you find yourself losing motivation after a few months, switch to snowball. Any structured payoff plan beats making random payments.
+## Pay off debt or invest?
 
-## How Extra Payments Save You Money
+Compare the debt's interest rate with the return you could reasonably expect after tax, remembering that paying off a debt earns its rate with certainty and investing does not.
 
-Every extra dollar you pay toward principal reduces the base that interest is calculated on for every future month. Consider a $20,000 credit card at 22% APR with a $400 minimum payment. Paying only the minimum takes over 9 years and costs $23,000+ in interest. Adding just $200 extra per month cuts the payoff time to about 3 years and saves over $14,000.
+- **High-rate card debt:** pay it first. No investment reliably beats a card APR.
+- **Low-rate debt:** a closer call. For a mortgage you can compare your rate with the current market rate, {{ rate('us30') | pct(2) }} for a 30-year US mortgage ({{ rateSource('us30') }}).
+- **An employer 401(k) match:** take it before anything else. A 50% match is an instant 50% return and a 100% match doubles the money.
 
-> **Example:** That $200/month extra on a $20,000 balance saves $14,000 in interest — a 70x return on your first extra payment alone. The earlier you start, the more each dollar saves.
+The [pay off debt vs invest comparison](/comparisons/pay-off-debt-vs-invest/) works through the trade-off with figures.
 
-## Should You Pay Off Debt or Invest?
+## When this calculator helps
 
-The answer depends on interest rates:
+- You have several debts and need to choose which to attack first.
+- You want a debt-free date to plan around.
+- You are weighing an extra payment and want the saving in dollars.
+- You have a debt whose payment barely covers the interest, and want to see whether it ever clears.
 
-| Debt Type | Typical APR | Pay Off or Invest? |
-|---|---|---|
-| Credit cards | 18–25% | **Pay off first.** No investment reliably returns more than credit card rates. |
-| Student loans | 4–7% | **Borderline.** Investing may win mathematically, but being debt-free has psychological value. |
-| Mortgage | 3–7% | **Invest.** Historical stock returns exceed most mortgage rates. |
-| 401(k) match | N/A | **Always contribute enough to get the match.** An instant 50–100% return beats any debt payoff math. |
+## Mistakes to avoid
 
-> **Key takeaway:** Use the interest rate as your decision line. If the debt's APR exceeds your expected investment return (historically 7–10% for stocks), pay it off first. Below that threshold, investing while making minimum payments often wins.
+1. **Paying only minimums.** Card minimums are set to keep the balance outstanding; the credit card payoff calculator shows what that costs.
+2. **No cash cushion.** Without some savings, one surprise bill sends you back to the card. See the emergency fund calculator.
+3. **Closing a paid-off card straight away.** It can lower your credit score by cutting your available credit.
+4. **Choosing the plan you will not follow.** A completed plan beats an abandoned optimal one.
 
-## When to Use This Calculator
+## What to do next
 
-This calculator is most useful when you:
-
-- **Have multiple debts** and need to decide which to pay off first
-- **Want to see your debt-free date** — knowing the exact date creates motivation
-- **Are considering extra payments** and want to see the impact in hard dollars
-- **Need to decide between snowball and avalanche** — see the real difference for your specific debts
-
-## Common Mistakes
-
-1. **Paying only minimums.** Credit card minimum payments are designed to maximize interest revenue for the bank. They'll keep you in debt for decades.
-2. **Not having a small emergency fund first.** Without $1,000-$2,000 in savings, unexpected expenses push you back into debt.
-3. **Closing paid-off credit cards immediately.** This can hurt your credit score by reducing available credit. Keep old cards open with zero balance.
-4. **Ignoring the emotional factor.** A completed plan beats an abandoned optimal plan every time.
-
-## What to Do Next
-
-Enter all your debts and compare both strategies. The difference might surprise you — sometimes avalanche saves thousands more, sometimes it's small enough that snowball's motivational advantage wins. Either way, seeing your debt-free date in writing creates accountability.
+Enter every debt with its balance, APR and minimum, set the extra amount, and compare both strategies. If the totals are close, pick the one whose order motivates you.
