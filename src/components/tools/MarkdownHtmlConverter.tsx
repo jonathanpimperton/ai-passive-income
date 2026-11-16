@@ -181,9 +181,13 @@ export default function MarkdownHtmlConverter() {
       cancelled = true;
     };
   }, [settledInput, mode, libs]);
-  // Only a result for the current input counts: while a newer one is converting, show nothing stale.
+  // `rawCurrent` is the result for the input on screen. While a newer one is converting, the last
+  // successful result stays up (output and preview do not blank on every edit; it goes through the
+  // same sanitiser) and the status says "Converting...". A result for a superseded request never
+  // arrives: the effect above drops it. Copy and Download wait for the current result.
   const rawCurrent = mode === 'md-to-html' && raw && raw.input === settledInput ? raw : null;
   const converting = mode === 'md-to-html' && !!libs && !!settledInput.trim() && !rawCurrent;
+  const rawShown = rawCurrent ?? (mode === 'md-to-html' && raw && !raw.error ? raw : null);
 
   const conversion = useMemo<Conversion>(() => {
     if (!settledInput.trim() || !libs) return EMPTY;
@@ -191,9 +195,9 @@ export default function MarkdownHtmlConverter() {
       if (mode === 'html-to-md') {
         return { ...EMPTY, output: libs.turndown.turndown(settledInput) };
       }
-      if (!rawCurrent) return EMPTY;
-      if (rawCurrent.error) return { ...EMPTY, error: rawCurrent.error };
-      const rawHtml = rawCurrent.html;
+      if (!rawShown) return EMPTY;
+      if (rawShown.error) return { ...EMPTY, error: rawShown.error };
+      const rawHtml = rawShown.html;
       const out = sanitizeOutput ? sanitizeHtml(libs.outputPurifier, rawHtml) : null;
       const preview = showPreview ? sanitizeHtml(libs.previewPurifier, rawHtml) : null;
       return {
@@ -206,7 +210,7 @@ export default function MarkdownHtmlConverter() {
     } catch (e) {
       return { ...EMPTY, error: e instanceof Error ? `Conversion failed: ${e.message}` : 'Conversion failed.' };
     }
-  }, [settledInput, mode, libs, sanitizeOutput, showPreview, rawCurrent]);
+  }, [settledInput, mode, libs, sanitizeOutput, showPreview, rawShown]);
 
   const previewDoc = useMemo(
     () => (showPreview && mode === 'md-to-html' && conversion.output ? buildPreviewDocument(conversion.previewHtml, theme) : ''),
@@ -249,7 +253,7 @@ export default function MarkdownHtmlConverter() {
 
   const toggleMode = () => {
     setMode(mode === 'md-to-html' ? 'html-to-md' : 'md-to-html');
-    if (result) setInput(result);
+    if (result && !converting) setInput(result);
   };
 
   const removedNotice = (() => {
@@ -349,7 +353,8 @@ export default function MarkdownHtmlConverter() {
                 <button
                   type="button"
                   onClick={() => copy(result)}
-                  className="inline-flex items-center gap-1.5 min-h-[40px] px-3 text-sm font-medium text-neutral-600 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150"
+                  disabled={converting}
+                  className="inline-flex items-center gap-1.5 min-h-[40px] px-3 text-sm font-medium text-neutral-600 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {copiedKey ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
                   {copiedKey ? 'Copied' : failedKey ? 'Copy failed' : 'Copy'}
@@ -357,7 +362,8 @@ export default function MarkdownHtmlConverter() {
                 <button
                   type="button"
                   onClick={downloadResult}
-                  className="inline-flex items-center gap-1.5 min-h-[40px] px-3 text-sm font-medium text-neutral-600 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150"
+                  disabled={converting}
+                  className="inline-flex items-center gap-1.5 min-h-[40px] px-3 text-sm font-medium text-neutral-600 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <Download size={14} aria-hidden="true" /> Download
                 </button>

@@ -109,6 +109,33 @@ test.describe('Markdown conversion limits', () => {
     await expect(page.locator('#md-html-output')).toHaveValue(/<h1>Fine<\/h1>/);
   });
 
+  // Just under the size where large inputs are debounced (100,000 characters) and slow in any
+  // engine, so the new conversion runs for seconds while the page shows what it had.
+  test('the previous output and preview stay on screen while a new edit converts', async ({ page }) => {
+    test.setTimeout(120000);
+    await open(page, '/tools/file-tools/markdown-html/');
+    await page.locator('#md-html-input').fill('# One');
+    await expect(page.locator('#md-html-output')).toHaveValue(/<h1>One<\/h1>/);
+
+    await page.locator('#md-html-input').fill('[a]('.repeat(24000));
+    await expect(tool(page).getByText('Converting...')).toBeVisible();
+    // Output: not blanked while the worker runs.
+    await expect(page.locator('#md-html-output')).toHaveValue(/<h1>One<\/h1>/);
+    // Preview: switch it on mid-conversion; it shows the previous result, sanitised.
+    await page.getByRole('button', { name: 'Preview' }).click();
+    await expect(page.frameLocator('iframe[title="Markdown preview"]').locator('h1')).toHaveText('One');
+    await expect(tool(page).getByText('Converting...')).toBeVisible();
+    // Copy and Download wait for the new result instead of acting on the old one.
+    await expect(tool(page).getByRole('button', { name: 'Copy' })).toBeDisabled();
+    await expect(tool(page).getByRole('button', { name: 'Download' })).toBeDisabled();
+
+    // The new result replaces it: here, the "too complex" message and no stale document.
+    await expect(tool(page).getByRole('alert')).toContainText('too complex to convert in the browser', { timeout: 30000 });
+    await expect(page.locator('iframe[title="Markdown preview"]')).toHaveCount(0);
+    await page.locator('#md-html-input').fill('# Two');
+    await expect(page.frameLocator('iframe[title="Markdown preview"]').locator('h1')).toHaveText('Two');
+  });
+
   test('a newer edit replaces a conversion that is still running', async ({ page }) => {
     test.setTimeout(120000);
     await open(page, '/tools/file-tools/markdown-html/');
