@@ -290,8 +290,8 @@ const CONSENT_JS =
         tableResizeTimer = setTimeout(wrapWideTables, 250);
       }, { passive: true });
 
-      // Pinned results panels taller than the window are released, so keyboard focus can
-      // reach every control in them (src/lib/sticky-fit.ts).
+      // A pinned sidebar (data-sticky-fit, the methodology pages) taller than the window is
+      // released, so its last links can be reached (src/lib/sticky-fit.ts).
       watchStickyPanels();
 
       // "Recently used" tools for the homepage return hook (HOME-CHROME-11).

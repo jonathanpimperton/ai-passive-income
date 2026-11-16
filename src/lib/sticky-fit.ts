@@ -1,47 +1,51 @@
 /**
- * Let go of sticky results panels that are taller than the window.
+ * Let go of a pinned sidebar that is taller than the window.
  *
- * Calculators pin their results panel (`lg:sticky lg:top-20`) so the answer
- * stays beside the inputs. A panel taller than the window cannot show its lower
- * part while it is pinned, and the browser's scroll-into-view for keyboard focus
- * does not cope with a pinned element: Shift+Tab into the panel's last controls
- * (a long table, Export PDF) leaves the focused control off screen (WCAG 2.4.11
- * Focus Not Obscured, 2.4.7). A panel that does not fit gains nothing from being
- * pinned, so it is released (CSS in global.css) until the window is tall enough.
+ * The methodology pages (/how-we-calculate/<tool>/) pin their sidebar
+ * (`lg:sticky lg:top-20`) so the "Try the calculator" link and the sources stay
+ * in reach. A pinned element cannot show more than the window holds: when the
+ * sidebar is taller, its last links (the worked-through guides, the data
+ * sources) sit below the window edge and cannot be scrolled to until the end of
+ * the page. Such a sidebar gains nothing from being pinned, so it is released
+ * (CSS in global.css) until the window is tall enough.
  *
- * The marker goes on the calculator's <astro-island> (or, outside an island, on
- * the panel itself), never on a React-managed element, so hydration never sees
- * an unexpected attribute.
+ * Opt-in: only elements marked `data-sticky-fit` are watched. The marker is set
+ * on the element itself, so it must not be a React-managed element (hydration
+ * would see an unexpected attribute); put it on a server-rendered wrapper.
+ *
+ * The calculator results panels carry the same `lg:sticky` classes but are not
+ * watched: inside the tool page's overflow containers they have never pinned
+ * (see ToolPageLayout), so there is nothing to release. Whether to restore
+ * pinning there is a design decision, not made here.
  */
 
-/** `lg:top-20` in the calculators: the gap between the window's top edge and a pinned panel. */
+/** `lg:top-20`: the gap between the window's top edge and a pinned element. */
 export const STICKY_TOP_OFFSET_PX = 80;
-/** Breathing room under a pinned panel. */
+/** Breathing room under a pinned element. */
 export const STICKY_BOTTOM_GAP_PX = 16;
-/** Marker attribute; global.css releases `.lg:sticky` panels inside it. */
+/** Opt-in marker: watch this element. */
+export const STICKY_FIT_ATTR = 'data-sticky-fit';
+/** Set while the element is taller than the window; global.css makes it static. */
 export const STICKY_RELEASED_ATTR = 'data-sticky-released';
 
-/** True when a pinned panel could not be shown whole inside the window. */
-export function exceedsViewport(panelHeight: number, viewportHeight: number): boolean {
-  return panelHeight > viewportHeight - STICKY_TOP_OFFSET_PX - STICKY_BOTTOM_GAP_PX;
+/** True when a pinned element could not be shown whole inside the window. */
+export function exceedsViewport(height: number, viewportHeight: number): boolean {
+  return height > viewportHeight - STICKY_TOP_OFFSET_PX - STICKY_BOTTOM_GAP_PX;
 }
 
 /**
- * Keep every `.lg:sticky` panel on the page pinned only while it fits the window.
- * Re-checked when a panel's size changes (inputs, tabs, expanded tables) and when
- * the window is resized. Returns a function that stops watching.
+ * Keep every `[data-sticky-fit]` element pinned only while it fits the window.
+ * Re-checked when an element's size changes and when the window is resized.
+ * Returns a function that stops watching.
  */
 export function watchStickyPanels(doc: Document = document, win: Window = window): () => void {
-  const panels = Array.from(doc.querySelectorAll<HTMLElement>('.lg\\:sticky'));
+  const panels = Array.from(doc.querySelectorAll<HTMLElement>(`[${STICKY_FIT_ATTR}]`));
   if (panels.length === 0) return () => undefined;
-  const marked = (panel: HTMLElement): HTMLElement => panel.closest<HTMLElement>('astro-island') ?? panel;
 
   const update = () => {
-    const tall = new Set<HTMLElement>();
     for (const panel of panels) {
-      if (exceedsViewport(panel.offsetHeight, win.innerHeight)) tall.add(marked(panel));
+      panel.toggleAttribute(STICKY_RELEASED_ATTR, exceedsViewport(panel.offsetHeight, win.innerHeight));
     }
-    for (const target of new Set(panels.map(marked))) target.toggleAttribute(STICKY_RELEASED_ATTR, tall.has(target));
   };
 
   const Observer = (win as Window & { ResizeObserver?: typeof ResizeObserver }).ResizeObserver;

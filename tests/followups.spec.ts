@@ -263,52 +263,54 @@ for (const currency of [undefined, 'GBP', 'EUR']) {
   });
 }
 
-/* -- 5. Results panels taller than the window are not pinned ----------------- */
+/* -- 5. Methodology sidebars taller than the window are not pinned ---------- */
 
-// A panel pinned with lg:sticky that is taller than the window cannot be scrolled into view by
-// keyboard focus: Shift+Tab into its last controls left the focused control off screen.
-const COMPOUND = '/tools/saving-and-growth/compound-interest/';
-const panelSel = 'astro-island .lg\\:sticky';
+// The /how-we-calculate/<tool>/ sidebar is pinned (lg:sticky lg:top-20). A pinned element cannot show
+// more than the window holds, so when the sidebar is taller its last links (worked-through guides, data
+// sources) stay below the window edge even after being focused. At 1280x800, 8 of the 23 methodology
+// pages have such a sidebar; for 5 of them the last link stayed off screen when pinned. (The calculator
+// results panels carry the same classes but have never pinned: the tool page's overflow containers stop
+// it, so they are not part of this.)
+const TALL_SIDEBAR = '/how-we-calculate/salary-uk/'; // about 1,100px tall
+const SHORT_SIDEBAR = '/how-we-calculate/investment-fee/'; // about 540px tall
+const sidebar = '[data-sticky-fit]';
 
-test('a results panel taller than the window is released, and Shift+Tab keeps focus on screen', async ({ page, context }) => {
+test('a methodology sidebar taller than the window is released, so its last link can be reached', async ({ page, context }) => {
   await prepare(context);
+  await page.emulateMedia({ reducedMotion: 'reduce' }); // the page scrolls at once, so the check is not about timing
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto(COMPOUND);
-  await hydrated(page);
-  const panel = page.locator(panelSel).first();
-  // The premise: this panel does not fit below its 80px offset in an 800px window.
-  expect(await panel.evaluate((el) => el.getBoundingClientRect().height)).toBeGreaterThan(800 - 96);
-  await expect(panel).toHaveCSS('position', 'static');
+  await page.goto(TALL_SIDEBAR);
+  const side = page.locator(sidebar);
+  // The premise: it does not fit below its 80px offset in an 800px window.
+  expect(await side.evaluate((el) => el.getBoundingClientRect().height)).toBeGreaterThan(800 - 96);
+  await expect(side).toHaveCSS('position', 'static');
 
-  // Start on the first control after the calculator and walk backwards into the panel.
-  await page.evaluate((sel) => {
-    const el = document.querySelector(sel) as HTMLElement;
-    const focusable = Array.from(document.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]')).filter(
-      (e) => !(e as HTMLButtonElement).disabled && e.tabIndex >= 0 && e.offsetParent !== null,
-    );
-    const after = focusable.find((e) => !el.contains(e) && el.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING);
-    after?.focus();
-  }, panelSel);
-  const inView = () =>
-    page.evaluate(() => {
-      const r = document.activeElement!.getBoundingClientRect();
+  const last = side.locator('a[href]').last();
+  await last.focus(); // what Tab onto the last source link does
+  await expect
+    .poll(() => last.evaluate((el) => {
+      const r = el.getBoundingClientRect();
       return r.top >= 0 && r.bottom <= window.innerHeight;
-    });
-  for (let i = 0; i < 8; i++) {
-    await page.keyboard.press('Shift+Tab');
-    // Page scrolling is smooth, so give the focused control a moment to arrive.
-    await expect.poll(inView, { message: `focus stop ${i + 1} is on screen`, timeout: 4000 }).toBe(true);
-  }
-  expect(await page.evaluate((sel) => document.querySelector(sel)!.contains(document.activeElement), panelSel)).toBe(true);
+    }), { message: 'the last sidebar link is on screen when focused', timeout: 4000 })
+    .toBe(true);
 });
 
-test('a results panel that fits the window stays pinned', async ({ page, context }) => {
+test('a methodology sidebar that fits the window stays pinned, and is released when the window shrinks', async ({ page, context }) => {
   await prepare(context);
-  await page.setViewportSize({ width: 1280, height: 2400 });
-  await page.goto(COMPOUND);
-  await hydrated(page);
-  await expect(page.locator(panelSel).first()).toHaveCSS('position', 'sticky');
-  // And it is released again when the window shrinks, without a reload.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
+  // Fits: pinned for real, so it holds 80px from the top while the page scrolls.
   await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(page.locator(panelSel).first()).toHaveCSS('position', 'static');
+  await page.goto(SHORT_SIDEBAR);
+  const side = page.locator(sidebar);
+  await expect(side).toHaveCSS('position', 'sticky');
+  await page.evaluate(() => window.scrollTo(0, 300));
+  await expect.poll(() => side.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(80);
+
+  // The tall one fits in a tall window (pinned), and is released again without a reload when it shrinks.
+  await page.setViewportSize({ width: 1280, height: 1500 });
+  await page.goto(TALL_SIDEBAR);
+  await expect(side).toHaveCSS('position', 'sticky');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(side).toHaveCSS('position', 'static');
 });
