@@ -68,7 +68,7 @@ For the US it compares short-term and long-term holding and includes the Net Inv
 3. Tax each slice of that range at the long-term rate of the bracket it falls in. The 0% bracket ends and the 15% bracket starts at {{ usFact('ltcgZeroTop') | usd }} of taxable income for a single filer ({{ usFact('ltcgZeroTop', status=married) | usd }} for married filing jointly, {{ usFact('ltcgZeroTop', status=head) | usd }} for head of household). The 15% bracket ends and the 20% bracket starts at {{ usFact('ltcg15Top') | usd }} (single), {{ usFact('ltcg15Top', status=married) | usd }} (married) and {{ usFact('ltcg15Top', status=head) | usd }} (head of household).
 4. Add the NIIT if estimated modified AGI is above the threshold (below).
 
-A gain is not taxed at one rate. A single filer with $40,000 of other taxable income and a $20,000 long-term gain has {{ usFact('ltcgZeroTop') - 40000 | usd }} of the gain taxed at 0% (it fills the 0% bracket up to {{ usFact('ltcgZeroTop') | usd }}) and the other {{ 20000 - (usFact('ltcgZeroTop') - 40000) | usd }} at 15%, for {{ usCgt(20000, 40000) | usd(2) }} in total. Applying 15% to the whole gain would give $3,000, nearly twice as much.
+A gain is not taxed at one rate. A single filer with $40,000 of other taxable income and a $20,000 long-term gain has {{ usFact('ltcgZeroTop') - 40000 | usd }} of the gain taxed at 0% (it fills the 0% bracket up to {{ usFact('ltcgZeroTop') | usd }}) and the other {{ 20000 - (usFact('ltcgZeroTop') - 40000) | usd }} at 15%, for {{ usCgt(20000, 40000) | usd(2) }} in total. Applying 15% to the whole gain would give {{ 20000 * 15 / 100 | usd }}, nearly twice as much.
 
 ### Short-Term Gains (Held 1 Year or Less)
 
