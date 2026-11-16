@@ -46,7 +46,9 @@ export const US_DATASETS = Object.freeze({
  * (GOV.UK rates pages, Scottish Budget, student loan thresholds).
  */
 export const UK_DATASETS = Object.freeze({
-  '2026/27': Object.freeze({ lastChecked: '2026-07-02' }),
+  // 2026-11-16: every figure uk-rates.ts holds was re-read from GOV.UK / gov.scot after the
+  // 28 Oct 2026 Budget (list in the uk-rates.ts header); nothing had changed mid-year.
+  '2026/27': Object.freeze({ lastChecked: '2026-11-16' }),
 });
 
 /* ── Dates ──────────────────────────────────────────────────── */

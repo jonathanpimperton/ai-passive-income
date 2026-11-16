@@ -13,12 +13,25 @@
  * source (cite URL + access date), then add the year to UK_DATASETS in
  * tax-years.mjs.
  *
- * Sources (2026/27, verified 2026-07-02):
+ * Sources (2026/27, first verified 2026-07-02; every figure below re-read on 2026-11-16, after the
+ * 28 Oct 2026 Budget, with no mid-year change):
+ * - income tax bands, personal allowance and its taper (income-tax-rates);
+ * - NI thresholds and rates, employee and employer, annual column
+ *   (https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027);
+ * - student loan plan thresholds and rates, Postgraduate Loan (the same employers page);
+ * - new State Pension 241.30 a week, CGT exempt amount and 18%/24% rates;
+ * - the six Scottish bands (gov.scot, 2026 to 2027 page; the Scottish Rate Resolution was agreed in
+ *   February 2026 and its starter limit, 3,967 above the allowance, matches);
+ * - pension annual allowance 60,000 (taper only above 200,000 threshold income and 260,000
+ *   adjusted income), Tax-Free Childcare income limit 100,000;
+ * - SDLT bands, first-time buyer relief, 5% additional-property surcharge, 2% non-resident surcharge.
+ *
+ * Source pages:
  * - Income Tax: https://www.gov.uk/income-tax-rates
  * - National Insurance: https://www.gov.uk/national-insurance-rates-letters
  * - State Pension: https://www.gov.uk/new-state-pension/what-youll-get
  * - Student Loans: https://www.gov.uk/repaying-your-student-loan/what-you-pay
- * - Scottish Tax: https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/
+ * - Scottish Tax: https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/pages/2026-to-2027/
  * - CGT: https://www.gov.uk/capital-gains-tax/rates
  */
 
