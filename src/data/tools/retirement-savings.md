@@ -2,7 +2,7 @@
 name: "Retirement Savings Calculator"
 slug: "retirement-savings"
 category: "income-and-planning"
-description: "Retirement savings calculator — project your balance at retirement from contributions, returns, and inflation-adjusted growth."
+description: "Retirement savings calculator: project your balance at retirement from savings, contributions, return and inflation, in today's money, with US and UK milestones."
 keywords:
   - "retirement calculator"
   - "retirement savings calculator"
@@ -16,23 +16,34 @@ relatedTools:
   - "investment-return"
   - "inflation"
   - "savings-goal"
-affiliateContext: "Start your retirement savings with a free account"
+affiliateContext: "Start your retirement savings with an account"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
-calculationMethod: "Uses future value of annuity formula with inflation adjustment"
-lastUpdated: "2026-07-02"
+calculationMethod: "Future value of a lump sum plus monthly deposits at the end of each month, compounded monthly, then divided by (1 + inflation)^years for today's money"
+lastUpdated: "2026-11-15"
+dataSources:
+  - name: "IRS: 2026 401(k) and IRA limits (Notice 2025-67)"
+    url: "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500"
+  - name: "IRS: 401(k) contribution limits"
+    url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits"
+  - name: "GOV.UK: State Pension age"
+    url: "https://www.gov.uk/state-pension-age"
+  - name: "GOV.UK: increasing the normal minimum pension age"
+    url: "https://www.gov.uk/government/publications/increasing-normal-minimum-pension-age"
 faq:
   - question: "How much do I need to save for retirement?"
-    answer: "A common rule of thumb is to have 25 times your annual expenses saved by retirement (the 4% rule). If you spend $50,000 per year, you'd target $1.25 million. However, this varies based on your lifestyle, healthcare costs, Social Security income, and retirement age."
+    answer: "A common rule of thumb is 25 times your yearly spending, the 4% rule turned around. If you spend $50,000 a year, that is {{ 50000 * 25 | usd }}. It varies with your lifestyle, healthcare costs, other income such as Social Security or a UK State Pension, and your retirement age. Enter what you have, what you save and a return, and the calculator shows where you end up in future money and in today's money."
   - question: "How much should I contribute to my 401(k)?"
-    answer: "At minimum, contribute enough to get your full employer match — that's free money. Beyond that, aim for 15-20% of your gross income across all retirement accounts. The 2026 401(k) contribution limit is $24,500 ($32,500 if you're 50 or older with catch-up contributions)."
+    answer: "At least enough to get the full employer match, which is an immediate return on that money. Beyond it, many planners suggest saving 15% or more of gross income across all retirement accounts. The 2026 limit on employee 401(k) contributions is {{ usFact('k401Limit', year=2026) | usd }}, or {{ usFact('k401Limit', year=2026) + usFact('k401CatchUp', year=2026) | usd }} with the age 50 catch-up of {{ usFact('k401CatchUp', year=2026) | usd }}. Ages 60 to 63 can add a higher catch-up of {{ usFact('k401CatchUp60to63', year=2026) | usd }} instead (IRS Notice 2025-67). The calculator flags a monthly saving above the limit."
   - question: "What is the 4% rule for retirement?"
-    answer: "The 4% rule suggests you can withdraw 4% of your retirement savings in the first year, then adjust for inflation each year after, and your money should last at least 30 years. For example, with $1 million saved, you'd withdraw $40,000 the first year. This is a guideline, not a guarantee."
+    answer: "The 4% rule says you can withdraw 4% of your savings in the first year of retirement and adjust that amount for inflation every year after, and the money should last about 30 years in historical US markets. With $1,000,000 saved, the first year's withdrawal is {{ 1000000 * 4 / 100 | usd }}. It is a guideline, not a guarantee, and a longer retirement calls for a lower rate."
   - question: "When should I start saving for retirement?"
-    answer: "As early as possible. Starting at 25 vs 35 with the same monthly contribution can mean hundreds of thousands of dollars more by retirement, thanks to compound interest. Even small amounts in your 20s outgrow larger amounts started in your 40s."
+    answer: "As early as you can. Saving $500 a month at 7% for 35 years gives {{ retirementFV(0, 500, 7, 35, inflation=3).nominal | usd }}; the same $500 for 25 years gives {{ retirementFV(0, 500, 7, 25, inflation=3).nominal | usd }}. Ten extra years of saving adds {{ retirementFV(0, 500, 7, 35, inflation=3).nominal - retirementFV(0, 500, 7, 25, inflation=3).nominal | usd }}, much more than the {{ 500 * 12 * 10 | usd }} deposited, because the early money compounds for longer."
   - question: "How does inflation affect my retirement savings?"
-    answer: "Inflation erodes purchasing power over time. At 3% average inflation, $1 million in today's dollars would buy only about $412,000 worth of goods in 30 years. That's why our calculator shows inflation-adjusted projections — so you see what your savings will actually be worth."
+    answer: "Inflation lowers what your money buys. At 3% a year, $1,000,000 today buys what {{ inflationAdjust(1000000, 3, 30, mode=value) | usd }} buys now once 30 years have passed, and it would take {{ inflationAdjust(1000000, 3, 30) | usd }} then to match today's $1,000,000. That is why the calculator shows a today's-money figure beside the future balance."
+  - question: "How does the calculator work for a UK pension?"
+    answer: "Switch the currency to pounds. The projection is the same, but the milestones are UK ones: you can usually take benefits from a private or workplace pension from {{ ukFact('pensionAccessAge') | int }}, and the normal minimum pension age rises to {{ ukFact('pensionAccessAgeFrom2028') | int }} on 6 April 2028. The State Pension age is between 66 and 68 depending on your date of birth, so check the GOV.UK timetable for yours. The 401(k) limit note applies to US users only."
 workedExamples:
   - title: "Starting retirement savings at 30"
     inputs:
@@ -41,7 +52,7 @@ workedExamples:
       currentSavings: 25000
       monthlyContribution: 750
       annualReturn: 7
-    description: "A 30-year-old with $25,000 saved, contributing $750/month at 7% average return. By 65, they'd have approximately $1.64 million. After adjusting for 3% inflation, that's about $582,000 in today's dollars — enough to support roughly $23,300/year using the 4% rule."
+    description: "A 30-year-old with $25,000 saved who contributes $750 a month at 7% reaches {{ retirementFV(25000, 750, 7, 35, inflation=3).nominal | usd }} by 65. With 3% inflation that is {{ retirementFV(25000, 750, 7, 35, inflation=3).real | usd }} in today's money, which supports about {{ retirementFV(25000, 750, 7, 35, inflation=3).real * 0.04 | usd }} a year in today's money on the 4% rule. Of the balance, {{ retirementFV(25000, 750, 7, 35, inflation=3).contributions | usd }} is savings and deposits and {{ retirementFV(25000, 750, 7, 35, inflation=3).growth | usd }} is growth."
   - title: "Catching up at 45"
     inputs:
       currentAge: 45
@@ -49,7 +60,7 @@ workedExamples:
       currentSavings: 100000
       monthlyContribution: 1500
       annualReturn: 7
-    description: "A 45-year-old with $100,000 saved who increases contributions to $1,500/month at 7% return. By 67: approximately $1.4 million. This supports about $56,000/year with the 4% rule. Combined with Social Security, this could provide a comfortable retirement — but starting earlier would have required much less monthly effort."
+    description: "A 45-year-old with $100,000 saved who raises contributions to $1,500 a month at 7% reaches {{ retirementFV(100000, 1500, 7, 22, inflation=3).nominal | usd }} by 67, which is {{ retirementFV(100000, 1500, 7, 22, inflation=3).real | usd }} in today's money at 3% inflation. The 4% rule on that supports about {{ retirementFV(100000, 1500, 7, 22, inflation=3).real * 0.04 | usd }} a year in today's money, before Social Security. Starting earlier would have needed far less each month."
   - title: "Maximizing 401(k) contributions"
     inputs:
       currentAge: 28
@@ -57,71 +68,65 @@ workedExamples:
       currentSavings: 15000
       monthlyContribution: 2042
       annualReturn: 8
-    description: "A 28-year-old maxing out their 401(k) at $24,500/year ($2,042/month) with an 8% return. By 60: approximately $3.8 million. Even retiring 5 years early, this provides $152,000/year under the 4% rule. Maxing contributions early creates extraordinary results over decades."
+    description: "A 28-year-old with $15,000 who contributes the 2026 401(k) limit of {{ usFact('k401Limit', year=2026) | usd }} ({{ usFact('k401Limit', year=2026) / 12 | usd }} a month) at 8% reaches {{ retirementFV(15000, usFact('k401Limit', year=2026) / 12, 8, 32, inflation=3).nominal | usd }} by 60, which is {{ retirementFV(15000, usFact('k401Limit', year=2026) / 12, 8, 32, inflation=3).real | usd }} in today's money. That supports about {{ retirementFV(15000, usFact('k401Limit', year=2026) / 12, 8, 32, inflation=3).real * 0.04 | usd }} a year in today's money on the 4% rule, five years before a 65 retirement. It assumes the limit stays level; in practice it rises most years."
 ---
 
-## What Is a Retirement Savings Calculator?
+## Are you saving enough?
 
-A retirement savings calculator projects how much money you'll have when you stop working, based on your current savings, ongoing contributions, expected investment returns, and your retirement timeline. It answers the question that nags most working adults: "Am I saving enough?"
+A retirement savings calculator projects what you will have when you stop working from your current savings, your monthly saving, an expected return and your timeline. It answers the question most workers carry around: am I saving enough?
 
-The short answer for most people is no. According to the Federal Reserve, about 25% of non-retired adults have no retirement savings at all, and the median retirement savings for Americans aged 55-64 is approximately $134,000 — far below what most experts recommend.
+The answer depends on the numbers you put in, and the number that moves it most is time. At 7%, $500 a month for 35 years reaches {{ retirementFV(0, 500, 7, 35, inflation=3).nominal | usd }}, or {{ retirementFV(0, 500, 7, 35, inflation=3).real | usd }} in today's money at 3% inflation. The same $500 for 25 years reaches only {{ retirementFV(0, 500, 7, 25, inflation=3).nominal | usd }}.
 
-> **Key takeaway:** If you're behind, you're not alone — but the gap between where most people are and where they need to be makes starting today (not next year) the single most impactful financial decision you can make.
-
-## How Retirement Savings Projections Work
+## How the projection works
 
 <div class="stat-highlight">
-  <span class="stat-number">25%</span>
-  <span class="stat-text">of non-retired US adults have zero retirement savings. The median for ages 55–64 is just $134,000 — far below the $1M+ most experts recommend.</span>
+  <span class="stat-number">{{ retirementFV(0, 500, 7, 35, inflation=3).nominal / retirementFV(0, 500, 7, 25, inflation=3).nominal | num(1) }}x</span>
+  <span class="stat-text">is how much larger the balance is after 35 years of saving $500 a month than after 25 years, at 7%. The extra ten years more than double the result.</span>
 </div>
 
-The math combines compound interest with regular contributions over time. Your existing savings grow at your expected rate of return, and each new contribution begins compounding from the moment it's deposited.
+Your existing savings grow at your expected return, and each monthly deposit starts to compound from the month it goes in. The calculator compounds monthly, adds deposits at the end of each month, and divides by inflation to give a today's-money figure.
 
-The three variables that matter most:
+Three inputs matter most:
 
-1. **Time** — the number of years until retirement. This is the single biggest factor. Starting at 25 instead of 35 with the same contributions can easily double your final balance.
-2. **Contribution rate** — how much you save each month. Even small increases make a difference because they compound over decades.
-3. **Rate of return** — what your investments earn on average. A diversified stock portfolio has historically returned about 10% per year (7% after inflation).
+1. **Time.** Years until retirement is the biggest factor. Starting ten years earlier more than doubles the balance in the example above.
+2. **Contribution.** Every increase in your monthly saving compounds over the full period.
+3. **Return.** The calculator takes one constant rate. A diversified stock portfolio has returned more than bonds or cash over the long run but with large swings, so test a cautious rate and a hopeful one. At $500 a month for 35 years, 5% gives {{ retirementFV(0, 500, 5, 35, inflation=3).nominal | usd }}, 7% gives {{ retirementFV(0, 500, 7, 35, inflation=3).nominal | usd }} and 9% gives {{ retirementFV(0, 500, 9, 35, inflation=3).nominal | usd }}.
 
-## The 4% Rule Explained
+## Turning a balance into an income
 
-The most widely cited retirement guideline is the 4% rule: withdraw 4% of your savings in year one of retirement, then adjust for inflation each year. This approach was designed to make your money last at least 30 years based on historical market returns.
+The most quoted guide is the 4% rule: withdraw 4% of your savings in year one of retirement, then adjust for inflation. To use it backwards, multiply the yearly income you need from savings by 25. If you want $60,000 a year, that is {{ 60000 * 25 | usd }}. If Social Security covers $24,000 of it, savings have to provide $36,000, which needs {{ 36000 * 25 | usd }}.
 
-To use the 4% rule backward: multiply your desired annual retirement income by 25. If you want $60,000 per year from savings, you need $1.5 million. If Social Security covers $24,000, you need your savings to provide $36,000 — requiring $900,000.
+> **Tip:** the 4% rule assumes about a 30-year retirement. If you plan to stop before 60, many planners use a lower withdrawal rate, 3.5% or 3%.
 
-> **Tip:** The 4% rule assumes a 30-year retirement. If you plan to retire early (before 60), consider using a more conservative 3.5% or even 3% withdrawal rate to avoid running out of money.
+## Retirement account types (US)
 
-## Retirement Account Types
+| Account | Contributions | Withdrawals | Main benefit |
+|---|---|---|---|
+| **401(k) / 403(b)** | Pre-tax, reduces taxable income | Taxed as income | Employer match |
+| **Traditional IRA** | Often tax-deductible | Taxed as income | Lower tax now |
+| **Roth IRA** | After-tax | Tax-free | Tax-free growth |
+| **HSA** | Tax-deductible | Tax-free for medical costs | Tax advantage on both ends |
 
-Understanding which accounts to use is as important as how much you save:
+The 2026 IRA limit is $7,500 (IRS Notice 2025-67), which is $625 a month. A 30-year-old who puts $500 a month into a Roth IRA at 7% accumulates {{ retirementFV(0, 500, 7, 35, inflation=3).nominal | usd }} by 65, and the growth comes out tax-free on qualified withdrawals.
 
-| Account | Tax on Contributions | Tax on Withdrawals | Key Benefit |
-|---------|--------------------|--------------------|-------------|
-| **401(k) / 403(b)** | Pre-tax (reduces taxable income) | Taxed as income | Employer match (instant 50–100% return) |
-| **Traditional IRA** | Tax-deductible | Taxed as income | Lower your tax bill now |
-| **Roth IRA** | After-tax (no deduction) | Tax-free | Tax-free growth and withdrawals |
-| **HSA** | Tax-deductible | Tax-free (medical expenses) | Triple tax advantage |
+## What the calculator includes, and what it leaves out
 
-> **Example:** A 30-year-old earning $70,000 who puts $500/month into a Roth IRA at 7% average return would accumulate roughly $830,000 by age 65 — and every dollar of that growth comes out tax-free in retirement.
+It includes your savings, monthly deposit, return, retirement age and inflation. It does not include taxes on withdrawals, fees on the investments (see the [investment fee calculator](/tools/saving-and-growth/investment-fee/)), Social Security or State Pension income, or the pattern of market returns. It treats the return as the same every year.
 
-## When to Use This Calculator
+## When to use this calculator
 
-Use the retirement savings calculator when you want to:
+- **Check you are on track.** Compare the today's-money result with what you expect to spend.
+- **Test scenarios.** Retire three years earlier, save 5% more, or earn 1% less.
+- **Work backwards.** Use the [retirement contribution calculator](/tools/income-and-planning/retirement-contribution/) for the monthly amount a target needs.
+- **See the cost of delay.** Compare starting now with starting in a year.
 
-- **Check if you're on track** — see whether your current savings rate will meet your retirement goal
-- **Test scenarios** — what happens if you retire 3 years early, increase contributions by 5%, or earn 1% less than expected?
-- **Find your target contribution** — work backward from your retirement goal to determine how much you need to save each month
-- **See the impact of starting now vs later** — visualize how delaying even one year affects your final balance
+## Mistakes that cost money
 
-## Common Mistakes
+1. **Underestimating costs.** Healthcare can be one of the largest costs in retirement, and prices rise faster than the headline rate. Do not plan on today's spending without allowing for it.
+2. **Ignoring inflation.** $1,000,000 in 30 years buys what {{ inflationAdjust(1000000, 3, 30, mode=value) | usd }} buys today at 3% inflation. Judge the result in today's money.
+3. **Forgetting other income.** Most Americans qualify for Social Security, which reduces what savings must cover. Check your projected benefit at ssa.gov. UK savers should do the same with their State Pension forecast on GOV.UK.
+4. **Leaving the employer match unused.** If you are not contributing enough to get the full match, you are turning down money.
 
-1. **Underestimating expenses.** Healthcare alone can cost $300,000+ for a retired couple. Don't plan based on today's expenses without accounting for medical costs and inflation.
-2. **Ignoring inflation.** $1 million in 30 years will buy roughly what $400,000 buys today. Plan in inflation-adjusted terms.
-3. **Not accounting for Social Security.** Most Americans qualify for benefits, which reduces how much your personal savings need to cover. Check your projected benefit at ssa.gov.
-4. **Leaving employer match on the table.** If your employer matches 401(k) contributions and you're not contributing enough to get the full match, you're giving up free money.
+## What to do next
 
-> **Key takeaway:** Mistake #2 is the one people underestimate most. At 3% inflation, you need roughly $2.4 million in future dollars to have the same spending power as $1 million today over a 30-year retirement. Always check the inflation-adjusted number.
-
-## What to Do Next
-
-Run your numbers with conservative assumptions (6-7% returns, 3% inflation). If the result falls short, experiment with increasing your monthly contribution. If you're not yet getting your full employer 401(k) match, that's the highest-priority first step — it's an immediate return that no other investment can match.
+Run your numbers at a cautious return, 5% to 7%, and 3% inflation. If the result falls short, raise the monthly saving and see how much it moves the answer. If you are not yet getting your full employer match, do that first.
