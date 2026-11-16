@@ -2,7 +2,7 @@
 name: "ROI Calculator"
 slug: "roi"
 category: "saving-and-growth"
-description: "ROI calculator — work out return on investment from initial cost and final value, including annualized return over the holding period."
+description: "ROI calculator: total and annualized return from your cost, final value and income received, with a side-by-side comparison of two investments."
 keywords:
   - "ROI calculator"
   - "return on investment calculator"
@@ -12,6 +12,7 @@ keywords:
 relatedTools:
   - "investment-return"
   - "compound-interest"
+  - "investment-fee"
   - "inflation"
   - "net-worth"
   - "retirement-savings"
@@ -20,98 +21,82 @@ affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
   - "SoFi"
-calculationMethod: "Uses standard ROI formula: (Gain - Cost) / Cost × 100"
+calculationMethod: "Total return = (final value + income - cost) / cost; annualized = (1 + total return)^(1 / years) - 1"
 faq:
   - question: "How do you calculate ROI?"
-    answer: "The basic ROI formula is: ROI = (Net Profit / Cost of Investment) x 100. For example, if you invested $10,000 and it's now worth $13,000, your ROI is ($3,000 / $10,000) x 100 = 30%. Our calculator also computes annualized ROI, which accounts for how long you held the investment."
+    answer: "ROI = (final value + income received - cost) / cost x 100. If you invested $10,000 and it is now worth $13,000, your gain is {{ roi(10000, 13000, 0, 1).totalGain | usd }} and your ROI is {{ roi(10000, 13000, 0, 1).totalReturn | pct }}. The calculator also gives the annualized return, which accounts for how long you held the investment."
   - question: "What is a good ROI?"
-    answer: "A 'good' ROI depends on the context. The S&P 500 averages about 10% annually. Real estate typically returns 8-12%. A bank savings account earns 4-5%. Venture capital targets 25%+ but with much higher risk. Generally, any ROI that beats inflation (3%) is positive in real terms, and anything above 7% is considered solid."
+    answer: "It depends on the risk, the time and what else the money could have earned. Compare the annualized return with three things: inflation (a 5% return in a year of 3% inflation is only {{ (1.05 / 1.03 - 1) * 100 | pct1 }} in purchasing power), what a safe savings account pays now, and what a low-cost index fund returned over a comparable period. A return that does not beat the safe option was not worth the risk."
   - question: "What is the difference between ROI and annualized return?"
-    answer: "ROI measures total return regardless of time — a 50% return could come over 1 year or 10 years. Annualized return adjusts for time to show the equivalent yearly rate. A 50% total return over 5 years is about 8.4% annualized. Always compare investments using annualized returns to get an apples-to-apples picture."
+    answer: "ROI measures the total return whatever the time: 50% could come in one year or ten. Annualized return converts it to an equivalent yearly rate. A 50% total return over 5 years is {{ annualizedReturn(50, 5) | pct1 }} a year, and over 10 years it is {{ annualizedReturn(50, 10) | pct1 }} a year. Compare investments on annualized returns."
   - question: "How do I calculate ROI on real estate?"
-    answer: "For real estate, include all costs: purchase price, closing costs, renovations, maintenance, property taxes, and insurance. Income includes rent collected plus any property appreciation. A simple cash-on-cash ROI divides annual net income by total cash invested. Don't forget to account for mortgage payments if you financed the purchase."
+    answer: "Include every cost: purchase price, closing costs, renovation, maintenance, property tax and insurance. Income is the rent collected, plus appreciation if you count the sale. Cash-on-cash return divides annual net income by the cash you put in: $7,200 of net rent on $50,000 invested is {{ 7200 / 50000 * 100 | pct1 }}. If you used a mortgage, include the payments in your costs."
   - question: "Does ROI include dividends?"
-    answer: "It should. Total ROI includes both price appreciation and any income received (dividends, interest, rent). A stock that goes up 5% and pays a 3% dividend has an 8% total ROI. Many investors undercount their returns by ignoring dividends, which historically account for roughly 40% of stock market returns."
+    answer: "It should. Total ROI includes price gains and any income received: dividends, interest and rent. A $10,000 stock that rises to $10,500 and pays $300 in dividends has a total ROI of {{ roi(10000, 10500, 300, 1).totalReturn | pct }}, not 5%. Ignoring dividends understates your return."
+  - question: "What happens if I lose everything?"
+    answer: "A total loss is a total return of {{ roi(10000, 0, 0, 3).totalReturn | pct }}, and it annualizes to {{ roi(10000, 0, 0, 3).annualized | pct }} a year however long you held it. The calculator reports it that way rather than as 0%."
 workedExamples:
   - title: "Stock investment over 3 years"
     inputs:
       initialInvestment: 15000
       currentValue: 21000
       holdingPeriod: 3
-    description: "Invested $15,000 in a stock index fund that's now worth $21,000 after 3 years. Total ROI: 40%. Annualized ROI: 11.9%. This beats the historical S&P 500 average of 10%, making it a strong result. Without annualizing, you might think 40% is modest — but 11.9% per year is excellent."
+    description: "Invested $15,000 in a stock index fund that is now worth $21,000 after 3 years. Total ROI is {{ roi(15000, 21000, 0, 3).totalReturn | pct }} and annualized ROI is {{ roi(15000, 21000, 0, 3).annualized | pct1 }} a year. The annualized figure is the one to hold up against a savings rate or inflation."
   - title: "Rental property evaluation"
     inputs:
       initialInvestment: 50000
-      annualIncome: 7200
-      propertyAppreciation: 15000
+      finalValue: 65000
+      incomeReceived: 36000
       holdingPeriod: 5
-    description: "A rental property with $50,000 down payment generating $7,200/year net rent over 5 years, plus $15,000 in appreciation. Total return: $51,000 on a $50,000 investment — 102% total ROI, or 15.1% annualized. This example ignores mortgage principal paydown, which would make the actual ROI even higher."
+    description: "A rental bought with $50,000 down that earns $7,200 a year in net rent over 5 years ({{ 7200 * 5 | usd }} in total) and gains $15,000 in value, so it is worth {{ 50000 + 15000 | usd }} at the end. The total return is {{ roi(50000, 50000 + 15000, 7200 * 5, 5).totalGain | usd }} on $50,000: {{ roi(50000, 50000 + 15000, 7200 * 5, 5).totalReturn | pct }} total ROI, or {{ roi(50000, 50000 + 15000, 7200 * 5, 5).annualized | pct1 }} a year. This ignores mortgage principal paid down, which would raise the real return."
   - title: "Comparing two investment options"
     inputs:
-      investmentA: "Bond fund: $10,000 → $12,500 in 4 years"
-      investmentB: "Growth stock: $10,000 → $14,000 in 6 years"
-    description: "Investment A returned 25% over 4 years (5.7% annualized). Investment B returned 40% over 6 years (5.8% annualized). Despite Investment B having a higher total return, the annualized returns are nearly identical. This is why annualized ROI matters — it reveals the true earning rate per year."
+      investmentA: "Bond fund: $10,000 to $12,500 in 4 years"
+      investmentB: "Growth stock: $10,000 to $14,000 in 6 years"
+    description: "Investment A returned {{ roi(10000, 12500, 0, 4).totalReturn | pct }} over 4 years ({{ roi(10000, 12500, 0, 4).annualized | pct1 }} a year). Investment B returned {{ roi(10000, 14000, 0, 6).totalReturn | pct }} over 6 years ({{ roi(10000, 14000, 0, 6).annualized | pct1 }} a year). B's total is higher but the yearly rates are almost the same, which the total alone hides."
 ---
 
-## What Is Return on Investment (ROI)?
+## How ROI is calculated
 
-ROI is a simple but powerful metric that measures the profitability of an investment relative to its cost. It answers the fundamental question: "For every dollar I put in, how much did I get back?"
+Return on investment measures profit relative to cost: for every dollar put in, how many came back. The formula is **ROI = (final value + income received - cost) / cost**. An investment that cost $10,000 and is worth $13,000 has made {{ roi(10000, 13000, 0, 1).totalGain | usd }}, an ROI of {{ roi(10000, 13000, 0, 1).totalReturn | pct }}.
 
-The basic formula is **ROI = (Net Profit / Cost of Investment) × 100**. An investment that cost $10,000 and returned $13,000 has a net profit of $3,000 and an ROI of 30%.
+It works for any investment: shares, property, equipment, a marketing campaign, a renovation. The calculator takes your initial investment, the final value, the income you received along the way (dividends, interest, rent) and how long you held it.
 
-ROI works for any investment type — stocks, real estate, business equipment, marketing campaigns, education, or even home renovations. Its universality makes it the default metric for comparing very different types of investments.
-
-> **Key takeaway:** ROI is the one metric that lets you compare completely different investments — a rental property vs. a stock portfolio vs. a marketing campaign — on the same scale.
-
-## Total ROI vs Annualized ROI
+## Total ROI vs annualized ROI
 
 <div class="stat-highlight">
-  <span class="stat-number">10%</span>
-  <span class="stat-text">average annual S&P 500 return (before inflation). But a 30% total return over 10 years is only 2.7% annualized — always compare using annualized ROI.</span>
+  <span class="stat-number">{{ annualizedReturn(30, 10) | pct1 }}</span>
+  <span class="stat-text">a year is all a 30% total return over 10 years comes to. A 20% return over 2 years is {{ annualizedReturn(20, 2) | pct1 }} a year, a far better investment with the smaller total.</span>
 </div>
 
-Total ROI has a critical limitation: it doesn't account for time. A 30% return might sound better than 20%, but what if the 30% return took 10 years and the 20% return took 2 years?
+Total ROI ignores time. 30% sounds better than 20% until you learn that the 30% took 10 years and the 20% took 2. Annualized ROI converts any total return into an equivalent yearly rate: **(1 + total return)^(1 / years) - 1**.
 
-**Annualized ROI** solves this by converting any total return into an equivalent annual rate: Annualized ROI = (1 + Total ROI)^(1/Years) - 1. The 30% over 10 years becomes 2.7% annualized, while the 20% over 2 years is 9.5% annualized — a dramatically better investment.
+So a {{ annualizedReturn(50, 10) | pct1 }} annual return is what a 50% total over 10 years really is, and 25% over 3 years is {{ annualizedReturn(25, 3) | pct1 }} a year, almost double. Always annualize before you compare.
 
-> **Example:** A 30% total return over 10 years is just 2.7% annualized, while a 20% return over 2 years is 9.5% annualized. The "smaller" return was actually the far better investment.
+## Reading an ROI number
 
-Always compare investments using annualized returns to get a fair comparison.
+An ROI figure means little alone. Three checks make it useful:
 
-## ROI Benchmarks by Asset Class
+- **Against inflation.** A 5% return in a year of 3% inflation grows your purchasing power by {{ (1.05 / 1.03 - 1) * 100 | pct1 }}, not 5%.
+- **Against the safe alternative.** If a savings account pays almost as much, extra risk was not rewarded.
+- **Against the risk taken.** Shares, property and a start-up have very different spreads of outcomes; a single good number can hide a lot of risk. Venture-style investments, for example, are driven by a few outliers while most positions lose money.
 
-Different investments carry different risk-return profiles:
+> **Tip:** use annualized ROI when comparing against any benchmark. A 50% total return sounds large until it turns out to have taken 10 years ({{ annualizedReturn(50, 10) | pct1 }} a year).
 
-| Asset Class | Typical Annual Return | Risk Level | Notes |
-|---|---|---|---|
-| Stock market (S&P 500) | ~10% (7% after inflation) | Moderate–High | Long-term historical average |
-| Real estate | 8–12% | Moderate | Appreciation + rental income; varies by location |
-| Bonds (investment-grade) | 4–6% | Low–Moderate | Corporate bonds |
-| High-yield savings | 4–5% | Near-zero | Current rates |
-| Venture capital | 25%+ target | Very High | Most investments lose money; returns driven by rare outliers |
+## When to use the calculator
 
-Any ROI that consistently beats inflation (3%) is positive in real terms. Returns above 7% are generally considered strong for the level of risk involved.
+- Judging a past investment: enter what you paid and what it is worth now.
+- Comparing two options: the comparison mode shows both annualized returns side by side.
+- Assessing a business decision, such as equipment, marketing spend or training.
+- Evaluating a property: purchase cost, rent received and current value.
 
-> **Tip:** Use annualized ROI — not total ROI — when comparing against these benchmarks. A 50% total return sounds great until you realize it took 10 years (just 4.1% annualized).
+## Mistakes that distort ROI
 
-## When to Use This Calculator
+1. **Leaving out costs.** Include fees, taxes, maintenance and the opportunity cost of the money, not just the buy and sell prices.
+2. **Comparing totals across different holding periods.** 50% over 10 years ({{ annualizedReturn(50, 10) | pct1 }} a year) is worse than 25% over 3 years ({{ annualizedReturn(25, 3) | pct1 }} a year).
+3. **Ignoring inflation.** Use the inflation calculator to turn a nominal return into purchasing power.
+4. **Leaving out income.** Dividends, rent and interest belong in total return.
 
-Use the ROI calculator when you:
+## What to do next
 
-- **Evaluate a past investment** — enter what you paid and what it's worth now to see your actual return
-- **Compare investment options** — see which of two or more investments delivered the best annualized return
-- **Assess a business decision** — calculate ROI on equipment purchases, marketing spend, or employee training
-- **Evaluate real estate** — factor in purchase price, rental income, maintenance costs, and current property value
-
-## Common Mistakes
-
-1. **Ignoring all costs.** ROI should include transaction fees, taxes, maintenance, and opportunity costs — not just the purchase price and sale price.
-2. **Comparing total returns across different time periods.** A 50% return over 10 years (4.1% annualized) is worse than 25% over 3 years (7.7% annualized). Always annualize.
-3. **Forgetting about inflation.** A 5% return during 3% inflation is only 2% real ROI. Your purchasing power barely grew.
-4. **Excluding income from the calculation.** Dividends, rent, and interest payments are part of total return and must be included.
-
-> **Key takeaway:** The single biggest ROI mistake is comparing raw totals across different time horizons. Always annualize first, then compare.
-
-## What to Do Next
-
-Enter your investment details to see your actual returns. If you're comparing multiple investments, the annualized return column gives you the clearest picture of which one performed better relative to the time invested.
+Enter your cost, final value, income received and years held. For two options, switch on comparison and read the annualized column.
