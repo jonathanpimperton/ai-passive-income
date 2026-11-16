@@ -24,6 +24,7 @@ relatedTools:
   - "stamp-duty"
   - "capital-gains-tax"
   - "net-worth"
+lastUpdated: "2026-11-16"
 dataSources:
   - name: "HMRC Income Tax rates {{ taxYear('uk') }}"
     url: "https://www.gov.uk/income-tax-rates"
