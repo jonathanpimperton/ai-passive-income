@@ -10,7 +10,7 @@ relatedTools:
   - "investment-return"
   - "compound-interest"
   - "salary-uk"
-verdict: "If you're under 40 and saving for a first home or retirement, the LISA's 25% government bonus is hard to beat. But if you might need the money for anything else, the 25% withdrawal penalty makes the regular ISA a safer choice."
+verdict: "Open a LISA if you are under 40 and will buy a first home for £450,000 or less, or want money you will not touch before 60: the 25% bonus is a guaranteed return no other account matches. Use a regular ISA for money you might need for anything else, and for a first home above £450,000, where the 20% charge takes the bonus back. The LISA closes to new savers from 6 April 2029."
 comparisonTable:
   - feature: "Annual contribution limit"
     option1: "£4,000"
@@ -37,8 +37,17 @@ affiliateContext: "Where to open a LISA or ISA"
 affiliatePrograms:
   - "InvestEngine"
   - "Nutmeg"
+faq:
+  - question: "Is a Lifetime ISA worth it?"
+    answer: "Yes, if you will use it for a first home costing £450,000 or less, or for retirement after 60. The government adds 25% to what you pay in, up to £1,000 a year. It is a poor choice if you might need the money for anything else, because a 25% withdrawal charge applies and takes some of your own money as well as the bonus."
+  - question: "How much do you lose if you withdraw from a LISA early?"
+    answer: "A 25% charge applies to the whole withdrawal, including the bonus. If you paid in £4,000 and the government added £1,000, the account holds £5,000 and the charge is {{ 5000 * 25 / 100 | gbp }}, so you get back {{ 5000 * 75 / 100 | gbp }}, which is {{ 4000 - 5000 * 75 / 100 | gbp }} less than you paid in. For a first home above £450,000 the charge since 29 October 2026 is 20%, or {{ 5000 * 20 / 100 | gbp }} on the same £5,000."
+  - question: "How long must a LISA be open before I can use it for a first home?"
+    answer: "At least 12 months from the date you first paid into any LISA. The property must cost £450,000 or less."
+  - question: "Can I open a LISA if I am over 40?"
+    answer: "No. You must be 18 to 39 to open one. A new First Time Buyer ISA is due to replace the LISA for new savers from 6 April 2029, with no upper age limit. If you are over 40 now, a regular Stocks & Shares ISA is the account to use."
 datePublished: "2026-03-05"
-dateModified: "2026-11-12"
+dateModified: "2026-11-16"
 sources:
   - name: "GOV.UK — Lifetime ISA"
     url: "https://www.gov.uk/lifetime-isa"
@@ -60,7 +69,7 @@ You must be between 18 and 39 to open a LISA. You can keep contributing until yo
 
 **The LISA is closing to new savers.** The Budget on 28 October 2026 confirmed that a new First Time Buyer ISA will replace the LISA for new savers from 6 April 2029, with no upper age limit to open one. LISAs opened before then can carry on under the existing rules.
 
-The bonus is paid monthly (usually within 4-8 weeks of your contribution), so your money starts earning returns on the full bonus-included amount quickly.
+The government pays the bonus to your provider, who adds it to your account, so your money starts earning returns on the bonus-included amount soon after each payment.
 
 ## The withdrawal penalty trap
 
@@ -68,19 +77,19 @@ Here is where the LISA gets controversial. If you withdraw money for anything ot
 
 This penalty is worse than it sounds. You don't just lose the bonus — you lose some of your own money too.
 
-Example: You contribute £4,000. The government adds £1,000 bonus. Your account holds £5,000. If you withdraw for a non-qualifying reason, the 25% penalty is applied to £5,000 = £1,250 deducted. You get back £3,750 — that's £250 less than you put in.
+Example: you contribute £4,000. The government adds a £1,000 bonus, so your account holds £5,000. If you withdraw for a non-qualifying reason, the 25% charge is applied to the £5,000, which is {{ 5000 * 25 / 100 | gbp }}. You get back {{ 5000 * 75 / 100 | gbp }}, which is {{ 4000 - 5000 * 75 / 100 | gbp }} less than you put in.
 
 The penalty was temporarily reduced to 20% during COVID (making it break-even), and it is 25% again for most early withdrawals. The one exception, since 29 October 2026, is a first-time buyer buying above the £450,000 cap, who pays 20% (see below). Outside that, the LISA effectively locks your money away unless you use it for a first home or retirement.
 
 ## First-time buyer: LISA almost always wins
 
-If you're under 40 and [saving for your first property](/scenarios/save-for-house-deposit/) valued under £450,000, the LISA is a clear winner. The 25% bonus on every contribution is an instant, guaranteed return that no other investment can match.
+If you're under 40 and [saving for your first property](/tools/saving-and-growth/savings-goal/) valued under £450,000, the LISA is a clear winner. The 25% bonus on every contribution is an instant, guaranteed return that no other investment can match.
 
-Saving £4,000 per year for 5 years gives you £20,000 of your own money plus £5,000 in bonuses = £25,000 before any investment growth. In a Stocks & Shares LISA earning 6% annually, that grows to roughly £28,900.
+Saving £4,000 a year for 5 years (paid in monthly) gives you {{ 4000 * 5 | gbp }} of your own money plus {{ 1000 * 5 | gbp }} in bonuses, {{ 5000 * 5 | gbp }} before any investment growth. In a Stocks & Shares LISA earning 6% a year, that grows to roughly {{ compoundFV(0, 5000 / 12, 6, 5) | gbp }}.
 
-The same £4,000 per year in a regular ISA with no bonus and the same 6% return gives you about £23,100. The LISA is ahead by £5,800 — entirely from the government bonus and its compounded growth.
+The same £4,000 a year in a regular ISA, with no bonus and the same 6% return, gives you about {{ compoundFV(0, 4000 / 12, 6, 5) | gbp }}. The LISA is ahead by {{ compoundFV(0, 5000 / 12, 6, 5) - compoundFV(0, 4000 / 12, 6, 5) | gbp }}, entirely from the government bonus and its compounded growth.
 
-**Watch out for the £450,000 property cap.** In London and the South East, this limit excludes many properties. Since 29 October 2026, using a LISA for a first home that costs more than £450,000 carries a 20% withdrawal charge rather than 25%. The charge takes back the government bonus but leaves you your own contributions and the growth on them: on the £5,000 example above you would get back £4,000, exactly what you paid in. So going over the cap no longer costs you your own money, but the LISA then gives you nothing a regular ISA wouldn't.
+**Watch out for the £450,000 property cap.** In London and the South East, this limit excludes many properties. Since 29 October 2026, using a LISA for a first home that costs more than £450,000 carries a 20% withdrawal charge rather than 25%. The charge takes back the government bonus: on the £5,000 example above you would get back {{ 5000 * 80 / 100 | gbp }}, exactly what you paid in, and with investment growth the charge also takes 20% of the growth. So going over the cap no longer costs you your own capital, but the LISA then gives you nothing a regular ISA would not.
 
 ## Retirement saving: LISA vs pension vs ISA
 
@@ -88,16 +97,18 @@ For retirement, the comparison gets more complex. The LISA bonus (25%) looks sim
 
 **LISA advantages over pensions:**
 - Tax-free withdrawals at 60 (pensions are taxed as income, except the 25% tax-free lump sum)
-- Access at 60, vs 55 for pensions (rising to 57 from April 2028) — though this is a minor difference
-- Full control — no requirement to buy an annuity
+- No income tax on the growth or the withdrawal, so no tax-band planning in retirement
+- You can use it for a first home as well as retirement; a pension cannot
 
 **Pension advantages over LISA:**
-- Higher contribution limits (£60,000 annual allowance vs £4,000 LISA)
-- Employer contributions — your employer's 3%+ match is free money on top of tax relief
-- Higher-rate taxpayers get 40%+ relief, far exceeding the LISA's 25%
-- No withdrawal penalty for non-qualifying purposes (just income tax)
+- Higher contribution limits (£60,000 annual allowance against £4,000 for a LISA)
+- Employer contributions: your employer's 3% or more is free money on top of tax relief
+- Higher-rate taxpayers get 40% or more in relief, far above the LISA's 25%
+- Earlier access: a pension can be taken from 55 (57 from 6 April 2028), a LISA only from 60 without a charge
 
-For most employees, the priority should be: [workplace pension up to the employer match](/comparisons/pension-vs-isa-uk/) first, then LISA (up to £4,000), then additional pension or ISA contributions.
+**Pension access rules to know:** you cannot normally take a pension before 55 (57 from 6 April 2028). Taking money out early outside the rules is an unauthorised payment and can be taxed at up to 55%. From the minimum age, withdrawals are taxed as income, except the 25% tax-free part.
+
+For most employees, the priority should be: [workplace pension up to the employer match](/comparisons/pension-vs-isa-uk/) first. Then, if you are a first-time buyer or want a retirement pot you will not touch before 60, a LISA up to £4,000. After that, a Stocks & Shares ISA or additional pension contributions.
 
 If you're a higher-rate (40%) taxpayer, the pension gives you 40% tax relief versus the LISA's 25% bonus. The pension wins on the way in, even though it's taxed on the way out — assuming you'll be a basic-rate taxpayer in retirement, which most people are.
 

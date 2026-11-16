@@ -95,7 +95,7 @@ The priority order for most people:
 3. **Additional pension contributions** (if you won't need the money before 57)
 4. **General investment account** (for anything above these limits)
 
-One exception to this order: if your income is between £100,000 and £125,140 you lose £1 of personal allowance for every £2 above £100,000, so extra pension contributions can be worth far more than the ISA. See the [60% tax trap](/scenarios/60-percent-tax-trap-uk/).
+One exception to this order: if your income is between {{ ukFact('paTaperThreshold') | gbp }} and {{ ukFact('paTaperLimit') | gbp }} you lose £1 of personal allowance for every £2 above {{ ukFact('paTaperThreshold') | gbp }}, so extra pension contributions can be worth far more than the ISA. See the [60% tax trap](/scenarios/60-percent-tax-trap-uk/).
 
 ## Cash ISA vs Stocks & Shares ISA
 
