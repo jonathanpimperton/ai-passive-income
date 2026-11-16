@@ -99,7 +99,7 @@ Buying costs more than the payment on the lender's quote:
 | Selling costs | 6% of the sale price in the US | At sale |
 | Opportunity cost | The down payment could be invested instead | Ongoing, and not visible on a statement |
 
-On the $350,000 example, closing costs are {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).closingCosts | usd }} and selling costs after 10 years {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).saleCosts | usd }}. Over that period the buyer also pays {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).totalInterest | usd }} in interest over the loan's life, and in the US the interest deduction saves {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).totalTaxSaving | usd }}.
+On the $350,000 example, closing costs are {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).closingCosts | usd }} and selling costs after 10 years {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).saleCosts | usd }}. In those 10 years the buyer also pays {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).totalInterest | usd }} in mortgage interest, and in the US the interest deduction saves {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).totalTaxSaving | usd }}.
 
 ## The true cost of renting
 

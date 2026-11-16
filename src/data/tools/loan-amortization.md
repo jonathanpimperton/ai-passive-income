@@ -39,7 +39,7 @@ faq:
   - question: "Which interest rate does the calculator start with?"
     answer: "It starts from a current market average for the selected currency and says where it comes from: {{ rate('us30') | pct(2) }} for a US 30-year mortgage ({{ rateSource('us30') }}), {{ rate('us15') | pct(2) }} when the term is 15 years or less, {{ rate('uk2yr') | pct(2) }} for a UK two-year fixed mortgage ({{ rateSource('uk2yr') }}) and {{ rate('eur') | pct(2) }} for euro-area house purchase ({{ rateSource('eur') }}). These are mortgage averages, so for a car, personal or student loan type in the rate you were quoted. The term can be anything from 1 to 50 years."
   - question: "What is the difference between amortization and simple interest?"
-    answer: "An amortizing loan has a fixed payment that covers interest and principal together, and the interest portion shrinks as the balance shrinks. A simple-interest loan charges interest on the outstanding balance for the days it is outstanding, and the amount you pay in a given month can vary. Most mortgages, car loans and personal loans amortize; this calculator assumes equal monthly payments."
+    answer: "Most mortgages, car loans and personal loans amortize: a fixed payment covers interest and principal together, and the interest portion shrinks as the balance shrinks. A simple-interest loan usually amortizes too, but interest accrues daily on the outstanding balance, so paying early or late changes how much of a payment goes to interest. This calculator assumes equal monthly payments with interest charged monthly, so it will differ slightly from a loan that accrues daily."
 workedExamples:
   - title: "30-year fixed mortgage"
     inputs:

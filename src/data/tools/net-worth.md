@@ -45,12 +45,12 @@ workedExamples:
     inputs:
       assets: "home $380,000, 401k $185,000, savings $25,000, brokerage $40,000, car $18,000"
       liabilities: "mortgage $290,000, student loans $12,000, car loan $10,000"
-    description: "Assets are {{ 380000 + 185000 + 25000 + 40000 + 18000 | usd }} and liabilities {{ 290000 + 12000 + 10000 | usd }}, so net worth is {{ 380000 + 185000 + 25000 + 40000 + 18000 - (290000 + 12000 + 10000) | usd }}. That is {{ 336000 / 155600 | num(1) }} times the 2025 median of $155,600 for ages 35 to 44 (Federal Reserve, Survey of Consumer Finances)."
+    description: "Assets are {{ 380000 + 185000 + 25000 + 40000 + 18000 | usd }} and liabilities {{ 290000 + 12000 + 10000 | usd }}, so net worth is {{ 380000 + 185000 + 25000 + 40000 + 18000 - (290000 + 12000 + 10000) | usd }}. That is {{ (380000 + 185000 + 25000 + 40000 + 18000 - (290000 + 12000 + 10000)) / 155600 | num(1) }} times the 2025 median of $155,600 for ages 35 to 44 (Federal Reserve, Survey of Consumer Finances)."
   - title: "Pre-retiree, age 58"
     inputs:
       assets: "home $520,000, 401k $680,000, IRA $120,000, savings $45,000, brokerage $95,000"
       liabilities: "mortgage $85,000, car loan $15,000"
-    description: "Assets are {{ 520000 + 680000 + 120000 + 45000 + 95000 | usd }} and liabilities {{ 85000 + 15000 | usd }}, so net worth is {{ 520000 + 680000 + 120000 + 45000 + 95000 - (85000 + 15000) | usd }}, about {{ 1360000 / 411900 | num(1) }} times the 2025 median of $411,900 for ages 55 to 64. The investable part, excluding the home, is {{ 680000 + 120000 + 45000 + 95000 | usd }}; on the 4% rule that supports about {{ (680000 + 120000 + 45000 + 95000) * 0.04 | usd }} a year in withdrawals, before Social Security. The home is real wealth, but it only pays you if you sell or downsize."
+    description: "Assets are {{ 520000 + 680000 + 120000 + 45000 + 95000 | usd }} and liabilities {{ 85000 + 15000 | usd }}, so net worth is {{ 520000 + 680000 + 120000 + 45000 + 95000 - (85000 + 15000) | usd }}, about {{ (520000 + 680000 + 120000 + 45000 + 95000 - (85000 + 15000)) / 411900 | num(1) }} times the 2025 median of $411,900 for ages 55 to 64. The investable part, excluding the home, is {{ 680000 + 120000 + 45000 + 95000 | usd }}; on the 4% rule that supports about {{ (680000 + 120000 + 45000 + 95000) * 0.04 | usd }} a year in withdrawals, before Social Security. The home is real wealth, but it only pays you if you sell or downsize."
 ---
 
 ## One number for your financial position

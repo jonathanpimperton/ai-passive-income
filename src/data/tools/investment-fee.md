@@ -63,7 +63,7 @@ workedExamples:
       years: 25
       yourFee: 0.25
       comparisonFee: 1.50
-    description: "A total cost of 0.25% against 1.50%, both investing at 8% gross, on $100,000 plus $1,000 a month for 25 years. The 0.25% portfolio reaches {{ feeDrag(100000, 1000, 8, 25, 0.25, compareFee=1.5).balance | usd }} and the 1.50% portfolio {{ feeDrag(100000, 1000, 8, 25, 0.25, compareFee=1.5).compareBalance | usd }}. The 1.25-point fee gap costs {{ feeDrag(100000, 1000, 8, 25, 0.25, compareFee=1.5).cost | usd }}. Whether the higher fee buys advice worth that is the question to ask."
+    description: "A total cost of 0.25% against 1.50%, both investing at 8% gross, on $100,000 plus $1,000 a month for 25 years. The 0.25% portfolio reaches {{ feeDrag(100000, 1000, 8, 25, 0.25, compareFee=1.5).balance | usd }} and the 1.50% portfolio {{ feeDrag(100000, 1000, 8, 25, 0.25, compareFee=1.5).compareBalance | usd }}. The {{ 1.5 - 0.25 | num(2) }}-point fee gap costs {{ feeDrag(100000, 1000, 8, 25, 0.25, compareFee=1.5).cost | usd }}. Whether the higher fee buys advice worth that is the question to ask."
   - title: "Two similar ETFs with different fees"
     inputs:
       initialInvestment: 25000
@@ -72,7 +72,7 @@ workedExamples:
       years: 20
       yourFee: 0.07
       comparisonFee: 0.50
-    description: "Two ETFs that track similar indices, one at 0.07% and one at 0.50%, on $25,000 plus $300 a month for 20 years at 7% gross. The cheaper ETF reaches {{ feeDrag(25000, 300, 7, 20, 0.07, compareFee=0.5).balance | usd }} and the other {{ feeDrag(25000, 300, 7, 20, 0.07, compareFee=0.5).compareBalance | usd }}. That is {{ feeDrag(25000, 300, 7, 20, 0.07, compareFee=0.5).cost | usd }} lost to a 0.43-point difference in fees."
+    description: "Two ETFs that track similar indices, one at 0.07% and one at 0.50%, on $25,000 plus $300 a month for 20 years at 7% gross. The cheaper ETF reaches {{ feeDrag(25000, 300, 7, 20, 0.07, compareFee=0.5).balance | usd }} and the other {{ feeDrag(25000, 300, 7, 20, 0.07, compareFee=0.5).compareBalance | usd }}. That is {{ feeDrag(25000, 300, 7, 20, 0.07, compareFee=0.5).cost | usd }} lost to a {{ 0.5 - 0.07 | num(2) }}-point difference in fees."
 ---
 
 ## What a fee does to the end balance
@@ -90,7 +90,7 @@ Here is the same $100,000 plus $500 a month at 7% gross return for 30 years, wit
 | 1.00% | {{ feeDrag(100000, 500, 7, 30, 1).balance | usd }} | {{ feeDrag(100000, 500, 7, 30, 0.03).balance - feeDrag(100000, 500, 7, 30, 1).balance | usd }} less |
 | 1.50% | {{ feeDrag(100000, 500, 7, 30, 1.5).balance | usd }} | {{ feeDrag(100000, 500, 7, 30, 0.03).balance - feeDrag(100000, 500, 7, 30, 1.5).balance | usd }} less |
 
-> **The 1.50% fund gives up {{ (feeDrag(100000, 500, 7, 30, 0.03).balance - feeDrag(100000, 500, 7, 30, 1.5).balance) / feeDrag(100000, 500, 7, 30, 0.03).balance * 100 | pct }} of the final balance** against the 0.03% fund, from a fee difference of 1.47 percentage points.
+> **The 1.50% fund gives up {{ (feeDrag(100000, 500, 7, 30, 0.03).balance - feeDrag(100000, 500, 7, 30, 1.5).balance) / feeDrag(100000, 500, 7, 30, 0.03).balance * 100 | pct }} of the final balance** against the 0.03% fund, from a fee difference of {{ 1.5 - 0.03 | num(2) }} percentage points.
 
 ## How the calculator works
 

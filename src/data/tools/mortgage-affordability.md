@@ -89,7 +89,7 @@ The answer depends on three things: what you earn, what you already owe and what
 
 In the US the guide is your debt-to-income ratio (DTI), the share of gross monthly income that goes on debt payments. Freddie Mac's lending guide gives 36% as its guideline and treats a manually underwritten loan above 45% as ineligible; automated underwriting can allow more. The calculator applies two limits and uses the lower.
 
-> **Debts only matter when they bind.** On an $80,000 income the housing cap (28%, {{ usAffordability(80000, 500, 40000, rate('us30'), 30).frontEndBudget | usd }} a month) is lower than the 36% all-debt limit until your other debts pass {{ 80000 * 36 / 100 / 12 - 80000 * 28 / 100 / 12 | usd }} a month. Below that, paying off a car loan won't raise your maximum. Above it, each extra $100 of monthly debt takes roughly {{ usAffordability(80000, 1000, 40000, rate('us30'), 30).maxPrice - usAffordability(80000, 1100, 40000, rate('us30'), 30).maxPrice | usd }} off it.
+> **Debts only matter when they bind.** On an $80,000 income the housing cap (28%, {{ usAffordability(80000, 500, 40000, rate('us30'), 30).frontEndBudget | usd }} a month) is lower than the 36% all-debt limit until your other debts pass {{ 80000 * 36 / 100 / 12 - 80000 * 28 / 100 / 12 | usd }} a month. Below that, paying off a car loan won't raise your maximum. Above it, each extra $100 of monthly debt takes about {{ usAffordability(80000, 1000, 40000, rate('us30'), 30).maxPrice - usAffordability(80000, 1100, 40000, rate('us30'), 30).maxPrice | roundTo(100) | usd }} off it.
 
 ## The 28/36 rule, step by step
 

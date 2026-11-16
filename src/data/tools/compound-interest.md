@@ -67,7 +67,7 @@ workedExamples:
 
 ## Interest on your interest
 
-With simple interest you earn only on your original deposit. With compound interest each period's interest joins the balance, and the next period earns on the larger balance. The base grows a little every cycle, and over decades the effect is large: **$10,000 at 7% a year, compounded monthly, becomes {{ compoundFV(10000, 0, 7, 30) | usd }} in 30 years.** Time matters more than the rate, because every extra year compounds on everything before it.
+With simple interest you earn only on your original deposit. With compound interest each period's interest joins the balance, and the next period earns on the larger balance. The base grows a little every cycle, and over decades the effect is large: **$10,000 at 7% a year, compounded monthly, becomes {{ compoundFV(10000, 0, 7, 30) | usd }} in 30 years.** Over decades, time can matter as much as the rate: $10,000 at 5% for 30 years grows to {{ compoundFV(10000, 0, 5, 30) | usd }}, more than the {{ compoundFV(10000, 0, 7, 20) | usd }} it reaches at 7% for 20 years, because every extra year compounds on everything before it.
 
 ## How the calculator compounds
 

@@ -41,7 +41,7 @@ faq:
   - question: "When should I start saving for retirement?"
     answer: "As early as you can. Saving $500 a month at 7% for 35 years gives {{ retirementFV(0, 500, 7, 35, inflation=3).nominal | usd }}; the same $500 for 25 years gives {{ retirementFV(0, 500, 7, 25, inflation=3).nominal | usd }}. Ten extra years of saving adds {{ retirementFV(0, 500, 7, 35, inflation=3).nominal - retirementFV(0, 500, 7, 25, inflation=3).nominal | usd }}, much more than the {{ 500 * 12 * 10 | usd }} deposited, because the early money compounds for longer."
   - question: "How does inflation affect my retirement savings?"
-    answer: "Inflation lowers what your money buys. At 3% a year, $1,000,000 today buys what {{ inflationAdjust(1000000, 3, 30, mode=value) | usd }} buys now once 30 years have passed, and it would take {{ inflationAdjust(1000000, 3, 30) | usd }} then to match today's $1,000,000. That is why the calculator shows a today's-money figure beside the future balance."
+    answer: "Inflation lowers what your money buys. At 3% a year, $1,000,000 in 30 years buys what {{ inflationAdjust(1000000, 3, 30, mode=value) | usd }} buys today, and it would take {{ inflationAdjust(1000000, 3, 30) | usd }} then to match today's $1,000,000. That is why the calculator shows a today's-money figure beside the future balance."
   - question: "How does the calculator work for a UK pension?"
     answer: "Switch the currency to pounds. The projection is the same, but the milestones are UK ones: you can usually take benefits from a private or workplace pension from {{ ukFact('pensionAccessAge') | int }}, and the normal minimum pension age rises to {{ ukFact('pensionAccessAgeFrom2028') | int }} on 6 April 2028. The State Pension age is between 66 and 68 depending on your date of birth, so check the GOV.UK timetable for yours. The 401(k) limit note applies to US users only."
 workedExamples:
@@ -107,7 +107,7 @@ The most quoted guide is the 4% rule: withdraw 4% of your savings in year one of
 | **Roth IRA** | After-tax | Tax-free | Tax-free growth |
 | **HSA** | Tax-deductible | Tax-free for medical costs | Tax advantage on both ends |
 
-The 2026 IRA limit is $7,500 (IRS Notice 2025-67), which is $625 a month. A 30-year-old who puts $500 a month into a Roth IRA at 7% accumulates {{ retirementFV(0, 500, 7, 35, inflation=3).nominal | usd }} by 65, and the growth comes out tax-free on qualified withdrawals.
+The 2026 IRA limit is $7,500 (IRS Notice 2025-67), which is {{ 7500 / 12 | usd }} a month. A 30-year-old who puts $500 a month into a Roth IRA at 7% accumulates {{ retirementFV(0, 500, 7, 35, inflation=3).nominal | usd }} by 65, and the growth comes out tax-free on qualified withdrawals.
 
 ## What the calculator includes, and what it leaves out
 

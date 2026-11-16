@@ -40,6 +40,8 @@ dataSources:
 faq:
   - question: "How do I convert my salary to an hourly rate?"
     answer: "Divide your annual salary by the hours you work in a year. A full-time schedule of 40 hours a week for 52 weeks is 2,080 hours, so $60,000 a year is {{ 60000 / 2080 | usd(2) }} an hour. In the calculator's hourly mode, enter your rate, hours a week and weeks a year and it gives the annual figure and your take-home. Paid time off raises your effective hourly rate."
+  - question: "How much will I take home on a $50,000, $75,000 or $100,000 salary?"
+    answer: "For a single filer in {{ taxYear('us') }} with a 5% effective state tax and no 401(k): $50,000 leaves {{ usPay(50000, state=5).monthly | usd }} a month ({{ usPay(50000, state=5).takeHome | usd }} a year), $75,000 leaves {{ usPay(75000, state=5).monthly | usd }} a month ({{ usPay(75000, state=5).takeHome | usd }} a year) and $100,000 leaves {{ usPay(100000, state=5).monthly | usd }} a month ({{ usPay(100000, state=5).takeHome | usd }} a year). With no state income tax the same salaries leave {{ usPay(50000).monthly | usd }}, {{ usPay(75000).monthly | usd }} and {{ usPay(100000).monthly | usd }} a month. The calculator shows the monthly and annual figure side by side for your own numbers."
   - question: "What is the difference between gross pay and net pay?"
     answer: "Gross pay is your total earnings before deductions. Net pay, or take-home pay, is what reaches your bank account after federal income tax, state income tax, Social Security ({{ usFact('ssRate') | pct(auto) }}), Medicare ({{ usFact('medicareRate') | pct(auto) }}) and pre-tax deductions such as 401(k) contributions or health insurance premiums. The calculator shows both a monthly and an annual net figure."
   - question: "How much of my salary goes to taxes in the US?"
@@ -141,7 +143,7 @@ It includes federal income tax with the standard deduction, FICA, a flat state t
 
 1. **Forgetting FICA when comparing offers.** Social Security and Medicare take {{ usFact('ssRate') + usFact('medicareRate') | pct(auto) }} of every paycheck. On $75,000 that is {{ usPay(75000).fica | usd }} a year.
 2. **Using a state's top rate as your state rate.** The box wants your effective rate. A 5% rate on $75,000 is {{ usPay(75000, state=5).state | usd }} a year, {{ usPay(75000, state=5).state / 12 | usd }} a month.
-3. **Skipping the pre-tax 401(k).** Contributions reduce taxable income for federal and state tax, though not FICA, while building retirement savings. The {{ taxYear('us') }} employee limit is {{ usFact('k401Limit') | usd }}.
+3. **Skipping the pre-tax 401(k).** Contributions reduce taxable income for federal and state tax, though not FICA, while building retirement savings. The 2026 employee limit is {{ usFact('k401Limit', year=2026) | usd }}.
 
 ## What to do next
 

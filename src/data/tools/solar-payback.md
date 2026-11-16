@@ -119,7 +119,7 @@ Where exports earn the full retail rate, as under US net metering, a battery add
 
 ## Key factors
 
-**The electricity price** is the biggest driver. Every self-consumed kWh saves the import price, which was 26.32p/kWh on the UK price cap for 1 October to 31 December 2026 (Ofgem) and about 18.04 cents/kWh across US households in the 12 months to August 2026 (EIA).
+**The electricity price** is the biggest driver. Every self-consumed kWh saves the import price, which was 26.32p/kWh on the UK price cap for 1 October to 31 December 2026 (Ofgem; that price excludes VAT, which is removed from domestic electricity from 1 October 2026 to 31 March 2027) and about 18.04 cents/kWh across US households in the 12 months to August 2026 (EIA).
 
 **Self-consumption** decides how much of that value you collect. Working from home, running appliances in daylight, or adding a battery raises it.
 

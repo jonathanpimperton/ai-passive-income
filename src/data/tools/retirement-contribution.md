@@ -100,4 +100,4 @@ A common rule of thumb is to save about 15% of gross income for retirement inclu
 
 ## What to do next
 
-Enter your current savings, a realistic return and your retirement age. If the monthly amount is more than you can afford, try a later retirement age, a smaller target or a lower expected spend, and see the [retirement age calculator](/tools/income-and-planning/retirement-age/) for when a smaller deposit would get you there. A few years' delay often cuts the monthly amount by a lot.
+Enter your current savings, a realistic return and your retirement age. If the monthly amount is more than you can afford, try a later retirement age, a smaller target or a lower expected spend, and see the [retirement age calculator](/tools/income-and-planning/retirement-age/) for when a smaller deposit would get you there. Waiting two more years to retire matters: reaching $1,000,000 from nothing at 7% takes {{ savingsMonthly(1000000, 0, 7, 420) | usd }} a month over 35 years and {{ savingsMonthly(1000000, 0, 7, 444) | usd }} a month over 37 years.

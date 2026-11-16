@@ -74,7 +74,7 @@ The nominal calculation is the standard compound growth formula with monthly com
 The chart marks age milestones that depend on the currency selected. Contribution and tax figures come from the same rates data as the salary calculators, for the tax year they currently point at (the tool says when a year's limits are not yet published and last year's are carried over).
 
 **USD (US):**
-- **Age 50:** 401(k) catch-up contributions allowed, on top of the employee limit. For the current default tax year the limit is {{ usFact('k401Limit') | usd }} and the catch-up is {{ usFact('k401CatchUp') | usd }}.
+- **Age 50:** 401(k) catch-up contributions allowed, on top of the employee limit. For 2026 the limit is {{ usFact('k401Limit', year=2026) | usd }} and the catch-up is {{ usFact('k401CatchUp', year=2026) | usd }}.
 - **Ages 60 to 63:** a higher catch-up applies. For 2026 it is $11,250 (IRS Notice 2025-67), replacing the age-50 catch-up.
 - **Age 59½:** withdrawals from a 401(k) or IRA without the 10% early-withdrawal penalty.
 - **Age 62:** earliest age to claim Social Security retirement benefits, at a permanently reduced amount.

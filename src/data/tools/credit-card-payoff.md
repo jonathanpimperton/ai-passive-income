@@ -37,7 +37,7 @@ faq:
   - question: "Should I pay more than the minimum?"
     answer: "Almost always. On $5,000 at {{ 22.99 | pct(2) }} APR, raising a $100 fixed payment to $150 cuts the payoff from {{ cardPayoff(5000, 22.99, 100).months | months }} to {{ cardPayoff(5000, 22.99, 150).months | months }} and saves {{ cardPayoff(5000, 22.99, 100).interest - cardPayoff(5000, 22.99, 150).interest | usd }} in interest. The sooner you add the extra, the more you save, because less principal is left to accrue interest."
   - question: "What are the three minimum payment types in the calculator?"
-    answer: "Fixed amount: the same payment every month. % of balance: a share of the balance, never below a floor (the calculator uses 25, or 5 in pounds), so the payment shrinks as the balance does. Interest plus %: the month's interest plus a share of the balance, which always reduces the balance. UK rules require at least interest plus 1% (FCA CONC 6.7), and many US issuers use a similar formula. Check your statement for the formula your card uses."
+    answer: "Fixed amount: the same payment every month. % of balance: a share of the balance, never below a floor (the calculator uses $25 or €25, or £5 in pounds), so the payment shrinks as the balance does. Interest plus %: the month's interest plus a share of the balance, which always reduces the balance. UK rules require at least interest plus 1% (FCA CONC 6.7), and many US issuers use a similar formula. Check your statement for the formula your card uses."
   - question: "Which credit card should I pay off first?"
     answer: "Pay the card with the highest APR first (the avalanche method), because that minimises total interest. Make the minimum payment on every card, put every spare dollar on the highest-rate card, then roll its payment onto the next one. If you need quick wins to stay motivated, the snowball method (smallest balance first) also works. The debt payoff calculator compares the two for your own cards."
   - question: "Does closing a paid-off credit card help?"
@@ -61,7 +61,7 @@ workedExamples:
     inputs:
       balance: 15000
       apr: 24.99
-      minimumPayment: "2% of balance, 25 floor"
+      minimumPayment: "2% of balance, $25 floor"
       extraPayment: "$200 extra"
     description: "A 2% minimum on $15,000 at {{ 24.99 | pct(2) }} APR starts at $300, but the first month's interest is {{ cardPayoff(15000, 24.99, minPct=2, minFloor=25).firstInterest | usd(2) }}, so the balance grows and the calculator shows that the debt is never repaid on the minimum alone. Adding $200 a month clears it in {{ cardPayoff(15000, 24.99, minPct=2, minFloor=25, extra=200).months | months }} with {{ cardPayoff(15000, 24.99, minPct=2, minFloor=25, extra=200).interest | usd }} in interest."
 ---
@@ -90,8 +90,8 @@ The calculator offers all three common formulas, because they give very differen
 | Minimum payment | Time to pay off | Total interest |
 |---|---|---|
 | Fixed $100 | {{ cardPayoff(5000, 22.99, 100).months | months }} | {{ cardPayoff(5000, 22.99, 100).interest | usd }} |
-| 3% of balance (25 floor) | {{ cardPayoff(5000, 22.99, minPct=3, minFloor=25).months | months }} | {{ cardPayoff(5000, 22.99, minPct=3, minFloor=25).interest | usd }} |
-| Interest plus 1% (25 floor) | {{ cardPayoff(5000, 22.99, minPct=1, minFloor=25, plusInterest=true).months | months }} | {{ cardPayoff(5000, 22.99, minPct=1, minFloor=25, plusInterest=true).interest | usd }} |
+| 3% of balance ($25 floor) | {{ cardPayoff(5000, 22.99, minPct=3, minFloor=25).months | months }} | {{ cardPayoff(5000, 22.99, minPct=3, minFloor=25).interest | usd }} |
+| Interest plus 1% ($25 floor) | {{ cardPayoff(5000, 22.99, minPct=1, minFloor=25, plusInterest=true).months | months }} | {{ cardPayoff(5000, 22.99, minPct=1, minFloor=25, plusInterest=true).interest | usd }} |
 
 UK rules require at least interest plus 1% of the balance, so the third row is the UK floor. A plain 2% minimum is not on the table because it never clears within 50 years at this rate.
 

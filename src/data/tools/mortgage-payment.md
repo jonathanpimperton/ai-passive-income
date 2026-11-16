@@ -58,8 +58,8 @@ workedExamples:
       homePrice: 300000
       downPayment: 0
       loanTerm: 30
-      interestRate30: "market rate"
-      interestRate15: "market rate"
+      thirtyYearRate: "market rate"
+      fifteenYearRate: "market rate"
     description: "A $300,000 loan at the Freddie Mac survey rates ({{ rate('us30') | pct(2) }} for 30 years, {{ rate('us15') | pct(2) }} for 15; {{ rateSource('us30') }}). The 30-year payment is {{ loanPayment(300000, rate('us30'), 30) | usd }} a month with {{ loanTotalInterest(300000, rate('us30'), 30) | usd }} total interest. The 15-year payment is {{ loanPayment(300000, rate('us15'), 15) | usd }} a month, {{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} more, with {{ loanTotalInterest(300000, rate('us15'), 15) | usd }} total interest, a saving of {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }}. After 10 years the 15-year loan owes {{ loanBalance(300000, rate('us15'), 15, 120) | usd }} against {{ loanBalance(300000, rate('us30'), 30, 120) | usd }} on the 30-year."
   - title: "Impact of extra payments"
     inputs:

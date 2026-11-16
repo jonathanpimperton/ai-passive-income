@@ -25,7 +25,7 @@ faq:
   - question: "How long will it take to pay off my debt?"
     answer: "It depends on your balances, rates and how much you pay. The calculator shows the debt-free date for the strategy you choose, the month each debt clears and the total interest. Small increases in payments can take months or years off: a $15,000 balance at {{ 22 | pct }} APR takes {{ debtPayoff('15000@22/500', 0, 'avalanche').months | months }} at $500 a month and {{ debtPayoff('15000@22/700', 0, 'avalanche').months | months }} at $700."
   - question: "What if my payments never clear a debt?"
-    answer: "If a debt's interest each month is at least what you pay on it, the balance never falls. The calculator then says the debt is never repaid and shows no totals, because any total it printed would be made up. If balances do fall but are not cleared within 50 years (600 months), it says so and covers only those 50 years. Raise the payment on that debt, or the extra payment, until the result becomes a date."
+    answer: "If a debt's interest each month is at least what you pay on it, its balance does not fall. It can still be cleared, because the payments freed up when other debts are paid off roll onto it. If even the combined payments never beat the interest, the calculator says the debt is never repaid and shows no totals, because any total it printed would be made up. If balances do fall but are not cleared within 50 years (600 months), it says so and covers only those 50 years. Raise the payment on that debt, or the extra payment, until the result becomes a date."
   - question: "Should I pay off debt or invest?"
     answer: "Paying off a debt is a guaranteed return equal to its interest rate, while investment returns are not guaranteed. A card at {{ 22.99 | pct(2) }} APR is a poor debt to keep while investing. Low-rate debt is a closer call, and an employer 401(k) match is the exception: a 50% match is an instant 50% return on the matched money, so take the match first. The pay off debt vs invest comparison walks through the trade-off with numbers."
   - question: "Does making extra payments really make a difference?"
@@ -69,7 +69,7 @@ Carrying debt is compound interest working against you, at the debt's rate inste
   <span class="stat-text">more interest for snowball than avalanche on the calculator's starting debts with $200 extra a month. Both finish in the same {{ debtPayoff('6500@22.99/195; 3500@11.5/120; 12000@6.5/350', 200, 'avalanche').months | months }}.</span>
 </div>
 
-The gap depends on your debts. When the smallest balance also carries the highest rate, both strategies pay the debts in the same order and the result is identical. The calculator reports the order each strategy clears them, so you can see which case you are in. You can also read a fuller comparison in [snowball vs avalanche](/comparisons/snowball-vs-avalanche-debt/).
+The gap depends on your debts. When both strategies put every debt in the same order, for example because the smallest balances also carry the highest rates, the result is identical. The calculator reports the order each strategy clears them, so you can see which case you are in. You can also read a fuller comparison in [snowball vs avalanche](/comparisons/snowball-vs-avalanche-debt/).
 
 > **Tip:** if you cannot decide, start with avalanche and switch if your motivation fades. A structured plan beats ad hoc payments either way.
 
