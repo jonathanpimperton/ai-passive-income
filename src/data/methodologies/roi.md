@@ -43,7 +43,7 @@ ROI measures how much an investment gained or lost relative to what it cost, as 
 
 An ROI of 50% means you earned half your original investment on top of getting your money back. An ROI of −20% means you lost a fifth of it.
 
-For example, $10,000 invested, now worth $15,000, with $500 of dividends received over 3 years: the gain is $5,500, so ROI is 55%, and the annualized ROI is 15.7% a year.
+For example, $10,000 invested, now worth $15,000, with $500 of dividends received over 3 years: the gain is {{ roi(10000, 15000, 500, 3).totalGain | usd }}, so ROI is {{ roi(10000, 15000, 500, 3).totalReturn | pct }}, and the annualized ROI is {{ roi(10000, 15000, 500, 3).annualized | pct1 }} a year.
 
 Annualized ROI goes one step further. Because a 50% return over 2 years is better than a 50% return over 10 years, annualizing turns the total return into an equivalent yearly compound rate: `(1 + total_return)^(1/years) − 1`.
 
@@ -55,7 +55,7 @@ Annualized ROI goes one step further. Because a 50% return over 2 years is bette
 
 **Dividends Received:** Cash paid out during the holding period, added to the gain because it is value you took out of the investment. If dividends were reinvested (buying more shares), reflect them in the final value instead and set dividends to zero, to avoid counting them twice.
 
-**Years Held:** Used only for the annualized figure. A longer holding period lowers the annualized return for the same total return. A 100% total return over 1 year is 100% annualized. Over 10 years it is 7.2% annualized.
+**Years Held:** Used only for the annualized figure. A longer holding period lowers the annualized return for the same total return. A 100% total return over 1 year is {{ annualizedReturn(100, 1) | pct }} annualized. Over 10 years it is {{ annualizedReturn(100, 10) | pct1 }} annualized.
 
 ## Comparison Mode
 
@@ -68,7 +68,7 @@ A bar chart shows the difference in total and annualized returns.
 
 ## Common Misconceptions
 
-People often compare total ROI without considering the time period. "My real estate returned 80%" sounds better than "my stocks returned 50%" until you learn the property was held 15 years and the stocks 3. Annualized, those are 4.0% and 14.5% a year. Use annualized ROI to compare different time horizons.
+People often compare total ROI without considering the time period. "My real estate returned 80%" sounds better than "my stocks returned 50%" until you learn the property was held 15 years and the stocks 3. Annualized, those are {{ annualizedReturn(80, 15) | pct1 }} and {{ annualizedReturn(50, 3) | pct1 }} a year. Use annualized ROI to compare different time horizons.
 
 Another mistake is ignoring dividends. An investment that gained 30% in price and paid 20% in dividends has a 50% total return, which is much more than the price return alone suggests.
 

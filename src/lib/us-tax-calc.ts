@@ -191,6 +191,8 @@ export interface UsSalaryResult {
   /** Taxes plus 401(k) */
   totalDeductions: number;
   netAnnual: number;
+  /** netAnnual / 12: the monthly headline (same value, no separate rounding path). */
+  netMonthly: number;
   /** Share of gross that leaves the paycheck (taxes + 401(k)) */
   effectiveDeductionRate: number;
   /**
@@ -294,6 +296,7 @@ export function computeUsSalary(raw: UsSalaryInputs): UsSalaryResult {
     totalTax,
     totalDeductions,
     netAnnual,
+    netMonthly: netAnnual / 12,
     effectiveDeductionRate: grossAnnual > 0 ? totalDeductions / grossAnnual : 0,
     twoEarnerSocialSecurityGap,
   };

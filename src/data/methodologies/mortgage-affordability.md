@@ -109,22 +109,22 @@ If your debts alone use up the limit, the tool says nothing is affordable. If pr
 Annual income $80,000; other debts $500 a month; down payment $40,000; rate 7%; 30 years; property tax 1.0%; insurance $1,800 a year; no HOA; PMI 0.6%; limits 28% and 36%.
 
 - Gross monthly income is {{ 80000 / 12 | usd }}. The front-end limit is {{ 80000 / 12 * 28 / 100 | usd(2) }}. The back-end limit is {{ 80000 / 12 * 36 / 100 | usd }} minus $500 of debts, which is {{ 80000 / 12 * 36 / 100 - 500 | usd }}. The lower number sets the budget: the front-end limit, at {{ 80000 / 12 * 28 / 100 | usd(2) }}.
-- Maximum loan: $210,776. Maximum price: $250,776. The down payment is about 16% of the price, so PMI applies.
-- Monthly cost at that price: P&I $1,402.30, property tax $208.98, insurance {{ 1800 / 12 | usd(2) }}, PMI $105.39. Total $1,866.67, which is 28.0% of gross income. Counting the $500 of debts, total debt is 35.5% of gross income.
+- Maximum loan: {{ usAffordability(80000, 500, 40000, 7, 30).maxLoan | usd }}. Maximum price: {{ usAffordability(80000, 500, 40000, 7, 30).maxPrice | usd }}. The down payment is about {{ 40000 / usAffordability(80000, 500, 40000, 7, 30).maxPrice * 100 | pct }} of the price, so PMI applies.
+- Monthly cost at that price: P&I {{ usAffordability(80000, 500, 40000, 7, 30).monthlyPI | usd(2) }}, property tax {{ usAffordability(80000, 500, 40000, 7, 30).monthlyTax | usd(2) }}, insurance {{ 1800 / 12 | usd(2) }}, PMI {{ usAffordability(80000, 500, 40000, 7, 30).monthlyPMI | usd(2) }}. Total {{ usAffordability(80000, 500, 40000, 7, 30).totalMonthly | usd(2) }}, which is {{ usAffordability(80000, 500, 40000, 7, 30).frontEndRatio | pct1 }} of gross income. Counting the $500 of debts, total debt is {{ usAffordability(80000, 500, 40000, 7, 30).backEndRatio | pct1 }} of gross income.
 
 ## How Each Variable Affects the Result
 
 All the changes below start from the worked example above.
 
-**Income:** The main driver. Adding $10,000 of annual income raises the maximum price from $250,776 to $279,993, about $29,200 more.
+**Income:** The main driver. Adding $10,000 of annual income raises the maximum price from {{ usAffordability(80000, 500, 40000, 7, 30).maxPrice | usd }} to {{ usAffordability(90000, 500, 40000, 7, 30).maxPrice | usd }}, about {{ usAffordability(90000, 500, 40000, 7, 30).maxPrice - usAffordability(80000, 500, 40000, 7, 30).maxPrice | round100 | usd }} more.
 
-**Monthly Debts:** Debts matter only once the back-end limit binds. At $900 a month of debts the maximum price falls from $250,776 to $204,864, and at $1,200 a month it falls to $175,803 (the PMI also drops away at that point, because the lower price leaves a 20% down payment).
+**Monthly Debts:** Debts matter only once the back-end limit binds. At $900 a month of debts the maximum price falls from {{ usAffordability(80000, 500, 40000, 7, 30).maxPrice | usd }} to {{ usAffordability(80000, 900, 40000, 7, 30).maxPrice | usd }}, and at $1,200 a month it falls to {{ usAffordability(80000, 1200, 40000, 7, 30).maxPrice | usd }} (the PMI also drops away at that point, because the lower price leaves a 20% down payment).
 
-**Down Payment:** A larger down payment means less to borrow, and at 20% or more PMI disappears. With $80,000 down instead of $40,000, the maximum price rises from $250,776 to $300,401, with no PMI.
+**Down Payment:** A larger down payment means less to borrow, and at 20% or more PMI disappears. With $80,000 down instead of $40,000, the maximum price rises from {{ usAffordability(80000, 500, 40000, 7, 30).maxPrice | usd }} to {{ usAffordability(80000, 500, 80000, 7, 30).maxPrice | usd }}, with no PMI.
 
 **Interest Rate:** Small rate changes have a large effect. A $2,000 monthly P&I budget supports a loan of {{ 2000 / loanPayment(100000, 6.5, 30) * 100000 | usd }} at 6.5% and {{ 2000 / loanPayment(100000, 7.5, 30) * 100000 | usd }} at 7.5%, a difference of {{ 2000 / loanPayment(100000, 6.5, 30) * 100000 - 2000 / loanPayment(100000, 7.5, 30) * 100000 | usd }}.
 
-**Property Tax Rate:** A higher rate uses more of the budget. In the worked example, a 0.5% rate allows a maximum price of $264,580 and a 2.0% rate allows $227,081.
+**Property Tax Rate:** A higher rate uses more of the budget. In the worked example, a 0.5% rate allows a maximum price of {{ usAffordability(80000, 500, 40000, 7, 30, propertyTax=0.5).maxPrice | usd }} and a 2.0% rate allows {{ usAffordability(80000, 500, 40000, 7, 30, propertyTax=2).maxPrice | usd }}.
 
 ## UK Mode
 
@@ -137,13 +137,13 @@ The take-home figure starts as an estimate for one earner on standard rest-of-UK
 
 Worked example (UK): gross household income £60,000; take-home £3,600 a month entered by hand; no other commitments; deposit £40,000; rate 5% over 25 years; income multiple 4.5x; margin 1 point; 50% limit. The calculator fixes the revert-to rate at the Bank of England average, {{ rate('ukRevert') | pct(2) }} ({{ rateSource('ukRevert') }}), and the figures below use it.
 
-- Income multiple limit: £270,000.
-- Stressed rate: the higher of your 5% and the {{ rate('ukRevert') | pct(2) }} revert-to rate, plus 1 point, is {{ rate('ukRevert') + 1 | pct(2) }}. The stressed budget is 50% of £3,600 = £1,800 a month, which supports a loan of £241,870.
-- The lower limit is the stress test, so the maximum loan is £241,870 and the maximum price is £281,870. The payment at your own 5% rate is £1,413.95 a month, 39.3% of take-home pay, and the stressed payment is £1,800.
+- Income multiple limit: {{ ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600).ltiLimitLoan | gbp }}.
+- Stressed rate: the higher of your 5% and the {{ rate('ukRevert') | pct(2) }} revert-to rate, plus 1 point, is {{ rate('ukRevert') + 1 | pct(2) }}. The stressed budget is 50% of £3,600 = {{ 3600 * 50 / 100 | gbp }} a month, which supports a loan of {{ ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600).stressLimitLoan | gbp }}.
+- The lower limit is the stress test, so the maximum loan is {{ ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600).maxLoan | gbp }} and the maximum price is {{ ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600).maxPrice | gbp }}. The payment at your own 5% rate is {{ ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600).monthlyPI | gbp(2) }} a month, {{ ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600).shareOfTakeHome | pct1 }} of take-home pay, and the stressed payment is {{ ukAffordability(60000, 0, 40000, 5, 25, takeHome=3600).stressedPayment | gbp }}.
 
 ## Euro-Area Mode
 
-When the currency is EUR, one limit applies: the loan payment plus other debts as a share of gross income (default 36%). For example, with €60,000 income, a 3.5% rate, 25 years and no other debts, the payment budget is €1,800 a month, which supports a loan of €359,552. The calculator's default of 500 a month of other debts would cut that budget to €1,300 and the loan to €259,676. Euro-area rules vary by country, and several cap payments as a share of net income, so use this as a single illustrative limit.
+When the currency is EUR, one limit applies: the loan payment plus other debts as a share of gross income (default 36%). For example, with €60,000 income, a 3.5% rate, 25 years and no other debts, the payment budget is {{ eurAffordability(60000, 0, 40000, 3.5, 25).paymentBudget | eur }} a month, which supports a loan of {{ eurAffordability(60000, 0, 40000, 3.5, 25).maxLoan | eur }}. The calculator's default of 500 a month of other debts would cut that budget to {{ eurAffordability(60000, 500, 40000, 3.5, 25).paymentBudget | eur }} and the loan to {{ eurAffordability(60000, 500, 40000, 3.5, 25).maxLoan | eur }}. Euro-area rules vary by country, and several cap payments as a share of net income, so use this as a single illustrative limit.
 
 ## Why the Result Is a Ceiling, Not a Target
 

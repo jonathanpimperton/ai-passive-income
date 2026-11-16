@@ -82,22 +82,22 @@ When the APR is 0%, both formulas simplify to Monthly = (PV − FV) / n for PCP 
 
 The APR is an annual figure, and the calculator converts it to a monthly rate in the way each region defines it:
 
-- **GBP and EUR:** the APR is an annual effective rate, so r = (1 + APR)^(1/12) − 1. This follows the UK APR equation (Consumer Credit (Total Charge for Credit) Regulations 2010, which discounts each payment by (1 + APR) to the power of the time in years) and the EU equivalent. At 7.9% APR, r is 0.6356% a month.
-- **USD:** Regulation Z defines the APR as the periodic rate multiplied by the number of periods in a year, so r = APR / 12. At 7.9% APR, r is 0.6583% a month.
+- **GBP and EUR:** the APR is an annual effective rate, so r = (1 + APR)^(1/12) − 1. This follows the UK APR equation (Consumer Credit (Total Charge for Credit) Regulations 2010, which discounts each payment by (1 + APR) to the power of the time in years) and the EU equivalent. At 7.9% APR, r is {{ compoundFV(100, 0, 7.9, 1 / 12, compounding=annually) - 100 | num(4) }}% a month.
+- **USD:** Regulation Z defines the APR as the periodic rate multiplied by the number of periods in a year, so r = APR / 12. At 7.9% APR, r is {{ 7.9 / 12 | num(4) }}% a month.
 
-Using APR / 12 for a UK APR would slightly overstate the payment, by a few pounds a month on a typical agreement. In the worked example below, the PCP payment is £366.54 under the UK convention and £370.41 under the US one.
+Using APR / 12 for a UK APR would slightly overstate the payment, by a few pounds a month on a typical agreement. In the worked example below, the PCP payment is {{ carFinance(25000, 2500, 48).pcpMonthly | gbp(2) }} under the UK convention and {{ carFinance(25000, 2500, 48, convention=nominal).pcpMonthly | gbp(2) }} under the US one.
 
 ## How Each Variable Affects the Result
 
 All the figures in this section use the worked example below (£25,000 car, £2,500 deposit, 48 months, GBP).
 
-**Car price** scales everything proportionally. A £5,000 increase adds £116.19 a month to the personal loan payment and £123.37 to the HP payment.
+**Car price** scales everything proportionally. A £5,000 increase adds {{ carFinance(30000, 2500, 48).loanMonthly - carFinance(25000, 2500, 48).loanMonthly | gbp(2) }} a month to the personal loan payment and {{ carFinance(30000, 2500, 48).hpMonthly - carFinance(25000, 2500, 48).hpMonthly | gbp(2) }} to the HP payment.
 
-**Deposit** reduces the finance amount directly. Another £1,000 of deposit saves £23.24 a month on the loan (£115 less interest) and £24.67 a month on HP (£184 less interest).
+**Deposit** reduces the finance amount directly. Another £1,000 of deposit saves {{ carFinance(25000, 2500, 48).loanMonthly - carFinance(25000, 3500, 48).loanMonthly | gbp(2) }} a month on the loan ({{ carFinance(25000, 2500, 48).loanTotalInterest - carFinance(25000, 3500, 48).loanTotalInterest | gbp }} less interest) and {{ carFinance(25000, 2500, 48).hpMonthly - carFinance(25000, 3500, 48).hpMonthly | gbp(2) }} a month on HP ({{ carFinance(25000, 2500, 48).hpTotalInterest - carFinance(25000, 3500, 48).hpTotalInterest | gbp }} less interest).
 
-**Term length** has opposite effects on monthly payment and total cost. Extending the HP agreement from 36 to 60 months cuts the monthly payment from £710.86 to £462.23 (35% lower) but raises total interest from £3,091 to £5,234 (69% higher). Shorter terms cost more per month and far less overall.
+**Term length** has opposite effects on monthly payment and total cost. Extending the HP agreement from 36 to 60 months cuts the monthly payment from {{ carFinance(25000, 2500, 36).hpMonthly | gbp(2) }} to {{ carFinance(25000, 2500, 60).hpMonthly | gbp(2) }} ({{ (1 - carFinance(25000, 2500, 60).hpMonthly / carFinance(25000, 2500, 36).hpMonthly) * 100 | pct }} lower) but raises total interest from {{ carFinance(25000, 2500, 36).hpTotalInterest | gbp }} to {{ carFinance(25000, 2500, 60).hpTotalInterest | gbp }} ({{ (carFinance(25000, 2500, 60).hpTotalInterest / carFinance(25000, 2500, 36).hpTotalInterest - 1) * 100 | pct }} higher). Shorter terms cost more per month and far less overall.
 
-**APR** is the key difference between finance types. The gap between PCP at 7.9% and a personal loan at 5.6% on £22,500 over 48 months is £2,496 in total interest (£5,094 against £2,598). Compare total interest, not just APR or monthly payment.
+**APR** is the key difference between finance types. The gap between PCP at 7.9% and a personal loan at 5.6% on {{ carFinance(25000, 2500, 48).financeAmount | gbp }} over 48 months is {{ carFinance(25000, 2500, 48).pcpTotalInterest - carFinance(25000, 2500, 48).loanTotalInterest | gbp }} in total interest ({{ carFinance(25000, 2500, 48).pcpTotalInterest | gbp }} against {{ carFinance(25000, 2500, 48).loanTotalInterest | gbp }}). Compare total interest, not just APR or monthly payment.
 
 **Balloon percentage (PCP only)** sets how much of the car you are paying off. A higher balloon means lower monthly payments but a bigger lump sum at the end, and more interest overall because the outstanding balance stays higher throughout.
 
@@ -105,14 +105,14 @@ All the figures in this section use the worked example below (£25,000 car, £2,
 
 The monthly payment is what you feel in your budget. **True cost**, total payments plus opportunity cost, is what you give up for the car. Cash looks cheapest on total payments alone, but tying up all your capital on day one has a cost.
 
-Worked example, UK convention: a £25,000 car, £2,500 deposit, 48 months, 4.5% expected return, PCP at 7.9% with a 40% balloon (£10,000), HP at 8.9%, personal loan at 5.6%.
+Worked example, UK convention: a £25,000 car, £2,500 deposit, 48 months, 4.5% expected return, PCP at 7.9% with a 40% balloon ({{ carFinance(25000, 2500, 48).balloon | gbp }}), HP at 8.9%, personal loan at 5.6%.
 
 | Option | Monthly | Total paid | Opportunity cost | True cost |
 |---|---|---|---|---|
-| Cash | none | £25,000 | £4,920 | £29,920 |
-| Personal loan 5.6% | £522.87 | £27,598 | £2,837 | £30,434 |
-| HP 8.9% | £555.19 | £29,149 | £2,981 | £32,130 |
-| PCP 7.9% | £366.54 | £30,094 | £2,136 | £32,230 |
+| Cash | none | {{ carFinance(25000, 2500, 48).cashTotalPaid | gbp }} | {{ carFinance(25000, 2500, 48).cashOpportunityCost | gbp }} | {{ carFinance(25000, 2500, 48).cashTrueCost | gbp }} |
+| Personal loan 5.6% | {{ carFinance(25000, 2500, 48).loanMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).loanTotalPaid | gbp }} | {{ carFinance(25000, 2500, 48).loanOpportunityCost | gbp }} | {{ carFinance(25000, 2500, 48).loanTrueCost | gbp }} |
+| HP 8.9% | {{ carFinance(25000, 2500, 48).hpMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).hpTotalPaid | gbp }} | {{ carFinance(25000, 2500, 48).hpOpportunityCost | gbp }} | {{ carFinance(25000, 2500, 48).hpTrueCost | gbp }} |
+| PCP 7.9% | {{ carFinance(25000, 2500, 48).pcpMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).pcpTotalPaid | gbp }} | {{ carFinance(25000, 2500, 48).pcpOpportunityCost | gbp }} | {{ carFinance(25000, 2500, 48).pcpTrueCost | gbp }} |
 
 Cash wins here because the 4.5% expected return is below the loan APRs. If your expected return exceeds the APR, financing and investing the difference becomes cheaper on true cost. Adjust the return rate in the calculator to find the break-even point.
 

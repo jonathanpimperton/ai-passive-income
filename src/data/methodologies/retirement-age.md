@@ -54,7 +54,7 @@ The compound growth equation with regular contributions has no clean closed-form
 3. Stop at the first month where the balance is at or above the target.
 4. If you reach age 90 first, stop and report that the target is not reached.
 
-This always finishes, in at most (90 − current age) × 12 steps, and the answer is exact to the month. The balance on the month it is reached is a little above the target, because you stop at a month-end and not part-way through one. The result is shown as years and months (for example, 29 years 10 months), with the age you will be and the balance then.
+This always finishes, in at most (90 − current age) × 12 steps, and the answer is exact to the month. The balance on the month it is reached is a little above the target, because you stop at a month-end and not part-way through one. The result is shown as years and months (for example, {{ savingsMonths(1000000, 50000, 500, 7) | months }}), with the age you will be and the balance then.
 
 ## How Each Variable Affects the Result
 
@@ -74,7 +74,7 @@ With these inputs, you reach the target in {{ savingsMonths(1000000, 50000, 500,
 
 **Already there:** if your current savings already meet the target, the calculator shows your current age and says you are already there.
 
-**Not reachable by 90:** if the target is not reached by age 90, the calculator says so and shows the balance you would have at 90, how far short it is, and the monthly contribution that would reach the target exactly at 90. For example, $50,000 with no contributions at a 1% return reaches only $91,083 by age 90, $908,917 short of $1,000,000, and would need $921.83 a month from today to get there.
+**Not reachable by 90:** if the target is not reached by age 90, the calculator says so and shows the balance you would have at 90, how far short it is, and the monthly contribution that would reach the target exactly at 90. For example, $50,000 with no contributions at a 1% return reaches only {{ retirementFV(50000, 0, 1, 60).nominal | usd }} by age 90, {{ 1000000 - retirementFV(50000, 0, 1, 60).nominal | usd }} short of $1,000,000, and would need {{ savingsMonthly(1000000, 50000, 1, 720) | usd(2) }} a month from today to get there.
 
 ## Accuracy
 
