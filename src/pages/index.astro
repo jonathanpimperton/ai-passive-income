@@ -41,6 +41,7 @@ import { UK_TAX_YEAR } from '@lib/uk-rates';
 import { US_TAX_YEARS } from '@lib/us-rates';
 import { TOOLS, TOOL_COUNT, CATEGORIES, getToolPath } from '@lib/tools-data';
 import { HUBS } from '@lib/search-index';
+import { pensionWithBasicRelief } from '@components/homepage/engine-math';
 
 const websiteSchema = buildWebsiteSchema();
 
@@ -102,7 +103,13 @@ const CHAPTERS = [
 const start25 = compoundInterest(0, 250, 0.07, 40, 12);
 const start35 = compoundInterest(0, 250, 0.07, 30, 12);
 const startEarlyDelta = start25 - start35;
-const pension100x30 = compoundInterest(0, 100, 0.07, 30, 12);
+// The Retire question's default answer, solved at build time: the island loads the solver only when that question opens.
+// Imported dynamically, like the island does, so the build does not warn about a mixed static/dynamic import.
+const { defaultRetireAnswer } = await import('@components/homepage/engine-retire');
+const retireDefault = defaultRetireAnswer();
+// £100 a month paid out of taxed pay becomes £125 once the provider claims basic-rate relief (MATH-UK-18)
+const pension100gross = pensionWithBasicRelief(100);
+const pension100x30 = compoundInterest(0, pension100gross, 0.07, 30, 12);
 const mortgageRateTotal = (mortgage300k - mortgage300kLow) * 360;
 const ukTax50k = calcIncomeTax(50_000) + calcNI(50_000);
 const card150 = debtPayoff([{ name: 'Card', balance: 5000, rate: 0.22, minPayment: 150 }], 0, 'avalanche');
@@ -112,7 +119,7 @@ const wait5 = compoundInterest(0, 500, 0.07, 30, 12) - compoundInterest(0, 500, 
 
 const DECISIONS = [
   { region: 'UK', q: 'Start investing at 25 instead of 35 — £250 a month at 7%', n: Math.round(startEarlyDelta), pre: '+£', suf: ' by 65', kind: 'gain', href: '/tools/saving-and-growth/compound-interest/' },
-  { region: 'UK', q: 'Put £100 more into your pension every month', n: Math.round(pension100x30), pre: '+£', suf: ' after 30 years', kind: 'gain', href: '/tools/income-and-planning/retirement-savings/' },
+  { region: 'UK', q: `Put £100 a month into your pension at 7% (£${formatNumber(Math.round(pension100gross))} with basic-rate relief)`, n: Math.round(pension100x30), pre: '+£', suf: ' after 30 years', kind: 'gain', href: '/tools/income-and-planning/retirement-savings/' },
   { region: 'US', q: 'Negotiate one percent off a $300K mortgage', n: Math.round(mortgageRateTotal), pre: '−$', suf: ' over the loan', kind: 'gain', href: '/tools/debt-and-loans/mortgage-payment/' },
   { region: 'UK', q: 'The taxman’s share of a £50,000 salary', n: Math.round(ukTax50k), pre: '£', suf: ' a year', kind: 'cost', href: '/tools/income-and-planning/salary-uk/' },
   { region: 'UK', q: 'Pay £250/mo on a £5,000 card instead of £150', n: cardMonthsSooner, pre: 'debt-free ', suf: ' months sooner', kind: 'gain', href: '/tools/debt-and-loans/credit-card-payoff/' },
@@ -180,7 +187,7 @@ const invest1000x20 = compoundInterest(0, 1000, 0.07, 20, 12);
 // row anchors so the link lands on the matching table row.
 const FEATURED_SCENARIOS = [
   { title: '£50K salary UK take-home', href: '/scenarios/50k-salary-uk-take-home/', answer: `£${formatNumber(Math.round(ukTakeHome50k / 12))}/mo` },
-  { title: '$100K salary after tax', href: '/scenarios/100k-salary-take-home/', answer: `$${formatNumber(Math.round(usTakeHome100k / 12))}/mo` },
+  { title: '$100K salary after federal tax and FICA', href: '/scenarios/us-take-home-pay/#100k', answer: `$${formatNumber(Math.round(usTakeHome100k / 12))}/mo` },
   { title: '£500/mo invested for 10 years', href: '/scenarios/investment-growth/#500-per-month', answer: `£${formatNumber(Math.round(grow500x10 / 500) * 500)}` },
   { title: '$300K mortgage at 6.5%', href: '/scenarios/mortgage-payments-by-amount/#300k', answer: `$${formatNumber(Math.round(mortgage300k))}/mo` },
   { title: '$1,000/mo invested for 20 years', href: '/scenarios/investment-growth/#1000-per-month', answer: `$${formatNumber(Math.round(invest1000x20 / 1000) * 1000)}` },
@@ -377,7 +384,7 @@ const RECENT_TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.slug, [t.name.rep
         <h2 class="d-title" id="daylight-title">Run your numbers</h2>
         <p class="d-sub">The same questions, live — answers as you type. No signup, no ads.</p>
         <div class="d-engine-wrap">
-          <DecisionEngine client:idle />
+          <DecisionEngine client:idle retireDefault={retireDefault} />
         </div>
       </div>
     </section>
