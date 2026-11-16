@@ -1,5 +1,5 @@
 ---
-title: "Roth IRA vs Roth 401(k): Key Differences Explained"
+title: "Roth IRA vs Roth 401(k): Which to Fund First?"
 slug: "roth-ira-vs-roth-401k"
 description: "Compare Roth IRA and Roth 401(k) accounts. Same tax-free withdrawals, but different contribution limits, income rules, and investment options."
 keywords:
@@ -12,11 +12,11 @@ relatedTools:
   - "retirement-age"
   - "salary-us"
   - "investment-return"
-verdict: "If your employer offers a Roth 401(k) with a match, contribute there first. Then open a Roth IRA for its broader investment choices and flexible withdrawal rules."
+verdict: "Contribute to the Roth 401(k) up to the employer match first. Then fund a Roth IRA if your income is under the 2026 phase-out (MAGI of $153,000 single or $242,000 joint) for its wider fund choices and flexible access to contributions. Above the phase-out the Roth 401(k) is the only direct Roth route, because a Roth IRA is closed to you except through a backdoor conversion. Return to the Roth 401(k) only after both of those."
 comparisonTable:
   - feature: "2026 contribution limit"
     option1: "$7,500 ($8,600 if 50+)"
-    option2: "$24,500 ($32,500 if 50+; $35,750 at 60–63)"
+    option2: "{{ usFact('k401Limit', year=2026) | usd }} ({{ usFact('k401Limit', year=2026) + usFact('k401CatchUp', year=2026) | usd }} if 50+; {{ usFact('k401Limit', year=2026) + usFact('k401CatchUp60to63', year=2026) | usd }} at 60–63)"
   - feature: "Income limit to contribute"
     option1: "Phases out at $153,000–$168,000 (single)"
     option2: "No income limit"
@@ -39,8 +39,17 @@ affiliateContext: "Open a Roth IRA"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
+faq:
+  - question: "Should I use a Roth IRA or a Roth 401(k)?"
+    answer: "Use both, in order. Contribute to the Roth 401(k) up to the employer match, then fill the Roth IRA (up to $7,500 in 2026) if your income allows it, then go back to the Roth 401(k) for more. The 401(k) holds up to {{ usFact('k401Limit', year=2026) | usd }} a year, the IRA far less, but the IRA has better fund choices and easier access to what you put in."
+  - question: "Is there an income limit for a Roth 401(k)?"
+    answer: "No. Anyone whose plan offers a Roth option can contribute, whatever their income. A Roth IRA, by contrast, phases out between $153,000 and $168,000 of modified adjusted gross income for single filers in 2026, and between $242,000 and $252,000 for married couples filing jointly."
+  - question: "Can I withdraw Roth contributions early?"
+    answer: "From a Roth IRA, yes: you can take out what you contributed at any time with no tax or penalty, though earnings are taxed and penalized before 59½ unless an exception applies. From a Roth 401(k), a withdrawal before 59½ comes out pro rata, part contributions and part earnings, so the earnings share is taxed and hit with the 10% additional tax."
+  - question: "Do employer matches go into the Roth 401(k)?"
+    answer: "Usually not. Most employers pay the match as a pre-tax contribution, which is taxed when you withdraw it. Since SECURE 2.0 a plan can offer to pay the match as Roth, in which case it is taxed in the year it is paid in, but many plans do not offer that yet."
 datePublished: "2026-03-05"
-dateModified: "2026-11-12"
+dateModified: "2026-11-16"
 sources:
   - name: "IRS — Roth IRAs"
     url: "https://www.irs.gov/retirement-plans/roth-iras"
@@ -64,9 +73,9 @@ Where they differ is in who offers them, how much you can put in, and what happe
 
 ## The contribution limit gap
 
-The most obvious difference is how much you can contribute each year. For 2026, a Roth IRA caps at $7,500 ($8,600 if you're 50 or older). A Roth 401(k) allows $24,500 ($32,500 if 50+, or $35,750 if you turn 60 to 63 in 2026, thanks to the higher $11,250 catch-up) — more than three times the IRA limit.
+The most obvious difference is how much you can contribute each year. For 2026, a Roth IRA caps at $7,500 ($8,600 if you're 50 or older). A Roth 401(k) allows {{ usFact('k401Limit', year=2026) | usd }} ({{ usFact('k401Limit', year=2026) + usFact('k401CatchUp', year=2026) | usd }} if 50+, or {{ usFact('k401Limit', year=2026) + usFact('k401CatchUp60to63', year=2026) | usd }} if you turn 60 to 63 in 2026, thanks to the higher {{ usFact('k401CatchUp60to63', year=2026) | usd }} catch-up) — about {{ usFact('k401Limit', year=2026) / 7500 | num(1) }} times the IRA limit.
 
-For aggressive savers who want to shelter as much as possible from future taxes, the Roth 401(k) is the bigger bucket. [Contributing the maximum to both accounts](/tools/income-and-planning/retirement-contribution/) would put $32,000 into Roth accounts annually ($41,100 if 50+).
+For aggressive savers who want to shelter as much as possible from future taxes, the Roth 401(k) is the bigger bucket. [Contributing the maximum to both accounts](/tools/income-and-planning/retirement-contribution/) would put {{ 7500 + usFact('k401Limit', year=2026) | usd }} into Roth accounts annually ({{ 8600 + usFact('k401Limit', year=2026) + usFact('k401CatchUp', year=2026) | usd }} if 50+).
 
 ## The income limit problem
 
@@ -80,7 +89,7 @@ High earners locked out of direct Roth IRA contributions can still use the "back
 
 A Roth IRA at a brokerage gives you access to thousands of ETFs, individual stocks, bonds, mutual funds, and REITs. You pick exactly what to buy and can change your allocation anytime.
 
-A Roth 401(k) limits you to whatever funds your employer's plan offers — often 15-30 mutual funds or target-date funds. Some plans have great options (low-cost index funds). Others are loaded with [high-fee actively managed funds](/comparisons/index-funds-vs-active-funds/) that eat into your returns.
+A Roth 401(k) limits you to whatever funds your employer's plan offers — often a limited menu of mutual funds or target-date funds. Some plans have great options (low-cost index funds). Others are loaded with [high-fee actively managed funds](/comparisons/index-funds-vs-active-funds/) that eat into your returns.
 
 If your 401(k) fund menu is expensive (look for [expense ratios above 0.50%](/tools/saving-and-growth/investment-fee/)), you might prefer contributing enough to get the employer match, then directing additional Roth savings to an IRA where you control costs.
 
@@ -103,7 +112,7 @@ This difference makes the Roth IRA a partial backup for emergencies, while the R
 If you have access to a Roth 401(k) and qualify for a Roth IRA, the standard advice is:
 
 1. **Roth 401(k) up to the employer match.** Never leave the match on the table.
-2. **Roth IRA up to the $7,500 limit.** Better fund choices and flexible withdrawals.
-3. **Back to the Roth 401(k) for additional savings.** The higher $24,500 limit gives you more tax-free growth room.
+2. **Roth IRA up to the 2026 limit of $7,500.** Better fund choices and flexible withdrawals.
+3. **Back to the Roth 401(k) for additional savings.** The higher {{ usFact('k401Limit', year=2026) | usd }} limit gives you more tax-free growth room.
 
-This approach captures the employer match, gets you the IRA's investment flexibility, and maximises the total amount in Roth accounts. When you leave the employer, you can roll the Roth 401(k) into your Roth IRA to consolidate everything in one place with full control.
+This approach captures the employer match, gets you the IRA's investment flexibility, and maximizes the total amount in Roth accounts. When you leave the employer, you can roll the Roth 401(k) into your Roth IRA to consolidate everything in one place with full control.
