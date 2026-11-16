@@ -127,7 +127,7 @@ Price growth matters because the buyer owns the whole home but the renter's inve
 
 - **You will stay past the break-even year for your own rent and price.** Use the [rent vs buy calculator](/tools/debt-and-loans/rent-vs-buy/) with your numbers; do not borrow the break-even from someone else's market.
 - **Rent is high relative to prices.** At $2,800 of rent buying breaks even in year {{ rentVsBuy(400000, 20, rate('us30'), 30, 2800, 30).breakEvenYear | int }}; a stay that long or longer is what makes buying reasonable.
-- **You can lock in a lower rate.** If you are quoted well below the survey average, re-run the table: at 5% at 5% the buyer's net worth after 7 years is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).finalBuyerNetWorth | usd }} and the renter's is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).finalRenterNetWorth | usd }}.
+- **You can lock in a lower rate.** If you are quoted well below the survey average, re-run the table: at 5% the buyer's net worth after 7 years is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).finalBuyerNetWorth | usd }} and the renter's is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).finalRenterNetWorth | usd }}.
 - **You value stability.** No landlord can sell the property or raise the rent, which has real value even though no spreadsheet counts it.
 
 ## The investment alternative

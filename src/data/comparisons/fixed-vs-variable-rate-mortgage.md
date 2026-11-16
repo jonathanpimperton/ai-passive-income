@@ -71,7 +71,7 @@ Take £250,000 over 25 years. Compare a 5-year fix at {{ rate('uk5yr') | pct(2) 
 
 But if Bank Rate rises 1 point after two years and another point after four, the tracker's payment goes to {{ loanPayment(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 2, 23) | gbp }} and then {{ loanPayment(loanBalance(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 2, 23, 24), rate('boe') + 3, 21) | gbp }}.
 
-**The break-even:** the tracker costs less than the fix only if Bank Rate, on average over the fixed period, stays below the fixed rate minus your margin. Here that is {{ rate('uk5yr') | pct(2) }} minus 1 point, or {{ rate('uk5yr') - 1 | pct(2) }}. That break-even is {{ rate('uk5yr') - 1 | pct(2) }}, against today's Bank Rate of {{ rate('boe') | pct(2) }}. The fix comes out cheaper if Bank Rate averages above the break-even over the fixed period.
+**The break-even:** the tracker costs less than the fix only if Bank Rate, on average over the fixed period, stays below the fixed rate minus your margin. Here that is {{ rate('uk5yr') | pct(2) }} minus 1 point, or {{ rate('uk5yr') - 1 | pct(2) }}, against today's Bank Rate of {{ rate('boe') | pct(2) }}. The fix comes out cheaper if Bank Rate averages above the break-even over the fixed period.
 
 ## Where rates are now
 
