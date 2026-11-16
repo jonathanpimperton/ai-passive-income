@@ -67,7 +67,7 @@ If your employer matches dollar for dollar up to 3% of salary, the free money is
 | 15% ({{ 60000 * 15 / 100 | usd }}) | {{ 60000 * 15 / 100 / 12 | usd }} | {{ usTakeHome(60000, k401=15) / 12 | usd }} | {{ usPay(60000).federal - usPay(60000, k401=15).federal | usd }} |
 | 20% ({{ 60000 * 20 / 100 | usd }}) | {{ 60000 * 20 / 100 / 12 | usd }} | {{ usTakeHome(60000, k401=20) / 12 | usd }} | {{ usPay(60000).federal - usPay(60000, k401=20).federal | usd }} |
 
-A common rule of thumb is to save 15% of gross income for retirement, employer match included. On $60,000 that is {{ 60000 * 15 / 100 | usd }} a year, or {{ 60000 * 15 / 100 / 12 | usd }} a month. With a 3% employer match ({{ 60000 * 3 / 100 | usd }}), you would contribute the other {{ 15 - 3 | pct }} yourself. The {{ taxYear('us') }} employee deferral limit is {{ usFact('k401Limit') | usd }} ([IRS, 401(k) contribution limits](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits)), so none of these rates comes near the cap.
+A common rule of thumb is to save 15% of gross income for retirement, employer match included. On $60,000 that is {{ 60000 * 15 / 100 | usd }} a year, or {{ 60000 * 15 / 100 / 12 | usd }} a month. With a 3% employer match ({{ 60000 * 3 / 100 | usd }}), you would contribute the other {{ 15 - 3 | pct }} yourself. The 2026 employee deferral limit is {{ usFact('k401Limit', year=2026) | usd }} ([IRS, 401(k) contribution limits](https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits)), so none of these rates comes near the cap.
 
 ## Traditional vs Roth 401(k)
 
