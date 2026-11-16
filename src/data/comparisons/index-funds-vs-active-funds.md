@@ -72,12 +72,12 @@ That {{ 1 - 0.1 | num(2) }}% difference in fees costs {{ feeDrag(0, 500, 7, 30, 
 
 ## The fees you don't see
 
-The expense ratio is only the first layer. Add an adviser and a workplace plan and the layers stack:
+The expense ratio is only the first layer. Add an advisor and a workplace plan and the layers stack:
 
 | Fee layer | Typical range | On a $500,000 portfolio |
 |---|---|---|
 | Fund expense ratio | 0.03–1.5% | {{ 500000 * 0.0003 | usd }}–{{ 500000 * 0.015 | usd }} a year |
-| Financial adviser | 0.5–1.0% | {{ 500000 * 0.005 | usd }}–{{ 500000 * 0.01 | usd }} a year |
+| Financial advisor | 0.5–1.0% | {{ 500000 * 0.005 | usd }}–{{ 500000 * 0.01 | usd }} a year |
 | 401(k) plan admin | 0.1–0.5% | {{ 500000 * 0.001 | usd }}–{{ 500000 * 0.005 | usd }} a year |
 | **Combined** | **{{ 0.03 + 0.5 + 0.1 | num(2) }}–{{ 1.5 + 1 + 0.5 | num(1) }}%** | **{{ 500000 * (0.0003 + 0.005 + 0.001) | usd }}–{{ 500000 * (0.015 + 0.01 + 0.005) | usd }} a year** |
 

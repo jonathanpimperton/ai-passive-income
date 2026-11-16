@@ -71,7 +71,7 @@ The decision comes down to one comparison: your debt's interest rate against wha
 
 A mortgage at 3.5%? Invest. Stock market returns have averaged roughly 7-10% a year over long periods, which comfortably beats that rate, though not every year.
 
-The grey zone sits between about 5% and 7%. Car loans, student loans and personal loans often land here. At these rates the edge of investing is slim and the guaranteed return of paying off debt is attractive.
+The gray zone sits between about 5% and 7%. Car loans, student loans and personal loans often land here. At these rates the edge of investing is slim and the guaranteed return of paying off debt is attractive.
 
 ## Where the 7% line comes from
 
@@ -109,7 +109,7 @@ Time is on investing's side. [$500 a month at 7% for 30 years](/tools/saving-and
 - **Pay the loan first,** then invest $500 a month for the rest of 30 years: **{{ compoundFV(0, 500, 7, (360 - loanPayoff(20000, 4, 500).months) / 12) | usd }}**, with no debt left.
 - **Pay only the loan's interest** ({{ 20000 * 4 / 1200 | usd }} a month) and invest the rest for all 30 years: **{{ compoundFV(0, 500 - 20000 * 4 / 1200, 7, 30) | usd }}**, minus the $20,000 you still owe, so **{{ compoundFV(0, 500 - 20000 * 4 / 1200, 7, 30) - 20000 | usd }}**.
 
-The gap is {{ compoundFV(0, 500 - 20000 * 4 / 1200, 7, 30) - 20000 - compoundFV(0, 500, 7, (360 - loanPayoff(20000, 4, 500).months) / 12) | usd }} in favour of investing first, over 30 years. That is the real price of paying off cheap debt early, and why low-rate debt rarely justifies postponing investing entirely. It assumes a 7% return that is not guaranteed.
+The gap is {{ compoundFV(0, 500 - 20000 * 4 / 1200, 7, 30) - 20000 - compoundFV(0, 500, 7, (360 - loanPayoff(20000, 4, 500).months) / 12) | usd }} in favor of investing first, over 30 years. That is the real price of paying off cheap debt early, and why low-rate debt rarely justifies postponing investing entirely. It assumes a 7% return that is not guaranteed.
 
 ## The exception that comes first: employer match
 

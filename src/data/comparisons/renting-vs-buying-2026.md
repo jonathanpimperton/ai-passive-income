@@ -35,7 +35,7 @@ comparisonTable:
     option2: "{{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 7).finalBuyerNetWorth | usd }} (buying overtakes renting in year {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 30).breakEvenYear | int }})"
   - feature: "Tax benefit"
     option1: "None"
-    option2: "Mortgage interest and property tax count only if you itemise; the calculator gives {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 7).totalTaxSaving | usd }} over 7 years here"
+    option2: "Mortgage interest and property tax count only if you itemize; the calculator gives {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 7).totalTaxSaving | usd }} over 7 years here"
 affiliateContext: "Get pre-approved for a mortgage"
 affiliatePrograms:
   - "LendingTree"
@@ -57,8 +57,6 @@ sources:
     url: "https://www.fhfa.gov/news/news-release/fhfa-house-price-index-up-0.3-percent-in-august-up-2.4-percent-from-last-year"
   - name: "Federal Reserve — FOMC statement, 16 September 2026"
     url: "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm"
-  - name: "CFPB — Owning a Home"
-    url: "https://www.consumerfinance.gov/owning-a-home/"
 ---
 
 ## Where rates and prices stand
