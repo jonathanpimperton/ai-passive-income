@@ -2,33 +2,38 @@
 name: "Rent vs Buy Calculator"
 slug: "rent-vs-buy"
 category: "debt-and-loans"
-description: "Rent vs buy calculator — compare the true cost of renting and buying over time, including equity, taxes, and home appreciation."
+description: "Rent vs buy calculator: month-by-month net worth of buying and of renting and investing, the break-even year, closing and selling costs, US, UK and euro."
 keywords:
   - "rent vs buy calculator"
   - "should I rent or buy"
   - "renting vs buying comparison"
   - "break-even point"
 relatedTools:
+  - "mortgage-affordability"
+  - "mortgage-payment"
   - "loan-amortization"
+  - "stamp-duty"
   - "savings-goal"
   - "investment-return"
   - "net-worth"
-  - "compound-interest"
 affiliateContext: "Ready to buy? Get pre-approved and compare rates"
 affiliatePrograms:
   - "LendingTree"
-calculationMethod: "Compares total cost of renting vs buying including opportunity cost of down payment"
+calculationMethod: "Month-by-month net worth of the buyer (home equity less selling costs plus any tax saving invested) against the renter (the down payment and monthly savings invested), at the same total outlay"
+lastUpdated: "2026-11-15"
 faq:
   - question: "Is it cheaper to rent or buy a home?"
-    answer: "It depends on your location, how long you'll stay, local rent-to-price ratios, interest rates, and what you'd do with the money you don't spend on a down payment. In general, buying becomes cheaper than renting after 5-7 years due to equity building. But in expensive markets with high price-to-rent ratios, renting and investing the difference can sometimes win."
+    answer: "It depends on the price-to-rent ratio, the mortgage rate and how long you stay, and the answer can go either way. On a $350,000 home with 20% down, a 7% mortgage and $1,800 rent, over 10 years renting and investing the difference comes out {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).difference | usd }} ahead in net worth, and buying does not pull ahead until year {{ rentVsBuy(350000, 20, 7, 30, 1800, 30).breakEvenYear | int }}. At a 5% rate, buying is ahead by {{ rentVsBuy(350000, 20, 5, 30, 1800, 10).difference | usd }} after 10 years, and with rent at $2,400 on the 7% loan buying is ahead by {{ rentVsBuy(350000, 20, 7, 30, 2400, 10).difference | usd }}. Run your own numbers rather than trusting a general rule."
   - question: "What is the 5% rule for rent vs buy?"
-    answer: "The 5% rule states that you should multiply the home's value by 5%, then divide by 12 to get a monthly threshold. If rent is below that amount, renting is likely better. For a $400,000 home, that's $1,667/month. If you can rent a comparable place for less than $1,667, renting may be the smarter financial move."
+    answer: "The 5% rule says a home's yearly cost beyond the mortgage principal is about 5% of its value: roughly 1% property tax, 1% maintenance and 3% for the cost of capital. Multiply the price by 5% and divide by 12 to get a monthly rent threshold. For a $400,000 home that is {{ 400000 * 5 / 100 / 12 | usd }} a month, and if you can rent a comparable place for less, renting is likely cheaper. At a 7% mortgage rate the calculator agrees in that case: rent at {{ 400000 * 5 / 100 / 12 | usd }} leaves renting {{ rentVsBuy(400000, 20, 7, 30, 400000 * 5 / 100 / 12, 10).difference | usd }} ahead after 10 years. The rule is only a first test, and it depends on the rate and the price."
   - question: "How long do I need to stay to make buying worth it?"
-    answer: "The break-even point is typically 5-7 years, accounting for closing costs (2-5% of purchase price), transaction costs when selling (6-8%), and the opportunity cost of your down payment. If you might move within 3 years, renting is almost always better financially."
-  - question: "What hidden costs of buying do most people forget?"
-    answer: "Beyond the mortgage payment, homeowners face: property taxes (1-2% of home value/year), homeowner's insurance ($1,500-$3,000/year), maintenance and repairs (1-2% of home value/year), HOA fees if applicable, PMI if under 20% down, and closing costs both at purchase and sale. These can add 30-50% on top of the mortgage payment."
-  - question: "Should I invest the down payment money instead of buying?"
-    answer: "This is the key comparison our calculator makes. A $60,000 down payment invested at 7% in the stock market grows to about $118,000 in 10 years. But homeownership builds equity through principal paydown and potential appreciation, plus provides stability and tax benefits. The 'right' answer depends on your local market, interest rates, and personal priorities."
+    answer: "The break-even year depends on the inputs, not on a fixed number of years. For a $350,000 home with 20% down, 3% price growth and 3% rent growth, buying breaks even in year {{ rentVsBuy(350000, 20, 5, 30, 1800, 10).breakEvenYear | int }} at a 5% mortgage rate with $1,800 rent, in year {{ rentVsBuy(350000, 20, 7, 30, 2400, 10).breakEvenYear | int }} at 7% with $2,400 rent, and in year {{ rentVsBuy(350000, 20, 7, 30, 1800, 30).breakEvenYear | int }} at 7% with $1,800 rent. Buying has large upfront and exit costs, and the calculator includes them: closing costs of {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).closingCosts | usd }} and selling costs of {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).saleCosts | usd }} in the first example. If you might move within a few years, renting is usually cheaper."
+  - question: "What hidden costs of buying do people forget?"
+    answer: "Beyond the mortgage payment: property tax, homeowners insurance, maintenance, HOA dues, PMI with a small down payment, and closing and selling costs. The calculator starts from property tax of 1% a year, insurance of $1,800, maintenance of 1% of the value, closing costs of 3% and selling costs of 6% in the US. On the $350,000 example the first month's ownership cost is {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyOwnershipCost | usd }} against a mortgage payment of {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyMortgage | usd }}, which is {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyOwnershipCost / rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyMortgage * 100 - 100 | pct }} more. These are starting assumptions, so replace them with your own."
+  - question: "Should I invest the down payment instead of buying?"
+    answer: "That is the comparison the calculator makes. The renter invests the down payment and closing costs, then each month's saving. At a 7% return, a $60,000 sum grows to {{ compoundFV(60000, 0, 7, 10) | usd }} in 10 years with monthly compounding. Against that, the buyer builds equity from the principal repayments and any price growth, and in the US may save tax on mortgage interest. Which side wins turns on the mortgage rate, the rent and how fast prices and investments grow, and the calculator's 7% investment return and 3% price growth are adjustable assumptions, not forecasts."
+  - question: "Does the calculator include the mortgage interest tax deduction?"
+    answer: "In the US it does, but only when itemising beats the standard deduction for your filing status, using the marginal tax rate you set (22% by default) and any other itemised deductions. On the first example, the tax saving over 10 years is {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).totalTaxSaving | usd }}. In the UK and euro area there is no such deduction, and buying and selling costs start at zero, so enter your own stamp duty, agent and legal fees."
 workedExamples:
   - title: "Buying vs renting in a mid-cost city"
     inputs:
@@ -37,108 +42,113 @@ workedExamples:
       interestRate: 7
       monthlyRent: 1800
       stayDuration: 10
-    description: "Comparing a $350,000 home purchase (20% down, 7% rate) vs renting at $1,800/month with 3% annual rent increases. Monthly mortgage: $1,864 plus taxes, insurance, and maintenance totaling about $2,650. Break-even point: roughly year 5. After 10 years, buying saves approximately $45,000 compared to renting — but only if you stay the full 10 years."
-  - title: "Expensive market short stay"
+    description: "A $350,000 home with 20% down ({{ rentVsBuy(350000, 20, 7, 30, 1800, 10).downPayment | usd }}) and a 7% 30-year mortgage against renting at $1,800 a month with 3% a year rent rises. The mortgage payment is {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyMortgage | usd }} and the first month's total ownership cost {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyOwnershipCost | usd }}, against {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).firstMonthRentCost | usd }} for rent and renter's insurance. After 10 years the home is worth {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).finalHomeValue | usd }} and the loan balance is {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).loanBalance | usd }}. Buyer net worth is {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).finalBuyerNetWorth | usd }} and renter net worth {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).finalRenterNetWorth | usd }}, so {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).verdict }} wins by {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).difference | usd }} at 10 years. Buying overtakes renting in year {{ rentVsBuy(350000, 20, 7, 30, 1800, 30).breakEvenYear | int }} if you stay on."
+  - title: "Expensive market, short stay"
     inputs:
       homePrice: 750000
       downPayment: 150000
       interestRate: 6.5
       monthlyRent: 2800
       stayDuration: 4
-    description: "A $750,000 condo (20% down, 6.5% rate) vs renting at $2,800/month. Total buying cost over 4 years including closing costs, HOA, taxes, insurance, and selling costs: approximately $195,000. Total renting cost (with 3% annual increases): $140,000. Renting saves about $55,000 — the $150,000 down payment invested would also grow by ~$45,000 at 7%."
-  - title: "First-time buyer with small down payment"
+    description: "A $750,000 home with 20% down at 6.5% against renting at $2,800 a month, for four years. The mortgage payment is {{ rentVsBuy(750000, 20, 6.5, 30, 2800, 4).monthlyMortgage | usd }} and the first month's ownership cost {{ rentVsBuy(750000, 20, 6.5, 30, 2800, 4).monthlyOwnershipCost | usd }}. Closing costs are {{ rentVsBuy(750000, 20, 6.5, 30, 2800, 4).closingCosts | usd }} and selling costs {{ rentVsBuy(750000, 20, 6.5, 30, 2800, 4).saleCosts | usd }}. Renting for the four years costs {{ rentVsBuy(750000, 20, 6.5, 30, 2800, 4).totalRentPaid | usd }} in rent, and {{ rentVsBuy(750000, 20, 6.5, 30, 2800, 4).verdict }} comes out {{ rentVsBuy(750000, 20, 6.5, 30, 2800, 4).difference | usd }} ahead in net worth. A short stay and a high price-to-rent ratio are the case where renting wins by the most."
+  - title: "First-time buyer with a small down payment"
     inputs:
       homePrice: 280000
       downPayment: 14000
       interestRate: 7
       monthlyRent: 1500
       stayDuration: 7
-    description: "A $280,000 home with only 5% down at 7% interest. PMI adds ~$150/month until you reach 20% equity. Total monthly housing cost: about $2,350 vs $1,500 rent. Break-even point: year 6. With only 5% down, the high PMI and large mortgage make this a close call — at 7 years, buying barely edges ahead by about $12,000."
+    description: "A $280,000 home with 5% down at 7% against renting at $1,500 a month, for seven years. The mortgage payment is {{ rentVsBuy(280000, 5, 7, 30, 1500, 7).monthlyMortgage | usd }} and the first month's ownership cost, with PMI, is {{ rentVsBuy(280000, 5, 7, 30, 1500, 7).monthlyOwnershipCost | usd }}, against {{ rentVsBuy(280000, 5, 7, 30, 1500, 7).firstMonthRentCost | usd }} for renting. After seven years {{ rentVsBuy(280000, 5, 7, 30, 1500, 7).verdict }} is ahead by {{ rentVsBuy(280000, 5, 7, 30, 1500, 7).difference | usd }}. If the stay lengthens to 30 years, buying is ahead by {{ rentVsBuy(280000, 5, 7, 30, 1500, 30).advantage | usd }}: the small deposit and the larger loan mean it takes a long time to pay off."
 ---
 
-## The Rent vs Buy Decision
+## Why the answer changes
 
-"Should I rent or buy?" is one of the most significant financial decisions most people face. The conventional wisdom — "buying is always better because you're building equity" — is an oversimplification. The real answer depends on your local market, how long you'll stay, interest rates, and what you'd do with the money you save by renting.
+"Should I rent or buy?" is among the biggest money decisions most people make, and the standard advice, that buying is always better because you build equity, is too simple. This calculator compares two people with the same total outlay each month. The buyer pays the mortgage, tax, insurance and upkeep and ends with home equity. The renter pays rent and invests the down payment and the difference. It reports net worth for each at the end of your stay.
 
-This calculator runs both scenarios side by side so you can make the decision with data, not emotion.
+At a 7% mortgage rate on a $350,000 home with $1,800 rent, renting and investing is {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).difference | usd }} ahead after 10 years, and the buyer does not catch up until year {{ rentVsBuy(350000, 20, 7, 30, 1800, 30).breakEvenYear | int }}. At 5%, the same buyer is {{ rentVsBuy(350000, 20, 5, 30, 1800, 10).difference | usd }} ahead after 10 years. The rate matters that much.
 
-> **Key takeaway:** There is no universal answer to "rent or buy." The right choice depends on your local price-to-rent ratio, your time horizon, and what you'd do with the savings. Run your own numbers before trusting rules of thumb.
+## How the answer moves
 
-## The True Cost of Buying
+For a $350,000 home with 20% down, a 30-year mortgage and a 10-year stay:
+
+| Mortgage rate | Monthly rent | Ahead after 10 years | By |
+|---|---|---|---|
+| 7% | $1,800 | {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).verdict }} | {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).difference | usd }} |
+| 6% | $1,800 | {{ rentVsBuy(350000, 20, 6, 30, 1800, 10).verdict }} | {{ rentVsBuy(350000, 20, 6, 30, 1800, 10).difference | usd }} |
+| 5% | $1,800 | {{ rentVsBuy(350000, 20, 5, 30, 1800, 10).verdict }} | {{ rentVsBuy(350000, 20, 5, 30, 1800, 10).difference | usd }} |
+| 7% | $2,400 | {{ rentVsBuy(350000, 20, 7, 30, 2400, 10).verdict }} | {{ rentVsBuy(350000, 20, 7, 30, 2400, 10).difference | usd }} |
+
+Defaults used: 3% a year price growth and rent growth, a 7% return on the renter's investments, property tax of 1%, insurance of $1,800, maintenance of 1%, closing costs of 3% and selling costs of 6%. Change any of them in the calculator.
+
+## The true cost of buying
 
 <div class="stat-highlight">
-  <span class="stat-number">5–7 yrs</span>
-  <span class="stat-text">is the typical break-even point for buying vs renting. If you might move sooner, renting is almost always the better financial decision.</span>
+  <span class="stat-number">{{ rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyOwnershipCost / rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyMortgage * 100 - 100 | pct }}</span>
+  <span class="stat-text">is how much more the first month of owning a $350,000 home costs than the mortgage payment alone, once tax, insurance and maintenance are added at the calculator's defaults.</span>
 </div>
 
-Buying a home involves more costs than most first-time buyers expect:
+Buying costs more than the payment on the lender's quote:
 
-| Cost | Typical Range | When You Pay |
-|------|--------------|--------------|
-| Closing costs | 2–5% of purchase price | At purchase |
-| Property taxes | 0.5–2.5% of home value/year | Ongoing |
-| Homeowners insurance | $1,500–$3,000+/year | Ongoing |
-| Maintenance & repairs | 1–2% of home value/year | Ongoing |
-| PMI (if <20% down) | 0.5–1% of loan amount/year | Until 20% equity |
-| Selling costs | 6–10% of sale price | At sale |
-| Opportunity cost | Down payment could be invested | Ongoing (hidden) |
+| Cost | The calculator's starting assumption | When you pay |
+|---|---|---|
+| Closing costs | 3% of the price in the US | At purchase |
+| Property tax | 1% of the value a year | Ongoing |
+| Homeowners insurance | $1,800 a year | Ongoing |
+| Maintenance and repairs | 1% of the value a year | Ongoing |
+| PMI | When the down payment is under 20% | Until you reach 20% equity |
+| Selling costs | 6% of the sale price in the US | At sale |
+| Opportunity cost | The down payment could be invested instead | Ongoing, and not visible on a statement |
 
-Adding these up, the true annual cost of homeownership often exceeds the mortgage payment by 30–50%.
+On the $350,000 example, closing costs are {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).closingCosts | usd }} and selling costs after 10 years {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).saleCosts | usd }}. Over that period the buyer also pays {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).totalInterest | usd }} in interest over the loan's life, and in the US the interest deduction saves {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).totalTaxSaving | usd }}.
 
-> **Example:** On a $350,000 home, the mortgage might be $1,864/month — but property taxes, insurance, maintenance, and PMI can push total monthly costs to $2,650 or more.
+## The true cost of renting
 
-## The True Cost of Renting
+Renting is simpler, but not free of cost:
 
-Renting is simpler but not cost-free:
+- **Rent.** The calculator raises it 3% a year by default; check how fast rents rise where you live.
+- **Renter's insurance.** The calculator starts at $15 a month, far below homeowners insurance.
+- **No equity.** Your payments go to a landlord and not into an asset you own.
+- **The investment alternative.** The money you do not spend on a down payment and ownership costs can be invested. The calculator assumes 7% a year. That is not a guarantee, and a lower return favours buying.
 
-- **Monthly rent:** Your base cost, typically increasing 3-5% per year
-- **Renter's insurance:** $150-$300 per year (much less than homeowners insurance)
-- **No equity building:** Your payments go entirely to your landlord, not into an asset you own
-- **Opportunity cost:** If renting is cheaper monthly, you could invest the difference — and historically, the stock market has returned 7-10% per year
+The question is whether the investment gain on the renter's savings beats the equity the buyer builds.
 
-The critical question is whether that invested difference grows faster than the equity you'd build by owning.
+## The break-even point
 
-## The Break-Even Point
+The break-even year is when the buyer's net worth first overtakes the renter's and stays ahead. The calculator reports it, and tells you when there is none inside your stay. The table above shows how far it moves with the mortgage rate and the rent.
 
-The break-even point is when the total cost of buying equals the total cost of renting (including the investment gains from the renter's savings). For most markets, this falls between 5–7 years. Before the break-even point, renting is cheaper. After it, buying wins.
+| What changes | Effect on break-even | Why |
+|---|---|---|
+| A high price relative to rent | Later | More capital is tied up in the home |
+| A lower mortgage rate | Earlier | Less is paid in interest |
+| Faster rent growth | Earlier | Buying fixes a large part of the cost |
+| High property tax or HOA dues | Later | They eat into the buyer's advantage |
 
-Several factors move the break-even point:
+> **If you might move within a few years,** renting usually wins. At 7% on the $350,000 example, renting is already ahead at year 5 by {{ rentVsBuy(350000, 20, 7, 30, 1800, 5).difference | usd }}, because closing costs and selling costs take years to earn back.
 
-| Factor | Effect on Break-Even | Why |
-|--------|---------------------|-----|
-| High home prices relative to rent | Pushes later (7–10+ years) | More capital tied up, higher opportunity cost |
-| Low interest rates | Pulls earlier | Less money wasted on interest |
-| High rent growth | Pulls earlier | Buying locks in a fixed cost |
-| High property taxes or HOA fees | Pushes later | Ongoing ownership costs erode the buying advantage |
+## The 5% rule
 
-> **Tip:** If you might move within 3 years, renting is almost always cheaper. The upfront closing costs and eventual selling costs make short-term ownership a losing proposition in most markets.
+A quick test: multiply the price by 5% and divide by 12. If you can rent a comparable home for less than that, renting is likely cheaper. For a $400,000 home, {{ 400000 * 5 / 100 | usd }} a year is {{ 400000 * 5 / 100 / 12 | usd }} a month. The rule is a rough first check before the full calculation, because it ignores the mortgage rate, how long you stay and how prices and rents move.
 
-## The 5% Rule (Quick Test)
+## UK and euro-area use
 
-A quick way to estimate: multiply the home's purchase price by 5%, then divide by 12. If you can rent a comparable place for less than this monthly amount, renting is likely the better financial choice.
+Switch the currency to pounds or euros and the calculator drops the US tax deduction and PMI, and starts buying and selling costs at zero. Enter your own costs: stamp duty (the [stamp duty calculator](/tools/economic/stamp-duty/) covers England and Northern Ireland), legal fees, agent fees and service charges. Mortgage terms follow the regional choices, and the default rate is a market average, not an offer.
 
-For a $400,000 home: 5% × $400,000 = $20,000 / 12 = **$1,667/month**. If comparable rent is under $1,667, renting likely wins.
+## When to use this calculator
 
-This rule isn't precise, but it's a useful starting point before running the full calculation.
+- **Before buying a first home,** to see how the break-even year depends on your numbers.
+- **Moving to a new city,** to compare buying and renting in a different market.
+- **Judging a short stay,** to see what closing and selling costs do over a few years.
+- **Weighing the investment alternative,** to see what investing the down payment would give.
 
-## When to Use This Calculator
+## Mistakes that skew the comparison
 
-Use the rent vs buy calculator when you're:
+1. **Comparing rent with the mortgage payment alone.** Tax, insurance and maintenance add to it, as the {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyOwnershipCost | usd }} against {{ rentVsBuy(350000, 20, 7, 30, 1800, 10).monthlyMortgage | usd }} above shows.
+2. **Assuming prices always rise.** In many markets prices have been flat or fallen for years. Test 0% growth as well as 3%.
+3. **Ignoring what the down payment could earn.** {{ 60000 | usd }} invested at 7% grows to {{ compoundFV(60000, 0, 7, 10) | usd }} in 10 years.
+4. **Treating rent as wasted and ownership costs as saved.** Interest, tax, insurance and maintenance are also gone for good. Only the principal repayments and price growth build equity.
 
-- **Deciding whether to buy your first home** — see the actual break-even point for your specific market
-- **Considering a move to a new city** — compare the cost of buying vs renting in the new location
-- **Evaluating a short-term stay** — if you might move in 3-4 years, see whether buying makes sense
-- **Comparing the investment alternative** — see what happens if you rent and invest the down payment instead
+> **Early mortgage payments are mostly interest.** On a $280,000 loan at 7%, only {{ loanMonth(280000, 7, 30, 1).principalShare | pct1 }} of the first payment reduces the balance.
 
-## Common Mistakes
+## What to do next
 
-1. **Only comparing rent to mortgage payment.** The mortgage is just one piece — taxes, insurance, maintenance, and PMI add 30-50% more.
-2. **Assuming home prices always rise.** In many markets, home prices have been flat or even declined for years. Don't assume 5% annual appreciation.
-3. **Ignoring the opportunity cost of the down payment.** A $60,000 down payment invested at 7% would grow to $118,000 in 10 years. That's real money you're choosing not to invest.
-4. **Buying because "rent is throwing money away."** Mortgage interest, property taxes, insurance, and maintenance are also "thrown away" — they don't build equity.
-
-> **Key takeaway:** In the early years of a mortgage, most of your payment goes to interest — not equity. On a 30-year loan at 7%, only about 30% of your payment reduces the principal in year one.
-
-## What to Do Next
-
-Enter your local numbers: home price, down payment, mortgage rate, monthly rent, and how long you plan to stay. The break-even timeline will tell you whether buying or renting makes more financial sense for your specific situation. If you're within a year or two of the break-even point, personal factors (stability, lifestyle, neighborhood) should tip the decision.
+Enter your price, down payment, mortgage rate, rent and the number of years you expect to stay, then read the break-even year. If you are within a year or two of it, personal factors such as stability and neighbourhood should tip the decision.
