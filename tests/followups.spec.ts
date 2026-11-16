@@ -271,7 +271,7 @@ for (const currency of [undefined, 'GBP', 'EUR']) {
 // pages have such a sidebar; for 5 of them the last link stayed off screen when pinned. (The calculator
 // results panels carry the same classes but have never pinned: the tool page's overflow containers stop
 // it, so they are not part of this.)
-const TALL_SIDEBAR = '/how-we-calculate/salary-uk/'; // about 1,100px tall
+const TALL_SIDEBAR = '/how-we-calculate/salary-uk/'; // about 1,700px tall (Nov 2026); taller than 800 - 96
 const SHORT_SIDEBAR = '/how-we-calculate/investment-fee/'; // about 540px tall
 const sidebar = '[data-sticky-fit]';
 
@@ -307,9 +307,12 @@ test('a methodology sidebar that fits the window stays pinned, and is released w
   await page.evaluate(() => window.scrollTo(0, 300));
   await expect.poll(() => side.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(80);
 
-  // The tall one fits in a tall window (pinned), and is released again without a reload when it shrinks.
-  await page.setViewportSize({ width: 1280, height: 1500 });
+  // The tall one fits in a window taller than itself (pinned), and is released again without a
+  // reload when it shrinks. The window height comes from the sidebar's measured height, not a fixed
+  // number, because the sidebar grows whenever the methodology page gains sources.
   await page.goto(TALL_SIDEBAR);
+  const tallHeight = await side.evaluate((el) => Math.ceil(el.getBoundingClientRect().height));
+  await page.setViewportSize({ width: 1280, height: tallHeight + 200 });
   await expect(side).toHaveCSS('position', 'sticky');
   await page.setViewportSize({ width: 1280, height: 800 });
   await expect(side).toHaveCSS('position', 'static');
