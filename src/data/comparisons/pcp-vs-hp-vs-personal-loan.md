@@ -67,11 +67,11 @@ faq:
 
 Take a representative deal: a **£25,000 car**, a **£2,500 deposit** and **48 months** to pay. The dealer offers PCP at 7.9% APR with a {{ carFinance(25000, 2500, 48).balloon | gbp }} balloon (the guaranteed minimum future value, 40% of the car's price), or HP at 8.9%. Your bank offers a personal loan at 5.6% for the same {{ carFinance(25000, 2500, 48).financeAmount | gbp }}. The APRs are converted to a monthly rate the way UK lenders quote them, as effective annual rates. The figures below come from the [Car Finance Comparison Calculator](/tools/debt-and-loans/car-finance/) with its default inputs.
 
-| | Monthly | Total paid (with deposit) | Interest |
-|---|---|---|---|
-| **PCP** (keep the car) | {{ carFinance(25000, 2500, 48).pcpMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).pcpTotalPaid | gbp }} | {{ carFinance(25000, 2500, 48).pcpTotalInterest | gbp }} |
-| **HP** | {{ carFinance(25000, 2500, 48).hpMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).hpTotalPaid | gbp }} | {{ carFinance(25000, 2500, 48).hpTotalInterest | gbp }} |
-| **Personal loan** | {{ carFinance(25000, 2500, 48).loanMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).loanTotalPaid | gbp }} | {{ carFinance(25000, 2500, 48).loanTotalInterest | gbp }} |
+| | Monthly | Total paid, with deposit (of which interest) |
+|---|---|---|
+| **PCP** (keep it) | {{ carFinance(25000, 2500, 48).pcpMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).pcpTotalPaid | gbp }} ({{ carFinance(25000, 2500, 48).pcpTotalInterest | gbp }}) |
+| **HP** | {{ carFinance(25000, 2500, 48).hpMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).hpTotalPaid | gbp }} ({{ carFinance(25000, 2500, 48).hpTotalInterest | gbp }}) |
+| **Loan** | {{ carFinance(25000, 2500, 48).loanMonthly | gbp(2) }} | {{ carFinance(25000, 2500, 48).loanTotalPaid | gbp }} ({{ carFinance(25000, 2500, 48).loanTotalInterest | gbp }}) |
 
 Three routes to the same driveway, with {{ carFinance(25000, 2500, 48).pcpTotalPaid - carFinance(25000, 2500, 48).loanTotalPaid | gbp }} between the cheapest and the most expensive. The gaps come from two things: the APR, and, in PCP's case, how long the money stays borrowed.
 
