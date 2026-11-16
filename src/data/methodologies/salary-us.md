@@ -42,7 +42,6 @@ limitations:
   - "Does not calculate employer-side payroll taxes"
   - "Works out Social Security and Additional Medicare on one income. For two earners the Social Security cap applies per person, so two salaries can owe more Social Security than shown, and the calculator flags that for joint returns"
   - "The 401(k) is capped at the standard employee limit for the year. Catch-up contributions for age 50+ are not modelled"
-  - "For 2027 the IRS had not published the 401(k) limit when this page was checked (15 November 2026). The calculator carries the 2026 limit and says so until the notice is out"
   - "Married filing separately is not offered"
 dataSources:
   - name: "IRS: 2026 tax inflation adjustments, including amendments from the One Big Beautiful Bill"
@@ -61,6 +60,8 @@ dataSources:
     url: "https://www.ssa.gov/news/en/cola/factsheets/2027.html"
   - name: "IRS: 401(k) contribution limits"
     url: "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-401k-and-profit-sharing-plan-contribution-limits"
+  - name: "IRS: 2027 401(k) and IRA limits (IR-2026-136, Notice 2026-66)"
+    url: "https://www.irs.gov/newsroom/401k-limit-increases-to-25500-for-2027-ira-limit-remains-7500"
   - name: "IRS: Tax deductions for working Americans and seniors (overtime, tips, car-loan interest, senior)"
     url: "https://www.irs.gov/newsroom/working-families-tax-cuts-tax-deductions-for-working-americans-and-seniors"
   - name: "Cornell Law School LII: 26 U.S.C. 225 (qualified overtime compensation)"
@@ -129,7 +130,7 @@ For most workers FICA is {{ usFact('ssRate') + usFact('medicareRate') | pct(2) }
 
 ## 401(k) Pre-Tax Contributions
 
-A 401(k) contribution reduces federal and state taxable pay but does not reduce FICA wages. The calculator caps the contribution at the IRS employee limit for the year ({{ usFact('k401Limit', year=2026) | usd }} for 2026, under age 50 and with no catch-up). For 2027 the IRS had not published its limit when this page was checked, so the calculator carries the 2026 limit and says so.
+A 401(k) contribution reduces federal and state taxable pay but does not reduce FICA wages. The calculator caps the contribution at the IRS employee limit for the year ({{ usFact('k401Limit', year=2026) | usd }} for 2026 and {{ usFact('k401Limit', year=2027) | usd }} for 2027, under age 50 and with no catch-up).
 
 A 10% contribution on a $75,000 salary puts {{ 75000 * 10 / 100 | usd }} into the 401(k). It saves {{ usFederalTax(75000, year=2026) - usFederalTax(75000, k401=10, year=2026) | usd }} of federal tax (at the {{ usBracket(75000, year=2026) | pct }} marginal rate) and lowers take-home pay by {{ usTakeHome(75000, year=2026) - usTakeHome(75000, k401=10, year=2026) | usd }} before any state tax, so {{ 75000 * 10 / 100 | usd }} goes into the retirement account at a cost of {{ usTakeHome(75000, year=2026) - usTakeHome(75000, k401=10, year=2026) | usd }} in take-home pay.
 

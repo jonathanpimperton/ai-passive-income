@@ -4,8 +4,10 @@
  * dated-fact topic the plan requires (TX-3); the date rules are tested with
  * injected dates and file contents.
  */
-import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { afterAll, describe, it, expect } from 'vitest';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { parseCalendar, evaluateCalendar, parseDerive, findKeyedDate } from '../../scripts/check-facts-calendar.mjs';
 import { parseIsoDate, toIsoDate } from './tax-years.mjs';
@@ -166,8 +168,20 @@ describe('calendar rules (injected)', () => {
 });
 
 describe('scripts/check-facts-calendar.mjs CLI', () => {
+  // A fixed fixture, so completing a row in the real calendar never breaks these tests.
+  const fixtureDir = mkdtempSync(join(tmpdir(), 'calcrun-calendar-'));
+  afterAll(() => rmSync(fixtureDir, { recursive: true, force: true }));
+  const fixture = join(fixtureDir, 'calendar.md');
+  writeFileSync(fixture, [
+    '<!-- BEGIN FACTS -->',
+    '| id | due | derive | last_done | recurs | fact | action | where | source |',
+    '|---|---|---|---|---|---|---|---|---|',
+    '| fixture-due | 2026-12-01 | | | once | Fixture fact | x | y | https://example.com |',
+    '<!-- END FACTS -->',
+    '',
+  ].join('\n'));
   const run = (...args: string[]) =>
-    spawnSync(process.execPath, ['scripts/check-facts-calendar.mjs', ...args], {
+    spawnSync(process.execPath, ['scripts/check-facts-calendar.mjs', `--file=${fixture}`, ...args], {
       encoding: 'utf8',
       env: { ...process.env, CALCRUN_TODAY: '', GITHUB_ACTIONS: '' },
     });
@@ -175,7 +189,7 @@ describe('scripts/check-facts-calendar.mjs CLI', () => {
   it('exits 1 and lists the fact when something is due within 30 days', () => {
     const r = run('--today=2026-11-12');
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/us-irs-401k-2027/);
+    expect(r.stderr).toMatch(/fixture-due/);
   });
 
   it('exits 0 when nothing is due in the window', () => {

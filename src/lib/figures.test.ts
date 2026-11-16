@@ -196,8 +196,7 @@ describe('failure modes', () => {
     ['yearsToTarget(10000, 0, 3, 1000000) | months', /not reached within 100 years .*"Not within 100 years"/],
     ['savingsMonths(1000000, 0, 50, 0) | months', /not reached within 100 years .*"Not within 100 years"/],
     ["ukTakeHome(30000, code='ZZ99') | gbp", /W1, M1, X or NONCUM/],
-    ["usFact('k401Limit', year=2027) | usd", /has not published the 2027 401\(k\) limits/],
-    ['usTakeHome(100000, k401=30, year=2027) | usd', /has not published the 2027 401\(k\) limit/],
+    // The unpublished-401(k) refusals are in figures-unpublished.test.ts (mocked rates).
     ['cpiAdjust(100, 2000, 2000).adjusted | usd', /same year/],
     ['cpiAdjust(100, 1900, 2000).adjusted | usd', /at least 1913/],
     ['feeDrag(1000, 0, 0, 10, 0).cost | usd', /earns nothing/],

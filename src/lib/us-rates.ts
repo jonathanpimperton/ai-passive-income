@@ -29,9 +29,12 @@
  * [TC751]   IRS Topic 751, https://www.irs.gov/taxtopics/tc751 (FICA rates and
  *           Additional Medicare thresholds; statutory, not indexed)
  * [COLA]    IRS COLA table, https://www.irs.gov/retirement-plans/cola-increases-for-dollar-limitations-on-benefits-and-contributions
- *           (accessed 2026-11-12: latest year listed is 2026, so no 2027 401(k) limit yet)
+ *           (accessed 2026-11-12, when it listed 2026 only; the 2027 limits are from [N26-66])
  * [N25-67]  IRS Notice 2025-67 (2026 401(k)/IRA limits),
  *           https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500
+ * [N26-66]  IRS Notice 2026-66 / IR-2026-136, 12 Nov 2026 (2027 401(k)/IRA limits),
+ *           https://www.irs.gov/newsroom/401k-limit-increases-to-25500-for-2027-ira-limit-remains-7500
+ *           and https://www.irs.gov/pub/irs-drop/n-26-66.pdf (accessed 2026-11-16)
  * [OBBBA]   26 U.S.C. 225 (qualified overtime, https://www.law.cornell.edu/uscode/text/26/225)
  *           and 151(d)(5)(C) (senior deduction, https://www.law.cornell.edu/uscode/text/26/151);
  *           Schedule 1-A (Form 1040) 2025, https://www.irs.gov/pub/irs-pdf/f1040s1a.pdf;
@@ -215,10 +218,9 @@ export const US_RATES_BY_YEAR: Record<UsTaxYear, UsYearRates> = {
       },
       niit: { rate: 0.038, threshold: NIIT_THRESHOLD },
     },
-    // NOT YET PUBLISHED: the IRS 2027 401(k) notice was not out on 2026-11-12
-    // [COLA]. These are the 2026 values, carried; replace them when the notice
-    // publishes (docs/freshness-calendar.md, item us-irs-401k-2027).
-    retirement401k: { limit: 24_500, catchUp: 8_000, catchUp60to63: 11_250, published: false },
+    // [N26-66]: $25,500; catch-up (50+) $8,500; higher catch-up for ages
+    // 60-63 $11,750 (accessed 2026-11-16)
+    retirement401k: { limit: 25_500, catchUp: 8_500, catchUp60to63: 11_750, published: true },
     obbba: OBBBA_2025_2028,
   },
 };

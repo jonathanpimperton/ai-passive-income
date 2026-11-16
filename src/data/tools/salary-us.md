@@ -25,7 +25,7 @@ relatedTools:
   - "emergency-fund"
   - "net-worth"
   - "inflation"
-lastUpdated: "2026-11-15"
+lastUpdated: "2026-11-16"
 dataSources:
   - name: "IRS tax brackets and standard deduction, tax year 2026"
     url: "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill"
@@ -53,7 +53,7 @@ faq:
   - question: "Which US states have no income tax?"
     answer: "Nine states do not tax wages: Alaska, Florida, Nevada, New Hampshire, South Dakota, Tennessee, Texas, Washington and Wyoming. New Hampshire's tax on interest and dividends ended for tax periods starting 1 January 2025 (NH Department of Revenue Administration). The calculator takes a flat effective state rate, so enter 0 for these states. At a 5% state rate, a $100,000 salary pays {{ usPay(100000, state=5).state | usd }} a year more than the same salary in a no-tax state."
   - question: "Which tax year does the calculator use?"
-    answer: "It starts on the current calendar year when its figures exist, and has a tax-year choice for 2026 and 2027. The 2027 figures come from IRS Rev. Proc. 2026-35: the single standard deduction rises from {{ usFact('standardDeduction', year=2026) | usd }} to {{ usFact('standardDeduction', year=2027) | usd }} and the Social Security wage base from {{ usFact('ssWageBase', year=2026) | usd }} to {{ usFact('ssWageBase', year=2027) | usd }}. The IRS has not yet published the 2027 401(k) limit, so the calculator says so rather than guess."
+    answer: "It starts on the current calendar year when its figures exist, and has a tax-year choice for 2026 and 2027. The 2027 figures come from IRS Rev. Proc. 2026-35: the single standard deduction rises from {{ usFact('standardDeduction', year=2026) | usd }} to {{ usFact('standardDeduction', year=2027) | usd }} and the Social Security wage base from {{ usFact('ssWageBase', year=2026) | usd }} to {{ usFact('ssWageBase', year=2027) | usd }}. The 401(k) employee limit rises from {{ usFact('k401Limit', year=2026) | usd }} to {{ usFact('k401Limit', year=2027) | usd }} (IRS Notice 2026-66)."
 workedExamples:
   - title: "Comparing hourly vs salaried job offers"
     inputs:

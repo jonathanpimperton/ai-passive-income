@@ -190,10 +190,10 @@ describe('401(k)', () => {
     expect(r.stateTax).toBeCloseTo((400_000 - 24_500) * 0.05, 6);
     expect(r.medicare).toBeCloseTo(400_000 * 0.0145 + 200_000 * 0.009, 6);
   });
-  it('2027 carries the 2026 limit and says it is not yet published', () => {
+  it('2027 uses the published 2027 limit', () => {
     const r = computeUsSalary(base({ year: 2027, retirement401kPct: 10 }));
-    expect(r.retirement401kLimitPublished).toBe(false);
-    expect(r.retirement401kLimit).toBe(24_500);
+    expect(r.retirement401kLimitPublished).toBe(true);
+    expect(r.retirement401kLimit).toBe(25_500);
   });
 });
 

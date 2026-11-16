@@ -201,9 +201,8 @@ describe('US federal rates 2027 (Rev. Proc. 2026-35 / IR-2026-133, SSA)', () => 
     expect(r.capitalGains.longTerm.head.map((b) => b.from)).toEqual([0, 68_350, 598_400]);
   });
 
-  it('flags the 2027 401(k) limit as not yet published (carried from 2026)', () => {
-    expect(r.retirement401k.published).toBe(false);
-    expect(r.retirement401k.limit).toBe(getUsRates(2026).retirement401k.limit);
+  it('has the published 2027 401(k) limits (Notice 2026-66)', () => {
+    expect(r.retirement401k).toEqual({ limit: 25_500, catchUp: 8_500, catchUp60to63: 11_750, published: true });
   });
 
   it('carries the OBBBA deductions (fixed amounts for 2025-2028)', () => {
@@ -265,9 +264,9 @@ describe('US stable aliases point at the default year', () => {
     expect(US_401K.catchUp60to63).toBe(d.retirement401k.catchUp60to63);
   });
 
-  it('401(k) ages 60-63 catch-up: $11,250 for 2026, carried (unpublished) for 2027', () => {
+  it('401(k) ages 60-63 catch-up: $11,250 for 2026, $11,750 for 2027', () => {
     expect(getUsRates(2026).retirement401k.catchUp60to63).toBe(11_250);
-    expect(getUsRates(2027).retirement401k.catchUp60to63).toBe(11_250);
-    expect(getUsRates(2027).retirement401k.published).toBe(false);
+    expect(getUsRates(2027).retirement401k.catchUp60to63).toBe(11_750);
+    expect(getUsRates(2027).retirement401k.published).toBe(true);
   });
 });
