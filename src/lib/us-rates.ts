@@ -75,6 +75,15 @@ export interface Us401k {
   published: boolean;
 }
 
+export interface UsIra {
+  /** IRA contribution limit (traditional and Roth combined), under age 50 */
+  limit: number;
+  /** IRA catch-up contribution (age 50+) */
+  catchUp: number;
+  /** false = the IRS has not published this year's limits; the values are carried from the prior year */
+  published: boolean;
+}
+
 export interface UsObbbaDeductions {
   /** Qualified overtime premium deduction, 26 U.S.C. 225 */
   overtime: {
@@ -105,6 +114,8 @@ export interface UsYearRates {
   medicare: { rate: number; additionalRate: number; additionalThreshold: Record<FilingStatus, number> };
   capitalGains: UsCapitalGains;
   retirement401k: Us401k;
+  /** IRA limits (the IRS publishes them in the same annual notice as the 401(k) limits) */
+  retirementIra: UsIra;
   /** OBBBA deductions in force this year, or null outside 2025-2028 */
   obbba: UsObbbaDeductions | null;
 }
@@ -181,6 +192,8 @@ export const US_RATES_BY_YEAR: Record<UsTaxYear, UsYearRates> = {
     // ages 60-63 $11,250 (https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500,
     // accessed 2026-11-12)
     retirement401k: { limit: 24_500, catchUp: 8_000, catchUp60to63: 11_250, published: true },
+    // [N25-67] and [COLA]: IRA limit $7,500; IRA catch-up (50+) $1,100 (IRS COLA page, accessed 2026-11-16)
+    retirementIra: { limit: 7_500, catchUp: 1_100, published: true },
     obbba: OBBBA_2025_2028,
   },
 
@@ -221,6 +234,10 @@ export const US_RATES_BY_YEAR: Record<UsTaxYear, UsYearRates> = {
     // [N26-66]: $25,500; catch-up (50+) $8,500; higher catch-up for ages
     // 60-63 $11,750 (accessed 2026-11-16)
     retirement401k: { limit: 25_500, catchUp: 8_500, catchUp60to63: 11_750, published: true },
+    // NOT YET VERIFIED: the 2026 IRA values, carried (published: false). Only the 401(k) figures
+    // above were taken from Notice 2026-66 on 2026-11-16; check the notice for the 2027 IRA limit
+    // and catch-up, then replace these and set published: true.
+    retirementIra: { limit: 7_500, catchUp: 1_100, published: false },
     obbba: OBBBA_2025_2028,
   },
 };
@@ -282,3 +299,4 @@ export const US_SOCIAL_SECURITY = DEFAULT_RATES.socialSecurity;
 export const US_MEDICARE = DEFAULT_RATES.medicare;
 export const US_CAPITAL_GAINS = DEFAULT_RATES.capitalGains;
 export const US_401K = DEFAULT_RATES.retirement401k;
+export const US_IRA = DEFAULT_RATES.retirementIra;

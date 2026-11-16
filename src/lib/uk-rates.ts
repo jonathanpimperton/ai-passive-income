@@ -115,6 +115,19 @@ export interface UkYearRates {
    * childcare hours: you cannot claim if either parent's expected ANI is over it.
    */
   childcareAniLimit: number;
+  /** Automatic-enrolment "qualifying earnings" band, a year before tax: what scheme percentages are worked out on */
+  qualifyingEarnings: { lower: number; upper: number };
+  /** Personal Savings Allowance (tax-free savings interest) by income tax band, £ a year */
+  personalSavingsAllowance: { basic: number; higher: number; additional: number };
+  /** ISA allowance and Lifetime ISA limits */
+  isa: {
+    /** Total you can pay into ISAs in the tax year */
+    annualAllowance: number;
+    /** Most you can pay into a Lifetime ISA in the tax year (counts towards annualAllowance) */
+    lisaAnnualLimit: number;
+    /** Highest purchase price of a first home that a Lifetime ISA withdrawal can fund without the full charge */
+    lisaPropertyCap: number;
+  };
 }
 
 /* ── Per-year datasets ─────────────────────────────────────── */
@@ -180,6 +193,26 @@ export const UK_RATES_BY_YEAR: Record<UkTaxYear, UkYearRates> = {
     // https://www.gov.uk/tax-free-childcare/check-if-youre-eligible (accessed 2026-11-13); the same limit
     // applies to free childcare for working parents: https://www.gov.uk/check-eligible-free-childcare-if-youre-working
     childcareAniLimit: 100_000,
+    // "between £6,240 and £50,270 a year before tax" (the band the 8% minimum total contribution is
+    // worked out on) https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay
+    // (accessed 2026-11-16; the page names no tax year, and these are the same figures as 2025/26)
+    qualifyingEarnings: { lower: 6_240, upper: 50_270 },
+    // Basic rate £1,000, higher rate £500, additional rate £0 (frozen since 2016)
+    // https://www.gov.uk/apply-tax-free-interest-on-savings/how-much-is-tax-free (accessed 2026-11-16)
+    personalSavingsAllowance: { basic: 1_000, higher: 500, additional: 0 },
+    isa: {
+      // "In the 2026 to 2027 tax year, the maximum you can save in ISAs is £20,000"
+      // https://www.gov.uk/individual-savings-accounts (accessed 2026-11-16)
+      annualAllowance: 20_000,
+      // "You can put in up to £4,000 each year, until you're 50." https://www.gov.uk/lifetime-isa
+      // (accessed 2026-11-16)
+      lisaAnnualLimit: 4_000,
+      // "the purchase price of the residential property is £450,000 or less"
+      // https://www.gov.uk/guidance/lifetime-isa-withdrawals-for-a-first-time-residential-purchase
+      // (accessed 2026-11-16). Since 29 Oct 2026 a withdrawal for a purchase above the cap carries a
+      // 20% charge (the ordinary charge is 25%); that is not modelled here.
+      lisaPropertyCap: 450_000,
+    },
   },
 };
 
@@ -226,6 +259,12 @@ export const UK_SCOTTISH_TAX = DEFAULT_RATES.scottishTax;
 export const UK_PENSION_ANNUAL_ALLOWANCE = DEFAULT_RATES.pensionAnnualAllowance;
 /** £100,000 adjusted-net-income limit for Tax-Free Childcare / free childcare hours, default year */
 export const UK_CHILDCARE_ANI_LIMIT = DEFAULT_RATES.childcareAniLimit;
+/** Auto-enrolment qualifying earnings band (£6,240 to £50,270 in 2026/27), default year */
+export const UK_QUALIFYING_EARNINGS = DEFAULT_RATES.qualifyingEarnings;
+/** Personal Savings Allowance by band (£1,000 / £500 / £0), default year */
+export const UK_PERSONAL_SAVINGS_ALLOWANCE = DEFAULT_RATES.personalSavingsAllowance;
+/** ISA allowance (£20,000) and Lifetime ISA limits, default year */
+export const UK_ISA = DEFAULT_RATES.isa;
 
 /* ── Not tied to a tax year ────────────────────────────────── */
 

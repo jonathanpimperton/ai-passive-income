@@ -19,7 +19,7 @@
  *   https://www.gov.uk/hmrc-internal-manuals/stamp-duty-land-tax-manual/sdltm09870
  */
 
-import { UK_SDLT } from './uk-rates';
+import { SDLT_NON_RESIDENT_SURCHARGE, UK_SDLT } from './uk-rates';
 
 export type BuyerType = 'standard' | 'first-time' | 'additional';
 
@@ -52,8 +52,8 @@ export interface SdltResult {
 
 /** Price below which neither the higher rates nor the non-resident surcharge apply. */
 export const SDLT_SURCHARGE_FLOOR = 40_000;
-/** Non-UK resident surcharge (percentage points on every band). Not in uk-rates.ts yet; see REQUEST for W1-TAX. */
-export const SDLT_NON_RESIDENT_SURCHARGE = 0.02;
+/** Non-UK resident surcharge (percentage points on every band): one source, uk-rates.ts. */
+export { SDLT_NON_RESIDENT_SURCHARGE };
 
 /**
  * Calculate SDLT for a residential property purchase.
