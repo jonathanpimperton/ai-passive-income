@@ -9,9 +9,12 @@
  *   token     := '{{' pipeline '}}'
  *   pipeline  := expr ( '|' filter )*
  *   filter    := IDENT ( '(' literal ( ',' literal )* ')' )?
- *   expr      := term ( ( '+' | '-' ) term )*
+ *   expr      := and ( '||' and )*
+ *   and       := compare ( '&&' compare )*
+ *   compare   := sum ( ( '<' | '>' | '<=' | '>=' | '==' | '!=' ) sum )?
+ *   sum       := term ( ( '+' | '-' ) term )*
  *   term      := unary ( ( '*' | '/' ) unary )*
- *   unary     := '-' unary | postfix
+ *   unary     := '-' unary | '!' unary | postfix
  *   postfix   := primary ( '.' IDENT )*
  *   primary   := NUMBER | STRING | 'true' | 'false' | call | IDENT | '(' expr ')'
  *   call      := IDENT '(' ( arg ( ',' arg )* )? ')'
@@ -22,6 +25,12 @@
  * (`300000`, `300_000`, `6.5`). STRING is single- or double-quoted (curly quotes
  * are accepted too, in case an editor converted them). A bare IDENT that is not
  * a call is a plain string (`plan=plan2` is the same as `plan='plan2'`).
+ *
+ * Comparisons (`<` `>` `<=` `>=` `==` `!=`) and the joins `&&` `||` `!` give a
+ * true/false value. They exist for claim(condition, message) in figures.ts,
+ * which asserts a derived statement at build time; a bare true/false cannot be
+ * printed. A comparison does not chain (`a < b < c` is refused: write
+ * `a < b && b < c`), and `||` is OR while a single `|` is still the formatter pipe.
  *
  * There is no `eval`, no property access on anything but function results, and
  * no way to reach JavaScript: the evaluator only calls functions registered in
@@ -51,7 +60,14 @@ export type ExprNode =
   | { kind: 'call'; name: string; args: CallArg[] }
   | { kind: 'field'; target: ExprNode; field: string }
   | { kind: 'neg'; operand: ExprNode }
-  | { kind: 'bin'; op: '+' | '-' | '*' | '/'; left: ExprNode; right: ExprNode };
+  | { kind: 'not'; operand: ExprNode }
+  | { kind: 'bin'; op: BinaryOp; left: ExprNode; right: ExprNode };
+
+export type CompareOp = '<' | '>' | '<=' | '>=' | '==' | '!=';
+export type LogicOp = '&&' | '||';
+export type BinaryOp = '+' | '-' | '*' | '/' | CompareOp | LogicOp;
+
+const COMPARE_OPS: readonly CompareOp[] = ['<=', '>=', '==', '!=', '<', '>'];
 
 export interface CallArg {
   /** Set for named arguments (`key=value`). */
@@ -78,7 +94,9 @@ type Tok =
   | { t: 'p'; v: string; at: number }
   | { t: 'eof'; at: number };
 
-const PUNCT = new Set(['(', ')', ',', '=', '.', '+', '-', '*', '/', '|']);
+const PUNCT = new Set(['(', ')', ',', '=', '.', '+', '-', '*', '/', '|', '<', '>', '!']);
+/** Two-character operators, tried before the single characters (so `||` is OR, not two pipes). */
+const TWO_CHAR_OPS = new Set(['<=', '>=', '==', '!=', '&&', '||']);
 const QUOTE_PAIRS: Record<string, string> = {
   "'": "'",
   '"': '"',
@@ -137,10 +155,19 @@ function lex(src: string): Tok[] {
       i += m[0].length;
       continue;
     }
+    const two = src.slice(i, i + 2);
+    if (TWO_CHAR_OPS.has(two)) {
+      out.push({ t: 'p', v: two, at: i });
+      i += 2;
+      continue;
+    }
     if (PUNCT.has(ch)) {
       out.push({ t: 'p', v: ch, at: i });
       i++;
       continue;
+    }
+    if (ch === '&') {
+      throw new FigureSyntaxError('unexpected "&": write "&&" for and', i);
     }
     throw new FigureSyntaxError(`unexpected character "${ch}"`, i);
   }
@@ -225,6 +252,37 @@ class Parser {
   }
 
   private expr(): ExprNode {
+    let left = this.and();
+    while (this.isP('||')) {
+      this.pos++;
+      left = { kind: 'bin', op: '||', left, right: this.and() };
+    }
+    return left;
+  }
+
+  private and(): ExprNode {
+    let left = this.compare();
+    while (this.isP('&&')) {
+      this.pos++;
+      left = { kind: 'bin', op: '&&', left, right: this.compare() };
+    }
+    return left;
+  }
+
+  private compare(): ExprNode {
+    const left = this.sum();
+    const op = COMPARE_OPS.find((o) => this.isP(o));
+    if (!op) return left;
+    this.pos++;
+    const right = this.sum();
+    const again = COMPARE_OPS.find((o) => this.isP(o));
+    if (again) {
+      throw new FigureSyntaxError(`comparisons do not chain: write a ${op} b && b ${again} c instead of a ${op} b ${again} c`, this.peek().at);
+    }
+    return { kind: 'bin', op, left, right };
+  }
+
+  private sum(): ExprNode {
     let left = this.term();
     while (this.isP('+') || this.isP('-')) {
       const op = (this.next() as { v: '+' | '-' }).v;
@@ -246,6 +304,10 @@ class Parser {
     if (this.isP('-')) {
       this.pos++;
       return { kind: 'neg', operand: this.unary() };
+    }
+    if (this.isP('!')) {
+      this.pos++;
+      return { kind: 'not', operand: this.unary() };
     }
     return this.postfix();
   }

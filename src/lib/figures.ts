@@ -2671,6 +2671,26 @@ const fns: FigureFunction[] = [
     run: (a) => rateAttribution(MARKET_RATE_KEYS[a.str('key')]),
   },
   {
+    name: 'claim',
+    group: 'Helpers',
+    summary:
+      'Guards a derived statement in the prose (a verdict, a ranking, "X is cheaper than Y"): prints NOTHING when the condition is true and FAILS THE BUILD with your message when it is false, so a sentence can never outlive the numbers it rests on. Put it at the end of the sentence it guards.',
+    params: [
+      { name: 'condition', type: 'boolean', doc: 'a comparison of figures, e.g. a > b, joined with && || !', required: true },
+      { name: 'message', type: 'string', doc: 'what the sentence claims, shown in the build error when it stops being true', required: true },
+    ],
+    returns: 'nothing (empty text)',
+    example: "claim(ukTakeHome(50000) > ukTakeHome(45000), 'a higher salary leaves more take-home pay')",
+    run: (a) => {
+      const message = a.str('message').trim();
+      if (message === '') fail('claim needs a message saying what the text claims');
+      if (!a.bool('condition')) {
+        fail(`a claim in the text no longer holds: ${message}. Rewrite the sentence that depends on it, then update or remove the claim`);
+      }
+      return '';
+    },
+  },
+  {
     name: 'min',
     group: 'Helpers',
     summary: 'The smaller of two numbers.',
@@ -3054,9 +3074,34 @@ function evalExpr(node: ExprNode): FigureValue {
       if (typeof v !== 'number') fail(`cannot negate ${describeValue(v)}`);
       return -v;
     }
+    case 'not': {
+      const v = evalExpr(node.operand);
+      if (typeof v !== 'boolean') fail(`"!" needs a true/false condition such as a comparison, got ${describeValue(v)}`);
+      return !v;
+    }
     case 'bin': {
       const l = evalExpr(node.left);
       const r = evalExpr(node.right);
+      // Both sides are always evaluated (no short-circuit): a broken expression fails the build even when the
+      // other side would have decided the answer.
+      if (node.op === '&&' || node.op === '||') {
+        if (typeof l !== 'boolean' || typeof r !== 'boolean') {
+          fail(`"${node.op}" joins true/false conditions such as comparisons, got ${describeValue(typeof l !== 'boolean' ? l : r)}`);
+        }
+        return node.op === '&&' ? l && r : l || r;
+      }
+      if (node.op === '==' || node.op === '!=') {
+        if (typeof l === 'object' || typeof r === 'object' || typeof l !== typeof r) {
+          fail(`"${node.op}" compares two values of the same kind (numbers, text or true/false), got ${describeValue(l)} and ${describeValue(r)}`);
+        }
+        return node.op === '==' ? l === r : l !== r;
+      }
+      if (node.op === '<' || node.op === '>' || node.op === '<=' || node.op === '>=') {
+        if (typeof l !== 'number' || typeof r !== 'number') {
+          fail(`"${node.op}" compares numbers, got ${describeValue(typeof l !== 'number' ? l : r)}`);
+        }
+        return node.op === '<' ? l < r : node.op === '>' ? l > r : node.op === '<=' ? l <= r : l >= r;
+      }
       if (typeof l !== 'number' || typeof r !== 'number') {
         fail(`"${node.op}" works on numbers only, got ${describeValue(typeof l !== 'number' ? l : r)}`);
       }
@@ -3107,7 +3152,9 @@ function runPipeline(p: Pipeline): string {
   if (typeof value === 'number') {
     fail(`the result is a number (${value}); add a formatter such as | gbp, | usd, | pct or | months`);
   }
-  if (typeof value === 'boolean') fail('the result is a boolean; tokens must print text or a formatted number');
+  if (typeof value === 'boolean') {
+    fail('the result is a boolean (true/false), which cannot be printed; to assert it at build time wrap it: claim(condition, \'what the text claims\')');
+  }
   fail(`the result is an object; pick a field, e.g. .${Object.keys(value)[0]} (fields: ${Object.keys(value).join(', ')})`);
 }
 

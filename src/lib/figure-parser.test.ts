@@ -76,6 +76,62 @@ describe('parsePipeline: calls, fields, arithmetic, filters', () => {
   });
 });
 
+describe('parsePipeline: comparisons and logic (for claim)', () => {
+  const n = (value: number) => ({ kind: 'num', value });
+
+  it('parses each comparison operator', () => {
+    for (const op of ['<', '>', '<=', '>=', '==', '!=']) {
+      expect(parsePipeline(`1 ${op} 2`).expr, op).toEqual({ kind: 'bin', op, left: n(1), right: n(2) });
+    }
+    // no spaces needed, and "<=" is one operator, not "<" then "="
+    expect(parsePipeline('1<=2').expr).toEqual({ kind: 'bin', op: '<=', left: n(1), right: n(2) });
+  });
+
+  it('arithmetic binds tighter than comparison, comparison tighter than &&, && tighter than ||', () => {
+    const p = parsePipeline('1 + 2 > 3 * 4 && 5 < 6 || !(7 == 8)');
+    expect(p.expr).toEqual({
+      kind: 'bin',
+      op: '||',
+      left: {
+        kind: 'bin',
+        op: '&&',
+        left: {
+          kind: 'bin',
+          op: '>',
+          left: { kind: 'bin', op: '+', left: n(1), right: n(2) },
+          right: { kind: 'bin', op: '*', left: n(3), right: n(4) },
+        },
+        right: { kind: 'bin', op: '<', left: n(5), right: n(6) },
+      },
+      right: { kind: 'not', operand: { kind: 'bin', op: '==', left: n(7), right: n(8) } },
+    });
+  });
+
+  it('"||" is OR; a single "|" is still the formatter pipe', () => {
+    const p = parsePipeline('1 < 2 || 3 < 4 | usd');
+    expect(p.filters).toEqual([{ name: 'usd', args: [] }]);
+    expect(p.expr).toMatchObject({ kind: 'bin', op: '||' });
+  });
+
+  it('named arguments still parse next to comparisons', () => {
+    const p = parsePipeline("claim(condition=1 < 2, message='m')");
+    expect(p.expr).toMatchObject({
+      kind: 'call',
+      name: 'claim',
+      args: [{ name: 'condition', value: { kind: 'bin', op: '<' } }, { name: 'message', value: { kind: 'str', value: 'm' } }],
+    });
+  });
+
+  it('refuses a chained comparison, a lone &, and a dangling operator', () => {
+    expect(() => parsePipeline('1 < 2 < 3')).toThrow(/comparisons do not chain/);
+    expect(() => parsePipeline('1 < 2 == true')).toThrow(/comparisons do not chain/);
+    expect(() => parsePipeline('1 < 2 & 3 < 4')).toThrow(/write "&&" for and/);
+    expect(() => parsePipeline('1 <')).toThrow(FigureSyntaxError);
+    expect(() => parsePipeline('!')).toThrow(FigureSyntaxError);
+    expect(() => parsePipeline('1 < 2 ||')).toThrow(FigureSyntaxError);
+  });
+});
+
 describe('parsePipeline: errors', () => {
   const bad: Array<[string, RegExp]> = [
     ['', /empty token/],

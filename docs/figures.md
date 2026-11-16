@@ -39,6 +39,11 @@ Engine code: `src/lib/figures.ts` (catalogue), `src/lib/figure-parser.ts` (synta
   honest number it **fails the build** instead (a payoff that takes more than 50 years, a
   401(k) limit the IRS has not published, contradictory options). Read the error and
   write that case in words.
+- **Guard derived claims.** A sentence that rests on a comparison of live figures ("the 15-year
+  loan costs less interest", "the Roth account comes out ahead", "X is cheaper than Y") can go
+  stale when a rate moves even though every number in it is a token. Put a `claim(...)` at the end
+  of that sentence (section 4, "Guarding a verdict"): the build fails, with your message, the day
+  the comparison stops being true.
 - **Tell the year.** The US functions follow the calculator's default tax year, which moves
   from 2026 to 2027 on a build after 1 January 2027. Print `{{ taxYear('us') }}` beside the
   figures, or pass `year=2026` (or `2027`) when the sentence is about one specific year.
@@ -58,6 +63,12 @@ Engine code: `src/lib/figures.ts` (catalogue), `src/lib/figure-parser.ts` (synta
   `{{ ukTakeHome(30000) / 12 | gbp }}` (monthly), or
   `{{ loanTotalInterest(50000, 7, 4) - loanTotalInterest(50000, 4.5, 4) | usd }}` (a saving).
   Arguments can be expressions too, for example `yearly=loanPayment(50000, 7, 4)`.
+- **Comparisons.** `<`, `>`, `<=`, `>=`, `==` and `!=` compare two numbers (`==` and `!=` also text),
+  and `&&`, `||` and `!` join conditions: `a > b && c < d`. They give true/false, which cannot be
+  printed, so they only make sense inside `claim(...)` (section 4). Precedence is the usual one
+  (arithmetic, then comparison, then `&&`, then `||`); a comparison does not chain (write
+  `a < b && b < c`). Both sides of `&&` and `||` are always evaluated. A single `|` is still the
+  formatter pipe; `||` is "or".
 - **Fields.** Functions that return an object need a field:
   `{{ cardPayoff(5000, 22.99, 100).months | months }}`.
 - **Formatters** run left to right after `|`. A number can only be printed through a
@@ -488,6 +499,37 @@ themselves (`{{ cpiValue(1990) | index }}`).
 | `rateSource(key)` | text: who published the rate and the date it describes | `{{ rateSource('us30') }}` | varies |
 | `min(a, b)` | the smaller number | `{{ min(3, 5) \| int }}` | 3 |
 | `max(a, b)` | the larger number | `{{ max(0, 50000 - 60000) \| usd }}` | $0 |
+
+#### Guarding a verdict: `claim(condition, message)`
+
+A figure token cannot drift from the engines, but the words around it can: "the 15-year loan
+costs less interest than the 30-year one" stays in the text after a rate moves so far that it is
+no longer true. Where a sentence rests on a comparison of live figures, guard it with
+`claim(condition, message)`. It prints **nothing** when the condition is true and **fails the
+build** with your message when it is false (also in `npm test`, which resolves every token in
+`src/data`), so the sentence is rewritten before it ships.
+
+```markdown
+The 15-year loan costs less in total interest than the 30-year one.{{ claim(loanTotalInterest(300000, rate('us15'), 15) < loanTotalInterest(300000, rate('us30'), 30), 'the 15-year mortgage costs less total interest than the 30-year one') }}
+```
+
+In frontmatter, keep the token's strings single-quoted inside the double-quoted YAML value:
+
+```yaml
+verdict: "Pay the card first.{{ claim(cardPayoff(5000, 22.99, 100).interest > 0, 'the card still accrues interest') }}"
+```
+
+- **Place it at the end of the sentence it guards**, straight after the full stop, so no stray
+  space is left. It can also sit on a line of its own.
+- **The message says what the sentence claims**, in words a later editor can act on. The build
+  error shows it with the file, line and column: `a claim in the text no longer holds: <message>`.
+- Conditions compare the engines' unrounded values with `<`, `>`, `<=`, `>=`, `==`, `!=` and
+  join with `&&`, `||`, `!` (section 2). To claim that two amounts are about the same, compare
+  their gap: `max(a - b, b - a) < 1`.
+- It is for **qualitative statements derived from figures** (a ranking, a verdict, "wins", "ties",
+  "breaks even before year 7"). It does not replace tokens: a number the engines can produce is
+  still a token, never typed. If the sentence can be worded so it stays true whatever the numbers
+  do, do that instead.
 
 The `rate` and `rateSource` values move every time `market-rates.ts` is updated (the owner
 re-checks it monthly), which is the point: always print both, so the page shows the figure
