@@ -111,7 +111,7 @@ A battery stores surplus daytime generation for the evening, which raises self-c
 
 Batteries make financial sense when:
 
-- the gap between your import and export price is large (the UK example: about 22p per kWh)
+- the gap between your import and export price is large (the UK example: {{ 26.32 - 4.5 | num(1) }}p per kWh)
 - you are on a time-of-use tariff and can charge cheaply and discharge at the peak
 - you value backup power during outages
 
