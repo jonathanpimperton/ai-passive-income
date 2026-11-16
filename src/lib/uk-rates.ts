@@ -127,8 +127,12 @@ export const UK_RATES_BY_YEAR: Record<UkTaxYear, UkYearRates> = {
     // Full new State Pension 2026/27 (4.8% triple-lock uprating, April 2026)
     statePension: { weeklyRate: 241.30, source: 'https://www.gov.uk/new-state-pension/what-youll-get' },
     // Thresholds from 6 April 2026. Plan 5 threshold £25,000. Plan 5 repayments start the April
-    // after leaving a course, so the first graduates (3-year courses from Sept 2023) start in
-    // April 2027 at the earliest (CONTENT-24; https://www.gov.uk/repaying-your-student-loan/when-you-start-repaying).
+    // after you finish or leave the course. The first borrowers became liable in April 2026
+    // (shorter courses and early leavers); April 2027 for a three-year degree started in autumn
+    // 2023. Source: GOV.UK, Student Loans in England: financial year 2025-26 ("The first borrowers
+    // with Repayment Plan 5 loans became liable to repay in April 2026"), accessed 2026-11-16:
+    // https://www.gov.uk/government/statistics/student-loans-in-england-2025-to-2026/income-contingent-student-loan-repayment-plans-interest-rates-and-calculations-england
+    // (CONTENT-24; when-you-start-repaying: https://www.gov.uk/repaying-your-student-loan/when-you-start-repaying).
     studentLoans: {
       plan1: { threshold: 26_900, rate: 0.09 },
       plan2: { threshold: 29_385, rate: 0.09 },
