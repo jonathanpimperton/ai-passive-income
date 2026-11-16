@@ -16,7 +16,7 @@ faq:
   - question: "What is the Plan 5 student loan threshold?"
     answer: "{{ ukFact('plan5Threshold') | gbp }} a year for {{ taxYear('uk') }}. You repay {{ ukFact('studentLoanRate') | pct }} of everything you earn above it, deducted automatically through PAYE. Below {{ ukFact('plan5Threshold') | gbp }}, you repay nothing. The Plan 5 threshold is £25,000 up to and including the 2026-27 financial year and then rises each year with RPI (DfE student loan forecasts for England, published 9 July 2026)."
   - question: "When do Plan 5 repayments start?"
-    answer: "The April after you leave your course, per GOV.UK. Plan 5 covers students in England who started courses from August 2023, so someone who began a three-year degree in autumn 2023 and finished in summer 2026 makes their first repayment in April 2027. On a shorter course the first repayment comes earlier."
+    answer: "The April after you leave your course, per GOV.UK. Plan 5 covers students in England who started courses from August 2023, so someone who began a three-year degree in autumn 2023 and finished in summer 2026 makes their first repayment in April 2027. On a shorter course, or for someone who left early, the first repayment comes earlier: the first borrowers with Plan 5 loans became liable to repay in April 2026 (GOV.UK student loans statistics for England, 2025-26)."
   - question: "Which students are on Plan 5?"
     answer: "Students in England who started an undergraduate course, PGCE or other eligible course on or after 1 August 2023. Welsh students who started from September 2012, including after 2023, are on Plan 2. Scotland uses Plan 4 and Northern Ireland uses Plan 1."
   - question: "How much do you repay on Plan 5 at £30,000?"
@@ -33,7 +33,7 @@ faq:
 
 ## When will I start repaying?
 
-Per [GOV.UK](https://www.gov.uk/repaying-your-student-loan/when-you-start-repaying), the earliest you start repaying is the April after you leave your course. For Plan 5 that means a three-year degree started in autumn 2023 produces the first deduction in April 2027, and a shorter course produces it earlier. If you are not sure which plan you are on, GOV.UK lists it by country and start date: Plan 5 is England only (courses from 1 August 2023), Welsh students are on Plan 2, Scottish students on Plan 4 and Northern Irish students on Plan 1 ([which plan you are on](https://www.gov.uk/repaying-your-student-loan/which-repayment-plan-you-are-on)).
+Per [GOV.UK](https://www.gov.uk/repaying-your-student-loan/when-you-start-repaying), the earliest you start repaying is the April after you leave your course. For Plan 5 that means a three-year degree started in autumn 2023 produces the first deduction in April 2027, and a shorter course, or leaving early, produces it earlier: the first borrowers with Plan 5 loans became liable to repay in April 2026 ([GOV.UK student loans statistics for England, 2025-26](https://www.gov.uk/government/statistics/student-loans-in-england-2025-to-2026/income-contingent-student-loan-repayment-plans-interest-rates-and-calculations-england)). If you are not sure which plan you are on, GOV.UK lists it by country and start date: Plan 5 is England only (courses from 1 August 2023), Welsh students are on Plan 2, Scottish students on Plan 4 and Northern Irish students on Plan 1 ([which plan you are on](https://www.gov.uk/repaying-your-student-loan/which-repayment-plan-you-are-on)).
 
 ## Repayments at common salaries
 
@@ -55,7 +55,7 @@ Repayments behave like a tax, not like a normal loan:
 - **Automatic:** deducted through PAYE alongside income tax and NI. You never choose the amount.
 - **Income-contingent:** earn below {{ ukFact('plan5Threshold') | gbp }} in a pay period and the deduction stops. Nothing accrues as "missed".
 - **{{ ukFact('studentLoanRate') | pct }} above the threshold only:** a £1,000 pay rise above {{ ukFact('plan5Threshold') | gbp }} costs {{ 1000 * ukFact('studentLoanRate') / 100 | gbp }} a year in extra repayments, regardless of your balance.
-- **Written off after 40 years:** per [GOV.UK](https://www.gov.uk/repaying-your-student-loan/when-your-student-loan-gets-written-off-or-cancelled), "Plan 5 loans are written off 40 years after the April you were first due to repay". For a borrower whose first repayment is April 2027, that is April 2067.
+- **Written off after 40 years:** per [GOV.UK](https://www.gov.uk/repaying-your-student-loan/when-your-student-loan-gets-written-off-or-cancelled), "Plan 5 loans are written off 40 years after the April you were first due to repay". For a borrower whose first repayment is April 2026 that is April 2066, and for April 2027 it is April 2067.
 
 ## Plan 5 vs Plan 2: the real trade
 
