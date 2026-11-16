@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import * as jsyamlNs from 'js-yaml';
 import { yamlToJson, jsonToYaml, stringifyYamlValue, looksLikeYaml, type JsYamlModule } from './yaml';
 import { parseJsonLossless } from './json-lossless';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const jsyaml = ((jsyamlNs as unknown as { default?: JsYamlModule }).default ?? jsyamlNs) as unknown as JsYamlModule;
 

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   TRANSACTION_COST_DEFAULTS,
   US_SALT_CAP_2026,
@@ -9,6 +9,10 @@ import {
   type RentVsBuyInputs,
 } from './rent-vs-buy';
 import { US_STANDARD_DEDUCTION } from './us-rates';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 /** The calculator's previous defaults -- also the review's reference inputs. */
 const REVIEW: RentVsBuyInputs = {

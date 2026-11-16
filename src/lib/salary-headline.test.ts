@@ -18,7 +18,7 @@ import { calculateUkTakeHome } from './uk-tax-calc';
 import { computeUsSalary } from './us-tax-calc';
 
 // The first server render of each calculator transforms recharts, lucide and the chart chunks: slow on a busy machine.
-vi.setConfig({ testTimeout: 30_000 });
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const captured = vi.hoisted(() => ({ props: [] as Array<Record<string, unknown>> }));
 

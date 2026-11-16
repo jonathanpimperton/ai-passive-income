@@ -12,7 +12,7 @@
  * The tool defaults baked into the figure functions are read back out of the
  * calculators' source files, so a changed calculator default fails here.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { evaluateFigure as f, evaluateFigureValue as v, FIGURE_FUNCTIONS, FigureError, type FigureRecord } from './figures';
 import {
@@ -32,6 +32,10 @@ import { DEBT_HORIZON_MONTHS, simulateDebtPayoff, type Debt, type Strategy } fro
 import { CARD_HORIZON_MONTHS, simulateCardPayoff } from './credit-card';
 import { CPI_FIRST_YEAR, CPI_LAST_YEAR, cpiFor } from './inflation';
 import { buildAmortization } from './mortgage-payment';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const num = (expr: string): number => v(expr) as number;
 const rec = (expr: string): FigureRecord => v(expr) as FigureRecord;

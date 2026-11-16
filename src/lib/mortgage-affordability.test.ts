@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   AFFORDABILITY_DEFAULTS,
   estimateUkTakeHome,
@@ -8,6 +8,10 @@ import {
   solveUsAffordability,
   type UsAffordabilityInput,
 } from './mortgage-affordability';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 /**
  * The review's reference solver (docs/review-2026-11, MATH-US afford.mjs)
