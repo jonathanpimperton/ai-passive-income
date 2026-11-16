@@ -63,7 +63,7 @@ sources:
 
 Mortgage rates are high. Freddie Mac's weekly survey put the average 30-year fixed rate at {{ rate('us30') | pct(2) }} ({{ rateSource('us30') }}), after the Federal Reserve raised its target range in September. Home prices are rising slowly: the FHFA House Price Index was up 2.4% in the year to August 2026.
 
-That combination is why the old advice that buying beats renting after five years no longer holds on typical numbers. A high rate makes the mortgage payment large, and slow price growth means the home does little of the work.
+That combination is why the old advice that buying beats renting after five years no longer holds on the numbers below. A high rate makes the mortgage payment large, and slow price growth means the home does little of the work.
 
 ## The true monthly cost of owning
 
