@@ -88,13 +88,13 @@ You have $20,000 of debt and $500 a month, over five years, and any money you in
 - **Pay first:** send the full $500 to the debt; once it is cleared, invest the $500.
 - **Invest first:** pay only the debt's monthly interest, and invest the rest from day one.
 
-| Debt rate | Pay first: position after 5 years | Invest first: position after 5 years | Invest first minus pay first |
-|---|---|---|---|
-| 22% (credit card) | {{ -payoffBalance(20000, 22, 500, 60) | usd }} | {{ compoundFV(0, 500 - 20000 * 22 / 1200, 7, 5) - 20000 | usd }} | {{ payoffBalance(20000, 22, 500, 60) + compoundFV(0, 500 - 20000 * 22 / 1200, 7, 5) - 20000 | usd }} |
-| 7% (car loan) | {{ compoundFV(0, 500, 7, (60 - loanPayoff(20000, 7, 500).months) / 12) | usd }} | {{ compoundFV(0, 500 - 20000 * 7 / 1200, 7, 5) - 20000 | usd }} | {{ compoundFV(0, 500 - 20000 * 7 / 1200, 7, 5) - 20000 - compoundFV(0, 500, 7, (60 - loanPayoff(20000, 7, 500).months) / 12) | usd }} |
-| 3.5% (cheap loan) | {{ compoundFV(0, 500, 7, (60 - loanPayoff(20000, 3.5, 500).months) / 12) | usd }} | {{ compoundFV(0, 500 - 20000 * 3.5 / 1200, 7, 5) - 20000 | usd }} | {{ compoundFV(0, 500 - 20000 * 3.5 / 1200, 7, 5) - 20000 - compoundFV(0, 500, 7, (60 - loanPayoff(20000, 3.5, 500).months) / 12) | usd }} |
+| Debt rate | Pay first | Invest first |
+|---|---|---|
+| 22% (credit card) | {{ -payoffBalance(20000, 22, 500, 60) | usd }} | {{ compoundFV(0, 500 - 20000 * 22 / 1200, 7, 5) - 20000 | usd }} |
+| 7% (car loan) | {{ compoundFV(0, 500, 7, (60 - loanPayoff(20000, 7, 500).months) / 12) | usd }} | {{ compoundFV(0, 500 - 20000 * 7 / 1200, 7, 5) - 20000 | usd }} |
+| 3.5% (cheap loan) | {{ compoundFV(0, 500, 7, (60 - loanPayoff(20000, 3.5, 500).months) / 12) | usd }} | {{ compoundFV(0, 500 - 20000 * 3.5 / 1200, 7, 5) - 20000 | usd }} |
 
-A position is what you hold minus what you still owe. A negative difference means paying the debt first came out ahead.
+A position is what you hold minus what you still owe, after five years. The higher number is the better plan.
 
 **At 22% APR:** $500 a month does not even clear the debt within five years. Payoff takes {{ loanPayoff(20000, 22, 500).months | months }} and costs {{ loanPayoff(20000, 22, 500).interest | usd }} in interest, and at the five-year mark you would still owe {{ payoffBalance(20000, 22, 500, 60) | usd }}. Investing instead is worse: after covering the {{ 20000 * 22 / 100 / 12 | usd }} of monthly interest, only {{ 500 - 20000 * 22 / 1200 | usd }} is left to invest. Pay the debt off, decisively.
 
