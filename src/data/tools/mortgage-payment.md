@@ -2,7 +2,7 @@
 name: "Mortgage Payment Calculator"
 slug: "mortgage-payment"
 category: "debt-and-loans"
-description: "Mortgage payment calculator: monthly principal and interest, total interest and schedule, with extra payments, taxes, insurance and PMI for US, UK and euro loans."
+description: "Mortgage payment calculator: monthly payment, total interest and schedule, with extra payments, tax, insurance and PMI for US, UK and euro loans."
 keywords:
   - "mortgage calculator"
   - "mortgage payment calculator"

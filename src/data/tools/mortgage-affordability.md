@@ -2,7 +2,7 @@
 name: "Mortgage Affordability Calculator"
 slug: "mortgage-affordability"
 category: "debt-and-loans"
-description: "Mortgage affordability calculator: enter income, debts and deposit for the most you can borrow and pay a month, using US 28/36, UK income-multiple and euro rules."
+description: "Mortgage affordability calculator: your income, debts and deposit give the most you can borrow, using US 28/36, UK income-multiple and euro rules."
 keywords:
   - "how much house can I afford"
   - "mortgage affordability calculator"

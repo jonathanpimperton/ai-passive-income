@@ -2,7 +2,7 @@
 name: "Retirement Savings Calculator"
 slug: "retirement-savings"
 category: "income-and-planning"
-description: "Retirement savings calculator: project your balance at retirement from savings, contributions, return and inflation, in today's money, with US and UK milestones."
+description: "Retirement savings calculator: project your balance at retirement from savings, deposits, return and inflation, in today's money, with US and UK milestones."
 keywords:
   - "retirement calculator"
   - "retirement savings calculator"
