@@ -1,105 +1,109 @@
 ---
 title: "Fixed vs Variable Rate Mortgage: Which Costs Less?"
 slug: "fixed-vs-variable-rate-mortgage"
-description: "Compare fixed and variable rate mortgages. See how each works, when fixed wins, when variable saves money, and how to calculate the break-even point."
+description: "UK fixed vs tracker mortgage on £250,000: today's payments, what a Bank Rate rise does to them, and the break-even rate that decides which costs less."
 keywords:
   - "fixed vs variable rate mortgage"
-  - "fixed or variable mortgage 2026"
+  - "fixed vs tracker mortgage UK"
   - "mortgage rate comparison"
 relatedTools:
   - "mortgage-payment"
   - "loan-amortization"
-verdict: "Fixed rates cost more upfront but protect against rate rises. Variable rates start cheaper but carry risk. In a rising-rate environment, fixed wins; in a falling-rate environment, variable pays off."
+  - "mortgage-affordability"
+verdict: "Fix if a payment rise would hurt, which for most borrowers it would. On a £250,000 repayment mortgage over 25 years, a 5-year fix at {{ rate('uk5yr') | pct(2) }} costs less than a tracker at Bank Rate plus 1 point unless Bank Rate averages below {{ rate('uk5yr') - 1 | pct(2) }} over the fix, only {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points above today's {{ rate('boe') | pct(2) }}. Take the tracker only if you could afford the payment after a 2-point rise and want to leave without an early repayment charge."
 comparisonTable:
-  - feature: "Initial rate"
-    option1: "Higher (premium for certainty)"
-    option2: "Lower (introductory discount)"
-  - feature: "Monthly payment"
-    option1: "Same for the fixed term"
-    option2: "Changes with base rate"
+  - feature: "Monthly payment on £250,000 over 25 years (today)"
+    option1: "{{ loanPayment(250000, rate('uk5yr'), 25) | gbp }} (5-year fix at {{ rate('uk5yr') | pct(2) }})"
+    option2: "{{ loanPayment(250000, rate('boe') + 1, 25) | gbp }} (tracker at Bank Rate plus 1 point, {{ rate('boe') + 1 | pct(2) }} today)"
+  - feature: "Payment if the rate rises 2 points after two years"
+    option1: "Unchanged until the fix ends"
+    option2: "{{ loanPayment(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 3, 23) | gbp }}"
   - feature: "Rate risk"
-    option1: "None during fixed period"
-    option2: "Unlimited — payments can jump"
+    option1: "None during the fixed period"
+    option2: "Payments move with the Bank Rate"
   - feature: "Early repayment charges"
-    option1: "Usually 1–5% during fixed term"
-    option2: "Often none (especially trackers)"
-  - feature: "Budgeting ease"
-    option1: "Easy — payment never changes"
-    option2: "Hard — must plan for increases"
-  - feature: "Overpayment flexibility"
-    option1: "Typically limited to 10%/year"
-    option2: "Usually unlimited"
-  - feature: "Best when rates are..."
-    option1: "Expected to rise"
-    option2: "Expected to fall"
-affiliateContext: "Compare mortgage rates"
-affiliatePrograms:
-  - "LendingTree"
+    option1: "Usually apply during the fix, often 1% to 5% of what you repay"
+    option2: "Often none, especially on trackers"
+  - feature: "Overpayments"
+    option1: "Usually capped, commonly at 10% of the balance a year"
+    option2: "Usually allowed without limit"
+  - feature: "Budgeting"
+    option1: "Easy: the payment cannot change"
+    option2: "Harder: you must plan for increases"
+  - feature: "Falling onto the lender's standard rate"
+    option1: "Revert-to rates average {{ rate('ukRevert') | pct(2) }}, so {{ loanPayment(250000, rate('ukRevert'), 25) - loanPayment(250000, rate('uk5yr'), 25) | gbp }} a month more than the fix"
+    option2: "Not applicable; a tracker already follows Bank Rate"
+faq:
+  - question: "Is a fixed or a tracker mortgage cheaper?"
+    answer: "It depends on where Bank Rate goes. Compare the fixed rate with the tracker's margin over Bank Rate. In the example here, the fix is {{ rate('uk5yr') | pct(2) }} and the tracker is Bank Rate plus 1 point, so the tracker is cheaper only if Bank Rate averages below {{ rate('uk5yr') - 1 | pct(2) }} for the whole fix. Bank Rate is {{ rate('boe') | pct(2) }} today."
+  - question: "What happens to my payment if Bank Rate rises?"
+    answer: "On a tracker, it rises soon after. On £250,000 over 25 years at Bank Rate plus 1 point, a 2-point rise after two years takes the monthly payment from {{ loanPayment(250000, rate('boe') + 1, 25) | gbp }} to {{ loanPayment(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 3, 23) | gbp }}. On a fix it does not change until the fixed period ends."
+  - question: "What happens when my fixed rate ends?"
+    answer: "You move to the lender's standard variable (revert-to) rate unless you remortgage. The Bank of England's average quoted revert-to rate was {{ rate('ukRevert') | pct(2) }} ({{ rateSource('ukRevert') }}). On £250,000 over 25 years that is {{ loanPayment(250000, rate('ukRevert'), 25) - loanPayment(250000, rate('uk5yr'), 25) | gbp }} a month more than the 5-year fix average. Start comparing deals three to six months before the fix ends."
+  - question: "Is a 2-year or 5-year fix better?"
+    answer: "A 5-year fix gives certainty for longer and usually carries a larger early repayment charge. A 2-year fix brings your next decision forward and exposes you to the rates at that time. Lenders already price in the rate moves they expect, so choose by how long you need your payment to stay fixed, not by guessing the rate."
 datePublished: "2026-03-05"
-dateModified: "2026-11-12"
+dateModified: "2026-11-16"
 sources:
   - name: "Bank of England — Monetary Policy Summary, November 2026"
     url: "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/november-2026"
+  - name: "Bank of England — Quoted household interest rates (Bankstats series IUMBV34, IUMBV42, IUMTLMV), October 2026"
+    url: "https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes&Datefrom=01/Jan/2026&Dateto=now&SeriesCodes=IUMBV34,IUMBV42,IUMTLMV&CSVF=TN&UsingCodes=Y&VPD=Y&VFD=N"
   - name: "Federal Reserve — FOMC statement, 28 October 2026"
     url: "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"
-  - name: "CFPB — Owning a Home"
-    url: "https://www.consumerfinance.gov/owning-a-home/"
-  - name: "FCA — Consumer information"
-    url: "https://www.fca.org.uk/consumers"
 ---
 
 ## How each rate type works
 
-**Fixed rate:** Your interest rate stays the same for an agreed period — typically 2 or 5 years in the UK, or [15 to 30 years in the US](/comparisons/15-year-vs-30-year-mortgage/). If you fix at 4.5%, you pay 4.5% regardless of what happens to central bank rates. When the fix ends (in the UK), you move to the lender's standard variable rate unless you remortgage.
+**Fixed rate:** your interest rate stays the same for an agreed period, typically 2 or 5 years in the UK. If you fix at {{ rate('uk5yr') | pct(2) }}, you pay {{ rate('uk5yr') | pct(2) }} whatever happens to central bank rates. When the fix ends you move to the lender's standard variable (revert-to) rate unless you remortgage.
 
-**Variable rate:** Your rate moves with the market. In the UK, this means a tracker (Bank of England base rate + a set margin) or a standard variable rate (SVR) set by the lender. In the US, adjustable-rate mortgages (ARMs) typically fix for 5 or 7 years, then adjust annually based on an index like SOFR.
+**Variable rate:** your rate moves with the market. In the UK that means a tracker (Bank of England Bank Rate plus a set margin) or a lender's standard variable rate (SVR). In the US, adjustable-rate mortgages (ARMs) fix for a set period, often 5, 7 or 10 years, and then adjust periodically, commonly every 6 or 12 months, based on an index such as SOFR. [US borrowers can fix for 15 to 30 years](/comparisons/15-year-vs-30-year-mortgage/), which is unusual elsewhere.
+
+The figures on this page are in pounds for a UK repayment mortgage, using the Bank of England's average quoted 5-year fixed rate at 75% loan-to-value ({{ rate('uk5yr') | pct(2) }}, {{ rateSource('uk5yr') }}). They are benchmarks, not quotes.
 
 ## The maths: when does fixed save money?
 
-Take a £250,000 mortgage over 25 years, with a 5-year fix at 4.5% and a 2-year tracker starting at 4.0%.
+Take £250,000 over 25 years. Compare a 5-year fix at {{ rate('uk5yr') | pct(2) }} with a tracker at Bank Rate plus 1 point. The 1-point margin is an example; real margins vary by lender and deal.
 
-**Fixed at 4.5%:** Monthly payment of £1,390. Over 5 years, you pay £83,400 in total payments and owe about £219,600 remaining.
+**Fixed at {{ rate('uk5yr') | pct(2) }}:** {{ loanPayment(250000, rate('uk5yr'), 25) | gbp }} a month. After 5 years you owe {{ loanBalance(250000, rate('uk5yr'), 25, 60) | gbp }}.
 
-**Tracker at 4.0% initially:** Monthly payment starts at £1,320 — £70/month cheaper. But if the Bank of England raises rates by 0.5% in year 2 and another 0.5% in year 3, your rate hits 5.0% and your payment jumps to £1,461.
+**Tracker at {{ rate('boe') + 1 | pct(2) }} today (Bank Rate {{ rate('boe') | pct(2) }} plus 1):** {{ loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month, so {{ loanPayment(250000, rate('uk5yr'), 25) - loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month cheaper than the fix at the start.
 
-The break-even point: if rates rise by more than about 0.5% on average over your mortgage term, the fixed rate saves money. If rates stay flat or fall, the variable rate wins.
+But if Bank Rate rises 1 point after two years and another point after four, the tracker's payment goes to {{ loanPayment(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 2, 23) | gbp }} and then {{ loanPayment(loanBalance(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 2, 23, 24), rate('boe') + 3, 21) | gbp }}.
+
+**The break-even:** the tracker costs less than the fix only if Bank Rate, on average over the fixed period, stays below the fixed rate minus your margin. Here that is {{ rate('uk5yr') | pct(2) }} minus 1 point, or {{ rate('uk5yr') - 1 | pct(2) }}. Bank Rate is {{ rate('boe') | pct(2) }} now, so Bank Rate would need to rise by only {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points on average for the fix to come out cheaper.
 
 ## Where rates are now
 
-Central banks in the US and UK raised rates aggressively in 2022-23 to fight inflation, then began cutting in 2024. That direction has now reversed. The Bank of England raised Bank Rate from 3.75% to 4% on 5 November 2026, citing inflationary pressure. The US Federal Reserve raised its target range to 3.75-4.00% on 16 September 2026 and held it there on 28 October, with two members voting for a further rise.
+Central banks in the US and UK raised rates aggressively in 2022-23 to fight inflation, then began cutting in 2024. That direction has reversed. The Bank of England raised Bank Rate from 3.75% to 4% on 5 November 2026, citing inflationary pressure. The US Federal Reserve raised its target range to 3.75-4.00% on 16 September 2026 and held it there on 28 October, with two members voting for a further rise.
 
-While rates are rising, a tracker or SVR payment goes up with each increase, and a fixed-rate borrower is protected until the fix ends. That doesn't make a fix automatically right: lenders price the rises they expect into fixed deals, so the real comparison is between today's fixed rate and where you think Bank Rate will go over the fixed period, not today's Bank Rate.
+While rates are rising, a tracker or SVR payment goes up with each increase, and a fixed-rate borrower is protected until the fix ends. That does not make a fix automatically right: lenders price the rises they expect into fixed deals, so the real comparison is today's fixed rate against where you think Bank Rate will go over the fixed period, not against today's Bank Rate.
 
-Short fixes (2 years) protect you for less time and bring your next decision forward. Long fixes (5+ years) buy certainty for longer, usually with larger early repayment charges if you need to leave early.
+Short fixes (2 years) protect you for less time and bring your next decision forward. Long fixes (5 years or more) buy certainty for longer, usually with larger early repayment charges if you need to leave early.
 
 ## Break-even analysis: how to calculate yours
 
-To determine your break-even point:
+1. Take the fixed rate you are offered and subtract your tracker's margin. That is the Bank Rate at which the two cost the same. In the example, {{ rate('uk5yr') | pct(2) }} minus 1 point is {{ rate('uk5yr') - 1 | pct(2) }}, which is {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points above today's Bank Rate of {{ rate('boe') | pct(2) }}.
+2. Decide whether Bank Rate is likely to average above that level during the fix. If so, the fix is cheaper.
+3. Remember what a tracker gives you in return: no early repayment charge and unlimited overpayments. If you expect to sell or remortgage within two or three years, those can be worth more than the rate.
 
-1. Find the difference between your fixed rate and variable rate (e.g., 4.5% fixed vs 4.0% variable = 0.5% gap)
-2. Calculate how much rates would need to rise before the variable rate exceeds the fixed rate — in this case, any rise above 0.5%
-3. Estimate how long rates need to stay elevated to wipe out the early savings from the lower variable rate
-
-Use a [mortgage payment calculator](/tools/debt-and-loans/mortgage-payment/) to model 3 scenarios: rates stay flat, rates rise 1%, and rates fall 1%. [Compare total interest paid](/tools/debt-and-loans/loan-amortization/) across the full term. The scenario where the difference is smallest tells you this decision matters less than you think — and the one where it's largest tells you how much you're gambling.
+Use a [mortgage payment calculator](/tools/debt-and-loans/mortgage-payment/) to model three scenarios: rates stay flat, rise 1 point and fall 1 point. [Compare total interest](/tools/debt-and-loans/loan-amortization/) across the full term. Where the gap is smallest, the decision matters least; where it is largest, that is how much you would be gambling. If you are unsure how much you can borrow, the [mortgage affordability calculator](/tools/debt-and-loans/mortgage-affordability/) applies a stress test.
 
 ## When to choose fixed
 
-- You're stretching to afford the mortgage and can't absorb a payment increase
-- You're on a tight budget with little room for surprise expenses
-- Rates are historically low and more likely to rise than fall
-- You value predictability and sleep better knowing your payment won't change
-- You're buying in the US and can lock for 30 years (this is unusual globally — most countries don't offer fixes beyond 5-10 years)
+- You are stretching to afford the mortgage and cannot absorb a payment rise.
+- You are on a tight budget with little room for surprise costs.
+- You value predictability and want a payment that cannot change.
+- Rates are rising, as they are now, and a fix would hold today's level.
 
 ## When to choose variable
 
-- You can afford payments even if rates rise 2-3%
-- Rate cuts are widely expected and you want to benefit immediately
-- You plan to sell or remortgage within 2-3 years (avoiding early repayment charges on a fix)
-- You want flexibility to make unlimited overpayments
-- The gap between fixed and variable is large (1%+), making the fixed premium expensive
+- You could afford the payments if Bank Rate rose 2 to 3 points.
+- Rate cuts are widely expected and you want to benefit at once.
+- You plan to sell or remortgage within two or three years and want to avoid early repayment charges.
+- You want to make large overpayments without a cap.
+- The gap between fixed and tracker is wide, so the fixed premium is expensive.
 
 ## The UK remortgage cycle
 
-Most UK borrowers remortgage every 2-5 years when their fix ends. This means the fixed vs variable decision isn't permanent — it's a 2-5 year bet on rate direction. Start comparing deals 3-6 months before your fix expires. Falling onto your lender's SVR (often 7-8%) costs hundreds per month.
-
-Set a reminder in your calendar when your fix ends. Missing the remortgage window is one of the most expensive financial mistakes UK homeowners make.
+Most UK borrowers remortgage every 2 to 5 years when a fix ends, so fixed versus variable is not a permanent decision. It is a 2 to 5 year bet on rate direction. Start comparing deals three to six months before your fix expires. Falling onto your lender's standard variable rate costs {{ loanPayment(250000, rate('ukRevert'), 25) - loanPayment(250000, rate('uk5yr'), 25) | gbp }} a month more than the 5-year fix average on £250,000. Set a calendar reminder for the day your fix ends, because a missed remortgage window is one of the most expensive mistakes a UK homeowner can make.
