@@ -23,7 +23,8 @@ import {
   type ContributionTiming,
   type GrowthInputs,
 } from './investment-solvers';
-import { formatMonthsShort } from './result-format';
+import { formatMonthsShort, formatMoneyGuarded } from './result-format';
+import { evaluateFigure } from './figures';
 
 /** Deterministic PRNG (mulberry32) so property tests are reproducible. */
 function rng(seed: number) {
@@ -145,6 +146,44 @@ describe('futureValue: negative and zero rates', () => {
     expect(rows).toHaveLength(11);
     for (const r of rows) expect(r.balance).toBeCloseTo(r.totalContributions + r.totalInterest, 1);
   });
+
+  it('rows are exact, not rounded to cents: the display rounds once, so it cannot differ from the engine by $1', () => {
+    // $500 a month for 30 years at 7% is $609,985.4979: rounding to cents first gives $609,985.50, which
+    // a whole-dollar display then rounds UP to $609,986, while the engine and the figure token say $609,985
+    // (Nov 2026 follow-up, CompoundInterestCalc double rounding).
+    const inputs = { principal: 0, monthlyContribution: 500, annualRate: 0.07 };
+    const last = growthSchedule(inputs, 30).at(-1)!;
+    expect(last.balance).toBe(futureValue(inputs, 360));
+    expect(formatMoneyGuarded(last.balance, 'USD')).toBe('$609,985');
+    expect(formatMoneyGuarded(last.balance, 'USD')).toBe(evaluateFigure('compoundFV(0, 500, 7, 30) | usd'));
+    // The headline split follows: interest = balance - paid in, both exact.
+    expect(last.totalInterest).toBe(last.balance - last.totalContributions);
+    expect(formatMoneyGuarded(last.totalInterest, 'USD')).toBe(evaluateFigure('compoundEarned(0, 500, 7, 30) | usd'));
+  });
+
+  it('every schedule row equals the engine exactly over a grid (and so prints what the tokens print)', () => {
+    let checked = 0;
+    for (const principal of [0, 1000, 10000, 25000, 100000]) {
+      for (const monthly of [0, 100, 250, 500, 1000, 2000]) {
+        for (const ratePct of [1, 3, 5, 7, 8, 10]) {
+          for (const compounding of [1, 4, 12, 365]) {
+            for (const timing of ['end', 'beginning'] as const) {
+              const inputs = { principal, monthlyContribution: monthly, annualRate: ratePct / 100, compoundingPerYear: compounding, timing };
+              const rows = growthSchedule(inputs, 40);
+              for (const row of rows) {
+                const months = row.year * 12;
+                expect(row.balance).toBe(futureValue(inputs, months));
+                expect(row.totalContributions).toBe(principal + monthly * months);
+                expect(row.totalInterest).toBe(row.balance - row.totalContributions);
+                checked++;
+              }
+            }
+          }
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(10000);
+  }, 60_000);
 
   it('growthSchedule adds an exact final row for a partial year', () => {
     const rows = growthSchedule({ principal: 1000, monthlyContribution: 50, annualRate: 0.05 }, 15, 191);

@@ -77,6 +77,15 @@ describe('compoundInterestSchedule', () => {
     );
   });
 
+  it('rows are exact, not rounded to cents (the display rounds once; Nov 2026 follow-up)', () => {
+    // $500 a month for 30 years at 7%: $609,985.4979, which cents-rounding turned into $609,985.50 and
+    // a whole-dollar display into $609,986.
+    const last = compoundInterestSchedule(0, 500, 0.07, 30, 12).at(-1)!;
+    expect(last.balance).toBe(compoundInterest(0, 500, 0.07, 30, 12));
+    expect(Math.round(last.balance)).toBe(609985);
+    expect(last.totalInterest).toBe(last.balance - last.totalContributions);
+  });
+
   it('balance increases monotonically with positive rate', () => {
     const schedule = compoundInterestSchedule(10000, 100, 0.05, 10, 12);
     for (let i = 1; i < schedule.length; i++) {

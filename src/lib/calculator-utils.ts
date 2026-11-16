@@ -39,7 +39,8 @@ export function compoundInterest(
 
 /**
  * Generate a year-by-year breakdown of compound interest growth.
- * Useful for charting balance over time.
+ * Useful for charting balance over time. Values are exact (not rounded to
+ * cents): a display rounds once, so it cannot differ from the engine by a unit.
  */
 export function compoundInterestSchedule(
   principal: number,
@@ -68,12 +69,7 @@ export function compoundInterestSchedule(
     const totalContributions = principal + monthlyContribution * 12 * y;
     const totalInterest = balance - totalContributions;
 
-    schedule.push({
-      year: y,
-      balance: Math.round(balance * 100) / 100,
-      totalContributions: Math.round(totalContributions * 100) / 100,
-      totalInterest: Math.round(totalInterest * 100) / 100,
-    });
+    schedule.push({ year: y, balance, totalContributions, totalInterest });
   }
 
   return schedule;
