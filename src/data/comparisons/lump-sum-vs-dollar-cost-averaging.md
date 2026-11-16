@@ -9,13 +9,13 @@ keywords:
 relatedTools:
   - "investment-return"
   - "compound-interest"
-verdict: "Invest the lump sum now if your horizon is 10 years or more and a 30% fall would not make you sell. Vanguard found lump sum ahead of 12-month cost averaging in about two-thirds of periods. Spread it over six months if a large early loss would change your plans: on a $60,000 windfall that costs about {{ compoundFV(60000, 0, 7, 10) - compoundFV(compoundFV(0, 10000, 7, 0.5, timing=beginning), 0, 7, 9.5) | usd }} over 10 years at 7%, against {{ compoundFV(60000, 0, 7, 10) - compoundFV(compoundFV(0, 5000, 7, 1, timing=beginning), 0, 7, 9) | usd }} for 12 months."
+verdict: "Invest the lump sum now if your horizon is 10 years or more and a 30% fall would not make you sell. Vanguard found lump sum ahead of a three-month cost-averaging split in about two-thirds of one-year periods. Spread it over six months if a large early loss would change your plans: on a $60,000 windfall that costs about {{ compoundFV(60000, 0, 7, 10) - compoundFV(compoundFV(0, 10000, 7, 0.5, timing=beginning), 0, 7, 9.5) | usd }} over 10 years at 7%, against {{ compoundFV(60000, 0, 7, 10) - compoundFV(compoundFV(0, 5000, 7, 1, timing=beginning), 0, 7, 9) | usd }} for 12 months."
 comparisonTable:
   - feature: "How often it came out ahead"
-    option1: "About 68% of rolling 12-month periods (Vanguard, US, 1976–2022)"
-    option2: "About 32% of periods"
+    option1: "About 66% to 68% of one-year periods against a three-month split (Vanguard, 1976–2022)"
+    option2: "About 32% to 34% of periods"
   - feature: "Typical extra return"
-    option1: "Median 1.2% to 2.2% more over the 12 months, depending on the stock and bond mix (Vanguard)"
+    option1: "Median 1.2% to 2.2% more after one year, depending on the stock and bond mix (Vanguard)"
     option2: "—"
   - feature: "Result on $60,000 after 10 years (7% a year)"
     option1: "{{ compoundFV(60000, 0, 7, 10) | usd }}"
@@ -38,11 +38,13 @@ affiliatePrograms:
   - "InvestEngine"
 faq:
   - question: "Is lump sum or dollar-cost averaging better?"
-    answer: "On average lump sum investing is better, because markets rise more often than they fall and money held in cash misses those gains. Vanguard's research found it ahead of 12-month cost averaging about 68% of the time. Dollar-cost averaging is the better choice if the risk of investing right before a fall would make you sell."
+    answer: "On average lump sum investing is better, because markets rise more often than they fall and money held in cash misses those gains. Vanguard's research found it ahead of a three-month split in roughly two-thirds of one-year periods (66.4% for US equities, 68% for global equities). Dollar-cost averaging is the better choice if the risk of investing right before a fall would make you sell."
   - question: "How long should I spread out a lump sum?"
     answer: "As short as you can stand: six months at most for most people. On a $60,000 windfall at 7% a year, spreading it over six months costs about {{ compoundFV(60000, 0, 7, 10) - compoundFV(compoundFV(0, 10000, 7, 0.5, timing=beginning), 0, 7, 9.5) | usd }} after 10 years, while 12 months costs about {{ compoundFV(60000, 0, 7, 10) - compoundFV(compoundFV(0, 5000, 7, 1, timing=beginning), 0, 7, 9) | usd }}. The longer the wait, the more you give up."
   - question: "Should I use dollar-cost averaging for regular monthly investing?"
     answer: "That is a different question. If you invest part of every paycheck, you are already dollar-cost averaging because the money arrives over time. The lump sum versus DCA debate only applies when you hold a large amount of cash that you could invest all at once."
+  - question: "What did Vanguard's study actually test?"
+    answer: "It compared investing a lump sum at once with spreading it over three months, with splits of up to six months in an appendix, and measured the result after one year, using rolling periods from 1976 to 2022. It did not test a 12-month schedule, so the 12-month figures on this page come from our own arithmetic, not from Vanguard."
 datePublished: "2026-03-05"
 dateModified: "2026-11-16"
 sources:
@@ -52,13 +54,13 @@ sources:
 
 ## What the data says
 
-Vanguard studied this question across 1976 to 2022 using rolling 12-month periods. The finding: investing a lump sum immediately beat spreading the same money over 12 months in about **68% of cases** for a US portfolio, and between roughly 62% and 74% across the markets it examined. The median outperformance was between 1.2% and 2.2% over the 12 months, depending on the mix of stocks and bonds.
+Vanguard compared investing a lump sum at once with spreading the same money over three months, and measured the result after one year, using rolling periods. Lump sum came out ahead in about two-thirds of them: **66.4%** for US equities (Russell 3000, 1979 to 2022) and **68%** for global equities (MSCI World, 1976 to 2022). Across the markets it tested, with splits of up to six months, the range was about 62% to 74%. The median advantage for investing at once was between 1.2% and 2.2%, depending on the mix of stocks and bonds. Vanguard did not test a 12-month schedule.
 
 The reason is straightforward. Stock markets go up more often than they go down. If you hold cash waiting to invest gradually, you are out of the market on most of the days it rises, and every month the cash sits in a savings account instead of being invested, you fall slightly behind. The same study found that cost averaging beat simply holding cash, so the question is how fast to invest, not whether.
 
 ## When lump sum loses
 
-The other 32% matters. If you invested a $100,000 windfall as a lump sum in October 2007, the S&P 500 fell by more than half before it bottomed in March 2009. Dollar-cost averaging the same amount over 12 months would have bought more shares at lower prices and left you less exposed in the worst months.
+The other third or so matters. If you invested a $100,000 windfall as a lump sum in October 2007, the S&P 500 fell by more than half before it bottomed in March 2009. Dollar-cost averaging the same amount over 12 months would have bought more shares at lower prices and left you less exposed in the worst months.
 
 The worst case for lump sum investing, putting everything in right before a major crash, is also what most people imagine when they receive a large sum. The fear is not irrational. A 40% drop on your entire windfall is hard to sit through, even when the rational move is to hold.
 
@@ -92,7 +94,7 @@ The cost of spreading it out is the price of the insurance. The **50/50 hybrid**
 If you choose to spread it out, pick a fixed schedule and automate it:
 
 - **6 months:** invest a sixth each month. Keeps the cash drag small.
-- **12 months:** the period Vanguard studied most. The longer wait costs more than six months.
+- **12 months:** longer than the three to six months Vanguard tested, so the cost against lump sum is larger.
 - **Buying extra on dips:** some people hold the cash and invest more when markets fall 5% or more. This sounds smart but needs timing decisions that most people get wrong.
 
 Whatever schedule you pick, set up automatic transfers on fixed dates. Do not wait for a "good time" for each purchase, which turns DCA into market timing.

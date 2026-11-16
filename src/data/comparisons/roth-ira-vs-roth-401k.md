@@ -89,7 +89,7 @@ High earners locked out of direct Roth IRA contributions can still use the "back
 
 A Roth IRA at a brokerage gives you access to thousands of ETFs, individual stocks, bonds, mutual funds, and REITs. You pick exactly what to buy and can change your allocation anytime.
 
-A Roth 401(k) limits you to whatever funds your employer's plan offers — often 15-30 mutual funds or target-date funds. Some plans have great options (low-cost index funds). Others are loaded with [high-fee actively managed funds](/comparisons/index-funds-vs-active-funds/) that eat into your returns.
+A Roth 401(k) limits you to whatever funds your employer's plan offers — often a limited menu of mutual funds or target-date funds. Some plans have great options (low-cost index funds). Others are loaded with [high-fee actively managed funds](/comparisons/index-funds-vs-active-funds/) that eat into your returns.
 
 If your 401(k) fund menu is expensive (look for [expense ratios above 0.50%](/tools/saving-and-growth/investment-fee/)), you might prefer contributing enough to get the employer match, then directing additional Roth savings to an IRA where you control costs.
 
@@ -112,7 +112,7 @@ This difference makes the Roth IRA a partial backup for emergencies, while the R
 If you have access to a Roth 401(k) and qualify for a Roth IRA, the standard advice is:
 
 1. **Roth 401(k) up to the employer match.** Never leave the match on the table.
-2. **Roth IRA up to the $7,500 limit.** Better fund choices and flexible withdrawals.
+2. **Roth IRA up to the 2026 limit of $7,500.** Better fund choices and flexible withdrawals.
 3. **Back to the Roth 401(k) for additional savings.** The higher {{ usFact('k401Limit', year=2026) | usd }} limit gives you more tax-free growth room.
 
 This approach captures the employer match, gets you the IRA's investment flexibility, and maximizes the total amount in Roth accounts. When you leave the employer, you can roll the Roth 401(k) into your Roth IRA to consolidate everything in one place with full control.

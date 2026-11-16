@@ -11,10 +11,10 @@ relatedTools:
   - "retirement-contribution"
   - "salary-uk"
   - "compound-interest"
-verdict: "Pay into your workplace pension up to the full employer match first: it is an instant return no ISA can offer. Then fill a Stocks & Shares ISA for money you may need before 55. One exception reverses that order: if your income is between {{ ukFact('paTaperThreshold') | gbp }} and {{ ukFact('paTaperLimit') | gbp }}, pension contributions recover the personal allowance you are losing and relieve tax at an effective {{ ukFact('higherRate') * 1.5 | pct }}, so extra pension comes before the ISA. Higher and additional-rate taxpayers should weigh the larger relief against the lock-in."
+verdict: "Pay into your workplace pension up to the full employer match first: it is an instant return no ISA can offer. Then fill a Stocks & Shares ISA for money you may need before {{ ukFact('pensionAccessAge') | int }}. One exception reverses that order: if your income is between {{ ukFact('paTaperThreshold') | gbp }} and {{ ukFact('paTaperLimit') | gbp }}, pension contributions recover the personal allowance you are losing and relieve tax at an effective {{ ukFact('higherRate') * 1.5 | pct }}, so extra pension comes before the ISA. Higher and additional-rate taxpayers should weigh the larger relief against the lock-in."
 comparisonTable:
   - feature: "Tax relief on contributions"
-    option1: "20% to 45% in England, Wales and Northern Ireland (19% to 48% in Scotland), added by HMRC or your employer"
+    option1: "{{ ukFact('basicRate') | pct }} to {{ ukFact('additionalRate') | pct }} in England, Wales and Northern Ireland (19% to 48% in Scotland), added by HMRC or your employer"
     option2: "None: paid from after-tax income"
   - feature: "Employer match"
     option1: "Yes, at least 3% of qualifying earnings under auto-enrolment"
@@ -23,13 +23,13 @@ comparisonTable:
     option1: "£60,000 (or 100% of earnings)"
     option2: "£20,000"
   - feature: "Access to funds"
-    option1: "Not before 55 (57 from 6 April 2028)"
+    option1: "Not before {{ ukFact('pensionAccessAge') | int }} ({{ ukFact('pensionAccessAgeFrom2028') | int }} from 6 April 2028)"
     option2: "Anytime, no restrictions"
   - feature: "Tax on withdrawals"
     option1: "25% tax-free, the rest taxed as income"
     option2: "Completely tax-free"
   - feature: "Inheritance tax"
-    option1: "Unused pensions are due to fall within the estate from April 2027"
+    option1: "Most unused pension funds count towards the estate for deaths from 6 April 2027"
     option2: "Part of your estate (subject to inheritance tax)"
   - feature: "Investment choices"
     option1: "Limited to your scheme's fund range"
@@ -43,13 +43,13 @@ affiliatePrograms:
   - "InvestEngine"
 faq:
   - question: "Should I pay into a pension or an ISA first?"
-    answer: "Pay into the workplace pension up to the full employer match first, because it is free money on top of tax relief. Then use a Stocks & Shares ISA for flexible savings you may need before 55. If your income is between {{ ukFact('paTaperThreshold') | gbp }} and {{ ukFact('paTaperLimit') | gbp }}, extra pension contributions come first because they recover your personal allowance."
+    answer: "Pay into the workplace pension up to the full employer match first, because it is free money on top of tax relief. Then use a Stocks & Shares ISA for flexible savings you may need before {{ ukFact('pensionAccessAge') | int }}. If your income is between {{ ukFact('paTaperThreshold') | gbp }} and {{ ukFact('paTaperLimit') | gbp }}, extra pension contributions come first because they recover your personal allowance."
   - question: "How much more is a pension worth than an ISA?"
     answer: "On £300 a month of take-home pay for 25 years at 7%, a basic-rate taxpayer whose employer adds £150 a month builds about {{ compoundFV(0, 300 / 0.8 + 150, 7, 25) | gbp }} in the pension against {{ compoundFV(0, 300, 7, 25) | gbp }} in an ISA. After tax on the pension at the basic rate, that is still about {{ compoundFV(0, 300 / 0.8 + 150, 7, 25) * (0.25 + 0.75 * 0.8) | gbp }}. Without the employer money the pension's lead shrinks to the tax relief alone."
-  - question: "Can I take money out of a pension before 55?"
-    answer: "Not normally. The earliest age is 55, rising to 57 from 6 April 2028. Taking money out earlier, outside the rules, is an unauthorised payment and can be taxed at up to 55%. An ISA can be accessed at any time."
+  - question: "Can I take money out of a pension before {{ ukFact('pensionAccessAge') | int }}?"
+    answer: "Not normally. The earliest age is {{ ukFact('pensionAccessAge') | int }}, rising to {{ ukFact('pensionAccessAgeFrom2028') | int }} from 6 April 2028. Taking money out earlier, outside the rules, is an unauthorised payment and can be taxed at up to 55%. An ISA can be accessed at any time."
   - question: "Is a pension or an ISA better for a first home?"
-    answer: "Neither on its own. A pension is locked until 55 and cannot be used for a deposit. A Lifetime ISA adds a 25% bonus if you are under 40 and buy a first home for £450,000 or less; see the Lifetime ISA comparison. A regular ISA is the flexible fallback."
+    answer: "Neither on its own. A pension is locked until {{ ukFact('pensionAccessAge') | int }} and cannot be used for a deposit. A Lifetime ISA adds a 25% bonus if you are under 40 and buy a first home for £450,000 or less; see the Lifetime ISA comparison. A regular ISA is the flexible fallback."
 datePublished: "2026-03-05"
 dateModified: "2026-11-16"
 sources:
@@ -61,6 +61,8 @@ sources:
     url: "https://www.gov.uk/workplace-pensions"
   - name: "GOV.UK — Pension annual allowance"
     url: "https://www.gov.uk/tax-on-your-private-pension/annual-allowance"
+  - name: "HMRC — Inheritance Tax: unused pension funds and death benefits (from 6 April 2027)"
+    url: "https://www.gov.uk/government/publications/inheritance-tax-unused-pension-funds-and-death-benefits/inheritance-tax-unused-pension-funds-and-death-benefits"
   - name: "GOV.UK — Early retirement and your pension"
     url: "https://www.gov.uk/early-retirement-pension/personal-and-workplace-pensions"
   - name: "HMRC — Salary sacrifice reform for pension contributions (from 6 April 2029)"
@@ -79,7 +81,7 @@ When your employer pays into your pension, skipping that contribution is leaving
 
 Say you [earn £35,000](/scenarios/uk-take-home-pay/) and your employer matches 5% of your full salary: that is {{ 35000 * 5 / 100 | gbp }} a year of extra money before any investment growth. If your scheme pays 5% of qualifying earnings only (the band from £6,240 to £50,270), the same 5% is {{ (35000 - 6240) * 5 / 100 | gbp }}, so check which your scheme uses. No ISA gives you a guaranteed 100% return on day one.
 
-On top of the match you get tax relief. A basic-rate taxpayer putting £100 into a pension pays only {{ 100 - ukFact('basicRate') | gbp }} out of pocket, because the government adds £20. For higher-rate taxpayers the effective cost falls to {{ 100 - ukFact('higherRate') | gbp }} per £100 contributed, claimed through self-assessment. Additional-rate taxpayers pay {{ 100 - ukFact('additionalRate') | gbp }} per £100. In Scotland the starter band is 19% and the top rate 48%, so the relief ranges from 19% to 48% there.
+On top of the match you get tax relief. A basic-rate taxpayer putting £100 into a pension pays only {{ 100 - ukFact('basicRate') | gbp }} out of pocket, because the government adds {{ ukFact('basicRate') | gbp }}. For higher-rate taxpayers the effective cost falls to {{ 100 - ukFact('higherRate') | gbp }} per £100 contributed, claimed through self-assessment. Additional-rate taxpayers pay {{ 100 - ukFact('additionalRate') | gbp }} per £100. In Scotland the starter band is 19% and the top rate 48%, so the relief ranges from 19% to 48% there.
 
 Over a 30-year career, the combination of employer money and tax relief can add tens of thousands of pounds to your [retirement pot](/tools/income-and-planning/retirement-savings/) compared with saving the same amount in an ISA.
 
@@ -96,7 +98,7 @@ The pension pot is not all yours to spend. 25% (about {{ compoundFV(0, 300 / 0.8
 
 ## Why the ISA comes second, not never
 
-Pensions have one major drawback: you cannot touch the money until age 55 (57 from 6 April 2028). If you are 30 today, that means no access until your late fifties. Life throws curveballs well before retirement: redundancy, home deposits, career changes, illness.
+Pensions have one major drawback: you cannot touch the money until age {{ ukFact('pensionAccessAge') | int }} ({{ ukFact('pensionAccessAgeFrom2028') | int }} from 6 April 2028). If you are 30 today, that means no access until your late fifties. Plans change long before retirement: redundancy, a home deposit, a new career or illness.
 
 A Stocks & Shares ISA gives you tax-free growth and the ability to withdraw whenever you need to. No penalties, no waiting, no tax on the way out. That makes it the natural home for medium-term goals (5 to 20 years) and a flexible backup behind your pension.
 
@@ -108,7 +110,7 @@ For most UK workers, the order is:
 
 1. **Workplace pension up to the full employer match.** Anything less is refusing part of your pay.
 2. **Stocks & Shares ISA up to £20,000.** Tax-free growth with full access.
-3. **[Additional pension contributions.](/tools/income-and-planning/retirement-contribution/)** If you have filled the ISA and will not need the money before 57, more pension is efficient for higher-rate taxpayers.
+3. **[Additional pension contributions.](/tools/income-and-planning/retirement-contribution/)** If you have filled the ISA and will not need the money before {{ ukFact('pensionAccessAgeFrom2028') | int }}, more pension is efficient for higher-rate taxpayers.
 4. **General investment account.** Only needed if you are investing more than {{ 60000 + 20000 | gbp }} a year ({{ 60000 | gbp }} pension plus {{ 20000 | gbp }} ISA).
 
 If you are a first-time buyer under 40, a Lifetime ISA can sit between steps 1 and 2; see the [LISA comparison](/comparisons/lisa-vs-regular-isa/).
@@ -117,7 +119,7 @@ If you are a first-time buyer under 40, a Lifetime ISA can sit between steps 1 a
 
 **If your income is between {{ ukFact('paTaperThreshold') | gbp }} and {{ ukFact('paTaperLimit') | gbp }}**, put extra into your pension before the ISA. You lose £1 of personal allowance for every £2 of income above {{ ukFact('paTaperThreshold') | gbp }}, which makes the effective tax rate on that slice {{ ukFact('higherRate') * 1.5 | pct }}. A pension contribution that brings your adjusted net income back under {{ ukFact('paTaperThreshold') | gbp }} recovers that tax, so it is relieved at that higher effective rate. The same applies to the childcare limit: free childcare and Tax-Free Childcare stop once adjusted net income passes {{ ukFact('paTaperThreshold') | gbp }}. See the [60% tax trap](/scenarios/60-percent-tax-trap-uk/) and the [childcare cliff](/scenarios/100k-childcare-cliff-uk/) for worked examples.
 
-**If you are a higher or additional-rate taxpayer**, extra pension contributions beyond the match are very attractive. The 40% to 45% tax relief means every £1,000 costs you {{ 1000 * (1 - ukFact('higherRate') / 100) | gbp }} or less. Some people prioritise pension over ISA in this situation, accepting the locked access for the stronger tax benefit.
+**If you are a higher or additional-rate taxpayer**, extra pension contributions beyond the match are very attractive. The {{ ukFact('higherRate') | pct }} to {{ ukFact('additionalRate') | pct }} tax relief means every £1,000 costs you {{ 1000 * (1 - ukFact('higherRate') / 100) | gbp }} or less. Some people prioritise pension over ISA in this situation, accepting the locked access for the stronger tax benefit.
 
 **If you are saving for a first home**, a [Lifetime ISA (LISA)](/comparisons/lisa-vs-regular-isa/) gives you a 25% government bonus on up to £4,000 a year, but it counts towards your £20,000 ISA allowance and carries withdrawal charges for non-qualifying purchases before age 60.
 

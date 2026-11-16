@@ -29,7 +29,7 @@ comparisonTable:
     option2: "Yes, same limits"
   - feature: "Minimum deposit"
     option1: "Often $0"
-    option2: "Often $500 to $1,000 or more"
+    option2: "Often a minimum deposit, which varies by bank"
   - feature: "Best when rates are..."
     option1: "Rising, or you cannot tell"
     option2: "Expected to fall, or you want a rate guaranteed"

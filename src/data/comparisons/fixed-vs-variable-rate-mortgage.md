@@ -10,7 +10,7 @@ relatedTools:
   - "mortgage-payment"
   - "loan-amortization"
   - "mortgage-affordability"
-verdict: "Fix if a payment rise would hurt, which for most borrowers it would. On a £250,000 repayment mortgage over 25 years, a 5-year fix at {{ rate('uk5yr') | pct(2) }} costs less than a tracker at Bank Rate plus 1 point unless Bank Rate averages below {{ rate('uk5yr') - 1 | pct(2) }} over the fix, only {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points above today's {{ rate('boe') | pct(2) }}. Take the tracker only if you could afford the payment after a 2-point rise and want to leave without an early repayment charge."
+verdict: "Fix if a payment rise would hurt, which for most borrowers it would. On a £250,000 repayment mortgage over 25 years, a 5-year fix at {{ rate('uk5yr') | pct(2) }} costs less than a tracker at Bank Rate plus 1 point unless Bank Rate averages below {{ rate('uk5yr') - 1 | pct(2) }} over the fix. Compare that break-even with where you expect Bank Rate to go from today's {{ rate('boe') | pct(2) }}. Take the tracker only if you could afford the payment after a 2-point rise and want to leave without an early repayment charge."
 comparisonTable:
   - feature: "Monthly payment on £250,000 over 25 years (today)"
     option1: "{{ loanPayment(250000, rate('uk5yr'), 25) | gbp }} (5-year fix at {{ rate('uk5yr') | pct(2) }})"
@@ -22,10 +22,10 @@ comparisonTable:
     option1: "None during the fixed period"
     option2: "Payments move with the Bank Rate"
   - feature: "Early repayment charges"
-    option1: "Usually apply during the fix, often 1% to 5% of what you repay"
+    option1: "Usually apply during the fix, as a percentage of what you repay that often falls each year"
     option2: "Often none, especially on trackers"
   - feature: "Overpayments"
-    option1: "Usually capped, commonly at 10% of the balance a year"
+    option1: "Usually capped at a share of the balance each year; check your lender's limit"
     option2: "Usually allowed without limit"
   - feature: "Budgeting"
     option1: "Easy: the payment cannot change"
@@ -67,11 +67,11 @@ Take £250,000 over 25 years. Compare a 5-year fix at {{ rate('uk5yr') | pct(2) 
 
 **Fixed at {{ rate('uk5yr') | pct(2) }}:** {{ loanPayment(250000, rate('uk5yr'), 25) | gbp }} a month. After 5 years you owe {{ loanBalance(250000, rate('uk5yr'), 25, 60) | gbp }}.
 
-**Tracker at {{ rate('boe') + 1 | pct(2) }} today (Bank Rate {{ rate('boe') | pct(2) }} plus 1):** {{ loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month, so {{ loanPayment(250000, rate('uk5yr'), 25) - loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month cheaper than the fix at the start.
+**Tracker at {{ rate('boe') + 1 | pct(2) }} today (Bank Rate {{ rate('boe') | pct(2) }} plus 1):** {{ loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month. The fix's payment minus the tracker's is {{ loanPayment(250000, rate('uk5yr'), 25) - loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month, so a positive figure means the tracker starts cheaper.
 
 But if Bank Rate rises 1 point after two years and another point after four, the tracker's payment goes to {{ loanPayment(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 2, 23) | gbp }} and then {{ loanPayment(loanBalance(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 2, 23, 24), rate('boe') + 3, 21) | gbp }}.
 
-**The break-even:** the tracker costs less than the fix only if Bank Rate, on average over the fixed period, stays below the fixed rate minus your margin. Here that is {{ rate('uk5yr') | pct(2) }} minus 1 point, or {{ rate('uk5yr') - 1 | pct(2) }}. Bank Rate is {{ rate('boe') | pct(2) }} now, so Bank Rate would need to rise by only {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points on average for the fix to come out cheaper.
+**The break-even:** the tracker costs less than the fix only if Bank Rate, on average over the fixed period, stays below the fixed rate minus your margin. Here that is {{ rate('uk5yr') | pct(2) }} minus 1 point, or {{ rate('uk5yr') - 1 | pct(2) }}. Bank Rate is {{ rate('boe') | pct(2) }} now, and the break-even is {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points above that (a negative figure means below it). The fix comes out cheaper if Bank Rate averages above the break-even over the fixed period.
 
 ## Where rates are now
 
@@ -83,7 +83,7 @@ Short fixes (2 years) protect you for less time and bring your next decision for
 
 ## Break-even analysis: how to calculate yours
 
-1. Take the fixed rate you are offered and subtract your tracker's margin. That is the Bank Rate at which the two cost the same. In the example, {{ rate('uk5yr') | pct(2) }} minus 1 point is {{ rate('uk5yr') - 1 | pct(2) }}, which is {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points above today's Bank Rate of {{ rate('boe') | pct(2) }}.
+1. Take the fixed rate you are offered and subtract your tracker's margin. That is the Bank Rate at which the two cost the same. In the example, {{ rate('uk5yr') | pct(2) }} minus 1 point is {{ rate('uk5yr') - 1 | pct(2) }}, which is {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points above today's Bank Rate of {{ rate('boe') | pct(2) }} (a negative figure means below it).
 2. Decide whether Bank Rate is likely to average above that level during the fix. If so, the fix is cheaper.
 3. Remember what a tracker gives you in return: no early repayment charge and unlimited overpayments. If you expect to sell or remortgage within two or three years, those can be worth more than the rate.
 
@@ -94,7 +94,7 @@ Use a [mortgage payment calculator](/tools/debt-and-loans/mortgage-payment/) to 
 - You are stretching to afford the mortgage and cannot absorb a payment rise.
 - You are on a tight budget with little room for surprise costs.
 - You value predictability and want a payment that cannot change.
-- Rates are rising, as they are now, and a fix would hold today's level.
+- Rates are rising and you want to hold today's level. Bank Rate rose from 3.75% to 4% on 5 November 2026.
 
 ## When to choose variable
 

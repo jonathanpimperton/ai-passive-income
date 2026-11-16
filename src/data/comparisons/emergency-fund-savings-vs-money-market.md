@@ -19,7 +19,7 @@ comparisonTable:
     option2: "FDIC at a bank, NCUA at a credit union, up to $250,000"
   - feature: "Minimum balance"
     option1: "Usually $0"
-    option2: "Often $1,000 to $10,000 to open or to avoid fees"
+    option2: "Often a minimum balance to open the account or to avoid fees"
   - feature: "Access speed"
     option1: "Same bank: often immediate. To another bank: usually 1 to 3 business days by ACH, faster only if both banks support instant payments"
     option2: "Same transfer speeds, plus a debit card or checks at many banks"

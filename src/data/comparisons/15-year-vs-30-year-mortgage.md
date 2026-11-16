@@ -11,9 +11,9 @@ relatedTools:
   - "loan-amortization"
   - "mortgage-affordability"
   - "compound-interest"
-verdict: "Take the 15-year if its payment, with taxes and insurance, fits under 28% of your gross income, you hold six months of expenses in reserve and you owe nothing at a higher rate. Otherwise take the 30-year and prepay when you can. On a $300,000 loan the 15-year saves {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }} of interest, and it still finishes ahead of investing the difference at 8% a year."
+verdict: "Take the 15-year if its payment, with taxes and insurance, fits under 28% of your gross income, you hold six months of expenses in reserve and you owe nothing at a higher rate. Otherwise take the 30-year and prepay when you can. On a $300,000 loan the 15-year saves {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }} of interest. Whether investing the difference beats that depends on the return you assume, which the table below tests at 5%, 8% and 10%."
 comparisonTable:
-  - feature: "Rate (Freddie Mac weekly average, {{ rateSource('us30') }})"
+  - feature: "Rate (weekly average, {{ rateSource('us30') }})"
     option1: "{{ rate('us15') | pct(2) }}"
     option2: "{{ rate('us30') | pct(2) }}"
   - feature: "Monthly principal and interest on $300,000"
@@ -41,7 +41,7 @@ faq:
   - question: "Is a 15-year mortgage worth it?"
     answer: "It is when the payment fits comfortably. On a $300,000 loan at the survey rates the 15-year costs {{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} more a month and saves {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }} of interest. It is a poor fit if that extra payment would leave you without an emergency fund or force you to cut retirement saving."
   - question: "Is it better to take a 30-year mortgage and invest the difference?"
-    answer: "Only if your investments reliably beat the mortgage rate by a wide margin. At the survey rates the 15-year path finishes ahead if you earn 5% or 8% a year on the invested difference, and behind only at 10%. Invested money can fall, while interest you do not pay is a certain saving."
+    answer: "Only if your investments reliably beat the mortgage rate by a wide margin. At the survey rates, the 30-year path's lead over the 15-year path after 30 years is {{ compoundFV(0, (loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)), 5, 30) - compoundFV(0, loanPayment(300000, rate('us15'), 15), 5, 15) | usd }} at 5% a year, {{ compoundFV(0, (loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)), 8, 30) - compoundFV(0, loanPayment(300000, rate('us15'), 15), 8, 15) | usd }} at 8% and {{ compoundFV(0, (loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)), 10, 30) - compoundFV(0, loanPayment(300000, rate('us15'), 15), 10, 15) | usd }} at 10%; a negative figure means the 15-year path is ahead. Invested money can fall, while interest you do not pay is a certain saving."
   - question: "Can I get a 30-year mortgage and pay it off like a 15-year?"
     answer: "Yes, if the loan has no prepayment penalty (most US mortgages have none). Paying the 15-year payment amount of {{ loanPayment(300000, rate('us15'), 15) | usd }} a month on a 30-year loan at {{ rate('us30') | pct(2) }} clears it in {{ overpaymentSaving(300000, rate('us30'), 30, monthly=loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)).months | months }}, but you pay more interest than on a true 15-year loan because the 30-year rate is higher."
   - question: "How much income do I need for a 15-year mortgage?"
@@ -85,7 +85,7 @@ This is the usual argument for the 30-year, so test it fairly. Assume the same t
 | 8% | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15), 8, 15) | usd }} | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30), 8, 30) | usd }} |
 | 10% | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15), 10, 15) | usd }} | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30), 10, 30) | usd }} |
 
-At the survey rates the 15-year path finishes ahead at 5% and 8%, and the 30-year path pulls ahead only at 10%. Two things drive that:
+The 30-year path's lead over the 15-year path is {{ compoundFV(0, (loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)), 5, 30) - compoundFV(0, loanPayment(300000, rate('us15'), 15), 5, 15) | usd }} at 5%, {{ compoundFV(0, (loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)), 8, 30) - compoundFV(0, loanPayment(300000, rate('us15'), 15), 8, 15) | usd }} at 8% and {{ compoundFV(0, (loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)), 10, 30) - compoundFV(0, loanPayment(300000, rate('us15'), 15), 10, 15) | usd }} at 10%. A negative figure means the 15-year path finishes ahead. Two things drive the result:
 
 - **The 15-year loan carries a lower rate.** If both loans carried the same 6% rate, investing the difference at 8% would leave the 30-year borrower {{ compoundFV(0, loanPayment(300000, 6, 15) - loanPayment(300000, 6, 30), 8, 30) - compoundFV(0, loanPayment(300000, 6, 15), 8, 15) | usd }} ahead. The lower 15-year rate is what changes the answer.
 - **The 30-year borrower is in debt for longer.** After 15 years they hold {{ compoundFV(0, loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30), 8, 15) | usd }} invested at 8%, but still owe {{ loanBalance(300000, rate('us30'), 30, 180) | usd }} on the mortgage.

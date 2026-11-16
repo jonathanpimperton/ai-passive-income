@@ -56,6 +56,8 @@ sources:
     url: "https://www.gov.uk/tax-on-dividends"
   - name: "GOV.UK — Capital Gains Tax rates and allowances"
     url: "https://www.gov.uk/capital-gains-tax/rates"
+  - name: "GOV.UK — Transferring your shares to an ISA (employee share schemes)"
+    url: "https://www.gov.uk/tax-employee-share-schemes/transferring-your-shares-to-an-isa"
 ---
 
 ## Why use the ISA allowance first
@@ -86,13 +88,13 @@ You'll crystallise any capital gain on the sale, but the {{ ukFact('cgtAnnualExe
 
 ## ISA vs pension
 
-The ISA's main competitor isn't the general account — it's [your pension](/comparisons/pension-vs-isa-uk/) (SIPP or workplace). Pensions offer tax relief on contributions (20-45% depending on your bracket) but lock your money away until age 55 (rising to 57 from April 2028).
+The ISA's main competitor isn't the general account — it's [your pension](/comparisons/pension-vs-isa-uk/) (SIPP or workplace). Pensions offer tax relief on contributions ({{ ukFact('basicRate') | pct }} to {{ ukFact('additionalRate') | pct }} depending on your bracket) but lock your money away until age {{ ukFact('pensionAccessAge') | int }} (rising to {{ ukFact('pensionAccessAgeFrom2028') | int }} from April 2028).
 
 The priority order for most people:
 
 1. **Workplace pension** up to employer match (it's a guaranteed 100% return)
 2. **ISA** up to £20,000 (accessible, tax-free)
-3. **Additional pension contributions** (if you won't need the money before 57)
+3. **Additional pension contributions** (if you won't need the money before {{ ukFact('pensionAccessAgeFrom2028') | int }})
 4. **General investment account** (for anything above these limits)
 
 One exception to this order: if your income is between {{ ukFact('paTaperThreshold') | gbp }} and {{ ukFact('paTaperLimit') | gbp }} you lose £1 of personal allowance for every £2 above {{ ukFact('paTaperThreshold') | gbp }}, so extra pension contributions can be worth far more than the ISA. See the [60% tax trap](/scenarios/60-percent-tax-trap-uk/).

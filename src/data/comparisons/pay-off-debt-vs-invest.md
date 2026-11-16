@@ -15,7 +15,7 @@ verdict: "Take the employer match first. Then pay off debt costing more than abo
 comparisonTable:
   - feature: "Return you earn"
     option1: "Guaranteed: equals the debt's interest rate"
-    option2: "Not guaranteed: stocks have averaged roughly 7–10% a year, with large swings"
+    option2: "Not guaranteed: stock returns vary widely from year to year"
   - feature: "Net position after 5 years, $20,000 at 22%"
     option1: "{{ -payoffBalance(20000, 22, 500, 60) | usd }}"
     option2: "{{ compoundFV(0, 500 - 20000 * 22 / 1200, 7, 5) - 20000 | usd }}"
@@ -45,7 +45,7 @@ faq:
   - question: "Should I pay off debt or invest first?"
     answer: "Compare the debt's rate with what you can expect to keep from investing after tax. Above about 7%, pay the debt first. Below about 5%, invest first. Between the two, split the money. Whatever the rate, capture any employer match on your 401(k) or workplace pension before doing either."
   - question: "Is it better to pay off a student loan or invest?"
-    answer: "It depends on the rate. Federal and private student loans often sit between 5% and 7%, the zone where the gap is small and a guaranteed return from paying the loan is competitive with investing. Above 7% pay it first. Below 5% investing usually comes out ahead."
+    answer: "It depends on the rate. Student loan rates vary by loan and by year, so check yours. If it falls between about 5% and 7%, the gap with investing is small and a guaranteed return from paying the loan is competitive. Above 7% pay it first. Below 5% investing usually comes out ahead."
   - question: "Does the employer match come before paying off credit card debt?"
     answer: "Yes. A match of 50% on contributions up to 6% of your salary is an immediate 50% return, which no credit card rate matches. Put in enough to get the full match, then send everything else to the high-rate debt."
   - question: "How much does waiting to invest cost?"
@@ -69,9 +69,9 @@ The decision comes down to one comparison: your debt's interest rate against wha
 
 [A credit card at 22% APR](/tools/debt-and-loans/credit-card-payoff/)? Pay it off. No legal investment reliably returns 22% a year, so that debt costs more than any portfolio could earn.
 
-A mortgage at 3.5%? Invest. Stock market returns have averaged roughly 7-10% a year over long periods, which comfortably beats that rate, though not every year.
+A mortgage at 3.5%? Invest. Over long periods stock returns have historically beaten a rate like that, though not every year.
 
-The gray zone sits between about 5% and 7%. Car loans, student loans and personal loans often land here. At these rates the edge of investing is slim and the guaranteed return of paying off debt is attractive.
+The gray zone sits between about 5% and 7%. Car loans, student loans and personal loans can land here. At these rates the edge of investing is slim and the guaranteed return of paying off debt is attractive.
 
 ## Where the 7% line comes from
 

@@ -11,7 +11,7 @@ relatedTools:
   - "credit-card-payoff"
   - "loan-amortization"
   - "savings-goal"
-verdict: "Use avalanche unless you know you need early wins to stay on the plan. It always costs the least: on the example debts it saves {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').interest - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').interest | usd }} and a month. If your own gap is under about $200, pick whichever method you will actually follow. Over about $1,000, the avalanche saving is worth the slower start."
+verdict: "Use avalanche unless you know you need early wins to stay on the plan. It always costs the least: on the example debts it saves {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').interest - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').interest | usd }} and {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').months - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').months | months }}. If your own gap is under about $200, pick whichever method you will actually follow. Over about $1,000, the avalanche saving is worth the slower start."
 comparisonTable:
   - feature: "Order of payoff"
     option1: "Smallest balance first"
@@ -39,7 +39,7 @@ affiliatePrograms:
   - "SoFi"
 faq:
   - question: "Is the debt snowball or avalanche method better?"
-    answer: "Avalanche costs less in interest and is never slower. On three example debts it saves {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').interest - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').interest | usd }} and one month. Snowball can still be the better plan if the early wins are what keep you paying."
+    answer: "Avalanche costs less in interest and is never slower. On three example debts it saves {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').interest - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').interest | usd }} and {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').months - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').months | months }}. Snowball can still be the better plan if the early wins are what keep you paying."
   - question: "How much more does the snowball method cost?"
     answer: "It depends on how far apart your rates are and how your balances line up. On the example debts the gap is {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').interest - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').interest | usd }}. Put your own debts into the debt payoff calculator to see yours."
   - question: "What if my smallest debt also has the highest rate?"
@@ -77,11 +77,11 @@ With {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').month
 
 **Avalanche** (credit card, then car, then student loan): {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').interest | usd }} in total interest, debt-free in {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').months | int }} months.
 
-Avalanche saves **{{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').interest - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').interest | usd }}** and one month. The gap widens with more debt and bigger rate differences.
+Avalanche saves **{{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').interest - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').interest | usd }}** and {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').months - debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').months | months }}. The gap widens with more debt and bigger rate differences.
 
 ## The psychology favors snowball
 
-A Harvard Business Review summary of research on about 6,000 credit card customers over 36 months supports paying the smallest balance first when the debts' rates are similar, because early wins keep people going. A 2011 study in the Journal of Marketing Research found that people tend to favor paying off small debts first anyway, even when larger ones cost more.
+A Harvard Business Review summary of research on about 6,000 consumers (HelloWallet data; Trudel, Kettle, Blanchard and Haubl) supports focusing repayments on one small balance at a time, because visible progress keeps people going. A 2011 study in the Journal of Marketing Research found that people tend to favor paying off small debts first anyway, even when larger ones cost more.
 
 Clearing the $3,000 student loan in the example takes {{ debtClearMonth('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball', 3) | int }} months under snowball. It reduces the number of bills, simplifies your finances and shows the system works. Under avalanche the first debt is gone in month {{ debtClearMonth('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche', 1) | int }}, and some people give up before they see a result.
 

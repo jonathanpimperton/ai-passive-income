@@ -104,9 +104,9 @@ For retirement, the comparison gets more complex. The LISA bonus (25%) looks sim
 - Higher contribution limits (£60,000 annual allowance against £4,000 for a LISA)
 - Employer contributions: your employer's 3% or more is free money on top of tax relief
 - Higher-rate taxpayers get 40% or more in relief, far above the LISA's 25%
-- Earlier access: a pension can be taken from 55 (57 from 6 April 2028), a LISA only from 60 without a charge
+- Earlier access: a pension can be taken from {{ ukFact('pensionAccessAge') | int }} ({{ ukFact('pensionAccessAgeFrom2028') | int }} from 6 April 2028), a LISA only from 60 without a charge
 
-**Pension access rules to know:** you cannot normally take a pension before 55 (57 from 6 April 2028). Taking money out early outside the rules is an unauthorised payment and can be taxed at up to 55%. From the minimum age, withdrawals are taxed as income, except the 25% tax-free part.
+**Pension access rules to know:** you cannot normally take a pension before {{ ukFact('pensionAccessAge') | int }} ({{ ukFact('pensionAccessAgeFrom2028') | int }} from 6 April 2028). Taking money out early outside the rules is an unauthorised payment and can be taxed at up to 55%. From the minimum age, withdrawals are taxed as income, except the 25% tax-free part.
 
 For most employees, the priority should be: [workplace pension up to the employer match](/comparisons/pension-vs-isa-uk/) first. Then, if you are a first-time buyer or want a retirement pot you will not touch before 60, a LISA up to £4,000. After that, a Stocks & Shares ISA or additional pension contributions.
 

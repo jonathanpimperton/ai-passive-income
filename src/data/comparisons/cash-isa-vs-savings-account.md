@@ -43,7 +43,7 @@ faq:
   - question: "How much savings can I hold before I pay tax on interest?"
     answer: "Divide your allowance by the interest rate. At 4.5%, a basic-rate taxpayer (£1,000 allowance) reaches the limit at about {{ 1000 / (4.5 / 100) | roundTo(100) | gbp }} and a higher-rate taxpayer (£500 allowance) at about {{ 500 / (4.5 / 100) | roundTo(100) | gbp }}. Additional-rate taxpayers have no allowance, so every pound of interest is taxed."
   - question: "What changes for savings tax in April 2027?"
-    answer: "The Budget on 28 October 2026 set savings tax rates of 24%, 44% and 49% from 6 April 2027, up from 20%, 40% and 45%. The allowances stay the same, but each £1,000 of interest above your allowance costs {{ 1000 * 24 / 100 | gbp }}, {{ 1000 * 44 / 100 | gbp }} or {{ 1000 * 49 / 100 | gbp }} in tax instead of {{ 1000 * 20 / 100 | gbp }}, {{ 1000 * 40 / 100 | gbp }} or {{ 1000 * 45 / 100 | gbp }}."
+    answer: "The Budget on 28 October 2026 set savings tax rates of 24%, 44% and 49% from 6 April 2027, up from {{ ukFact('basicRate') | pct }}, {{ ukFact('higherRate') | pct }} and {{ ukFact('additionalRate') | pct }}. The allowances stay the same, but each £1,000 of interest above your allowance costs {{ 1000 * 24 / 100 | gbp }}, {{ 1000 * 44 / 100 | gbp }} or {{ 1000 * 49 / 100 | gbp }} in tax instead of {{ 1000 * ukFact('basicRate') / 100 | gbp }}, {{ 1000 * ukFact('higherRate') / 100 | gbp }} or {{ 1000 * ukFact('additionalRate') / 100 | gbp }}."
   - question: "Is the Cash ISA limit being cut to £12,000?"
     answer: "No. The Budget on 28 October 2026 cancelled the planned cut, so the whole £20,000 ISA allowance can still go into cash."
 datePublished: "2026-03-05"
@@ -71,7 +71,7 @@ At a 4.5% interest rate, a basic-rate taxpayer needs over **{{ 1000 / (4.5 / 100
 
 **Higher-rate taxpayers.** With only £500 of PSA, a higher-rate taxpayer with more than {{ 500 / (4.5 / 100) | roundTo(100) | gbp }} in savings at 4.5% is already paying tax on interest. Moving cash into a Cash ISA removes that.
 
-**Additional-rate taxpayers.** No PSA at all. Every pound of interest is taxed at 45% in 2026-27, rising to 49% from 6 April 2027. A Cash ISA pays from the first penny.
+**Additional-rate taxpayers.** No PSA at all. Every pound of interest is taxed at {{ ukFact('additionalRate') | pct }} in {{ taxYear('uk') }}, rising to 49% from 6 April 2027. A Cash ISA pays from the first penny.
 
 **Large cash balances.** If you keep £30,000 to £50,000 in cash, perhaps [saving for a home deposit](/tools/saving-and-growth/savings-goal/) while holding an [emergency fund](/tools/income-and-planning/emergency-fund/), even a basic-rate taxpayer will exceed the allowance. A Cash ISA shelters the excess.
 
@@ -99,13 +99,13 @@ Here is the break-even: the savings balance where interest exceeds your PSA and 
 
 | Tax band | PSA | Break-even at 4.5% |
 |----------|-----|------------------------|
-| Basic rate (20%) | £1,000 | about {{ 1000 / (4.5 / 100) | roundTo(100) | gbp }} |
-| Higher rate (40%) | £500 | about {{ 500 / (4.5 / 100) | roundTo(100) | gbp }} |
-| Additional rate (45%) | £0 | £0 (any interest is taxed) |
+| Basic rate ({{ ukFact('basicRate') | pct }}) | £1,000 | about {{ 1000 / (4.5 / 100) | roundTo(100) | gbp }} |
+| Higher rate ({{ ukFact('higherRate') | pct }}) | £500 | about {{ 500 / (4.5 / 100) | roundTo(100) | gbp }} |
+| Additional rate ({{ ukFact('additionalRate') | pct }}) | £0 | £0 (any interest is taxed) |
 
 If your savings are below your break-even, a Cash ISA provides no tax advantage. Pick whichever account, ISA or regular, offers the best rate.
 
-**From 6 April 2027, interest above the allowance is taxed more.** The Budget on 28 October 2026 set separate savings tax rates of 24% (basic), 44% (higher) and 49% (additional) from that date, 4 percentage points above the 2026-27 rates. The break-even balances above stay the same, but each £1,000 of interest over your allowance will cost {{ 1000 * 24 / 100 | gbp }}, {{ 1000 * 44 / 100 | gbp }} or {{ 1000 * 49 / 100 | gbp }} in tax instead of {{ 1000 * 20 / 100 | gbp }}, {{ 1000 * 40 / 100 | gbp }} or {{ 1000 * 45 / 100 | gbp }}. If you are already over your allowance, that makes a Cash ISA worth more, not less.
+**From 6 April 2027, interest above the allowance is taxed more.** The Budget on 28 October 2026 set separate savings tax rates of 24% (basic), 44% (higher) and 49% (additional) from that date, 4 percentage points above the 2026-27 rates. The break-even balances above stay the same, but each £1,000 of interest over your allowance will cost {{ 1000 * 24 / 100 | gbp }}, {{ 1000 * 44 / 100 | gbp }} or {{ 1000 * 49 / 100 | gbp }} in tax instead of {{ 1000 * ukFact('basicRate') / 100 | gbp }}, {{ 1000 * ukFact('higherRate') / 100 | gbp }} or {{ 1000 * ukFact('additionalRate') / 100 | gbp }}. If you are already over your allowance, that makes a Cash ISA worth more, not less.
 
 ## The bottom line
 
