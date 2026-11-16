@@ -2,7 +2,7 @@
 name: "Investment Return Calculator"
 slug: "investment-return"
 category: "saving-and-growth"
-description: "Investment return calculator — project growth with different rates, contributions, and timelines, or solve for any single variable."
+description: "Investment return calculator: project growth, or solve for the contribution, return rate, starting amount or time needed to reach a target."
 keywords:
   - "investment calculator"
   - "investment return calculator"
@@ -11,28 +11,33 @@ keywords:
   - "DRIP calculator"
 relatedTools:
   - "compound-interest"
+  - "investment-fee"
   - "retirement-savings"
   - "roi"
   - "savings-goal"
   - "inflation"
   - "retirement-contribution"
-  - "retirement-age"
-affiliateContext: "Ready to start investing? Open a free account"
+affiliateContext: "Ready to start investing? Open an account"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
-calculationMethod: "Uses standard compound growth formula with periodic contributions"
+calculationMethod: "Compound growth with monthly deposits"
+dataSources:
+  - name: "Historical returns on stocks, bonds and bills, 1928 to 2025 — NYU Stern (Damodaran), updated January 2026"
+    url: "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"
 faq:
   - question: "What is a good annual return on investments?"
-    answer: "The S&P 500 has historically returned about 10% per year before inflation (roughly 7% after inflation) over long periods. However, individual years vary wildly — from -37% (2008) to +31% (2019). A 'good' return depends on your risk tolerance, timeline, and investment mix."
+    answer: "There is no single number, because returns arrive unevenly. The S&P 500 including dividends lost 36.55% in 2008 and gained 31.21% in 2019 (NYU Stern, Damodaran, data updated January 2026). The calculator treats your rate as a constant yearly return, so run a cautious case and an optimistic one: on $10,000 plus $500 a month for 25 years, 7% gives {{ compoundFV(10000, 500, 7, 25) | usd }} and 10% gives {{ compoundFV(10000, 500, 10, 25) | usd }}. What counts as good depends on your risk tolerance, timeline and mix of stocks, bonds and cash."
   - question: "How does dividend reinvestment (DRIP) affect returns?"
-    answer: "Dividend reinvestment means using your dividend payouts to buy more shares instead of taking cash. Over time, this creates a compounding effect — you earn dividends on your dividends. Historically, reinvesting dividends has accounted for roughly 40% of total S&P 500 returns."
+    answer: "With reinvestment, dividends buy more shares, which then pay dividends of their own. The calculator has no separate dividend setting: the rate you enter is a total return and the calculator assumes it is all reinvested. To model spending the dividends instead, enter only the price return. For a 7% total return with a 3% dividend yield, $50,000 plus $300 a month grows to {{ compoundFV(50000, 300, 7, 20) | usd }} over 20 years with reinvestment. If you spend the dividends, the balance grows at the 4% price return to {{ compoundFV(50000, 300, 4, 20) | usd }}, and the dividends you took arrive as cash along the way."
   - question: "What is the difference between total return and annualized return?"
-    answer: "Total return is the overall percentage gain or loss over the entire period. Annualized return is the average yearly rate of return, accounting for compounding. For example, a 50% total return over 5 years is about 8.45% annualized — not simply 10% (50% / 5)."
+    answer: "Total return is the gain or loss over the whole period. Annualized return is the steady yearly rate that would produce it, with compounding. A 50% total return over 5 years is {{ annualizedReturn(50, 5) | pct(2) }} a year, not 10% (50% divided by 5). The same 50% over 10 years is {{ annualizedReturn(50, 10) | pct1 }} a year, and over 3 years {{ annualizedReturn(50, 3) | pct1 }}."
   - question: "Should I factor in inflation when calculating investment returns?"
-    answer: "Yes. A 10% nominal return with 3% inflation gives you only about 7% in real purchasing power. Our calculator lets you see both nominal and inflation-adjusted projections so you understand what your money will actually buy in the future."
+    answer: "Yes. A 10% return with 3% inflation is about {{ (1.10 / 1.03 - 1) * 100 | pct1 }} in real purchasing power. This calculator shows nominal (unadjusted) results. To see what an amount will buy in today's money, use the inflation calculator, or the retirement savings calculator, which shows both nominal and today's-money values."
   - question: "How much should I invest per month?"
-    answer: "A common guideline is to invest 15-20% of your gross income for retirement. But the right amount depends on your goals, timeline, and existing savings. Use this calculator to see how different monthly contribution amounts affect your long-term results."
+    answer: "A common rule of thumb is to put about 15% of gross income towards retirement, counting any employer match. The right amount depends on your goal, timeline and existing savings. Use the Contribution tab: to reach $1,000,000 in 30 years from $10,000 at 7%, you would need about {{ savingsMonthly(1000000, 10000, 7, 360) | usd }} a month, deposited at the end of each month."
+  - question: "What if the target is out of reach, or what I pay in already exceeds it?"
+    answer: "The Time tab says 'Not within 100 years' when no amount of waiting gets you there, and 'Already there' when your starting amount meets the target. The Return Rate tab can come back negative: to reach $100,000 from $50,000 plus $1,000 a month in 5 years you pay in {{ 50000 + 1000 * 60 | usd }}, which is already more than the target, so the rate that gets you there is {{ requiredRate(50000, 1000, 100000, 5) | pct(2) }}. Time is solved in whole months."
 workedExamples:
   - title: "Long-term index fund investor"
     inputs:
@@ -40,89 +45,67 @@ workedExamples:
       monthlyContribution: 500
       annualReturn: 10
       years: 25
-    description: "Starting with $10,000 and investing $500/month in a broad index fund averaging 10% annual returns. After 25 years: approximately $690,000 — with only $160,000 from contributions. The remaining $530,000 is investment growth, demonstrating why time in the market matters."
-  - title: "Conservative portfolio with DRIP"
+    description: "Start with $10,000 and invest $500 a month in a broad index fund returning 10% a year, compounded monthly. After 25 years the balance is {{ compoundFV(10000, 500, 10, 25) | usd }}. Only {{ 10000 + 500 * 12 * 25 | usd }} of that is money you paid in; the other {{ compoundEarned(10000, 500, 10, 25) | usd }} is growth. At 7% the same plan ends at {{ compoundFV(10000, 500, 7, 25) | usd }}, so the assumed return moves the answer by {{ compoundFV(10000, 500, 10, 25) - compoundFV(10000, 500, 7, 25) | usd }}."
+  - title: "Balanced portfolio, dividends reinvested or spent"
     inputs:
       initialInvestment: 50000
       monthlyContribution: 300
       annualReturn: 7
       years: 20
-    description: "A $50,000 starting balance in a balanced 60/40 portfolio with 3% dividend yield, all dividends reinvested. At 7% total return over 20 years: approximately $347,000. Without DRIP (withdrawing dividends as cash), the same portfolio would reach only $270,000."
-  - title: "Aggressive growth for young investor"
+    description: "A $50,000 balanced portfolio plus $300 a month, returning 7% in total (3% from dividends, 4% from price). With every dividend reinvested the balance after 20 years is {{ compoundFV(50000, 300, 7, 20) | usd }}. If you spend the dividends, enter the 4% price return and the balance is {{ compoundFV(50000, 300, 4, 20) | usd }}: reinvesting is worth {{ compoundFV(50000, 300, 7, 20) - compoundFV(50000, 300, 4, 20) | usd }} over the period."
+  - title: "Aggressive growth for a young investor"
     inputs:
       initialInvestment: 5000
       monthlyContribution: 1000
       annualReturn: 11
       years: 30
-    description: "A 25-year-old invests $5,000 and adds $1,000/month in a growth-oriented portfolio averaging 11% returns. By age 55: approximately $2.7 million. Even if returns average only 8%, the result is still $1.5 million — starting early with consistent contributions matters more than chasing high returns."
+    description: "A 25-year-old invests $5,000 and adds $1,000 a month at 11% a year. By age 55 the balance is {{ compoundFV(5000, 1000, 11, 30) | usd }}. At 8% it is {{ compoundFV(5000, 1000, 8, 30) | usd }}. An 11% return is a high assumption for a long period, so use the 8% case for planning: starting early and depositing steadily matters more than chasing the highest return."
 ---
 
-## What Is Investment Return?
+## Return has two parts: price and income
 
-Investment return measures how much money your investments have gained or lost over a period of time. It encompasses two forms of growth: capital appreciation (the value of your investment going up) and income (dividends, interest, or rent payments).
+Investment return measures how much your investments gained or lost over a period. It has two sources: **price appreciation** (an asset bought at $50 and now worth $65 has gained $15) and **income** (dividends from stocks, interest from bonds, rent from property). Judge a portfolio on total return, both parts together, not on whether the share price rose.
 
-Understanding your total return — both forms combined — is essential for evaluating whether your portfolio is meeting your financial goals.
+Income can be spent or reinvested. Reinvested dividends buy more shares, which pay further dividends: that is DRIP (a dividend reinvestment plan). The calculator assumes everything is reinvested, so the rate you enter should be a total return. If you plan to spend the income, enter the price return instead.
 
-> **Key takeaway:** Always look at *total* return (price gains + income), not just whether your share price went up. Dividends and interest can account for a significant portion of your overall gains.
+> **Example:** $50,000 plus $300 a month at 7% total return reaches {{ compoundFV(50000, 300, 7, 20) | usd }} in 20 years. Spend a 3% dividend yield and the balance grows at 4% to {{ compoundFV(50000, 300, 4, 20) | usd }}.
 
-## How Investment Returns Work
+## What the calculator assumes
 
-When you invest, your money can grow in two ways:
+Deposits are monthly, at the end of each month by default, or the start. Interest compounds annually, semi-annually, quarterly, monthly or daily, and the compounding choice sets the growth rate rather than how often you deposit. The rate is constant every year, which real markets are not. It is a planning tool for comparing cases, not a forecast.
 
-1. **Price appreciation** — the value of your shares or assets increases over time. If you buy a stock at $50 and it rises to $65, you have a $15 capital gain per share.
-2. **Income** — dividends from stocks, interest from bonds, or rent from property. This cash flow can be spent or reinvested.
+The five tabs each solve for one input and hold the others fixed: End Amount, Contribution, Return Rate, Starting Amount and Time. Time is solved in whole months and capped at 100 years. With $10,000 to start and $500 a month at 7%, reaching $1,000,000 takes {{ yearsToTarget(10000, 500, 7, 1000000) | num(1) }} years. Reaching $100,000 in 20 years from $10,000 plus $200 a month needs a return of {{ requiredRate(10000, 200, 100000, 20) | pct(2) }}.
 
-When you reinvest dividends (called DRIP — Dividend Reinvestment Plan), you buy additional shares with each dividend payment. Those new shares then earn their own dividends, creating a compounding effect. Historically, dividend reinvestment has accounted for roughly 40% of the S&P 500's total return.
-
-> **Tip:** If you don't need dividend income to cover living expenses, always opt into DRIP. The compounding effect of reinvested dividends is one of the easiest ways to accelerate portfolio growth without changing your contribution amount.
-
-## The Power of Time in the Market
+## Time in the market
 
 <div class="stat-highlight">
-  <span class="stat-number">40%</span>
-  <span class="stat-text">of the S&P 500's total historical return has come from reinvested dividends — not share price appreciation. Always opt into DRIP if you don't need the income.</span>
+  <span class="stat-number">{{ compoundEarned(10000, 500, 10, 25) / compoundFV(10000, 500, 10, 25) * 100 | pct }}</span>
+  <span class="stat-text">of the final balance in the index fund example is growth rather than money paid in. The longer the horizon, the more of the result growth supplies.</span>
 </div>
 
-One of the most researched findings in investing is that time in the market consistently beats timing the market. Since 1928, the S&P 500 has returned roughly 10% per year on average (about 7% after inflation). But those returns aren't distributed evenly — a handful of the best days each year contribute a disproportionate share of gains.
+Staying invested through both good and bad stretches is the simplest way to collect long-term growth. Yearly returns are uneven (the S&P 500 including dividends returned -36.55% in 2008 and +31.21% in 2019), and a small number of strong days account for a large part of long-run gains, often close to the worst days. An investor who sells in a panic tends to miss them.
 
-Missing just the 10 best trading days over a 20-year period can cut your total returns by more than half. Since you can't predict which days those will be, staying invested through both good and bad stretches is the simplest path to capturing long-term growth.
+## Annualized returns
 
-> **Key takeaway:** The cost of being out of the market on the wrong days far exceeds the benefit of avoiding the worst days. Consistency beats cleverness.
+A total return is hard to compare across different time spans. A 50% gain sounds impressive, but over 10 years it is {{ annualizedReturn(50, 10) | pct1 }} a year, and over 3 years {{ annualizedReturn(50, 3) | pct1 }} a year. Annualizing converts any total return into the equivalent steady yearly rate, with compounding: (1 + total return)^(1/years) - 1. The [ROI calculator](/tools/saving-and-growth/roi/) does this for a single holding.
 
-## Understanding Annualized Returns
+## Key terms
 
-Total return is straightforward: your investment grew by X%. But this number is misleading without context. A 50% total return sounds impressive — but over 10 years, that's only about 4.1% per year. Over 3 years, it's 14.5% per year.
+- **DRIP (dividend reinvestment plan):** automatically using dividends to buy more shares.
+- **CAGR (compound annual growth rate):** the steady annual rate that links a starting and an ending value.
+- **Nominal return:** the return before inflation.
+- **Real return:** the return after inflation, which reflects the buying power you gain.
+- **Dollar-cost averaging:** investing a fixed amount on a schedule, which buys more shares when prices are low.
 
-Annualized return converts any total return into an equivalent yearly rate, making it easy to compare investments with different time horizons. The formula accounts for compounding: Annualized Return = (1 + Total Return)^(1/Years) - 1.
+## Mistakes that cost money
 
-## When to Use This Calculator
-
-Use the investment return calculator when you want to:
-
-- **Project future portfolio value** — see what your investments could be worth in 10, 20, or 30 years with regular contributions
-- **Compare investment strategies** — test different return rates, contribution amounts, or time horizons side by side
-- **Evaluate DRIP impact** — see the difference that reinvesting dividends makes over your investment timeline
-- **Solve for any variable** — determine how much you need to invest monthly to reach a target, or what return rate you need to hit your goal
-
-## Key Terms
-
-- **DRIP (Dividend Reinvestment Plan)** — automatically reinvesting dividend payments to purchase additional shares
-- **CAGR (Compound Annual Growth Rate)** — the average annual growth rate of an investment over a specified period, accounting for compounding
-- **Nominal return** — the return before adjusting for inflation
-- **Real return** — the return after subtracting inflation; this reflects actual purchasing power gained
-- **Dollar-cost averaging** — investing a fixed amount regularly regardless of price, which naturally buys more shares when prices are low
-
-## Common Mistakes
-
-| Mistake | Why it matters | Impact |
+| Mistake | Why it matters | Effect |
 |---|---|---|
-| **Ignoring inflation** | A 10% nominal return with 3% inflation is only 7% real | Over 30 years, inflation can erode nearly half your nominal gains |
-| **Extrapolating short-term results** | A 20% year doesn't predict next year's return | Use 7–10% long-term averages for planning |
-| **Forgetting investment fees** | A 1% annual fee seems small | Over 30 years on $500K, it costs **$300,000+** in lost growth |
-| **Taking dividends as cash** | You miss the compounding effect of reinvestment | DRIP has historically delivered ~40% of S&P 500 total returns |
+| **Ignoring inflation** | A 10% return with 3% inflation is about {{ (1.10 / 1.03 - 1) * 100 | pct1 }} real | At 3% inflation, money loses {{ 100 - inflationAdjust(100, 3, 30, mode=value) | pct }} of its buying power in 30 years |
+| **Extrapolating a good run** | A strong year says little about the next one | Test a cautious case as well as a hopeful one |
+| **Forgetting fees** | A 1% annual fee looks small | On $100,000 at 8% for 30 years, a 1% fee against a 0.1% fee leaves {{ feeDrag(100000, 0, 8, 30, 1, compareFee=0.1).cost | usd }} less |
+| **Spending dividends you did not need** | You lose the compounding on them | Reinvesting turns {{ compoundFV(50000, 300, 4, 20) | usd }} into {{ compoundFV(50000, 300, 7, 20) | usd }} in the balanced example |
 
-> **Example:** Two investors each start with $100,000 and earn 8% annually for 30 years. One pays a 1% management fee, the other pays 0.1%. The difference? The high-fee investor ends up with roughly **$240,000 less** — all from a seemingly small 0.9% gap.
+## What to do next
 
-## What to Do Next
-
-Use the calculator to experiment with different scenarios. Adjust your monthly contribution up or down and watch how the final amount changes. You might find that increasing your contribution by even $100 per month adds tens of thousands to your end result — the earlier you start, the more impact each dollar has.
+Enter your own starting amount, deposit and return, then raise the deposit and watch the end amount. In the index fund example, $100 more a month adds {{ compoundFV(10000, 600, 7, 25) - compoundFV(10000, 500, 7, 25) | usd }} at 7%. Use the Contribution tab to work backwards from a target, and see the [investment fee calculator](/tools/saving-and-growth/investment-fee/) for what a fund's expense ratio takes.

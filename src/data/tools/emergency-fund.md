@@ -2,7 +2,7 @@
 name: "Emergency Fund Calculator"
 slug: "emergency-fund"
 category: "income-and-planning"
-description: "Emergency fund calculator — work out how many months of expenses to save and how long it takes at your current savings rate."
+description: "Emergency fund calculator: your 3, 6 and 12 month targets from your monthly expenses, and how long each takes at your savings rate."
 keywords:
   - "emergency fund calculator"
   - "how much emergency fund"
@@ -10,117 +10,90 @@ keywords:
   - "emergency savings"
 relatedTools:
   - "savings-goal"
-  - "salary-us"
-  - "net-worth"
   - "debt-payoff"
+  - "credit-card-payoff"
+  - "net-worth"
   - "compound-interest"
 affiliateContext: "Start building your safety net with a high-yield savings account"
 affiliatePrograms:
   - "Betterment"
   - "Ally"
   - "Wealthfront"
-calculationMethod: "Calculates months of essential expenses coverage needed"
+calculationMethod: "Adds up essential monthly expenses for 3, 6 and 12 month targets, then counts the months to each at your deposits and savings rate"
 faq:
   - question: "How much should I have in my emergency fund?"
-    answer: "Most financial experts recommend 3-6 months of essential expenses. If you have a stable job with predictable income, 3 months may be enough. If you're self-employed, have variable income, or are the sole earner, aim for 6-12 months. Essential expenses include housing, food, insurance, transportation, and minimum debt payments — not discretionary spending."
+    answer: "The usual guideline is 3 to 6 months of essential expenses. If your job is stable and your income predictable, 3 months may be enough. If you are self-employed, have variable income or are the only earner, aim for 6 to 12 months. Essential expenses are housing, food, utilities, insurance, transport and minimum debt payments, not discretionary spending. At $3,500 a month those targets are {{ 3500 * 3 | usd }}, {{ 3500 * 6 | usd }} and {{ 3500 * 12 | usd }}."
   - question: "Where should I keep my emergency fund?"
-    answer: "In a high-yield savings account that's separate from your checking account. It needs to be liquid (accessible within 1-2 business days) but not so accessible that you're tempted to spend it. Avoid investing your emergency fund in stocks — a market crash could happen at the same time you lose your job."
+    answer: "In a savings account that is separate from your spending account. It needs to be accessible within a day or two but not so easy to reach that you spend it. Avoid investing it in shares: a market fall can arrive at the same time as a job loss. Savings rates vary by bank and move with central bank rates, so compare current offers. The calculator lets you set the rate, starting at 4%, and counts interest on the savings you already hold as well as on each deposit."
   - question: "Should I build an emergency fund before paying off debt?"
-    answer: "Yes — build a starter emergency fund of $1,000-$2,000 first, then focus on high-interest debt, then build the full 3-6 month emergency fund. Without any emergency cushion, an unexpected expense forces you back into debt, undoing your progress. This is the approach both Dave Ramsey and most financial planners recommend."
+    answer: "Start with a small cushion, often $1,000 to $2,000, so a surprise bill does not go back on a card. Then put extra money on high-interest debt, and build the full fund once that debt is gone. Without any cushion, an unexpected expense pushes you back into debt and undoes your progress. The debt payoff calculator shows how long the debt takes."
   - question: "What counts as an emergency?"
-    answer: "Genuine emergencies: job loss, major medical bills, essential car or home repairs, unexpected family situations. Not emergencies: vacations, holiday gifts, a good deal on a TV, routine car maintenance (that's a planned expense). The clearer your definition, the less likely you are to dip into the fund for non-emergencies."
+    answer: "Job loss, major medical bills, essential car or home repairs and unexpected family needs. Not emergencies: holidays, gifts, a sale on a TV, or routine car maintenance, which is a planned expense. The clearer your definition, the less likely you are to dip into the fund for something else."
   - question: "How long does it take to build an emergency fund?"
-    answer: "It depends on your target amount and monthly savings rate. Saving $500/month toward a $15,000 emergency fund (6 months of $2,500 monthly expenses) takes about 30 months. Saving $300/month takes about 50 months. Our calculator shows your personalized timeline based on your actual expenses and savings capacity."
+    answer: "It depends on your target and your monthly deposit. Starting from nothing at a 4% savings rate, a $15,000 fund (6 months of $2,500) takes {{ emergencyMonths(15000, 0, 500, 4) | months }} at $500 a month and {{ emergencyMonths(15000, 0, 300, 4) | months }} at $300 a month. The calculator works out your own timeline for the 3, 6 and 12 month targets."
 workedExamples:
   - title: "Single professional, moderate expenses"
     inputs:
       monthlyExpenses: 3500
       currentSavings: 2000
       monthlySavingsCapacity: 600
-    description: "With $3,500 in monthly essential expenses, the targets are: 3 months = $10,500, 6 months = $21,000, 12 months = $42,000. Starting with $2,000 and saving $600/month: reach the 3-month target in about 14 months, the 6-month target in about 32 months. Keeping the fund in a 5% APY high-yield account adds roughly $500 in interest over the first 14 months."
+      savingsRate: 4
+    description: "At $3,500 a month in essential expenses the targets are {{ 3500 * 3 | usd }} for 3 months, {{ 3500 * 6 | usd }} for 6 months and {{ 3500 * 12 | usd }} for 12 months. Starting with $2,000 and saving $600 a month at a 4% savings rate, the 3-month target takes {{ emergencyMonths(10500, 2000, 600, 4) | months }} and the 6-month target {{ emergencyMonths(21000, 2000, 600, 4) | months }}. Interest adds about {{ compoundEarned(2000, 600, 4, emergencyMonths(10500, 2000, 600, 4) / 12, compounding=annually) | usd }} by the time the 3-month target is reached."
   - title: "Family of four with a single income"
     inputs:
       monthlyExpenses: 5800
       currentSavings: 500
       monthlySavingsCapacity: 400
-    description: "A family with $5,800/month in essential expenses (mortgage, food, insurance, utilities, minimum payments) on a single income should target 6-12 months: $34,800-$69,600. Starting with $500 and saving $400/month, it takes about 7 years to reach the 6-month target. This is a long road — consider temporarily cutting expenses to accelerate savings."
+      savingsRate: 4
+    description: "A family with $5,800 a month in essential expenses (mortgage, food, insurance, utilities, minimum payments) on one income should aim for 6 to 12 months: {{ 5800 * 6 | usd }} to {{ 5800 * 12 | usd }}. Starting with $500 and saving $400 a month at 4%, the 6-month target takes {{ emergencyMonths(34800, 500, 400, 4) | months }} and the 12-month target {{ emergencyMonths(69600, 500, 400, 4) | months }}. That is a long road: cutting expenses for a while, or raising the monthly deposit, shortens it quickly."
   - title: "Freelancer needing a larger cushion"
     inputs:
       monthlyExpenses: 4200
       currentSavings: 8000
       monthlySavingsCapacity: 800
-    description: "A freelancer with variable income needs a larger cushion — targeting 9 months at $4,200/month = $37,800. With $8,000 already saved and $800/month contributions at 5% APY, they'll reach the goal in about 3 years, 2 months. The high-yield interest contributes about $2,300 over that period."
+      savingsRate: 4
+    description: "A freelancer with variable income targets 9 months at $4,200 a month: {{ 4200 * 9 | usd }}. With $8,000 saved and $800 a month at a 4% rate, they reach it in {{ emergencyMonths(37800, 8000, 800, 4) | months }}, of which about {{ compoundEarned(8000, 800, 4, emergencyMonths(37800, 8000, 800, 4) / 12, compounding=annually) | usd }} is interest."
 ---
 
-## What Is an Emergency Fund?
+## A cushion between you and the credit card
 
-An emergency fund is money set aside specifically for unexpected financial shocks — job loss, medical bills, car breakdowns, or urgent home repairs. It's the financial buffer between you and debt when life doesn't go as planned.
+An emergency fund is money set aside for shocks such as job loss, medical bills, a car breakdown or an urgent home repair. It decides whether a surprise bill is paid from savings or from a credit card, and a card balance can cost far more than the bill (see the credit card payoff calculator).
 
-Without an emergency fund, unexpected expenses go on credit cards (at 20%+ interest) or force you to take on personal loans. With one, you handle emergencies from savings and your financial plan stays on track.
+With the calculator's starting expenses of $3,500 a month, a 6-month target is {{ 3500 * 6 | usd }}. Starting from $2,000 and saving $500 a month at 4%, it takes {{ emergencyMonths(21000, 2000, 500, 4) | months }} to get there. That timeline, more than the target itself, is what to plan around.
 
-> **Key takeaway:** An emergency fund isn't about earning returns — it's insurance against going into debt when the unexpected happens. Even a small fund can prevent a $1,000 car repair from becoming $1,400 in credit card charges.
+## How much you need
 
-## How Much Do You Need?
+The usual guideline is 3 to 6 months of essential expenses: the minimum you must cover if income stopped, not dining out or subscriptions. The right target depends on your situation:
 
-<div class="stat-highlight">
-  <span class="stat-number">56%</span>
-  <span class="stat-text">of Americans can't cover a $1,000 emergency from savings. Even a small emergency fund prevents a car repair from spiraling into high-interest credit card debt.</span>
-</div>
-
-The standard recommendation is 3-6 months of essential expenses. "Essential expenses" means the minimum you need to cover if income stopped: housing, food, utilities, insurance, transportation, and minimum debt payments. Not dining out, streaming subscriptions, or entertainment.
-
-The right target depends on your situation:
-
-| Months of expenses | Best for | Why |
+| Months of expenses | Fits | Why |
 | --- | --- | --- |
-| **3 months** | Dual-income household, stable jobs, good insurance, low debt | A second income provides a built-in safety net |
-| **6 months** | Single earner, family with children, moderate job stability concerns | Longer job searches and higher stakes demand a bigger buffer |
-| **9-12 months** | Self-employed, freelancer, variable income, single parent, volatile industry | Income gaps are unpredictable and can stretch for months |
+| **3 months** | Two-earner household, stable jobs, good insurance, little debt | A second income is a built-in cushion |
+| **6 months** | Single earner, children, moderate job risk | Longer job searches and higher stakes |
+| **9 to 12 months** | Self-employed, freelance or variable income, volatile industry | Income gaps are unpredictable and can last months |
 
-These are guidelines. Any amount is better than nothing — even $1,000 covers most car repairs and medical co-pays, preventing a credit card spiral.
+These are guidelines. Any amount beats none: even $1,000 covers many car repairs and medical co-pays.
 
-## Where to Keep Your Emergency Fund
+## Where to keep it
 
-Your emergency fund needs to be:
+Your fund should be liquid (reachable in a day or two, not locked in a CD or investment account), safe from market falls, and separate from your spending account, ideally at a different bank. An easy-access savings account meets all three and pays interest while it waits. Rates change, so look up current offers; the calculator starts at 4% and lets you change it. At that rate a $15,000 fund earns about {{ 15000 * 4 / 100 | usd }} in a year.
 
-1. **Liquid** — accessible within 1-2 business days, not locked in a CD or investment account
-2. **Safe** — not subject to market fluctuations; stocks can crash at exactly the worst time
-3. **Separate** — in a different account from your spending money, ideally at a different bank
+> **Tip:** keep the fund at a different bank from your current account. The extra day it takes to transfer is enough friction to stop impulse spending, while the money stays reachable for a real emergency.
 
-A **high-yield savings account** meets all three criteria. With rates currently at 4-5% APY, your emergency fund actually earns meaningful interest while waiting. A $15,000 emergency fund at 5% APY earns $750 per year — money that works for you while it sits.
+## Building it step by step
 
-> **Tip:** Open your high-yield savings account at a different bank from your checking. The 1-2 day transfer delay creates just enough friction to stop impulse spending, while still keeping the money accessible for genuine emergencies.
+1. **Start small.** If you have nothing saved, aim for $1,000 first. At $100 a month that is {{ emergencyMonths(1000, 0, 100, 4) | months }}.
+2. **Automate.** Move money to savings on payday, before you can spend it.
+3. **Handle expensive debt first, with a cushion in place.** Keep a small fund while you clear high-interest debt, or an unexpected bill puts you back in it.
+4. **Refill after use.** If you spend from it, make restoring it your first financial priority.
 
-Avoid keeping your emergency fund in investments (too volatile), under the mattress (no interest, not insured), or in your checking account (too easy to spend).
+> **Example:** saving $200 per paycheck, 26 paychecks a year, is {{ 200 * 26 | usd }} a year, about {{ 200 * 26 / 12 | usd }} a month. At 4% that grows to about {{ compoundFV(0, 200 * 26 / 12, 4, 1, compounding=annually) | usd }} after a year and {{ compoundFV(0, 200 * 26 / 12, 4, 2, compounding=annually) | usd }} after two, just over a 3-month fund at $3,500 a month ({{ 3500 * 3 | usd }}).
 
-## Building Your Emergency Fund: Step by Step
+## What counts as an emergency
 
-1. **Start small.** If you have nothing saved, target $1,000 first. This covers most minor emergencies and builds the savings habit.
-2. **Automate.** Set up automatic transfers from checking to savings on payday. The money should move before you can spend it.
-3. **Use a separate bank.** Opening a high-yield savings account at a different institution from your checking creates friction that prevents impulse spending.
-4. **Build before aggressively paying debt.** The exception is high-interest credit card debt — but even then, maintain a $1,000-$2,000 starter fund. Without it, emergencies push you back into debt.
-5. **Replenish immediately.** If you use your emergency fund, make refilling it the top financial priority until it's restored.
+Emergencies: job loss, medical or dental emergencies, essential car or home repairs, urgent family needs, insurance deductibles after an accident. Not emergencies: holidays, gifts, electronics sales, routine car maintenance (plan for that separately), or wanted-but-not-needed purchases.
 
-> **Example:** Saving $200 per paycheck (biweekly) adds up to $5,200 in a year. At 5% APY, that grows to about $5,330. In just two years, you'd have nearly $11,000 — enough for a solid 3-month fund if your essential expenses are around $3,500/month.
+If you have to ask whether something is an emergency, it probably is not. A separate sinking fund for predictable irregular costs, such as car maintenance, gifts and annual subscriptions, keeps your emergency fund for real emergencies.
 
-## What Counts as an Emergency?
+## Using the calculator
 
-Clear definitions prevent fund raids:
-
-**Emergencies:** Job loss, medical/dental emergencies, essential car or home repairs, unexpected family situations, insurance deductibles after accidents
-
-**Not emergencies:** Vacations, holiday gifts, sales on electronics, routine car maintenance (plan for these separately), wanted-but-not-needed purchases
-
-> **Key takeaway:** If you have to ask "is this an emergency?" — it probably isn't. Create a separate sinking fund for predictable irregular expenses like car maintenance, holiday gifts, and annual subscriptions.
-
-## When to Use This Calculator
-
-Use the emergency fund calculator to:
-
-- **Set your target** — see the exact dollar amount for 3, 6, and 12-month coverage based on your actual expenses
-- **Create a timeline** — find out how long it will take to reach your target at your current savings rate
-- **Optimize your plan** — see how increasing your monthly savings or opening a higher-yield account changes the timeline
-
-## What to Do Next
-
-Enter your monthly essential expenses to see your 3, 6, and 12-month targets. If starting from zero, focus on reaching $1,000 first, then build toward the full target. Set up an automatic transfer today — even $50 per pay period adds up to $1,300 per year.
+Enter your monthly essentials by category, what you have already saved, what you can add each month and your savings rate. The calculator shows the 3, 6 and 12 month targets, how many months each takes, and the balance month by month. If you are starting from zero, set a first goal of $1,000 and an automatic transfer today: even $50 every two weeks is {{ 50 * 26 | usd }} a year.

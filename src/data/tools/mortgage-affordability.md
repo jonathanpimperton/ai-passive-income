@@ -2,7 +2,7 @@
 name: "Mortgage Affordability Calculator"
 slug: "mortgage-affordability"
 category: "debt-and-loans"
-description: "Mortgage affordability calculator — enter income, debts, and down payment to see how much house you can afford and the monthly payment."
+description: "Mortgage affordability calculator: your income, debts and deposit give the most you can borrow, using US 28/36, UK income-multiple and euro rules."
 keywords:
   - "how much house can I afford"
   - "mortgage affordability calculator"
@@ -21,117 +21,138 @@ relatedTools:
   - "rent-vs-buy"
   - "savings-goal"
   - "salary-us"
-lastUpdated: "2026-03-05"
+  - "salary-uk"
+  - "stamp-duty"
+lastUpdated: "2026-11-15"
 dataSources:
-  - name: "Consumer Financial Protection Bureau — Debt-to-Income ratios"
+  - name: "CFPB: what is a debt-to-income ratio?"
     url: "https://www.consumerfinance.gov/ask-cfpb/what-is-a-debt-to-income-ratio-en-1791/"
-  - name: "Freddie Mac — Qualification guidelines"
-    url: "https://www.freddiemac.com/blog/homeownership/20180921-understanding-debt-to-income-ratio"
+  - name: "Freddie Mac: how much home can I afford?"
+    url: "https://myhome.freddiemac.com/blog/homebuying/how-much-can-you-afford"
+  - name: "Freddie Mac Seller/Servicer Guide: monthly debt payment-to-income ratio"
+    url: "https://guide.freddiemac.com/app/guide/section/5401.2"
+  - name: "Freddie Mac: breaking down PMI (default PMI rate)"
+    url: "https://myhome.freddiemac.com/buying/breaking-down-pmi"
+  - name: "Freddie Mac Primary Mortgage Market Survey (default US rates)"
+    url: "https://www.freddiemac.com/pmms"
+  - name: "FCA: interest rate stress test rule (UK)"
+    url: "https://www.fca.org.uk/firms/interest-rate-stress-test-rule"
+  - name: "Bank of England and PRA: high loan-to-income lending, October 2026 (UK)"
+    url: "https://www.bankofengland.co.uk/prudential-regulation/publication/2026/october/high-loan-to-income-lending-policy-statement"
+  - name: "MoneyHelper mortgage affordability calculator: how it works (UK)"
+    url: "https://www.gov.uk/algorithmic-transparency-records/money-and-pensions-service-mortgage-affordability-calculator"
 faq:
   - question: "What is the 28/36 rule for mortgage affordability?"
-    answer: "The 28/36 rule is a guideline lenders use to assess borrower risk. The 'front-end' ratio (28%) means your total housing costs — principal, interest, taxes, and insurance — should not exceed 28% of your gross monthly income. The 'back-end' ratio (36%) means your total monthly debt payments including housing should stay below 36% of gross income. On a $100,000 income, that means a maximum housing payment of $2,333/month and total debt of $3,000/month. Many lenders will approve up to 43-45% DTI, but staying at or below 36% leaves more room for savings and unexpected expenses."
-  - question: "How does the DTI limit affect how much house I can afford?"
-    answer: "Debt-to-income ratio is the single biggest factor in determining your maximum mortgage. At 36% DTI on an $80,000 salary, your max total debt payment is $2,400/month. If you already pay $500/month in car and student loans, that leaves $1,900 for housing. At 43% DTI, the same income allows $2,867 total, leaving $2,367 for housing. That difference translates to roughly $60,000-$70,000 more in home buying power. This calculator lets you adjust the DTI limit to see how it changes your result."
+    answer: "It is a guideline for how much of your gross income can go on housing and debt. The front-end ratio (28%) caps your housing costs (principal, interest, property tax, insurance, PMI and HOA dues). The back-end ratio (36%) caps housing plus all your other monthly debt payments. On a $100,000 income that is {{ 100000 * 28 / 100 / 12 | usd }} a month for housing and {{ 100000 * 36 / 100 / 12 | usd }} a month in total. The calculator uses the lower of the two limits after your other debts."
+  - question: "Which limit sets my maximum, and how do debts and DTI change it?"
+    answer: "Whichever limit is lower. On an $80,000 income with $500 a month of other debts, the 28% housing cap is {{ usAffordability(80000, 500, 40000, rate('us30'), 30).frontEndBudget | usd }} a month and the 36% all-debt limit leaves {{ usAffordability(80000, 500, 40000, rate('us30'), 30).backEndBudget | usd }}, so the housing cap sets the answer: {{ usAffordability(80000, 500, 40000, rate('us30'), 30).maxPrice | usd }} with $40,000 down. Debts up to {{ 80000 * 36 / 100 / 12 - 80000 * 28 / 100 / 12 | usd }} a month don't change that. Above it the back-end limit takes over: at $1,000 a month of debts the maximum falls to {{ usAffordability(80000, 1000, 40000, rate('us30'), 30).maxPrice | usd }}. Raising only the back-end limit to 43% changes nothing here; you also have to raise the front-end limit (at 31% and 43% the maximum is {{ usAffordability(80000, 500, 40000, rate('us30'), 30, frontEnd=31, backEnd=43).maxPrice | usd }}). Both limits are in the advanced settings."
   - question: "Does a larger down payment let me afford a more expensive home?"
-    answer: "Yes, in two ways. First, a larger down payment reduces the loan amount, which means lower monthly payments for the same home price. Second, if your down payment reaches 20% or more of the purchase price, you avoid PMI (Private Mortgage Insurance), which typically costs 0.5-1% of the loan amount per year. Skipping PMI frees up more of your monthly budget for a larger loan. On a $350,000 home, going from 10% to 20% down saves roughly $130-$260/month in PMI alone."
+    answer: "Yes, in two ways. The deposit adds to the price directly, and once it reaches 20% of the price the PMI charge disappears, which frees monthly budget for a larger loan. On an $80,000 income with $500 a month of debts, $40,000 down gives a maximum of {{ usAffordability(80000, 500, 40000, rate('us30'), 30).maxPrice | usd }} with {{ usAffordability(80000, 500, 40000, rate('us30'), 30).monthlyPMI | usd }} a month of PMI, and $60,000 down gives {{ usAffordability(80000, 500, 60000, rate('us30'), 30).maxPrice | usd }} with {{ usAffordability(80000, 500, 60000, rate('us30'), 30).monthlyPMI | usd }} a month of PMI. The extra $20,000 raises the maximum by {{ usAffordability(80000, 500, 60000, rate('us30'), 30).maxPrice - usAffordability(80000, 500, 40000, rate('us30'), 30).maxPrice | usd }}, more than the deposit itself, because the PMI charge falls away once the deposit passes 20% of the price."
   - question: "How much does PMI cost and when does it go away?"
-    answer: "PMI typically costs 0.5% to 1% of the loan amount per year, paid monthly. On a $300,000 loan, that is $125-$250 per month. PMI is required when your down payment is less than 20% of the home's value. Under federal law (Homeowners Protection Act), your lender must automatically cancel PMI when your loan balance reaches 78% of the original purchase price. You can request cancellation at 80%. PMI is temporary — once you build enough equity through payments or appreciation, it goes away."
+    answer: "Freddie Mac puts PMI at roughly $30 to $70 a month for every $100,000 borrowed (accessed 12 November 2026), which is {{ 30 * 12 / 100000 * 100 | pct(2) }} to {{ 70 * 12 / 100000 * 100 | pct(2) }} of the loan a year. The calculator uses the midpoint, {{ (30 + 70) / 2 * 12 / 100000 * 100 | pct(auto) }}, and you can change it. PMI applies while your down payment is under 20% of the price. Under the federal Homeowners Protection Act the lender must cancel it automatically when your balance reaches 78% of the original value, and you can ask for it at 80%. The calculator treats PMI as part of the payment that sets your budget and does not model it ending."
   - question: "What monthly debts count toward my DTI ratio?"
-    answer: "DTI includes all recurring monthly debt obligations: car loans, student loans, credit card minimum payments, personal loans, child support, alimony, and any other installment debt. It does not include utilities, groceries, cell phone bills, streaming subscriptions, or other discretionary expenses. Lenders pull your credit report to verify debts, so include everything that shows up there. If you can pay off a small debt before applying, it directly increases how much house you can qualify for."
+    answer: "Recurring debt payments: car loans, student loans, credit card minimums, personal loans, child support, alimony and other instalment debt, plus the new housing payment. Utilities, groceries, phone bills and subscriptions don't count. Lenders pull your credit report to check, so include everything on it. Paying off a small loan before you apply raises the maximum only if your back-end limit is the binding one, as in the second answer above."
   - question: "Should I buy the most expensive house I can afford?"
-    answer: "Not necessarily. Just because a lender approves you for a certain amount doesn't mean that is the right budget for your situation. A mortgage at the maximum DTI leaves very little room for retirement savings, emergency funds, travel, or lifestyle flexibility. Many financial planners recommend keeping housing costs closer to 25% of take-home pay (not gross income), which is considerably less than the 28% of gross income the 28/36 rule allows. Use this calculator to find your maximum, then consider whether a lower target better fits your overall financial plan."
+    answer: "Not necessarily. Lender approval is a ceiling, not a target. The 28% limit is measured on gross income, so it takes more of your take-home pay than it sounds: for a single filer on $100,000 with a 5% state tax, {{ 100000 * 28 / 100 | usd }} a year of housing is {{ 100000 * 28 / 100 / usPay(100000, state=5).takeHome * 100 | pct }} of take-home pay. A payment at the limit leaves little for repairs, retirement saving, an emergency fund or a change in income. Use the calculator to find your maximum, then consider a lower target."
+  - question: "How does the UK calculation work?"
+    answer: "Switch the currency to pounds. A UK lender typically caps the loan at about 4.5 times income and also checks that you could still pay if rates rose. The calculator takes the smaller of the two limits. The stress test uses the higher of your rate and lenders' average standard variable rate ({{ rate('ukRevert') | pct(2) }}, {{ rateSource('ukRevert') }}) plus 1 point, and requires the stressed payment plus your other commitments to stay within 50% of take-home pay, a budgeting line used by MoneyHelper, not a lender rule. For a £60,000 income with a £40,000 deposit over 25 years at {{ rate('uk2yr') | pct(2) }} ({{ rateSource('uk2yr') }}), that gives a maximum price of {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).maxPrice | gbp }}, from a stress-test limit of {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).stressLimitLoan | gbp }} and an income-multiple limit of {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).ltiLimitLoan | gbp }} (the lower sets the loan). Take-home pay is estimated for one earner unless you edit it."
 workedExamples:
   - title: "Family earning $100K with $50K down"
     inputs:
       annualIncome: 100000
       monthlyDebt: 600
       downPayment: 50000
-      interestRate: 6.75
+      interestRate: "market rate (30-year)"
       loanTerm: 30
-    description: "Gross monthly income is $8,333. At a 36% DTI limit, maximum total debt payments are $3,000/month. Subtracting $600 in existing debts leaves $2,400 for housing. After accounting for estimated taxes ($332/month at 1.2%), insurance ($125/month), and PMI ($117/month — down payment is 15.1%), the available P&I budget is about $1,826. That supports a loan of approximately $282,000, putting the maximum home price at roughly $332,000."
-  - title: "Single earner with $80K salary and no debt"
+    description: "Gross monthly income is {{ usAffordability(100000, 600, 50000, rate('us30'), 30).grossMonthly | usd }}. The 28% housing cap is {{ usAffordability(100000, 600, 50000, rate('us30'), 30).frontEndBudget | usd }}; the 36% limit leaves {{ usAffordability(100000, 600, 50000, rate('us30'), 30).backEndBudget | usd }} after the $600 of debts, so the housing cap binds. Inside that budget go property tax ({{ usAffordability(100000, 600, 50000, rate('us30'), 30).monthlyTax | usd }}), insurance ({{ usAffordability(100000, 600, 50000, rate('us30'), 30).monthlyInsurance | usd }}) and PMI ({{ usAffordability(100000, 600, 50000, rate('us30'), 30).monthlyPMI | usd }}, because the down payment is {{ 50000 / usAffordability(100000, 600, 50000, rate('us30'), 30).maxPrice * 100 | pct1 }}). That leaves {{ usAffordability(100000, 600, 50000, rate('us30'), 30).monthlyPI | usd }} for principal and interest at {{ rate('us30') | pct(2) }} ({{ rateSource('us30') }}), a loan of {{ usAffordability(100000, 600, 50000, rate('us30'), 30).maxLoan | usd }} and a maximum price of {{ usAffordability(100000, 600, 50000, rate('us30'), 30).maxPrice | usd }}."
+  - title: "Single earner with an $80K salary and no debt"
     inputs:
       annualIncome: 80000
       monthlyDebt: 0
       downPayment: 40000
-      interestRate: 6.75
+      interestRate: "market rate (30-year)"
       loanTerm: 30
-    description: "With $80,000 income and zero existing debt, the full 36% DTI allocation ($2,400/month) goes toward housing. After property tax (~$323/month), insurance ($125/month), and PMI ($118/month — down payment is 12.4% of the home price), approximately $1,834 is available for P&I. This supports a loan of around $283,000, giving a max home price of about $323,000 with the $40,000 down payment. No debt is a significant advantage — compare this to the default scenario where $500/month in debts reduces buying power by over $60,000."
-  - title: "High income couple, 15-year mortgage"
+    description: "With $80,000 income, no other debts and $40,000 down, the 28% housing cap of {{ usAffordability(80000, 0, 40000, rate('us30'), 30).frontEndBudget | usd }} a month sets the limit. After property tax ({{ usAffordability(80000, 0, 40000, rate('us30'), 30).monthlyTax | usd }}), insurance ({{ usAffordability(80000, 0, 40000, rate('us30'), 30).monthlyInsurance | usd }}) and PMI ({{ usAffordability(80000, 0, 40000, rate('us30'), 30).monthlyPMI | usd }}), {{ usAffordability(80000, 0, 40000, rate('us30'), 30).monthlyPI | usd }} is left for principal and interest at {{ rate('us30') | pct(2) }}. The loan is {{ usAffordability(80000, 0, 40000, rate('us30'), 30).maxLoan | usd }} and the maximum price {{ usAffordability(80000, 0, 40000, rate('us30'), 30).maxPrice | usd }}. Adding $500 a month of other debt gives the same {{ usAffordability(80000, 500, 40000, rate('us30'), 30).maxPrice | usd }}, because the housing cap is still the lower limit; at $1,000 a month the maximum falls to {{ usAffordability(80000, 1000, 40000, rate('us30'), 30).maxPrice | usd }}."
+  - title: "High-income couple, 15-year mortgage"
     inputs:
       annualIncome: 200000
       monthlyDebt: 800
       downPayment: 100000
-      interestRate: 6.0
+      interestRate: "market rate (15-year)"
       loanTerm: 15
-    description: "At $200,000 combined income, gross monthly is $16,667. A 36% DTI allows $6,000/month total, minus $800 existing debt leaves $5,200 for housing. After taxes ($605/month), insurance ($125/month), and PMI ($210/month — down payment is 16.5%), the available P&I budget is about $4,260. On a 15-year term this supports a loan near $505,000, giving a max home price around $605,000. The 15-year term saves roughly $200,000+ in total interest compared to 30 years."
+    description: "On $200,000 gross, the 28% housing cap is {{ usAffordability(200000, 800, 100000, rate('us15'), 15).frontEndBudget | usd }} a month, below the {{ usAffordability(200000, 800, 100000, rate('us15'), 15).backEndBudget | usd }} the 36% limit leaves after $800 of debts. Property tax is {{ usAffordability(200000, 800, 100000, rate('us15'), 15).monthlyTax | usd }} and PMI {{ usAffordability(200000, 800, 100000, rate('us15'), 15).monthlyPMI | usd }}, so {{ usAffordability(200000, 800, 100000, rate('us15'), 15).monthlyPI | usd }} goes to principal and interest at {{ rate('us15') | pct(2) }} ({{ rateSource('us15') }}). That supports a loan of {{ usAffordability(200000, 800, 100000, rate('us15'), 15).maxLoan | usd }} and a price of {{ usAffordability(200000, 800, 100000, rate('us15'), 15).maxPrice | usd }}. The same budget over 30 years at {{ rate('us30') | pct(2) }} supports {{ usAffordability(200000, 800, 100000, rate('us30'), 30).maxPrice | usd }}: the shorter term buys less house per month in exchange for far less interest."
 ---
 
-## How Much House Can I Afford?
+## What sets your maximum
 
-The answer depends on three things: how much you earn, how much you owe, and how much you have saved for a down payment. This calculator works backward from your income to find the maximum home price that fits within standard lending guidelines.
+The answer depends on three things: what you earn, what you already owe and what you have saved for a deposit. The calculator works backwards from your income to the highest price that fits standard lending guidelines.
 
-The starting point is your **debt-to-income ratio (DTI)** — the percentage of your gross monthly income that goes toward debt payments. Most lenders cap this at 36-43%, though the traditional guideline is 36%.
+In the US the guide is your debt-to-income ratio (DTI), the share of gross monthly income that goes on debt payments. Freddie Mac's lending guide gives 36% as its guideline and treats a manually underwritten loan above 45% as ineligible; automated underwriting can allow more. The calculator applies two limits and uses the lower.
 
-> **Key takeaway:** Your income sets the ceiling. Your existing debts and down payment determine where within that ceiling you land. Paying off a $300/month car loan can add $40,000+ to your home buying budget.
+> **Debts only matter when they bind.** On an $80,000 income the housing cap (28%, {{ usAffordability(80000, 500, 40000, rate('us30'), 30).frontEndBudget | usd }} a month) is lower than the 36% all-debt limit until your other debts pass {{ 80000 * 36 / 100 / 12 - 80000 * 28 / 100 / 12 | usd }} a month. Below that, paying off a car loan won't raise your maximum. Above it, each extra $100 of monthly debt takes about {{ usAffordability(80000, 1000, 40000, rate('us30'), 30).maxPrice - usAffordability(80000, 1100, 40000, rate('us30'), 30).maxPrice | roundTo(100) | usd }} off it.
 
-## The 28/36 Rule Explained
+## The 28/36 rule, step by step
 
 <div class="stat-highlight">
-  <span class="stat-number">28%</span>
-  <span class="stat-text">of gross income is the recommended maximum for housing costs (PITI). The 36% cap includes all debt.</span>
+  <span class="stat-number">{{ 100000 * 28 / 100 / 12 | usd }}</span>
+  <span class="stat-text">a month is the housing budget on a $100,000 income under the 28% rule. The 36% rule allows {{ 100000 * 36 / 100 / 12 | usd }} a month in total, including other debts.</span>
 </div>
 
-Lenders use two ratios to evaluate mortgage applications:
+- **Front-end ratio (28%):** housing costs (principal, interest, property tax, insurance, HOA dues and PMI) of no more than 28% of gross monthly income.
+- **Back-end ratio (36%):** housing plus every other debt payment of no more than 36% of gross monthly income.
 
-- **Front-end ratio (28%):** Your total housing costs — mortgage principal, interest, property taxes, insurance, HOA, and PMI — should not exceed 28% of your gross monthly income.
-- **Back-end ratio (36%):** Your total monthly debt payments (housing + car loans, student loans, credit cards, etc.) should stay below 36% of gross income.
+The calculator then:
 
-Some lenders approve borrowers at 43% or even 50% DTI for "qualified mortgages" under government rules. But a higher DTI means less margin for error — one unexpected expense can strain your budget.
+1. Takes the lower of 28% of gross monthly income and 36% of gross monthly income minus your other debts. That is your housing budget.
+2. Subtracts property tax (default 1.0% of the price a year), homeowners insurance (default $1,800 a year), HOA dues and PMI (default 0.6% of the loan a year, if your down payment is under 20%).
+3. Treats what is left as the principal-and-interest payment and works out the loan it supports.
+4. Adds your down payment to get the maximum price.
 
-This calculator defaults to 36% but lets you adjust the limit to match what your lender allows. For a conservative estimate, try 28%.
+PMI depends on the loan and the loan depends on PMI, so the calculator solves each side of the 20%-down line directly rather than guessing and repeating, and reports the maximum price on the side where the numbers are consistent. Both limits, the PMI rate and the property tax and insurance assumptions are adjustable.
 
-## What Goes Into the Calculation
+> **Rates matter.** The calculator starts from the current Freddie Mac survey rate, {{ rate('us30') | pct(2) }} for 30 years ({{ rateSource('us30') }}), which is an average, not a quote. A half-point rise to {{ rate('us30') + 0.5 | pct(2) }} cuts the maximum price on an $80,000 income with $500 a month of debts and $40,000 down from {{ usAffordability(80000, 500, 40000, rate('us30'), 30).maxPrice | usd }} to {{ usAffordability(80000, 500, 40000, rate('us30') + 0.5, 30).maxPrice | usd }}.
 
-The calculator follows this sequence:
+## Down payment and PMI
 
-1. **Maximum monthly housing budget** = (Gross monthly income x DTI limit) minus existing monthly debt
-2. **Subtract fixed costs** from that budget: property taxes, insurance, PMI (if applicable), and HOA fees
-3. **The remainder** is available for principal and interest (P&I)
-4. **Work backward** from the P&I amount using the standard mortgage formula to find the maximum loan amount
-5. **Add your down payment** to get the maximum home price
+A 20% down payment avoids PMI, but saving 20% of a $400,000 home ({{ 400000 * 20 / 100 | usd }}) takes years. Here is how the deposit changes the maximum price for an $80,000 income with $500 a month of other debts, 30 years at {{ rate('us30') | pct(2) }} ({{ rateSource('us30') }}):
 
-Because PMI depends on the loan amount (which depends on PMI), the calculator iterates until the numbers converge.
-
-> **Tip:** Small changes in interest rate have a big impact. A 0.5% rate increase on a $300,000 loan reduces your buying power by roughly $20,000-$25,000.
-
-## Common Mistakes When Estimating Affordability
-
-1. **Using net income instead of gross.** Lenders calculate DTI using gross (pre-tax) income, not take-home pay. Your actual cash flow is lower, so what a lender approves may feel tight.
-2. **Forgetting about property taxes and insurance.** In some areas, property taxes add $400-$800/month to the payment. Always factor these in — they reduce the amount available for the actual mortgage.
-3. **Ignoring PMI.** With less than 20% down, PMI can cost $100-$300/month. That directly reduces how much loan you can support.
-4. **Buying at the maximum.** Lender approval is a ceiling, not a recommendation. Staying 10-15% below your maximum leaves room for home maintenance, retirement savings, and life.
-
-## Down Payment and PMI
-
-A 20% down payment avoids PMI entirely. But saving 20% of a $400,000 home ($80,000) takes years for most people. Here is how different down payments affect affordability on an $80,000 income:
-
-| Down Payment | Down % (est.) | PMI/month | Max Home Price |
+| Deposit | Maximum price | Deposit as % of price | PMI a month |
 |---|---|---|---|
-| $20,000 | ~7% | ~$115 | ~$295,000 |
-| $40,000 | ~13% | ~$95 | ~$330,000 |
-| $60,000 | ~19% | ~$35 | ~$365,000 |
-| $70,000 | 20%+ | $0 | ~$375,000 |
+| $20,000 | {{ usAffordability(80000, 500, 20000, rate('us30'), 30).maxPrice | usd }} | {{ 20000 / usAffordability(80000, 500, 20000, rate('us30'), 30).maxPrice * 100 | pct1 }} | {{ usAffordability(80000, 500, 20000, rate('us30'), 30).monthlyPMI | usd }} |
+| $40,000 | {{ usAffordability(80000, 500, 40000, rate('us30'), 30).maxPrice | usd }} | {{ 40000 / usAffordability(80000, 500, 40000, rate('us30'), 30).maxPrice * 100 | pct1 }} | {{ usAffordability(80000, 500, 40000, rate('us30'), 30).monthlyPMI | usd }} |
+| $60,000 | {{ usAffordability(80000, 500, 60000, rate('us30'), 30).maxPrice | usd }} | {{ 60000 / usAffordability(80000, 500, 60000, rate('us30'), 30).maxPrice * 100 | pct1 }} | {{ usAffordability(80000, 500, 60000, rate('us30'), 30).monthlyPMI | usd }} |
+| $80,000 | {{ usAffordability(80000, 500, 80000, rate('us30'), 30).maxPrice | usd }} | {{ 80000 / usAffordability(80000, 500, 80000, rate('us30'), 30).maxPrice * 100 | pct1 }} | {{ usAffordability(80000, 500, 80000, rate('us30'), 30).monthlyPMI | usd }} |
 
-The table shows that each additional $20,000 saved adds roughly $30,000-$40,000 in buying power — partly from the larger down payment itself and partly from reduced or eliminated PMI.
+Between $20,000 and $40,000 the extra deposit raises the maximum by {{ usAffordability(80000, 500, 40000, rate('us30'), 30).maxPrice - usAffordability(80000, 500, 20000, rate('us30'), 30).maxPrice | usd }}, less than the $20,000 itself, because property tax on a pricier home takes back part of the monthly budget. Where the deposit crosses 20% of the price, PMI drops away and the maximum jumps by more than the deposit.
 
-## When to Use This Calculator
+## UK and euro-area mortgages
 
-Use the mortgage affordability calculator when you are:
+Switch the currency to pounds or euros and the model changes.
 
-- **Starting to house-hunt** and need a realistic price range before contacting agents
-- **Deciding how much to save** for a down payment and want to see the trade-offs
-- **Comparing 15-year vs 30-year** terms to see which fits your budget
-- **Weighing whether to pay off debt first** — test how eliminating a car payment changes your max home price
+**UK.** A UK lender typically lends up to about 4.5 times income (the limit is adjustable from 4 to 5.5 times) and checks that you could still afford the payment if rates rose. The stress rate is the higher of your rate and the average standard variable rate ({{ rate('ukRevert') | pct(2) }}, {{ rateSource('ukRevert') }}) plus a margin of 1 point, and the stressed payment plus other commitments must stay within 50% of take-home pay. The calculator shows both limits and uses the smaller. Terms are 20, 25, 30 or 35 years, and there is no property tax, PMI or HOA line. Take-home pay is estimated for a single earner in England, Wales and Northern Ireland unless you edit it, and a deposit under 5% brings a warning.
 
-Once you know your maximum, use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to explore specific home prices, see amortization schedules, and test extra payment scenarios.
+For a £60,000 household income, no other commitments, a £40,000 deposit and 25 years at {{ rate('uk2yr') | pct(2) }} ({{ rateSource('uk2yr') }}):
+
+- The income-multiple limit allows a loan of {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).ltiLimitLoan | gbp }}.
+- The stress test, at {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).stressRatePct | pct(2) }}, allows {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).stressLimitLoan | gbp }}. The lower of the two sets the loan.
+- The maximum price is {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).maxPrice | gbp }}, a loan of {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).maxLoan | gbp }} ({{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).incomeMultiple | num(2) }} times income) with a payment of {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).monthlyPI | gbp }} a month, {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).shareOfTakeHome | pct }} of the {{ ukAffordability(60000, 0, 40000, rate('uk2yr'), 25).monthlyTakeHome | gbp }} take-home pay the calculator estimates.
+
+Add Stamp Duty and legal costs to the price. The stamp duty calculator covers England and Northern Ireland.
+
+**Euro area.** Rules differ by country, so the calculator uses one combined limit: loan payments plus other debts of no more than 36% of gross income (adjustable). On €60,000 with no other debts, a €40,000 deposit and 25 years at {{ rate('eur') | pct(2) }} ({{ rateSource('eur') }}), the payment budget is {{ eurAffordability(60000, 0, 40000, rate('eur'), 25).paymentBudget | eur }} a month and the maximum price {{ eurAffordability(60000, 0, 40000, rate('eur'), 25).maxPrice | eur }}. Many euro-area lenders measure debt service against net income instead, so treat the result as a first estimate.
+
+## Mistakes that cost money
+
+1. **Using take-home pay for the ratios.** Lenders measure DTI on gross income, so what is approved can feel tight against what lands in your account.
+2. **Leaving out property tax and insurance.** Both come out of the same budget as the mortgage. The calculator assumes 1.0% and $1,800 a year; check your county's rate and get an insurance quote.
+3. **Overlooking PMI.** Under 20% down it takes a slice of the budget every month, which lowers the loan you can support.
+4. **Buying at the maximum.** The maximum is a ceiling. A price 10% to 15% below it leaves room for repairs and saving.
+
+## When to use this calculator
+
+- **Before house-hunting**, to set a realistic price range.
+- **Deciding how much to save**, to see what the deposit buys.
+- **Choosing between 15 and 30 years**, to see how the term changes the price your budget supports.
+- **Weighing debt payoff**, to see whether clearing a loan raises your maximum at all.
+
+Once you have a range, use the [Mortgage Payment Calculator](/tools/debt-and-loans/mortgage-payment/) to price a specific home and test extra payments.

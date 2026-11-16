@@ -2,7 +2,7 @@
 name: "Capital Gains Tax Calculator"
 slug: "capital-gains-tax"
 category: "economic"
-description: "Capital gains tax calculator for US and UK — estimate CGT on shares, property, and other assets with long-term and short-term rates."
+description: "Estimate US federal capital gains tax with NIIT, or UK CGT for {{ taxYear('uk') }} with the annual exempt amount and your income band, on shares, property and funds."
 keywords:
   - "capital gains tax calculator"
   - "capital gains tax rate"
@@ -15,120 +15,124 @@ relatedTools:
   - "investment-return"
   - "investment-fee"
   - "roi"
-  - "inflation"
   - "stamp-duty"
-  - "salary-us"
   - "salary-uk"
+  - "salary-us"
+  - "inflation"
 affiliateContext: "Keep more of your investment gains with tax-efficient platforms"
 affiliatePrograms:
   - "Betterment"
   - "Wealthfront"
   - "Nutmeg"
   - "InvestEngine"
-lastUpdated: "2026-07-02"
+lastUpdated: "2026-11-15"
 dataSources:
-  - name: "IRS — Capital Gains and Losses"
+  - name: "IRS: Capital gains and losses (Topic 409)"
     url: "https://www.irs.gov/taxtopics/tc409"
-  - name: "IRS — Net Investment Income Tax"
+  - name: "IRS: Net Investment Income Tax"
     url: "https://www.irs.gov/individuals/net-investment-income-tax"
-  - name: "GOV.UK — Capital Gains Tax rates"
+  - name: "IRS: Sale of your main home (Topic 701)"
+    url: "https://www.irs.gov/taxtopics/tc701"
+  - name: "GOV.UK: Capital Gains Tax rates"
     url: "https://www.gov.uk/capital-gains-tax/rates"
-  - name: "GOV.UK — Capital Gains Tax annual exempt amount"
+  - name: "GOV.UK: Capital Gains Tax annual exempt amount"
     url: "https://www.gov.uk/capital-gains-tax/allowances"
+  - name: "GOV.UK: Tax when you sell your home (Private Residence Relief)"
+    url: "https://www.gov.uk/tax-sell-home"
 faq:
   - question: "What is capital gains tax?"
-    answer: "Capital gains tax (CGT) is a tax on the profit you make when you sell an asset for more than you paid for it. It applies to investments (stocks, crypto, funds), property (other than your main home in most cases), and other valuable assets. Both the US and UK tax capital gains, but the rates and rules differ significantly."
+    answer: "Capital gains tax (CGT) is a tax on the profit you make when you sell an asset for more than you paid for it. It applies to investments such as shares, funds and crypto, to property other than your main home in most cases, and to other valuable assets. The US and the UK both tax gains, but with different rates and rules, so the calculator has a tab for each."
   - question: "What is the difference between short-term and long-term capital gains in the US?"
-    answer: "In the US, assets held for more than one year qualify for long-term capital gains rates (0%, 15%, or 20% depending on income). Assets held for one year or less are short-term gains, taxed at your ordinary income tax rate (up to 37%). This means holding for over a year can roughly halve your tax bill on investment gains."
+    answer: "In the US, an asset held for more than one year qualifies for long-term rates of 0%, 15% or 20%, depending on your taxable income. An asset held for one year or less gives a short-term gain, taxed at your ordinary income tax rate, up to 37%. For a single filer with {{ 75000 | usd }} of other taxable income, a {{ 30000 | usd }} gain costs {{ usCgt(30000, 75000) | usd }} if held long term and {{ usCgt(30000, 75000, holding=short) | usd }} if held short term, a saving of {{ usCgt(30000, 75000, holding=short) - usCgt(30000, 75000) | usd }}."
   - question: "What is the UK Capital Gains Tax annual exempt amount?"
-    answer: "For the 2026/27 tax year, the annual exempt amount is £3,000. This means the first £3,000 of gains in a tax year is completely tax-free. This was reduced from £6,000 in 2023/24 and £12,300 in 2022/23 — a significant cut. You can't carry unused exemption forward to future years."
+    answer: "For {{ taxYear('uk') }} the annual exempt amount is {{ ukFact('cgtAnnualExempt') | gbp }}, so the first {{ ukFact('cgtAnnualExempt') | gbp }} of gains in a tax year is tax-free. It was £12,300 in 2022/23, £6,000 in 2023/24 and has been £3,000 since April 2024 (GOV.UK). You cannot carry an unused amount forward to a later year."
   - question: "Do I pay capital gains tax on my main home?"
-    answer: "In both the US and UK, your primary residence generally has special treatment. In the UK, Private Residence Relief means you usually pay no CGT when selling your main home. In the US, you can exclude up to $250,000 ($500,000 married) of gain on a primary residence if you've lived there 2 of the last 5 years."
+    answer: "Usually not, in either country, but the rules differ. In the UK, Private Residence Relief normally means no CGT when you sell your main home. In the US, you can exclude up to $250,000 of gain ($500,000 for married couples filing jointly) on a main home you have owned and lived in for at least 2 of the last 5 years (IRS Topic 701)."
   - question: "What is the Net Investment Income Tax (NIIT)?"
-    answer: "The NIIT is an additional 3.8% US tax on investment income (including capital gains) for high earners. It applies to the lesser of your net investment income or the amount by which your modified AGI exceeds $200,000 (single) or $250,000 (married filing jointly). This means high earners effectively pay 23.8% on long-term gains (20% + 3.8%) at the top bracket."
-  - question: "What are the UK CGT rates from October 2024?"
-    answer: "From 30 October 2024, UK CGT rates were unified across all asset types at 18% for basic rate taxpayers and 24% for higher/additional rate taxpayers. Previously, non-property gains were taxed at lower rates (10%/20%), but the October 2024 Budget equalised them with the property rates."
+    answer: "The NIIT is an extra {{ usFact('niitRate') | pct(auto) }} US tax on investment income, including capital gains, for higher earners. It applies to the smaller of your net investment income and the amount your modified adjusted gross income (MAGI) exceeds {{ usFact('niitThreshold') | usd }} for single filers or {{ usFact('niitThreshold', status=married) | usd }} for married couples filing jointly. The calculator estimates MAGI as your other taxable income plus the standard deduction plus the gain. At the top bracket, the NIIT takes the long-term rate from 20% to {{ 20 + usFact('niitRate') | pct1 }}."
+  - question: "What are the UK CGT rates, and why does my rate depend on my income?"
+    answer: "Since 30 October 2024 the rates are the same for every asset type: {{ ukFact('cgtBasicRate') | pct }} for gains that fall within your unused basic rate band and {{ ukFact('cgtHigherRate') | pct }} above it. The calculator works out the band from the income you enter: your taxable income (income minus the Personal Allowance) uses up part of the {{ ukFact('basicBand') | gbp }} band first. With {{ 40000 | gbp }} of income and a {{ 50000 | gbp }} gain, {{ ukFact('basicBand') - (40000 - ukFact('personalAllowance')) | gbp }} of the gain is left in the basic band at {{ ukFact('cgtBasicRate') | pct }} and the rest at {{ ukFact('cgtHigherRate') | pct }}, so the tax is {{ ukCgt(50000, 40000) | gbp }}."
 workedExamples:
-  - title: "US: Selling $50,000 of stock held for 2 years"
+  - title: "US: selling stock bought for $50,000 for $80,000 after two years"
     inputs:
       country: "US"
       purchasePrice: 50000
       salePrice: 80000
       holdingPeriod: "long"
       taxableIncome: 75000
-    description: "A single filer with $75,000 taxable income selling stock for a $30,000 long-term gain owes $4,500 in federal capital gains tax (15% rate) with no NIIT. The 15% rate applies because their total income ($105,000) exceeds the 0% threshold but stays below the 20% threshold. Had they sold within a year, the same gain would be taxed at 22% ($6,600) — holding longer saved $2,100."
-  - title: "UK: Selling a buy-to-let for £50,000 profit"
+    description: "A single filer with {{ 75000 | usd }} of other taxable income sells stock held for two years at a {{ 30000 | usd }} gain. The gain stacks on top of income, so all of it falls above the {{ usFact('ltcgZeroTop') | usd }} limit of the 0% band and below the {{ usFact('ltcg15Top') | usd }} limit of the 15% band, and the federal tax is {{ usCgt(30000, 75000) | usd }}. The NIIT does not apply at this income. Had the stock been sold within a year, the same gain would be taxed as ordinary income and cost {{ usCgt(30000, 75000, holding=short) | usd }}. Holding for the second year saved {{ usCgt(30000, 75000, holding=short) - usCgt(30000, 75000) | usd }}."
+  - title: "UK: selling a buy-to-let for a £50,000 profit"
     inputs:
       country: "UK"
       purchasePrice: 200000
       salePrice: 250000
-      taxpayerType: "higher"
-    description: "A higher-rate UK taxpayer selling a buy-to-let property with a £50,000 gain pays £11,280 in CGT: the first £3,000 is covered by the annual exempt amount, and the remaining £47,000 is taxed at 24%. The effective rate on the total gain is 22.56%. Using an ISA wrapper for investments would shelter gains entirely — worth considering for future investments."
-  - title: "US: High-income investor selling with NIIT"
+      annualIncome: 60000
+    description: "A UK landlord with {{ 60000 | gbp }} of other income sells a buy-to-let for a {{ 50000 | gbp }} gain. The annual exempt amount covers the first {{ ukFact('cgtAnnualExempt') | gbp }}. Income already fills the basic rate band, so the remaining {{ 50000 - ukFact('cgtAnnualExempt') | gbp }} is taxed at {{ ukFact('cgtHigherRate') | pct }}: the CGT bill is {{ ukCgt(50000, 60000) | gbp }}, an effective rate of {{ ukCgt(50000, 60000) / 50000 * 100 | pct(2) }} on the whole gain. The same gain with {{ 40000 | gbp }} of income would cost {{ ukCgt(50000, 40000) | gbp }}, because part of it still fits in the basic rate band."
+  - title: "US: a high-income investor with the NIIT"
     inputs:
       country: "US"
       purchasePrice: 100000
       salePrice: 300000
       holdingPeriod: "long"
       taxableIncome: 250000
-    description: "A single filer earning $250,000 who sells assets for a $200,000 long-term gain faces $30,000 in federal CGT (the gain stacks on top of income and falls entirely in the 15% bracket, which runs to $545,500) plus $7,600 in NIIT (3.8% on the full gain, since income exceeds the $200,000 NIIT threshold). Total tax: $37,600, effective rate 18.8%. Tax-loss harvesting — selling losing positions to offset gains — could reduce this bill."
+    description: "A single filer with {{ 250000 | usd }} of other taxable income sells assets for a {{ 200000 | usd }} long-term gain. The gain stacks above income and stays inside the 15% bracket (which runs to {{ usFact('ltcg15Top') | usd }}). The NIIT adds {{ usFact('niitRate') | pct(auto) }} on the whole gain, because estimated MAGI is well above the {{ usFact('niitThreshold') | usd }} threshold. Federal CGT plus NIIT comes to {{ usCgt(200000, 250000) | usd }}, an effective rate of {{ usCgt(200000, 250000) / 200000 * 100 | pct1 }}. Selling losing positions in the same year (tax-loss harvesting) would lower the gain and the bill."
 ---
 
-## What Is Capital Gains Tax?
+## Two countries, two methods
 
-Capital gains tax is a tax on the profit from selling an asset for more than you paid. It applies to stocks, bonds, mutual funds, real estate (other than your main home in most cases), cryptocurrency, and other investments.
+Capital gains tax is charged on the profit when you sell an asset for more than you paid. The question in both the US and the UK is how much of the gain you keep, and the answer turns on different things: in the US it is how long you held the asset and your income, in the UK it is your income band and a small annual allowance.
 
-The key question in both the US and UK is: **how much of your gain do you actually keep after tax?**
+## US capital gains tax ({{ taxYear('us') }})
 
-> **2026 update:** UK rates remain 18%/24% (unified since October 2024), with the annual exempt amount still just £3,000. In the US, long-term capital gains brackets were adjusted for inflation.
+### Long-term vs short-term
 
-## US Capital Gains Tax (2026)
+- **Long-term gains** (held more than one year) are taxed at 0%, 15% or 20%.
+- **Short-term gains** (held one year or less) are taxed as ordinary income, from 10% up to 37%.
 
-### Long-Term vs Short-Term
+The holding period is the biggest lever you control. A {{ 30000 | usd }} gain for a single filer with {{ 75000 | usd }} of other taxable income costs {{ usCgt(30000, 75000) | usd }} held long term and {{ usCgt(30000, 75000, holding=short) | usd }} held short term: a {{ (usCgt(30000, 75000, holding=short) - usCgt(30000, 75000)) / usCgt(30000, 75000, holding=short) * 100 | pct }} lower bill for waiting past the one-year mark.
 
-The US distinguishes sharply between:
-- **Long-term gains** (held over 1 year): taxed at preferential rates of 0%, 15%, or 20%
-- **Short-term gains** (held 1 year or less): taxed at ordinary income rates (10%–37%)
+### Long-term capital gains brackets
 
-This is the single biggest factor in your tax bill. Holding an extra month can save thousands.
+The rate depends on your taxable income, with the gain stacked on top of your other income:
 
-### Long-Term Capital Gains Brackets (2026)
+| Taxable income | Single | Married filing jointly |
+|---|---|---|
+| 0% rate up to | {{ usFact('ltcgZeroTop') | usd }} | {{ usFact('ltcgZeroTop', status=married) | usd }} |
+| 15% rate up to | {{ usFact('ltcg15Top') | usd }} | {{ usFact('ltcg15Top', status=married) | usd }} |
+| 20% rate above | {{ usFact('ltcg15Top') | usd }} | {{ usFact('ltcg15Top', status=married) | usd }} |
 
-| Taxable Income (Single) | Rate |
-|---|---|
-| Up to $49,450 | 0% |
-| $49,451 – $545,500 | 15% |
-| Over $545,500 | 20% |
+A gain can straddle two brackets, and the calculator taxes each slice at its own rate.
 
 ### Net Investment Income Tax (NIIT)
 
-High earners also face an additional **3.8% NIIT** on investment income when modified AGI exceeds $200,000 (single) or $250,000 (married). This effectively creates a top rate of **23.8%** on long-term capital gains.
+Higher earners owe an extra {{ usFact('niitRate') | pct(auto) }} NIIT on investment income when modified AGI is above {{ usFact('niitThreshold') | usd }} (single) or {{ usFact('niitThreshold', status=married) | usd }} (married filing jointly). Together with the 20% top bracket that gives a top rate of {{ 20 + usFact('niitRate') | pct1 }} on long-term gains.
 
-## UK Capital Gains Tax (2026/27)
+## UK Capital Gains Tax ({{ taxYear('uk') }})
 
-### Rates (From 30 October 2024)
+### Rates
 
-The rates were simplified and increased:
-- **Basic rate taxpayers:** 18% on all gains
-- **Higher/additional rate taxpayers:** 24% on all gains
+Since 30 October 2024 the rates have been the same for every asset type, property included:
 
-The rate depends on your total taxable income plus gains — if gains push you into the higher rate band, part is taxed at 18% and the rest at 24%.
+- **{{ ukFact('cgtBasicRate') | pct }}** on the part of your gain that fits in your unused basic rate band
+- **{{ ukFact('cgtHigherRate') | pct }}** on the rest
 
-### Annual Exempt Amount
+A basic-rate taxpayer can still pay {{ ukFact('cgtHigherRate') | pct }} on part of a large gain. Your taxable income (income minus the Personal Allowance) uses up the {{ ukFact('basicBand') | gbp }} band first, and whatever is left covers gains at {{ ukFact('cgtBasicRate') | pct }}. With {{ 40000 | gbp }} of income, {{ ukFact('basicBand') - (40000 - ukFact('personalAllowance')) | gbp }} is left, so a {{ 50000 | gbp }} gain costs {{ ukCgt(50000, 40000) | gbp }}. With {{ 60000 | gbp }} of income the band is full and the same gain costs {{ ukCgt(50000, 60000) | gbp }}.
 
-The first **£3,000** of gains each tax year is tax-free. This was cut from £12,300 just two years ago — a dramatic reduction that means even modest gains now trigger a tax bill.
+### Annual exempt amount
 
-## Strategies to Reduce Capital Gains Tax
+The first {{ ukFact('cgtAnnualExempt') | gbp }} of gains each tax year is tax-free. That was £12,300 in 2022/23 and £6,000 in 2023/24, so modest gains now create a tax bill that they once did not.
 
-1. **Hold for over a year (US):** The difference between short-term and long-term rates can halve your tax bill
-2. **Use ISAs (UK):** Gains within an ISA wrapper are completely tax-free — no annual limit on growth
-3. **Tax-loss harvesting:** Sell losing investments to offset gains in the same tax year
-4. **Use your annual exempt amount (UK):** Realise up to £3,000 in gains each year tax-free
-5. **Primary residence exemption:** Both countries offer significant relief on your main home
+## Ways to reduce capital gains tax
 
-## When to Use This Calculator
+1. **Hold for more than a year (US).** The long-term rates are well below ordinary rates; see the {{ usCgt(30000, 75000, holding=short) - usCgt(30000, 75000) | usd }} difference above.
+2. **Use an ISA (UK).** Gains inside an ISA are free of CGT, within the yearly subscription limit.
+3. **Harvest losses.** Selling losing investments in the same tax year offsets gains.
+4. **Use the annual exempt amount (UK).** Realise up to {{ ukFact('cgtAnnualExempt') | gbp }} of gains each year tax-free instead of saving it all for one big sale.
+5. **Check main home relief.** Both countries give significant relief on a main home (see the FAQ).
 
-- Before selling investments to estimate your tax bill
-- Comparing short-term vs long-term holding strategies (US)
-- Planning end-of-year tax-loss harvesting
-- Deciding between taxable accounts and tax-sheltered wrappers (ISAs, 401(k)s)
+## When to use this calculator
+
+- Before selling investments, to see the tax bill and the net proceeds
+- Comparing a short-term and a long-term sale (US)
+- Planning end-of-year loss harvesting
+- Weighing a taxable account against a tax-sheltered one (ISAs, 401(k)s)

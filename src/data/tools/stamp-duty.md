@@ -2,7 +2,7 @@
 name: "Stamp Duty Calculator"
 slug: "stamp-duty"
 category: "economic"
-description: "Stamp duty calculator for England and Northern Ireland: SDLT for first-time buyers, home movers and additional properties, with a band-by-band breakdown."
+description: "Stamp duty (SDLT) calculator for England and Northern Ireland: first-time buyers, home movers, additional properties and non-UK residents, band by band."
 keywords:
   - "stamp duty calculator"
   - "SDLT calculator"
@@ -12,92 +12,94 @@ keywords:
   - "additional property stamp duty"
   - "how much stamp duty"
 relatedTools:
-  - "mortgage-payment"
   - "mortgage-affordability"
+  - "mortgage-payment"
   - "rent-vs-buy"
-  - "inflation"
+  - "savings-goal"
   - "salary-uk"
   - "capital-gains-tax"
-affiliateContext: "Planning to buy? Compare mortgage rates to find the best deal"
-affiliatePrograms:
-  - "LendingTree"
-  - "Nutmeg"
-lastUpdated: "2026-07-02"
+lastUpdated: "2026-11-15"
 dataSources:
-  - name: "GOV.UK — Stamp Duty Land Tax rates"
+  - name: "GOV.UK: Stamp Duty Land Tax residential rates, including first-time buyer relief"
     url: "https://www.gov.uk/stamp-duty-land-tax/residential-property-rates"
-  - name: "GOV.UK — First-time buyer relief"
-    url: "https://www.gov.uk/stamp-duty-land-tax/relief-for-first-time-buyers"
-  - name: "GOV.UK — Higher rates for additional properties"
+  - name: "GOV.UK: Higher rates for additional properties"
     url: "https://www.gov.uk/guidance/stamp-duty-land-tax-buying-an-additional-residential-property"
+  - name: "GOV.UK: Rates of SDLT for non-UK residents"
+    url: "https://www.gov.uk/guidance/rates-of-stamp-duty-land-tax-for-non-uk-residents"
+  - name: "HMRC SDLT manual: the £40,000 threshold for higher rates"
+    url: "https://www.gov.uk/hmrc-internal-manuals/stamp-duty-land-tax-manual/sdltm09740"
 faq:
   - question: "What is Stamp Duty Land Tax (SDLT)?"
-    answer: "SDLT is a tax you pay when buying property or land in England and Northern Ireland above a certain price. It's calculated on the portion of the property price within each tax band — similar to how income tax works. Scotland has its own equivalent called LBTT (Land and Buildings Transaction Tax), and Wales has LTT (Land Transaction Tax)."
+    answer: "SDLT is a tax you pay when you buy property or land in England and Northern Ireland above a certain price. It is charged on the part of the price inside each band, like income tax, not as one rate on the whole price. Scotland has its own Land and Buildings Transaction Tax (LBTT), and Wales has Land Transaction Tax (LTT)."
   - question: "What are the stamp duty rates from April 2025?"
-    answer: "From 1 April 2025, the nil-rate threshold reverted to £125,000 (from the temporary £250,000). Rates are: 0% up to £125,000, 2% from £125,001–£250,000, 5% from £250,001–£925,000, 10% from £925,001–£1.5M, and 12% above £1.5M. First-time buyers pay 0% up to £300,000 and 5% from £300,001–£500,000 on properties up to £500,000."
+    answer: "From 1 April 2025 the nil-rate band went back to {{ ukFact('sdltNilBand') | gbp }}, from the temporary £250,000. Standard rates are 0% up to {{ ukFact('sdltNilBand') | gbp }}, 2% from {{ ukFact('sdltNilBand') + 1 | gbp }} to £250,000, 5% from £250,001 to £925,000, 10% from £925,001 to £1.5 million and 12% above that. First-time buyers pay 0% up to {{ ukFact('sdltFtbNilBand') | gbp }} and 5% from {{ ukFact('sdltFtbNilBand') + 1 | gbp }} to {{ ukFact('sdltFtbCap') | gbp }}. The figures were checked against GOV.UK on 15 November 2026."
   - question: "Do first-time buyers pay stamp duty?"
-    answer: "First-time buyers get relief on properties up to £500,000. You pay 0% on the first £300,000 and 5% on the portion between £300,001 and £500,000. If the property costs more than £500,000, you pay standard rates on the full amount — the relief doesn't apply at all above that cap."
+    answer: "First-time buyers get relief on homes up to {{ ukFact('sdltFtbCap') | gbp }}: 0% on the first {{ ukFact('sdltFtbNilBand') | gbp }} and 5% on the part between {{ ukFact('sdltFtbNilBand') + 1 | gbp }} and {{ ukFact('sdltFtbCap') | gbp }}. Above {{ ukFact('sdltFtbCap') | gbp }} the relief is lost entirely and standard rates apply to the full price. A first-time buyer pays {{ sdlt(500000, buyer=ftb) | gbp }} on {{ 500000 | gbp }} but {{ sdlt(500001) | gbp }} on {{ 500001 | gbp }}, a cliff edge of {{ sdlt(500001) - sdlt(500000, buyer=ftb) | gbp }}."
   - question: "How much is the additional property surcharge?"
-    answer: "Since 31 October 2024, the surcharge for additional residential properties (buy-to-let, second homes) is 5% on top of standard rates at every band. So the first £125,000 is taxed at 5% instead of 0%, £125,001–£250,000 at 7% instead of 2%, and so on. This applies even if you're buying a property worth under £40,000 if you already own another."
+    answer: "Since 31 October 2024 the surcharge on additional residential properties (buy-to-let and second homes) is {{ ukFact('sdltSurcharge') | pct }} on top of the standard rate in every band. The first {{ ukFact('sdltNilBand') | gbp }} is taxed at {{ ukFact('sdltSurcharge') | pct }} instead of 0%, and the next £125,000 at {{ 2 + ukFact('sdltSurcharge') | pct }} instead of 2%. The higher rates do not apply when the price is under £40,000 (HMRC SDLT manual), so the surcharge is charged only at £40,000 and above."
+  - question: "Is there a surcharge for buyers who live abroad?"
+    answer: "Yes. Buyers who are not UK resident for SDLT, meaning they were in the UK for fewer than 183 days in the 12 months before buying, pay a further 2% in every band, including the zero-rate band, on purchases of £40,000 or more. It stacks with the additional property surcharge and with first-time buyer rates. For a {{ 450000 | gbp }} home mover, the calculator's non-UK resident box takes SDLT from {{ sdlt(450000) | gbp }} to {{ sdlt(450000) + 450000 * 2 / 100 | gbp }}. Some buyers can reclaim the surcharge later; GOV.UK sets out the conditions."
   - question: "When do I pay stamp duty?"
-    answer: "You must pay SDLT within 14 days of completion (the day you legally own the property). Your solicitor or conveyancer usually handles this as part of the buying process. Late payment incurs interest and penalties from HMRC."
+    answer: "You file the SDLT return and pay within 14 days of completion, the day you legally own the property. Your solicitor or conveyancer normally does this as part of the purchase. Late payment brings interest and penalties from HMRC."
   - question: "Is stamp duty different in Scotland and Wales?"
-    answer: "Yes. Scotland uses LBTT (Land and Buildings Transaction Tax) with different bands and rates. Wales uses LTT (Land Transaction Tax). This calculator covers SDLT for England and Northern Ireland only."
+    answer: "Yes. Scotland uses LBTT and Wales uses LTT, each with its own bands and rates. This calculator covers SDLT for England and Northern Ireland only."
 workedExamples:
   - title: "First-time buyer purchasing a £300,000 flat"
     inputs:
       propertyPrice: 300000
       buyerType: "first-time"
-    description: "A first-time buyer purchasing a £300,000 property pays £0 in stamp duty — the entire price falls within the first-time buyer nil-rate band of £300,000. This relief saves £5,000 compared to the standard rate (which would charge 2% on the £125,000–£250,000 portion and 5% on £250,000–£300,000 — £2,500 each)."
+    description: "A first-time buyer buying a {{ 300000 | gbp }} property pays {{ sdlt(300000, buyer=ftb) | gbp }} in stamp duty, because the whole price sits inside the {{ ukFact('sdltFtbNilBand') | gbp }} first-time buyer nil-rate band. The relief saves {{ sdlt(300000) - sdlt(300000, buyer=ftb) | gbp }} compared with the standard rates, which would charge 2% on the band from {{ ukFact('sdltNilBand') | gbp }} to £250,000 ({{ sdlt(250000) | gbp }}) and 5% on the £50,000 above it ({{ sdlt(300000) - sdlt(250000) | gbp }})."
   - title: "Moving home to a £450,000 house"
     inputs:
       propertyPrice: 450000
       buyerType: "standard"
-    description: "Buying a £450,000 property as a home mover costs £12,500 in SDLT: £0 on the first £125,000, £2,500 on the next £125,000 (at 2%), and £10,000 on the remaining £200,000 (at 5%). The effective tax rate is 2.78%. Remember to factor this into your total moving costs alongside solicitor fees, surveys, and removals."
+    description: "Buying a {{ 450000 | gbp }} property as a home mover costs {{ sdlt(450000) | gbp }} in SDLT: nothing on the first {{ ukFact('sdltNilBand') | gbp }}, {{ sdlt(250000) | gbp }} on the next £125,000 (at 2%) and {{ sdlt(450000) - sdlt(250000) | gbp }} on the remaining £200,000 (at 5%). The effective rate is {{ sdlt(450000) / 450000 * 100 | pct(2) }}. Add it to your moving budget alongside solicitor fees, surveys and removals."
   - title: "Buy-to-let investment at £250,000"
     inputs:
       propertyPrice: 250000
       buyerType: "additional"
-    description: "An additional property at £250,000 costs £15,000 in SDLT. The 5% additional property surcharge applies on top of standard rates: 5% on the first £125,000 (£6,250) plus 7% on the next £125,000 (£8,750) — an effective rate of 6%. This is significantly more than the £2,500 a home mover would pay."
+    description: "An additional property at {{ 250000 | gbp }} costs {{ sdlt(250000, buyer=additional) | gbp }} in SDLT. The {{ ukFact('sdltSurcharge') | pct }} surcharge applies to every band: {{ ukFact('sdltSurcharge') | pct }} on the first {{ ukFact('sdltNilBand') | gbp }} ({{ sdlt(125000, buyer=additional) | gbp }}) plus {{ 2 + ukFact('sdltSurcharge') | pct }} on the next £125,000 ({{ sdlt(250000, buyer=additional) - sdlt(125000, buyer=additional) | gbp }}), an effective rate of {{ sdlt(250000, buyer=additional) / 250000 * 100 | pct }}. A home mover would pay {{ sdlt(250000) | gbp }} on the same price."
 ---
 
-## What Is Stamp Duty?
+## How stamp duty is worked out
 
-Stamp Duty Land Tax (SDLT) is a tax on property purchases in England and Northern Ireland. You pay it on the portion of the price that falls within each band — it works like income tax, not a flat rate on the whole price.
+Stamp Duty Land Tax (SDLT) applies to property purchases in England and Northern Ireland. You pay each rate only on the part of the price inside its band, so a £450,000 home does not cost 5% of £450,000. The band-by-band table in the calculator shows exactly where each pound of tax comes from.
 
-> **Key change — April 2025:** The nil-rate threshold reverted from £250,000 back to £125,000, and the first-time buyer threshold dropped from £425,000 to £300,000. These rates remain in force for 2026/27.
+> **Changed in April 2025:** the nil-rate band went back to {{ ukFact('sdltNilBand') | gbp }} from £250,000, and the first-time buyer band to {{ ukFact('sdltFtbNilBand') | gbp }} from £425,000. These are the rates in force at the time this page was last checked (15 November 2026).
 
-## Current SDLT Rates (From 1 April 2025)
+## Current SDLT rates (from 1 April 2025)
 
-| Price Band | Standard Rate | First-Time Buyer | Additional Property |
+| Price band | Standard rate | First-time buyer | Additional property |
 |---|---|---|---|
-| Up to £125,000 | 0% | 0% | 5% |
-| £125,001 – £250,000 | 2% | 0%* | 7% |
-| £250,001 – £300,000 | 5% | 0%* | 10% |
-| £300,001 – £500,000 | 5% | 5%* | 10% |
-| £500,001 – £925,000 | 5% | 5% | 10% |
-| £925,001 – £1,500,000 | 10% | 10% | 15% |
-| Over £1,500,000 | 12% | 12% | 17% |
+| Up to {{ ukFact('sdltNilBand') | gbp }} | 0% | 0% | {{ ukFact('sdltSurcharge') | pct }} |
+| {{ ukFact('sdltNilBand') + 1 | gbp }} to £250,000 | 2% | 0%* | {{ 2 + ukFact('sdltSurcharge') | pct }} |
+| £250,001 to {{ ukFact('sdltFtbNilBand') | gbp }} | 5% | 0%* | {{ 5 + ukFact('sdltSurcharge') | pct }} |
+| {{ ukFact('sdltFtbNilBand') + 1 | gbp }} to {{ ukFact('sdltFtbCap') | gbp }} | 5% | 5%* | {{ 5 + ukFact('sdltSurcharge') | pct }} |
+| {{ ukFact('sdltFtbCap') + 1 | gbp }} to £925,000 | 5% | 5% | {{ 5 + ukFact('sdltSurcharge') | pct }} |
+| £925,001 to £1,500,000 | 10% | 10% | {{ 10 + ukFact('sdltSurcharge') | pct }} |
+| Over £1,500,000 | 12% | 12% | {{ 12 + ukFact('sdltSurcharge') | pct }} |
 
-*First-time buyer rates only apply if the property price is £500,000 or less. Above that, standard rates apply to the full price.
+*First-time buyer rates apply only when the price is {{ ukFact('sdltFtbCap') | gbp }} or less. Above that, standard rates apply to the full price. Source: GOV.UK, checked 15 November 2026.
 
-## Who Pays What
+## Who pays what
 
-**First-time buyers** get the most generous treatment — no tax on the first £300,000, and 5% on the next £200,000 (for properties up to £500,000). This saves up to £5,000 compared to standard rates.
+**First-time buyers** pay nothing on the first {{ ukFact('sdltFtbNilBand') | gbp }} and 5% on the part up to {{ ukFact('sdltFtbCap') | gbp }}. At {{ ukFact('sdltFtbNilBand') | gbp }} the relief saves {{ sdlt(300000) - sdlt(300000, buyer=ftb) | gbp }}, and at {{ ukFact('sdltFtbCap') | gbp }} it saves {{ sdlt(500000) - sdlt(500000, buyer=ftb) | gbp }}.
 
-**Home movers** (replacing your main residence) pay standard rates starting at 2% above £125,000.
+**Home movers** replacing their main home pay standard rates, starting at 2% above {{ ukFact('sdltNilBand') | gbp }}.
 
-**Additional property buyers** (second homes, buy-to-let) pay a 5% surcharge on every band. Even the nil-rate band becomes 5%, making smaller investment properties proportionally more expensive.
+**Additional property buyers** (second homes, buy-to-let) pay the {{ ukFact('sdltSurcharge') | pct }} surcharge on every band, including the nil-rate band, on purchases of £40,000 or more. A {{ 300000 | gbp }} buy-to-let costs {{ sdlt(300000, buyer=additional) | gbp }}, against {{ sdlt(300000) | gbp }} for a home mover: {{ sdlt(300000, buyer=additional) - sdlt(300000) | gbp }} more.
 
-## When to Use This Calculator
+**Buyers who are not UK resident** pay a further 2% in every band, on top of whichever rates apply.
 
-- **Before making an offer** — Factor SDLT into your total budget so you know the true cost
-- **Comparing property prices** — See how SDLT changes at different price points (it jumps significantly at band boundaries)
-- **Investment property analysis** — The 5% surcharge dramatically changes the economics of buy-to-let
-- **First-time buyer planning** — Check whether your target price qualifies for first-time buyer relief
+## Mistakes that cost money
 
-## Common Mistakes
+1. **Leaving SDLT out of the budget.** On a {{ 450000 | gbp }} home it is {{ sdlt(450000) | gbp }}, due on top of the deposit, solicitor fees, survey and moving costs.
+2. **Assuming first-time buyer relief reaches above {{ ukFact('sdltFtbCap') | gbp }}.** It does not. A first-time buyer pays {{ sdlt(500000, buyer=ftb) | gbp }} at {{ ukFact('sdltFtbCap') | gbp }} and {{ sdlt(500001) | gbp }} at {{ 500001 | gbp }}, so a £1 higher price costs {{ sdlt(500001) - sdlt(500000, buyer=ftb) | gbp }} more tax.
+3. **Forgetting the surcharges.** The additional property surcharge and the non-UK resident surcharge each add to every band, so they apply to the whole price from the first pound, not only to the top slice.
 
-1. **Forgetting SDLT in your budget.** On a £450,000 home, SDLT is £12,500 — that's real money on top of deposit, solicitor fees, surveys, and moving costs.
-2. **Assuming first-time buyer relief applies above £500,000.** It doesn't. At £500,001, you pay full standard rates on the entire price. This cliff edge means a £500,000 property costs £5,000 less in SDLT than a £500,001 property.
-3. **Not accounting for the additional property surcharge.** The 5% surcharge on second homes means a £300,000 buy-to-let costs £20,000 in SDLT vs £5,000 for a home mover — a £15,000 difference.
+## When to use this calculator
+
+- **Before making an offer.** Put SDLT into the total cost.
+- **Comparing prices.** See how SDLT steps up at band edges, and at the {{ ukFact('sdltFtbCap') | gbp }} cliff for first-time buyers.
+- **Buy-to-let analysis.** The surcharge changes the return on a smaller property a great deal.
+- **First-time buyer planning.** Check whether your target price qualifies for relief.
