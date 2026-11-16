@@ -7,7 +7,7 @@ variables:
   - name: "Gross Salary"
     description: "Annual salary before any deductions. The calculator treats it as one job paid evenly through the year"
   - name: "Tax Code"
-    description: "Blank means the standard 1257L with the £100,000 taper. A code the calculator does not recognise also falls back to 1257L, and says so. Recognised: nnnnL, nnnnM, nnnnN, nnnnT, 0T, Knnn, BR, D0, D1, NT, and the Scottish flat codes SBR, SD0, SD1, SD2 and SD3, with an optional S (Scottish) or C (Welsh) prefix and an optional W1, M1 or X emergency marker"
+    description: "Blank means the standard 1257L with the £100,000 taper. A code the calculator does not recognise also falls back to 1257L, and says so. Recognised: nnnnL, nnnnM, nnnnN, nnnnT, 0T, Knnn, BR, D0, D1, NT, and the Scottish flat codes SBR, SD0, SD1, SD2 and SD3, with an optional S (Scottish) or C (Welsh) prefix and an optional W1, M1, X or NONCUM emergency marker"
   - name: "Personal Allowance"
     description: "Tax-free income threshold ({{ ukFact('personalAllowance') | gbp }} for {{ taxYear('uk') }}), reduced by £1 for every £2 of adjusted net income above {{ ukFact('paTaperThreshold') | gbp }} and gone at {{ ukFact('paTaperLimit') | gbp }}"
   - name: "Adjusted Net Income"
@@ -34,12 +34,10 @@ assumptions:
   - "Only one student loan plan is active at a time"
   - "Employer pension contributions are not included"
   - "Monthly take-home is annual take-home divided by 12 (weekly is divided by 52 and daily by 260), from the same result, with no separate rounding"
-  - "The Scottish bands apply when the Scottish toggle is on, or an S prefix is used"
 limitations:
   - "Does not model employer National Insurance ({{ ukFact('employerNiRate') | pct }} above {{ ukFact('employerNiThreshold') | gbp }} for {{ taxYear('uk') }})"
   - "Does not include tax on benefits in kind (company car, private medical, etc.)"
   - "Does not model the Marriage Allowance transfer. An M code adds the allowance as issued, and the calculator warns when income is too high for a basic-rate taxpayer to receive it"
-  - "Does not handle multiple concurrent student loan plans"
   - "Flags a pension above the £60,000 annual allowance but does not charge the annual allowance tax charge"
   - "Does not model the Child Benefit High Income Charge (clawback above £60,000)"
   - "Does not include the dividend allowance (£500) or the savings allowances"
@@ -159,9 +157,9 @@ If the pension also brings adjusted net income under £100,000 and restores part
 - **NT:** no tax.
 - **K codes** (for example K475): the number is added to taxable pay, used when benefits in kind exceed your allowance. Tax from the job cannot exceed half of pay: on £12,000 with K2000 the bands would give more, and the calculator caps the tax at {{ ukIncomeTax(12000, code=K2000) | gbp }}. HMRC collects the rest another way.
 - **S and C prefixes:** S selects the Scottish bands and C the Welsh (rest-of-UK) bands.
-- **Emergency markers (W1, M1, X):** accepted, and shown as full-year figures.
+- **Emergency markers (W1, M1, X, NONCUM):** accepted, and shown as full-year figures.
 - **A code below 1257L in the taper zone:** for 1100L at £110,000, the calculator uses the lower of the code and the tapered allowance, which is {{ ukPay(110000, code='1100L').personalAllowance | gbp }}, so the taper is not applied twice. This is a year-end liability. PAYE applies the code as issued, and HMRC reconciles after the year.
-- **Anything else:** the calculator uses 1257L and shows "Tax code not recognised; using 1257L".
+- **Anything else:** the calculator uses 1257L and shows: Tax code "X" not recognised, so these figures use the standard 1257L code.
 
 ## Why Your Payslip May Differ
 

@@ -26,17 +26,14 @@ variables:
     description: "Whether you (or, for a joint return, one or both spouses) are 65 or over. It adds the extra standard deduction and the 2025-2028 senior deduction"
 assumptions:
   - "Uses the IRS federal brackets and standard deductions for the tax year selected (IRS Rev. Proc. 2025-32 for 2026 and Rev. Proc. 2026-35 for 2027)"
-  - "The standard deduction is applied, not itemised deductions"
-  - "State tax is one effective percentage of pay after the 401(k). No state standard deduction or brackets are applied"
+  - "State tax is one effective percentage of pay after the 401(k). No state standard deduction or brackets are applied (California and New York have progressive brackets, so enter your own effective rate)"
   - "401(k) contributions reduce federal and state taxable pay but not FICA (Social Security and Medicare)"
   - "Overtime hours are paid at 1.5× the base hourly rate. In annual mode the base rate is salary divided by (hours per week × weeks per year)"
   - "The overtime deduction counts only the premium half of pay for hours over 40 in a week (FLSA section 7). Overtime for hours at or under 40 a week never qualifies, and a salary that covers more than 40 hours earns no premium unless overtime is entered"
   - "Modified adjusted gross income for the overtime and senior phase-outs is taken as gross pay minus the 401(k)"
   - "Pay is from one job, and no other income is included"
   - "Monthly take-home is annual take-home divided by 12 (bi-weekly by 26, weekly by 52), from the same result, with no separate rounding. The per-hour figure divides by hours worked in the year"
-  - "No tax credits (child tax credit, earned income credit, etc.) and no local or city income taxes"
 limitations:
-  - "State tax is one effective rate, not state-specific brackets (California and New York have progressive brackets), so enter your own effective rate"
   - "Does not include local income taxes (New York City, many Ohio cities, etc.)"
   - "Does not model the Earned Income Tax Credit, Child Tax Credit, or other credits"
   - "Does not handle itemised deductions (mortgage interest, state and local tax deduction, charitable giving)"
@@ -52,6 +49,12 @@ dataSources:
     url: "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill"
   - name: "IRS: 2027 tax inflation adjustments (IR-2026-133)"
     url: "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2027-taxpayers-continue-to-benefit-from-the-working-families-tax-cuts"
+  - name: "IRS Rev. Proc. 2025-32 (2026 brackets, standard deduction and the 65+ additional amounts)"
+    url: "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf"
+  - name: "IRS Rev. Proc. 2026-35 (2027 brackets, standard deduction and the 65+ additional amounts)"
+    url: "https://www.irs.gov/pub/irs-drop/rp-26-35.pdf"
+  - name: "Tax Foundation: State individual income tax rates and brackets, 2026 (states with no wage tax)"
+    url: "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
   - name: "IRS Topic 751: Social Security and Medicare withholding rates"
     url: "https://www.irs.gov/taxtopics/tc751"
   - name: "Social Security Administration: 2027 cost-of-living adjustment fact sheet (wage base; the SSA site blocks automated link checks)"
@@ -74,7 +77,7 @@ For a $75,000 salary, single, with the calculator's default 5% state rate and no
 
 ## Tax Year: 2026 and 2027
 
-Both years are live from late in the year until mid-April, one for the return you are filing and one for the paychecks you are getting. The calculator starts on the calendar year once its data exists (2026 until 1 January 2027, then 2027). A selector switches to the other year and remembers the choice for your browser session. The 2026 figures come from IRS Rev. Proc. 2025-32 and the 2027 figures from Rev. Proc. 2026-35 (IR-2026-133, 5 November 2026). Social Security wage bases are from the SSA.
+Both years are live from late in the year until mid-April, one for the return you are filing and one for the paychecks you are getting. The calculator starts on the calendar year once its data exists (2026 until 1 January 2027, then 2027). A selector switches to the other year and remembers the choice for your browser session. The 2026 figures come from IRS Rev. Proc. 2025-32 and the 2027 figures from Rev. Proc. 2026-35 (IR-2026-133, 5 November 2026); the 65+ amounts are in those revenue procedures (sections 4.14(3) and 3.15(3)). Social Security wage bases are from the SSA.
 
 ## Federal Income Tax
 
@@ -122,7 +125,7 @@ FICA (the Federal Insurance Contributions Act) funds Social Security and Medicar
 
 **Medicare:** {{ usFact('medicareRate') | pct(2) }} on all wages, with no cap, plus an additional {{ usFact('additionalMedicareRate') | pct1 }} above {{ usFact('additionalMedicareThreshold') | usd }} for single and head of household filers ({{ usFact('additionalMedicareThreshold', status=married) | usd }} for married filing jointly).
 
-For most workers FICA is 7.65% of gross pay ({{ usFact('ssRate') | pct1 }} plus {{ usFact('medicareRate') | pct(2) }}). Your employer pays a further 7.65%, which is not in your take-home figure. The Social Security cap applies per person, so on a joint return of two earners the calculator flags that two salaries can owe more than it shows.
+For most workers FICA is {{ usFact('ssRate') + usFact('medicareRate') | pct(2) }} of gross pay ({{ usFact('ssRate') | pct1 }} plus {{ usFact('medicareRate') | pct(2) }}). Your employer pays a further {{ usFact('ssRate') + usFact('medicareRate') | pct(2) }}, which is not in your take-home figure. The Social Security cap applies per person, so on a joint return of two earners the calculator flags that two salaries can owe more than it shows.
 
 ## 401(k) Pre-Tax Contributions
 
@@ -132,7 +135,7 @@ A 10% contribution on a $75,000 salary puts {{ 75000 * 10 / 100 | usd }} into th
 
 ## State Tax
 
-State income tax varies from 0% in the nine states that do not tax wages (Alaska, Florida, Nevada, New Hampshire, South Dakota, Tennessee, Texas, Washington and Wyoming) to double-digit top rates in a few states. The calculator takes one effective rate, defaulting to 5%, and applies it to pay after the 401(k), with no state standard deduction. For a state with progressive brackets, enter your effective rate (total state tax divided by gross income) for the most accurate result. At $75,000 a year, a 5% rate is {{ usPay(75000, state=5, year=2026).state | usd }}. Enter 0 for a state with no tax on wages.
+State income tax varies from 0% in the nine states that do not tax wages (Alaska, Florida, Nevada, New Hampshire, South Dakota, Tennessee, Texas, Washington and Wyoming, per the Tax Foundation's list as of 1 January 2026) to double-digit top rates in a few states. The calculator takes one effective rate, defaulting to 5%, and applies it to pay after the 401(k), with no state standard deduction. For a state with progressive brackets, enter your effective rate (total state tax divided by gross income) for the most accurate result. At $75,000 a year, a 5% rate is {{ usPay(75000, state=5, year=2026).state | usd }}. Enter 0 for a state with no tax on wages.
 
 ## Not Included
 
