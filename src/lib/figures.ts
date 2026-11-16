@@ -86,7 +86,14 @@
  * multi-debt payoff that is never cleared or not cleared in 600 months; an
  * affordability case with no budget ("No home fits these limits"); a solar system
  * that does not pay back in the period; a car deposit or balloon the calculator
- * would clamp; an emergency fund beyond 50 years; a required rate that does not exist.
+ * would clamp; an emergency fund beyond 50 years; a required rate that does not exist;
+ * an IRA or 401(k) fact for a year the IRS has not published; an OBBBA fact outside
+ * 2025-2028; and a claim(condition, message) whose condition is false.
+ *
+ * claim(condition, message) is the one token that prints nothing. It guards a derived
+ * statement in prose (a verdict, a ranking) with a comparison of live figures (`<`, `>`,
+ * `<=`, `>=`, `==`, `!=`, joined with `&&`, `||`, `!`): when the numbers move so that the
+ * sentence is no longer true, the build fails with the message instead of publishing it.
  *
  * figures-grid.test.ts compares every one of these functions with its
  * engine over a grid of inputs (exact equality where the same engine function
