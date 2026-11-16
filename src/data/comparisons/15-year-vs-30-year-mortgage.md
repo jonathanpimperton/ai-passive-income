@@ -1,7 +1,7 @@
 ---
 title: "15-Year vs 30-Year Mortgage: Which Saves You More?"
 slug: "15-year-vs-30-year-mortgage"
-description: "Compare 15-year and 30-year mortgages side by side. See the real difference in monthly payments, total interest, and long-term wealth."
+description: "15-year vs 30-year mortgage on a $300,000 loan at current rates: monthly payment, total interest, the investing argument tested, and who can qualify."
 keywords:
   - "15 year vs 30 year mortgage"
   - "mortgage term comparison"
@@ -9,91 +9,103 @@ keywords:
 relatedTools:
   - "mortgage-payment"
   - "loan-amortization"
+  - "mortgage-affordability"
   - "compound-interest"
-verdict: "A 15-year mortgage saves massive interest but demands higher monthly payments. Choose 15-year if you can comfortably afford it; choose 30-year if you need cash flow flexibility."
+verdict: "Take the 15-year if its payment, with taxes and insurance, fits under 28% of your gross income, you hold six months of expenses in reserve and you owe nothing at a higher rate. Otherwise take the 30-year and prepay when you can. On a $300,000 loan the 15-year saves {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }} of interest, and it still finishes ahead of investing the difference at 8% a year."
 comparisonTable:
-  - feature: "Monthly payment ($300K at 6%)"
-    option1: "$2,532"
-    option2: "$1,799"
+  - feature: "Rate (Freddie Mac weekly average, {{ rateSource('us30') }})"
+    option1: "{{ rate('us15') | pct(2) }}"
+    option2: "{{ rate('us30') | pct(2) }}"
+  - feature: "Monthly principal and interest on $300,000"
+    option1: "{{ loanPayment(300000, rate('us15'), 15) | usd }}"
+    option2: "{{ loanPayment(300000, rate('us30'), 30) | usd }}"
   - feature: "Total interest paid"
-    option1: "$155,683"
-    option2: "$347,515"
-  - feature: "Interest savings"
-    option1: "$191,832 less"
+    option1: "{{ loanTotalInterest(300000, rate('us15'), 15) | usd }}"
+    option2: "{{ loanTotalInterest(300000, rate('us30'), 30) | usd }}"
+  - feature: "Interest saved by the 15-year"
+    option1: "{{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }}"
     option2: "—"
-  - feature: "Typical rate"
-    option1: "0.5–0.75% lower"
-    option2: "Standard rate"
-  - feature: "Equity build speed"
-    option1: "Fast — paid off in 15 years"
-    option2: "Slow — mostly interest early on"
-  - feature: "Monthly cash flow"
-    option1: "Tight — higher payment"
-    option2: "Flexible — lower payment"
+  - feature: "Loan balance after 5 years"
+    option1: "{{ loanBalance(300000, rate('us15'), 15, 60) | usd }}"
+    option2: "{{ loanBalance(300000, rate('us30'), 30, 60) | usd }}"
+  - feature: "Extra cash needed each month"
+    option1: "{{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} more"
+    option2: "—"
+  - feature: "Income needed at 28% (with $600 a month taxes and insurance)"
+    option1: "{{ (loanPayment(300000, rate('us15'), 15) + 600) / 0.28 * 12 | roundTo(1000) | usd }}"
+    option2: "{{ (loanPayment(300000, rate('us30'), 30) + 600) / 0.28 * 12 | roundTo(1000) | usd }}"
 affiliateContext: "Compare mortgage rates"
 affiliatePrograms:
   - "LendingTree"
+faq:
+  - question: "Is a 15-year mortgage worth it?"
+    answer: "It is when the payment fits comfortably. On a $300,000 loan at the survey rates the 15-year costs {{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} more a month and saves {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }} of interest. It is a poor fit if that extra payment would leave you without an emergency fund or force you to cut retirement saving."
+  - question: "Is it better to take a 30-year mortgage and invest the difference?"
+    answer: "Only if your investments reliably beat the mortgage rate by a wide margin. At the survey rates the 15-year path finishes ahead if you earn 5% or 8% a year on the invested difference, and behind only at 10%. Invested money can fall, while interest you do not pay is a certain saving."
+  - question: "Can I get a 30-year mortgage and pay it off like a 15-year?"
+    answer: "Yes, if the loan has no prepayment penalty (most US mortgages have none). Paying the 15-year payment amount of {{ loanPayment(300000, rate('us15'), 15) | usd }} a month on a 30-year loan at {{ rate('us30') | pct(2) }} clears it in {{ overpaymentSaving(300000, rate('us30'), 30, monthly=loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)).months | months }}, but you pay more interest than on a true 15-year loan because the 30-year rate is higher."
+  - question: "How much income do I need for a 15-year mortgage?"
+    answer: "As a rule of thumb lenders start from housing costs at or below 28% of gross income. With $600 a month for taxes and insurance, a $300,000 loan needs about {{ (loanPayment(300000, rate('us15'), 15) + 600) / 0.28 * 12 | roundTo(1000) | usd }} a year on the 15-year and about {{ (loanPayment(300000, rate('us30'), 30) + 600) / 0.28 * 12 | roundTo(1000) | usd }} on the 30-year. Lenders can approve higher ratios, so treat 28% as a guide to comfort, not a hard limit."
 datePublished: "2026-03-05"
-dateModified: "2026-07-07"
+dateModified: "2026-11-16"
 sources:
-  - name: "CFPB — Owning a Home"
-    url: "https://www.consumerfinance.gov/owning-a-home/"
-  - name: "IRS — Tax Topics"
-    url: "https://www.irs.gov/taxtopics"
+  - name: "Freddie Mac — Primary Mortgage Market Survey (weekly 15-year and 30-year averages)"
+    url: "https://www.freddiemac.com/pmms"
+  - name: "CFPB — What is a debt-to-income ratio?"
+    url: "https://www.consumerfinance.gov/ask-cfpb/what-is-a-debt-to-income-ratio-why-is-the-43-debt-to-income-ratio-important-en-1791/"
 ---
 
 ## The core trade-off
 
-A 15-year mortgage costs more each month but saves you a staggering amount in interest over the life of the loan. On [a $300,000 mortgage at 6%](/scenarios/mortgage-payments-by-amount/), the 15-year option saves **$191,832** — that's nearly two-thirds of the original loan amount.
+A 15-year mortgage costs more each month and saves a large amount of interest. The figures below are for a $300,000 loan at the Freddie Mac survey averages: {{ rate('us15') | pct(2) }} for 15 years and {{ rate('us30') | pct(2) }} for 30 years ({{ rateSource('us30') }}). Those are national averages, not a quote, so [run your own rate](/tools/debt-and-loans/mortgage-payment/).
 
-The catch: your monthly payment is $733 higher. That's money you can't invest, spend, or keep as an emergency buffer.
+- **15-year:** {{ loanPayment(300000, rate('us15'), 15) | usd }} a month, {{ loanTotalInterest(300000, rate('us15'), 15) | usd }} of interest in total.
+- **30-year:** {{ loanPayment(300000, rate('us30'), 30) | usd }} a month, {{ loanTotalInterest(300000, rate('us30'), 30) | usd }} of interest in total.
 
-## When the 15-year mortgage wins
+The 15-year saves {{ loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15) | usd }}, which is {{ (loanTotalInterest(300000, rate('us30'), 30) - loanTotalInterest(300000, rate('us15'), 15)) / 300000 * 100 | pct }} of the amount you borrowed. The catch is the payment: {{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} more every month, money you cannot spend, invest or hold as a buffer.
 
-The 15-year is the better choice when:
+## The decision rule
 
-- Your monthly payment (including taxes and insurance) stays below **28% of gross income**
-- You already have a 6-month emergency fund
-- You don't have [higher-interest debt](/comparisons/pay-off-debt-vs-invest/) (credit cards, student loans above 6%)
-- You value the guaranteed return of avoided interest over market returns
+Take the **15-year** only if all of these are true:
 
-The interest savings are risk-free. No investment can guarantee you'll earn $191,832 — but choosing the shorter term guarantees you won't pay it.
+- Principal, interest, taxes and insurance stay under **28% of gross income**, with your other debts still under about 36%.
+- You hold **six months of expenses** in cash after the down payment and closing costs.
+- You have no [debt at a higher rate than the mortgage](/comparisons/pay-off-debt-vs-invest/), such as credit cards or private student loans.
+- Your income is stable enough that the higher payment does not depend on a bonus or a second earner.
 
-## When the 30-year mortgage wins
+If any one of these fails, take the **30-year** and treat the 15-year payment as a target rather than an obligation. The last section shows how little that costs you. 28% and 36% are rules of thumb: conventional underwriting can approve higher ratios, so they describe comfort, not eligibility.
 
-The 30-year makes more sense when:
+## Does investing the difference beat the 15-year?
 
-- The 15-year payment would exceed 28% of gross income
-- You want to invest the difference (historically, markets return 7-10% annually)
-- You're early in your career with rising income ahead
-- You need flexibility for other goals (starting a business, education costs)
+This is the usual argument for the 30-year, so test it fairly. Assume the same total outlay either way: the 15-year payment of {{ loanPayment(300000, rate('us15'), 15) | usd }} a month for 30 years. The 15-year borrower pays it for 15 years and then invests all of it for 15 years. The 30-year borrower pays {{ loanPayment(300000, rate('us30'), 30) | usd }} and invests the other {{ loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30) | usd }} for the full 30 years. After year 30 both own the house outright.
 
-The mathematical argument: if your mortgage rate is 6% and you [invest the $733 monthly difference](/tools/saving-and-growth/investment-return/) at 8% average returns, you'd have roughly **$271,000** after 15 years — more than the interest savings. But that requires discipline and assumes strong market returns, which aren't guaranteed.
+| Return on invested money, per year | 15-year borrower ends with | 30-year borrower ends with |
+|---|---|---|
+| 5% | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15), 5, 15) | usd }} | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30), 5, 30) | usd }} |
+| 8% | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15), 8, 15) | usd }} | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30), 8, 30) | usd }} |
+| 10% | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15), 10, 15) | usd }} | {{ compoundFV(0, loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30), 10, 30) | usd }} |
+
+At the survey rates the 15-year path finishes ahead at 5% and 8%, and the 30-year path pulls ahead only at 10%. Two things drive that:
+
+- **The 15-year loan carries a lower rate.** If both loans carried the same 6% rate, investing the difference at 8% would leave the 30-year borrower {{ compoundFV(0, loanPayment(300000, 6, 15) - loanPayment(300000, 6, 30), 8, 30) - compoundFV(0, loanPayment(300000, 6, 15), 8, 15) | usd }} ahead. The lower 15-year rate is what changes the answer.
+- **The 30-year borrower is in debt for longer.** After 15 years they hold {{ compoundFV(0, loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30), 8, 15) | usd }} invested at 8%, but still owe {{ loanBalance(300000, rate('us30'), 30, 180) | usd }} on the mortgage.
+
+Treat the table as a statement about risk. Interest you do not pay is certain. Returns on investments are not, and most borrowers do not invest the difference every month for 30 years.
 
 ## Can you even qualify?
 
-Before weighing strategy, check whether the 15-year is on the table at all. Lenders generally cap your housing payment — principal, interest, taxes, and insurance — at about **28% of gross income**. On the same $300,000 loan at 6%:
+On the same $300,000 loan, assuming $600 a month for property tax and insurance and a 28% limit:
 
 | | 15-year | 30-year |
 |---|---|---|
-| Principal & interest | $2,532/mo | $1,799/mo |
-| With ~$600 taxes & insurance | $3,132/mo | $2,399/mo |
-| Minimum income at 28% | ~$134,000 | ~$103,000 |
+| Principal and interest | {{ loanPayment(300000, rate('us15'), 15) | usd }} a month | {{ loanPayment(300000, rate('us30'), 30) | usd }} a month |
+| With $600 taxes and insurance | {{ loanPayment(300000, rate('us15'), 15) + 600 | usd }} a month | {{ loanPayment(300000, rate('us30'), 30) + 600 | usd }} a month |
+| Gross income needed at 28% | about {{ (loanPayment(300000, rate('us15'), 15) + 600) / 0.28 * 12 | roundTo(1000) | usd }} | about {{ (loanPayment(300000, rate('us30'), 30) + 600) / 0.28 * 12 | roundTo(1000) | usd }} |
 
-The 15-year demands roughly **$31,000 more household income** to qualify for the identical house. For many buyers this isn't a strategy question — the 30-year is the only term the lender will approve.
+The 15-year needs roughly {{ (loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)) / 0.28 * 12 | roundTo(1000) | usd }} more income for the same loan. For many buyers the 15-year is limited by qualification before strategy comes into it. The [mortgage affordability calculator](/tools/debt-and-loans/mortgage-affordability/) shows what your income supports.
 
-## The hidden factor: opportunity cost
+## The middle path: a 30-year loan, paid like a 15-year
 
-Most comparisons stop at the monthly payment difference. But consider what happens *after* year 15: the 15-year borrower now has no mortgage payment and can invest the full $2,532/month. Over the next 15 years at 8%, that grows to roughly **$877,000**.
+Most US borrowers choose the 30-year, and most do not invest every spare dollar. A practical compromise is to take the 30-year for the lower required payment and send extra money to principal when you can.
 
-The 30-year borrower, meanwhile, still has payments until year 30 and has been investing only $733/month.
-
-When you [run the full 30-year comparison](/tools/debt-and-loans/loan-amortization/), the 15-year borrower often comes out ahead even accounting for investment returns — because they have 15 years of investing with no mortgage.
-
-## What most people actually do
-
-About 90% of borrowers choose the 30-year. The flexibility is appealing, and most people aren't disciplined enough to invest the difference every month. If you'd spend the savings rather than invest them, the 30-year gives you less total wealth.
-
-The best compromise: take the 30-year for flexibility, but make extra payments when you can. You get the safety net of lower required payments with the option to accelerate.
-
-Know what that flexibility costs, though. The 15-year typically comes with a rate around 0.5% lower — say 5.5% ($2,451/month, $141,225 total interest) against 6% on the 30-year. Send that same $2,451 a month ($652 above the required payment) to the 30-year loan and you're debt-free in **15 years 10 months**, having paid about **$165,200 in interest** — roughly **$24,000 more** than the true 15-year. [Prepaying](/tools/debt-and-loans/loan-amortization/) gets you most of the way there, but the rate premium never goes away.
+Know what the flexibility costs. Pay {{ loanPayment(300000, rate('us15'), 15) | usd }} a month on the 30-year loan at {{ rate('us30') | pct(2) }} and you are debt-free in {{ overpaymentSaving(300000, rate('us30'), 30, monthly=loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)).months | months }}, having paid {{ overpaymentSaving(300000, rate('us30'), 30, monthly=loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)).interest | usd }} of interest. That is {{ overpaymentSaving(300000, rate('us30'), 30, monthly=loanPayment(300000, rate('us15'), 15) - loanPayment(300000, rate('us30'), 30)).interest - loanTotalInterest(300000, rate('us15'), 15) | usd }} more than the true 15-year, because the rate premium never goes away. In return you can drop back to the {{ loanPayment(300000, rate('us30'), 30) | usd }} payment in any month you need to. See [how prepayment works](/tools/debt-and-loans/loan-amortization/) for your own numbers.
