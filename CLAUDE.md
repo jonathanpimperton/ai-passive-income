@@ -500,7 +500,9 @@ When starting a new session on this project:
      DONE and LIVE (pushed `4d4fb8d..55d60bc`, 16:32 13 Nov).** **Wave 2 LIVE (16 Nov, pushed
      `55d60bc..ddf6216`):** figure tokens from the engines on all content, monthly = annual
      take-home headline, UK payslip match, homepage engine, scenarios/hubs, comparisons,
-     methodologies, Markdown conversion in a terminable worker. Paused at a safe point. Next:
+     methodologies, Markdown conversion in a terminable worker. **Maintenance fix (16 Nov, live
+     `f743b5e`):** 2027 401(k) limits from IRS Notice 2026-66. The weekly Freshness run stays red
+     until the Ofgem cap (25 Nov) and Scottish Budget (3 Dec) calendar rows are done. Paused at a safe point. Next:
      the built-but-not-yet-reviewed W2-FOLLOWUPS branch, then Wave 3 and the Fable check. Start at the
      plan's Section 0 top block. Never push `nov26/*` or `backup/*` branches (old refs hold a
      pre-rewrite docs commit with personal data).
