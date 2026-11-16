@@ -9,7 +9,7 @@ import {
 import {
   entropyBits, poolSize, strengthFor, STRENGTH_LEVELS, crackSeconds, formatDuration, generatePassword, parseLength, enabledSets, type PasswordOptions,
 } from './password';
-import { decodeJwtToken, algInfo, formatSpan } from './jwt';
+import { decodeJwtToken, describeClaimValue, algInfo, formatSpan } from './jwt';
 import { encodeUrl, decodeUrl } from './url-codec';
 import { encodeText } from './base64';
 
@@ -229,6 +229,29 @@ describe('JWT decoding (DEVTOOLS-15)', () => {
     expect(r.ok && r.warnings.join(' ')).toMatch(/"exp" should be a number/);
     expect(r.ok && r.status.label).toBe('Expiry unclear: "exp" is not a number');
     expect(r.ok && r.status.label).not.toMatch(/no "exp" claim/);
+  });
+
+  it('names null and arrays instead of calling them "object" when a time claim has the wrong type', () => {
+    const warn = (v: unknown) => {
+      const r = decodeJwtToken(token({ exp: v }), NOW);
+      return r.ok ? r.warnings.join(' ') : '';
+    };
+    expect(warn(null)).toMatch(/but it is null\./);
+    expect(warn([1, 2])).toMatch(/but it is an array\./);
+    expect(warn({ a: 1 })).toMatch(/but it is an object\./);
+    expect(warn(true)).toMatch(/but it is the boolean true\./);
+    expect(warn('soon')).toMatch(/but it is the string "soon"\./);
+    for (const v of [null, [1], { a: 1 }]) expect(warn(v)).not.toMatch(/but it is object/);
+  });
+
+  it('shortens a very long string claim in the warning', () => {
+    const long = 'x'.repeat(5000);
+    const r = decodeJwtToken(token({ nbf: long }), NOW);
+    const text = r.ok ? r.warnings.join(' ') : '';
+    expect(text).toContain(`the string "${'x'.repeat(37)}..."`);
+    expect(text.length).toBeLessThan(300);
+    expect(describeClaimValue('x'.repeat(40))).toBe(`the string "${'x'.repeat(40)}"`);
+    expect(describeClaimValue('x'.repeat(41))).toBe(`the string "${'x'.repeat(37)}..."`);
   });
 
   it('accepts a Bearer prefix and line breaks', () => {

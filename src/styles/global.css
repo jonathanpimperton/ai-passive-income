@@ -1243,3 +1243,10 @@ html.has-mini-bar {
     background: var(--color-neutral-100);
   }
 }
+
+/* A pinned sidebar (data-sticky-fit) is released while it is taller than the window, so its
+   last links can be reached (src/lib/sticky-fit.ts sets the marker). Unlayered, so it wins over
+   the lg:sticky utility. */
+[data-sticky-fit][data-sticky-released] {
+  position: static;
+}

@@ -140,7 +140,7 @@ export function stripImageMetadata(data: Uint8Array): Uint8Array | null {
 export interface KeptOriginal {
   /** The original pixels with metadata removed, or null when the file must be re-encoded instead. */
   bytes: Uint8Array | null;
-  /** True when re-encoding is needed only to keep the picture the right way up (PNG/WebP with a rotation tag). */
+  /** True when re-encoding is needed only to keep the picture the right way up (a PNG with a rotation tag). */
   needsUpright: boolean;
 }
 
@@ -151,9 +151,14 @@ export interface KeptOriginal {
  * The result must display the same way round as the input:
  * - JPEG: Orientation 2-8 is put back as a minimal Exif block (a rotation
  *   flag, not private data), together with the date taken when `keepDate`.
- * - PNG and WebP: their orientation tags are not honoured everywhere (Safari
- *   ignores a PNG's eXIf), so a tagged file is not kept: `bytes` is null and
+ * - PNG: its orientation tag is not honoured everywhere (Safari ignores a
+ *   PNG's eXIf), so a tagged file is not kept: `bytes` is null and
  *   `needsUpright` is true, and the caller returns its upright re-encode.
+ * - WebP: no browser applies a WebP's Exif orientation (Chromium, Firefox and
+ *   WebKit all draw the stored pixels as they are), so the tag changes nothing
+ *   on screen and is dropped with the rest of the Exif. The file is kept like
+ *   an untagged one: re-encoding it "upright" would not rotate anything, and
+ *   only made the file larger (about 10x for a low-quality original).
  * GPS, camera, XMP and text metadata are never put back.
  */
 export function keepOriginalWithoutMetadata(data: Uint8Array, keepDate: boolean): KeptOriginal {
@@ -165,6 +170,6 @@ export function keepOriginalWithoutMetadata(data: Uint8Array, keepDate: boolean)
     const bytes = orientation !== 1 || date ? writeJpegExif(stripped, { orientation, date }) : stripped;
     return { bytes, needsUpright: false };
   }
-  if (orientation !== 1) return { bytes: null, needsUpright: true };
+  if (orientation !== 1 && detectImageKind(data) !== 'webp') return { bytes: null, needsUpright: true };
   return { bytes: stripped, needsUpright: false };
 }

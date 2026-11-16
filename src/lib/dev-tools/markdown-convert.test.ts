@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { Marked, marked } from 'marked';
-import { markdownToHtml, MarkdownTooSlowError, MARKDOWN_TIME_BUDGET_MS } from './markdown-convert';
+import {
+  markdownToHtml,
+  isStackOverflow,
+  MarkdownTooDeepError,
+  MarkdownTooSlowError,
+  MARKDOWN_TIME_BUDGET_MS,
+} from './markdown-convert';
 
 describe('markdownToHtml', () => {
   it('matches marked.parse for ordinary documents', () => {
@@ -29,11 +35,35 @@ describe('markdownToHtml', () => {
     }
   });
 
-  it('bounds the time spent on input that parses very slowly', () => {
+  // Cooperative only: this input is slow because of many short tokenizer calls. One long
+  // call (thousands of unclosed openers in one block) cannot be stopped here; the worker
+  // client terminates the worker for that (markdown-worker-client.test.ts, tests/dev-tools.spec.ts).
+  it('stops between tokenizer calls when slow work is spread over many short calls', () => {
     const slow = '[a]('.repeat(1500);
     const start = performance.now();
     expect(() => markdownToHtml(Marked, slow, 300)).toThrow(MarkdownTooSlowError);
     expect(performance.now() - start).toBeLessThan(5000);
+  });
+
+  it('reports input that nests too deeply for the stack as too complex, not as a raw engine error', () => {
+    // 12,000 nested quotes overflow the stack in every engine (and take well under a second here).
+    let error: unknown;
+    try {
+      markdownToHtml(Marked, '> '.repeat(12000));
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeInstanceOf(MarkdownTooDeepError);
+    expect((error as Error).message).toMatch(/too complex to convert in the browser/);
+  });
+
+  it('recognises the stack overflow messages of Chromium, Safari and Firefox', () => {
+    expect(isStackOverflow(new RangeError('Maximum call stack size exceeded'))).toBe(true);
+    const firefox = new Error('too much recursion\nPlease report this to https://github.com/markedjs/marked.');
+    firefox.name = 'InternalError';
+    expect(isStackOverflow(firefox)).toBe(true);
+    expect(isStackOverflow(new Error('unexpected token'))).toBe(false);
+    expect(isStackOverflow('too much recursion')).toBe(false);
   });
 
   it('uses a budget of a few seconds by default', () => {

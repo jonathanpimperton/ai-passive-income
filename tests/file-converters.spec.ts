@@ -909,6 +909,32 @@ test.describe('Image Compressor (FILES-03, FILES-10)', () => {
     });
   }
 
+  // No browser applies a WebP's Exif orientation, so a "rotation tag" on a WebP changes nothing
+  // on screen. Re-encoding the picture "upright" only made it bigger (about 10x for a
+  // low-quality original, FILES-03 "never larger"); the stripped original is kept instead.
+  test('a WebP with a rotation tag is kept as the original, not re-encoded larger', async ({ page }) => {
+    const sharp = (await import('sharp')).default;
+    const noise = sharp({ create: { width: 320, height: 160, channels: 3, background: '#808080', noise: { type: 'gaussian', mean: 128, sigma: 60 } } }).blur(1.5);
+    const input = await noise.webp({ quality: 20 }).withMetadata({ orientation: 6 }).withExif({ IFD0: { Copyright: 'secret-owner' } }).toBuffer();
+    const file = test.info().outputPath('tagged.webp');
+    fs.writeFileSync(file, input);
+    await page.goto('/tools/file-tools/image-compressor/');
+    await page.waitForLoadState('networkidle');
+    await uploadFile(page, file);
+    await expect(page.getByText(/1 file compressed/)).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('(original kept)')).toBeVisible();
+    await expect(page.getByText(/larger than|times the size of|slightly larger/)).toHaveCount(0);
+    const { bytes } = await downloadBytes(page, () => page.getByRole('button', { name: /^download /i }).first().click());
+    expect(bytes.length).toBeLessThan(input.length); // the stripped original: smaller, never larger
+    expect(bytes.toString('latin1')).not.toContain('secret-owner');
+    const meta = await sharp(bytes).metadata();
+    expect(meta.format).toBe('webp');
+    expect(meta.exif).toBeUndefined();
+    expect([meta.width, meta.height]).toEqual([320, 160]);
+    // Drawn exactly as the original is (both unrotated: no engine applies the tag).
+    expect(await displayedSize(page, bytes, 'image/webp')).toEqual(await displayedSize(page, input, 'image/webp'));
+  });
+
   test('a damaged image is named in the error (FILES-12)', async ({ page }) => {
     await page.goto('/tools/file-tools/image-compressor/');
     await page.waitForLoadState('networkidle');

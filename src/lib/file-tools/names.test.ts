@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatBytes, baseName, withExtension, extensionOf, uniqueNames, plural } from './names';
+import { formatBytes, baseName, withExtension, extensionOf, uniqueNames, plural, describeSizeChange } from './names';
 
 describe('names', () => {
   it('formats byte sizes', () => {
@@ -34,5 +34,22 @@ describe('names', () => {
   it('pluralises', () => {
     expect(plural(1, 'file')).toBe('1 file');
     expect(plural(3, 'file')).toBe('3 files');
+  });
+});
+
+describe('describeSizeChange', () => {
+  it('states the real change instead of "slightly larger"', () => {
+    expect(describeSizeChange(1100, 1000)).toBe('10% larger than');
+    expect(describeSizeChange(1004, 1000)).toBe('1% larger than'); // never "0%"
+    expect(describeSizeChange(1900, 1000)).toBe('90% larger than');
+    expect(describeSizeChange(2000, 1000)).toBe('2 times the size of');
+    expect(describeSizeChange(3456, 1000)).toBe('3.5 times the size of');
+    expect(describeSizeChange(11_800, 1000)).toBe('12 times the size of');
+  });
+
+  it('copes with equal, smaller and empty sizes', () => {
+    expect(describeSizeChange(1000, 1000)).toBe('the same size as');
+    expect(describeSizeChange(900, 1000)).toBe('the same size as');
+    expect(describeSizeChange(100, 0)).toBe('the same size as');
   });
 });

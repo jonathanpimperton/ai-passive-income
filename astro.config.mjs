@@ -64,6 +64,10 @@ export default defineConfig({
   vite: {
     cacheDir: './.astro-cache/vite',
     plugins: [tailwindcss()],
+    // marked is imported only by the Markdown tool's Web Worker, which the dev server's dependency
+    // scan does not follow. Without this, the first visit finds it late, re-optimises and reloads
+    // the page mid-test ("new dependencies optimized: marked").
+    optimizeDeps: { include: ['marked'] },
     ssr: {
       noExternal: ['pdfjs-dist'],
     },

@@ -258,3 +258,14 @@ export function defaultCgtCountry(storedCurrency: string | null, region: Region)
 export function cgtPartnerRegion(country: CgtCountry): CurrencyRegion {
   return country === 'uk' ? 'UK' : 'US';
 }
+
+/**
+ * The region to hand ResultAffiliate. The tab decides only once the visitor has
+ * chosen it: they asked for US (or UK) tax content, so they get that content's
+ * partners. Until then the tab is just a default (EUR and other non-UK visitors
+ * open on the US tab) and the visitor's own region decides (undefined here), so
+ * a euro visitor is not shown a US-only partner they never asked about.
+ */
+export function cgtAffiliateRegion(country: CgtCountry, userPickedCountry: boolean): CurrencyRegion | undefined {
+  return userPickedCountry ? cgtPartnerRegion(country) : undefined;
+}

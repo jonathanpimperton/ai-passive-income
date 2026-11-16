@@ -15,7 +15,7 @@ import {
   calculateUSCgt,
   calculateUKCgt,
   defaultCgtCountry,
-  cgtPartnerRegion,
+  cgtAffiliateRegion,
   type CgtCountry,
   type HoldingPeriod,
   type UkIncomeBand,
@@ -85,6 +85,8 @@ export default function CapitalGainsTaxCalc() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const uid = useId();
   const userPickedCountry = useRef(false);
+  // The tab is only a default until the visitor picks one; the partner shown depends on which (cgtAffiliateRegion).
+  const [countryPicked, setCountryPicked] = useState(false);
   const tabRefs = useRef<Record<CgtCountry, HTMLButtonElement | null>>({ us: null, uk: null });
 
   const [country, setCountry] = useState<CgtCountry>(DEFAULTS.country);
@@ -103,6 +105,7 @@ export default function CapitalGainsTaxCalc() {
 
   const pickCountry = (c: CgtCountry) => {
     userPickedCountry.current = true;
+    setCountryPicked(true);
     setCountry(c);
   };
 
@@ -597,7 +600,7 @@ export default function CapitalGainsTaxCalc() {
             </div>
           )}
 
-          <ResultAffiliate toolSlug="capital-gains-tax" region={cgtPartnerRegion(country)} />
+          <ResultAffiliate toolSlug="capital-gains-tax" region={cgtAffiliateRegion(country, countryPicked)} />
         </div>
       </div>
     </div>

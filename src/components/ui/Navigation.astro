@@ -434,6 +434,12 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
   @keyframes slideOut { from { transform: translateX(0); } to { transform: translateX(100%); } }
   :global(html.menu-open) body { overflow: hidden; }
 
+  /* Natural Tab order in Firefox stops scrolling as soon as an item is partly inside the scrolling
+     panel, leaving some only half in view. A scroll margin makes the browser bring the whole item in
+     (covers the logo link, the close button, category buttons and tool links). */
+  .mobile-panel :global(a),
+  .mobile-panel :global(button) { scroll-margin-block: 1rem; }
+
   .m-heading {
     margin: 0 0 0.25rem;
     padding: 0 0.75rem;
@@ -615,6 +621,7 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
   function openMenu() {
     if (!mobileMenu) return;
     clearTimeout(closeTimer);
+    mobileMenu.inert = false; // closeMenu() makes the dialog inert for its closing animation
     mobileMenu.classList.remove('hidden', 'closing');
     mobileMenu.classList.add('open');
     document.documentElement.classList.add('menu-open');
@@ -625,6 +632,9 @@ const inTools = currentPath.startsWith('/tools/') && currentPath !== '/tools/';
 
   function closeMenu() {
     if (!mobileMenu || mobileMenu.classList.contains('hidden')) return;
+    // First: the dialog stays on screen for the 200 ms animation, and until it is inert Tab
+    // (after Escape, say) can land inside it, then fall to <body> when it disappears.
+    mobileMenu.inert = true;
     mobileMenu.classList.remove('open');
     mobileMenu.classList.add('closing');
     setBackgroundInert(false);

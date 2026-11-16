@@ -82,6 +82,33 @@ for (const currency of ['USD', 'GBP', 'EUR']) {
   });
 }
 
+// Before the visitor picks a tab it is only a default: a euro visitor opens on the US tab but
+// is not offered the US-only partner; US and UK visitors get the partner for their own region.
+for (const [currency, expected] of [['EUR', null], ['USD', 'betterment'], ['GBP', 'nutmeg']] as const) {
+  test(`capital gains first load offers ${expected ?? 'no partner'} to a ${currency} visitor`, async ({ page, context }) => {
+    await prepare(context, currency);
+    await page.goto(CGT);
+    await hydrated(page);
+    // The default tab has settled (GBP moves to the UK tab after mount) and results are on screen.
+    await expect(page.getByRole('tab', { name: currency === 'GBP' ? 'United Kingdom' : 'United States' })).toHaveAttribute('aria-selected', 'true');
+    if (expected) {
+      await expect(page.locator(`${inline}[data-affiliate-partner="${expected}"]`)).toHaveCount(1);
+    } else {
+      await page.waitForTimeout(1000); // the affiliate row renders client-side; give it the chance to (wrongly) appear
+      await expect(page.locator(inline)).toHaveCount(0);
+    }
+  });
+}
+
+test('capital gains: a euro visitor who picks the US tab is offered the US partner', async ({ page, context }) => {
+  await prepare(context, 'EUR');
+  await page.goto(CGT);
+  await hydrated(page);
+  await expect(page.locator(inline)).toHaveCount(0);
+  await page.getByRole('tab', { name: 'United States' }).click(); // the tab already on screen, now chosen
+  await expect(page.locator(`${inline}[data-affiliate-partner="betterment"]`)).toHaveCount(1);
+});
+
 /* -- 2. Charts: one named image, never a tab stop --------------------------- */
 
 interface ChartCase {
@@ -200,6 +227,25 @@ for (const h of HUBS) {
 // hydration mismatch. Loads in a row, on the tool page and the embed page, must be clean.
 const NET_WORTH_PAGES = ['/tools/income-and-planning/net-worth/', '/embed/net-worth/'];
 
+test('net worth Reset clears a field that was showing an error', async ({ page, context }) => {
+  await prepare(context);
+  await page.goto('/tools/income-and-planning/net-worth/');
+  await hydrated(page);
+  const value = page.locator('input[id$="-value"]').first();
+  await value.fill('abc');
+  await value.blur();
+  await expect(value).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText(/Enter a number, for example/).first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Reset all inputs' }).click();
+
+  // Every field is a fresh one: no error, no invalid flag, the default amount back.
+  await expect(page.getByText(/Enter a number, for example/)).toHaveCount(0);
+  await expect(page.locator('input[aria-invalid="true"]')).toHaveCount(0);
+  await expect(page.locator('input[id$="-value"]').first()).not.toHaveValue('abc');
+  // Server/client id parity is untouched: the page still starts at item-1 (see the loads below).
+});
+
 for (const currency of [undefined, 'GBP', 'EUR']) {
   test(`net worth hydrates without a mismatch, load after load (${currency ?? 'nothing stored'})`, async ({ page, context }) => {
     await prepare(context, currency);
@@ -216,3 +262,55 @@ for (const currency of [undefined, 'GBP', 'EUR']) {
     }
   });
 }
+
+/* -- 5. Methodology sidebars taller than the window are not pinned ---------- */
+
+// The /how-we-calculate/<tool>/ sidebar is pinned (lg:sticky lg:top-20). A pinned element cannot show
+// more than the window holds, so when the sidebar is taller its last links (worked-through guides, data
+// sources) stay below the window edge even after being focused. At 1280x800, 8 of the 23 methodology
+// pages have such a sidebar; for 5 of them the last link stayed off screen when pinned. (The calculator
+// results panels carry the same classes but have never pinned: the tool page's overflow containers stop
+// it, so they are not part of this.)
+const TALL_SIDEBAR = '/how-we-calculate/salary-uk/'; // about 1,100px tall
+const SHORT_SIDEBAR = '/how-we-calculate/investment-fee/'; // about 540px tall
+const sidebar = '[data-sticky-fit]';
+
+test('a methodology sidebar taller than the window is released, so its last link can be reached', async ({ page, context }) => {
+  await prepare(context);
+  await page.emulateMedia({ reducedMotion: 'reduce' }); // the page scrolls at once, so the check is not about timing
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(TALL_SIDEBAR);
+  const side = page.locator(sidebar);
+  // The premise: it does not fit below its 80px offset in an 800px window.
+  expect(await side.evaluate((el) => el.getBoundingClientRect().height)).toBeGreaterThan(800 - 96);
+  await expect(side).toHaveCSS('position', 'static');
+
+  const last = side.locator('a[href]').last();
+  await last.focus(); // what Tab onto the last source link does
+  await expect
+    .poll(() => last.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return r.top >= 0 && r.bottom <= window.innerHeight;
+    }), { message: 'the last sidebar link is on screen when focused', timeout: 4000 })
+    .toBe(true);
+});
+
+test('a methodology sidebar that fits the window stays pinned, and is released when the window shrinks', async ({ page, context }) => {
+  await prepare(context);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
+  // Fits: pinned for real, so it holds 80px from the top while the page scrolls.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(SHORT_SIDEBAR);
+  const side = page.locator(sidebar);
+  await expect(side).toHaveCSS('position', 'sticky');
+  await page.evaluate(() => window.scrollTo(0, 300));
+  await expect.poll(() => side.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(80);
+
+  // The tall one fits in a tall window (pinned), and is released again without a reload when it shrinks.
+  await page.setViewportSize({ width: 1280, height: 1500 });
+  await page.goto(TALL_SIDEBAR);
+  await expect(side).toHaveCSS('position', 'sticky');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(side).toHaveCSS('position', 'static');
+});

@@ -2,6 +2,10 @@
  * Markdown <-> HTML Converter: Markdown to HTML with marked, HTML to Markdown
  * with turndown. Live preview, copy, download. No server upload.
  *
+ * Markdown is converted by marked in a Web Worker that is terminated when it
+ * takes too long (src/lib/dev-tools/markdown-worker-client.ts); only the HTML
+ * sanitiser and the HTML-to-Markdown direction run on the page's thread.
+ *
  * Safety: the preview is untrusted HTML. It is sanitised with DOMPurify and
  * rendered in a sandboxed iframe (no scripts, opaque origin) with its own
  * CSP; see src/lib/dev-tools/markdown-preview.ts. There is no raw-HTML sink
@@ -22,12 +26,16 @@ import {
 } from '../../lib/dev-tools/markdown-preview';
 import { useCopyFeedback } from '../../lib/dev-tools/clipboard';
 import { useSizeAwareDebounce } from '../../lib/dev-tools/use-size-aware-debounce';
-import { markdownToHtml, MarkdownTooSlowError } from '../../lib/dev-tools/markdown-convert';
+import {
+  createMarkdownConverter,
+  MarkdownCancelledError,
+  type MarkdownConverter,
+} from '../../lib/dev-tools/markdown-worker-client';
 
 type Mode = 'md-to-html' | 'html-to-md';
 
 interface Libs {
-  marked: typeof import('marked');
+  converter: MarkdownConverter;
   previewPurifier: DOMPurify;
   outputPurifier: DOMPurify;
   turndown: TurndownService;
@@ -99,6 +107,13 @@ interface Conversion {
   error: string;
 }
 
+/** The worker's result for one input: raw (unsanitised) HTML, or why there is none. */
+interface RawConversion {
+  input: string;
+  html: string;
+  error: string;
+}
+
 const EMPTY: Conversion = { output: '', previewHtml: '', previewRemoved: null, outputRemoved: null, error: '' };
 
 export default function MarkdownHtmlConverter() {
@@ -116,8 +131,9 @@ export default function MarkdownHtmlConverter() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([import('marked'), import('dompurify'), import('turndown')])
-      .then(([markedMod, purifyMod, turndownMod]) => {
+    let converter: MarkdownConverter | null = null;
+    Promise.all([import('dompurify'), import('turndown')])
+      .then(([purifyMod, turndownMod]) => {
         if (cancelled) return;
         const createPurifier = purifyMod.default;
         const previewPurifier = createPurifier(window);
@@ -127,13 +143,15 @@ export default function MarkdownHtmlConverter() {
           setLoadError('This browser cannot run the HTML sanitiser, so conversion is turned off. Try an up-to-date browser.');
           return;
         }
-        setLibs({ marked: markedMod, previewPurifier, outputPurifier, turndown: createTurndown(turndownMod.default) });
+        converter = createMarkdownConverter();
+        setLibs({ converter, previewPurifier, outputPurifier, turndown: createTurndown(turndownMod.default) });
       })
       .catch(() => {
         if (!cancelled) setLoadError('The converter failed to load. Check your connection and reload the page.');
       });
     return () => {
       cancelled = true;
+      converter?.dispose();
     };
   }, []);
 
@@ -145,13 +163,41 @@ export default function MarkdownHtmlConverter() {
     return () => observer.disconnect();
   }, []);
 
+  // Markdown to HTML runs in the worker; `raw` is its (unsanitised) result for one input.
+  const [raw, setRaw] = useState<RawConversion | null>(null);
+  useEffect(() => {
+    if (mode !== 'md-to-html' || !libs || !settledInput.trim()) return undefined;
+    let cancelled = false;
+    libs.converter
+      .convert(settledInput)
+      .then((html) => {
+        if (!cancelled) setRaw({ input: settledInput, html, error: '' });
+      })
+      .catch((e: unknown) => {
+        if (cancelled || e instanceof MarkdownCancelledError) return;
+        setRaw({ input: settledInput, html: '', error: e instanceof Error ? e.message : 'Conversion failed.' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [settledInput, mode, libs]);
+  // `rawCurrent` is the result for the input on screen. While a newer one is converting, the last
+  // successful result stays up (output and preview do not blank on every edit; it goes through the
+  // same sanitiser) and the status says "Converting...". A result for a superseded request never
+  // arrives: the effect above drops it. Copy and Download wait for the current result.
+  const rawCurrent = mode === 'md-to-html' && raw && raw.input === settledInput ? raw : null;
+  const converting = mode === 'md-to-html' && !!libs && !!settledInput.trim() && !rawCurrent;
+  const rawShown = rawCurrent ?? (mode === 'md-to-html' && raw && !raw.error ? raw : null);
+
   const conversion = useMemo<Conversion>(() => {
     if (!settledInput.trim() || !libs) return EMPTY;
     try {
       if (mode === 'html-to-md') {
         return { ...EMPTY, output: libs.turndown.turndown(settledInput) };
       }
-      const rawHtml = markdownToHtml(libs.marked.Marked, settledInput);
+      if (!rawShown) return EMPTY;
+      if (rawShown.error) return { ...EMPTY, error: rawShown.error };
+      const rawHtml = rawShown.html;
       const out = sanitizeOutput ? sanitizeHtml(libs.outputPurifier, rawHtml) : null;
       const preview = showPreview ? sanitizeHtml(libs.previewPurifier, rawHtml) : null;
       return {
@@ -162,10 +208,9 @@ export default function MarkdownHtmlConverter() {
         error: '',
       };
     } catch (e) {
-      if (e instanceof MarkdownTooSlowError) return { ...EMPTY, error: e.message };
       return { ...EMPTY, error: e instanceof Error ? `Conversion failed: ${e.message}` : 'Conversion failed.' };
     }
-  }, [settledInput, mode, libs, sanitizeOutput, showPreview]);
+  }, [settledInput, mode, libs, sanitizeOutput, showPreview, rawShown]);
 
   const previewDoc = useMemo(
     () => (showPreview && mode === 'md-to-html' && conversion.output ? buildPreviewDocument(conversion.previewHtml, theme) : ''),
@@ -174,7 +219,8 @@ export default function MarkdownHtmlConverter() {
 
   const result = pending ? '' : conversion.output;
   const errorText = fileError || (input.trim() ? loadError || conversion.error : '');
-  const statusText = errorText || (!input.trim() ? '' : !libs ? 'Loading converter...' : pending ? 'Converting...' : '');
+  const statusText =
+    errorText || (!input.trim() ? '' : !libs ? 'Loading converter...' : pending || converting ? 'Converting...' : '');
 
   const handleFiles = useCallback(async (files: File[]) => {
     const f = files[0];
@@ -207,7 +253,7 @@ export default function MarkdownHtmlConverter() {
 
   const toggleMode = () => {
     setMode(mode === 'md-to-html' ? 'html-to-md' : 'md-to-html');
-    if (result) setInput(result);
+    if (result && !converting) setInput(result);
   };
 
   const removedNotice = (() => {
@@ -307,7 +353,8 @@ export default function MarkdownHtmlConverter() {
                 <button
                   type="button"
                   onClick={() => copy(result)}
-                  className="inline-flex items-center gap-1.5 min-h-[40px] px-3 text-sm font-medium text-neutral-600 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150"
+                  disabled={converting}
+                  className="inline-flex items-center gap-1.5 min-h-[40px] px-3 text-sm font-medium text-neutral-600 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {copiedKey ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
                   {copiedKey ? 'Copied' : failedKey ? 'Copy failed' : 'Copy'}
@@ -315,7 +362,8 @@ export default function MarkdownHtmlConverter() {
                 <button
                   type="button"
                   onClick={downloadResult}
-                  className="inline-flex items-center gap-1.5 min-h-[40px] px-3 text-sm font-medium text-neutral-600 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150"
+                  disabled={converting}
+                  className="inline-flex items-center gap-1.5 min-h-[40px] px-3 text-sm font-medium text-neutral-600 rounded-lg hover:text-primary-600 hover:bg-neutral-100 transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <Download size={14} aria-hidden="true" /> Download
                 </button>
