@@ -22,8 +22,11 @@ export interface HubCell {
 }
 
 export interface HubRow {
-  /** Anchor id; also the legacy redirect target. */
+  /** Anchor id on the row; also the legacy redirect target. */
   id?: string;
+  /** A second, stable anchor id on the row header (e.g. "y2026-100k"), for links that must keep
+   *  meaning the same table when the default tax year changes. The row highlights for it too. */
+  altId?: string;
   label: string;
   /** Standalone page for the same question, linked under the label (SE-8). */
   href?: string;
@@ -83,7 +86,7 @@ const toneClass = {
       <tbody>
         {rows.map((row, i) => (
           <>
-            {row.id && (
+            {(row.id || row.altId) && (
               <tr class="hub-labels" aria-hidden="true">
                 <td class="px-3 sm:px-5 py-2 text-left text-xs font-semibold text-neutral-600">{rowHeader}</td>
                 {columns.map((col) => (
@@ -98,7 +101,7 @@ const toneClass = {
                 i % 2 === 1 ? 'bg-neutral-50/50' : '',
               ]}
             >
-              <th scope="row" class="px-3 sm:px-5 py-3 text-left font-semibold text-neutral-900 tabular-nums whitespace-nowrap">
+              <th id={row.altId} scope="row" class="px-3 sm:px-5 py-3 text-left font-semibold text-neutral-900 tabular-nums whitespace-nowrap">
                 {row.label}
                 {row.href && (
                   <a
@@ -138,14 +141,16 @@ const toneClass = {
 
   /* Landing from a legacy anchor: land below the sticky site header with the
      labels row visible above the target row. */
-  .hub-row {
+  .hub-row,
+  .hub-row > th {
     scroll-margin-top: 7rem;
   }
 
   .hub-labels {
     display: none;
   }
-  .hub-labels:has(+ .hub-row:target) {
+  .hub-labels:has(+ .hub-row:target),
+  .hub-labels:has(+ .hub-row > th:target) {
     display: table-row;
     background-color: var(--color-surface);
     border-top: 1px solid var(--color-neutral-200);
@@ -153,28 +158,35 @@ const toneClass = {
 
   /* Cell-level background beats the row's zebra stripe, in light and dark. */
   .hub-row:target > th,
-  .hub-row:target > td {
+  .hub-row:target > td,
+  .hub-row:has(> th:target) > th,
+  .hub-row:has(> th:target) > td {
     background-color: color-mix(in srgb, var(--color-primary-500) 18%, var(--color-surface));
   }
-  .hub-row:target > th {
+  .hub-row:target > th,
+  .hub-row:has(> th:target) > th {
     box-shadow: inset 4px 0 0 var(--color-primary-600);
   }
   /* The tint lowers the contrast of the green and red figures (4.5:1 needed):
      use the deeper token for each on the target row, in both themes. */
-  .hub-row:target > .hub-tone-gain {
+  .hub-row:target > .hub-tone-gain,
+  .hub-row:has(> th:target) > .hub-tone-gain {
     color: var(--color-success-700);
   }
-  .hub-row:target > .hub-tone-cost {
+  .hub-row:target > .hub-tone-cost,
+  .hub-row:has(> th:target) > .hub-tone-cost {
     color: var(--color-red-700);
   }
-  :global([data-theme='dark']) .hub-row:target > .hub-tone-cost {
+  :global([data-theme='dark']) .hub-row:target > .hub-tone-cost,
+  :global([data-theme='dark']) .hub-row:has(> th:target) > .hub-tone-cost {
     color: var(--color-red-800);
   }
 
   .hub-col-em {
     background-color: color-mix(in srgb, var(--color-primary-500) 8%, transparent);
   }
-  .hub-row:target > .hub-col-em {
+  .hub-row:target > .hub-col-em,
+  .hub-row:has(> th:target) > .hub-col-em {
     background-color: color-mix(in srgb, var(--color-primary-500) 18%, var(--color-surface));
   }
 </style>

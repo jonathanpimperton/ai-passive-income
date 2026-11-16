@@ -133,7 +133,7 @@ describe('index contents', () => {
     // And the anchor formats the hubs use (row id = kAnchor(value), investment rows by value)
     expect(kAnchor(50000)).toBe('50k');
     expect(hubSource('uk-take-home-pay')).toContain('id: kAnchor(salary)');
-    expect(hubSource('us-take-home-pay')).toContain('id: `${anchorPrefix}${kAnchor(salary)}`');
+    expect(hubSource('us-take-home-pay')).toContain("id: year === mainYear ? kAnchor(salary) : undefined");
     expect(hubSource('mortgage-payments-by-amount')).toContain('id: kAnchor(amount)');
     expect(hubSource('investment-growth')).toContain('const id = `${monthly}-per-month`');
     expect(hubSource('investment-growth')).toContain('const id = `${principal}`');

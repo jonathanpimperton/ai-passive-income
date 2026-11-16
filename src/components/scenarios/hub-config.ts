@@ -98,3 +98,24 @@ export function shortMoney(n: number, symbol = '$'): string {
 
 /** Row anchor for a salary or loan amount: 50000 -> "50k". */
 export const kAnchor = (n: number): string => `${n / 1000}k`;
+
+/* -- Labels built from the ladders (titles, headings, descriptions) ------- */
+
+const EN_DASH = '\u2013';
+
+/** 20000 -> "20k" with a symbol: "20k". */
+export const kLabel = (n: number, symbol: string): string => `${symbol}${n / 1000}k`;
+
+/** 20000 -> "20,000" with a symbol in front. */
+export const moneyLabel = (n: number, symbol: string, locale = 'en-US'): string => symbol + n.toLocaleString(locale);
+
+/** "20k-150k" with symbols: hyphen for titles, en dash for headings. */
+export const kRange = (lo: number, hi: number, symbol: string, dash: '-' | 'en' = '-'): string =>
+  `${kLabel(lo, symbol)}${dash === 'en' ? EN_DASH : '-'}${kLabel(hi, symbol)}`;
+
+/** "150,000 to 750,000" with symbols. */
+export const moneyRange = (lo: number, hi: number, symbol: string, locale = 'en-US'): string =>
+  `${moneyLabel(lo, symbol, locale)} to ${moneyLabel(hi, symbol, locale)}`;
+
+export const first = <T>(xs: readonly T[]): T => xs[0];
+export const last = <T>(xs: readonly T[]): T => xs[xs.length - 1];

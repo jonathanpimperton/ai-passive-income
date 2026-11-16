@@ -22,12 +22,17 @@ import HubTable from '@components/scenarios/HubTable.astro';
 import type { HubRow } from '@components/scenarios/HubTable.astro';
 import SalaryCalc from '@components/tools/SalaryCalc.tsx';
 import { buildArticleSchema } from '@lib/seo';
+import { FigureError } from '@lib/figures';
 import { US_TAX_YEARS, US_DEFAULT_TAX_YEAR, US_RATES_LAST_CHECKED, usTaxYearLabel } from '@lib/us-rates';
 import {
   fig,
   num,
   rec,
   kAnchor,
+  kRange,
+  moneyLabel,
+  first,
+  last,
   US_SALARIES,
   US_HEADLINE_SALARY,
   US_ROW_PAGES,
@@ -47,7 +52,7 @@ const yearList = [...US_TAX_YEARS].join(' and ');
 
 const pay = (salary: number, year: number) => rec(`usPay(${salary}, year=${year})`);
 
-function yearRows(year: number, anchorPrefix: string, compareTo?: number): HubRow[] {
+function yearRows(year: number, compareTo?: number): HubRow[] {
   return US_SALARIES.map((salary) => {
     const p = pay(salary, year);
     const page = year === mainYear ? US_ROW_PAGES[salary] : undefined;
@@ -64,7 +69,10 @@ function yearRows(year: number, anchorPrefix: string, compareTo?: number): HubRo
       cells.push({ text: signedUsd(diff), tone: diff >= 0 ? 'gain' : 'cost' });
     }
     return {
-      id: `${anchorPrefix}${kAnchor(salary)}`,
+      // The default year's rows keep the legacy anchors (#100k: redirects, homepage tile); every
+      // year's row also has a stable year-prefixed anchor on its row header (#y2026-100k).
+      id: year === mainYear ? kAnchor(salary) : undefined,
+      altId: `y${year}-${kAnchor(salary)}`,
       label: usd(salary),
       href: page?.href,
       hrefLabel: page?.label,
@@ -73,7 +81,7 @@ function yearRows(year: number, anchorPrefix: string, compareTo?: number): HubRo
   });
 }
 
-const mainRows = yearRows(mainYear, '');
+const mainRows = yearRows(mainYear);
 const headline = pay(US_HEADLINE_SALARY, mainYear);
 
 // Facts for the prose follow the default year (no year= argument).
@@ -102,12 +110,17 @@ const cappedSalaries = US_SALARIES.filter((s) => s >= ssCapNum);
 let k401Limit: string | null = null;
 try {
   k401Limit = fig("usFact('k401Limit') | usd");
-} catch {
-  k401Limit = null;
+} catch (e) {
+  // Only the "IRS has not published this year's limit yet" case is expected; anything else is a bug.
+  if (!(e instanceof FigureError && /has not published/.test(e.message))) throw e;
 }
 
-const title = `US Take-Home Pay by Salary: $40k-$250k (${yearList})`;
-const description = `US take-home pay for salaries from $40,000 to $250,000: federal tax, Social Security, Medicare, and net pay a year and a month for ${yearList}.`;
+const lo = first(US_SALARIES);
+const hi = last(US_SALARIES);
+const rangeShort = kRange(lo, hi, '$');
+const rangeLoose = `${moneyLabel(lo, '$')} to ${moneyLabel(hi, '$')}`;
+const title = `US Take-Home Pay: ${rangeShort}, ${yearList}`;
+const description = `US take-home pay for salaries from ${rangeLoose}: federal tax, Social Security, Medicare, and net pay a year and a month for ${yearList}.`;
 
 const articleSchema = buildArticleSchema({
   headline: title,
@@ -153,11 +166,11 @@ const columns = [
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
-        US take-home pay by salary: <span class="tabular-nums">$40k&ndash;$250k</span> <span class="text-neutral-500 font-normal">({yearList})</span>
+        US take-home pay by salary: <span class="tabular-nums">{kRange(lo, hi, '$', 'en')}</span> <span class="text-neutral-500 font-normal">({yearList})</span>
       </h1>
       <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
       <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">
-        What every salary from $40,000 to $250,000 is worth after federal income tax, Social
+        What every salary from {moneyLabel(lo, '$')} to {moneyLabel(hi, '$')} is worth after federal income tax, Social
         Security and Medicare, as a yearly and a monthly figure. Single filer, standard deduction,
         no state income tax, checked against IRS figures on {lastChecked}.
       </p>
@@ -206,7 +219,7 @@ const columns = [
     {/* The other tax year(s) */}
     {otherYears.map((year) => {
       const compareTo = mainYear;
-      const rows = yearRows(year, `y${year}-`, compareTo);
+      const rows = yearRows(year, compareTo);
       const yearHeadline = pay(US_HEADLINE_SALARY, year);
       const diffHeadline = yearHeadline.takeHome - headline.takeHome;
       return (

@@ -20,6 +20,8 @@ import CompoundInterestCalc from '@components/tools/CompoundInterestCalc.tsx';
 import { buildArticleSchema } from '@lib/seo';
 import {
   num,
+  first,
+  last,
   INVEST_RATE,
   INVEST_YEARS,
   INVEST_MONTHLY_AMOUNTS,
@@ -103,7 +105,10 @@ const INFLATION = 3;
 const lumpToday = num(`inflationAdjust(${lump100k[lastCol]}, ${INFLATION}, ${lastYears}, mode=value)`);
 
 const title = `Investment Growth by Amount at ${rateText} a Year`;
-const description = `What regular monthly investing from $100 to $2,000, and lump sums from $5,000 to $500,000, grow to over 10, 20 and 30 years at ${rateText} a year compounded monthly.`;
+const monthlyRange = `${usd(first(INVEST_MONTHLY_AMOUNTS))} to ${usd(last(INVEST_MONTHLY_AMOUNTS))}`;
+const lumpRange = `${usd(first(INVEST_LUMP_SUMS))} to ${usd(last(INVEST_LUMP_SUMS))}`;
+const yearsText = `${INVEST_YEARS.slice(0, -1).join(', ')} and ${lastYears}`;
+const description = `What regular monthly investing from ${monthlyRange}, and lump sums from ${lumpRange}, grow to over ${yearsText} years at ${rateText} a year compounded monthly.`;
 
 const articleSchema = buildArticleSchema({
   headline: title,

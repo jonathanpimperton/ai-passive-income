@@ -29,12 +29,12 @@ The "10% average" is just that, an average. Individual 10-year periods vary a gr
 **Best 10-year periods:**
 - 1949 to 1958: +20.1% a year ($10,000 became $62,482)
 - 1950 to 1959: +19.5% a year ($59,186)
-- 1989 to 1998: +19.1% a year ($57,164)
+- 1989 to 1998: +19.0% a year ($57,164)
 
 **Worst 10-year periods:**
 - 1929 to 1938: -1.7% a year ($10,000 became $8,450)
 - 1999 to 2008: -1.4% a year ($8,721)
-- 2000 to 2009: -0.9% a year ($9,086)
+- 2000 to 2009: -1.0% a year ($9,086)
 - 1930 to 1939: -0.9% a year ($9,113)
 
 Only 5 of the 89 windows lost money in nominal terms: the ones starting in 1928, 1929 and 1930, and the ones starting in 1999 and 2000. The median window returned 11.0% a year, and 46 of the 89 returned 10% or more.

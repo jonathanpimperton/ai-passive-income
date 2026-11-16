@@ -80,21 +80,43 @@ const HUBS: HubCase[] = [
   { name: 'investment growth', path: '/scenarios/investment-growth/', rowId: '500-per-month', cell: 2, tolerance: 1 },
 ];
 
+/** Where a visitor might be: region detection picks GBP or EUR from these on the calculators. */
+const VISITORS = [
+  { where: 'US', timezoneId: 'America/New_York', locale: 'en-US' },
+  { where: 'UK', timezoneId: 'Europe/London', locale: 'en-GB' },
+  { where: 'Germany', timezoneId: 'Europe/Berlin', locale: 'de-DE' },
+];
+
 for (const hub of HUBS) {
-  test(`${hub.name} hub: the embedded calculator shows the table's default row`, async ({ browser }) => {
-    const ctx = await browser.newContext({ timezoneId: 'America/New_York', locale: 'en-US' });
-    await prepare(ctx);
-    const page = await ctx.newPage();
-    await page.goto(hub.path);
-    const row = page.locator(`tr[id="${hub.rowId}"]`).first();
-    const tableFigure = (await row.locator('td').nth(hub.cell).innerText()).trim();
-    await page.locator('#calculator').scrollIntoViewIfNeeded();
-    await hydrated(page);
-    const calculatorFigure = await headline(page);
-    const gap = Math.abs(Number(digits(calculatorFigure)) - Number(digits(tableFigure)));
-    expect(gap, `calculator ${calculatorFigure} vs table ${tableFigure}`).toBeLessThanOrEqual(hub.tolerance ?? 0);
-    await ctx.close();
-  });
+  // The take-home hubs lock their calculator's currency; the mortgage and investment embeds follow
+  // the visitor's region, so check them from the UK and Germany too (same digits, rate and term kept).
+  const visitors = hub.cell === 0 && hub.name.includes('take-home') ? VISITORS.slice(0, 1) : VISITORS;
+  for (const v of visitors) {
+    test(`${hub.name} hub: the embedded calculator shows the table's default row (${v.where})`, async ({ browser }) => {
+      const ctx = await browser.newContext({ timezoneId: v.timezoneId, locale: v.locale });
+      await prepare(ctx);
+      const page = await ctx.newPage();
+      await page.goto(hub.path);
+      const row = page.locator(`tr[id="${hub.rowId}"]`).first();
+      const cells = row.locator('td');
+      await page.locator('#calculator').scrollIntoViewIfNeeded();
+      await hydrated(page);
+      const settled = await headline(page);
+      // The take-home calculators show a month figure and a year figure in one headline.
+      const figures = await page.locator('[data-headline-result] p.result-number').allInnerTexts();
+      const check = (calculator: string, table: string, label: string) => {
+        const gap = Math.abs(Number(digits(calculator)) - Number(digits(table)));
+        expect(gap, `${label}: calculator ${calculator} vs table ${table}`).toBeLessThanOrEqual(hub.tolerance ?? 0);
+      };
+      if (figures.length === 2) {
+        check(figures[1], (await cells.nth(0).innerText()).trim(), 'a year');
+        check(figures[0], (await cells.nth(1).innerText()).trim(), 'a month');
+      } else {
+        check(settled, (await cells.nth(hub.cell).innerText()).trim(), 'headline');
+      }
+      await ctx.close();
+    });
+  }
 
   test(`${hub.name} hub: tables have captions and row headers`, async ({ page, context }) => {
     await prepare(context);
@@ -213,6 +235,35 @@ for (const theme of ['light', 'dark'] as const) {
       await ctx.close();
     });
   }
+}
+
+for (const year of [2026, 2027]) {
+  test(`US hub: the stable anchor #y${year}-100k lands on that year's row, labelled and highlighted`, async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, timezoneId: 'America/New_York', locale: 'en-US' });
+    await prepare(ctx);
+    const page = await ctx.newPage();
+    await page.goto(`/scenarios/us-take-home-pay/#y${year}-100k`);
+    const th = page.locator(`th[id="y${year}-100k"]`);
+    await expect(th).toBeVisible();
+    const state = await page.evaluate((id) => {
+      const target = document.getElementById(id)!;
+      const row = target.closest('tr')!;
+      const prev = row.previousElementSibling as HTMLElement;
+      const other = row.nextElementSibling!.nextElementSibling!.querySelector('td')!;
+      return {
+        labelsShown: prev.classList.contains('hub-labels') && getComputedStyle(prev).display === 'table-row',
+        highlighted: getComputedStyle(row.querySelector('td')!).backgroundColor !== getComputedStyle(other).backgroundColor,
+        top: row.getBoundingClientRect().top,
+        // the year in the table caption is the year in the anchor
+        caption: row.closest('table')!.querySelector('caption')!.textContent ?? '',
+      };
+    }, `y${year}-100k`);
+    expect(state.labelsShown).toBe(true);
+    expect(state.highlighted).toBe(true);
+    expect(state.top).toBeGreaterThan(60);
+    expect(state.caption).toContain(String(year));
+    await ctx.close();
+  });
 }
 
 test('US hub: the Social Security sentence matches the table', async ({ page, context }) => {

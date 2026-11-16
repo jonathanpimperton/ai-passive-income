@@ -41,7 +41,7 @@ dateModified: "2026-11-15"
 
 Student loan repayments in the UK are not like a standard debt where you choose how much to pay. The rules are fixed:
 
-- **Threshold:** You only repay when earning above {{ ukFact('plan2Threshold') | gbp }} per year ({{ taxYear('uk') }} rate)
+- **Threshold:** You only repay when earning above {{ ukFact('plan2Threshold') | gbp }} per year ({{ taxYear('uk') }} rate). The government will hold the Plan 2 threshold at its 2026-27 level for three years from April 2027 ([Budget 2025 document](https://www.gov.uk/government/publications/budget-2025-document/budget-2025-html))
 - **Rate:** {{ ukFact('studentLoanRate') | pct }} of everything above the threshold
 - **Collection:** Deducted automatically through PAYE, like tax
 - **Write-off:** Any remaining balance is wiped 30 years after the April you were first due to repay (per [GOV.UK](https://www.gov.uk/repaying-your-student-loan/when-your-student-loan-gets-written-off-or-cancelled))

@@ -22,6 +22,10 @@ import {
   fig,
   rec,
   kAnchor,
+  kRange,
+  moneyLabel,
+  first,
+  last,
   UK_SALARIES,
   UK_HEADLINE_SALARY,
   UK_ROW_PAGES,
@@ -87,8 +91,12 @@ const loanRate = fig("ukFact('studentLoanRate') | pct");
 const plan2From = fig("ukFact('plan2Threshold') | gbp");
 const plan5From = fig("ukFact('plan5Threshold') | gbp");
 
-const title = `UK Take-Home Pay by Salary: £20k-£150k (${taxYear})`;
-const description = `UK take-home pay for every salary from £20,000 to £150,000: tax, National Insurance, and net pay a year and a month for ${taxYear}.`;
+const lo = first(UK_SALARIES);
+const hi = last(UK_SALARIES);
+const rangeShort = kRange(lo, hi, '£');
+const rangeLoose = `${moneyLabel(lo, '£', 'en-GB')} to ${moneyLabel(hi, '£', 'en-GB')}`;
+const title = `UK Take-Home Pay by Salary: ${rangeShort} (${taxYear})`;
+const description = `UK take-home pay for every salary from ${rangeLoose}: tax, National Insurance, and net pay a year and a month for ${taxYear}.`;
 
 const articleSchema = buildArticleSchema({
   headline: title,
@@ -126,13 +134,13 @@ const deepLinkClass = 'text-primary-600 hover:text-primary-700 font-medium under
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
-        UK take-home pay by salary: <span class="tabular-nums">&pound;20k&ndash;&pound;150k</span> <span class="text-neutral-500 font-normal">({taxYear})</span>
+        UK take-home pay by salary: <span class="tabular-nums">{kRange(lo, hi, '£', 'en')}</span> <span class="text-neutral-500 font-normal">({taxYear})</span>
       </h1>
       <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
       <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">
-        What every salary from &pound;20,000 to &pound;150,000 is worth after income tax and
+        What every salary from {moneyLabel(lo, '£', 'en-GB')} to {moneyLabel(hi, '£', 'en-GB')} is worth after income tax and
         National Insurance, as a yearly and a monthly figure. Standard tax code, England, Wales
-        and Northern Ireland rates, checked against HMRC figures on {lastChecked}.
+        and Northern Ireland rates. The rates data was last checked on {lastChecked}.
       </p>
 
       {/* The answer: both figures, same size and weight */}
@@ -267,7 +275,7 @@ const deepLinkClass = 'text-primary-600 hover:text-primary-700 font-medium under
         </li>
         <li>
           <a href="/scenarios/60-percent-tax-trap-uk/" class={deepLinkClass}>The 60% tax trap</a>
-          <span class="text-neutral-600"> — what a pension contribution does between &pound;100,000 and &pound;125,140</span>
+          <span class="text-neutral-600"> — what a pension contribution does between &pound;100,000 and {taperEnd}</span>
         </li>
         <li>
           <a href="/scenarios/pay-rise-shock-uk/" class={deepLinkClass}>A pay rise, after tax</a>

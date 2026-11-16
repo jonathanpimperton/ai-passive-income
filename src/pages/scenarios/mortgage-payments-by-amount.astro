@@ -22,6 +22,9 @@ import {
   fig,
   num,
   kAnchor,
+  moneyLabel,
+  first,
+  last,
   MORTGAGE_AMOUNTS,
   MORTGAGE_RATES,
   MORTGAGE_TERM_YEARS,
@@ -117,8 +120,10 @@ const interestFallPct = ((interest30 - interest15) / interest30) * 100;
 const ukPay5 = payment(300000, marketUk5, 25);
 const ukPay2 = payment(300000, marketUk2, 25);
 
-const title = `Mortgage Payments by Amount: $150,000 to $750,000`;
-const description = `Monthly payments on $150,000 to $750,000 mortgages at the latest ${marketLabel} average and at ${rateRange}, over ${term} years, plus total interest and a UK guide.`;
+const amountLo = moneyLabel(first(MORTGAGE_AMOUNTS), '$');
+const amountHi = moneyLabel(last(MORTGAGE_AMOUNTS), '$');
+const title = `Mortgage Payments by Amount: ${amountLo} to ${amountHi}`;
+const description = `Monthly payments on ${amountLo} to ${amountHi} mortgages at the latest ${marketLabel} average and at ${rateRange}, over ${term} years, plus total interest and a UK guide.`;
 
 const articleSchema = buildArticleSchema({
   headline: title,
@@ -150,11 +155,11 @@ const deepLinkClass = 'text-primary-600 hover:text-primary-700 font-medium under
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 tracking-[-0.02em]">
-        Mortgage payments by amount: <span class="text-neutral-500 font-normal tabular-nums">$150,000 to $750,000</span>
+        Mortgage payments by amount: <span class="text-neutral-500 font-normal tabular-nums">{amountLo} to {amountHi}</span>
       </h1>
       <Byline datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED} />
       <p class="mt-4 text-lg text-neutral-600 max-w-[720px] leading-relaxed">
-        The monthly payment on every common loan amount from $150,000 to $750,000, at the latest
+        The monthly payment on every common loan amount from {amountLo} to {amountHi}, at the latest
         weekly average rate ({marketLabel}, {marketSource}) and at fixed rates from {rateRange}.
         30-year term, principal and interest. The amortization math is currency-agnostic: a
         &pound;300,000 loan at the same rate and term costs the same figure in pounds.
@@ -297,11 +302,16 @@ const deepLinkClass = 'text-primary-600 hover:text-primary-700 font-medium under
     <section class="mt-14" id="calculator">
       <h2 class="text-2xl font-bold text-neutral-900 tracking-[-0.02em] mb-2">Price your own loan</h2>
       <p class="text-neutral-600 leading-relaxed mb-6 max-w-[640px]">
-        The calculator below starts on a {usd(headlineAmount)} loan with no down payment at {marketLabel},
-        so its principal-and-interest figure matches the average-rate column. Add a down payment,
-        property tax, homeowners insurance, PMI and extra monthly payments.
+        The calculator below starts on a {usd(headlineAmount)} loan with no down payment at {marketLabel}
+        over {term} years, so its principal-and-interest figure matches the average-rate column. Add a
+        down payment, property tax, homeowners insurance, PMI and extra monthly payments. If your
+        currency is set to pounds or euros, it shows the same digits in that currency, with the rate and
+        term kept as set here.
       </p>
-      <MortgagePaymentCalc client:load defaults={{ homePrice: headlineAmount, downPaymentPercent: 0 }} />
+      <MortgagePaymentCalc
+        client:load
+        defaults={{ homePrice: headlineAmount, downPaymentPercent: 0, interestRate: marketRate, loanTerm: term }}
+      />
     </section>
 
     {/* Deep dives */}

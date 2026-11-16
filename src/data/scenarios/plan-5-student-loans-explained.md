@@ -14,7 +14,7 @@ datePublished: "2026-07-07"
 dateModified: "2026-11-15"
 faq:
   - question: "What is the Plan 5 student loan threshold?"
-    answer: "{{ ukFact('plan5Threshold') | gbp }} a year for {{ taxYear('uk') }}. You repay {{ ukFact('studentLoanRate') | pct }} of everything you earn above it, deducted automatically through PAYE. Below {{ ukFact('plan5Threshold') | gbp }}, you repay nothing."
+    answer: "{{ ukFact('plan5Threshold') | gbp }} a year for {{ taxYear('uk') }}. You repay {{ ukFact('studentLoanRate') | pct }} of everything you earn above it, deducted automatically through PAYE. Below {{ ukFact('plan5Threshold') | gbp }}, you repay nothing. The Plan 5 threshold is £25,000 up to and including the 2026-27 financial year and then rises each year with RPI (DfE student loan forecasts for England, published 9 July 2026)."
   - question: "When do Plan 5 repayments start?"
     answer: "The April after you leave your course, per GOV.UK. Plan 5 covers students in England who started courses from August 2023, so someone who began a three-year degree in autumn 2023 and finished in summer 2026 makes their first repayment in April 2027. On a shorter course the first repayment comes earlier."
   - question: "Which students are on Plan 5?"
@@ -62,6 +62,7 @@ Repayments behave like a tax, not like a normal loan:
 Plan 5 is a deliberately different bargain from Plan 2 (England and Wales courses starting September 2012 to July 2023 for England, and from September 2012 onwards for Wales):
 
 - **You pay from a lower salary** — {{ ukFact('plan5Threshold') | gbp }} vs {{ ukFact('plan2Threshold') | gbp }} — so monthly deductions start earlier in your career and are larger at every income level.
+- **The gap narrows from April 2027** — the government will hold the Plan 2 threshold at its 2026-27 level for three years from April 2027 ([Budget 2025 document](https://www.gov.uk/government/publications/budget-2025-document/budget-2025-html)), while the Plan 5 threshold, fixed at £25,000 up to and including 2026-27, then rises each year with RPI ([DfE student loan forecasts for England](https://explore-education-statistics.service.gov.uk/find-statistics/student-loan-forecasts-for-england), published 9 July 2026). Both figures on this page are the {{ taxYear('uk') }} thresholds.
 - **You pay for longer** — the write-off moved from 30 years to 40, stretching repayments across most of a working life.
 - **But interest is gentler** — Plan 5 charges RPI only, with no added percentage on top, unlike Plan 2's income-linked rate. On GOV.UK on 15 November 2026 Plan 5 interest was 4.1%, while Plan 2 interest after leaving the course ran from 4.1% to 6% depending on income. Balances still grow with inflation, but they no longer compound ahead of it.
 
