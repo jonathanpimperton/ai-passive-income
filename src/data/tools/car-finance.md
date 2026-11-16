@@ -2,7 +2,7 @@
 name: "Car Finance Comparison Calculator"
 slug: "car-finance"
 category: "debt-and-loans"
-description: "Car finance calculator comparing PCP, HP, personal loan, and cash side by side — monthly payments, total cost, and which is cheapest."
+description: "Car finance calculator comparing PCP, HP, a personal loan and cash: monthly payment, total paid, the true cost with forgone returns, and which is cheapest."
 keywords:
   - "car finance calculator"
   - "PCP vs HP calculator"
@@ -18,24 +18,27 @@ affiliatePrograms:
 relatedTools:
   - "loan-amortization"
   - "debt-payoff"
+  - "savings-goal"
   - "roi"
   - "credit-card-payoff"
   - "mortgage-payment"
 faq:
   - question: "What is the cheapest way to buy a car?"
-    answer: "Cash is always cheapest in absolute terms — you pay zero interest. But it requires having the full purchase price available and means tying up capital that could earn returns elsewhere. Among finance options, a personal loan from a bank or credit union usually has the lowest APR (5–7% for good credit in 2026), making it the cheapest way to borrow. PCP has the lowest monthly payments but the highest total cost if you exercise the balloon to keep the car. HP sits between the two. The right choice depends on whether you prioritise low monthly payments (PCP), lowest total cost (personal loan), or no debt at all (cash)."
+    answer: "Cash has the lowest total paid, because there is no interest, but it ties up money that could earn a return elsewhere. The calculator therefore ranks the options by true cost: everything paid, plus what the money would have earned if you had spent it later. On a £25,000 car with a £2,500 deposit over 48 months, at the calculator's starting rates, total paid is {{ carFinance(25000, 2500, 48).loanTotalPaid | gbp }} for a personal loan, {{ carFinance(25000, 2500, 48).hpTotalPaid | gbp }} for HP and {{ carFinance(25000, 2500, 48).pcpTotalPaid | gbp }} for PCP if you keep the car and pay the balloon. The right option depends on what you value: the lowest monthly payment (PCP), the lowest cost of borrowing (usually a personal loan), or no debt (cash)."
   - question: "What is PCP (Personal Contract Purchase)?"
-    answer: "PCP is a UK car finance product where you finance the car's depreciation, not its full value. You pay a deposit, then monthly payments over 2–4 years, followed by a large 'balloon payment' (the Guaranteed Minimum Future Value or GMFV) if you want to keep the car. If you don't pay the balloon, you hand the car back. PCP has the lowest monthly payments of any finance option because you're only paying off part of the car's value. The trade-off: you don't own the car unless you make the final balloon payment, and you'll typically face mileage limits and condition requirements."
+    answer: "PCP finances the car's expected depreciation rather than its full price. You pay a deposit, then lower monthly payments over the term, then choose: pay a final 'balloon' (the Guaranteed Minimum Future Value, GMFV) to keep the car, hand it back, or use any equity towards a new deal. Interest is charged on the whole amount financed for the whole term, including the part that becomes the balloon. You do not own the car unless you pay the balloon, and mileage and condition limits apply. On the £25,000 example above, PCP costs {{ carFinance(25000, 2500, 48).pcpMonthly | gbp }} a month against {{ carFinance(25000, 2500, 48).hpMonthly | gbp }} for HP."
   - question: "Is PCP or HP better value?"
-    answer: "HP is almost always cheaper in total cost because you pay off the entire car value and avoid the balloon payment (which accrues interest throughout the PCP term). HP monthly payments are higher because you're paying down more principal each month. PCP is better if you want low monthly payments and plan to change cars every 3–4 years (returning the car instead of paying the balloon). HP is better if you want to own the car outright at the end for the lowest total price. Both charge interest on the full finance amount — the difference is that PCP leaves a large balance (the balloon) still owing at the end."
+    answer: "For the same APR, HP costs less in total if you want to own the car, because it repays the full amount and has no balloon accruing interest. In the £25,000 example, keeping the car costs {{ carFinance(25000, 2500, 48).pcpTotalPaid | gbp }} on PCP against {{ carFinance(25000, 2500, 48).hpTotalPaid | gbp }} on HP, {{ carFinance(25000, 2500, 48).pcpTotalPaid - carFinance(25000, 2500, 48).hpTotalPaid | gbp }} more. PCP is better value if you plan to hand the car back at the end and want the lowest monthly payment, as you pay for the depreciation, not the whole car."
   - question: "Why is a personal loan often cheaper than dealer finance?"
-    answer: "Banks and credit unions compete on rate. In the UK, best-buy personal loans are around 5.6% APR — often 2–3% lower than PCP or HP deals. The loan is unsecured (the car isn't collateral), which means you own the car outright from day one. Dealers can offer 0% APR on new cars, but these promotional deals often come at the expense of a larger purchase price — the 'interest' is baked into the car price. Always compare the total amount payable, not just the APR. One exception: credit unions in the US sometimes offer rates below 5% for auto loans — always check before accepting dealer financing."
-  - question: "What is the balloon payment in PCP and what happens if I can't pay it?"
-    answer: "The balloon payment (GMFV) is the amount the finance company guarantees the car will be worth at the end of the PCP agreement — typically 30–50% of the original price. If you want to keep the car, you pay this amount in a lump sum or refinance it. If you can't afford it, you have three options: hand the car back (no further cost if it's in good condition within mileage limits), use any positive equity as a deposit on a new PCP, or refinance the balloon amount into a new loan. The GMFV is set conservatively by the lender, so the car's actual market value is often higher — this difference is your 'equity'."
+    answer: "Banks and credit unions compete on rate, and a loan from them is usually cheaper than a dealer's PCP or HP. At the calculator's starting rates (5.6% for a loan, 8.9% for HP) the £25,000 example costs {{ carFinance(25000, 2500, 48).loanTotalInterest | gbp }} in interest on the loan against {{ carFinance(25000, 2500, 48).hpTotalInterest | gbp }} on HP. A personal loan is also unsecured and you own the car from day one. Dealers can offer 0% finance, but the price of the car can be higher to pay for it, so compare the total amount payable and ask for the cash price. These starting rates are assumptions, not market quotes."
+  - question: "What is the balloon payment in PCP and what if I cannot pay it?"
+    answer: "The balloon is the amount the lender guarantees the car will be worth at the end of the agreement. The calculator starts at 40% of the price: {{ carFinance(25000, 2500, 48).balloon | gbp }} on a £25,000 car. If you cannot or do not want to pay it, you can usually hand the car back, if it is within the mileage and condition limits, or use any equity as a deposit on a new deal, or refinance the balloon. The guarantee is set cautiously, so the car is often worth more than the balloon, and the difference is your equity."
   - question: "Should I buy a car with cash or finance it?"
-    answer: "If you have the cash and it won't deplete your emergency fund, buying outright saves you all interest costs. But there's an opportunity cost: money spent on a car can't earn investment returns. On a £25,000 car, the opportunity cost of cash at a 5% return over 4 years is roughly £5,500 — comparable to the interest on a personal loan at 5.6%. Financing keeps your capital invested but costs interest. The break-even point is when your expected investment return equals the loan APR — if you can earn more from investing than the loan costs, financing and investing the difference can make sense mathematically. In practice, most people should avoid depleting savings below 3–6 months of expenses."
-  - question: "What APR should I expect for car finance in 2026?"
-    answer: "In the UK: PCP deals range from 0% (manufacturer promotions on new cars) to 9.9% for standard deals and 15–25% for poor credit. HP is similar. Personal loans start at 5.6% for the best rates. In the US: new car loans average 6.5% for excellent credit (750+), 8–11% for good credit, and 13%+ for fair credit. Used car rates are typically 2–4% higher. Credit union auto loans often beat bank and dealer rates by 1–2%. Always get pre-approved from your bank or credit union before visiting a dealer — it gives you negotiating leverage."
+    answer: "With cash you pay no interest, but the money cannot earn a return. The calculator charges that as an opportunity cost, with a 4.5% return as its starting assumption. On the £25,000 example, cash then has a true cost of {{ carFinance(25000, 2500, 48).cashTrueCost | gbp }} against {{ carFinance(25000, 2500, 48).loanTrueCost | gbp }} for the personal loan, so cash is cheapest. If you could earn 8% instead, the loan's true cost is {{ carFinance(25000, 2500, 48, invest=8).loanTrueCost | gbp }} against {{ carFinance(25000, 2500, 48, invest=8).cashTrueCost | gbp }} for cash, so financing and investing wins. If you could earn only 2%, cash is cheaper still. Do not spend your emergency fund on the car either way."
+  - question: "What APR should I use?"
+    answer: "Use the rates you have been quoted. The calculator starts from PCP 7.9% with a 40% balloon, HP 8.9%, a personal loan 5.6% and a 4.5% return on money you keep; these are modelling assumptions and not market averages. Rates depend on your credit record, the term, the lender and whether the car is new or used. For US averages by credit tier, see Bankrate; for UK, compare personal loans and dealer finance through a comparison site and get a loan quote before you visit a dealer, because it gives you a rate to negotiate against."
+  - question: "Does the calculator use the same APR convention everywhere?"
+    answer: "No. A UK or euro APR is an effective annual rate, so the calculator converts it to the monthly rate that compounds to that annual figure. A US auto loan quotes a nominal APR, charged at one twelfth a month. The calculator switches the rule with the currency you choose, so enter the APR exactly as it appears on your quote."
 workedExamples:
   - title: "£25,000 car with £2,500 deposit over 4 years"
     inputs:
@@ -46,7 +49,7 @@ workedExamples:
       pcpBalloonPct: 40
       hpApr: 8.9
       loanApr: 5.6
-    description: "PCP at 7.9% with a 40% balloon (£10,000): monthly payment ~£370, total paid ~£30,280, interest ~£5,280. HP at 8.9%: monthly ~£558, total ~£29,295. Personal loan at 5.6%: monthly ~£523, total ~£27,620. Cash: £25,000, no interest but ~£4,920 opportunity cost (if invested at 4.5% over 4 years). The calculator's 'true cost' (total paid + opportunity cost) shows cash (~£29,920) still edges ahead of the personal loan (~£30,470) at these rates — but if your investment returns exceed the loan APR, financing and investing the difference wins."
+    description: "PCP at 7.9% with a 40% balloon of {{ carFinance(25000, 2500, 48).balloon | gbp }}: {{ carFinance(25000, 2500, 48).pcpMonthly | gbp }} a month, {{ carFinance(25000, 2500, 48).pcpTotalPaid | gbp }} paid in total with the balloon, {{ carFinance(25000, 2500, 48).pcpTotalInterest | gbp }} of interest. HP at 8.9%: {{ carFinance(25000, 2500, 48).hpMonthly | gbp }} a month, {{ carFinance(25000, 2500, 48).hpTotalPaid | gbp }} in total. Personal loan at 5.6%: {{ carFinance(25000, 2500, 48).loanMonthly | gbp }} a month, {{ carFinance(25000, 2500, 48).loanTotalPaid | gbp }} in total. Cash: {{ carFinance(25000, 2500, 48).cashTotalPaid | gbp }} with {{ carFinance(25000, 2500, 48).cashOpportunityCost | gbp }} of forgone return at 4.5%. On true cost, cash ({{ carFinance(25000, 2500, 48).cashTrueCost | gbp }}) edges the personal loan ({{ carFinance(25000, 2500, 48).loanTrueCost | gbp }}), with HP at {{ carFinance(25000, 2500, 48).hpTrueCost | gbp }} and PCP at {{ carFinance(25000, 2500, 48).pcpTrueCost | gbp }}. If you could invest at 8%, the loan wins."
   - title: "£15,000 used car, short 2-year term"
     inputs:
       carPrice: 15000
@@ -55,76 +58,74 @@ workedExamples:
       pcpApr: 9.9
       hpApr: 8.9
       loanApr: 6.5
-    description: "On a shorter term, the total interest is lower across all options. Personal loan at 6.5%: monthly ~£535, total ~£15,840, interest ~£840. HP at 8.9%: monthly ~£548, total ~£16,150, interest ~£1,150. PCP at 9.9% with 40% balloon (£6,000): monthly ~£325, total ~£16,810 (including balloon), interest ~£1,810. Cash: £15,000 plus ~£1,380 opportunity cost at 4.5%. The personal loan is cheapest in both total paid and true cost, and on a 2-year term the monthly difference between HP and personal loan is only ~£13."
-  - title: "$35,000 new car in the US with 0% dealer deal"
+    description: "On a short term the interest is lower across the board. Personal loan at 6.5%: {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).loanMonthly | gbp }} a month, {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).loanTotalPaid | gbp }} in total, {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).loanTotalInterest | gbp }} of interest. HP at 8.9%: {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).hpMonthly | gbp }} a month, {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).hpTotalPaid | gbp }} in total, {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).hpTotalInterest | gbp }} of interest. PCP at 9.9% with a 40% balloon ({{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).balloon | gbp }}): {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).pcpMonthly | gbp }} a month, {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).pcpTotalPaid | gbp }} including the balloon. The personal loan has the lowest total paid, and the monthly gap to HP is only {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).hpMonthly - carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).loanMonthly | gbp }}. Paying cash adds {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).cashOpportunityCost | gbp }} of forgone return at 4.5%, so on true cost cash ({{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).cashTrueCost | gbp }}) is just ahead of the loan ({{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).loanTrueCost | gbp }})."
+  - title: "$35,000 new car in the US with a 0% dealer deal"
     inputs:
       carPrice: 35000
       deposit: 5000
       termMonths: 60
       hpApr: 0
       loanApr: 6.8
-    description: "A 0% dealer HP deal means monthly payments of $500 with zero interest — total paid equals the car price ($35,000). The personal loan at 6.8% over 60 months: $594/month, total $38,640, interest $3,640. In this case, the 0% deal beats the personal loan by $3,640. However, dealers sometimes offer a choice between 0% financing or a cash rebate — if the rebate exceeds the interest on a bank loan, taking the rebate and financing elsewhere is better."
-lastUpdated: "2026-03-10"
+    description: "A 0% dealer deal on a $35,000 car with $5,000 down finances {{ carFinance(35000, 5000, 60, convention=nominal, hpApr=0, loanApr=6.8).financeAmount | usd }} at {{ carFinance(35000, 5000, 60, convention=nominal, hpApr=0, loanApr=6.8).hpMonthly | usd }} a month for 60 months, with no interest: {{ carFinance(35000, 5000, 60, convention=nominal, hpApr=0, loanApr=6.8).hpTotalPaid | usd }} paid in total. The same amount from a bank at 6.8% costs {{ carFinance(35000, 5000, 60, convention=nominal, hpApr=0, loanApr=6.8).loanMonthly | usd }} a month and {{ carFinance(35000, 5000, 60, convention=nominal, hpApr=0, loanApr=6.8).loanTotalPaid | usd }} in total, which is {{ carFinance(35000, 5000, 60, convention=nominal, hpApr=0, loanApr=6.8).loanTotalInterest | usd }} of interest. The 0% deal is the cheapest option on true cost too. Dealers sometimes offer a choice between 0% and a cash rebate: if the rebate is larger than the interest you would pay a bank, take the rebate and borrow elsewhere."
+lastUpdated: "2026-11-15"
 dataSources:
-  - name: "MoneySavingExpert — PCP Deals Explained"
+  - name: "MoneySavingExpert: PCP deals explained"
     url: "https://www.moneysavingexpert.com/loans/personal-contract-purchase/"
-  - name: "Bankrate — Average Auto Loan Rates 2026"
+  - name: "Bankrate: average auto loan rates"
     url: "https://www.bankrate.com/loans/auto-loans/rates/"
-  - name: "FCA — Motor Finance Review"
-    url: "https://www.fca.org.uk/data/motor-finance-data"
-calculationMethod: "Standard loan amortization (M = P × r(1+r)^n / ((1+r)^n − 1)) for HP and personal loans. PCP uses modified formula with balloon: M = r × (PV − FV/(1+r)^n) / (1 − (1+r)^−n). True Cost = Total Paid + Opportunity Cost, where opportunity cost is the investment returns forgone by spending money earlier (upfront deposit and each monthly payment lose time to compound). Cash purchase has the highest opportunity cost because the full price is spent on day one."
+calculationMethod: "Standard amortization for HP and personal loans. PCP uses the same formula with a balloon: M = r x (PV - FV/(1+r)^n) / (1 - (1+r)^-n). True cost is total paid plus the return forgone by spending the money earlier, from the deposit and each payment. The APR convention follows the currency: effective for GBP and EUR, nominal (APR/12) for USD."
 ---
 
-## Which Car Finance Option Is Right for You?
+## Four ways to pay for the same car
 
-Choosing how to pay for a car is one of the biggest financial decisions most people make every few years. The difference between the cheapest and most expensive finance option on a £25,000 car can easily exceed £3,000 in interest — money that stays in your pocket with the right choice.
+How you pay for a car is one of the larger money decisions most people make every few years. On a £25,000 car with a £2,500 deposit over four years, total paid ranges from {{ carFinance(25000, 2500, 48).cashTotalPaid | gbp }} in cash to {{ carFinance(25000, 2500, 48).pcpTotalPaid | gbp }} on PCP when you keep the car.
 
-This calculator compares four ways to pay:
+The calculator compares four ways to pay:
 
-| Method | You Own the Car? | Monthly Payment | Total Cost | Best For |
+| Method | You own the car? | Monthly payment | Total cost | Best for |
 |---|---|---|---|---|
-| **PCP** | Only if you pay the balloon | Lowest | Highest (if keeping) | Wanting a new car every 3–4 years |
-| **HP** | Yes, at the end | Medium | Medium | Wanting to own with fixed payments |
-| **Personal Loan** | Yes, from day one | Medium | Usually lowest | Best rates, full ownership immediately |
-| **Cash** | Yes, immediately | None | Car price (no interest) | Avoiding all borrowing costs |
+| **PCP** | Only if you pay the balloon | Lowest | Highest if you keep the car | Changing the car every few years |
+| **HP** | Yes, at the end | Medium | Medium | Owning with fixed payments |
+| **Personal loan** | Yes, from day one | Medium | Often lowest of the borrowing options | Lower rates and full ownership |
+| **Cash** | Yes, immediately | None | The car price, no interest | Avoiding borrowing costs |
 
-## How PCP Works
+## How PCP works
 
-PCP (Personal Contract Purchase) is the most popular car finance in the UK — over 80% of new cars are financed this way. Here's the structure:
+PCP is the most common way to finance a new car in the UK. The structure:
 
-1. **Deposit** — typically 5–15% of the car price
-2. **Monthly payments** — cover the car's depreciation (not the full value), so they're low
-3. **Balloon payment (GMFV)** — a large final payment (30–50% of the car price) if you want to keep the car
+1. **Deposit.** You pay a deposit up front.
+2. **Monthly payments.** They cover the car's expected depreciation, not its full price, so they are low.
+3. **Balloon (GMFV).** A large final payment if you want to keep the car.
 
-At the end of the term, you choose: pay the balloon and keep the car, hand it back, or use any equity as a deposit on a new deal.
+At the end you choose: pay the balloon and keep the car, hand it back, or use any equity as a deposit on a new deal.
 
-> **Important:** PCP charges interest on the *full finance amount* throughout the term, not just the depreciation portion. That's why PCP total cost is often the highest despite having the lowest monthly payment.
+> **Important:** PCP charges interest on the whole amount financed for the whole term, not only on the depreciation. That is why the PCP total is often the highest even though the monthly payment is the lowest.
 
-## The Hidden Cost of Low Monthly Payments
+## What a low monthly payment hides
 
-PCP's monthly payment is attractive because you're only paying off part of the car. But the interest is calculated on the whole amount you borrowed:
+PCP's payment looks small because you pay off only part of the car. The interest is still worked out on everything you borrowed:
 
-- **Finance amount:** £22,500 (after £2,500 deposit on a £25,000 car)
-- **Interest charged on:** the full £22,500 for the entire term
-- **Principal repaid:** only £12,500 (the depreciation portion)
-- **Still owed at end:** £10,000 balloon — on which you've been paying interest all along
+- **Finance amount:** {{ carFinance(25000, 2500, 48).financeAmount | gbp }} (a {{ 25000 | gbp }} car less a {{ 2500 | gbp }} deposit)
+- **Interest accrues on:** all {{ carFinance(25000, 2500, 48).financeAmount | gbp }} for the whole term
+- **Repaid in monthly payments:** {{ carFinance(25000, 2500, 48).financeAmount - carFinance(25000, 2500, 48).balloon | gbp }}, which is the depreciation part
+- **Still owed at the end:** the {{ carFinance(25000, 2500, 48).balloon | gbp }} balloon, which has been accruing interest all along
 
-This is why the total cost of PCP (keeping the car) is almost always higher than HP or a personal loan for the same car.
+That is why keeping the car costs more on PCP ({{ carFinance(25000, 2500, 48).pcpTotalPaid | gbp }}) than on HP ({{ carFinance(25000, 2500, 48).hpTotalPaid | gbp }}) for the same car.
 
-## When Each Option Wins
+## When each option wins
 
-**PCP wins if:** you want the newest model every 3–4 years and never intend to pay the balloon. You're effectively renting the car with an option to buy.
+**PCP** suits someone who wants a newer car every few years and never plans to pay the balloon. In effect you rent the car with an option to buy it.
 
-**HP wins if:** you want to own the car at the end with fixed monthly payments and no balloon surprise. Simple and predictable.
+**HP** suits owning the car at the end with fixed payments and no balloon.
 
-**Personal loan wins if:** you want the lowest total borrowing cost. Bank and credit union rates are usually 2–3% below PCP/HP. You own the car from day one and can sell it whenever you want.
+**A personal loan** suits the lowest cost of borrowing. You own the car from the start and can sell it whenever you like.
 
-**Cash wins if:** you have the money available without depleting your emergency fund. Zero interest is hard to beat — unless your investments earn more than the loan rate.
+**Cash** suits when you have the money without touching your emergency fund. The true-cost column shows when investing the money would have beaten the loan: at 8%, the loan on the £25,000 example costs {{ carFinance(25000, 2500, 48, invest=8).loanTrueCost | gbp }} against {{ carFinance(25000, 2500, 48, invest=8).cashTrueCost | gbp }} for cash.
 
-## Tips for Getting the Best Deal
+## Getting a better deal
 
-1. **Get pre-approved** for a personal loan or credit union auto loan before visiting the dealer. This gives you a rate to negotiate against.
-2. **Compare total amount payable**, not just monthly payment or APR. A lower monthly payment over a longer term can cost thousands more.
-3. **Negotiate the car price first**, then discuss finance. Dealers sometimes inflate the price on 0% deals to recover the interest subsidy.
-4. **Check your credit score** before applying. A few points can mean the difference between 5.6% and 8.9%.
-5. **Consider the term length** — shorter terms mean higher monthly payments but significantly less total interest.
+1. **Get a loan quote first.** A personal loan or credit union quote gives you a rate to negotiate against before you visit the dealer.
+2. **Compare the total payable**, not the monthly payment or the APR on its own. A longer term lowers the payment and can cost thousands more in interest.
+3. **Agree the car price before discussing finance.** A 0% deal can come with a higher price.
+4. **Check your credit record** before you apply. The rate you are offered depends on it.
+5. **Shorten the term if you can.** Higher payments mean much less interest: the £15,000 example over 24 months costs {{ carFinance(15000, 3000, 24, pcpApr=9.9, hpApr=8.9, loanApr=6.5).loanTotalInterest | gbp }} of loan interest.
