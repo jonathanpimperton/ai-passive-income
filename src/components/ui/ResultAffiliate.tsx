@@ -99,11 +99,9 @@ const RESULT_AFFILIATES: Record<string, ToolAffiliateConfig> = {
     cta: 'Compare auto loan rates',
     partners: [{ id: 'LendingTree', tagline: 'Compare car loan rates from multiple lenders in minutes', bestFor: 'Best for rate comparison' }],
   },
-  'stamp-duty': {
-    // UK-only page: the US lender never shows here (no UK mortgage partner yet).
-    cta: 'Compare mortgage rates for your purchase',
-    partners: [{ id: 'LendingTree', tagline: 'Compare mortgage rates from multiple lenders in minutes', bestFor: 'Best for comparing rates' }],
-  },
+  // 'stamp-duty' has no entry on purpose: it is a UK-only page and its only candidate, LendingTree, is a
+  // US-only partner, so an entry could never render. Add one when a UK mortgage partner exists (it must
+  // serve 'UK'; affiliate-data.test.ts fails a fixed-region page whose configured partners cannot render).
   'capital-gains-tax': {
     cta: 'Reduce your tax bill with tax-loss harvesting',
     partners: [

@@ -85,6 +85,20 @@ describe('fixed-region pages', () => {
     expect(visibleInline('stamp-duty', currency)).toBeNull();
   });
 
+  it('no dead inline config: every fixed-region page with an inline affiliate shows one in its own region', () => {
+    // A US-only partner configured on a UK-only page (LendingTree on stamp duty) can never render:
+    // it is dead config that reads as a live placement. Either drop the entry or add a partner for the region.
+    for (const slug of INLINE_AFFILIATE_TOOLS) {
+      const region = pageRegionFor(slug);
+      if (!region) continue;
+      expect(resolveInlineAffiliate(slug, region), `${slug} (${region}-only page) has an inline config that never renders`).not.toBeNull();
+    }
+  });
+
+  it('stamp duty has no inline config while no UK mortgage partner exists', () => {
+    expect(INLINE_AFFILIATE_TOOLS).not.toContain('stamp-duty');
+  });
+
   it('UK salary shows its UK partners to every visitor', () => {
     for (const c of CURRENCIES) {
       expect(visibleNextStep('salary-uk', c).map((p) => p.id)).toEqual(['Nutmeg', 'InvestEngine']);
