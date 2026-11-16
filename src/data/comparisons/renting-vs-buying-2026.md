@@ -45,7 +45,7 @@ faq:
   - question: "What is the price-to-rent ratio?"
     answer: "The home's price divided by a year of rent for a comparable home. A $400,000 home that rents for $2,200 a month has a ratio of {{ 400000 / (2200 * 12) | num(1) }}. The higher the ratio, the longer buying takes to break even. It is a quick screen, not a verdict: the mortgage rate and how long you will stay matter as much."
   - question: "Do mortgage rates change whether renting or buying is better?"
-    answer: "Yes, a lot. With $2,200 rent and a 7-year stay, the verdict is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).verdict }} by {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).difference | usd }} at a 5% mortgage and {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 7).verdict }} by {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 7).difference | usd }} at the {{ rate('us30') | pct(2) }} survey rate. Re-run the comparison at the rate you are actually quoted."
+    answer: "Yes, a lot. With $2,200 rent and a 7-year stay, at a 5% mortgage the buyer's net worth after 7 years is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).finalBuyerNetWorth | usd }} and the renter's is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).finalRenterNetWorth | usd }}; at the {{ rate('us30') | pct(2) }} survey rate it is {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 7).finalBuyerNetWorth | usd }} and {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 7).finalRenterNetWorth | usd }}. Re-run the comparison at the rate you are actually quoted."
   - question: "Does this include mortgage insurance?"
     answer: "No. The figures assume 20% down. With less than 20% down you usually pay private mortgage insurance until you reach 20% equity, which makes buying slightly worse than shown. The rent vs buy calculator does not model it either."
 datePublished: "2026-03-05"
@@ -63,7 +63,7 @@ sources:
 
 Freddie Mac's weekly survey put the average 30-year fixed rate at {{ rate('us30') | pct(2) }} ({{ rateSource('us30') }}), after the Federal Reserve raised its target range in September. Home prices are rising slowly: the FHFA House Price Index was up 2.4% in the year to August 2026.
 
-The old rule that buying beats renting after five years depends on rent and on the mortgage rate. Test it on the numbers below: with $2,200 of rent, the 5-year verdict is {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 5).verdict }}. A higher rate makes the mortgage payment larger, and slower price growth means the home does less of the work.
+The old rule that buying beats renting after five years depends on rent and on the mortgage rate. Test it on the numbers below: with $2,200 of rent, after 5 years the buyer's net worth is {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 5).finalBuyerNetWorth | usd }} and the renter's is {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 5).finalRenterNetWorth | usd }}. A higher rate makes the mortgage payment larger, and slower price growth means the home does less of the work.
 
 ## The true monthly cost of owning
 
@@ -118,7 +118,7 @@ Price growth matters because the buyer owns the whole home but the renter's inve
 
 ## When renting clearly wins
 
-- **You might move within about five years.** Selling costs of 6% and closing costs of 3% are lost money. In the first table above, the 3, 5 and 7-year verdicts are {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 3).verdict }}, {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 5).verdict }} and {{ rentVsBuy(400000, 20, rate('us30'), 30, 2200, 7).verdict }}.
+- **You might move within about five years.** Selling costs of 6% and closing costs of 3% are lost money. In the first table above, compare the net worth gap after 3, 5 and 7 years.
 - **The price-to-rent ratio is high.** In the break-even table, a ratio of {{ 400000 / (2000 * 12) | num(1) }} takes {{ rentVsBuy(400000, 20, rate('us30'), 30, 2000, 30).breakEvenYear | int }} years to pay off.
 - **You would drain your [emergency fund](/tools/income-and-planning/emergency-fund/) for the down payment.** Owning without reserves is dangerous, and one major repair can force you into debt.
 - **You would put down less than 20%.** Mortgage insurance and a bigger loan make buying worse than these figures.
@@ -127,7 +127,7 @@ Price growth matters because the buyer owns the whole home but the renter's inve
 
 - **You will stay past the break-even year for your own rent and price.** Use the [rent vs buy calculator](/tools/debt-and-loans/rent-vs-buy/) with your numbers; do not borrow the break-even from someone else's market.
 - **Rent is high relative to prices.** At $2,800 of rent buying breaks even in year {{ rentVsBuy(400000, 20, rate('us30'), 30, 2800, 30).breakEvenYear | int }}; a stay that long or longer is what makes buying reasonable.
-- **You can lock in a lower rate.** If you are quoted well below the survey average, re-run the table: at 5% the 7-year verdict in the table above is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).verdict }}.
+- **You can lock in a lower rate.** If you are quoted well below the survey average, re-run the table: at 5% at 5% the buyer's net worth after 7 years is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).finalBuyerNetWorth | usd }} and the renter's is {{ rentVsBuy(400000, 20, 5, 30, 2200, 7).finalRenterNetWorth | usd }}.
 - **You value stability.** No landlord can sell the property or raise the rent, which has real value even though no spreadsheet counts it.
 
 ## The investment alternative

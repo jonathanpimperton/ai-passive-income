@@ -67,11 +67,11 @@ Take £250,000 over 25 years. Compare a 5-year fix at {{ rate('uk5yr') | pct(2) 
 
 **Fixed at {{ rate('uk5yr') | pct(2) }}:** {{ loanPayment(250000, rate('uk5yr'), 25) | gbp }} a month. After 5 years you owe {{ loanBalance(250000, rate('uk5yr'), 25, 60) | gbp }}.
 
-**Tracker at {{ rate('boe') + 1 | pct(2) }} today (Bank Rate {{ rate('boe') | pct(2) }} plus 1):** {{ loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month. The fix's payment minus the tracker's is {{ loanPayment(250000, rate('uk5yr'), 25) - loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month, so a positive figure means the tracker starts cheaper.
+**Tracker at {{ rate('boe') + 1 | pct(2) }} today (Bank Rate {{ rate('boe') | pct(2) }} plus 1):** {{ loanPayment(250000, rate('boe') + 1, 25) | gbp }} a month.
 
 But if Bank Rate rises 1 point after two years and another point after four, the tracker's payment goes to {{ loanPayment(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 2, 23) | gbp }} and then {{ loanPayment(loanBalance(loanBalance(250000, rate('boe') + 1, 25, 24), rate('boe') + 2, 23, 24), rate('boe') + 3, 21) | gbp }}.
 
-**The break-even:** the tracker costs less than the fix only if Bank Rate, on average over the fixed period, stays below the fixed rate minus your margin. Here that is {{ rate('uk5yr') | pct(2) }} minus 1 point, or {{ rate('uk5yr') - 1 | pct(2) }}. Bank Rate is {{ rate('boe') | pct(2) }} now, and the break-even is {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points above that (a negative figure means below it). The fix comes out cheaper if Bank Rate averages above the break-even over the fixed period.
+**The break-even:** the tracker costs less than the fix only if Bank Rate, on average over the fixed period, stays below the fixed rate minus your margin. Here that is {{ rate('uk5yr') | pct(2) }} minus 1 point, or {{ rate('uk5yr') - 1 | pct(2) }}. That break-even is {{ rate('uk5yr') - 1 | pct(2) }}, against today's Bank Rate of {{ rate('boe') | pct(2) }}. The fix comes out cheaper if Bank Rate averages above the break-even over the fixed period.
 
 ## Where rates are now
 
@@ -83,7 +83,7 @@ Short fixes (2 years) protect you for less time and bring your next decision for
 
 ## Break-even analysis: how to calculate yours
 
-1. Take the fixed rate you are offered and subtract your tracker's margin. That is the Bank Rate at which the two cost the same. In the example, {{ rate('uk5yr') | pct(2) }} minus 1 point is {{ rate('uk5yr') - 1 | pct(2) }}, which is {{ rate('uk5yr') - 1 - rate('boe') | num(2) }} points above today's Bank Rate of {{ rate('boe') | pct(2) }} (a negative figure means below it).
+1. Take the fixed rate you are offered and subtract your tracker's margin. That is the Bank Rate at which the two cost the same. In the example, {{ rate('uk5yr') | pct(2) }} minus 1 point is {{ rate('uk5yr') - 1 | pct(2) }}, against today's Bank Rate of {{ rate('boe') | pct(2) }}.
 2. Decide whether Bank Rate is likely to average above that level during the fix. If so, the fix is cheaper.
 3. Remember what a tracker gives you in return: no early repayment charge and unlimited overpayments. If you expect to sell or remortgage within two or three years, those can be worth more than the rate.
 
