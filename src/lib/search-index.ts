@@ -270,7 +270,7 @@ export const HUBS = {
   usTakeHome: {
     path: '/scenarios/us-take-home-pay/',
     title: 'US take-home pay by salary',
-    salaries: [40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 250000],
+    salaries: [40000, 50000, 60000, 70000, 75000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 250000],
   },
   mortgage: {
     path: '/scenarios/mortgage-payments-by-amount/',
@@ -308,7 +308,7 @@ export function buildSearchIndex(input: SearchIndexInput): SearchEntry[] {
   const h = HUBS;
   out.push({ t: h.ukTakeHome.title, u: h.ukTakeHome.path, k: 'hub', d: 'Income tax, National Insurance and take-home pay at every common UK salary.', s: tags('take home pay salary after tax uk paye table'), r: 'UK' });
   out.push({ t: h.usTakeHome.title, u: h.usTakeHome.path, k: 'hub', d: 'Federal tax, FICA and take-home pay at every common US salary.', s: tags('take home pay salary after tax us paycheck table'), r: 'US' });
-  out.push({ t: h.mortgage.title, u: h.mortgage.path, k: 'hub', d: 'Monthly payments for common loan sizes at five interest rates.', s: tags('mortgage payment monthly loan amount table') });
+  out.push({ t: h.mortgage.title, u: h.mortgage.path, k: 'hub', d: 'Monthly payments for common loan sizes at the latest average rate and five fixed rates.', s: tags('mortgage payment monthly loan amount table') });
   out.push({ t: h.investment.title, u: h.investment.path, k: 'hub', d: 'What monthly investing and lump sums grow into over 10, 20 and 30 years.', s: tags('investment growth invested compound monthly lump sum table') });
   for (const n of h.ukTakeHome.salaries) {
     out.push({ t: `\u00a3${fmt(n)} salary after tax (UK)`, u: `${h.ukTakeHome.path}#${n / 1000}k`, k: 'row', s: tags(`${n} salary take home pay after tax uk paye net`), r: 'UK' });

@@ -1,0 +1,192 @@
+---
+/**
+ * Lookup table for the scenario hub pages (W2-SCEN).
+ *
+ * - A visible <caption> states what the table is and its assumptions (A11Y-PERF F-25).
+ * - The first cell of every row is a <th scope="row"> (F-25).
+ * - The answer columns come first so the figures that matter are on screen at
+ *   390 px; the rest scroll sideways, with a one-line cue on small screens
+ *   (CONTENT-23). The scroll area is a focusable, labelled region so it works
+ *   from the keyboard.
+ * - A row with an `id` is a landing target for the legacy 301 anchors
+ *   (public/_redirects). When it is the target, a labelled copy of the column
+ *   headers appears directly above it and its cells get a strong highlight that
+ *   also wins over the zebra stripe in dark mode (CONTENT-07). The labels row is
+ *   aria-hidden: the real header row already names the columns.
+ */
+export interface HubCell {
+  text: string;
+  /** cost = red, gain = money kept (green), plain = body ink, muted = secondary */
+  tone?: 'cost' | 'gain' | 'plain' | 'muted';
+  strong?: boolean;
+}
+
+export interface HubRow {
+  /** Anchor id on the row; also the legacy redirect target. */
+  id?: string;
+  /** A second, stable anchor id on the row header (e.g. "y2026-100k"), for links that must keep
+   *  meaning the same table when the default tax year changes. The row highlights for it too. */
+  altId?: string;
+  label: string;
+  /** Standalone page for the same question, linked under the label (SE-8). */
+  href?: string;
+  hrefLabel?: string;
+  cells: HubCell[];
+}
+
+export interface HubColumn {
+  label: string;
+  /** Small second line under the label (a rate's source and date, a unit). */
+  sub?: string;
+  /** Tint the whole column (the "today's average" mortgage column). */
+  emphasis?: boolean;
+}
+
+interface Props {
+  caption: string;
+  rowHeader: string;
+  columns: HubColumn[];
+  rows: HubRow[];
+  /** Shown below the sm breakpoint only, when columns scroll sideways. */
+  scrollCue?: string;
+  /** Tax year or other label the figures follow (data-hub-year, read by tests). */
+  year?: string;
+  class?: string;
+}
+
+const { caption, rowHeader, columns, rows, scrollCue, year, class: extraClass = '' } = Astro.props;
+
+const toneClass = {
+  cost: 'text-red-600',
+  gain: 'text-success-600',
+  plain: 'text-neutral-900',
+  muted: 'text-neutral-600',
+} as const;
+
+---
+
+<div class:list={['bg-white border border-neutral-200/80 rounded-lg shadow-card overflow-hidden', extraClass]} data-hub-year={year}>
+  {scrollCue && (
+    <p class="sm:hidden px-4 pt-3 text-xs text-neutral-500">{scrollCue}</p>
+  )}
+  <div class="overflow-x-auto" role="region" aria-label={caption} tabindex="0">
+    <table class="w-full text-sm hub-table">
+      <caption class="text-left px-4 sm:px-5 pt-4 pb-3 text-sm text-neutral-600 leading-relaxed">{caption}</caption>
+      <thead>
+        <tr class="bg-neutral-50 border-y border-neutral-200/80">
+          <th scope="col" class="text-left px-3 sm:px-5 py-3 font-semibold text-neutral-700">{rowHeader}</th>
+          {columns.map((col) => (
+            <th scope="col" class:list={['text-right px-3 sm:px-5 py-3 font-semibold text-neutral-700 align-bottom', col.emphasis && 'hub-col-em']}>
+              {col.label}
+              {col.sub && <span class="block text-xs font-normal text-neutral-600">{col.sub}</span>}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, i) => (
+          <>
+            {(row.id || row.altId) && (
+              <tr class="hub-labels" aria-hidden="true">
+                <td class="px-3 sm:px-5 py-2 text-left text-xs font-semibold text-neutral-600">{rowHeader}</td>
+                {columns.map((col) => (
+                  <td class="px-3 sm:px-5 py-2 text-right text-xs font-semibold text-neutral-600">{col.label}</td>
+                ))}
+              </tr>
+            )}
+            <tr
+              id={row.id}
+              class:list={[
+                'hub-row border-b border-neutral-100 last:border-b-0',
+                i % 2 === 1 ? 'bg-neutral-50/50' : '',
+              ]}
+            >
+              <th id={row.altId} scope="row" class="px-3 sm:px-5 py-3 text-left font-semibold text-neutral-900 tabular-nums whitespace-nowrap">
+                {row.label}
+                {row.href && (
+                  <a
+                    href={row.href}
+                    class="block text-xs font-normal text-primary-700 underline decoration-primary-200 underline-offset-2 hover:decoration-primary-600 transition-colors duration-150"
+                  >
+                    <span class="sr-only">{row.label}: </span>{row.hrefLabel ?? 'Full breakdown'}
+                  </a>
+                )}
+              </th>
+              {row.cells.map((cell, j) => (
+                <td
+                  class:list={[
+                    'px-3 sm:px-5 py-3 text-right tabular-nums',
+                    toneClass[cell.tone ?? 'plain'],
+                    `hub-tone-${cell.tone ?? 'plain'}`,
+                    cell.strong && 'font-semibold',
+                    columns[j]?.emphasis && 'hub-col-em',
+                  ]}
+                >
+                  {cell.text}
+                </td>
+              ))}
+            </tr>
+          </>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  /* The caption sits above the header row inside the card. */
+  .hub-table caption {
+    caption-side: top;
+  }
+
+  /* Landing from a legacy anchor: land below the sticky site header with the
+     labels row visible above the target row. */
+  .hub-row,
+  .hub-row > th {
+    scroll-margin-top: 7rem;
+  }
+
+  .hub-labels {
+    display: none;
+  }
+  .hub-labels:has(+ .hub-row:target),
+  .hub-labels:has(+ .hub-row > th:target) {
+    display: table-row;
+    background-color: var(--color-surface);
+    border-top: 1px solid var(--color-neutral-200);
+  }
+
+  /* Cell-level background beats the row's zebra stripe, in light and dark. */
+  .hub-row:target > th,
+  .hub-row:target > td,
+  .hub-row:has(> th:target) > th,
+  .hub-row:has(> th:target) > td {
+    background-color: color-mix(in srgb, var(--color-primary-500) 18%, var(--color-surface));
+  }
+  .hub-row:target > th,
+  .hub-row:has(> th:target) > th {
+    box-shadow: inset 4px 0 0 var(--color-primary-600);
+  }
+  /* The tint lowers the contrast of the green and red figures (4.5:1 needed):
+     use the deeper token for each on the target row, in both themes. */
+  .hub-row:target > .hub-tone-gain,
+  .hub-row:has(> th:target) > .hub-tone-gain {
+    color: var(--color-success-700);
+  }
+  .hub-row:target > .hub-tone-cost,
+  .hub-row:has(> th:target) > .hub-tone-cost {
+    color: var(--color-red-700);
+  }
+  :global([data-theme='dark']) .hub-row:target > .hub-tone-cost,
+  :global([data-theme='dark']) .hub-row:has(> th:target) > .hub-tone-cost {
+    color: var(--color-red-800);
+  }
+
+  .hub-col-em {
+    background-color: color-mix(in srgb, var(--color-primary-500) 8%, transparent);
+  }
+  .hub-row:target > .hub-col-em,
+  .hub-row:has(> th:target) > .hub-col-em {
+    background-color: color-mix(in srgb, var(--color-primary-500) 18%, var(--color-surface));
+  }
+</style>
