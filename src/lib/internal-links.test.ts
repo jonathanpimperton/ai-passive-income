@@ -70,6 +70,16 @@ describe('two-way links (GROWTH-SEO-05)', () => {
     for (const c of comparisons) expect(linked.has(c.slug), c.slug).toBe(true);
   });
 
+  it('links the formerly curated tool-to-comparison pairs from the comparison relatedTools data', () => {
+    const fromTool = (tool: string) => comparisonsForTool(tool, comparisons).map((c) => c.slug);
+    expect(fromTool('credit-card-payoff')).toEqual(expect.arrayContaining(['snowball-vs-avalanche-debt', 'pay-off-debt-vs-invest']));
+    expect(fromTool('mortgage-affordability')).toEqual(
+      expect.arrayContaining(['renting-vs-buying-2026', '15-year-vs-30-year-mortgage', 'fixed-vs-variable-rate-mortgage'])
+    );
+    expect(fromTool('investment-fee')).toContain('index-funds-vs-active-funds');
+    expect(fromTool('capital-gains-tax')).toContain('isa-vs-general-investment');
+  });
+
   it('links the weakly linked comparisons from their own calculators', () => {
     const fromTool = (tool: string) => comparisonsForTool(tool, comparisons).map((c) => c.slug);
     expect(fromTool('car-finance')).toContain('pcp-vs-hp-vs-personal-loan');

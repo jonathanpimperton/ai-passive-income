@@ -54,18 +54,12 @@ const HUB_FOR_TOOL: Record<string, HubLink> = {
 };
 
 /**
- * Curated additions for tools that no comparison or scenario names yet, so
- * none of them is a dead end. The underlying data fix (scenario `toolSlug`,
- * comparison `relatedTools`) belongs to the Wave 2 content owners; once it
- * lands these entries become no-ops (results are de-duplicated).
+ * Curated additions for tools that no scenario names yet, so none of them is
+ * a dead end. The underlying data fix (scenario `toolSlug`) belongs to the Wave 2
+ * scenario owner; once it lands these entries become no-ops (results are
+ * de-duplicated). Comparison links no longer need extras: every comparison lists
+ * its calculators in `relatedTools`.
  */
-const EXTRA_COMPARISONS: Record<string, string[]> = {
-  'credit-card-payoff': ['snowball-vs-avalanche-debt', 'pay-off-debt-vs-invest'],
-  'mortgage-affordability': ['renting-vs-buying-2026', '15-year-vs-30-year-mortgage', 'fixed-vs-variable-rate-mortgage'],
-  'investment-fee': ['index-funds-vs-active-funds'],
-  'capital-gains-tax': ['isa-vs-general-investment'],
-};
-
 const EXTRA_SCENARIOS: Record<string, string[]> = {
   'credit-card-payoff': ['50k-credit-card-debt-payoff', 'pay-off-30k-debt'],
   'mortgage-affordability': ['save-for-house-deposit'],
@@ -124,8 +118,8 @@ export function shortTitle(title: string): string {
 
 /**
  * Comparisons that discuss a tool: every comparison listing it in
- * `relatedTools` (where it is listed first ranks first), then curated extras.
- * Comparisons for the other country are dropped on single-country tools.
+ * `relatedTools` (where it is listed first ranks first). Comparisons for the
+ * other country are dropped on single-country tools.
  */
 export function comparisonsForTool<T extends ComparisonLink>(toolSlug: string, comparisons: T[], limit = 6): T[] {
   const region = toolRegion(toolSlug);
@@ -134,14 +128,7 @@ export function comparisonsForTool<T extends ComparisonLink>(toolSlug: string, c
     .filter(({ pos }) => pos !== -1)
     .sort((a, b) => a.pos - b.pos || a.i - b.i)
     .map(({ c }) => c);
-  const extras = (EXTRA_COMPARISONS[toolSlug] ?? [])
-    .map((slug) => comparisons.find((c) => c.slug === slug))
-    .filter((c): c is T => c !== undefined);
-  const seen = new Set<string>();
-  return [...listed, ...extras]
-    .filter((c) => !seen.has(c.slug) && seen.add(c.slug))
-    .filter((c) => !conflicts(region, regionOf(c)))
-    .slice(0, limit);
+  return listed.filter((c) => !conflicts(region, regionOf(c))).slice(0, limit);
 }
 
 /** Scenarios built on a tool (`toolSlug`), then curated extras. */
