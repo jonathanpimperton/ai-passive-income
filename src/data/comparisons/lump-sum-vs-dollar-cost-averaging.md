@@ -66,7 +66,7 @@ The worst case for lump sum investing, putting everything in right before a majo
 
 The academic debate misses the biggest factor: what you do if markets fall after you invest.
 
-If you invest $100,000 as a lump sum and the market drops 20%, you are looking at a $20,000 loss. Many people sell at that point and lock the loss in. They would have been better off with dollar-cost averaging, not because it has better expected returns, but because it would have kept them invested. The strategy you will follow is worth more than the strategy that is better on paper and that you will abandon.
+If you invest $100,000 as a lump sum and the market drops 20%, you are looking at a {{ 100000 * 20 / 100 | usd }} loss. Many people sell at that point and lock the loss in. They would have been better off with dollar-cost averaging, not because it has better expected returns, but because it would have kept them invested. The strategy you will follow is worth more than the strategy that is better on paper and that you will abandon.
 
 ## How to run the numbers for your windfall
 

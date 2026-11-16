@@ -68,7 +68,7 @@ Investing $500 a month for 30 years at a 7% gross return, with fees taken from t
 - **Active fund (1.00% fee):** {{ feeDrag(0, 500, 7, 30, 1).balance | usd }}
 - **No fee at all:** {{ feeDrag(0, 500, 7, 30, 0).balance | usd }}
 
-That 0.90% difference in fees costs {{ feeDrag(0, 500, 7, 30, 0.1).balance - feeDrag(0, 500, 7, 30, 1).balance | usd }}, money the fund company earned instead of you. You pay in {{ feeDrag(0, 500, 7, 30, 0.1).contributions | usd }} in total, so the 1.00% fee takes {{ feeDrag(0, 500, 7, 30, 1).shareOfGrowth | pct }} of the growth you would have had at no fee. And this assumes the active fund matches the index before fees, which most do not. Check your own funds in the [investment fee calculator](/tools/saving-and-growth/investment-fee/).
+That {{ 1 - 0.1 | num(2) }}% difference in fees costs {{ feeDrag(0, 500, 7, 30, 0.1).balance - feeDrag(0, 500, 7, 30, 1).balance | usd }}, money the fund company earned instead of you. You pay in {{ feeDrag(0, 500, 7, 30, 0.1).contributions | usd }} in total, so the 1.00% fee takes {{ feeDrag(0, 500, 7, 30, 1).shareOfGrowth | pct }} of the growth you would have had at no fee. And this assumes the active fund matches the index before fees, which most do not. Check your own funds in the [investment fee calculator](/tools/saving-and-growth/investment-fee/).
 
 ## The fees you don't see
 

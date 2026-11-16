@@ -71,7 +71,7 @@ Consider three debts:
 - Car loan: $8,000 at 6% APR, $155 minimum
 - Student loan: $3,000 at 5% APR, $50 minimum
 
-With {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').monthlyOutlay | usd }} a month going to debt in total ($305 of minimums plus $495 extra, with each cleared debt's minimum rolling onto the next):
+With {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'avalanche').monthlyOutlay | usd }} a month going to debt in total ({{ 100 + 155 + 50 | usd }} of minimums plus $495 extra, with each cleared debt's minimum rolling onto the next):
 
 **Snowball** (student loan, then credit card, then car): {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').interest | usd }} in total interest, debt-free in {{ debtPayoff('5000@22/100; 8000@6/155; 3000@5/50', 495, 'snowball').months | int }} months.
 

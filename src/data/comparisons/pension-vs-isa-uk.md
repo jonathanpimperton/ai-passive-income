@@ -109,7 +109,7 @@ For most UK workers, the order is:
 1. **Workplace pension up to the full employer match.** Anything less is refusing part of your pay.
 2. **Stocks & Shares ISA up to £20,000.** Tax-free growth with full access.
 3. **[Additional pension contributions.](/tools/income-and-planning/retirement-contribution/)** If you have filled the ISA and will not need the money before 57, more pension is efficient for higher-rate taxpayers.
-4. **General investment account.** Only needed if you are investing more than £80,000 a year (£60,000 pension plus £20,000 ISA).
+4. **General investment account.** Only needed if you are investing more than {{ 60000 + 20000 | gbp }} a year ({{ 60000 | gbp }} pension plus {{ 20000 | gbp }} ISA).
 
 If you are a first-time buyer under 40, a Lifetime ISA can sit between steps 1 and 2; see the [LISA comparison](/comparisons/lisa-vs-regular-isa/).
 
@@ -117,7 +117,7 @@ If you are a first-time buyer under 40, a Lifetime ISA can sit between steps 1 a
 
 **If your income is between {{ ukFact('paTaperThreshold') | gbp }} and {{ ukFact('paTaperLimit') | gbp }}**, put extra into your pension before the ISA. You lose £1 of personal allowance for every £2 of income above {{ ukFact('paTaperThreshold') | gbp }}, which makes the effective tax rate on that slice {{ ukFact('higherRate') * 1.5 | pct }}. A pension contribution that brings your adjusted net income back under {{ ukFact('paTaperThreshold') | gbp }} recovers that tax, so it is relieved at that higher effective rate. The same applies to the childcare limit: free childcare and Tax-Free Childcare stop once adjusted net income passes {{ ukFact('paTaperThreshold') | gbp }}. See the [60% tax trap](/scenarios/60-percent-tax-trap-uk/) and the [childcare cliff](/scenarios/100k-childcare-cliff-uk/) for worked examples.
 
-**If you are a higher or additional-rate taxpayer**, extra pension contributions beyond the match are very attractive. The 40% to 45% tax relief means every £1,000 costs you £600 or less. Some people prioritise pension over ISA in this situation, accepting the locked access for the stronger tax benefit.
+**If you are a higher or additional-rate taxpayer**, extra pension contributions beyond the match are very attractive. The 40% to 45% tax relief means every £1,000 costs you {{ 1000 * (1 - ukFact('higherRate') / 100) | gbp }} or less. Some people prioritise pension over ISA in this situation, accepting the locked access for the stronger tax benefit.
 
 **If you are saving for a first home**, a [Lifetime ISA (LISA)](/comparisons/lisa-vs-regular-isa/) gives you a 25% government bonus on up to £4,000 a year, but it counts towards your £20,000 ISA allowance and carries withdrawal charges for non-qualifying purchases before age 60.
 

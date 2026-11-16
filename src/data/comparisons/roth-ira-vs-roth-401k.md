@@ -1,5 +1,5 @@
 ---
-title: "Roth IRA vs Roth 401(k): Key Differences Explained"
+title: "Roth IRA vs Roth 401(k): Which to Fund First?"
 slug: "roth-ira-vs-roth-401k"
 description: "Compare Roth IRA and Roth 401(k) accounts. Same tax-free withdrawals, but different contribution limits, income rules, and investment options."
 keywords:

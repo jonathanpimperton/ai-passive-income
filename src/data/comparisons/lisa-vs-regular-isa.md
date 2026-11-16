@@ -124,6 +124,6 @@ A Stocks & Shares ISA beats the LISA when:
 
 ## The best approach for most under-40s
 
-If you can afford it, do both. Contribute £4,000 to a LISA to capture the full £1,000 bonus, then put additional savings into a regular ISA. Your £20,000 total ISA allowance covers £4,000 LISA + £16,000 regular ISA. The planned cut to the Cash ISA limit was cancelled at the Budget on 28 October 2026, so that £16,000 can sit in cash or in stocks and shares.
+If you can afford it, do both. Contribute £4,000 to a LISA to capture the full £1,000 bonus, then put additional savings into a regular ISA. Your £20,000 total ISA allowance covers £4,000 in the LISA plus {{ 20000 - 4000 | gbp }} in a regular ISA. The planned cut to the Cash ISA limit was cancelled at the Budget on 28 October 2026, so that {{ 20000 - 4000 | gbp }} can sit in cash or in stocks and shares.
 
-This gives you the guaranteed 25% bonus on the first £4,000, plus full flexibility on the remaining £16,000. Run the numbers through a [compound interest calculator](/tools/saving-and-growth/compound-interest/) to see what the combined approach looks like over your specific time horizon.
+This gives you the guaranteed 25% bonus on the first £4,000, plus full flexibility on the remaining {{ 20000 - 4000 | gbp }}. Run the numbers through a [compound interest calculator](/tools/saving-and-growth/compound-interest/) to see what the combined approach looks like over your specific time horizon.
