@@ -91,6 +91,18 @@ describe('toolPageTitle (SE-2, GROWTH-SEO-04)', () => {
     expect(cgt).toContain(US_TAX_YEAR);
   });
 
+  it('salary titles state monthly and annual take-home, with the tax year from the rates modules', () => {
+    // Owner requirement (Nov 2026): the answer is a month and a year, say so in the title.
+    expect(toolPageTitle({ name: 'UK Salary & Take-Home Calculator', slug: 'salary-uk' })).toBe(
+      `UK Salary Calculator ${UK_TAX_YEAR}: Monthly and Annual`,
+    );
+    expect(toolPageTitle({ name: 'US Salary & Take-Home Calculator', slug: 'salary-us' })).toBe(
+      `US Paycheck Calculator ${US_TAX_YEAR}: Monthly and Annual`,
+    );
+    // They are the tools that carry the claim: no other tool title is allowed to drift into it by accident.
+    expect(toolPageTitle({ name: 'Mortgage Payment Calculator', slug: 'mortgage-payment' })).not.toMatch(/Monthly and Annual/);
+  });
+
   it('names the nations stamp duty covers', () => {
     expect(toolPageTitle({ name: 'Stamp Duty Calculator', slug: 'stamp-duty' })).toMatch(/England & NI/);
   });
