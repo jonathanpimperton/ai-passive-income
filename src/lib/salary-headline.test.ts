@@ -211,9 +211,9 @@ describe('email rows include the monthly figure and survive the sanitiser', () =
   });
 
   it('UK pension input rows: payslip amount and qualifying earnings read correctly', async () => {
-    await render('SalaryUkCalc', { pensionMode: 'amount', pensionFromPay: 4_950, pensionMethod: 'reliefAtSource' });
+    await render('SalaryUkCalc', { pensionMode: 'amount', pensionFromPay: 4_800, pensionMethod: 'reliefAtSource' });
     const inputs = (captured.props.find((p) => p.toolSlug === 'salary-uk')!.getInputs as () => Array<{ label: string; value: string }>)();
-    expect(inputs.find((r) => r.label === 'Pension Contribution')!.value).toBe('£4,950 a year taken from pay');
+    expect(inputs.find((r) => r.label === 'Pension Contribution')!.value).toBe('£4,800 a year taken from pay');
     captured.props = [];
     await render('SalaryUkCalc', { pensionPercentOf: 'qualifying', pensionPercent: 5 });
     const q = (captured.props.find((p) => p.toolSlug === 'salary-uk')!.getInputs as () => Array<{ label: string; value: string }>)();
