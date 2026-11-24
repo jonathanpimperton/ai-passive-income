@@ -1,7 +1,8 @@
 # Weekly freshness check (plan-2026-11 PL-9, review RC6). A failed run emails the owner
 # (GitHub notifies on failed scheduled runs; see docs/owner-actions-2026-11.md, O-11).
-# It fails when a dated fact (tax year, rates, security.txt expiry, ...) is due within
-# 30 days or overdue. Needs no secrets and changes nothing.
+# It fails when a dated fact (tax year, rates, security.txt expiry, ...) is due, overdue or
+# inside its lead time, or when the tax-rates guard fails. Facts coming up within 30 days
+# show as warnings on the run without failing it. Needs no secrets and changes nothing.
 #
 # Note: GitHub disables scheduled workflows in a public repository after 60 days without
 # repository activity. The owner runbook covers re-enabling it.
@@ -30,13 +31,7 @@ jobs:
       - name: Tax-rates freshness guard
         run: node scripts/check-rates-freshness.mjs
 
-      # scripts/check-facts-calendar.mjs comes from the W1-TAX workstream (it reads
-      # docs/freshness-calendar.md). Until that branch is merged the step warns instead of
-      # failing; once the script exists, its exit code decides the run.
+      # Runs even when the rates guard above failed, so one run reports both.
       - name: Dated-facts calendar
-        run: |
-          if [ -f scripts/check-facts-calendar.mjs ]; then
-            node scripts/check-facts-calendar.mjs
-          else
-            echo "::warning title=Facts calendar missing::scripts/check-facts-calendar.mjs is not in this commit yet (W1-TAX). Only the rates guard ran."
-          fi
+        if: ${{ !cancelled() }}
+        run: node scripts/check-facts-calendar.mjs
