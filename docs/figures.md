@@ -294,7 +294,7 @@ back as percentages.
 |---|---|
 | `standardDeduction`, `additionalMedicareThreshold`, `niitThreshold`, `ltcgZeroTop`, `ltcg15Top` | By filing status ($) |
 | `ssWageBase`, `ssRate`, `medicareRate`, `additionalMedicareRate`, `niitRate` | FICA and NIIT |
-| `k401Limit`, `k401CatchUp`, `k401CatchUp60to63` | 401(k) limits ($). Fails for a year the IRS has not published yet (2027 until the notice) |
+| `k401Limit`, `k401CatchUp`, `k401CatchUp60to63` | 401(k) limits ($). Fails for a year the IRS has not published yet |
 | `iraLimit`, `iraCatchUp` | IRA contribution limit and the age-50 catch-up ($). Fails for a year the IRS has not published yet, like the 401(k) limits |
 | `overtimeCap`, `overtimePhaseOutStart` | Qualified overtime deduction cap and the MAGI where it starts to phase out ($, by filing status). One Big Beautiful Bill Act, tax years 2025 to 2028; fails outside them |
 | `overtimeReductionPer1000` | Overtime deduction lost for each full $1,000 of MAGI above the start ($) |
