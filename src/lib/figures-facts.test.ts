@@ -159,7 +159,6 @@ describe('new usFact keys', () => {
     // Which years are unpublished changes as the IRS publishes; the refusal itself is covered
     // with a mocked unpublished year in figures-unpublished.test.ts.
     let published = 0;
-    let refused = 0;
     for (const year of US_TAX_YEARS) {
       const ira = getUsRates(year).retirementIra;
       for (const [key, expected] of [['iraLimit', ira.limit], ['iraCatchUp', ira.catchUp]] as const) {
@@ -169,12 +168,10 @@ describe('new usFact keys', () => {
           published++;
         } else {
           throwsFigureError(expr, new RegExp(`has not published the ${year} IRA limits`));
-          refused++;
         }
       }
     }
     expect(published).toBeGreaterThan(0); // 2026 is published
-    expect(published + refused).toBe(US_TAX_YEARS.length * 2); // every year/key is either printed or refused
   });
 
   it('IRA 2026 and 2027 print the IRS figures ($7,500; catch-up $1,100; 2027 from IR-2026-136)', () => {
