@@ -31,5 +31,7 @@ jobs:
       - name: Tax-rates freshness guard
         run: node scripts/check-rates-freshness.mjs
 
+      # Runs even when the rates guard above failed, so one run reports both.
       - name: Dated-facts calendar
+        if: ${{ !cancelled() }}
         run: node scripts/check-facts-calendar.mjs

@@ -180,8 +180,9 @@ Three workflows now exist (only the third uses a secret, and it is optional; sec
   the build, the link check and the production-config E2E suite. It does not deploy and does
   not block Cloudflare's deploy; a red run is an early warning.
 - `Freshness` (`.github/workflows/freshness.yml`): Mondays 07:00 UTC (and on demand). It fails
-  when a dated fact (tax year, rates, security.txt expiry...) is due within 30 days or
-  overdue.
+  when a dated fact (tax year, rates, security.txt expiry...) is overdue, due that day or
+  inside its `lead` time (docs/freshness-calendar.md), or when the rates guard fails. Facts
+  due within 30 days show as warnings on the run only.
 - `Scheduled rebuild` (`.github/workflows/scheduled-rebuild.yml`): 1 January and 6 April,
   redeploys production through a Cloudflare deploy hook (section 14).
 

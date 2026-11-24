@@ -34,8 +34,9 @@ row has a 30-day lead and fails every week from 7 Mar 2027 until the data
 lands. An empty `lead` means 0.
 
 The workflow runs on Mondays. An event due mid-week is therefore flagged the
-following Monday, up to 6 days after its `due` date. If a row must be acted on
-sooner than that, give it a `lead` of at least 7 days.
+following Monday, up to 6 days after its `due` date. A `lead` on an event row
+makes the run fail in the week or weeks before the date, as a reminder, before
+anything can be done. Use it only for a deadline.
 
 Exit codes for both scripts: 0 = pass (the rates guard may still print
 warnings and the calendar may still list upcoming facts), 1 = failed (stale,
@@ -63,7 +64,8 @@ freeze the server-rendered tax year. Never set it in Cloudflare.
    Updating that source date moves the due date automatically. If the file
    does not exist yet, the static `due` applies. If the file exists but the
    key is missing, the script fails, because the calendar has lost track.
-   These rows carry their own margin and do not need a `lead`.
+   Put any margin in the derive offset (for example `-30d`, as the
+   security.txt row does); derived rows take no `lead`.
 
 ## Facts
 

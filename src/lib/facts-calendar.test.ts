@@ -27,21 +27,22 @@ describe('the real freshness calendar', () => {
     expect(rows.length).toBeGreaterThanOrEqual(12);
   });
 
-  it('has a lead cell on every row: empty or a whole number of days', () => {
+  it('has a lead column, and every lead cell is empty or a whole number of days', () => {
+    const header = calendarMd.split(/\r?\n/).find((l) => l.startsWith('| id |')) ?? '';
+    expect(header.split('|').map((c) => c.trim())).toContain('lead');
     for (const r of rows) {
-      expect(r.lead, r.id).toBeDefined();
       expect(r.lead, r.id).toMatch(/^(\d+)?$/);
       expect(parseLead(r.lead), `${r.id} lead "${r.lead}"`).not.toBeNull();
     }
   });
 
   it('gives the deadline rows a lead and leaves derived rows without one', () => {
-    const byId = new Map(rows.map((r) => [r.id, r]));
-    // Builds fail from 6 Apr 2027 without the 2027/28 UK data, so work must start well before.
-    const rates = byId.get('uk-rates-2027-28');
-    if (!rates) throw new Error('uk-rates-2027-28 row missing');
-    expect(parseLead(rates.lead)).toBeGreaterThanOrEqual(30);
-    for (const r of rows) if (r.derive) expect(r.lead, `${r.id} derives its own margin`).toBe('');
+    // Builds fail from 6 Apr without the new UK tax-year data, so work must start well before.
+    // Matched by prefix so the row survives the yearly roll (uk-rates-2027-28, uk-rates-2028-29, ...).
+    const rates = rows.find((r) => /^uk-rates-/.test(r.id));
+    if (!rates) throw new Error('no uk-rates-* row in the calendar');
+    expect(parseLead(rates.lead), rates.id).toBeGreaterThanOrEqual(30);
+    for (const r of rows) if (r.derive) expect(r.lead, `${r.id} is derived and takes no lead`).toBe('');
   });
 
   it('resolves every derived due date (no lost source keys)', () => {
