@@ -1,5 +1,5 @@
 /**
- * The figure engine must refuse to print a 401(k) limit the IRS has not
+ * The figure engine must refuse to print a 401(k) or IRA limit the IRS has not
  * published yet (the rates module then carries the prior year's values with
  * `published: false`). Real data only has that state for a few weeks a year,
  * so this file mocks the 2027 dataset as unpublished to keep the guard covered
@@ -18,14 +18,17 @@ vi.mock('./us-rates', async (importOriginal) => {
       return {
         ...rates,
         retirement401k: { ...real.getUsRates(2026).retirement401k, published: false },
+        retirementIra: { ...real.getUsRates(2026).retirementIra, published: false },
       };
     },
   };
 });
 
-describe('unpublished 401(k) limits', () => {
+describe('unpublished 401(k) and IRA limits', () => {
   const cases: Array<[string, RegExp]> = [
     ["usFact('k401Limit', year=2027) | usd", /has not published the 2027 401\(k\) limits/],
+    ["usFact('iraLimit', year=2027) | usd", /has not published the 2027 IRA limits/],
+    ["usFact('iraCatchUp', year=2027) | usd", /has not published the 2027 IRA limits/],
     ['usTakeHome(100000, k401=30, year=2027) | usd', /has not published the 2027 401\(k\) limit/],
   ];
   for (const [src, re] of cases) {
@@ -44,6 +47,7 @@ describe('unpublished 401(k) limits', () => {
 
   it('still prints a published year', () => {
     expect(() => f("usFact('k401Limit', year=2026) | usd")).not.toThrow();
+    expect(() => f("usFact('iraLimit', year=2026) | usd")).not.toThrow();
   });
 
   it('allows a contribution under the carried limit', () => {

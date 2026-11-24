@@ -156,6 +156,8 @@ describe('new usFact keys', () => {
   const statuses: FilingStatus[] = ['single', 'married', 'head'];
 
   it('IRA limits equal us-rates.ts for a published year and are refused for an unpublished one (like the 401(k) limits)', () => {
+    // Which years are unpublished changes as the IRS publishes; the refusal itself is covered
+    // with a mocked unpublished year in figures-unpublished.test.ts.
     let published = 0;
     let refused = 0;
     for (const year of US_TAX_YEARS) {
@@ -172,12 +174,14 @@ describe('new usFact keys', () => {
       }
     }
     expect(published).toBeGreaterThan(0); // 2026 is published
-    expect(refused).toBeGreaterThan(0); // 2027 is not (until the IRS notice), and must fail loudly
+    expect(published + refused).toBe(US_TAX_YEARS.length * 2); // every year/key is either printed or refused
   });
 
-  it('IRA 2026 prints the IRS figures ($7,500; catch-up $1,100)', () => {
-    expect(num("usFact('iraLimit', year=2026)")).toBe(7_500);
-    expect(num("usFact('iraCatchUp', year=2026)")).toBe(1_100);
+  it('IRA 2026 and 2027 print the IRS figures ($7,500; catch-up $1,100; 2027 from IR-2026-136)', () => {
+    for (const year of [2026, 2027]) {
+      expect(num(`usFact('iraLimit', year=${year})`)).toBe(7_500);
+      expect(num(`usFact('iraCatchUp', year=${year})`)).toBe(1_100);
+    }
   });
 
   it('OBBBA overtime and senior deduction keys equal us-rates.ts for every year and status', () => {

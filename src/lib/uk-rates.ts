@@ -209,8 +209,9 @@ export const UK_RATES_BY_YEAR: Record<UkTaxYear, UkYearRates> = {
       lisaAnnualLimit: 4_000,
       // "the purchase price of the residential property is £450,000 or less"
       // https://www.gov.uk/guidance/lifetime-isa-withdrawals-for-a-first-time-residential-purchase
-      // (accessed 2026-11-16). Since 29 Oct 2026 a withdrawal for a purchase above the cap carries a
-      // 20% charge (the ordinary charge is 25%); that is not modelled here.
+      // (accessed 2026-11-16). The same guidance, updated 28 Oct 2026, says a withdrawal for a
+      // purchase above the cap carries a 20% charge (the ordinary charge is 25%); it gives no start
+      // date. That is not modelled here.
       lisaPropertyCap: 450_000,
     },
   },

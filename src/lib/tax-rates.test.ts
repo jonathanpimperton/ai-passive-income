@@ -205,6 +205,10 @@ describe('US federal rates 2027 (Rev. Proc. 2026-35 / IR-2026-133, SSA)', () => 
     expect(r.retirement401k).toEqual({ limit: 25_500, catchUp: 8_500, catchUp60to63: 11_750, published: true });
   });
 
+  it('has the published 2027 IRA limits (IR-2026-136: $7,500 remains, catch-up $1,100 remains)', () => {
+    expect(r.retirementIra).toEqual({ limit: 7_500, catchUp: 1_100, published: true });
+  });
+
   it('carries the OBBBA deductions (fixed amounts for 2025-2028)', () => {
     expect(r.obbba?.overtime.cap).toEqual({ single: 12_500, married: 25_000, head: 12_500 });
     expect(r.obbba?.overtime.phaseOutStart).toEqual({ single: 150_000, married: 300_000, head: 150_000 });

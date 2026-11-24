@@ -234,10 +234,11 @@ export const US_RATES_BY_YEAR: Record<UsTaxYear, UsYearRates> = {
     // [N26-66]: $25,500; catch-up (50+) $8,500; higher catch-up for ages
     // 60-63 $11,750 (accessed 2026-11-16)
     retirement401k: { limit: 25_500, catchUp: 8_500, catchUp60to63: 11_750, published: true },
-    // NOT YET VERIFIED: the 2026 IRA values, carried (published: false). Only the 401(k) figures
-    // above were taken from Notice 2026-66 on 2026-11-16; check the notice for the 2027 IRA limit
-    // and catch-up, then replace these and set published: true.
-    retirementIra: { limit: 7_500, catchUp: 1_100, published: false },
+    // [IR-2026-136] (IRS news release, 12 Nov 2026, on Notice 2026-66): the IRA limit "remains
+    // $7,500" and the age-50 catch-up "remains $1,100"
+    // https://www.irs.gov/newsroom/401k-limit-increases-to-25500-for-2027-ira-limit-remains-7500
+    // (accessed 2026-11-24)
+    retirementIra: { limit: 7_500, catchUp: 1_100, published: true },
     obbba: OBBBA_2025_2028,
   },
 };

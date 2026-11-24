@@ -91,10 +91,11 @@ describe('toolPageTitle (SE-2, GROWTH-SEO-04)', () => {
     expect(cgt).toContain(US_TAX_YEAR);
   });
 
-  it('salary titles state monthly and annual take-home, with the tax year from the rates modules', () => {
-    // Owner requirement (Nov 2026): the answer is a month and a year, say so in the title.
+  it('salary titles state monthly take-home (US also annual), with the tax year from the rates modules', () => {
+    // Owner requirement (Nov 2026): the answer is a month and a year, say so in the title. The UK
+    // title keeps "Salary" and "Take-Home" and says "Monthly": "Monthly and Annual" does not fit.
     expect(toolPageTitle({ name: 'UK Salary & Take-Home Calculator', slug: 'salary-uk' })).toBe(
-      `UK Salary Calculator ${UK_TAX_YEAR}: Monthly and Annual`,
+      `UK Salary Calculator ${UK_TAX_YEAR}: Monthly Take-Home`,
     );
     expect(toolPageTitle({ name: 'US Salary & Take-Home Calculator', slug: 'salary-us' })).toBe(
       `US Paycheck Calculator ${US_TAX_YEAR}: Monthly and Annual`,
