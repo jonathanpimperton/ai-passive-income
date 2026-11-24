@@ -644,3 +644,121 @@ describe('resolveFigures*', () => {
     expect(resolveFiguresPlain('use \\{{ like this }}').text).toBe('use {{ like this }}');
   });
 });
+
+/* ── claim() and comparisons (W2 follow-ups: guard derived statements in prose) ─────────── */
+
+describe('claim() and comparison operators', () => {
+  const fails = (src: string, re: RegExp) => {
+    let caught: unknown;
+    try {
+      f(src);
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught, src).toBeInstanceOf(FigureError);
+    expect((caught as FigureError).message, src).toMatch(re);
+  };
+
+  it('prints nothing when the condition holds', () => {
+    expect(f("claim(ukTakeHome(50000) > ukTakeHome(45000), 'a higher salary leaves more take-home pay')")).toBe('');
+    expect(f("claim(true, 'always')")).toBe('');
+  });
+
+  it('fails the build with the message when the condition is false', () => {
+    fails("claim(ukTakeHome(50000) < ukTakeHome(45000), 'a lower salary leaves more')", /a claim in the text no longer holds: a lower salary leaves more\. Rewrite the sentence/);
+    // The error carries the token like every figure error, so the build log shows which claim failed.
+    fails("claim(1 > 2, 'one beats two')", /^\{\{ claim\(1 > 2, 'one beats two'\) \}\}: a claim in the text no longer holds: one beats two/);
+  });
+
+  it('is true or false on live engine figures, in both directions (flipping the comparison flips the outcome)', () => {
+    const a = "loanTotalInterest(300000, 6, 15)";
+    const b = "loanTotalInterest(300000, 6, 30)";
+    expect(f(`claim(${a} < ${b}, 'shorter loan, less interest')`)).toBe('');
+    fails(`claim(${a} > ${b}, 'shorter loan, MORE interest')`, /shorter loan, MORE interest/);
+  });
+
+  it('every comparison operator gives the right answer on each side of the boundary', () => {
+    const table: Array<[string, boolean, boolean, boolean]> = [
+      // operator, [1 op 2], [2 op 2], [3 op 2]
+      ['<', true, false, false],
+      ['<=', true, true, false],
+      ['>', false, false, true],
+      ['>=', false, true, true],
+      ['==', false, true, false],
+      ['!=', true, false, true],
+    ];
+    for (const [op, lt, eq, gt] of table) {
+      for (const [left, expected] of [[1, lt], [2, eq], [3, gt]] as const) {
+        const src = `claim(${left} ${op} 2, 'm')`;
+        if (expected) expect(f(src), src).toBe('');
+        else fails(src, /no longer holds/);
+      }
+    }
+  });
+
+  it('== and != also compare text and true/false, but not different kinds', () => {
+    expect(f("claim(taxYear('uk') == '" + UK_TAX_YEAR + "', 'year')")).toBe('');
+    expect(f("claim(taxYear('uk') != '1999/00', 'year')")).toBe('');
+    expect(f("claim(true == true, 'm')")).toBe('');
+    fails("claim(1 == '1', 'm')", /compares two values of the same kind/);
+    fails("claim(ukPay(30000) == 1, 'm')", /arguments must be numbers|compares two values of the same kind/);
+  });
+
+  it('&&, || and ! join conditions with the usual precedence', () => {
+    expect(f("claim(1 < 2 && 2 < 3, 'm')")).toBe('');
+    fails("claim(1 < 2 && 3 < 2, 'm')", /no longer holds/);
+    expect(f("claim(3 < 2 || 1 < 2, 'm')")).toBe('');
+    fails("claim(3 < 2 || 4 < 3, 'm')", /no longer holds/);
+    expect(f("claim(!(3 < 2), 'm')")).toBe('');
+    fails("claim(!(1 < 2), 'm')", /no longer holds/);
+    // && binds tighter than ||: false || (true && true)
+    expect(f("claim(1 > 2 || 1 < 2 && 2 < 3, 'm')")).toBe('');
+    // arithmetic binds tighter than comparison
+    expect(f("claim(1 + 2 * 3 == 7, 'm')")).toBe('');
+    expect(f("claim(10 - 4 > 3 + 2, 'm')")).toBe('');
+  });
+
+  it('evaluates both sides of && and ||, so a broken expression cannot hide behind a decided one', () => {
+    fails("claim(1 > 2 && nope() > 1, 'm')", /unknown function "nope"/);
+    fails("claim(1 < 2 || nope() > 1, 'm')", /unknown function "nope"/);
+  });
+
+  it('type mistakes are build failures with a clear message', () => {
+    fails("claim(1 < 'a', 'm')", /"<" compares numbers/);
+    fails("claim(1 && 2, 'm')", /"&&" joins true\/false conditions/);
+    fails("claim(!5, 'm')", /"!" needs a true\/false condition/);
+    fails("claim(5, 'm')", /"condition" must be a boolean/);
+  });
+
+  it('refuses an empty message', () => {
+    fails("claim(1 < 2, '  ')", /needs a message/);
+  });
+
+  it('a bare comparison cannot be printed and points to claim()', () => {
+    fails('1 < 2', /boolean \(true\/false\).*claim\(condition/);
+  });
+
+  it('gaps between figures can be claimed with min/max (no abs needed)', () => {
+    expect(f("claim(max(2000 - 2000.4, 2000.4 - 2000) < 1, 'within a dollar')")).toBe('');
+    fails("claim(max(2000 - 2003, 2003 - 2000) < 1, 'within a dollar')", /within a dollar/);
+  });
+
+  it('inside text: the token vanishes (no stray space when placed after the full stop) and a failing one is reported with its position', () => {
+    expect(resolveFigures("Higher pay leaves more.{{ claim(ukTakeHome(50000) > ukTakeHome(45000), 'm') }} Next sentence.")).toBe(
+      'Higher pay leaves more. Next sentence.',
+    );
+    const r = resolveFiguresDetailed("ok {{ claim(2 < 1, 'two is below one') }} end");
+    expect(r.problems).toHaveLength(1);
+    expect(r.problems[0].start).toBe(3);
+    expect(r.problems[0].message).toMatch(/two is below one/);
+    // Frontmatter variant: a single-quoted message inside a double-quoted YAML value is just text.
+    expect(resolveFiguresPlain("Verdict.{{ claim(1 < 2, 'm, with a comma') }}").text).toBe('Verdict.');
+  });
+
+  it('is documented, with the build-failure behaviour', () => {
+    const doc = readFileSync('docs/figures.md', 'utf8');
+    expect(doc).toContain('`claim(condition, message)`');
+    expect(doc).toMatch(/fails the\s+build/);
+    expect(FIGURE_FUNCTIONS.get('claim')!.returns).toMatch(/nothing/);
+  });
+});

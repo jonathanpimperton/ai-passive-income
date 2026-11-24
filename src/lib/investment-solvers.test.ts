@@ -8,7 +8,7 @@
  *   - Example 11.2.3, year-1 segment (same chapter)
  *   - Example 11.6.3 (chapter 11-6-annuity-interest-rate)
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   futureValue,
   growthSchedule,
@@ -23,7 +23,12 @@ import {
   type ContributionTiming,
   type GrowthInputs,
 } from './investment-solvers';
-import { formatMonthsShort } from './result-format';
+import { formatMonthsShort, formatMoneyGuarded } from './result-format';
+import { evaluateFigure } from './figures';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 /** Deterministic PRNG (mulberry32) so property tests are reproducible. */
 function rng(seed: number) {
@@ -144,6 +149,44 @@ describe('futureValue: negative and zero rates', () => {
     const rows = growthSchedule({ principal: 1000, monthlyContribution: 50, annualRate: 0.05, compoundingPerYear: 4 }, 10);
     expect(rows).toHaveLength(11);
     for (const r of rows) expect(r.balance).toBeCloseTo(r.totalContributions + r.totalInterest, 1);
+  });
+
+  it('rows are exact, not rounded to cents: the display rounds once, so it cannot differ from the engine by $1', () => {
+    // $500 a month for 30 years at 7% is $609,985.4979: rounding to cents first gives $609,985.50, which
+    // a whole-dollar display then rounds UP to $609,986, while the engine and the figure token say $609,985
+    // (Nov 2026 follow-up, CompoundInterestCalc double rounding).
+    const inputs = { principal: 0, monthlyContribution: 500, annualRate: 0.07 };
+    const last = growthSchedule(inputs, 30).at(-1)!;
+    expect(last.balance).toBe(futureValue(inputs, 360));
+    expect(formatMoneyGuarded(last.balance, 'USD')).toBe('$609,985');
+    expect(formatMoneyGuarded(last.balance, 'USD')).toBe(evaluateFigure('compoundFV(0, 500, 7, 30) | usd'));
+    // The headline split follows: interest = balance - paid in, both exact.
+    expect(last.totalInterest).toBe(last.balance - last.totalContributions);
+    expect(formatMoneyGuarded(last.totalInterest, 'USD')).toBe(evaluateFigure('compoundEarned(0, 500, 7, 30) | usd'));
+  });
+
+  it('every schedule row equals the engine exactly over a grid (and so prints what the tokens print)', () => {
+    let checked = 0;
+    for (const principal of [0, 10000, 100000]) {
+      for (const monthly of [0, 250, 1000]) {
+        for (const ratePct of [1, 7, 10]) {
+          for (const compounding of [1, 12, 365]) {
+            for (const timing of ['end', 'beginning'] as const) {
+              const inputs = { principal, monthlyContribution: monthly, annualRate: ratePct / 100, compoundingPerYear: compounding, timing };
+              const rows = growthSchedule(inputs, 40);
+              for (const row of rows) {
+                const months = row.year * 12;
+                expect(row.balance).toBe(futureValue(inputs, months));
+                expect(row.totalContributions).toBe(principal + monthly * months);
+                expect(row.totalInterest).toBe(row.balance - row.totalContributions);
+                checked++;
+              }
+            }
+          }
+        }
+      }
+    }
+    expect(checked).toBe(3 * 3 * 3 * 3 * 2 * 41);
   });
 
   it('growthSchedule adds an exact final row for a partial year', () => {

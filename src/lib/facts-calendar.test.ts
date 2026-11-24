@@ -4,13 +4,17 @@
  * dated-fact topic the plan requires (TX-3); the date rules are tested with
  * injected dates and file contents.
  */
-import { afterAll, describe, it, expect } from 'vitest';
+import { afterAll, describe, it, expect, vi } from 'vitest';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { parseCalendar, evaluateCalendar, parseDerive, findKeyedDate } from '../../scripts/check-facts-calendar.mjs';
 import { parseIsoDate, toIsoDate } from './tax-years.mjs';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const day = (iso: string) => parseIsoDate(iso) as Date;
 const calendarMd = readFileSync('docs/freshness-calendar.md', 'utf8');

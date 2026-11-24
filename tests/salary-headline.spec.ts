@@ -311,13 +311,13 @@ test.describe('UK relief at source: payslip comparison', () => {
     await enter(page, 'uk-salary', '60000');
     await page.getByText('£ a year', { exact: true }).click();
     await page.getByText('Relief at source', { exact: true }).click();
-    // Payslip: 412.50 a month out of pay for the pension -> 4,950 a year.
-    await enter(page, 'uk-pension-amount', String(412.5 * 12));
+    // Payslip: 400 a month out of pay for the pension (a made-up round figure) -> 4,800 a year.
+    await enter(page, 'uk-pension-amount', String(400 * 12));
     const results = page.locator('[data-headline-result]').locator('xpath=ancestor::div[contains(@class,"lg:sticky")][1]');
-    await expect(page.getByText('You pay £4,950; your provider claims £1,238 basic-rate relief, so £6,188 goes into your pension.')).toBeVisible();
+    await expect(page.getByText('You pay £4,800; your provider claims £1,200 basic-rate relief, so £6,000 goes into your pension.')).toBeVisible();
     await expect(results.getByText('Pension (you pay)')).toBeVisible();
-    await expect(results.locator('p', { hasText: /^£4,950$/ })).toBeVisible();
-    await expect(page.getByText('That is £412.50 a month.')).toBeVisible();
+    await expect(results.locator('p', { hasText: /^£4,800$/ })).toBeVisible();
+    await expect(page.getByText('That is £400.00 a month.')).toBeVisible();
   });
 
   test('switching % to £ keeps the contribution as the amount taken from pay', async ({ page }) => {

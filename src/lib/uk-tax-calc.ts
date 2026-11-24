@@ -43,8 +43,11 @@
  */
 
 import {
+  UK_CHILDCARE_ANI_LIMIT as RATES_CHILDCARE_ANI_LIMIT,
   UK_INCOME_TAX,
   UK_NI,
+  UK_PENSION_ANNUAL_ALLOWANCE as RATES_PENSION_ANNUAL_ALLOWANCE,
+  UK_QUALIFYING_EARNINGS,
   UK_STUDENT_LOANS,
   UK_SCOTTISH_TAX,
 } from './uk-rates';
@@ -68,18 +71,20 @@ const NI_UPPER_RATE = UK_NI.upperRate;
 
 /** Basic-rate relief added by a relief-at-source provider (rest-of-UK basic rate). */
 const RAS_BASIC_RELIEF = UK_INCOME_TAX.bands.find(b => b.name === 'Basic')!.rate;
-/** Pension annual allowance (GOV.UK, 2026/27). Not in uk-rates.ts yet; see REQUEST for W1-TAX. */
-export const UK_PENSION_ANNUAL_ALLOWANCE = 60_000;
-/** Adjusted net income above which Tax-Free Childcare and working-parent free hours stop. */
-export const UK_CHILDCARE_ANI_LIMIT = 100_000;
-/**
- * Automatic-enrolment qualifying earnings band (a year, before tax). Not in uk-rates.ts yet;
- * REQUEST for W1-TAX consolidation: move both into the year-keyed UkYearRates and re-export here.
- * Source: https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay
- * ("between £6,240 and £50,270 a year before tax"), accessed 15 Nov 2026.
+/*
+ * The values below live in the year-keyed uk-rates.ts (the single source) and are re-exported here
+ * under their original names so existing importers keep working.
  */
-export const UK_QUALIFYING_EARNINGS_LOWER = 6_240;
-export const UK_QUALIFYING_EARNINGS_UPPER = 50_270;
+/** Pension annual allowance (GOV.UK, 2026/27). */
+export const UK_PENSION_ANNUAL_ALLOWANCE = RATES_PENSION_ANNUAL_ALLOWANCE;
+/** Adjusted net income above which Tax-Free Childcare and working-parent free hours stop. */
+export const UK_CHILDCARE_ANI_LIMIT = RATES_CHILDCARE_ANI_LIMIT;
+/**
+ * Automatic-enrolment qualifying earnings band (a year, before tax): 6,240 to 50,270.
+ * Source and access date: see qualifyingEarnings in uk-rates.ts.
+ */
+export const UK_QUALIFYING_EARNINGS_LOWER = UK_QUALIFYING_EARNINGS.lower;
+export const UK_QUALIFYING_EARNINGS_UPPER = UK_QUALIFYING_EARNINGS.upper;
 
 /**
  * What leaves your pay for a GROSS pension contribution. Maps the original gross

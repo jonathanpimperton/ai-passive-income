@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -16,6 +16,10 @@ import {
   buildLastmodMap,
   readGitDates,
 } from './sitemap-lastmod.mjs';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const ROOT = resolve(__dirname, '../..');
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -220,12 +224,42 @@ describe('buildLastmodMap (real content, injected git dates)', () => {
   });
 
   it('uses the latest of lastUpdated, markdown and component for tools', () => {
-    for (const { raw } of mdFiles('src/data/tools')) {
-      const slug = frontmatterValue(raw, 'slug');
+    // The expectation is derived the way the sitemap derives it, from the same
+    // three inputs, so editing a tool page's frontmatter (adding or dropping
+    // lastUpdated) can never leave a hard-coded date behind.
+    const components = readComponentMap(ROOT);
+    for (const { file, raw } of mdFiles('src/data/tools')) {
+      const slug = frontmatterValue(raw, 'slug')!;
       const category = frontmatterValue(raw, 'category');
-      const expected = slug === 'salary-uk' ? '2026-09-09' : maxDate(frontmatterValue(raw, 'lastUpdated'), '2026-01-01');
+      const component = components.get(slug);
+      const expected = maxDate(
+        frontmatterValue(raw, 'lastUpdated'),
+        fakeGit.get(file),
+        component ? fakeGit.get(`src/components/tools/${component}.tsx`) : undefined,
+      );
+      expect(expected, `${slug}: no date input at all`).toBeTruthy();
       expect(map.get(`/tools/${category}/${slug}/`), slug).toBe(expected);
     }
+  });
+
+  it('lets the calculator component date win when it is the newest input, and a newer lastUpdated beat both', () => {
+    const git = new Map(fakeGit);
+    const mdFile = 'src/data/tools/salary-uk.md';
+    const raw = readFileSync(join(ROOT, mdFile), 'utf8');
+    const lastUpdated = frontmatterValue(raw, 'lastUpdated');
+    git.set('src/components/tools/SalaryUkCalc.tsx', '2099-01-02');
+    const newerComponent = buildLastmodMap({ root: ROOT, gitDates: git });
+    expect(newerComponent.get('/tools/income-and-planning/salary-uk/')).toBe('2099-01-02');
+    // The markdown's own git date moves it too, whichever of the three is newest.
+    git.set('src/components/tools/SalaryUkCalc.tsx', '2026-09-09');
+    git.set(mdFile, '2099-03-04');
+    const newerMarkdown = buildLastmodMap({ root: ROOT, gitDates: git });
+    expect(newerMarkdown.get('/tools/income-and-planning/salary-uk/')).toBe('2099-03-04');
+    // lastUpdated is an input too: with both git dates old, the page's own date (if it has one) decides.
+    git.set(mdFile, '2000-01-01');
+    git.set('src/components/tools/SalaryUkCalc.tsx', '2000-01-01');
+    const oldGit = buildLastmodMap({ root: ROOT, gitDates: git });
+    expect(oldGit.get('/tools/income-and-planning/salary-uk/')).toBe(maxDate(lastUpdated, '2000-01-01'));
   });
 
   it('uses the git date for methodology and template pages', () => {

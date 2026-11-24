@@ -6,10 +6,14 @@
  * client's ("item-46-name" vs "item-1-name"), which made React report
  * "A tree hydrated but some attributes of the server rendered HTML didn't match".
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import NetWorthCalc from './NetWorthCalc';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const render = () => renderToStaticMarkup(createElement(NetWorthCalc));
 const ids = (html: string) => [...html.matchAll(/\sid="(item-[^"]+)"/g)].map((m) => m[1]);

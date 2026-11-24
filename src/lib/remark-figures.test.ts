@@ -52,6 +52,15 @@ describe('remark-figures in the Astro Markdown pipeline', () => {
     expect(html).toContain(`Year ${evaluateFigure("taxYear('uk')")} and literal {{ braces }}.`);
   });
 
+  it('a claim that holds renders nothing; one that stops holding fails the render with its message and position', async () => {
+    const ok = await render("Higher pay leaves more.{{ claim(ukTakeHome(50000) > ukTakeHome(45000), 'a higher salary leaves more') }}");
+    expect(ok).toContain('<p>Higher pay leaves more.</p>');
+    const file = join(dir, 'verdict.md');
+    writeFileSync(file, 'x');
+    const md = "Intro.\n\nThe 30-year loan wins.{{ claim(loanTotalInterest(300000, 6, 30) < loanTotalInterest(300000, 6, 15), 'the 30-year loan costs less interest') }}\n";
+    await expect(render(md, file)).rejects.toThrow(/verdict\.md:\d+:\d+ figure token \{\{ claim\(.*the 30-year loan costs less interest/);
+  });
+
   it('a bad token rejects the render with file:line:column and the token', async () => {
     const file = join(dir, 'page.md');
     const md = 'First paragraph.\n\nSecond {{ ukTakeHome(30000, plan=plan9) | gbp }} line.';

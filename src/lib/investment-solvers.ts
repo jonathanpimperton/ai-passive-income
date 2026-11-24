@@ -93,9 +93,14 @@ export interface GrowthRow {
 }
 
 /**
- * Year-by-year schedule, rows for years 0..years (values rounded to cents).
+ * Year-by-year schedule, rows for years 0..years. Values are EXACT (not
+ * rounded): a display rounds once, at the end, so what a calculator prints can
+ * never differ by a dollar from the engine or a figure token. (They used to be
+ * rounded to cents here and rounded again by the display: $500 a month for 30
+ * years at 7% is $609,985.4979, which became $609,985.50 and then $609,986.)
  * If `finalMonths` is given and is not a whole number of years, a last row is
- * added at that exact point (year = months / 12, rounded to 2 decimals).
+ * added at that exact point (year = months / 12, rounded to 2 decimals: it is a
+ * label, not money).
  */
 export function growthSchedule(inputs: GrowthInputs, years: number, finalMonths?: number): GrowthRow[] {
   const rows: GrowthRow[] = [];
@@ -103,12 +108,7 @@ export function growthSchedule(inputs: GrowthInputs, years: number, finalMonths?
   const pushRow = (year: number, months: number) => {
     const balance = futureValue(inputs, months);
     const totalContributions = contributionsAfter(inputs, months);
-    rows.push({
-      year,
-      balance: Math.round(balance * 100) / 100,
-      totalContributions: Math.round(totalContributions * 100) / 100,
-      totalInterest: Math.round((balance - totalContributions) * 100) / 100,
-    });
+    rows.push({ year, balance, totalContributions, totalInterest: balance - totalContributions });
   };
   for (let y = 0; y <= wholeYears; y++) pushRow(y, y * 12);
   if (finalMonths !== undefined && finalMonths > wholeYears * 12) {

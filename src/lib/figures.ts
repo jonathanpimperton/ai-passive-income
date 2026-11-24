@@ -86,7 +86,14 @@
  * multi-debt payoff that is never cleared or not cleared in 600 months; an
  * affordability case with no budget ("No home fits these limits"); a solar system
  * that does not pay back in the period; a car deposit or balloon the calculator
- * would clamp; an emergency fund beyond 50 years; a required rate that does not exist.
+ * would clamp; an emergency fund beyond 50 years; a required rate that does not exist;
+ * an IRA or 401(k) fact for a year the IRS has not published; an OBBBA fact outside
+ * 2025-2028; and a claim(condition, message) whose condition is false.
+ *
+ * claim(condition, message) is the one token that prints nothing. It guards a derived
+ * statement in prose (a verdict, a ranking) with a comparison of live figures (`<`, `>`,
+ * `<=`, `>=`, `==`, `!=`, joined with `&&`, `||`, `!`): when the numbers move so that the
+ * sentence is no longer true, the build fails with the message instead of publishing it.
  *
  * figures-grid.test.ts compares every one of these functions with its
  * engine over a grid of inputs (exact equality where the same engine function
@@ -112,8 +119,13 @@ import {
   UK_CGT,
   UK_EMPLOYER_NI,
   UK_INCOME_TAX,
+  UK_ISA,
   UK_MORTGAGE,
   UK_NI,
+  UK_PENSION_ANNUAL_ALLOWANCE,
+  UK_PERSONAL_SAVINGS_ALLOWANCE,
+  UK_QUALIFYING_EARNINGS,
+  UK_SCOTTISH_TAX,
   UK_SDLT,
   UK_STATE_PENSION,
   UK_STUDENT_LOANS,
@@ -717,7 +729,59 @@ const UK_FACTS: Record<string, [() => number, string]> = {
   pensionAccessAge: [() => NMPA_CURRENT, 'normal minimum pension age (uk-pension-ages.ts)'],
   pensionAccessAgeFrom2028: [() => NMPA_FROM_2028, 'normal minimum pension age from 6 Apr 2028 (uk-pension-ages.ts)'],
   mortgageIncomeMultiple: [() => UK_MORTGAGE.incomeMultipleCap, 'typical lender loan-to-income cap (x income)'],
+
+  // Scottish income tax (gov.scot, 2026 to 2027 page). Rates in %. "Top" is the highest income in the band,
+  // counting the standard personal allowance: the figure gov.scot publishes (Starter £12,571 to £16,537, ...).
+  scotStarterRate: [() => pctOf(scottishBand('Starter').rate), 'Scottish starter rate (%)'],
+  scotBasicRate: [() => pctOf(scottishBand('Basic').rate), 'Scottish basic rate (%)'],
+  scotIntermediateRate: [() => pctOf(scottishBand('Intermediate').rate), 'Scottish intermediate rate (%)'],
+  scotHigherRate: [() => pctOf(scottishBand('Higher').rate), 'Scottish higher rate (%)'],
+  scotAdvancedRate: [() => pctOf(scottishBand('Advanced').rate), 'Scottish advanced rate (%)'],
+  scotTopRate: [() => pctOf(scottishBand('Top').rate), 'Scottish top rate (%)'],
+  scotStarterTop: [() => scottishBandTop('Starter'), 'top of the Scottish starter band, as income with the standard personal allowance (£)'],
+  scotBasicTop: [() => scottishBandTop('Basic'), 'top of the Scottish basic band, as income with the standard personal allowance (£)'],
+  scotIntermediateTop: [() => scottishBandTop('Intermediate'), 'top of the Scottish intermediate band, as income with the standard personal allowance (£)'],
+  scotHigherTop: [() => scottishBandTop('Higher'), 'top of the Scottish higher band, as income with the standard personal allowance (£)'],
+  scotAdvancedTop: [() => scottishBandTop('Advanced'), 'top of the Scottish advanced band, where the 48% top rate starts (£; the allowance is gone by then)'],
+
+  // Pensions and savings
+  qualifyingEarningsLower: [() => UK_QUALIFYING_EARNINGS.lower, 'auto-enrolment qualifying earnings band, lower limit (£ a year)'],
+  qualifyingEarningsUpper: [() => UK_QUALIFYING_EARNINGS.upper, 'auto-enrolment qualifying earnings band, upper limit (£ a year)'],
+  pensionAnnualAllowance: [() => UK_PENSION_ANNUAL_ALLOWANCE, 'pension annual allowance before any taper (£)'],
+  psaBasic: [() => UK_PERSONAL_SAVINGS_ALLOWANCE.basic, 'Personal Savings Allowance, basic-rate taxpayer (£)'],
+  psaHigher: [() => UK_PERSONAL_SAVINGS_ALLOWANCE.higher, 'Personal Savings Allowance, higher-rate taxpayer (£)'],
+  psaAdditional: [() => UK_PERSONAL_SAVINGS_ALLOWANCE.additional, 'Personal Savings Allowance, additional-rate taxpayer (£)'],
+  isaAllowance: [() => UK_ISA.annualAllowance, 'total ISA allowance for the tax year (£)'],
+  lisaAnnualLimit: [() => UK_ISA.lisaAnnualLimit, 'most you can pay into a Lifetime ISA in the tax year (£)'],
+  lisaPropertyCap: [() => UK_ISA.lisaPropertyCap, 'highest first-home price a Lifetime ISA withdrawal can fund without the over-cap charge (£)'],
+
+  // Stamp duty (England and NI), standard residential bands numbered from the 0% band: band 1 is 0% up to sdltNilBand.
+  sdltBand2Top: [() => UK_SDLT.standard[1].to, 'top of standard SDLT band 2, the 2% band (£)'],
+  sdltBand3Top: [() => UK_SDLT.standard[2].to, 'top of standard SDLT band 3, the 5% band (£)'],
+  sdltBand4Top: [() => UK_SDLT.standard[3].to, 'top of standard SDLT band 4, the 10% band (£)'],
+  sdltBand2Rate: [() => pctOf(UK_SDLT.standard[1].rate), 'standard SDLT rate in band 2 (%)'],
+  sdltBand3Rate: [() => pctOf(UK_SDLT.standard[2].rate), 'standard SDLT rate in band 3 (%)'],
+  sdltBand4Rate: [() => pctOf(UK_SDLT.standard[3].rate), 'standard SDLT rate in band 4 (%)'],
+  sdltTopRate: [() => pctOf(UK_SDLT.standard[4].rate), 'standard SDLT rate above sdltBand4Top (%)'],
+  sdltFtbRate: [() => pctOf(UK_SDLT.firstTimeBuyer[1].rate), 'first-time buyer rate between sdltFtbNilBand and sdltFtbCap (%)'],
+  sdltNonResidentSurcharge: [() => pctOf(UK_SDLT.nonResidentSurcharge), 'non-UK resident surcharge on every band (%)'],
+  sdltNonResidentMinPrice: [() => UK_SDLT.nonResidentMinPrice, 'price from which the non-resident surcharge applies (£)'],
 };
+
+const scottishBand = (name: (typeof UK_SCOTTISH_TAX.bands)[number]['name']) => UK_SCOTTISH_TAX.bands.find((b) => b.name === name)!;
+
+/**
+ * The top of a Scottish band as income with the standard personal allowance, the way gov.scot
+ * publishes it. The band edges in uk-rates.ts are TAXABLE income above the allowance, so the
+ * next band's start plus the allowance is this band's top. The Top band starts at 125,140 where the
+ * allowance is already tapered away, so that edge is the same number as total income.
+ */
+function scottishBandTop(name: (typeof UK_SCOTTISH_TAX.bands)[number]['name']): number {
+  const bands = UK_SCOTTISH_TAX.bands;
+  const next = bands[bands.findIndex((b) => b.name === name) + 1];
+  if (!next) fail(`the Scottish ${name} band has no top`);
+  return next.name === 'Top' ? next.from : UK_INCOME_TAX.personalAllowance + next.from;
+}
 
 /**
  * US facts: key -> [value(rates, status), description]. Rates are percentages.
@@ -734,11 +798,26 @@ const US_FACTS: Record<string, [(r: UsYearRates, s: FilingStatus) => number, str
   k401Limit: [(r) => r.retirement401k.limit, '401(k) employee elective deferral limit ($)'],
   k401CatchUp: [(r) => r.retirement401k.catchUp, '401(k) catch-up, age 50+ ($)'],
   k401CatchUp60to63: [(r) => r.retirement401k.catchUp60to63, '401(k) higher catch-up, ages 60-63 ($)'],
+  iraLimit: [(r) => r.retirementIra.limit, 'IRA contribution limit, traditional and Roth combined, under age 50 ($)'],
+  iraCatchUp: [(r) => r.retirementIra.catchUp, 'IRA catch-up contribution, age 50+ ($)'],
+  // One Big Beautiful Bill Act deductions (tax years 2025 to 2028). Both are deductions from taxable income.
+  overtimeCap: [(r, s) => obbba(r).overtime.cap[s], 'qualified overtime deduction cap ($, by status)'],
+  overtimePhaseOutStart: [(r, s) => obbba(r).overtime.phaseOutStart[s], 'MAGI where the overtime deduction starts to phase out ($, by status)'],
+  overtimeReductionPer1000: [(r) => obbba(r).overtime.reductionPerThousand, 'overtime deduction lost for each full $1,000 of MAGI above the start ($)'],
+  seniorDeduction: [(r) => obbba(r).senior.perPerson, 'enhanced deduction for each person aged 65 or over ($)'],
+  seniorPhaseOutStart: [(r, s) => obbba(r).senior.phaseOutStart[s], 'MAGI where the senior deduction starts to phase out ($, by status)'],
+  seniorPhaseOutRate: [(r) => pctOf(obbba(r).senior.phaseOutRate), 'share of MAGI above the start that reduces each senior deduction (%)'],
   niitRate: [(r) => pctOf(r.capitalGains.niit.rate), 'Net Investment Income Tax rate (%)'],
   niitThreshold: [(r, s) => r.capitalGains.niit.threshold[s], 'NIIT threshold ($, by status)'],
   ltcgZeroTop: [(r, s) => r.capitalGains.longTerm[s][1].from, 'taxable income where the 0% long-term gains band ends ($, by status)'],
   ltcg15Top: [(r, s) => r.capitalGains.longTerm[s][2].from, 'taxable income where the 15% band ends ($, by status)'],
 };
+
+/** The OBBBA deductions of a year, or a build failure when none are in force. */
+function obbba(r: UsYearRates): NonNullable<UsYearRates['obbba']> {
+  if (!r.obbba) fail(`no One Big Beautiful Bill Act deductions are in force for ${r.year} (they run 2025 to 2028)`);
+  return r.obbba;
+}
 
 function usBracketStart(ratePct: number, status: FilingStatus, rates: UsYearRates): number {
   const brackets = rates.brackets[status];
@@ -1050,6 +1129,18 @@ function rentVsBuyInputs(a: Args): RentVsBuyInputs {
 
 /* ── Solar payback (calculateSolarPayback) ── */
 
+/** solarDefault keys (the names solarPayback options use) -> the field of SOLAR_REGIONAL_DEFAULTS. */
+const SOLAR_DEFAULT_KEYS: Record<string, keyof (typeof SOLAR_REGIONAL_DEFAULTS)['uk']> = {
+  systemCost: 'systemCost',
+  systemSize: 'systemSize',
+  batteryCost: 'batteryCost',
+  batteryCapacity: 'batteryCapacity',
+  tariff: 'electricityTariff',
+  exportTariff: 'exportTariff',
+  maintenance: 'maintenanceCost',
+  kWhPerKwp: 'kWhPerKwp',
+};
+
 function solarInputs(a: Args): SolarPaybackInputs {
   const region = a.str('region') as SolarRegion;
   const d = SOLAR_REGIONAL_DEFAULTS[region];
@@ -1232,13 +1323,19 @@ const fns: FigureFunction[] = [
         oneOf: ['standard', 'first-time', 'additional'],
         aliases: { ftb: 'first-time', firstTime: 'first-time', second: 'additional' },
       },
+      {
+        name: 'nonResident',
+        type: 'boolean',
+        doc: "buyer is not UK resident for SDLT (the tool's checkbox): adds the non-resident surcharge to every band for a price of £40,000 or more",
+        default: false,
+      },
       ukYear,
     ],
     returns: 'number (£)',
     example: 'sdlt(425000, buyer=ftb) | gbp',
     run: (a) => {
       checkUkYear(a);
-      return calculateSdlt(a.num('price'), a.str('buyer') as BuyerType).totalTax;
+      return calculateSdlt(a.num('price'), a.str('buyer') as BuyerType, { nonResident: a.bool('nonResident') }).totalTax;
     },
   },
 
@@ -1324,6 +1421,9 @@ const fns: FigureFunction[] = [
       const rates = getUsRates(year);
       if (a.str('key').startsWith('k401') && !rates.retirement401k.published) {
         fail(`the IRS has not published the ${year} 401(k) limits yet (the rates module carries the prior year's values), so they cannot be printed as facts`);
+      }
+      if (a.str('key').startsWith('ira') && !rates.retirementIra.published) {
+        fail(`the IRS has not published the ${year} IRA limits yet (the rates module carries the prior year's values), so they cannot be printed as facts`);
       }
       return US_FACTS[a.str('key')][0](rates, a.str('status') as FilingStatus);
     },
@@ -2358,6 +2458,19 @@ const fns: FigureFunction[] = [
 
   /* ── Solar payback ── */
   {
+    name: 'solarDefault',
+    group: 'Solar payback',
+    summary:
+      "A regional starting value of the solar payback calculator (what solarPayback uses when an option is not given), so prose can quote the default tariff. Tariffs are in pence (uk) or cents (us, eur) per kWh; costs in money; size in kWp, battery in kWh. Print tariffs with num(auto) or num(2).",
+    params: [
+      { name: 'region', type: 'string', doc: 'uk, us or eur', required: true, oneOf: ['uk', 'us', 'eur'] },
+      { name: 'key', type: 'string', doc: `one of ${Object.keys(SOLAR_DEFAULT_KEYS).join(', ')}`, required: true, oneOf: Object.keys(SOLAR_DEFAULT_KEYS) },
+    ],
+    returns: 'number (unit by key)',
+    example: "solarDefault('uk', 'tariff') | num(2)",
+    run: (a) => SOLAR_REGIONAL_DEFAULTS[a.str('region') as SolarRegion][SOLAR_DEFAULT_KEYS[a.str('key')]],
+  },
+  {
     name: 'solarPayback',
     group: 'Solar payback',
     summary:
@@ -2563,6 +2676,26 @@ const fns: FigureFunction[] = [
     returns: 'string',
     example: "rateSource('us30')",
     run: (a) => rateAttribution(MARKET_RATE_KEYS[a.str('key')]),
+  },
+  {
+    name: 'claim',
+    group: 'Helpers',
+    summary:
+      'Guards a derived statement in the prose (a verdict, a ranking, "X is cheaper than Y"): prints NOTHING when the condition is true and FAILS THE BUILD with your message when it is false, so a sentence can never outlive the numbers it rests on. Put it at the end of the sentence it guards.',
+    params: [
+      { name: 'condition', type: 'boolean', doc: 'a comparison of figures, e.g. a > b, joined with && || !', required: true },
+      { name: 'message', type: 'string', doc: 'what the sentence claims, shown in the build error when it stops being true', required: true },
+    ],
+    returns: 'nothing (empty text)',
+    example: "claim(ukTakeHome(50000) > ukTakeHome(45000), 'a higher salary leaves more take-home pay')",
+    run: (a) => {
+      const message = a.str('message').trim();
+      if (message === '') fail('claim needs a message saying what the text claims');
+      if (!a.bool('condition')) {
+        fail(`a claim in the text no longer holds: ${message}. Rewrite the sentence that depends on it, then update or remove the claim`);
+      }
+      return '';
+    },
   },
   {
     name: 'min',
@@ -2948,9 +3081,34 @@ function evalExpr(node: ExprNode): FigureValue {
       if (typeof v !== 'number') fail(`cannot negate ${describeValue(v)}`);
       return -v;
     }
+    case 'not': {
+      const v = evalExpr(node.operand);
+      if (typeof v !== 'boolean') fail(`"!" needs a true/false condition such as a comparison, got ${describeValue(v)}`);
+      return !v;
+    }
     case 'bin': {
       const l = evalExpr(node.left);
       const r = evalExpr(node.right);
+      // Both sides are always evaluated (no short-circuit): a broken expression fails the build even when the
+      // other side would have decided the answer.
+      if (node.op === '&&' || node.op === '||') {
+        if (typeof l !== 'boolean' || typeof r !== 'boolean') {
+          fail(`"${node.op}" joins true/false conditions such as comparisons, got ${describeValue(typeof l !== 'boolean' ? l : r)}`);
+        }
+        return node.op === '&&' ? l && r : l || r;
+      }
+      if (node.op === '==' || node.op === '!=') {
+        if (typeof l === 'object' || typeof r === 'object' || typeof l !== typeof r) {
+          fail(`"${node.op}" compares two values of the same kind (numbers, text or true/false), got ${describeValue(l)} and ${describeValue(r)}`);
+        }
+        return node.op === '==' ? l === r : l !== r;
+      }
+      if (node.op === '<' || node.op === '>' || node.op === '<=' || node.op === '>=') {
+        if (typeof l !== 'number' || typeof r !== 'number') {
+          fail(`"${node.op}" compares numbers, got ${describeValue(typeof l !== 'number' ? l : r)}`);
+        }
+        return node.op === '<' ? l < r : node.op === '>' ? l > r : node.op === '<=' ? l <= r : l >= r;
+      }
       if (typeof l !== 'number' || typeof r !== 'number') {
         fail(`"${node.op}" works on numbers only, got ${describeValue(typeof l !== 'number' ? l : r)}`);
       }
@@ -3001,7 +3159,9 @@ function runPipeline(p: Pipeline): string {
   if (typeof value === 'number') {
     fail(`the result is a number (${value}); add a formatter such as | gbp, | usd, | pct or | months`);
   }
-  if (typeof value === 'boolean') fail('the result is a boolean; tokens must print text or a formatted number');
+  if (typeof value === 'boolean') {
+    fail('the result is a boolean (true/false), which cannot be printed; to assert it at build time wrap it: claim(condition, \'what the text claims\')');
+  }
   fail(`the result is an object; pick a field, e.g. .${Object.keys(value)[0]} (fields: ${Object.keys(value).join(', ')})`);
 }
 

@@ -185,41 +185,41 @@ describe('payslip basis (relief at source)', () => {
 
 describe('"amount taken from your pay" (relief at source input trap)', () => {
   it('a payslip pension deduction x 12 reproduces the pension line exactly', () => {
-    // Payslip shows £412.50 a month out of pay for the pension: 412.50 x 12 = 4,950 a year.
-    // Gross into the pot = 4,950 / 0.8 = 6,187.50; provider relief = 1,237.50.
+    // A payslip shows £400 a month out of pay for the pension (a made-up round figure): 400 x 12 = 4,800 a year.
+    // Gross into the pot = 4,800 / 0.8 = 6,000; provider relief = 1,200.
     const r = run({
       salary: 60_000,
       pensionMode: 'amount',
-      pensionAmount: 412.5 * 12,
+      pensionAmount: 400 * 12,
       pensionAmountBasis: 'fromPay',
       pensionMethod: 'reliefAtSource',
     });
-    expect(r.pension.fromPay).toBe(4_950);
-    expect(r.pension.gross).toBeCloseTo(6_187.5, 8);
-    expect(r.pension.providerRelief).toBeCloseTo(1_237.5, 8);
-    // Take-home = salary - tax - NI - what leaves the pay (4,950).
-    expect(r.netAnnual).toBeCloseTo(60_000 - r.incomeTax - r.ni - 4_950, 8);
+    expect(r.pension.fromPay).toBe(4_800);
+    expect(r.pension.gross).toBeCloseTo(6_000, 8);
+    expect(r.pension.providerRelief).toBeCloseTo(1_200, 8);
+    // Take-home = salary - tax - NI - what leaves the pay (4,800).
+    expect(r.netAnnual).toBeCloseTo(60_000 - r.incomeTax - r.ni - 4_800, 8);
   });
 
   it('the old entry (gross, no basis) is unchanged, and equals the new entry for the same contribution', () => {
-    const legacy = run({ salary: 60_000, pensionMode: 'amount', pensionAmount: 6_187.5, pensionMethod: 'reliefAtSource' });
+    const legacy = run({ salary: 60_000, pensionMode: 'amount', pensionAmount: 6_000, pensionMethod: 'reliefAtSource' });
     const fromPay = run({
       salary: 60_000,
       pensionMode: 'amount',
-      pensionAmount: 4_950,
+      pensionAmount: 4_800,
       pensionAmountBasis: 'fromPay',
       pensionMethod: 'reliefAtSource',
     });
-    expect(legacy.pension.gross).toBe(6_187.5);
-    expect(legacy.pension.fromPay).toBeCloseTo(4_950, 8);
+    expect(legacy.pension.gross).toBe(6_000);
+    expect(legacy.pension.fromPay).toBeCloseTo(4_800, 8);
     expect(fromPay.netAnnual).toBeCloseTo(legacy.netAnnual, 6);
     expect(fromPay.incomeTax).toBeCloseTo(legacy.incomeTax, 6);
   });
 
   it('entering the same figure as gross understates what comes out of pay by 20% (the trap)', () => {
-    // Typing the payslip figure (4,950) where the gross was expected pays only 3,960 from pay.
-    const wrong = run({ salary: 60_000, pensionMode: 'amount', pensionAmount: 4_950, pensionMethod: 'reliefAtSource' });
-    expect(wrong.pension.fromPay).toBeCloseTo(3_960, 8);
+    // Typing the payslip figure (4,800) where the gross was expected pays only 3,840 from pay.
+    const wrong = run({ salary: 60_000, pensionMode: 'amount', pensionAmount: 4_800, pensionMethod: 'reliefAtSource' });
+    expect(wrong.pension.fromPay).toBeCloseTo(3_840, 8);
   });
 
   it('for net pay and salary sacrifice "from pay" and "gross" are the same thing', () => {

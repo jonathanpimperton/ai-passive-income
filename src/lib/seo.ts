@@ -189,14 +189,19 @@ export function buildWebsiteSchema(): string {
  * <title> text (before BaseLayout's " | CalcRun" suffix) for a tool page.
  * Tax tools carry the tax year their figures use, derived from the rates
  * modules, so the title can never claim a year the calculator doesn't use
- * (GROWTH-SEO-04). Every other tool uses its name.
+ * (GROWTH-SEO-04). The two salary calculators state that their answer is a
+ * month of take-home pay (and a year). The US title says "Monthly and Annual".
+ * The UK title keeps "Salary" and "Take-Home" (its two main search terms) and
+ * states "Monthly", because "Monthly and Annual" does not fit alongside both
+ * within 60 characters. A title is at most 60 characters with BaseLayout's
+ * suffix; seo.test.ts checks every tool. Every other tool uses its name.
  */
 export function toolPageTitle(tool: { name: string; slug: string }): string {
   switch (tool.slug) {
     case 'salary-uk':
-      return `UK Salary & Take-Home Pay Calculator ${UK_TAX_YEAR}`;
+      return `UK Salary Calculator ${UK_TAX_YEAR}: Monthly Take-Home`;
     case 'salary-us':
-      return `US Salary & Paycheck Calculator ${US_TAX_YEAR}`;
+      return `US Paycheck Calculator ${US_TAX_YEAR}: Monthly and Annual`;
     case 'capital-gains-tax':
       return `Capital Gains Tax Calculator: UK ${UK_TAX_YEAR} & US ${US_TAX_YEAR}`;
     case 'stamp-duty':

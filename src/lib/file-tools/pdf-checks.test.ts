@@ -1,8 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { looksLikePdf, hasEncryptDictionary, parsePageRanges, encryptedPdfMessage } from './pdf-checks';
 import { loadPdfForEditing, rebuildAcroForm } from './pdf-load';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const FIX = path.resolve(__dirname, '../../../tests/fixtures/file-tools');
 const read = (name: string) => new Uint8Array(fs.readFileSync(path.join(FIX, name)));

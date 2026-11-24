@@ -13,12 +13,25 @@
  * source (cite URL + access date), then add the year to UK_DATASETS in
  * tax-years.mjs.
  *
- * Sources (2026/27, verified 2026-07-02):
+ * Sources (2026/27, first verified 2026-07-02; every figure below re-read on 2026-11-16, after the
+ * 28 Oct 2026 Budget, with no mid-year change):
+ * - income tax bands, personal allowance and its taper (income-tax-rates);
+ * - NI thresholds and rates, employee and employer, annual column
+ *   (https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027);
+ * - student loan plan thresholds and rates, Postgraduate Loan (the same employers page);
+ * - new State Pension 241.30 a week, CGT exempt amount and 18%/24% rates;
+ * - the six Scottish bands (gov.scot, 2026 to 2027 page; the Scottish Rate Resolution was agreed in
+ *   February 2026 and its starter limit, 3,967 above the allowance, matches);
+ * - pension annual allowance 60,000 (taper only above 200,000 threshold income and 260,000
+ *   adjusted income), Tax-Free Childcare income limit 100,000;
+ * - SDLT bands, first-time buyer relief, 5% additional-property surcharge, 2% non-resident surcharge.
+ *
+ * Source pages:
  * - Income Tax: https://www.gov.uk/income-tax-rates
  * - National Insurance: https://www.gov.uk/national-insurance-rates-letters
  * - State Pension: https://www.gov.uk/new-state-pension/what-youll-get
  * - Student Loans: https://www.gov.uk/repaying-your-student-loan/what-you-pay
- * - Scottish Tax: https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/
+ * - Scottish Tax: https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/pages/2026-to-2027/
  * - CGT: https://www.gov.uk/capital-gains-tax/rates
  */
 
@@ -102,6 +115,19 @@ export interface UkYearRates {
    * childcare hours: you cannot claim if either parent's expected ANI is over it.
    */
   childcareAniLimit: number;
+  /** Automatic-enrolment "qualifying earnings" band, a year before tax: what scheme percentages are worked out on */
+  qualifyingEarnings: { lower: number; upper: number };
+  /** Personal Savings Allowance (tax-free savings interest) by income tax band, £ a year */
+  personalSavingsAllowance: { basic: number; higher: number; additional: number };
+  /** ISA allowance and Lifetime ISA limits */
+  isa: {
+    /** Total you can pay into ISAs in the tax year */
+    annualAllowance: number;
+    /** Most you can pay into a Lifetime ISA in the tax year (counts towards annualAllowance) */
+    lisaAnnualLimit: number;
+    /** Highest purchase price of a first home that a Lifetime ISA withdrawal can fund without the full charge */
+    lisaPropertyCap: number;
+  };
 }
 
 /* ── Per-year datasets ─────────────────────────────────────── */
@@ -127,8 +153,12 @@ export const UK_RATES_BY_YEAR: Record<UkTaxYear, UkYearRates> = {
     // Full new State Pension 2026/27 (4.8% triple-lock uprating, April 2026)
     statePension: { weeklyRate: 241.30, source: 'https://www.gov.uk/new-state-pension/what-youll-get' },
     // Thresholds from 6 April 2026. Plan 5 threshold £25,000. Plan 5 repayments start the April
-    // after leaving a course, so the first graduates (3-year courses from Sept 2023) start in
-    // April 2027 at the earliest (CONTENT-24; https://www.gov.uk/repaying-your-student-loan/when-you-start-repaying).
+    // after you finish or leave the course. The first borrowers became liable in April 2026
+    // (shorter courses and early leavers); April 2027 for a three-year degree started in autumn
+    // 2023. Source: GOV.UK, Student Loans in England: financial year 2025-26 ("The first borrowers
+    // with Repayment Plan 5 loans became liable to repay in April 2026"), accessed 2026-11-16:
+    // https://www.gov.uk/government/statistics/student-loans-in-england-2025-to-2026/income-contingent-student-loan-repayment-plans-interest-rates-and-calculations-england
+    // (CONTENT-24; when-you-start-repaying: https://www.gov.uk/repaying-your-student-loan/when-you-start-repaying).
     studentLoans: {
       plan1: { threshold: 26_900, rate: 0.09 },
       plan2: { threshold: 29_385, rate: 0.09 },
@@ -163,6 +193,28 @@ export const UK_RATES_BY_YEAR: Record<UkTaxYear, UkYearRates> = {
     // https://www.gov.uk/tax-free-childcare/check-if-youre-eligible (accessed 2026-11-13); the same limit
     // applies to free childcare for working parents: https://www.gov.uk/check-eligible-free-childcare-if-youre-working
     childcareAniLimit: 100_000,
+    // "between £6,240 and £50,270 a year before tax" (the band the 8% minimum total contribution is
+    // worked out on) https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay
+    // (accessed 2026-11-16; the page names no tax year, and these are the same figures as 2025/26)
+    qualifyingEarnings: { lower: 6_240, upper: 50_270 },
+    // Basic rate £1,000, higher rate £500, additional rate £0 (frozen since 2016)
+    // https://www.gov.uk/apply-tax-free-interest-on-savings/how-much-is-tax-free (accessed 2026-11-16)
+    personalSavingsAllowance: { basic: 1_000, higher: 500, additional: 0 },
+    isa: {
+      // "In the 2026 to 2027 tax year, the maximum you can save in ISAs is £20,000"
+      // https://www.gov.uk/individual-savings-accounts (accessed 2026-11-16)
+      annualAllowance: 20_000,
+      // "You can put in up to £4,000 each year, until you're 50." https://www.gov.uk/lifetime-isa
+      // (accessed 2026-11-16)
+      lisaAnnualLimit: 4_000,
+      // "the purchase price of the residential property is £450,000 or less"
+      // https://www.gov.uk/guidance/lifetime-isa-withdrawals-for-a-first-time-residential-purchase
+      // (accessed 2026-11-16). HMRC's tax information note (28 Oct 2026,
+      // https://www.gov.uk/government/publications/lifetime-isa-withdrawal-charge) says that from
+      // 29 Oct 2026 a withdrawal for a purchase above the cap carries a 20% charge (the ordinary
+      // charge is 25%). That is not modelled here.
+      lisaPropertyCap: 450_000,
+    },
   },
 };
 
@@ -209,6 +261,12 @@ export const UK_SCOTTISH_TAX = DEFAULT_RATES.scottishTax;
 export const UK_PENSION_ANNUAL_ALLOWANCE = DEFAULT_RATES.pensionAnnualAllowance;
 /** £100,000 adjusted-net-income limit for Tax-Free Childcare / free childcare hours, default year */
 export const UK_CHILDCARE_ANI_LIMIT = DEFAULT_RATES.childcareAniLimit;
+/** Auto-enrolment qualifying earnings band (£6,240 to £50,270 in 2026/27), default year */
+export const UK_QUALIFYING_EARNINGS = DEFAULT_RATES.qualifyingEarnings;
+/** Personal Savings Allowance by band (£1,000 / £500 / £0), default year */
+export const UK_PERSONAL_SAVINGS_ALLOWANCE = DEFAULT_RATES.personalSavingsAllowance;
+/** ISA allowance (£20,000) and Lifetime ISA limits, default year */
+export const UK_ISA = DEFAULT_RATES.isa;
 
 /* ── Not tied to a tax year ────────────────────────────────── */
 

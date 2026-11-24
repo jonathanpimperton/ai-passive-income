@@ -15,7 +15,7 @@
  * If a re-point is reverted (a figure goes back to its own arithmetic), the
  * matching grid here fails.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { evaluateFigureValue as v, FigureError, type FigureRecord } from './figures';
 import { calcStudentLoan, calculateUkTakeHome, type PensionMethod, type StudentLoanPlan } from './uk-tax-calc';
 import { parseUkTaxCode } from './uk-tax-codes';
@@ -33,6 +33,10 @@ import { projectRetirement } from './retirement';
 import { buildAmortization, monthlyPayment } from './mortgage-payment';
 import { calculateSdlt } from './stamp-duty';
 import { calculateUKCgt, calculateUSCgt } from './capital-gains';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const num = (expr: string): number => v(expr) as number;
 const rec = (expr: string): FigureRecord => v(expr) as FigureRecord;

@@ -39,6 +39,11 @@ Engine code: `src/lib/figures.ts` (catalogue), `src/lib/figure-parser.ts` (synta
   honest number it **fails the build** instead (a payoff that takes more than 50 years, a
   401(k) limit the IRS has not published, contradictory options). Read the error and
   write that case in words.
+- **Guard derived claims.** A sentence that rests on a comparison of live figures ("the 15-year
+  loan costs less interest", "the Roth account comes out ahead", "X is cheaper than Y") can go
+  stale when a rate moves even though every number in it is a token. Put a `claim(...)` at the end
+  of that sentence (section 4, "Guarding a verdict"): the build fails, with your message, the day
+  the comparison stops being true.
 - **Tell the year.** The US functions follow the calculator's default tax year, which moves
   from 2026 to 2027 on a build after 1 January 2027. Print `{{ taxYear('us') }}` beside the
   figures, or pass `year=2026` (or `2027`) when the sentence is about one specific year.
@@ -58,6 +63,12 @@ Engine code: `src/lib/figures.ts` (catalogue), `src/lib/figure-parser.ts` (synta
   `{{ ukTakeHome(30000) / 12 | gbp }}` (monthly), or
   `{{ loanTotalInterest(50000, 7, 4) - loanTotalInterest(50000, 4.5, 4) | usd }}` (a saving).
   Arguments can be expressions too, for example `yearly=loanPayment(50000, 7, 4)`.
+- **Comparisons.** `<`, `>`, `<=`, `>=`, `==` and `!=` compare two numbers (`==` and `!=` also text),
+  and `&&`, `||` and `!` join conditions: `a > b && c < d`. They give true/false, which cannot be
+  printed, so they only make sense inside `claim(...)` (section 4). Precedence is the usual one
+  (arithmetic, then comparison, then `&&`, then `||`); a comparison does not chain (write
+  `a < b && b < c`). Both sides of `&&` and `||` are always evaluated. A single `|` is still the
+  formatter pipe; `||` is "or".
 - **Fields.** Functions that return an object need a field:
   `{{ cardPayoff(5000, 22.99, 100).months | months }}`.
 - **Formatters** run left to right after `|`. A number can only be printed through a
@@ -213,6 +224,7 @@ Examples:
 | Function | Returns | Example | Value |
 |---|---|---|---|
 | `sdlt(price, buyer=)` | £ SDLT (England and NI). `buyer`: `standard` (default), `ftb` (first-time), `additional` | `{{ sdlt(425000, buyer=ftb) \| gbp }}` | £6,250 |
+| `sdlt(price, buyer=, nonResident=true)` | the same with the non-UK resident surcharge (the Stamp Duty tool's checkbox): 2% extra on every band, on a price of £40,000 or more, on top of the first-time buyer or higher rates. Below £40,000 neither surcharge applies, as in the tool | `{{ sdlt(700000, nonResident=true) \| gbp }}` | £39,000 |
 | `ukCgt(gain, income, year=)` | £ CGT. The band is worked out from income (gross salary etc.) | `{{ ukCgt(50000, 40000) \| gbp }}` | £10,664 |
 
 ### US pay
@@ -267,14 +279,26 @@ back as percentages.
 | `plan1Threshold`, `plan2Threshold`, `plan4Threshold`, `plan5Threshold`, `postgradThreshold`, `studentLoanRate`, `postgradRate` | Student loans |
 | `statePensionWeekly`, `statePensionAnnual`, `pensionAccessAge`, `pensionAccessAgeFrom2028` | Pensions. There is no State Pension age key: it depends on date of birth (66 to 68, `uk-pension-ages.ts`), so write it in words and cite the GOV.UK timetable |
 | `cgtAnnualExempt`, `cgtBasicRate`, `cgtHigherRate` | Capital Gains Tax |
-| `sdltNilBand`, `sdltFtbNilBand`, `sdltFtbCap`, `sdltSurcharge` | Stamp duty |
+| `sdltNilBand`, `sdltFtbNilBand`, `sdltFtbCap`, `sdltSurcharge` | Stamp duty: the 0% band top, the first-time buyer 0% band top and price cap, and the additional-property surcharge (%) |
+| `sdltBand2Top`, `sdltBand3Top`, `sdltBand4Top`, `sdltBand2Rate`, `sdltBand3Rate`, `sdltBand4Rate`, `sdltTopRate` | Standard stamp duty bands, numbered from the 0% band (band 1 is 0% up to `sdltNilBand`): the top of the 2%, 5% and 10% bands (£) and the rates of bands 2, 3, 4 and of the band above (%) |
+| `sdltFtbRate`, `sdltNonResidentSurcharge`, `sdltNonResidentMinPrice` | First-time buyer rate above the nil band (%), the non-UK resident surcharge (%) and the price from which it applies (£) |
+| `scotStarterRate`, `scotBasicRate`, `scotIntermediateRate`, `scotHigherRate`, `scotAdvancedRate`, `scotTopRate` | Scottish income tax rates (%) |
+| `scotStarterTop`, `scotBasicTop`, `scotIntermediateTop`, `scotHigherTop`, `scotAdvancedTop` | Top of each Scottish band as income with the standard personal allowance (£), the figures gov.scot publishes: starter to £16,537, basic to £29,526 and so on. `scotAdvancedTop` is where the top rate starts |
+| `qualifyingEarningsLower`, `qualifyingEarningsUpper` | Auto-enrolment qualifying earnings band (£ a year) |
+| `pensionAnnualAllowance` | Pension annual allowance before any taper (£) |
+| `psaBasic`, `psaHigher`, `psaAdditional` | Personal Savings Allowance by income tax band (£) |
+| `isaAllowance`, `lisaAnnualLimit`, `lisaPropertyCap` | ISA allowance, the most you can pay into a Lifetime ISA a year, and the first-home price cap (£) |
 | `mortgageIncomeMultiple` | Typical lender loan-to-income cap (x income) |
 
 | `usFact` key (`status=` where it varies) | Meaning |
 |---|---|
 | `standardDeduction`, `additionalMedicareThreshold`, `niitThreshold`, `ltcgZeroTop`, `ltcg15Top` | By filing status ($) |
 | `ssWageBase`, `ssRate`, `medicareRate`, `additionalMedicareRate`, `niitRate` | FICA and NIIT |
-| `k401Limit`, `k401CatchUp`, `k401CatchUp60to63` | 401(k) limits ($). Fails for a year the IRS has not published yet (2027 until the notice) |
+| `k401Limit`, `k401CatchUp`, `k401CatchUp60to63` | 401(k) limits ($). Fails for a year the IRS has not published yet |
+| `iraLimit`, `iraCatchUp` | IRA contribution limit and the age-50 catch-up ($). Fails for a year the IRS has not published yet, like the 401(k) limits |
+| `overtimeCap`, `overtimePhaseOutStart` | Qualified overtime deduction cap and the MAGI where it starts to phase out ($, by filing status). One Big Beautiful Bill Act, tax years 2025 to 2028; fails outside them |
+| `overtimeReductionPer1000` | Overtime deduction lost for each full $1,000 of MAGI above the start ($) |
+| `seniorDeduction`, `seniorPhaseOutStart`, `seniorPhaseOutRate` | Senior deduction per person aged 65+ ($), the MAGI where it starts to phase out ($, by filing status) and the share of MAGI above that which reduces it (%). Same years as the overtime deduction |
 
 | Function | Returns | Example | Value |
 |---|---|---|---|
@@ -442,6 +466,16 @@ year-1 share in %, with the battery lifting it when `battery=true`). `.paybackYe
 with `int`, never `months`. A system that does not pay back within the period **fails the build**, and so does
 one whose grant covers the whole cost (the calculator says "Pays back immediately", with nothing to pay back).
 
+`solarDefault(region, key)` prints one of those regional defaults, so a page can quote the tariff the
+calculator starts from without typing it:
+`{{ solarDefault('uk', 'tariff') | num(2) }}` is the UK import tariff in pence per kWh. Keys are the option
+names `solarPayback` uses: `systemCost`, `systemSize` (kWp), `batteryCost`, `batteryCapacity` (kWh), `tariff` and
+`exportTariff` (pence or cents per kWh), `maintenance` and `kWhPerKwp`. Print tariffs with `num(2)` or `num(auto)`.
+
+| Function | Returns | Example | Value |
+|---|---|---|---|
+| `solarDefault(region, key)` | number: the calculator's regional default for that input (`region` is `uk`, `us` or `eur`) | `{{ solarDefault('uk', 'tariff') \| num(2) }}` | 26.32 |
+
 ### ROI, required rate, CPI and loan schedule
 
 | Function | Returns | Example | Value |
@@ -465,6 +499,37 @@ themselves (`{{ cpiValue(1990) | index }}`).
 | `rateSource(key)` | text: who published the rate and the date it describes | `{{ rateSource('us30') }}` | varies |
 | `min(a, b)` | the smaller number | `{{ min(3, 5) \| int }}` | 3 |
 | `max(a, b)` | the larger number | `{{ max(0, 50000 - 60000) \| usd }}` | $0 |
+
+#### Guarding a verdict: `claim(condition, message)`
+
+A figure token cannot drift from the engines, but the words around it can: "the 15-year loan
+costs less interest than the 30-year one" stays in the text after a rate moves so far that it is
+no longer true. Where a sentence rests on a comparison of live figures, guard it with
+`claim(condition, message)`. It prints **nothing** when the condition is true and **fails the
+build** with your message when it is false (also in `npm test`, which resolves every token in
+`src/data`), so the sentence is rewritten before it ships.
+
+```markdown
+The 15-year loan costs less in total interest than the 30-year one.{{ claim(loanTotalInterest(300000, rate('us15'), 15) < loanTotalInterest(300000, rate('us30'), 30), 'the 15-year mortgage costs less total interest than the 30-year one') }}
+```
+
+In frontmatter, keep the token's strings single-quoted inside the double-quoted YAML value:
+
+```yaml
+verdict: "Pay the card first.{{ claim(cardPayoff(5000, 22.99, 100).interest > 0, 'the card still accrues interest') }}"
+```
+
+- **Place it at the end of the sentence it guards**, straight after the full stop, so no stray
+  space is left. It can also sit on a line of its own.
+- **The message says what the sentence claims**, in words a later editor can act on. The build
+  error shows it with the file, line and column: `a claim in the text no longer holds: <message>`.
+- Conditions compare the engines' unrounded values with `<`, `>`, `<=`, `>=`, `==`, `!=` and
+  join with `&&`, `||`, `!` (section 2). To claim that two amounts are about the same, compare
+  their gap: `max(a - b, b - a) < 1`.
+- It is for **qualitative statements derived from figures** (a ranking, a verdict, "wins", "ties",
+  "breaks even before year 7"). It does not replace tokens: a number the engines can produce is
+  still a token, never typed. If the sentence can be worded so it stays true whatever the numbers
+  do, do that instead.
 
 The `rate` and `rateSource` values move every time `market-rates.ts` is updated (the owner
 re-checks it monthly), which is the point: always print both, so the page shows the figure
@@ -491,7 +556,7 @@ A rate is a market snapshot, not a quote: say so in the words around it.
 | `rentVsBuy` | `simulateRentVsBuy`, `laterBreakEvenYear` (`rent-vs-buy.ts`) |
 | `carFinance` | `compareCarFinance` (`car-finance.ts`) |
 | `emergencyMonths` | `monthsToTarget` (`emergency-fund.ts`) |
-| `solarPayback` | `calculateSolarPayback`, `effectiveSelfConsumption`, `SOLAR_REGIONAL_DEFAULTS` (`solar-payback.ts`) |
+| `solarPayback`, `solarDefault` | `calculateSolarPayback`, `effectiveSelfConsumption`, `SOLAR_REGIONAL_DEFAULTS` (`solar-payback.ts`) |
 | `roi`, `annualizedReturn` | `calcRoi`, `annualize` (`roi.ts`) |
 | `requiredRate` | `solveRequiredRate` (`investment-solvers.ts`) |
 | `debtPayoff`, `debtClearMonth` | `simulateDebtPayoff`, `prepareDebts` (`debt-payoff.ts`) |

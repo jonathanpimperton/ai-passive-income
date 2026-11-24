@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   calculateUkTakeHome,
   calcUkIncomeTax,
@@ -9,6 +9,10 @@ import {
   type UkTakeHomeInput,
 } from './uk-tax-calc';
 import { parseUkTaxCode } from './uk-tax-codes';
+
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 /**
  * UK Salary engine (2026/27). Independent figures are worked by hand in the

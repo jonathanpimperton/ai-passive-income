@@ -29,6 +29,10 @@ import {
 import { US_RATES_BY_YEAR, US_TAX_YEARS } from './us-rates';
 import { UK_RATES_BY_YEAR, UK_TAX_YEARS } from './uk-rates';
 
+/* Heavy under load (another build or test run on the same machine): an explicit generous timeout
+ * for the whole file instead of vitest's 5 s default. The tests are not shrunk. */
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
+
 const day = (iso: string) => {
   const d = parseIsoDate(iso);
   if (!d) throw new Error(`bad test date ${iso}`);

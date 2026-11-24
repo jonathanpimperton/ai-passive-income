@@ -64,20 +64,13 @@ interface HubCase {
   rowId: string;
   /** Index of the table cell (after the row header) that holds the calculator's headline figure. */
   cell: number;
-  /**
-   * Allowed difference in whole currency units. The compound interest calculator rounds its
-   * final balance to cents and then to whole dollars, so a balance that ends in .4996 shows
-   * one dollar higher than the engine value the table prints ($609,986 vs $609,985 for
-   * $500 a month over 30 years). Calculator-side double rounding, reported to its owner.
-   */
-  tolerance?: number;
 }
 
 const HUBS: HubCase[] = [
   { name: 'UK take-home pay', path: '/scenarios/uk-take-home-pay/', rowId: '50k', cell: 0 },
   { name: 'US take-home pay', path: '/scenarios/us-take-home-pay/', rowId: '100k', cell: 0 },
   { name: 'mortgage payments', path: '/scenarios/mortgage-payments-by-amount/', rowId: '300k', cell: 0 },
-  { name: 'investment growth', path: '/scenarios/investment-growth/', rowId: '500-per-month', cell: 2, tolerance: 1 },
+  { name: 'investment growth', path: '/scenarios/investment-growth/', rowId: '500-per-month', cell: 2 },
 ];
 
 /** Where a visitor might be: region detection picks GBP or EUR from these on the calculators. */
@@ -106,7 +99,7 @@ for (const hub of HUBS) {
       const figures = await page.locator('[data-headline-result] p.result-number').allInnerTexts();
       const check = (calculator: string, table: string, label: string) => {
         const gap = Math.abs(Number(digits(calculator)) - Number(digits(table)));
-        expect(gap, `${label}: calculator ${calculator} vs table ${table}`).toBeLessThanOrEqual(hub.tolerance ?? 0);
+        expect(gap, `${label}: calculator ${calculator} vs table ${table}`).toBe(0);
       };
       if (figures.length === 2) {
         check(figures[1], (await cells.nth(0).innerText()).trim(), 'a year');
